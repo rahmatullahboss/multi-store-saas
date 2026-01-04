@@ -174,6 +174,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     storeName: store?.name || 'Store',
     logo: store?.logo,
     currency: store?.currency || 'USD',
+    theme: store?.theme || 'default', // Preset theme name
     products: storeProducts,
     categories,
     currentCategory: category,
@@ -220,6 +221,7 @@ export default function Index() {
       storeName={data.storeName}
       storeId={data.storeId}
       logo={data.logo}
+      theme={data.theme}
       products={data.products || []}
       categories={data.categories || []}
       currentCategory={data.currentCategory}

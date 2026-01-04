@@ -13,6 +13,7 @@ import { Link, useFetcher } from '@remix-run/react';
 import { useState } from 'react';
 import type { ThemeConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
+import { getThemeColors } from '~/lib/theme';
 
 // Serialized product type
 interface SerializedProduct {
@@ -30,6 +31,7 @@ interface StoreLayoutProps {
   storeName: string;
   storeId: number;
   logo?: string | null;
+  theme?: string | null;
   products: SerializedProduct[];
   categories: (string | null)[];
   currentCategory?: string | null;
@@ -41,6 +43,7 @@ export function StoreLayout({
   storeName,
   storeId,
   logo,
+  theme,
   products,
   categories,
   currentCategory,
@@ -58,8 +61,11 @@ export function StoreLayout({
     }).format(price);
   };
 
-  const primaryColor = config?.primaryColor || '#2563eb';
-  const accentColor = config?.accentColor || '#f59e0b';
+  // Get preset theme colors (falls back to config colors if no theme set)
+  const themeColors = getThemeColors(theme);
+  const primaryColor = config?.primaryColor || themeColors.primary;
+  const accentColor = config?.accentColor || themeColors.accent;
+  const isDarkTheme = theme === 'dark';
 
   return (
     <div className="min-h-screen bg-white">
