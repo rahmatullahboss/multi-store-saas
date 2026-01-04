@@ -190,7 +190,7 @@
 - [x] Promo code management UI
 - [x] Flash sales (countdown timer component)
 - [x] Abandoned cart recovery dashboard
-- [ ] Email campaigns (future)
+- [x] Email campaigns (subscribers, campaigns, send/schedule)
 
 ### 9.3 Multi-language ✅
 
