@@ -27,13 +27,20 @@ export const meta: MetaFunction = () => {
 export async function loader({ context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
   
-  // For now, we'll use the context storeId (from tenant middleware)
-  // In production, you'd verify the user is authenticated and owns this store
-  const { storeId, store } = context;
+  // Fetch the first active store (simplified for MVP)
+  // In production, you'd authenticate the merchant and get their store
+  const storeResult = await db
+    .select()
+    .from(stores)
+    .where(eq(stores.isActive, true))
+    .limit(1);
 
-  if (!storeId || !store) {
-    throw new Response('Store not found', { status: 404 });
+  if (storeResult.length === 0) {
+    throw new Response('No active store found', { status: 404 });
   }
+
+  const store = storeResult[0];
+  const storeId = store.id;
 
   // Fetch orders for this store, newest first
   const storeOrders = await db
