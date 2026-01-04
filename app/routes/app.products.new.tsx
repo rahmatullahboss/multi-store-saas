@@ -14,11 +14,12 @@ import type { ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { products } from '@db/schema';
+import { products, productVariants } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { Link } from '@remix-run/react';
+import { VariantManager, type Variant } from '~/components/VariantManager';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Multi-Store SaaS' }];
@@ -40,6 +41,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const category = formData.get('category') as string;
   const description = formData.get('description') as string;
   const imageUrl = formData.get('imageUrl') as string;
+  const variantsJson = formData.get('variants') as string;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -60,7 +62,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Create product
-  await db.insert(products).values({
+  const [inserted] = await db.insert(products).values({
     storeId,
     title: title.trim(),
     price: parseFloat(price),
@@ -69,7 +71,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
     description: description?.trim() || null,
     imageUrl: imageUrl || null,
     isPublished: true,
-  });
+  }).returning({ id: products.id });
+
+  // Create variants if any
+  if (variantsJson) {
+    try {
+      const variants: Variant[] = JSON.parse(variantsJson);
+      for (const v of variants) {
+        if (v.option1Value) {
+          await db.insert(productVariants).values({
+            productId: inserted.id,
+            option1Name: v.option1Name,
+            option1Value: v.option1Value,
+            option2Name: v.option2Name || null,
+            option2Value: v.option2Value || null,
+            price: v.price || null,
+            sku: v.sku || null,
+            inventory: v.inventory || 0,
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse variants', e);
+    }
+  }
 
   return redirect('/app/products');
 }
@@ -102,6 +127,10 @@ export default function NewProductPage() {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Variants state
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [basePrice, setBasePrice] = useState<number>(0);
 
   // useFetcher for async image upload
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
@@ -317,6 +346,15 @@ export default function NewProductPage() {
               placeholder="Describe your product..."
             />
           </div>
+        </div>
+
+        {/* Product Variants */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <VariantManager
+            variants={variants}
+            onChange={setVariants}
+            basePrice={basePrice}
+          />
         </div>
 
         {/* Submit Button */}

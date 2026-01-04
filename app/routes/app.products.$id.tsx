@@ -14,10 +14,11 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useActionData, useLoaderData, useNavigation, useFetcher, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
-import { products } from '@db/schema';
+import { products, productVariants } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
+import { VariantManager, type Variant } from '~/components/VariantManager';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.product?.title ? `Edit ${data.product.title}` : 'Edit Product' }];
@@ -49,7 +50,13 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     throw new Response('Product not found', { status: 404 });
   }
 
-  return json({ product: productResult[0] });
+  // Fetch variants
+  const variantsResult = await db
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.productId, productId));
+
+  return json({ product: productResult[0], variants: variantsResult });
 }
 
 // ============================================================================
@@ -86,6 +93,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const description = formData.get('description') as string;
   const imageUrl = formData.get('imageUrl') as string;
   const isPublished = formData.get('isPublished') === 'true';
+  const variantsJson = formData.get('variants') as string;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -117,6 +125,34 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     })
     .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
 
+  // Handle variants
+  if (variantsJson) {
+    try {
+      const variants: Variant[] = JSON.parse(variantsJson);
+      
+      // Delete existing variants
+      await db.delete(productVariants).where(eq(productVariants.productId, productId));
+      
+      // Insert new variants
+      for (const v of variants) {
+        if (v.option1Value) {
+          await db.insert(productVariants).values({
+            productId,
+            option1Name: v.option1Name,
+            option1Value: v.option1Value,
+            option2Name: v.option2Name || null,
+            option2Value: v.option2Value || null,
+            price: v.price || null,
+            sku: v.sku || null,
+            inventory: v.inventory || 0,
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Failed to update variants', e);
+    }
+  }
+
   return redirect('/app/products');
 }
 
@@ -140,7 +176,7 @@ const categories = [
 // MAIN COMPONENT
 // ============================================================================
 export default function EditProductPage() {
-  const { product } = useLoaderData<typeof loader>();
+  const { product, variants: loadedVariants } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
@@ -150,6 +186,20 @@ export default function EditProductPage() {
   const [imagePreview, setImagePreview] = useState<string>(product.imageUrl || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Variants state
+  const [variants, setVariants] = useState<Variant[]>(
+    loadedVariants.map(v => ({
+      id: v.id,
+      option1Name: v.option1Name || 'Size',
+      option1Value: v.option1Value || '',
+      option2Name: v.option2Name || undefined,
+      option2Value: v.option2Value || undefined,
+      price: v.price || undefined,
+      sku: v.sku || undefined,
+      inventory: v.inventory || 0,
+    }))
+  );
 
   // useFetcher for async image upload
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
@@ -422,6 +472,15 @@ export default function EditProductPage() {
               Published (visible to customers)
             </label>
           </div>
+        </div>
+
+        {/* Product Variants */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <VariantManager
+            variants={variants}
+            onChange={setVariants}
+            basePrice={product.price}
+          />
         </div>
 
         {/* Submit Button */}
