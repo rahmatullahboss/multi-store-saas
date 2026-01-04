@@ -116,6 +116,20 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // Fetch order before update to check if we need to send email
+  const orderResult = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+    .limit(1);
+
+  if (orderResult.length === 0) {
+    return json({ error: 'Order not found' }, { status: 404 });
+  }
+
+  const order = orderResult[0];
+  const previousStatus = order.status;
+
   await db
     .update(orders)
     .set({ 
@@ -123,6 +137,42 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       updatedAt: new Date() 
     })
     .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
+
+  // Send shipping notification if status changed to shipped/delivered and customer has email
+  const shippingStatuses = ['shipped', 'delivered'];
+  if (
+    shippingStatuses.includes(status) && 
+    previousStatus !== status &&
+    order.customerEmail
+  ) {
+    const resendApiKey = context.cloudflare.env.RESEND_API_KEY;
+    
+    if (resendApiKey) {
+      // Import email service
+      const { createEmailService } = await import('~/services/email.server');
+      const emailService = createEmailService(resendApiKey);
+
+      // Fetch store name
+      const storeResult = await db
+        .select({ name: stores.name })
+        .from(stores)
+        .where(eq(stores.id, storeId))
+        .limit(1);
+
+      const storeName = storeResult[0]?.name || 'Your Store';
+
+      // Send shipping update email (non-blocking)
+      context.cloudflare.ctx.waitUntil(
+        emailService.sendShippingUpdate({
+          customerEmail: order.customerEmail,
+          customerName: order.customerName || 'Valued Customer',
+          orderNumber: order.orderNumber || `#${orderId}`,
+          storeName,
+          status: status as 'shipped' | 'out_for_delivery' | 'delivered',
+        })
+      );
+    }
+  }
 
   return json({ success: true });
 }

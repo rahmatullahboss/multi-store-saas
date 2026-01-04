@@ -35,6 +35,12 @@ export const stores = sqliteTable('stores', {
   theme: text('theme').default('default'),
   currency: text('currency').default('USD'),
   defaultLanguage: text('default_language').$type<'en' | 'bn'>().default('en'),
+  
+  // === NOTIFICATION SETTINGS ===
+  notificationEmail: text('notification_email'), // Override email for alerts
+  emailNotificationsEnabled: integer('email_notifications_enabled', { mode: 'boolean' }).default(true),
+  lowStockThreshold: integer('low_stock_threshold').default(10),
+  
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
