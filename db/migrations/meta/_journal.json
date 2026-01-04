@@ -22,6 +22,13 @@
       "when": 1767557400979,
       "tag": "0002_true_james_howlett",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1767557752389,
+      "tag": "0003_famous_nightshade",
+      "breakpoints": true
     }
   ]
 }

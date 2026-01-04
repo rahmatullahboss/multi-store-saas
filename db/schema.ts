@@ -277,6 +277,144 @@ export const payoutsRelations = relations(payouts, ({ one }) => ({
 }));
 
 // ============================================================================
+// SHIPPING ZONES TABLE - Delivery areas and rates
+// ============================================================================
+export const shippingZones = sqliteTable('shipping_zones', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(), // "Dhaka City", "Outside Dhaka"
+  regions: text('regions'), // JSON array of regions/districts
+  rate: real('rate').notNull().default(0), // Shipping cost
+  freeAbove: real('free_above'), // Free shipping threshold
+  estimatedDays: text('estimated_days'), // "2-3 days"
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('shipping_zones_store_id_idx').on(table.storeId),
+]);
+
+export const shippingZonesRelations = relations(shippingZones, ({ one }) => ({
+  store: one(stores, {
+    fields: [shippingZones.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// SHIPMENTS TABLE - Order tracking
+// ============================================================================
+export const shipments = sqliteTable('shipments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  courier: text('courier'), // "pathao", "redx", "manual"
+  trackingNumber: text('tracking_number'),
+  status: text('status').$type<'pending' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'returned'>().default('pending'),
+  courierData: text('courier_data'), // JSON response from courier API
+  shippedAt: integer('shipped_at', { mode: 'timestamp' }),
+  deliveredAt: integer('delivered_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('shipments_order_id_idx').on(table.orderId),
+]);
+
+export const shipmentsRelations = relations(shipments, ({ one }) => ({
+  order: one(orders, {
+    fields: [shipments.orderId],
+    references: [orders.id],
+  }),
+}));
+
+// ============================================================================
+// DISCOUNTS TABLE - Promo codes and coupons
+// ============================================================================
+export const discounts = sqliteTable('discounts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  code: text('code').notNull(),
+  type: text('type').$type<'percentage' | 'fixed'>().default('percentage'),
+  value: real('value').notNull(), // Percentage (0-100) or fixed amount
+  minOrderAmount: real('min_order_amount'), // Minimum order to apply
+  maxDiscountAmount: real('max_discount_amount'), // Cap for percentage discounts
+  maxUses: integer('max_uses'), // Total uses allowed (null = unlimited)
+  usedCount: integer('used_count').default(0),
+  perCustomerLimit: integer('per_customer_limit').default(1), // Uses per customer
+  startsAt: integer('starts_at', { mode: 'timestamp' }),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('discounts_store_id_idx').on(table.storeId),
+  index('discounts_code_idx').on(table.storeId, table.code),
+]);
+
+export const discountsRelations = relations(discounts, ({ one }) => ({
+  store: one(stores, {
+    fields: [discounts.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// STAFF INVITES TABLE - Team member invitations
+// ============================================================================
+export const staffInvites = sqliteTable('staff_invites', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  role: text('role').$type<'admin' | 'staff' | 'viewer'>().default('staff'),
+  token: text('token').notNull().unique(),
+  invitedBy: integer('invited_by').references(() => users.id),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }),
+  acceptedAt: integer('accepted_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('staff_invites_store_id_idx').on(table.storeId),
+  index('staff_invites_token_idx').on(table.token),
+]);
+
+export const staffInvitesRelations = relations(staffInvites, ({ one }) => ({
+  store: one(stores, {
+    fields: [staffInvites.storeId],
+    references: [stores.id],
+  }),
+  inviter: one(users, {
+    fields: [staffInvites.invitedBy],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// ACTIVITY LOGS TABLE - Audit trail
+// ============================================================================
+export const activityLogs = sqliteTable('activity_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id),
+  action: text('action').notNull(), // "product_created", "order_updated", "settings_changed"
+  entityType: text('entity_type'), // "product", "order", "settings"
+  entityId: integer('entity_id'), // ID of the affected entity
+  details: text('details'), // JSON with before/after or additional info
+  ipAddress: text('ip_address'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('activity_logs_store_id_idx').on(table.storeId),
+  index('activity_logs_user_id_idx').on(table.userId),
+]);
+
+export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
+  store: one(stores, {
+    fields: [activityLogs.storeId],
+    references: [stores.id],
+  }),
+  user: one(users, {
+    fields: [activityLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -295,4 +433,13 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Payout = typeof payouts.$inferSelect;
 export type NewPayout = typeof payouts.$inferInsert;
-
+export type ShippingZone = typeof shippingZones.$inferSelect;
+export type NewShippingZone = typeof shippingZones.$inferInsert;
+export type Shipment = typeof shipments.$inferSelect;
+export type NewShipment = typeof shipments.$inferInsert;
+export type Discount = typeof discounts.$inferSelect;
+export type NewDiscount = typeof discounts.$inferInsert;
+export type StaffInvite = typeof staffInvites.$inferSelect;
+export type NewStaffInvite = typeof staffInvites.$inferInsert;
+export type ActivityLog = typeof activityLogs.$inferSelect;
+export type NewActivityLog = typeof activityLogs.$inferInsert;
