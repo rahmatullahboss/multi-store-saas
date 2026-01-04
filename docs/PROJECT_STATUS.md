@@ -55,9 +55,53 @@ A Shopify-like multi-tenant e-commerce platform where merchants can create store
 | Feature                | Status      | Details         |
 | ---------------------- | ----------- | --------------- |
 | SQLite Database (D1)   | ✅ Complete | Cloudflare D1   |
-| Drizzle ORM Schema     | ✅ Complete | 6 tables        |
+| Drizzle ORM Schema     | ✅ Complete | 12+ tables      |
 | Cloudinary Integration | ✅ Complete | Signed uploads  |
-| Cloudflare Workers     | ✅ Complete | Edge deployment |
+| Cloudflare Pages       | ✅ Complete | Edge deployment |
+
+### 💳 Payment Integration
+
+| Feature                 | Status      | Route             |
+| ----------------------- | ----------- | ----------------- |
+| bKash Integration       | ✅ Complete | `/api/bkash/*`    |
+| Nagad Integration       | ✅ Complete | `/api/nagad/*`    |
+| Stripe (International)  | ✅ Complete | `/api/stripe/*`   |
+| Payment Status Tracking | ✅ Complete | Order detail page |
+
+### 🚚 Shipping Management
+
+| Feature                 | Status      | Route                    |
+| ----------------------- | ----------- | ------------------------ |
+| Shipping Zones          | ✅ Complete | `/app/settings/shipping` |
+| Delivery Charges        | ✅ Complete | Per-zone rates           |
+| Free Shipping Threshold | ✅ Complete | Configurable per zone    |
+
+### 📊 Analytics Dashboard
+
+| Feature                | Status      | Route            |
+| ---------------------- | ----------- | ---------------- |
+| Sales Overview         | ✅ Complete | `/app/analytics` |
+| Revenue Charts         | ✅ Complete | 7-day trend      |
+| Top Products           | ✅ Complete | Best sellers     |
+| Order Status Breakdown | ✅ Complete | Visual breakdown |
+
+### 🏷️ Discount Codes
+
+| Feature               | Status      | Route                |
+| --------------------- | ----------- | -------------------- |
+| Promo Code Management | ✅ Complete | `/app/discounts`     |
+| Percentage/Fixed      | ✅ Complete | Both types supported |
+| Min Order/Max Uses    | ✅ Complete | Full configuration   |
+| Expiry Dates          | ✅ Complete | Auto-expiration      |
+
+### 🌐 Domain & SEO
+
+| Feature                | Status      | Route                |
+| ---------------------- | ----------- | -------------------- |
+| Custom Domain Input    | ✅ Complete | `/app/settings`      |
+| DNS Instructions       | ✅ Complete | CNAME setup guide    |
+| Meta Title/Description | ✅ Complete | `/app/settings/seo`  |
+| Open Graph Image       | ✅ Complete | Social media preview |
 
 ---
 
@@ -75,45 +119,33 @@ A Shopify-like multi-tenant e-commerce platform where merchants can create store
 
 ### 🎨 Theme Customization
 
-- [ ] Store theme color picker
-- [ ] Logo upload
+- [ ] Custom accent color picker
+- [ ] Font selection
 - [ ] Custom CSS
-
-### 🌐 Domain Settings
-
-- [ ] Custom domain connection
-- [ ] SSL certificate management
-- [ ] DNS configuration guide
-
-### 📊 Analytics
-
-- [ ] Sales dashboard
-- [ ] Visitor tracking
-- [ ] Conversion metrics
-
-### 💳 Payment Integration
-
-- [ ] bKash / Nagad integration
-- [ ] Stripe integration
-- [ ] Payment status tracking
 
 ### 📧 Notifications
 
-- [ ] Email notifications
-- [ ] SMS notifications (order updates)
-- [ ] Push notifications
+- [ ] Email notifications (Resend/SendGrid)
+- [ ] SMS notifications (Twilio)
+- [ ] Low stock alerts
 
 ### 👥 Multi-User Access
 
-- [ ] Staff accounts
+- [ ] Staff accounts with invitations
 - [ ] Role-based permissions
 - [ ] Activity logs
 
-### 🏷️ Inventory Management
+### 🏷️ Advanced Inventory
 
-- [ ] Low stock alerts
-- [ ] Stock tracking
-- [ ] Bulk import/export
+- [ ] Low stock alerts system
+- [ ] Bulk import/export (CSV)
+- [ ] Stock tracking automation
+
+### 🚚 Courier Integration
+
+- [ ] Pathao API integration
+- [ ] RedX API integration
+- [ ] Tracking number management
 
 ### 📱 Mobile App (Future)
 
@@ -125,23 +157,34 @@ A Shopify-like multi-tenant e-commerce platform where merchants can create store
 ## 🗂️ Database Schema
 
 ```
-stores          - Tenant stores with subdomain/custom domain
-users           - Merchant accounts (linked to stores)
-products        - Store products with images
-customers       - Customer information
-orders          - Order records with status
-order_items     - Line items in orders
+stores           - Tenant stores with subdomain/custom domain
+users            - Merchant accounts (linked to stores)
+products         - Store products with images
+product_variants - Size/color variants
+customers        - Customer information
+orders           - Order records with status
+order_items      - Line items in orders
+payouts          - Commission tracking
+shipping_zones   - Delivery areas and rates
+discounts        - Promo codes
+shipments        - Tracking info
+staff_invites    - Team invitations
+activity_logs    - Audit trail
 ```
 
 ---
 
 ## 🔗 Key Files Reference
 
-| Category          | File                             |
-| ----------------- | -------------------------------- |
-| Auth Service      | `app/services/auth.server.ts`    |
-| Database Schema   | `db/schema.ts`                   |
-| Dashboard Layout  | `app/routes/app.tsx`             |
-| Upload API        | `app/routes/api.upload-image.ts` |
-| Order API         | `app/routes/api.create-order.ts` |
-| Cloudflare Config | `wrangler.toml`                  |
+| Category          | File                                   |
+| ----------------- | -------------------------------------- |
+| Auth Service      | `app/services/auth.server.ts`          |
+| Database Schema   | `db/schema.ts`                         |
+| Dashboard Layout  | `app/routes/app.tsx`                   |
+| Upload API        | `app/routes/api.upload-image.ts`       |
+| Order API         | `app/routes/api.create-order.ts`       |
+| Analytics         | `app/routes/app.analytics.tsx`         |
+| Discounts         | `app/routes/app.discounts.tsx`         |
+| Shipping Zones    | `app/routes/app.settings.shipping.tsx` |
+| SEO Settings      | `app/routes/app.settings.seo.tsx`      |
+| Cloudflare Config | `wrangler.toml`                        |

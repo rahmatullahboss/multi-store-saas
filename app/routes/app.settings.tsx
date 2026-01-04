@@ -501,9 +501,10 @@ export default function SettingsPage() {
                 <li>2. Add a <strong>CNAME</strong> record:</li>
                 <li className="ml-4 font-mono text-xs bg-blue-100 p-2 rounded">
                   Name: @ or www<br />
-                  Value: cname.vercel-dns.com
+                  Value: multi-store-saas.pages.dev
                 </li>
-                <li>3. Save your domain here and wait for DNS propagation (up to 48 hours)</li>
+                <li>3. Contact admin to add your domain in Cloudflare Dashboard</li>
+                <li>4. Wait for DNS propagation (up to 48 hours)</li>
               </ol>
             </div>
 
@@ -516,6 +517,31 @@ export default function SettingsPage() {
                 </span>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Quick Links to Other Settings */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">More Settings</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <a 
+              href="/app/settings/shipping" 
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <Store className="w-4 h-4 text-emerald-600" />
+              </div>
+              <span className="font-medium text-gray-700">Shipping Zones</span>
+            </a>
+            <a 
+              href="/app/settings/seo" 
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Globe className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="font-medium text-gray-700">SEO Settings</span>
+            </a>
           </div>
         </div>
 

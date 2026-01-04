@@ -1,0 +1,407 @@
+/**
+ * Analytics Dashboard
+ * 
+ * Route: /app/analytics
+ * 
+ * Features:
+ * - Sales overview (today, week, month, all-time)
+ * - Revenue chart
+ * - Top selling products
+ * - Recent orders
+ */
+
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
+import { useLoaderData } from '@remix-run/react';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq, and, gte, desc, sql } from 'drizzle-orm';
+import { orders, orderItems, products, stores } from '@db/schema';
+import { getStoreId } from '~/services/auth.server';
+import { 
+  TrendingUp, 
+  ShoppingCart, 
+  Package, 
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownRight,
+  Calendar,
+  Users
+} from 'lucide-react';
+
+export const meta: MetaFunction = () => {
+  return [{ title: 'Analytics - Multi-Store SaaS' }];
+};
+
+// ============================================================================
+// LOADER - Fetch analytics data
+// ============================================================================
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const storeId = await getStoreId(request);
+  if (!storeId) {
+    throw new Response('Store not found', { status: 404 });
+  }
+
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // Get store currency
+  const storeData = await db
+    .select({ currency: stores.currency })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+  
+  const currency = storeData[0]?.currency || 'BDT';
+
+  // Date calculations
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(weekStart.getDate() - 7);
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // Get all orders for stats
+  const allOrders = await db
+    .select({
+      id: orders.id,
+      total: orders.total,
+      status: orders.status,
+      paymentStatus: orders.paymentStatus,
+      createdAt: orders.createdAt,
+    })
+    .from(orders)
+    .where(eq(orders.storeId, storeId));
+
+  // Calculate stats
+  const todayOrders = allOrders.filter(o => o.createdAt && o.createdAt >= todayStart);
+  const weekOrders = allOrders.filter(o => o.createdAt && o.createdAt >= weekStart);
+  const monthOrders = allOrders.filter(o => o.createdAt && o.createdAt >= monthStart);
+  
+  const paidOrders = allOrders.filter(o => o.paymentStatus === 'paid');
+  const todayPaid = todayOrders.filter(o => o.paymentStatus === 'paid');
+  const weekPaid = weekOrders.filter(o => o.paymentStatus === 'paid');
+  const monthPaid = monthOrders.filter(o => o.paymentStatus === 'paid');
+
+  const stats = {
+    today: {
+      orders: todayOrders.length,
+      revenue: todayPaid.reduce((sum, o) => sum + (o.total || 0), 0),
+    },
+    week: {
+      orders: weekOrders.length,
+      revenue: weekPaid.reduce((sum, o) => sum + (o.total || 0), 0),
+    },
+    month: {
+      orders: monthOrders.length,
+      revenue: monthPaid.reduce((sum, o) => sum + (o.total || 0), 0),
+    },
+    allTime: {
+      orders: allOrders.length,
+      revenue: paidOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+    },
+  };
+
+  // Order status breakdown
+  const statusBreakdown = {
+    pending: allOrders.filter(o => o.status === 'pending').length,
+    processing: allOrders.filter(o => o.status === 'processing').length,
+    shipped: allOrders.filter(o => o.status === 'shipped').length,
+    delivered: allOrders.filter(o => o.status === 'delivered').length,
+    cancelled: allOrders.filter(o => o.status === 'cancelled').length,
+  };
+
+  // Top selling products
+  const topProductsQuery = await db
+    .select({
+      productId: orderItems.productId,
+      title: orderItems.title,
+      totalQty: sql<number>`SUM(${orderItems.quantity})`.as('total_qty'),
+      totalRevenue: sql<number>`SUM(${orderItems.total})`.as('total_revenue'),
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .where(eq(orders.storeId, storeId))
+    .groupBy(orderItems.productId, orderItems.title)
+    .orderBy(desc(sql`total_qty`))
+    .limit(5);
+
+  // Recent orders
+  const recentOrders = await db
+    .select({
+      id: orders.id,
+      orderNumber: orders.orderNumber,
+      customerName: orders.customerName,
+      total: orders.total,
+      status: orders.status,
+      createdAt: orders.createdAt,
+    })
+    .from(orders)
+    .where(eq(orders.storeId, storeId))
+    .orderBy(desc(orders.createdAt))
+    .limit(5);
+
+  // Daily revenue for last 7 days (for chart)
+  const dailyRevenue: { date: string; revenue: number; orders: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(todayStart);
+    date.setDate(date.getDate() - i);
+    const nextDate = new Date(date);
+    nextDate.setDate(nextDate.getDate() + 1);
+    
+    const dayOrders = allOrders.filter(o => {
+      if (!o.createdAt) return false;
+      return o.createdAt >= date && o.createdAt < nextDate;
+    });
+    const dayPaid = dayOrders.filter(o => o.paymentStatus === 'paid');
+    
+    dailyRevenue.push({
+      date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      revenue: dayPaid.reduce((sum, o) => sum + (o.total || 0), 0),
+      orders: dayOrders.length,
+    });
+  }
+
+  return json({
+    stats,
+    statusBreakdown,
+    topProducts: topProductsQuery,
+    recentOrders,
+    dailyRevenue,
+    currency,
+  });
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+export default function AnalyticsPage() {
+  const { stats, statusBreakdown, topProducts, recentOrders, dailyRevenue, currency } = useLoaderData<typeof loader>();
+
+  const formatPrice = (amount: number) => {
+    const symbols: Record<string, string> = { BDT: '৳', USD: '$', EUR: '€', GBP: '£', INR: '₹' };
+    return `${symbols[currency] || currency} ${amount.toLocaleString()}`;
+  };
+
+  const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue), 1);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+        <p className="text-gray-600">Track your store performance</p>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Today"
+          value={formatPrice(stats.today.revenue)}
+          subtitle={`${stats.today.orders} orders`}
+          icon={<Calendar className="w-5 h-5" />}
+          color="emerald"
+        />
+        <StatCard
+          title="This Week"
+          value={formatPrice(stats.week.revenue)}
+          subtitle={`${stats.week.orders} orders`}
+          icon={<TrendingUp className="w-5 h-5" />}
+          color="blue"
+        />
+        <StatCard
+          title="This Month"
+          value={formatPrice(stats.month.revenue)}
+          subtitle={`${stats.month.orders} orders`}
+          icon={<DollarSign className="w-5 h-5" />}
+          color="purple"
+        />
+        <StatCard
+          title="All Time"
+          value={formatPrice(stats.allTime.revenue)}
+          subtitle={`${stats.allTime.orders} orders`}
+          icon={<ShoppingCart className="w-5 h-5" />}
+          color="orange"
+        />
+      </div>
+
+      {/* Revenue Chart */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue - Last 7 Days</h2>
+        <div className="space-y-3">
+          {dailyRevenue.map((day, index) => (
+            <div key={index} className="flex items-center gap-4">
+              <div className="w-24 text-sm text-gray-600">{day.date}</div>
+              <div className="flex-1 h-8 bg-gray-100 rounded-lg overflow-hidden relative">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-lg transition-all duration-500"
+                  style={{ width: `${(day.revenue / maxRevenue) * 100}%` }}
+                />
+                {day.revenue > 0 && (
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-600">
+                    {formatPrice(day.revenue)}
+                  </span>
+                )}
+              </div>
+              <div className="w-16 text-sm text-gray-500 text-right">{day.orders} orders</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Order Status Breakdown */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Status</h2>
+          <div className="space-y-3">
+            <StatusRow label="Pending" count={statusBreakdown.pending} color="yellow" />
+            <StatusRow label="Processing" count={statusBreakdown.processing} color="blue" />
+            <StatusRow label="Shipped" count={statusBreakdown.shipped} color="purple" />
+            <StatusRow label="Delivered" count={statusBreakdown.delivered} color="emerald" />
+            <StatusRow label="Cancelled" count={statusBreakdown.cancelled} color="red" />
+          </div>
+        </div>
+
+        {/* Top Products */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Package className="w-5 h-5 text-gray-400" />
+            Top Selling Products
+          </h2>
+          {topProducts.length > 0 ? (
+            <div className="space-y-3">
+              {topProducts.map((product, index) => (
+                <div key={product.productId || index} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
+                      {index + 1}
+                    </span>
+                    <span className="text-gray-900 font-medium truncate max-w-[200px]">
+                      {product.title}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900">{product.totalQty} sold</p>
+                    <p className="text-xs text-gray-500">{formatPrice(product.totalRevenue || 0)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">No sales data yet</p>
+          )}
+        </div>
+      </div>
+
+      {/* Recent Orders */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <ShoppingCart className="w-5 h-5 text-gray-400" />
+          Recent Orders
+        </h2>
+        {recentOrders.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-500 border-b border-gray-100">
+                  <th className="pb-3 font-medium">Order</th>
+                  <th className="pb-3 font-medium">Customer</th>
+                  <th className="pb-3 font-medium">Amount</th>
+                  <th className="pb-3 font-medium">Status</th>
+                  <th className="pb-3 font-medium">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {recentOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="py-3 font-medium text-gray-900">#{order.orderNumber}</td>
+                    <td className="py-3 text-gray-600">{order.customerName || 'Guest'}</td>
+                    <td className="py-3 font-medium text-gray-900">{formatPrice(order.total)}</td>
+                    <td className="py-3">
+                      <StatusBadge status={order.status || 'pending'} />
+                    </td>
+                    <td className="py-3 text-gray-500">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-8">No orders yet</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// COMPONENTS
+// ============================================================================
+function StatCard({ 
+  title, 
+  value, 
+  subtitle, 
+  icon, 
+  color 
+}: { 
+  title: string; 
+  value: string; 
+  subtitle: string; 
+  icon: React.ReactNode;
+  color: 'emerald' | 'blue' | 'purple' | 'orange';
+}) {
+  const colors = {
+    emerald: 'bg-emerald-100 text-emerald-600',
+    blue: 'bg-blue-100 text-blue-600',
+    purple: 'bg-purple-100 text-purple-600',
+    orange: 'bg-orange-100 text-orange-600',
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-gray-500">{title}</span>
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colors[color]}`}>
+          {icon}
+        </div>
+      </div>
+      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+    </div>
+  );
+}
+
+function StatusRow({ label, count, color }: { label: string; count: number; color: string }) {
+  const colors: Record<string, string> = {
+    yellow: 'bg-yellow-100 text-yellow-700',
+    blue: 'bg-blue-100 text-blue-700',
+    purple: 'bg-purple-100 text-purple-700',
+    emerald: 'bg-emerald-100 text-emerald-700',
+    red: 'bg-red-100 text-red-700',
+  };
+
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-600">{label}</span>
+      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${colors[color]}`}>
+        {count}
+      </span>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    pending: 'bg-yellow-100 text-yellow-700',
+    processing: 'bg-blue-100 text-blue-700',
+    shipped: 'bg-purple-100 text-purple-700',
+    delivered: 'bg-emerald-100 text-emerald-700',
+    cancelled: 'bg-red-100 text-red-700',
+  };
+
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-gray-100 text-gray-700'}`}>
+      {status}
+    </span>
+  );
+}

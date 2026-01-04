@@ -24,9 +24,13 @@ import {
   LogOut,
   Menu,
   X,
-  Store
+  Store,
+  BarChart3,
+  Tag,
+  Truck
 } from 'lucide-react';
 import { useState } from 'react';
+
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Multi-Store SaaS' }];
@@ -84,9 +88,12 @@ const navItems = [
   { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/app/products', label: 'Products', icon: Package },
   { to: '/app/dashboard/orders', label: 'Orders', icon: ShoppingCart },
-  { to: '/app/admin/payouts', label: 'Payouts', icon: ShoppingCart },
+  { to: '/app/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/app/discounts', label: 'Discounts', icon: Tag },
+  { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
   { to: '/app/settings', label: 'Settings', icon: Settings },
 ];
+
 
 // ============================================================================
 // MAIN COMPONENT

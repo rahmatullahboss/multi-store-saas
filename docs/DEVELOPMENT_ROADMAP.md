@@ -89,21 +89,22 @@
 
 ---
 
-## Phase 4: Domain & SEO
+## Phase 4: Domain & SEO ✅ (Complete)
 
 ### 4.1 Custom Domains
 
-- [ ] Custom domain verification
-- [ ] SSL auto-provisioning
-- [ ] DNS setup guide
-- [ ] Domain status check
+- [x] Custom domain input field
+- [x] DNS setup guide (CNAME instructions)
+- [x] Manual domain addition via Cloudflare Dashboard
+- [ ] Domain status check API (future)
 
 ### 4.2 SEO Tools
 
-- [ ] Meta title/description editor
-- [ ] Open Graph images
-- [ ] Sitemap generation
-- [ ] Google Search Console integration
+- [x] Meta title/description editor
+- [x] Open Graph image upload
+- [x] SEO preview (Google search simulation)
+- [ ] Sitemap generation (future)
+- [ ] Google Search Console integration (future)
 
 ---
 
@@ -116,27 +117,30 @@
 - [x] Stripe (international)
 - [x] Payment status tracking
 
-### 5.2 Shipping
+### 5.2 Shipping ✅ (Complete)
 
-- [ ] Shipping zones
-- [ ] Delivery charges
-- [ ] Courier integration (Pathao/RedX)
-- [ ] Tracking numbers
+- [x] Shipping zones management
+- [x] Delivery charges per zone
+- [x] Free shipping threshold
+- [ ] Courier integration (Pathao/RedX) - future
+- [ ] Tracking numbers - future
 
 ---
 
-## Phase 6: Analytics & Reports
+## Phase 6: Analytics & Reports ✅ (Partial)
 
 ### 6.1 Dashboard Analytics
 
-- [ ] Daily/weekly/monthly sales
-- [ ] Top products
+- [x] Daily/weekly/monthly sales
+- [x] Top products
+- [x] Revenue charts
+- [x] Order status breakdown
 - [ ] Customer demographics
 - [ ] Conversion rates
 
 ### 6.2 Reports
 
-- [ ] Sales reports (exportable)
+- [ ] Sales reports (exportable CSV)
 - [ ] Inventory reports
 - [ ] Customer reports
 - [ ] Tax reports
@@ -180,9 +184,10 @@
 - [ ] Bulk import/export (CSV)
 - [ ] SKU management
 
-### 9.2 Marketing
+### 9.2 Marketing ✅ (Partial)
 
-- [ ] Discount codes
+- [x] Discount codes (percentage/fixed)
+- [x] Promo code management UI
 - [ ] Flash sales
 - [ ] Abandoned cart recovery
 - [ ] Email campaigns
@@ -197,11 +202,14 @@
 
 ## Priority Order
 
-| Priority  | Phase                        | Estimated Time  |
-| --------- | ---------------------------- | --------------- |
-| 🔴 High   | Phase 2 (Enhanced Dashboard) | 1-2 weeks       |
-| 🔴 High   | Phase 5 (Payments)           | 1-2 weeks       |
-| 🟡 Medium | Phase 4 (Domain & SEO)       | 1 week          |
-| 🟡 Medium | Phase 6 (Analytics)          | 1 week          |
-| 🟢 Low    | Phase 3 (Theme)              | 2 weeks         |
-| 🟢 Low    | Phase 7+                     | Future releases |
+| Priority | Phase                        | Status      |
+| -------- | ---------------------------- | ----------- |
+| ✅ Done  | Phase 1 (Core Platform)      | Complete    |
+| ✅ Done  | Phase 2 (Enhanced Dashboard) | Complete    |
+| ✅ Done  | Phase 4 (Domain & SEO)       | Complete    |
+| ✅ Done  | Phase 5.1 (Payments)         | Complete    |
+| ✅ Done  | Phase 5.2 (Shipping Zones)   | Complete    |
+| ✅ Done  | Phase 6 (Analytics)          | Partial     |
+| ✅ Done  | Phase 9.2 (Discounts)        | Complete    |
+| 🟡 Next  | Phase 7 (Notifications)      | Not started |
+| 🟡 Next  | Phase 8 (Multi-User)         | Not started |
