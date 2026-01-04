@@ -18,7 +18,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig } from '@db/types';
 import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
-import { FullStoreTemplate } from '~/components/templates/FullStoreTemplate';
+import { StoreLayout } from '~/components/templates/StoreLayout';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -123,6 +123,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     
     return json({
       mode: 'landing' as const,
+      storeId,
       storeName: store?.name || 'Store',
       currency: store?.currency || 'USD',
       featuredProduct,
@@ -132,6 +133,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       categories: null,
       currentCategory: null,
       themeConfig: null,
+      logo: null,
     });
   }
   
@@ -168,6 +170,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   
   return json({
     mode: 'store' as const,
+    storeId,
     storeName: store?.name || 'Store',
     logo: store?.logo,
     currency: store?.currency || 'USD',
@@ -203,6 +206,7 @@ export default function Index() {
     return (
       <LandingPageTemplate
         storeName={data.storeName}
+        storeId={data.storeId}
         product={data.featuredProduct}
         config={data.landingConfig as LandingConfig}
         currency={data.currency}
@@ -212,8 +216,9 @@ export default function Index() {
 
   // ========== FULL STORE MODE ==========
   return (
-    <FullStoreTemplate
+    <StoreLayout
       storeName={data.storeName}
+      storeId={data.storeId}
       logo={data.logo}
       products={data.products || []}
       categories={data.categories || []}

@@ -24,6 +24,7 @@ enabled = true
 binding = "DB"
 database_name = "multi-store-saas-db"
 database_id = "bf882d16-d67a-4007-b503-33646bd693af"
+migrations_dir = "db/migrations"
 
 # R2 Storage binding (requires R2 activation in Cloudflare Dashboard first)
 # Uncomment after running: wrangler r2 bucket create multi-store-saas-media

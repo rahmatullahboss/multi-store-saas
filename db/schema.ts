@@ -86,7 +86,8 @@ export const orders = sqliteTable('orders', {
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
   customerId: integer('customer_id').references(() => customers.id),
   orderNumber: text('order_number').notNull(),
-  customerEmail: text('customer_email').notNull(),
+  customerEmail: text('customer_email'), // Optional for COD orders
+  customerPhone: text('customer_phone'), // Required for COD orders
   customerName: text('customer_name'),
   shippingAddress: text('shipping_address'), // JSON object
   billingAddress: text('billing_address'), // JSON object
