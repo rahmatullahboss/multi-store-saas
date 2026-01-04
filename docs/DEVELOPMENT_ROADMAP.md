@@ -44,7 +44,7 @@
 
 - [x] Edit product page (`/app/products/:id`)
 - [x] Delete product functionality
-- [ ] Bulk product actions
+- [x] Bulk product actions
 - [x] Product variants (size, color)
 
 ### 2.2 Order Management
