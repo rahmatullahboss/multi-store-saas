@@ -13,7 +13,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sql } from 'drizzle-orm';
 import { products, orders, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Package, ShoppingCart, TrendingUp, Plus } from 'lucide-react';
+import { Package, ShoppingCart, TrendingUp, Plus, AlertTriangle, CreditCard } from 'lucide-react';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Multi-Store SaaS' }];
@@ -54,6 +54,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(orders)
     .where(eq(orders.storeId, storeId));
 
+  // Count orders by payment status
+  const pendingPayments = await db
+    .select({ count: count() })
+    .from(orders)
+    .where(sql`${orders.storeId} = ${storeId} AND ${orders.paymentStatus} = 'pending'`);
+
+  const paidOrders = await db
+    .select({ count: count() })
+    .from(orders)
+    .where(sql`${orders.storeId} = ${storeId} AND ${orders.paymentStatus} = 'paid'`);
+
   return json({
     storeName: store.name,
     currency: store.currency || 'BDT',
@@ -61,6 +72,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       products: productCount[0]?.count || 0,
       orders: orderCount[0]?.count || 0,
       revenue: revenueResult[0]?.total || 0,
+      pendingPayments: pendingPayments[0]?.count || 0,
+      paidOrders: paidOrders[0]?.count || 0,
     },
   });
 }
@@ -107,6 +120,41 @@ export default function DashboardPage() {
           color="purple"
           isPrice
         />
+      </div>
+
+      {/* Payment Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">Paid Orders</p>
+              <p className="text-2xl font-bold text-emerald-600">{stats.paidOrders}</p>
+            </div>
+          </div>
+        </div>
+        
+        {stats.pendingPayments > 0 && (
+          <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">Pending Payments</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.pendingPayments}</p>
+              </div>
+            </div>
+            <Link 
+              to="/app/dashboard/orders?status=pending"
+              className="mt-3 inline-block text-sm text-yellow-700 hover:underline"
+            >
+              View pending orders →
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Quick Actions */}
