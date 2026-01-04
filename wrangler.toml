@@ -9,6 +9,10 @@ compatibility_date = "2024-12-30"
 # For Pages deployment, we don't use 'main' - Pages uses the functions directory
 # Deploy with: npx wrangler pages deploy ./build/client --project-name=multi-store-saas
 
+# Build configuration for Pages (REQUIRED for GitHub-connected Pages)
+[build]
+command = "npm run build"
+
 # Build output directory for Pages
 pages_build_output_dir = "./build/client"
 
