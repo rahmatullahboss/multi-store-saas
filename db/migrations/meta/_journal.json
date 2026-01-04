@@ -15,6 +15,13 @@
       "when": 1767555186211,
       "tag": "0001_strong_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1767557400979,
+      "tag": "0002_true_james_howlett",
+      "breakpoints": true
     }
   ]
 }

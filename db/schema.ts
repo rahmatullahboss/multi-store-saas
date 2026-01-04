@@ -239,6 +239,44 @@ export const productVariantsRelations = relations(productVariants, ({ one, many 
 }));
 
 // ============================================================================
+// PAYOUTS TABLE - Track merchant payouts
+// ============================================================================
+export const payouts = sqliteTable('payouts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Period
+  periodStart: integer('period_start', { mode: 'timestamp' }).notNull(),
+  periodEnd: integer('period_end', { mode: 'timestamp' }).notNull(),
+  
+  // Amounts
+  grossAmount: real('gross_amount').notNull(), // Total sales
+  platformFee: real('platform_fee').default(0), // Commission
+  netAmount: real('net_amount').notNull(), // Amount to pay merchant
+  
+  // Status
+  status: text('status').$type<'pending' | 'processing' | 'paid' | 'failed'>().default('pending'),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  
+  // Payment info
+  paymentMethod: text('payment_method'), // bkash, nagad, bank
+  paymentReference: text('payment_reference'), // Transaction ID
+  
+  // Notes
+  notes: text('notes'),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const payoutsRelations = relations(payouts, ({ one }) => ({
+  store: one(stores, {
+    fields: [payouts.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -255,3 +293,6 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type NewOrderItem = typeof orderItems.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type Payout = typeof payouts.$inferSelect;
+export type NewPayout = typeof payouts.$inferInsert;
+

@@ -84,6 +84,7 @@ const navItems = [
   { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/app/products', label: 'Products', icon: Package },
   { to: '/app/dashboard/orders', label: 'Orders', icon: ShoppingCart },
+  { to: '/app/admin/payouts', label: 'Payouts', icon: ShoppingCart },
   { to: '/app/settings', label: 'Settings', icon: Settings },
 ];
 
