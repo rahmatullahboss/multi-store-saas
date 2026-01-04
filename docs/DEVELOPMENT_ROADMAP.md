@@ -51,7 +51,7 @@
 
 - [x] Order detail page (`/app/dashboard/orders/:id`)
 - [x] Update order status
-- [ ] Print invoice/receipt
+- [x] Print invoice/receipt
 - [ ] Order notes
 
 ### 2.3 Store Settings
