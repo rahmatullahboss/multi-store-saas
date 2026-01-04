@@ -11,7 +11,7 @@ import type { Store } from '@db/schema';
 declare global {
   interface Env {
     DB: D1Database;
-    R2: R2Bucket;
+    R2?: R2Bucket; // Optional - requires R2 activation in dashboard
     SAAS_DOMAIN: string;
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
   }
