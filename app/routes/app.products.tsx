@@ -16,7 +16,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Plus, Package, ImageOff } from 'lucide-react';
+import { Plus, Package, ImageOff, Pencil } from 'lucide-react';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Products - Multi-Store SaaS' }];
@@ -140,7 +140,12 @@ export default function ProductsPage() {
                           </div>
                         )}
                         <div>
-                          <p className="font-medium text-gray-900">{product.title}</p>
+                          <Link
+                            to={`/app/products/${product.id}`}
+                            className="font-medium text-gray-900 hover:text-emerald-600 transition"
+                          >
+                            {product.title}
+                          </Link>
                           {product.sku && (
                             <p className="text-xs text-gray-500">SKU: {product.sku}</p>
                           )}

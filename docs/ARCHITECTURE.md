@@ -1,0 +1,174 @@
+# Tech Stack & Architecture
+
+> Multi-Store SaaS E-commerce Platform
+
+---
+
+## Core Technologies
+
+| Layer         | Technology             | Purpose                  |
+| ------------- | ---------------------- | ------------------------ |
+| **Runtime**   | Cloudflare Workers     | Serverless edge compute  |
+| **Framework** | Remix (React 18)       | Full-stack SSR framework |
+| **Backend**   | Hono.js                | Fast API routing         |
+| **Database**  | Cloudflare D1 (SQLite) | Edge SQL database        |
+| **ORM**       | Drizzle ORM            | Type-safe DB queries     |
+| **Storage**   | Cloudinary             | Image CDN & processing   |
+| **Styling**   | Tailwind CSS           | Utility-first CSS        |
+| **Icons**     | Lucide React           | SVG icon library         |
+| **Build**     | Vite                   | Fast bundler             |
+| **Language**  | TypeScript             | Type safety              |
+
+---
+
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Cloudflare Edge                          │
+├─────────────────────────────────────────────────────────────┤
+│  store1.digitalcare.site  │  store2.digitalcare.site       │
+├─────────────────────────────────────────────────────────────┤
+│                   Request Handler                           │
+│     ┌─────────────────┐    ┌─────────────────┐             │
+│     │  Hono.js API    │    │  Remix SSR      │             │
+│     │  /api/*         │    │  Page Routes    │             │
+│     └────────┬────────┘    └────────┬────────┘             │
+│              │                      │                       │
+│              └──────────┬───────────┘                       │
+│                         ▼                                   │
+│              ┌─────────────────┐                           │
+│              │   Drizzle ORM   │                           │
+│              └────────┬────────┘                           │
+│                       ▼                                     │
+├─────────────────────────────────────────────────────────────┤
+│                  Cloudflare D1 (SQLite)                    │
+│         (All queries filtered by store_id)                  │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐
+│   Cloudinary    │  ←── Image Upload & CDN
+└─────────────────┘
+```
+
+---
+
+## Directory Structure
+
+```
+Multi Store Saas/
+├── app/                      # Remix Frontend
+│   ├── routes/               # Page & API routes
+│   │   ├── _index.tsx        # Storefront homepage
+│   │   ├── auth.login.tsx    # Login page
+│   │   ├── auth.register.tsx # Registration page
+│   │   ├── app.tsx           # Dashboard layout
+│   │   ├── app.products.tsx  # Product list
+│   │   └── ...
+│   ├── components/           # Reusable UI components
+│   ├── services/             # Server-side services
+│   │   └── auth.server.ts    # Auth utilities
+│   ├── lib/                  # Utilities
+│   └── styles/               # Tailwind CSS
+│
+├── server/                   # Hono Backend
+│   ├── api/                  # API route handlers
+│   ├── middleware/           # Request middleware
+│   └── index.ts              # Entry point
+│
+├── db/                       # Database
+│   ├── schema.ts             # Drizzle schema
+│   ├── types.ts              # Type exports
+│   └── migrations/           # SQL migrations
+│
+├── functions/                # Cloudflare Functions
+├── public/                   # Static assets
+├── wrangler.toml             # Cloudflare config
+├── vite.config.ts            # Vite bundler config
+└── package.json              # Dependencies
+```
+
+---
+
+## Database Schema
+
+### Tables
+
+| Table         | Description       | Key Fields                          |
+| ------------- | ----------------- | ----------------------------------- |
+| `stores`      | Tenant stores     | id, name, subdomain, mode, currency |
+| `users`       | Merchant accounts | id, email, passwordHash, storeId    |
+| `products`    | Store products    | id, storeId, title, price, imageUrl |
+| `customers`   | Customer info     | id, storeId, email, phone           |
+| `orders`      | Order records     | id, storeId, status, total          |
+| `order_items` | Order line items  | id, orderId, productId, quantity    |
+
+### Multi-tenancy
+
+All data is isolated by `storeId`. Every query filters by the merchant's store to ensure data separation.
+
+---
+
+## Key Integrations
+
+### Cloudinary (Image Upload)
+
+```
+POST /api/upload-image
+├── Accepts: multipart/form-data (file, folder)
+├── Signs request with API_KEY + API_SECRET
+├── Returns: { url, publicId, width, height }
+```
+
+### Authentication Flow
+
+```
+1. User submits login form
+2. Server validates credentials (PBKDF2 hash check)
+3. Creates session cookie (__session)
+4. Stores userId + storeId in session
+5. Protected routes call requireUserId()
+```
+
+---
+
+## Environment Variables
+
+| Variable                | Description                |
+| ----------------------- | -------------------------- |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary account name    |
+| `CLOUDINARY_API_KEY`    | Cloudinary API key         |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret      |
+| `DB`                    | D1 database binding (auto) |
+
+---
+
+## Development Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Generate Drizzle migrations
+npm run db:generate
+
+# Apply migrations (local)
+wrangler d1 execute multi-store-saas-db --local --file=./db/migrations/xxxx.sql
+
+# Deploy to production
+npm run deploy
+```
+
+---
+
+## Deployment
+
+Hosted on **Cloudflare Pages** with:
+
+- Auto-deployment on git push
+- Edge SSR via Workers
+- D1 database (production)
+- Custom domain: `stores.digitalcare.site`
