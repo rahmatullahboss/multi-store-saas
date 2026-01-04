@@ -9,7 +9,7 @@ import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core
 import { relations } from 'drizzle-orm';
 
 // ============================================================================
-// STORES TABLE - Core tenant table
+// STORES TABLE - Core tenant table with Hybrid Mode support
 // ============================================================================
 export const stores = sqliteTable('stores', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -17,6 +17,18 @@ export const stores = sqliteTable('stores', {
   subdomain: text('subdomain').notNull().unique(),
   customDomain: text('custom_domain').unique(),
   planType: text('plan_type').$type<'free' | 'starter' | 'pro' | 'enterprise'>().default('free'),
+  
+  // === HYBRID MODE FIELDS ===
+  // 'landing' = Single product sales page, 'store' = Full e-commerce
+  mode: text('mode').$type<'landing' | 'store'>().default('store'),
+  // Featured product for landing mode (direct checkout)
+  featuredProductId: integer('featured_product_id'),
+  // Landing page config: { headline, subheadline, videoUrl, ctaText, testimonials }
+  landingConfig: text('landing_config'),
+  // Full store theme: { primaryColor, accentColor, bannerUrl, collections[] }
+  themeConfig: text('theme_config'),
+  
+  // === BRANDING ===
   logo: text('logo'),
   theme: text('theme').default('default'),
   currency: text('currency').default('USD'),

@@ -2,19 +2,22 @@
 
 name = "multi-store-saas"
 compatibility_date = "2024-12-30"
-main = "server/index.ts"
 
-# Workers Logs
-# Docs: https://developers.cloudflare.com/workers/observability/logs/workers-logs/
-# To enable, add your account ID:
-# account_id = ""
+# ============================================================================
+# CLOUDFLARE PAGES CONFIGURATION
+# ============================================================================
+# For Pages deployment, we don't use 'main' - Pages uses the functions directory
+# Deploy with: npx wrangler pages deploy ./build/client --project-name=multi-store-saas
+
+# Build output directory for Pages
+pages_build_output_dir = "./build/client"
+
+# ============================================================================
+# BINDINGS - Work in both Workers and Pages
+# ============================================================================
 
 [observability]
 enabled = true
-
-# Static assets configuration
-[assets]
-directory = "./build/client"
 
 # D1 Database binding
 [[d1_databases]]
@@ -28,27 +31,30 @@ binding = "R2"
 bucket_name = "multi-store-saas-media"
 # Create with: wrangler r2 bucket create multi-store-saas-media
 
-# KV Namespace for caching (optional)
-# [[kv_namespaces]]
-# binding = "CACHE"
-# id = "YOUR_KV_NAMESPACE_ID"
-
-# Environment variables
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
 [vars]
 SAAS_DOMAIN = "mysaas.com"  # Your main SaaS domain
 
-# Routes for Cloudflare for SaaS (custom domains)
-# Uncomment and configure after setting up Cloudflare for SaaS
-# [[routes]]
-# pattern = "*/*"
-# custom_domain = true
-
-# Development settings
+# ============================================================================
+# DEVELOPMENT SETTINGS
+# ============================================================================
 [dev]
 port = 8787
 local_protocol = "http"
 
-# D1 migrations configuration
-[[migrations]]
-tag = "v1"
-new_classes = []
+# ============================================================================
+# PAGES FUNCTIONS CONFIGURATION
+# ============================================================================
+# When deploying to Pages, the functions are auto-discovered from:
+# - functions/ directory (for catch-all SSR)
+# - Or using the Remix adapter which handles this automatically
+
+# For local development with Pages:
+# wrangler pages dev ./build/client --d1=DB --r2=R2
+
+# For production deployment:
+# 1. Build: npm run build
+# 2. Deploy: wrangler pages deploy ./build/client --project-name=multi-store-saas
+# 3. Configure bindings in Cloudflare Dashboard > Pages > Settings > Functions

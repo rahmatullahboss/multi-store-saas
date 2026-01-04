@@ -13,7 +13,7 @@ declare global {
     DB: D1Database;
     R2: R2Bucket;
     SAAS_DOMAIN: string;
-    ASSETS: Fetcher;
+    ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
   }
 }
 
@@ -22,11 +22,11 @@ declare module '@remix-run/cloudflare' {
     cloudflare: {
       env: Env;
       ctx: ExecutionContext;
-      cf: CfProperties;
+      cf?: CfProperties;
     };
     // Tenant context injected by middleware
     storeId: number;
-    store: Store;
+    store: Store | null;
     isCustomDomain: boolean;
   }
 }
