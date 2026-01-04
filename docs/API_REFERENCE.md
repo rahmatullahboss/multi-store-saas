@@ -174,6 +174,48 @@ BKASH_PASSWORD=your_sandbox_password
 
 ---
 
+## Nagad Payment APIs
+
+### POST `/api/nagad/initiate`
+
+Initiate a Nagad payment for an order.
+
+**Request (JSON)**:
+
+```json
+{
+  "orderId": 123,
+  "storeId": 1,
+  "amount": 1500
+}
+```
+
+**Response**:
+
+```json
+{
+  "success": true,
+  "callbackUrl": "https://nagad.com.bd/...",
+  "paymentRefId": "REF..."
+}
+```
+
+### GET `/api/nagad/callback`
+
+Nagad callback after payment. Verifies and redirects similar to bKash.
+
+**Environment Variables Required**:
+
+```
+NAGAD_BASE_URL=https://sandbox-ssl.nagad.com.bd/api/dfs/check-out
+NAGAD_MERCHANT_ID=your_merchant_id
+NAGAD_MERCHANT_NUMBER=your_merchant_number
+NAGAD_PUBLIC_KEY=your_nagad_public_key
+NAGAD_PRIVATE_KEY=your_private_key
+```
+
+---
+
 ## Protected Dashboard APIs
 
 > All `/app/*` routes require authentication via session cookie.
