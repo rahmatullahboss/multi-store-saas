@@ -1,0 +1,130 @@
+/**
+ * AddToCartButton Component
+ * 
+ * Implements Optimistic UI for instant feedback when adding items to cart.
+ * Uses Remix's useFetcher for non-blocking form submissions.
+ */
+
+import { useFetcher } from '@remix-run/react';
+import { useEffect, useState } from 'react';
+
+interface AddToCartButtonProps {
+  productId: number;
+  disabled?: boolean;
+  size?: 'default' | 'large';
+}
+
+export function AddToCartButton({ productId, disabled = false, size = 'default' }: AddToCartButtonProps) {
+  const fetcher = useFetcher();
+  const [isAdded, setIsAdded] = useState(false);
+  
+  // Optimistic state - immediately show "Adding..." when submitting
+  const isAdding = fetcher.state === 'submitting';
+  
+  // Show success state briefly after adding
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data) {
+      setIsAdded(true);
+      const timer = setTimeout(() => setIsAdded(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [fetcher.state, fetcher.data]);
+
+  const handleAddToCart = () => {
+    if (disabled || isAdding) return;
+    
+    // Optimistic UI: Update local cart immediately
+    // (In a real app, this would update a cart context/store)
+    updateLocalCart(productId, 1);
+    
+    fetcher.submit(
+      { productId: productId.toString(), quantity: '1' },
+      { method: 'post', action: '/api/cart' }
+    );
+  };
+
+  const buttonClasses = `
+    add-to-cart
+    ${isAdding ? 'adding' : ''}
+    ${isAdded ? 'bg-emerald-600 hover:bg-emerald-600' : ''}
+    ${size === 'large' ? 'py-4 text-lg' : ''}
+  `.trim();
+
+  return (
+    <button
+      onClick={handleAddToCart}
+      disabled={disabled || isAdding}
+      className={buttonClasses}
+      aria-label={isAdding ? 'Adding to cart...' : 'Add to cart'}
+    >
+      {isAdding ? (
+        <>
+          <LoadingSpinner />
+          <span className="ml-2">Adding...</span>
+        </>
+      ) : isAdded ? (
+        <>
+          <CheckIcon />
+          <span className="ml-2">Added!</span>
+        </>
+      ) : (
+        <>
+          <CartIcon />
+          <span className="ml-2">Add to Cart</span>
+        </>
+      )}
+    </button>
+  );
+}
+
+// Helper to update cart count in header (client-side)
+function updateLocalCart(productId: number, quantity: number) {
+  // Update the cart badge count
+  const cartBadge = document.getElementById('cart-count');
+  if (cartBadge) {
+    const currentCount = parseInt(cartBadge.textContent || '0', 10);
+    cartBadge.textContent = String(currentCount + quantity);
+  }
+  
+  // Store in localStorage for persistence
+  try {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingIndex = cart.findIndex((item: { productId: number }) => item.productId === productId);
+    
+    if (existingIndex >= 0) {
+      cart[existingIndex].quantity += quantity;
+    } else {
+      cart.push({ productId, quantity });
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+  } catch (e) {
+    console.error('Failed to update local cart:', e);
+  }
+}
+
+// Icons
+function LoadingSpinner() {
+  return (
+    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+function CartIcon() {
+  return (
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  );
+}

@@ -1,0 +1,54 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "multi-store-saas"
+compatibility_date = "2024-12-30"
+main = "server/index.ts"
+
+# Workers Logs
+# Docs: https://developers.cloudflare.com/workers/observability/logs/workers-logs/
+# To enable, add your account ID:
+# account_id = ""
+
+[observability]
+enabled = true
+
+# Static assets configuration
+[assets]
+directory = "./build/client"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db"
+database_id = "YOUR_DATABASE_ID"  # Replace after running: wrangler d1 create multi-store-saas-db
+
+# R2 Storage binding
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "multi-store-saas-media"
+# Create with: wrangler r2 bucket create multi-store-saas-media
+
+# KV Namespace for caching (optional)
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "YOUR_KV_NAMESPACE_ID"
+
+# Environment variables
+[vars]
+SAAS_DOMAIN = "mysaas.com"  # Your main SaaS domain
+
+# Routes for Cloudflare for SaaS (custom domains)
+# Uncomment and configure after setting up Cloudflare for SaaS
+# [[routes]]
+# pattern = "*/*"
+# custom_domain = true
+
+# Development settings
+[dev]
+port = 8787
+local_protocol = "http"
+
+# D1 migrations configuration
+[[migrations]]
+tag = "v1"
+new_classes = []

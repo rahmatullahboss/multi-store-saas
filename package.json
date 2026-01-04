@@ -1,0 +1,40 @@
+{
+  "name": "multi-store-saas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "remix vite:build",
+    "start": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "typecheck": "tsc",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:migrate:prod": "wrangler d1 migrations apply DB --remote",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@remix-run/cloudflare": "^2.15.0",
+    "@remix-run/react": "^2.15.0",
+    "drizzle-orm": "^0.38.0",
+    "hono": "^4.6.0",
+    "isbot": "^5.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "@remix-run/dev": "^2.15.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.30.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vite-tsconfig-paths": "^5.1.0",
+    "wrangler": "^3.99.0"
+  }
+}
