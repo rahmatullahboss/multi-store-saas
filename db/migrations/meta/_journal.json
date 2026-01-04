@@ -8,6 +8,13 @@
       "when": 1767554411355,
       "tag": "0000_clever_spencer_smythe",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1767555186211,
+      "tag": "0001_strong_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

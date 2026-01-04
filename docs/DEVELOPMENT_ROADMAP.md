@@ -60,7 +60,7 @@
 - [x] Change currency
 - [x] Select preset theme (6 themes)
 - [x] Upload store logo
-- [ ] Business information
+- [x] Business information
 
 ---
 

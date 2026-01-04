@@ -17,7 +17,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image } from 'lucide-react';
+import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
 export const meta: MetaFunction = () => {
@@ -53,6 +53,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       mode: store.mode,
       theme: store.theme,
       logo: store.logo,
+      businessInfo: store.businessInfo ? JSON.parse(store.businessInfo) : { phone: '', email: '', address: '' },
     },
   });
 }
@@ -71,6 +72,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const currency = formData.get('currency') as string;
   const theme = formData.get('theme') as string;
   const logo = formData.get('logo') as string;
+  const businessPhone = formData.get('businessPhone') as string;
+  const businessEmail = formData.get('businessEmail') as string;
+  const businessAddress = formData.get('businessAddress') as string;
 
   // Validation
   if (!name || name.trim().length < 2) {
@@ -86,6 +90,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       currency: currency || 'BDT',
       theme: theme || 'default',
       logo: logo || null,
+      businessInfo: JSON.stringify({
+        phone: businessPhone || '',
+        email: businessEmail || '',
+        address: businessAddress || '',
+      }),
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
@@ -382,6 +391,66 @@ export default function SettingsPage() {
                 )}
               </label>
             ))}
+          </div>
+        </div>
+
+        {/* Business Info Card */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <Phone className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Business Information</h2>
+              <p className="text-sm text-gray-500">Contact details for invoices and customers</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Phone */}
+            <div>
+              <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700 mb-1">
+                <Phone className="w-4 h-4 inline mr-1" /> Business Phone
+              </label>
+              <input
+                type="tel"
+                id="businessPhone"
+                name="businessPhone"
+                defaultValue={store.businessInfo?.phone || ''}
+                placeholder="+880 1XXX-XXXXXX"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700 mb-1">
+                <Mail className="w-4 h-4 inline mr-1" /> Business Email
+              </label>
+              <input
+                type="email"
+                id="businessEmail"
+                name="businessEmail"
+                defaultValue={store.businessInfo?.email || ''}
+                placeholder="contact@yourstore.com"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+            </div>
+
+            {/* Address */}
+            <div>
+              <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-1">
+                <MapPin className="w-4 h-4 inline mr-1" /> Business Address
+              </label>
+              <textarea
+                id="businessAddress"
+                name="businessAddress"
+                rows={2}
+                defaultValue={store.businessInfo?.address || ''}
+                placeholder="123 Main Street, Dhaka, Bangladesh"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
+              />
+            </div>
           </div>
         </div>
 

@@ -27,6 +27,8 @@ export const stores = sqliteTable('stores', {
   landingConfig: text('landing_config'),
   // Full store theme: { primaryColor, accentColor, bannerUrl, collections[] }
   themeConfig: text('theme_config'),
+  // Business info: { phone, email, address, city, country }
+  businessInfo: text('business_info'),
   
   // === BRANDING ===
   logo: text('logo'),
