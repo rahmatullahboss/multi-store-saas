@@ -113,7 +113,7 @@
 
 - [x] bKash integration
 - [x] Nagad integration
-- [ ] Stripe (international)
+- [x] Stripe (international)
 - [ ] Payment status tracking
 
 ### 5.2 Shipping

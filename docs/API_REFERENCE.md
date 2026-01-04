@@ -216,6 +216,43 @@ NAGAD_PRIVATE_KEY=your_private_key
 
 ---
 
+## Stripe Payment APIs
+
+### POST `/api/stripe/initiate`
+
+Create a Stripe Checkout Session for an order.
+
+**Request (JSON)**:
+
+```json
+{
+  "orderId": 123
+}
+```
+
+**Response**:
+
+```json
+{
+  "success": true,
+  "sessionId": "cs_test_...",
+  "checkoutUrl": "https://checkout.stripe.com/..."
+}
+```
+
+### POST `/api/stripe/webhook`
+
+Stripe webhook endpoint for payment events. Configure in Stripe Dashboard.
+
+**Environment Variables Required**:
+
+```
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+---
+
 ## Protected Dashboard APIs
 
 > All `/app/*` routes require authentication via session cookie.
