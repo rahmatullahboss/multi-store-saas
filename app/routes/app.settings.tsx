@@ -75,6 +75,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const businessPhone = formData.get('businessPhone') as string;
   const businessEmail = formData.get('businessEmail') as string;
   const businessAddress = formData.get('businessAddress') as string;
+  const customDomain = formData.get('customDomain') as string;
 
   // Validation
   if (!name || name.trim().length < 2) {
@@ -90,6 +91,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       currency: currency || 'BDT',
       theme: theme || 'default',
       logo: logo || null,
+      customDomain: customDomain?.trim() || null,
       businessInfo: JSON.stringify({
         phone: businessPhone || '',
         email: businessEmail || '',
