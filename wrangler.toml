@@ -35,7 +35,8 @@ database_id = "bf882d16-d67a-4007-b503-33646bd693af"
 # ENVIRONMENT VARIABLES
 # ============================================================================
 [vars]
-SAAS_DOMAIN = "mysaas.com"  # Your main SaaS domain
+SAAS_DOMAIN = "stores.digitalcare.site"  # Custom domain for the SaaS
+CLOUDINARY_CLOUD_NAME = "dpnccgsja"      # Cloudinary cloud for image optimization
 
 # ============================================================================
 # DEVELOPMENT SETTINGS

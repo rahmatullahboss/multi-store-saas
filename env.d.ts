@@ -13,6 +13,7 @@ declare global {
     DB: D1Database;
     R2?: R2Bucket; // Optional - requires R2 activation in dashboard
     SAAS_DOMAIN: string;
+    CLOUDINARY_CLOUD_NAME?: string; // Optional - defaults to 'dpnccgsja'
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
   }
 }
