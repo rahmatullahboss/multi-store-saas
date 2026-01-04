@@ -66,7 +66,7 @@ export default function LoginPage() {
   const isSubmitting = navigation.state === 'submitting';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
@@ -94,7 +94,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 autoComplete="email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="you@example.com"
               />
               {actionData?.errors?.email && (
@@ -112,7 +112,7 @@ export default function LoginPage() {
                 id="password"
                 name="password"
                 autoComplete="current-password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="••••••••"
               />
               {actionData?.errors?.password && (
@@ -124,7 +124,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Logging in...' : 'Login'}
             </button>
@@ -134,7 +134,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
-              <Link to="/auth/register" className="text-blue-600 hover:underline font-medium">
+              <Link to="/auth/register" className="text-emerald-600 hover:underline font-medium">
                 Register here
               </Link>
             </p>
