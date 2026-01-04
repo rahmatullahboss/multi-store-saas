@@ -52,14 +52,14 @@
 - [x] Order detail page (`/app/dashboard/orders/:id`)
 - [x] Update order status
 - [x] Print invoice/receipt
-- [ ] Order notes
+- [x] Order notes
 
 ### 2.3 Store Settings
 
 - [x] Update store name
 - [x] Change currency
 - [x] Select preset theme (6 themes)
-- [ ] Upload store logo
+- [x] Upload store logo
 - [ ] Business information
 
 ---
