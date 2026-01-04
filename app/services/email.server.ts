@@ -339,6 +339,76 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
         return { success: false, error: String(err) };
       }
     },
+
+    /**
+     * Send staff invitation email
+     */
+    async sendStaffInvite(data: {
+      email: string;
+      inviterName: string;
+      storeName: string;
+      role: string;
+      inviteUrl: string;
+    }): Promise<{ success: boolean; error?: string }> {
+      try {
+        const roleLabel = {
+          admin: 'Administrator',
+          staff: 'Staff Member',
+          viewer: 'Viewer',
+        }[data.role] || data.role;
+
+        const html = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+          </head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">You're Invited! 🎉</h1>
+            </div>
+            
+            <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+              <p style="font-size: 16px;">Hi there,</p>
+              <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.storeName}</strong> as a <strong>${roleLabel}</strong>.</p>
+              
+              <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8b5cf6;">
+                <p style="margin: 0 0 10px 0;"><strong>Store:</strong> ${data.storeName}</p>
+                <p style="margin: 0;"><strong>Role:</strong> ${roleLabel}</p>
+              </div>
+              
+              <p>Click the button below to accept this invitation and create your account:</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${data.inviteUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Accept Invitation</a>
+              </div>
+              
+              <p style="color: #6b7280; font-size: 14px;">This invitation will expire in 7 days. If you didn't expect this email, you can safely ignore it.</p>
+              
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+              
+              <p style="color: #9ca3af; font-size: 12px;">Or copy and paste this link: <br>${data.inviteUrl}</p>
+            </div>
+          </body>
+          </html>
+        `;
+
+        const { error } = await resend.emails.send({
+          from: defaultFrom,
+          to: data.email,
+          subject: `You're invited to join ${data.storeName}`,
+          html,
+        });
+
+        if (error) {
+          return { success: false, error: error.message };
+        }
+
+        return { success: true };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    },
   };
 }
 

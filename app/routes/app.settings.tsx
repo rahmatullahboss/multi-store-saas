@@ -523,9 +523,9 @@ export default function SettingsPage() {
         {/* Quick Links to Other Settings */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">More Settings</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <a 
-              href="/app/settings/shipping" 
+          <div className="grid grid-cols-2 gap-3">
+            <a
+              href="/app/settings/shipping"
               className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
             >
               <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -533,8 +533,8 @@ export default function SettingsPage() {
               </div>
               <span className="font-medium text-gray-700">Shipping Zones</span>
             </a>
-            <a 
-              href="/app/settings/seo" 
+            <a
+              href="/app/settings/seo"
               className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
             >
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -542,8 +542,26 @@ export default function SettingsPage() {
               </div>
               <span className="font-medium text-gray-700">SEO Settings</span>
             </a>
-            <a 
-              href="/app/settings/courier" 
+            <a
+              href="/app/settings/team"
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Mail className="w-4 h-4 text-purple-600" />
+              </div>
+              <span className="font-medium text-gray-700">Team Members</span>
+            </a>
+            <a
+              href="/app/settings/activity"
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                <Globe className="w-4 h-4 text-amber-600" />
+              </div>
+              <span className="font-medium text-gray-700">Activity Log</span>
+            </a>
+            <a
+              href="/app/settings/courier"
               className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
             >
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
