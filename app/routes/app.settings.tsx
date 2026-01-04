@@ -5,19 +5,20 @@
  * 
  * Features:
  * - Edit store name, currency
+ * - Upload store logo
  * - Select store theme
  * - View store info
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation } from '@remix-run/react';
+import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Store, Globe, Palette, Loader2, CheckCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Settings - Multi-Store SaaS' }];
@@ -51,6 +52,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       currency: store.currency,
       mode: store.mode,
       theme: store.theme,
+      logo: store.logo,
     },
   });
 }
@@ -68,6 +70,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const name = formData.get('name') as string;
   const currency = formData.get('currency') as string;
   const theme = formData.get('theme') as string;
+  const logo = formData.get('logo') as string;
 
   // Validation
   if (!name || name.trim().length < 2) {
@@ -82,6 +85,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       name: name.trim(),
       currency: currency || 'BDT',
       theme: theme || 'default',
+      logo: logo || null,
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
@@ -121,15 +125,61 @@ export default function SettingsPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Logo upload state
+  const [logoUrl, setLogoUrl] = useState<string>(store.logo || '');
+  const [logoPreview, setLogoPreview] = useState<string>(store.logo || '');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
+  const isUploading = logoFetcher.state !== 'idle';
+
+  // Handle logo upload response
+  useEffect(() => {
+    if (logoFetcher.data?.success && logoFetcher.data?.url) {
+      setLogoUrl(logoFetcher.data.url);
+      setLogoPreview(logoFetcher.data.url);
+    }
+  }, [logoFetcher.data]);
 
   // Show success message
   useEffect(() => {
-    if (actionData?.success) {
+    if (actionData && 'success' in actionData && actionData.success) {
       setShowSuccess(true);
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [actionData]);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show local preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to Cloudinary
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'logos');
+
+    logoFetcher.submit(formData, {
+      method: 'post',
+      action: '/api/upload-image',
+      encType: 'multipart/form-data',
+    });
+  };
+
+  const removeLogo = () => {
+    setLogoUrl('');
+    setLogoPreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -148,13 +198,94 @@ export default function SettingsPage() {
       )}
 
       {/* Error Message */}
-      {actionData?.error && (
+      {actionData && 'error' in actionData && actionData.error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
           {actionData.error}
         </div>
       )}
 
       <Form method="post" className="space-y-6">
+        {/* Hidden logo input */}
+        <input type="hidden" name="logo" value={logoUrl} />
+
+        {/* Logo Upload Card */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Image className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Store Logo</h2>
+              <p className="text-sm text-gray-500">Displayed in header and footer</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            {/* Logo Preview */}
+            <div className="relative">
+              {logoPreview ? (
+                <div className="relative">
+                  <img
+                    src={logoPreview}
+                    alt="Store logo"
+                    className="w-24 h-24 object-contain rounded-lg border border-gray-200 bg-gray-50"
+                  />
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={removeLogo}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+                  <Store className="w-8 h-8 text-gray-400" />
+                </div>
+              )}
+            </div>
+
+            {/* Upload Button */}
+            <div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    Upload Logo
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-gray-500 mt-2">PNG, JPG up to 2MB. Square works best.</p>
+              {logoFetcher.data?.error && (
+                <p className="text-red-500 text-sm mt-1">{logoFetcher.data.error}</p>
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleLogoChange}
+              className="hidden"
+            />
+          </div>
+        </div>
+
         {/* Store Info Card */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
@@ -276,7 +407,7 @@ export default function SettingsPage() {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploading}
             className="px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting ? (

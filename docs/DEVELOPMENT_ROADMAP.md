@@ -68,8 +68,8 @@
 
 ### 3.1 Preset Themes
 
-- [ ] Theme preview in dashboard
-- [ ] Apply theme colors to storefront
+- [x] Theme preview in dashboard
+- [x] Apply theme colors to storefront
 - [ ] Custom accent color picker
 - [ ] Font selection (limited options)
 
