@@ -103,6 +103,32 @@ A Shopify-like multi-tenant e-commerce platform where merchants can create store
 | Meta Title/Description | ✅ Complete | `/app/settings/seo`  |
 | Open Graph Image       | ✅ Complete | Social media preview |
 
+### 📦 Inventory Management
+
+| Feature              | Status      | Route                    |
+| -------------------- | ----------- | ------------------------ |
+| Inventory Dashboard  | ✅ Complete | `/app/inventory`         |
+| Low Stock Alerts     | ✅ Complete | Threshold-based warnings |
+| Inline Stock Editing | ✅ Complete | Quick edits in table     |
+| CSV Import           | ✅ Complete | `/app/inventory/import`  |
+| CSV Export           | ✅ Complete | `/api/products/export`   |
+
+### 🛒 Abandoned Cart Recovery
+
+| Feature                | Status      | Route                  |
+| ---------------------- | ----------- | ---------------------- |
+| Abandoned Carts List   | ✅ Complete | `/app/abandoned-carts` |
+| Recovery Stats         | ✅ Complete | Dashboard stats        |
+| Mark Recovered/Expired | ✅ Complete | Action buttons         |
+
+### 🌍 Multi-language Support
+
+| Feature              | Status      | Route             |
+| -------------------- | ----------- | ----------------- |
+| i18n Utility         | ✅ Complete | `app/lib/i18n.ts` |
+| Bengali Translations | ✅ Complete | Dashboard labels  |
+| Language Preference  | ✅ Complete | Store setting     |
+
 ---
 
 ## 🔄 Partially Implemented
@@ -135,12 +161,6 @@ A Shopify-like multi-tenant e-commerce platform where merchants can create store
 - [ ] Role-based permissions
 - [ ] Activity logs
 
-### 🏷️ Advanced Inventory
-
-- [ ] Low stock alerts system
-- [ ] Bulk import/export (CSV)
-- [ ] Stock tracking automation
-
 ### 🚚 Courier Integration
 
 - [ ] Pathao API integration
@@ -166,10 +186,11 @@ orders           - Order records with status
 order_items      - Line items in orders
 payouts          - Commission tracking
 shipping_zones   - Delivery areas and rates
-discounts        - Promo codes
+discounts        - Promo codes with flash sale support
 shipments        - Tracking info
 staff_invites    - Team invitations
 activity_logs    - Audit trail
+abandoned_carts  - Cart recovery tracking
 ```
 
 ---
@@ -187,4 +208,7 @@ activity_logs    - Audit trail
 | Discounts         | `app/routes/app.discounts.tsx`         |
 | Shipping Zones    | `app/routes/app.settings.shipping.tsx` |
 | SEO Settings      | `app/routes/app.settings.seo.tsx`      |
+| Inventory         | `app/routes/app.inventory.tsx`         |
+| Abandoned Carts   | `app/routes/app.abandoned-carts.tsx`   |
+| i18n Translations | `app/lib/i18n.ts`                      |
 | Cloudflare Config | `wrangler.toml`                        |

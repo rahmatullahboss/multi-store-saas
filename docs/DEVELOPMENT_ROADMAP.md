@@ -175,28 +175,29 @@
 
 ---
 
-## Phase 9: Advanced Features (Future)
+## Phase 9: Advanced Features ✅ (Complete)
 
-### 9.1 Inventory
+### 9.1 Inventory ✅
 
-- [ ] Stock management
-- [ ] Low stock alerts
-- [ ] Bulk import/export (CSV)
-- [ ] SKU management
+- [x] Stock management dashboard
+- [x] Low stock alerts (threshold: 10 units)
+- [x] Bulk import/export (CSV)
+- [x] Inline stock editing
 
-### 9.2 Marketing ✅ (Partial)
+### 9.2 Marketing ✅
 
 - [x] Discount codes (percentage/fixed)
 - [x] Promo code management UI
-- [ ] Flash sales
-- [ ] Abandoned cart recovery
-- [ ] Email campaigns
+- [x] Flash sales (countdown timer component)
+- [x] Abandoned cart recovery dashboard
+- [ ] Email campaigns (future)
 
-### 9.3 Multi-language
+### 9.3 Multi-language ✅
 
-- [ ] Bengali/English toggle
-- [ ] Product translations
-- [ ] Dashboard localization
+- [x] Bengali/English translation utility
+- [x] Dashboard label translations
+- [ ] Product translations (future)
+- [x] Language preference setting
 
 ---
 
@@ -210,6 +211,6 @@
 | ✅ Done  | Phase 5.1 (Payments)         | Complete    |
 | ✅ Done  | Phase 5.2 (Shipping Zones)   | Complete    |
 | ✅ Done  | Phase 6 (Analytics)          | Partial     |
-| ✅ Done  | Phase 9.2 (Discounts)        | Complete    |
+| ✅ Done  | Phase 9 (Advanced Features)  | Complete    |
 | 🟡 Next  | Phase 7 (Notifications)      | Not started |
 | 🟡 Next  | Phase 8 (Multi-User)         | Not started |
