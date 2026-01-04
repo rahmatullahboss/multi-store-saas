@@ -23,5 +23,15 @@ export default defineConfig({
   ssr: {
     target: "webworker",
     noExternal: true,
+    resolve: {
+      conditions: ["workerd", "worker", "browser"],
+    },
+  },
+  resolve: {
+    mainFields: ["browser", "module", "main"],
+  },
+  optimizeDeps: {
+    include: ["lucide-react"],
   },
 });
+
