@@ -41,6 +41,7 @@ export function LandingPageTemplate({
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
+    orderId?: number;
     orderNumber?: string;
     error?: string;
     details?: Record<string, string[]>;
@@ -95,12 +96,13 @@ export function LandingPageTemplate({
     );
   };
 
-  // Reset form on success
+  // Redirect to thank-you page on success
   useEffect(() => {
-    if (isSuccess) {
-      setFormData({ customer_name: '', phone: '', address: '', quantity: 1 });
+    if (fetcher.data?.success && fetcher.data?.orderId) {
+      // Redirect to thank-you page
+      window.location.href = `/thank-you/${fetcher.data.orderId}`;
     }
-  }, [isSuccess]);
+  }, [fetcher.data]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">

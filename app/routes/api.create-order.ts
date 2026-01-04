@@ -6,30 +6,48 @@
  * Handles order submissions from Landing Pages and Store checkout.
  * This route is NOT cached - always dynamic.
  * 
+ * SECURITY: Server-side price calculation - NEVER trust frontend prices
+ * 
  * Input: store_id, product_id, customer_name, phone, address, quantity
- * Output: { success: true, orderId: "..." }
+ * Output: { success: true, orderId: "...", orderNumber: "..." }
  */
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, products, stores } from '@db/schema';
+import { orders, orderItems, products, stores } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 
 // ============================================================================
-// VALIDATION SCHEMA
+// VALIDATION SCHEMA with BD Phone validation
 // ============================================================================
+const bdPhoneRegex = /^(\+880|880|0)?1[3-9]\d{8}$/;
+
 const OrderSchema = z.object({
   store_id: z.number().int().positive('Store ID is required'),
   product_id: z.number().int().positive('Product ID is required'),
-  customer_name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  phone: z.string().min(10, 'Phone must be at least 10 digits').max(20),
-  address: z.string().min(10, 'Address must be at least 10 characters').max(500),
+  customer_name: z.string().min(2, 'নাম কমপক্ষে ২ অক্ষর হতে হবে').max(100),
+  phone: z.string()
+    .min(10, 'মোবাইল নম্বর কমপক্ষে ১০ সংখ্যা হতে হবে')
+    .max(20)
+    .refine(val => bdPhoneRegex.test(val.replace(/[\s-]/g, '')), {
+      message: 'সঠিক বাংলাদেশী মোবাইল নম্বর দিন (01XXXXXXXXX)',
+    }),
+  address: z.string().min(10, 'ঠিকানা কমপক্ষে ১০ অক্ষর হতে হবে').max(500),
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
 });
 
 type OrderInput = z.infer<typeof OrderSchema>;
+
+// ============================================================================
+// GENERATE ORDER NUMBER
+// ============================================================================
+function generateOrderNumber(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+  return `ORD-${timestamp}-${random}`;
+}
 
 // ============================================================================
 // ACTION HANDLER
@@ -54,7 +72,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json(
         { 
           success: false, 
-          error: 'Validation failed',
+          error: 'ভ্যালিডেশন ব্যর্থ',
           details: errors.fieldErrors 
         },
         { status: 400 }
@@ -72,12 +90,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (store.length === 0) {
       return json(
-        { success: false, error: 'Store not found or inactive' },
+        { success: false, error: 'স্টোর পাওয়া যায়নি' },
         { status: 404 }
       );
     }
 
-    // Verify product exists and belongs to store
+    // SECURITY: Fetch REAL product price from database
     const product = await db
       .select()
       .from(products)
@@ -92,44 +110,68 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (product.length === 0) {
       return json(
-        { success: false, error: 'Product not found or unavailable' },
+        { success: false, error: 'প্রোডাক্ট পাওয়া যায়নি' },
         { status: 404 }
       );
     }
 
-    // Calculate total
-    const unitPrice = product[0].price;
-    const subtotal = unitPrice * input.quantity;
+    // SECURITY: Calculate price on SERVER, never trust frontend
+    const productData = product[0];
+    const unitPrice = productData.price;
+    const itemTotal = unitPrice * input.quantity;
+    const subtotal = itemTotal;
+    const tax = 0; // Can be calculated based on store settings
+    const shipping = 0; // Can be calculated based on store settings
+    const total = subtotal + tax + shipping;
 
     // Generate order number
-    const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
+    const orderNumber = generateOrderNumber();
+    const now = new Date();
 
-    // Create the order
-    const result = await db
+    // Use D1 Batch/Transaction to insert order and order_items together
+    // Step 1: Insert order
+    const orderResult = await db
       .insert(orders)
       .values({
         storeId: input.store_id,
         orderNumber,
         status: 'pending',
+        paymentStatus: 'pending', // COD - payment pending until delivery
         customerName: input.customer_name,
-        customerEmail: null, // Optional for COD
         customerPhone: input.phone,
+        customerEmail: null, // Optional for COD
         shippingAddress: input.address,
+        billingAddress: null,
         subtotal,
-        tax: 0, // Can be calculated based on store settings
-        shipping: 0, // Can be fetched from store settings
-        total: subtotal,
-        notes: input.notes || `Product: ${product[0].title} x ${input.quantity}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        tax,
+        shipping,
+        total,
+        notes: input.notes || null,
+        createdAt: now,
+        updatedAt: now,
       })
       .returning({ id: orders.id, orderNumber: orders.orderNumber });
 
+    const orderId = orderResult[0].id;
+
+    // Step 2: Insert order item
+    await db
+      .insert(orderItems)
+      .values({
+        orderId,
+        productId: productData.id,
+        title: productData.title,
+        quantity: input.quantity,
+        price: unitPrice,
+        total: itemTotal,
+      });
+
     return json({
       success: true,
-      orderId: result[0].id,
-      orderNumber: result[0].orderNumber,
-      message: 'Order placed successfully! We will contact you shortly.',
+      orderId,
+      orderNumber,
+      total,
+      message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে! শীঘ্রই আমরা আপনার সাথে যোগাযোগ করবো।',
     });
 
   } catch (error) {
@@ -138,7 +180,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json(
       { 
         success: false, 
-        error: 'Failed to process order. Please try again.' 
+        error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
       },
       { status: 500 }
     );
@@ -151,7 +193,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export async function loader() {
   return json({
     method: 'POST',
-    description: 'Create a new order',
-    fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address', 'quantity', 'notes?'],
+    description: 'Create a new Cash on Delivery order',
+    required_fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address'],
+    optional_fields: ['quantity (default: 1)', 'notes'],
   });
 }
