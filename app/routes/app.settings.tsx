@@ -454,22 +454,67 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Domain Settings (Coming Soon) */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 opacity-75">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Globe className="w-5 h-5 text-gray-500" />
+        {/* Custom Domain Settings */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <Globe className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Custom Domain</h3>
-              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
-                Coming Soon
-              </span>
+              <h2 className="text-lg font-semibold text-gray-900">Custom Domain</h2>
+              <p className="text-sm text-gray-500">Connect your own domain</p>
             </div>
           </div>
-          <p className="text-sm text-gray-500 mt-2">
-            Connect your own domain to your store (e.g., mystore.com)
-          </p>
+
+          <div className="space-y-4">
+            {/* Current Domain Info */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600">Your store is currently accessible at:</p>
+              <p className="font-medium text-gray-900 mt-1">
+                https://{store.subdomain}.stores.digitalcare.site
+              </p>
+            </div>
+
+            {/* Custom Domain Input */}
+            <div>
+              <label htmlFor="customDomain" className="block text-sm font-medium text-gray-700 mb-1">
+                Custom Domain (optional)
+              </label>
+              <input
+                type="text"
+                id="customDomain"
+                name="customDomain"
+                defaultValue={store.customDomain || ''}
+                placeholder="mystore.com"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+              <p className="text-xs text-gray-500 mt-1">Enter your domain without https://</p>
+            </div>
+
+            {/* DNS Instructions */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">Setup Instructions:</h4>
+              <ol className="text-sm text-blue-800 space-y-2">
+                <li>1. Go to your domain registrar's DNS settings</li>
+                <li>2. Add a <strong>CNAME</strong> record:</li>
+                <li className="ml-4 font-mono text-xs bg-blue-100 p-2 rounded">
+                  Name: @ or www<br />
+                  Value: cname.vercel-dns.com
+                </li>
+                <li>3. Save your domain here and wait for DNS propagation (up to 48 hours)</li>
+              </ol>
+            </div>
+
+            {/* Current Status */}
+            {store.customDomain && (
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <span className="text-gray-600">
+                  Custom domain configured: <strong>{store.customDomain}</strong>
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Submit Button */}

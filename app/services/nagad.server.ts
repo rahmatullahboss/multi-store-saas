@@ -8,9 +8,9 @@
  * 1. Initialize - Get payment reference key
  * 2. Complete Order - Redirect user to Nagad payment page
  * 3. Verify Payment - Confirm payment status on callback
+ * 
+ * Note: Uses global crypto object (Web Crypto API) for Cloudflare Workers compatibility
  */
-
-import { webcrypto } from 'crypto';
 
 // Types
 interface NagadConfig {
@@ -85,7 +85,7 @@ export class NagadService {
   }
 
   // ============================================================================
-  // CRYPTO HELPERS
+  // CRYPTO HELPERS (Using Web Crypto API - global crypto object)
   // ============================================================================
   
   private async encryptWithPublicKey(data: string): Promise<string> {
@@ -99,7 +99,7 @@ export class NagadService {
     
     const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
     
-    const publicKey = await webcrypto.subtle.importKey(
+    const publicKey = await crypto.subtle.importKey(
       'spki',
       binaryDer,
       { name: 'RSA-OAEP', hash: 'SHA-256' },
@@ -108,7 +108,7 @@ export class NagadService {
     );
 
     const encoder = new TextEncoder();
-    const encrypted = await webcrypto.subtle.encrypt(
+    const encrypted = await crypto.subtle.encrypt(
       { name: 'RSA-OAEP' },
       publicKey,
       encoder.encode(data)
@@ -127,7 +127,7 @@ export class NagadService {
     
     const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
     
-    const privateKey = await webcrypto.subtle.importKey(
+    const privateKey = await crypto.subtle.importKey(
       'pkcs8',
       binaryDer,
       { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
@@ -136,7 +136,7 @@ export class NagadService {
     );
 
     const encoder = new TextEncoder();
-    const signature = await webcrypto.subtle.sign(
+    const signature = await crypto.subtle.sign(
       'RSASSA-PKCS1-v1_5',
       privateKey,
       encoder.encode(data)
