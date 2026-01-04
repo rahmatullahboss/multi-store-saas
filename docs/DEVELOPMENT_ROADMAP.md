@@ -64,28 +64,28 @@
 
 ---
 
-## Phase 3: Theme & Customization
+## Phase 3: Theme & Customization ✅ (Complete)
 
 ### 3.1 Preset Themes
 
 - [x] Theme preview in dashboard
 - [x] Apply theme colors to storefront
-- [ ] Custom accent color picker
-- [ ] Font selection (limited options)
+- [x] Custom accent color picker
+- [x] Font selection (5 Google Fonts options)
 
 ### 3.2 Branding
 
 - [x] Logo upload & display
-- [ ] Favicon
-- [ ] Social media links
-- [ ] Footer customization
+- [x] Favicon upload & display
+- [x] Social media links (Facebook, Instagram, WhatsApp)
+- [x] Footer customization (description, links, powered-by toggle)
 
 ### 3.3 Landing Page Mode
 
-- [ ] Single product focus
-- [ ] Video embed support
-- [ ] Testimonials section
-- [ ] CTA customization
+- [x] Single product focus (store mode toggle)
+- [x] Video embed support (YouTube, Vimeo)
+- [x] Testimonials section editor (CRUD)
+- [x] CTA customization (button text, subtext)
 
 ---
 

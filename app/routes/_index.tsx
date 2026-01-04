@@ -16,7 +16,7 @@ import { useLoaderData } from '@remix-run/react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
-import { parseLandingConfig, parseThemeConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig } from '@db/types';
+import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
 import { StoreLayout } from '~/components/templates/StoreLayout';
 
@@ -168,17 +168,26 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const themeConfigRaw = (store as Store & { themeConfig?: string }).themeConfig;
   const themeConfig = parseThemeConfig(themeConfigRaw);
   
+  // Parse Phase 3 configs
+  const socialLinks = parseSocialLinks(store?.socialLinks as string | null);
+  const footerConfig = parseFooterConfig(store?.footerConfig as string | null);
+  
   return json({
     mode: 'store' as const,
     storeId,
     storeName: store?.name || 'Store',
     logo: store?.logo,
+    favicon: store?.favicon,
+    fontFamily: store?.fontFamily || 'inter',
     currency: store?.currency || 'USD',
-    theme: store?.theme || 'default', // Preset theme name
+    theme: store?.theme || 'default',
     products: storeProducts,
     categories,
     currentCategory: category,
     themeConfig,
+    socialLinks,
+    footerConfig,
+    businessInfo: store?.businessInfo ? JSON.parse(store.businessInfo) : null,
     // Not needed for store mode
     featuredProduct: null,
     landingConfig: null,
@@ -222,11 +231,15 @@ export default function Index() {
       storeId={data.storeId}
       logo={data.logo}
       theme={data.theme}
+      fontFamily={data.fontFamily}
       products={data.products || []}
       categories={data.categories || []}
       currentCategory={data.currentCategory}
       config={data.themeConfig as ThemeConfig | null}
       currency={data.currency}
+      socialLinks={data.socialLinks as SocialLinks | null}
+      footerConfig={data.footerConfig as FooterConfig | null}
+      businessInfo={data.businessInfo}
     />
   );
 }

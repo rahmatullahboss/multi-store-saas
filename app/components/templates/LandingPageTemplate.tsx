@@ -6,7 +6,24 @@
  * - Sticky mobile footer with CTA
  * - Inline order form (Cash on Delivery)
  * - useFetcher for AJAX submission
+ * - Video embed support (YouTube/Vimeo)
  */
+
+// Helper function to convert YouTube URL to embed URL
+function getYouTubeEmbedUrl(url: string): string {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  const videoId = match && match[2].length === 11 ? match[2] : null;
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+}
+
+// Helper function to convert Vimeo URL to embed URL
+function getVimeoEmbedUrl(url: string): string {
+  const regExp = /vimeo\.com\/(\d+)/;
+  const match = url.match(regExp);
+  const videoId = match ? match[1] : null;
+  return videoId ? `https://player.vimeo.com/video/${videoId}` : url;
+}
 
 import { useFetcher } from '@remix-run/react';
 import { useState, useEffect } from 'react';
@@ -243,6 +260,42 @@ export function LandingPageTemplate({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Video Embed Section */}
+      {config.videoUrl && (
+        <section className="py-12 bg-gray-900">
+          <div className="container-store">
+            <h3 className="text-2xl font-bold text-center mb-8">🎬 পণ্যের ভিডিও দেখুন</h3>
+            <div className="max-w-3xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-2xl ring-4 ring-yellow-500/20">
+              {config.videoUrl.includes('youtube.com') || config.videoUrl.includes('youtu.be') ? (
+                <iframe
+                  src={getYouTubeEmbedUrl(config.videoUrl)}
+                  title="Product Video"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : config.videoUrl.includes('vimeo.com') ? (
+                <iframe
+                  src={getVimeoEmbedUrl(config.videoUrl)}
+                  title="Product Video"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={config.videoUrl}
+                  controls
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
           </div>
         </section>
