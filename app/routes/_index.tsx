@@ -52,8 +52,27 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // LOADER - Mode-based data fetching with caching
 // ============================================================================
 export async function loader({ context, request }: LoaderFunctionArgs) {
-  const { storeId, store, cloudflare } = context;
+  let { storeId, store } = context;
+  const { cloudflare } = context;
   const db = drizzle(cloudflare.env.DB);
+  
+  // Fallback: If no store matched from tenant middleware, get first active store
+  // This handles Cloudflare Pages deployment URLs like d3590a80.multi-store-saas.pages.dev
+  if (!store || storeId === 0) {
+    const fallbackStore = await db
+      .select()
+      .from(stores)
+      .where(eq(stores.isActive, true))
+      .limit(1);
+    
+    if (fallbackStore.length > 0) {
+      store = fallbackStore[0] as Store;
+      storeId = fallbackStore[0].id;
+    } else {
+      // No stores in database at all
+      throw new Response('Store not found', { status: 404 });
+    }
+  }
   
   const url = new URL(request.url);
   const category = url.searchParams.get('category');
