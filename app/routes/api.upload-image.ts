@@ -1,7 +1,8 @@
 /**
- * Cloudinary Image Upload API
+ * Cloudinary Image Upload API (Signed Upload)
  * 
- * Handles image uploads to Cloudinary using unsigned upload
+ * Uses API_KEY and API_SECRET for secure signed uploads
+ * No unsigned preset required!
  * 
  * POST: Upload image file and return Cloudinary URL
  */
@@ -9,13 +10,42 @@
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 
+/**
+ * Generate Cloudinary signature using Web Crypto API
+ * This is required for signed uploads
+ */
+async function generateSignature(
+  params: Record<string, string | number>,
+  apiSecret: string
+): Promise<string> {
+  // Sort parameters alphabetically and create string to sign
+  const sortedParams = Object.keys(params)
+    .sort()
+    .map(key => `${key}=${params[key]}`)
+    .join('&');
+  
+  const stringToSign = sortedParams + apiSecret;
+  
+  // Generate SHA-1 hash using Web Crypto API
+  const encoder = new TextEncoder();
+  const data = encoder.encode(stringToSign);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  
+  // Convert to hex string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
 
   const cloudName = context.cloudflare.env.CLOUDINARY_CLOUD_NAME;
-  if (!cloudName) {
+  const apiKey = context.cloudflare.env.CLOUDINARY_API_KEY;
+  const apiSecret = context.cloudflare.env.CLOUDINARY_API_SECRET;
+
+  if (!cloudName || !apiKey || !apiSecret) {
     return json({ error: 'Cloudinary not configured' }, { status: 500 });
   }
 
@@ -42,13 +72,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'File too large. Maximum 10MB' }, { status: 400 });
     }
 
-    // Upload to Cloudinary using unsigned upload
-    // You need to create an unsigned upload preset in Cloudinary Dashboard
-    const uploadPreset = 'ml_default'; // Default preset or create custom one
-    
+    // Generate timestamp and signature for signed upload
+    const timestamp = Math.floor(Date.now() / 1000);
+    const paramsToSign: Record<string, string | number> = {
+      timestamp,
+      folder,
+    };
+
+    const signature = await generateSignature(paramsToSign, apiSecret);
+
+    // Upload to Cloudinary using signed upload
     const cloudinaryFormData = new FormData();
     cloudinaryFormData.append('file', file);
-    cloudinaryFormData.append('upload_preset', uploadPreset);
+    cloudinaryFormData.append('api_key', apiKey);
+    cloudinaryFormData.append('timestamp', timestamp.toString());
+    cloudinaryFormData.append('signature', signature);
     cloudinaryFormData.append('folder', folder);
 
     const response = await fetch(
