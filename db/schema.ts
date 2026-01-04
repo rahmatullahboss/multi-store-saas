@@ -38,6 +38,22 @@ export const stores = sqliteTable('stores', {
 });
 
 // ============================================================================
+// USERS TABLE - Merchant authentication
+// ============================================================================
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  name: text('name'),
+  storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
+  role: text('role').$type<'admin' | 'merchant' | 'staff'>().default('merchant'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('users_email_idx').on(table.email),
+  index('users_store_id_idx').on(table.storeId),
+]);
+
+// ============================================================================
 // PRODUCTS TABLE - Store products with store_id isolation
 // ============================================================================
 export const products = sqliteTable('products', {
@@ -128,6 +144,14 @@ export const storesRelations = relations(stores, ({ many }) => ({
   products: many(products),
   customers: many(customers),
   orders: many(orders),
+  users: many(users),
+}));
+
+export const usersRelations = relations(users, ({ one }) => ({
+  store: one(stores, {
+    fields: [users.storeId],
+    references: [stores.id],
+  }),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -182,3 +206,5 @@ export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type NewOrderItem = typeof orderItems.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
