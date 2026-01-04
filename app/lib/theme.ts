@@ -77,3 +77,23 @@ export function getThemeColors(themeName: string | null | undefined): ThemeColor
   if (!themeName) return presetThemes.default;
   return presetThemes[themeName] || presetThemes.default;
 }
+
+/**
+ * Font options for store customization
+ * Using Google Fonts for consistent cross-browser display
+ */
+export const fontOptions = [
+  { value: 'inter', label: 'Inter', family: "'Inter', sans-serif", url: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
+  { value: 'poppins', label: 'Poppins', family: "'Poppins', sans-serif", url: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap' },
+  { value: 'roboto', label: 'Roboto', family: "'Roboto', sans-serif", url: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap' },
+  { value: 'playfair', label: 'Playfair Display', family: "'Playfair Display', serif", url: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap' },
+  { value: 'nunito', label: 'Nunito', family: "'Nunito', sans-serif", url: 'https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap' },
+];
+
+/**
+ * Get font configuration by font name
+ */
+export function getFontConfig(fontName: string | null | undefined) {
+  if (!fontName) return fontOptions[0]; // Default to Inter
+  return fontOptions.find(f => f.value === fontName) || fontOptions[0];
+}

@@ -36,6 +36,12 @@ export const stores = sqliteTable('stores', {
   currency: text('currency').default('USD'),
   defaultLanguage: text('default_language').$type<'en' | 'bn'>().default('en'),
   
+  // === PHASE 3: Theme & Customization ===
+  favicon: text('favicon'), // Cloudinary URL for favicon
+  socialLinks: text('social_links'), // JSON: { facebook?, instagram?, whatsapp?, twitter? }
+  fontFamily: text('font_family').default('inter'), // Selected font name
+  footerConfig: text('footer_config'), // JSON: { description?, links[], showPoweredBy }
+  
   // === NOTIFICATION SETTINGS ===
   notificationEmail: text('notification_email'), // Override email for alerts
   emailNotificationsEnabled: integer('email_notifications_enabled', { mode: 'boolean' }).default(true),

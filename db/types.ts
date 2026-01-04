@@ -31,6 +31,7 @@ export interface LandingConfig {
 export interface ThemeConfig {
   primaryColor: string;
   accentColor: string;
+  customAccentColor?: string; // Override preset accent color
   bannerUrl?: string;
   bannerText?: string;
   collections?: {
@@ -46,6 +47,44 @@ export interface ThemeConfig {
     title: string;
     url: string;
   }[];
+}
+
+// Social media links configuration
+export interface SocialLinks {
+  facebook?: string;
+  instagram?: string;
+  whatsapp?: string;
+  twitter?: string;
+}
+
+// Footer customization configuration
+export interface FooterConfig {
+  description?: string;
+  links?: {
+    title: string;
+    url: string;
+  }[];
+  showPoweredBy?: boolean;
+}
+
+// Helper to parse social links
+export function parseSocialLinks(json: string | null): SocialLinks | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as SocialLinks;
+  } catch {
+    return null;
+  }
+}
+
+// Helper to parse footer config
+export function parseFooterConfig(json: string | null): FooterConfig | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as FooterConfig;
+  } catch {
+    return null;
+  }
 }
 
 // Helper to parse JSON config safely

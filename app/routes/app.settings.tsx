@@ -5,9 +5,12 @@
  * 
  * Features:
  * - Edit store name, currency
- * - Upload store logo
- * - Select store theme
- * - View store info
+ * - Upload store logo & favicon
+ * - Select store theme & custom accent color
+ * - Select font family
+ * - Social media links
+ * - Business info
+ * - Custom domain
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
@@ -16,8 +19,10 @@ import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
+import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
-import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin } from 'lucide-react';
+import { fontOptions } from '~/lib/theme';
+import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
 export const meta: MetaFunction = () => {
@@ -42,6 +47,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(1);
 
   const store = storeResult[0];
+  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
+  const footerConfig = parseFooterConfig(store.footerConfig as string | null);
 
   return json({
     store: {
@@ -53,6 +60,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       mode: store.mode,
       theme: store.theme,
       logo: store.logo,
+      favicon: store.favicon,
+      fontFamily: store.fontFamily || 'inter',
+      socialLinks: socialLinks || { facebook: '', instagram: '', whatsapp: '', twitter: '' },
+      footerConfig: footerConfig || { description: '', showPoweredBy: true },
       businessInfo: store.businessInfo ? JSON.parse(store.businessInfo) : { phone: '', email: '', address: '' },
     },
   });
@@ -72,10 +83,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const currency = formData.get('currency') as string;
   const theme = formData.get('theme') as string;
   const logo = formData.get('logo') as string;
+  const favicon = formData.get('favicon') as string;
+  const fontFamily = formData.get('fontFamily') as string;
   const businessPhone = formData.get('businessPhone') as string;
   const businessEmail = formData.get('businessEmail') as string;
   const businessAddress = formData.get('businessAddress') as string;
   const customDomain = formData.get('customDomain') as string;
+  
+  // Social links
+  const facebook = formData.get('facebook') as string;
+  const instagram = formData.get('instagram') as string;
+  const whatsapp = formData.get('whatsapp') as string;
 
   // Validation
   if (!name || name.trim().length < 2) {
@@ -91,7 +109,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       currency: currency || 'BDT',
       theme: theme || 'default',
       logo: logo || null,
+      favicon: favicon || null,
+      fontFamily: fontFamily || 'inter',
       customDomain: customDomain?.trim() || null,
+      socialLinks: JSON.stringify({
+        facebook: facebook || '',
+        instagram: instagram || '',
+        whatsapp: whatsapp || '',
+      }),
       businessInfo: JSON.stringify({
         phone: businessPhone || '',
         email: businessEmail || '',
@@ -136,13 +161,21 @@ export default function SettingsPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState(store.theme || 'default');
   
   // Logo upload state
   const [logoUrl, setLogoUrl] = useState<string>(store.logo || '');
   const [logoPreview, setLogoPreview] = useState<string>(store.logo || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
-  const isUploading = logoFetcher.state !== 'idle';
+  const isUploadingLogo = logoFetcher.state !== 'idle';
+
+  // Favicon upload state
+  const [faviconUrl, setFaviconUrl] = useState<string>(store.favicon || '');
+  const [faviconPreview, setFaviconPreview] = useState<string>(store.favicon || '');
+  const faviconInputRef = useRef<HTMLInputElement>(null);
+  const faviconFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
+  const isUploadingFavicon = faviconFetcher.state !== 'idle';
 
   // Handle logo upload response
   useEffect(() => {
@@ -151,6 +184,14 @@ export default function SettingsPage() {
       setLogoPreview(logoFetcher.data.url);
     }
   }, [logoFetcher.data]);
+
+  // Handle favicon upload response
+  useEffect(() => {
+    if (faviconFetcher.data?.success && faviconFetcher.data?.url) {
+      setFaviconUrl(faviconFetcher.data.url);
+      setFaviconPreview(faviconFetcher.data.url);
+    }
+  }, [faviconFetcher.data]);
 
   // Show success message
   useEffect(() => {
@@ -184,11 +225,42 @@ export default function SettingsPage() {
     });
   };
 
+  const handleFaviconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show local preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFaviconPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to Cloudinary
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'favicons');
+
+    faviconFetcher.submit(formData, {
+      method: 'post',
+      action: '/api/upload-image',
+      encType: 'multipart/form-data',
+    });
+  };
+
   const removeLogo = () => {
     setLogoUrl('');
     setLogoPreview('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const removeFavicon = () => {
+    setFaviconUrl('');
+    setFaviconPreview('');
+    if (faviconInputRef.current) {
+      faviconInputRef.current.value = '';
     }
   };
 
@@ -216,84 +288,128 @@ export default function SettingsPage() {
       )}
 
       <Form method="post" className="space-y-6">
-        {/* Hidden logo input */}
+        {/* Hidden inputs */}
         <input type="hidden" name="logo" value={logoUrl} />
+        <input type="hidden" name="favicon" value={faviconUrl} />
 
-        {/* Logo Upload Card */}
+        {/* Logo & Favicon Upload Card */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <Image className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Store Logo</h2>
-              <p className="text-sm text-gray-500">Displayed in header and footer</p>
+              <h2 className="text-lg font-semibold text-gray-900">Branding</h2>
+              <p className="text-sm text-gray-500">Logo and favicon for your store</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            {/* Logo Preview */}
-            <div className="relative">
-              {logoPreview ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Logo Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Store Logo</label>
+              <div className="flex items-center gap-4">
                 <div className="relative">
-                  <img
-                    src={logoPreview}
-                    alt="Store logo"
-                    className="w-24 h-24 object-contain rounded-lg border border-gray-200 bg-gray-50"
-                  />
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  {logoPreview ? (
+                    <div className="relative">
+                      <img
+                        src={logoPreview}
+                        alt="Store logo"
+                        className="w-20 h-20 object-contain rounded-lg border border-gray-200 bg-gray-50"
+                      />
+                      {isUploadingLogo && (
+                        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                          <Loader2 className="w-5 h-5 text-white animate-spin" />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={removeLogo}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition text-xs"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+                      <Store className="w-6 h-6 text-gray-400" />
                     </div>
                   )}
+                </div>
+                <div>
                   <button
                     type="button"
-                    onClick={removeLogo}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <Store className="w-8 h-8 text-gray-400" />
-                </div>
-              )}
-            </div>
-
-            {/* Upload Button */}
-            <div>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
                     <Upload className="w-4 h-4" />
-                    Upload Logo
-                  </>
-                )}
-              </button>
-              <p className="text-xs text-gray-500 mt-2">PNG, JPG up to 2MB. Square works best.</p>
-              {logoFetcher.data?.error && (
-                <p className="text-red-500 text-sm mt-1">{logoFetcher.data.error}</p>
-              )}
+                    {isUploadingLogo ? 'Uploading...' : 'Upload'}
+                  </button>
+                  <p className="text-xs text-gray-500 mt-1">PNG, JPG. Square works best.</p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleLogoChange}
+                  className="hidden"
+                />
+              </div>
             </div>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleLogoChange}
-              className="hidden"
-            />
+            {/* Favicon Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  {faviconPreview ? (
+                    <div className="relative">
+                      <img
+                        src={faviconPreview}
+                        alt="Favicon"
+                        className="w-10 h-10 object-contain rounded border border-gray-200 bg-gray-50"
+                      />
+                      {isUploadingFavicon && (
+                        <div className="absolute inset-0 bg-black/50 rounded flex items-center justify-center">
+                          <Loader2 className="w-4 h-4 text-white animate-spin" />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={removeFavicon}
+                        className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center border-2 border-dashed border-gray-300">
+                      <Globe className="w-4 h-4 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => faviconInputRef.current?.click()}
+                    disabled={isUploadingFavicon}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {isUploadingFavicon ? 'Uploading...' : 'Upload'}
+                  </button>
+                  <p className="text-xs text-gray-500 mt-1">32x32 or 16x16 PNG</p>
+                </div>
+                <input
+                  ref={faviconInputRef}
+                  type="file"
+                  accept="image/png,image/x-icon,image/ico"
+                  onChange={handleFaviconChange}
+                  className="hidden"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -354,45 +470,132 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Theme Selection */}
+        {/* Theme & Font Selection */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
               <Palette className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Store Theme</h2>
-              <p className="text-sm text-gray-500">Choose a preset theme for your store</p>
+              <h2 className="text-lg font-semibold text-gray-900">Theme & Typography</h2>
+              <p className="text-sm text-gray-500">Customize the look of your store</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {themes.map((t) => (
-              <label
-                key={t.value}
-                className={`
-                  relative flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer transition
-                  ${store.theme === t.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}
-                `}
-              >
-                <input
-                  type="radio"
-                  name="theme"
-                  value={t.value}
-                  defaultChecked={store.theme === t.value}
-                  className="sr-only"
-                />
-                <div
-                  className="w-10 h-10 rounded-full mb-2 border-2 border-white shadow-md"
-                  style={{ backgroundColor: t.color }}
-                />
-                <span className="font-medium text-gray-900 text-sm">{t.label}</span>
-                <span className="text-xs text-gray-500 text-center">{t.description}</span>
-                {store.theme === t.value && (
-                  <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
-                )}
+          {/* Theme Grid */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">Color Theme</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {themes.map((t) => (
+                <label
+                  key={t.value}
+                  className={`
+                    relative flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer transition
+                    ${selectedTheme === t.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}
+                  `}
+                  onClick={() => setSelectedTheme(t.value)}
+                >
+                  <input
+                    type="radio"
+                    name="theme"
+                    value={t.value}
+                    checked={selectedTheme === t.value}
+                    onChange={() => setSelectedTheme(t.value)}
+                    className="sr-only"
+                  />
+                  <div
+                    className="w-10 h-10 rounded-full mb-2 border-2 border-white shadow-md"
+                    style={{ backgroundColor: t.color }}
+                  />
+                  <span className="font-medium text-gray-900 text-sm">{t.label}</span>
+                  <span className="text-xs text-gray-500 text-center">{t.description}</span>
+                  {selectedTheme === t.value && (
+                    <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
+                  )}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Font Selection */}
+          <div>
+            <label htmlFor="fontFamily" className="block text-sm font-medium text-gray-700 mb-1">
+              <Type className="w-4 h-4 inline mr-1" /> Font Family
+            </label>
+            <select
+              id="fontFamily"
+              name="fontFamily"
+              defaultValue={store.fontFamily}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
+            >
+              {fontOptions.map((font) => (
+                <option key={font.value} value={font.value} style={{ fontFamily: font.family }}>
+                  {font.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">The font will be applied to your storefront.</p>
+          </div>
+        </div>
+
+        {/* Social Media Links */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+              <Instagram className="w-5 h-5 text-pink-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Social Media</h2>
+              <p className="text-sm text-gray-500">Connect your social profiles</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Facebook */}
+            <div>
+              <label htmlFor="facebook" className="block text-sm font-medium text-gray-700 mb-1">
+                <Facebook className="w-4 h-4 inline mr-1 text-blue-600" /> Facebook
               </label>
-            ))}
+              <input
+                type="url"
+                id="facebook"
+                name="facebook"
+                defaultValue={store.socialLinks?.facebook || ''}
+                placeholder="https://facebook.com/yourpage"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+            </div>
+
+            {/* Instagram */}
+            <div>
+              <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 mb-1">
+                <Instagram className="w-4 h-4 inline mr-1 text-pink-600" /> Instagram
+              </label>
+              <input
+                type="url"
+                id="instagram"
+                name="instagram"
+                defaultValue={store.socialLinks?.instagram || ''}
+                placeholder="https://instagram.com/yourprofile"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+            </div>
+
+            {/* WhatsApp */}
+            <div>
+              <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
+                <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" /> WhatsApp
+              </label>
+              <input
+                type="tel"
+                id="whatsapp"
+                name="whatsapp"
+                defaultValue={store.socialLinks?.whatsapp || ''}
+                placeholder="+8801XXXXXXXXX"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+              <p className="text-xs text-gray-500 mt-1">Include country code for WhatsApp link</p>
+            </div>
           </div>
         </div>
 
@@ -561,6 +764,15 @@ export default function SettingsPage() {
               <span className="font-medium text-gray-700">Activity Log</span>
             </a>
             <a
+              href="/app/settings/landing"
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
+                <Palette className="w-4 h-4 text-rose-600" />
+              </div>
+              <span className="font-medium text-gray-700">Landing Mode</span>
+            </a>
+            <a
               href="/app/settings/courier"
               className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
             >
@@ -576,7 +788,7 @@ export default function SettingsPage() {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isSubmitting || isUploading}
+            disabled={isSubmitting || isUploadingLogo || isUploadingFavicon}
             className="px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting ? (
