@@ -523,7 +523,7 @@ export default function SettingsPage() {
         {/* Quick Links to Other Settings */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">More Settings</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <a 
               href="/app/settings/shipping" 
               className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
@@ -541,6 +541,15 @@ export default function SettingsPage() {
                 <Globe className="w-4 h-4 text-blue-600" />
               </div>
               <span className="font-medium text-gray-700">SEO Settings</span>
+            </a>
+            <a 
+              href="/app/settings/courier" 
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Store className="w-4 h-4 text-purple-600" />
+              </div>
+              <span className="font-medium text-gray-700">Courier API</span>
             </a>
           </div>
         </div>
