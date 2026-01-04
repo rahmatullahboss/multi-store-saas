@@ -75,7 +75,7 @@
 
 ### 3.2 Branding
 
-- [ ] Logo upload & display
+- [x] Logo upload & display
 - [ ] Favicon
 - [ ] Social media links
 - [ ] Footer customization
