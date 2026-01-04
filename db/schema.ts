@@ -129,12 +129,42 @@ export const orderItems = sqliteTable('order_items', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   productId: integer('product_id').references(() => products.id),
+  variantId: integer('variant_id').references(() => productVariants.id),
   title: text('title').notNull(),
+  variantTitle: text('variant_title'), // e.g., "Red / Large"
   quantity: integer('quantity').notNull(),
   price: real('price').notNull(),
   total: real('total').notNull(),
 }, (table) => [
   index('order_items_order_id_idx').on(table.orderId),
+]);
+
+// ============================================================================
+// PRODUCT VARIANTS TABLE - Size, color, and other variations
+// ============================================================================
+export const productVariants = sqliteTable('product_variants', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  // Variant options (could be size, color, material, etc.)
+  option1Name: text('option1_name'), // e.g., "Size"
+  option1Value: text('option1_value'), // e.g., "Large"
+  option2Name: text('option2_name'), // e.g., "Color"
+  option2Value: text('option2_value'), // e.g., "Red"
+  option3Name: text('option3_name'), // Optional third option
+  option3Value: text('option3_value'),
+  // Pricing
+  price: real('price'), // Override product price if set
+  compareAtPrice: real('compare_at_price'),
+  // Inventory
+  sku: text('sku'),
+  inventory: integer('inventory').default(0),
+  // Variant-specific image
+  imageUrl: text('image_url'),
+  // Status
+  isAvailable: integer('is_available', { mode: 'boolean' }).default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('product_variants_product_id_idx').on(table.productId),
 ]);
 
 // ============================================================================
@@ -160,6 +190,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     references: [stores.id],
   }),
   orderItems: many(orderItems),
+  variants: many(productVariants),
 }));
 
 export const customersRelations = relations(customers, ({ one, many }) => ({
@@ -191,6 +222,18 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
     fields: [orderItems.productId],
     references: [products.id],
   }),
+  variant: one(productVariants, {
+    fields: [orderItems.variantId],
+    references: [productVariants.id],
+  }),
+}));
+
+export const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
+  product: one(products, {
+    fields: [productVariants.productId],
+    references: [products.id],
+  }),
+  orderItems: many(orderItems),
 }));
 
 // ============================================================================
@@ -200,6 +243,8 @@ export type Store = typeof stores.$inferSelect;
 export type NewStore = typeof stores.$inferInsert;
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
+export type ProductVariant = typeof productVariants.$inferSelect;
+export type NewProductVariant = typeof productVariants.$inferInsert;
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 export type Order = typeof orders.$inferSelect;
