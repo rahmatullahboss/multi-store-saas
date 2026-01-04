@@ -42,6 +42,7 @@ migrations_dir = "db/migrations"
 [vars]
 SAAS_DOMAIN = "stores.digitalcare.site"  # Custom domain for the SaaS
 CLOUDINARY_CLOUD_NAME = "dpnccgsja"      # Cloudinary cloud for image optimization
+# RESEND_API_KEY - Set in Cloudflare Dashboard > Pages > Settings > Environment Variables
 
 # ============================================================================
 # DEVELOPMENT SETTINGS

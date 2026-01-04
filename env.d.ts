@@ -16,6 +16,7 @@ declare global {
     CLOUDINARY_CLOUD_NAME?: string;
     CLOUDINARY_API_KEY?: string;
     CLOUDINARY_API_SECRET?: string;
+    RESEND_API_KEY?: string; // Email service
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
   }
 }

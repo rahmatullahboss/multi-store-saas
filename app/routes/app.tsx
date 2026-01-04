@@ -27,7 +27,8 @@ import {
   Store,
   BarChart3,
   Tag,
-  Truck
+  Truck,
+  Warehouse
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -87,6 +88,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 const navItems = [
   { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/app/products', label: 'Products', icon: Package },
+  { to: '/app/inventory', label: 'Inventory', icon: Warehouse },
   { to: '/app/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { to: '/app/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/app/discounts', label: 'Discounts', icon: Tag },

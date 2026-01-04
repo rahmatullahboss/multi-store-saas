@@ -15,8 +15,9 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, products, stores } from '@db/schema';
+import { orders, orderItems, products, stores, users } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
+import { createEmailService } from '~/services/email.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -36,6 +37,7 @@ const OrderSchema = z.object({
   address: z.string().min(10, 'ঠিকানা কমপক্ষে ১০ অক্ষর হতে হবে').max(500),
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
+  customer_email: z.string().email().optional(), // Optional email for confirmation
 });
 
 type OrderInput = z.infer<typeof OrderSchema>;
@@ -82,18 +84,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const input: OrderInput = parseResult.data;
 
     // Verify store exists and is active
-    const store = await db
+    const storeResult = await db
       .select()
       .from(stores)
       .where(and(eq(stores.id, input.store_id), eq(stores.isActive, true)))
       .limit(1);
 
-    if (store.length === 0) {
+    if (storeResult.length === 0) {
       return json(
         { success: false, error: 'স্টোর পাওয়া যায়নি' },
         { status: 404 }
       );
     }
+
+    const storeData = storeResult[0];
 
     // SECURITY: Fetch REAL product price from database
     const product = await db
@@ -139,7 +143,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         paymentStatus: 'pending', // COD - payment pending until delivery
         customerName: input.customer_name,
         customerPhone: input.phone,
-        customerEmail: null, // Optional for COD
+        customerEmail: input.customer_email || null,
         shippingAddress: input.address,
         billingAddress: null,
         subtotal,
@@ -165,6 +169,56 @@ export async function action({ request, context }: ActionFunctionArgs) {
         price: unitPrice,
         total: itemTotal,
       });
+
+    // ============================================================================
+    // SEND EMAIL NOTIFICATIONS (non-blocking)
+    // ============================================================================
+    const resendApiKey = context.cloudflare.env.RESEND_API_KEY;
+    
+    if (resendApiKey) {
+      const emailService = createEmailService(resendApiKey);
+      
+      // Send order confirmation to customer (if email provided)
+      if (input.customer_email) {
+        context.cloudflare.ctx.waitUntil(
+          emailService.sendOrderConfirmation({
+            orderNumber,
+            customerName: input.customer_name,
+            customerEmail: input.customer_email,
+            total,
+            currency: storeData.currency || 'BDT',
+            items: [{
+              title: productData.title,
+              quantity: input.quantity,
+              price: unitPrice,
+            }],
+            shippingAddress: input.address,
+            paymentMethod: 'Cash on Delivery',
+          })
+        );
+      }
+
+      // Send new order alert to merchant
+      const merchantUser = await db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.storeId, input.store_id))
+        .limit(1);
+
+      if (merchantUser.length > 0 && merchantUser[0].email) {
+        context.cloudflare.ctx.waitUntil(
+          emailService.sendNewOrderAlert({
+            merchantEmail: merchantUser[0].email,
+            storeName: storeData.name,
+            orderNumber,
+            customerName: input.customer_name,
+            total,
+            currency: storeData.currency || 'BDT',
+            itemCount: input.quantity,
+          })
+        );
+      }
+    }
 
     return json({
       success: true,

@@ -342,6 +342,11 @@ export const discounts = sqliteTable('discounts', {
   startsAt: integer('starts_at', { mode: 'timestamp' }),
   expiresAt: integer('expires_at', { mode: 'timestamp' }),
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  // Flash Sale fields
+  isFlashSale: integer('is_flash_sale', { mode: 'boolean' }).default(false),
+  flashSaleEndTime: integer('flash_sale_end_time', { mode: 'timestamp' }),
+  showOnHomepage: integer('show_on_homepage', { mode: 'boolean' }).default(false),
+  flashSaleTitle: text('flash_sale_title'), // e.g., "Flash Sale! 50% OFF"
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
@@ -415,6 +420,37 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
 }));
 
 // ============================================================================
+// ABANDONED CARTS TABLE - Cart recovery tracking
+// ============================================================================
+export const abandonedCarts = sqliteTable('abandoned_carts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  sessionId: text('session_id').notNull(), // Browser session ID
+  customerEmail: text('customer_email'),
+  customerPhone: text('customer_phone'),
+  customerName: text('customer_name'),
+  cartItems: text('cart_items').notNull(), // JSON array of cart items
+  totalAmount: real('total_amount').notNull(),
+  currency: text('currency').default('BDT'),
+  abandonedAt: integer('abandoned_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  recoveredAt: integer('recovered_at', { mode: 'timestamp' }),
+  recoveryEmailSent: integer('recovery_email_sent', { mode: 'boolean' }).default(false),
+  recoveryEmailSentAt: integer('recovery_email_sent_at', { mode: 'timestamp' }),
+  status: text('status').$type<'abandoned' | 'recovered' | 'expired'>().default('abandoned'),
+}, (table) => [
+  index('abandoned_carts_store_id_idx').on(table.storeId),
+  index('abandoned_carts_session_idx').on(table.sessionId),
+  index('abandoned_carts_status_idx').on(table.storeId, table.status),
+]);
+
+export const abandonedCartsRelations = relations(abandonedCarts, ({ one }) => ({
+  store: one(stores, {
+    fields: [abandonedCarts.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -443,3 +479,5 @@ export type StaffInvite = typeof staffInvites.$inferSelect;
 export type NewStaffInvite = typeof staffInvites.$inferInsert;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
+export type AbandonedCart = typeof abandonedCarts.$inferSelect;
+export type NewAbandonedCart = typeof abandonedCarts.$inferInsert;
