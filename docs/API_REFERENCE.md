@@ -124,6 +124,56 @@ Create a new order (COD - Cash on Delivery).
 
 ---
 
+## bKash Payment APIs
+
+### POST `/api/bkash/initiate`
+
+Initiate a bKash payment for an order.
+
+**Request (JSON)**:
+
+```json
+{
+  "orderId": 123,
+  "storeId": 1,
+  "amount": 1500,
+  "customerPhone": "01712345678"
+}
+```
+
+**Response**:
+
+```json
+{
+  "success": true,
+  "paymentID": "TR00...",
+  "bkashURL": "https://sandbox.bka.sh/...",
+  "amount": "1500.00"
+}
+```
+
+### GET `/api/bkash/callback`
+
+bKash callback after payment completion. Executes payment and redirects to:
+
+| Status    | Redirect                                  |
+| --------- | ----------------------------------------- |
+| Success   | `/checkout/success?orderId=123&trxID=...` |
+| Failed    | `/checkout/failed?orderId=123&error=...`  |
+| Cancelled | `/checkout/cancelled?orderId=123`         |
+
+**Environment Variables Required**:
+
+```
+BKASH_BASE_URL=https://tokenized.sandbox.bka.sh/v1.2.0-beta
+BKASH_APP_KEY=your_app_key
+BKASH_APP_SECRET=your_app_secret
+BKASH_USERNAME=your_sandbox_username
+BKASH_PASSWORD=your_sandbox_password
+```
+
+---
+
 ## Protected Dashboard APIs
 
 > All `/app/*` routes require authentication via session cookie.

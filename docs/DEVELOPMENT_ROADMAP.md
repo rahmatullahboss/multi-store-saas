@@ -111,7 +111,7 @@
 
 ### 5.1 Payment Gateways
 
-- [ ] bKash integration
+- [x] bKash integration
 - [ ] Nagad integration
 - [ ] Stripe (international)
 - [ ] Payment status tracking
