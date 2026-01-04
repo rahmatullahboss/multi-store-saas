@@ -28,7 +28,8 @@ import {
   BarChart3,
   Tag,
   Truck,
-  Warehouse
+  Warehouse,
+  ShoppingBag
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -90,6 +91,7 @@ const navItems = [
   { to: '/app/products', label: 'Products', icon: Package },
   { to: '/app/inventory', label: 'Inventory', icon: Warehouse },
   { to: '/app/dashboard/orders', label: 'Orders', icon: ShoppingCart },
+  { to: '/app/abandoned-carts', label: 'Abandoned Carts', icon: ShoppingBag },
   { to: '/app/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/app/discounts', label: 'Discounts', icon: Tag },
   { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
