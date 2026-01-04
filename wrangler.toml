@@ -65,3 +65,18 @@ local_protocol = "http"
 # 1. Build: npm run build
 # 2. Deploy: wrangler pages deploy ./build/client --project-name=multi-store-saas
 # 3. Configure bindings in Cloudflare Dashboard > Pages > Settings > Functions
+
+# ============================================================================
+# CLOUDFLARE QUEUES - Email Campaign Scheduling
+# ============================================================================
+# First create the queue: npx wrangler queues create email-campaign-queue
+
+[[queues.producers]]
+binding = "EMAIL_QUEUE"
+queue = "email-campaign-queue"
+
+[[queues.consumers]]
+queue = "email-campaign-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3

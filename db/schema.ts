@@ -458,6 +458,67 @@ export const abandonedCartsRelations = relations(abandonedCarts, ({ one }) => ({
 }));
 
 // ============================================================================
+// EMAIL SUBSCRIBERS TABLE - Store email list
+// ============================================================================
+export const emailSubscribers = sqliteTable('email_subscribers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  name: text('name'),
+  status: text('status').$type<'subscribed' | 'unsubscribed'>().default('subscribed'),
+  source: text('source'), // 'checkout', 'popup', 'manual', 'import'
+  tags: text('tags'), // JSON array of tags for segmentation
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('email_subscribers_store_id_idx').on(table.storeId),
+  index('email_subscribers_email_idx').on(table.storeId, table.email),
+]);
+
+export const emailSubscribersRelations = relations(emailSubscribers, ({ one }) => ({
+  store: one(stores, {
+    fields: [emailSubscribers.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// EMAIL CAMPAIGNS TABLE - Marketing campaigns
+// ============================================================================
+export const emailCampaigns = sqliteTable('email_campaigns', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  subject: text('subject').notNull(),
+  previewText: text('preview_text'), // Email preview text
+  content: text('content').notNull(), // HTML content
+  status: text('status').$type<'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'>().default('draft'),
+  scheduledAt: integer('scheduled_at', { mode: 'timestamp' }),
+  sentAt: integer('sent_at', { mode: 'timestamp' }),
+  recipientCount: integer('recipient_count').default(0),
+  sentCount: integer('sent_count').default(0),
+  openCount: integer('open_count').default(0),
+  clickCount: integer('click_count').default(0),
+  createdBy: integer('created_by').references(() => users.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('email_campaigns_store_id_idx').on(table.storeId),
+  index('email_campaigns_status_idx').on(table.storeId, table.status),
+]);
+
+export const emailCampaignsRelations = relations(emailCampaigns, ({ one }) => ({
+  store: one(stores, {
+    fields: [emailCampaigns.storeId],
+    references: [stores.id],
+  }),
+  creator: one(users, {
+    fields: [emailCampaigns.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -488,3 +549,7 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
 export type AbandonedCart = typeof abandonedCarts.$inferSelect;
 export type NewAbandonedCart = typeof abandonedCarts.$inferInsert;
+export type EmailSubscriber = typeof emailSubscribers.$inferSelect;
+export type NewEmailSubscriber = typeof emailSubscribers.$inferInsert;
+export type EmailCampaign = typeof emailCampaigns.$inferSelect;
+export type NewEmailCampaign = typeof emailCampaigns.$inferInsert;

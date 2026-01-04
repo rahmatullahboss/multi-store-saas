@@ -14,8 +14,8 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, gte, desc, sql } from 'drizzle-orm';
-import { orders, orderItems, products, stores } from '@db/schema';
+import { eq, and, gte, desc, sql, count, countDistinct } from 'drizzle-orm';
+import { orders, orderItems, products, stores, abandonedCarts } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   TrendingUp, 
@@ -25,7 +25,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Calendar,
-  Users
+  Users,
+  MapPin,
+  Percent,
+  ShoppingBag
 } from 'lucide-react';
 
 export const meta: MetaFunction = () => {
@@ -160,6 +163,73 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     });
   }
 
+  // Customer Demographics
+  const allOrdersForCustomers = await db
+    .select({
+      customerEmail: orders.customerEmail,
+      shippingAddress: orders.shippingAddress,
+      createdAt: orders.createdAt,
+    })
+    .from(orders)
+    .where(eq(orders.storeId, storeId));
+
+  // Unique customers by email
+  const uniqueEmails = new Set(allOrdersForCustomers.filter(o => o.customerEmail).map(o => o.customerEmail));
+  const totalCustomers = uniqueEmails.size;
+
+  // New vs returning (orders in last 30 days by first-time vs repeat customers)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const customerOrderCounts = new Map<string, number>();
+  allOrdersForCustomers.forEach(o => {
+    if (o.customerEmail) {
+      customerOrderCounts.set(o.customerEmail, (customerOrderCounts.get(o.customerEmail) || 0) + 1);
+    }
+  });
+  
+  const newCustomers = Array.from(customerOrderCounts.values()).filter(cnt => cnt === 1).length;
+  const returningCustomers = totalCustomers - newCustomers;
+
+  // Top cities from shipping address JSON
+  const cityCounts = new Map<string, number>();
+  allOrdersForCustomers.forEach(o => {
+    if (o.shippingAddress) {
+      try {
+        const addr = typeof o.shippingAddress === 'string' 
+          ? JSON.parse(o.shippingAddress) 
+          : o.shippingAddress;
+        const city = addr?.city || addr?.district;
+        if (city) {
+          cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
+        }
+      } catch {
+        // Invalid JSON, skip
+      }
+    }
+  });
+  const topCities = Array.from(cityCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([city, orderCount]) => ({ city, orders: orderCount }));
+
+  // Conversion Metrics
+  const abandonedCartsData = await db
+    .select({ id: abandonedCarts.id, status: abandonedCarts.status })
+    .from(abandonedCarts)
+    .where(eq(abandonedCarts.storeId, storeId));
+
+  const totalAbandoned = abandonedCartsData.length;
+  const recoveredCarts = abandonedCartsData.filter(c => c.status === 'recovered').length;
+  const abandonedRate = totalAbandoned > 0 
+    ? ((totalAbandoned - recoveredCarts) / (totalAbandoned + allOrders.length) * 100).toFixed(1)
+    : '0';
+
+  // Average order value
+  const avgOrderValue = paidOrders.length > 0 
+    ? Math.round(paidOrders.reduce((sum, o) => sum + (o.total || 0), 0) / paidOrders.length)
+    : 0;
+
   return json({
     stats,
     statusBreakdown,
@@ -167,6 +237,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     recentOrders,
     dailyRevenue,
     currency,
+    customerDemographics: {
+      totalCustomers,
+      newCustomers,
+      returningCustomers,
+      topCities,
+    },
+    conversionMetrics: {
+      abandonedRate,
+      avgOrderValue,
+      totalAbandoned,
+      recoveredCarts,
+    },
   });
 }
 
@@ -174,7 +256,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function AnalyticsPage() {
-  const { stats, statusBreakdown, topProducts, recentOrders, dailyRevenue, currency } = useLoaderData<typeof loader>();
+  const { 
+    stats, 
+    statusBreakdown, 
+    topProducts, 
+    recentOrders, 
+    dailyRevenue, 
+    currency,
+    customerDemographics,
+    conversionMetrics,
+  } = useLoaderData<typeof loader>();
 
   const formatPrice = (amount: number) => {
     const symbols: Record<string, string> = { BDT: '৳', USD: '$', EUR: '€', GBP: '£', INR: '₹' };
@@ -288,6 +379,96 @@ export default function AnalyticsPage() {
           ) : (
             <p className="text-gray-500 text-center py-8">No sales data yet</p>
           )}
+        </div>
+      </div>
+
+      {/* Customer Demographics & Conversion Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Customer Demographics */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-gray-400" />
+            Customer Demographics
+          </h2>
+          <div className="space-y-4">
+            {/* Customer Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">{customerDemographics.totalCustomers}</p>
+                <p className="text-xs text-gray-500">Total Customers</p>
+              </div>
+              <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                <p className="text-2xl font-bold text-emerald-600">{customerDemographics.newCustomers}</p>
+                <p className="text-xs text-gray-500">First-time</p>
+              </div>
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <p className="text-2xl font-bold text-blue-600">{customerDemographics.returningCustomers}</p>
+                <p className="text-xs text-gray-500">Returning</p>
+              </div>
+            </div>
+            
+            {/* Top Cities */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Top Cities
+              </h3>
+              {customerDemographics.topCities.length > 0 ? (
+                <div className="space-y-2">
+                  {customerDemographics.topCities.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">{item.city}</span>
+                      <span className="font-medium text-gray-900">{item.orders} orders</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No geographic data yet</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Conversion Metrics */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Percent className="w-5 h-5 text-gray-400" />
+            Conversion Metrics
+          </h2>
+          <div className="space-y-4">
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-orange-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShoppingBag className="w-4 h-4 text-orange-600" />
+                  <span className="text-xs font-medium text-orange-600">Abandoned Rate</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{conversionMetrics.abandonedRate}%</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {conversionMetrics.totalAbandoned} abandoned, {conversionMetrics.recoveredCarts} recovered
+                </p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign className="w-4 h-4 text-purple-600" />
+                  <span className="text-xs font-medium text-purple-600">Avg Order Value</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{formatPrice(conversionMetrics.avgOrderValue)}</p>
+                <p className="text-xs text-gray-500 mt-1">Per paid order</p>
+              </div>
+            </div>
+            
+            {/* Quick Insights */}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Quick Insights</h3>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• {customerDemographics.totalCustomers > 0 
+                  ? Math.round((customerDemographics.returningCustomers / customerDemographics.totalCustomers) * 100) 
+                  : 0}% returning customer rate</li>
+                <li>• {conversionMetrics.recoveredCarts} recovered carts</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 

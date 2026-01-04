@@ -409,6 +409,55 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
         return { success: false, error: String(err) };
       }
     },
+
+    /**
+     * Send campaign marketing email
+     */
+    async sendCampaignEmail(data: {
+      email: string;
+      subject: string;
+      content: string;
+      storeName: string;
+      previewText?: string;
+      unsubscribeUrl: string;
+    }): Promise<{ success: boolean; error?: string }> {
+      try {
+        const html = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            ${data.content}
+            
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+            
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">
+              You received this email from ${data.storeName}.<br>
+              <a href="${data.unsubscribeUrl}" style="color: #6b7280;">Unsubscribe</a>
+            </p>
+          </body>
+          </html>
+        `;
+
+        const { error } = await resend.emails.send({
+          from: defaultFrom,
+          to: data.email,
+          subject: data.subject,
+          html,
+        });
+
+        if (error) {
+          return { success: false, error: error.message };
+        }
+
+        return { success: true };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    },
   };
 }
 
