@@ -7,6 +7,8 @@
  * - Inline order form (Cash on Delivery)
  * - useFetcher for AJAX submission
  * - Video embed support (YouTube/Vimeo)
+ * - NO header navigation - clean, focused design
+ * - Rich content sections for conversion
  */
 
 // Helper function to convert YouTube URL to embed URL
@@ -111,104 +113,109 @@ export function LandingPageTemplate({
   // Redirect to thank-you page on success
   useEffect(() => {
     if (fetcher.data?.success && fetcher.data?.orderId) {
-      // Redirect to thank-you page
       window.location.href = `/thank-you/${fetcher.data.orderId}`;
     }
   }, [fetcher.data]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">
+    <div className="min-h-screen bg-white text-gray-900">
       {/* Urgency Bar */}
       {config.urgencyText && (
-        <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-center py-2.5 px-4 text-sm font-bold animate-pulse">
-          🔥 {config.urgencyText}
+        <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-center py-3 px-4">
+          <p className="text-sm md:text-base font-bold">
+            🔥 {config.urgencyText} 🔥
+          </p>
         </div>
       )}
 
-      {/* Hero Section */}
-      <section className="container-store py-8 lg:py-16">
-        <div className="max-w-5xl mx-auto">
-          {/* Headline */}
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-center mb-4 leading-tight">
-            <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              {config.headline}
+      {/* ============================================ */}
+      {/* SECTION 1: Hero Section */}
+      {/* ============================================ */}
+      <section className="bg-gradient-to-b from-gray-50 to-white py-12 lg:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* Store Badge */}
+          <div className="text-center mb-8">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              {storeName}
             </span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-center text-gray-900 mb-6 leading-tight">
+            {config.headline}
           </h1>
           
           {config.subheadline && (
-            <p className="text-lg md:text-xl text-gray-300 text-center mb-8 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
               {config.subheadline}
             </p>
           )}
 
           {/* Product Showcase */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start max-w-6xl mx-auto">
             {/* Product Image */}
             <div className="relative">
               {discount > 0 && (
-                <div className="absolute top-4 left-4 z-10 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg">
-                  {discount}% OFF!
+                <div className="absolute top-4 left-4 z-10 bg-red-500 text-white px-5 py-2 rounded-full font-bold text-lg shadow-lg">
+                  {discount}% ছাড়!
                 </div>
               )}
-              <div className="aspect-square rounded-2xl overflow-hidden bg-gray-700 shadow-2xl ring-4 ring-yellow-500/20">
+              
+              <div className="aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-2xl border-4 border-white">
                 {product.imageUrl ? (
                   <OptimizedImage
                     src={product.imageUrl}
                     alt={product.title}
-                    width={600}
-                    height={600}
+                    width={700}
+                    height={700}
                     className="w-full h-full object-cover"
                     priority
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                    <span className="text-8xl">📦</span>
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                    <span className="text-9xl">📦</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Product Info & Order Form */}
+            {/* Product Info */}
             <div className="space-y-6">
-              <h2 className="text-2xl md:text-3xl font-bold">{product.title}</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{product.title}</h2>
               
               {product.description && (
-                <p className="text-gray-300 text-lg leading-relaxed">
+                <p className="text-gray-600 text-lg leading-relaxed">
                   {product.description}
                 </p>
               )}
 
               {/* Price Display */}
-              <div className="flex items-center gap-4 py-4 border-y border-gray-700">
-                <span className="text-4xl md:text-5xl font-extrabold text-emerald-400">
-                  {formatPrice(product.price)}
-                </span>
-                {product.compareAtPrice && product.compareAtPrice > product.price && (
-                  <span className="text-2xl text-gray-500 line-through">
-                    {formatPrice(product.compareAtPrice)}
+              <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200">
+                <div className="flex items-end gap-4 flex-wrap">
+                  <span className="text-5xl md:text-6xl font-black text-emerald-600">
+                    {formatPrice(product.price)}
                   </span>
+                  {product.compareAtPrice && product.compareAtPrice > product.price && (
+                    <span className="text-2xl text-gray-400 line-through mb-2">
+                      {formatPrice(product.compareAtPrice)}
+                    </span>
+                  )}
+                </div>
+                {discount > 0 && (
+                  <p className="text-emerald-700 font-semibold mt-2">
+                    আপনি সেভ করছেন: {formatPrice(product.compareAtPrice! - product.price)}
+                  </p>
                 )}
               </div>
 
               {/* Social Proof */}
               {config.socialProof && (
-                <div className="flex items-center gap-2 bg-gray-800/50 p-3 rounded-lg">
-                  <span className="text-yellow-400">★★★★★</span>
-                  <span className="text-gray-300">
-                    <strong className="text-white">{config.socialProof.count}+</strong> {config.socialProof.text}
-                  </span>
-                </div>
-              )}
-
-              {/* Features */}
-              {config.features && config.features.length > 0 && (
-                <div className="grid grid-cols-2 gap-3">
-                  {config.features.slice(0, 4).map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <span className="text-xl">{feature.icon}</span>
-                      <span className="text-gray-300">{feature.title}</span>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                  <div className="text-yellow-500 text-2xl">{'★'.repeat(5)}</div>
+                  <p className="text-gray-700">
+                    <strong className="text-gray-900 text-xl">{config.socialProof.count}+</strong> {config.socialProof.text}
+                  </p>
                 </div>
               )}
 
@@ -216,42 +223,119 @@ export function LandingPageTemplate({
               <div className="hidden lg:block">
                 <button
                   onClick={() => setShowForm(true)}
-                  className="w-full py-4 px-8 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-xl font-bold rounded-xl shadow-lg transform transition hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full py-5 px-8 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-2xl font-bold rounded-2xl shadow-xl transition transform hover:scale-[1.02]"
                 >
-                  🛒 অর্ডার করুন - {formatPrice(product.price)}
+                  🛒 এখনই অর্ডার করুন - {formatPrice(product.price)}
                 </button>
                 {config.ctaSubtext && (
-                  <p className="text-center text-gray-400 text-sm mt-2">
+                  <p className="text-center text-gray-500 text-sm mt-3">
                     ✓ {config.ctaSubtext}
                   </p>
                 )}
               </div>
-
-              {/* Guarantee Badge */}
-              {config.guaranteeText && (
-                <div className="bg-emerald-900/30 border border-emerald-500/30 rounded-xl p-4 text-center">
-                  <span className="text-emerald-400 font-medium">🛡️ {config.guaranteeText}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      {config.testimonials && config.testimonials.length > 0 && (
-        <section className="bg-gray-800/50 py-12">
-          <div className="container-store">
-            <h3 className="text-2xl font-bold text-center mb-8">আমাদের সন্তুষ্ট গ্রাহক</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {config.testimonials.map((t, i) => (
-                <div key={i} className="bg-gray-700/50 rounded-xl p-6 border border-gray-600">
-                  <p className="text-gray-300 mb-4">"{t.text}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center font-bold text-yellow-400">
-                      {t.name[0]}
-                    </div>
-                    <span className="font-medium">{t.name}</span>
+      {/* ============================================ */}
+      {/* SECTION 2: Trust Badges */}
+      {/* ============================================ */}
+      <section className="py-12 bg-white border-y border-gray-100">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center p-6 bg-gray-50 rounded-2xl">
+              <div className="text-4xl mb-3">🚚</div>
+              <h4 className="font-bold text-gray-900">ফ্রি ডেলিভারি</h4>
+              <p className="text-sm text-gray-500 mt-1">ঢাকায় ফ্রি ডেলিভারি</p>
+            </div>
+            <div className="text-center p-6 bg-gray-50 rounded-2xl">
+              <div className="text-4xl mb-3">💯</div>
+              <h4 className="font-bold text-gray-900">অরিজিনাল প্রোডাক্ট</h4>
+              <p className="text-sm text-gray-500 mt-1">১০০% অরিজিনাল গ্যারান্টি</p>
+            </div>
+            <div className="text-center p-6 bg-gray-50 rounded-2xl">
+              <div className="text-4xl mb-3">💵</div>
+              <h4 className="font-bold text-gray-900">ক্যাশ অন ডেলিভারি</h4>
+              <p className="text-sm text-gray-500 mt-1">হাতে পেয়ে মূল্য পরিশোধ</p>
+            </div>
+            <div className="text-center p-6 bg-gray-50 rounded-2xl">
+              <div className="text-4xl mb-3">🔄</div>
+              <h4 className="font-bold text-gray-900">ইজি রিটার্ন</h4>
+              <p className="text-sm text-gray-500 mt-1">৭ দিনের রিটার্ন পলিসি</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* SECTION 3: Why Choose Us */}
+      {/* ============================================ */}
+      <section className="py-16 bg-gradient-to-b from-orange-50 to-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+              কেন আমাদের থেকে কিনবেন?
+            </h2>
+            <p className="text-xl text-gray-600">আমরা প্রতিটি গ্রাহকের সন্তুষ্টি নিশ্চিত করি</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+              <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center text-3xl mb-6">
+                ✨
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">প্রিমিয়াম কোয়ালিটি</h3>
+              <p className="text-gray-600">
+                আমরা শুধুমাত্র উচ্চ মানের প্রোডাক্ট সরবরাহ করি। প্রতিটি প্রোডাক্ট কঠোর মান নিয়ন্ত্রণের মধ্য দিয়ে যায়।
+              </p>
+            </div>
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center text-3xl mb-6">
+                ⚡
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">দ্রুত ডেলিভারি</h3>
+              <p className="text-gray-600">
+                ঢাকায় ২৪ ঘন্টায় এবং ঢাকার বাইরে ২-৩ কার্যদিবসের মধ্যে আপনার দোরগোড়ায় পৌঁছে দিই।
+              </p>
+            </div>
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl mb-6">
+                📞
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">২৪/৭ সাপোর্ট</h3>
+              <p className="text-gray-600">
+                যেকোনো সমস্যায় আমাদের কাস্টমার সার্ভিস টিম সবসময় আপনার পাশে থাকবে।
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* SECTION 4: Features (from config) */}
+      {/* ============================================ */}
+      {config.features && config.features.length > 0 && (
+        <section className="py-16 bg-white">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                প্রোডাক্টের বিশেষত্ব
+              </h2>
+              <p className="text-xl text-gray-600">এই প্রোডাক্টটি কেন বিশেষ</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {config.features.map((feature, i) => (
+                <div key={i} className="flex items-start gap-4 bg-gray-50 rounded-2xl p-6">
+                  <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900">{feature.title}</h4>
+                    {feature.description && (
+                      <p className="text-gray-600 mt-1">{feature.description}</p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -260,12 +344,20 @@ export function LandingPageTemplate({
         </section>
       )}
 
-      {/* Video Embed Section */}
+      {/* ============================================ */}
+      {/* SECTION 5: Video Embed */}
+      {/* ============================================ */}
       {config.videoUrl && (
-        <section className="py-12 bg-gray-900">
-          <div className="container-store">
-            <h3 className="text-2xl font-bold text-center mb-8">🎬 পণ্যের ভিডিও দেখুন</h3>
-            <div className="max-w-3xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-2xl ring-4 ring-yellow-500/20">
+        <section className="py-16 bg-gray-900">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+                🎬 ভিডিওতে দেখুন
+              </h2>
+              <p className="text-xl text-gray-400">বিস্তারিত জানতে ভিডিওটি দেখুন</p>
+            </div>
+            
+            <div className="aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-800">
               {config.videoUrl.includes('youtube.com') || config.videoUrl.includes('youtu.be') ? (
                 <iframe
                   src={getYouTubeEmbedUrl(config.videoUrl)}
@@ -296,30 +388,285 @@ export function LandingPageTemplate({
         </section>
       )}
 
-      {/* Order Form Modal/Section */}
+      {/* ============================================ */}
+      {/* SECTION 6: How to Order */}
+      {/* ============================================ */}
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+              কিভাবে অর্ডার করবেন?
+            </h2>
+            <p className="text-xl text-gray-600">মাত্র ৩টি সহজ ধাপে</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="relative text-center">
+              <div className="w-20 h-20 bg-orange-500 text-white rounded-full flex items-center justify-center text-3xl font-black mx-auto mb-6 shadow-lg">
+                ১
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">অর্ডার বাটনে ক্লিক করুন</h3>
+              <p className="text-gray-600">
+                নিচের "অর্ডার করুন" বাটনে ক্লিক করে অর্ডার ফর্ম ওপেন করুন।
+              </p>
+            </div>
+            <div className="relative text-center">
+              <div className="w-20 h-20 bg-orange-500 text-white rounded-full flex items-center justify-center text-3xl font-black mx-auto mb-6 shadow-lg">
+                ২
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">তথ্য দিন</h3>
+              <p className="text-gray-600">
+                আপনার নাম, মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা দিন।
+              </p>
+            </div>
+            <div className="relative text-center">
+              <div className="w-20 h-20 bg-orange-500 text-white rounded-full flex items-center justify-center text-3xl font-black mx-auto mb-6 shadow-lg">
+                ৩
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">ডেলিভারি নিন</h3>
+              <p className="text-gray-600">
+                পণ্য হাতে পেয়ে ক্যাশ অন ডেলিভারিতে মূল্য পরিশোধ করুন।
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* SECTION 7: Testimonials */}
+      {/* ============================================ */}
+      {config.testimonials && config.testimonials.length > 0 && (
+        <section className="py-16 bg-white">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                গ্রাহকের মতামত
+              </h2>
+              <p className="text-xl text-gray-600">তারা কি বলছেন দেখুন</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {config.testimonials.map((t, i) => (
+                <div key={i} className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
+                  <div className="flex items-center gap-1 text-yellow-500 text-xl mb-4">
+                    {'★'.repeat(5)}
+                  </div>
+                  <p className="text-gray-700 text-lg mb-6 italic">"{t.text}"</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg">
+                      {t.name[0]}
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">{t.name}</p>
+                      <p className="text-sm text-gray-500">সন্তুষ্ট গ্রাহক</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================ */}
+      {/* SECTION 8: Delivery Information */}
+      {/* ============================================ */}
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+              ডেলিভারি তথ্য
+            </h2>
+            <p className="text-xl text-gray-600">আপনার প্রোডাক্ট কবে পাবেন</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-green-200">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
+                  <span className="text-3xl">🏙️</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">ঢাকার ভিতরে</h3>
+                  <p className="text-green-600 font-semibold">২৪ ঘন্টার মধ্যে</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> ডেলিভারি চার্জ: ৳৬০
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> সুনির্দিষ্ট সময়ে ডেলিভারি
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> ক্যাশ অন ডেলিভারি
+                </li>
+              </ul>
+            </div>
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-blue-200">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
+                  <span className="text-3xl">🌍</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">ঢাকার বাইরে</h3>
+                  <p className="text-blue-600 font-semibold">২-৩ কার্যদিবস</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-center gap-2">
+                  <span className="text-blue-500">✓</span> ডেলিভারি চার্জ: ৳১২০
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-blue-500">✓</span> সারাদেশে ডেলিভারি
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-blue-500">✓</span> কুরিয়ার সার্ভিস
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* SECTION 9: FAQ */}
+      {/* ============================================ */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+              সাধারণ জিজ্ঞাসা
+            </h2>
+            <p className="text-xl text-gray-600">আপনার প্রশ্নের উত্তর</p>
+          </div>
+          
+          <div className="space-y-4">
+            {[
+              { q: 'ডেলিভারি কতদিনে পাব?', a: 'ঢাকায় ২৪ ঘন্টা এবং ঢাকার বাইরে ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন।' },
+              { q: 'পেমেন্ট কিভাবে করব?', a: 'ক্যাশ অন ডেলিভারি সুবিধা আছে। পণ্য হাতে পেয়ে টাকা পরিশোধ করতে পারবেন। এছাড়া বিকাশ/নগদ পেমেন্টও করতে পারবেন।' },
+              { q: 'প্রোডাক্ট অরিজিনাল কিনা?', a: 'হ্যাঁ, আমরা ১০০% অরিজিনাল প্রোডাক্টের গ্যারান্টি দিই। নকল প্রোডাক্ট পেলে সম্পূর্ণ টাকা ফেরত।' },
+              { q: 'রিটার্ন পলিসি কি?', a: 'পণ্যে কোনো সমস্যা থাকলে ৭ দিনের মধ্যে রিটার্ন/এক্সচেঞ্জ করতে পারবেন।' },
+              { q: 'ডেলিভারি চার্জ কত?', a: 'ঢাকায় ৳৬০ এবং ঢাকার বাইরে ৳১২০। বিশেষ অফারে ফ্রি ডেলিভারিও থাকে।' },
+              { q: 'অর্ডার কনফার্মেশন পাব কিভাবে?', a: 'অর্ডার করার পর আমাদের টিম ফোনে কল করে অর্ডার কনফার্ম করবে।' },
+            ].map((faq, i) => (
+              <div key={i} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                <h4 className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                  <span className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                    ?
+                  </span>
+                  {faq.q}
+                </h4>
+                <p className="text-gray-600 mt-3 ml-11">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* SECTION 10: Guarantee */}
+      {/* ============================================ */}
+      {config.guaranteeText && (
+        <section className="py-16 bg-emerald-50">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-500 text-white rounded-full text-5xl mb-6 shadow-lg">
+              🛡️
+            </div>
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+              আমাদের গ্যারান্টি
+            </h2>
+            <p className="text-2xl text-emerald-700 font-semibold mb-4">
+              {config.guaranteeText}
+            </p>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              আমরা আপনার সন্তুষ্টি নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ। প্রোডাক্টে কোনো সমস্যা থাকলে আমরা সম্পূর্ণ টাকা ফেরত দেব অথবা নতুন প্রোডাক্ট পাঠাব।
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================ */}
+      {/* SECTION 11: Final CTA */}
+      {/* ============================================ */}
+      <section className="py-20 bg-gradient-to-r from-orange-500 to-red-500">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+            আর দেরি কেন?
+          </h2>
+          <p className="text-xl text-orange-100 mb-4">
+            এই বিশেষ অফার সীমিত সময়ের জন্য!
+          </p>
+          <div className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-8">
+            <p className="text-white text-lg mb-2">বিশেষ মূল্য:</p>
+            <p className="text-5xl font-black text-white">{formatPrice(product.price)}</p>
+            {product.compareAtPrice && product.compareAtPrice > product.price && (
+              <p className="text-orange-200 line-through text-xl mt-2">
+                {formatPrice(product.compareAtPrice)}
+              </p>
+            )}
+          </div>
+          <div>
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-3 px-12 py-6 bg-white hover:bg-gray-100 text-orange-600 text-2xl font-black rounded-2xl shadow-2xl transition transform hover:scale-105"
+            >
+              🛒 এখনই অর্ডার করুন
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* SECTION 12: Contact Info */}
+      {/* ============================================ */}
+      <section className="py-12 bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-3xl mb-3">📞</div>
+              <h4 className="font-bold text-lg mb-2">কল করুন</h4>
+              <p className="text-gray-400">সকাল ১০টা - রাত ১০টা</p>
+            </div>
+            <div>
+              <div className="text-3xl mb-3">💬</div>
+              <h4 className="font-bold text-lg mb-2">ম্যাসেজ করুন</h4>
+              <p className="text-gray-400">ফেসবুক/হোয়াটসঅ্যাপে</p>
+            </div>
+            <div>
+              <div className="text-3xl mb-3">📧</div>
+              <h4 className="font-bold text-lg mb-2">ইমেইল করুন</h4>
+              <p className="text-gray-400">২৪ ঘন্টার মধ্যে উত্তর</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Order Form Modal */}
       {(showForm || isSuccess) && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-end lg:items-center justify-center p-4">
-          <div className="bg-gray-900 w-full max-w-md rounded-t-2xl lg:rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end lg:items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-t-3xl lg:rounded-3xl p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
             {isSuccess ? (
               // Success Message
               <div className="text-center py-8">
-                <div className="text-6xl mb-4">✅</div>
-                <h3 className="text-2xl font-bold text-emerald-400 mb-2">
+                <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl text-white">
+                  ✓
+                </div>
+                <h3 className="text-2xl font-black text-emerald-600 mb-3">
                   অর্ডার সম্পন্ন হয়েছে!
                 </h3>
-                <p className="text-gray-300 mb-4">
-                  অর্ডার নম্বর: <strong className="text-white">{fetcher.data?.orderNumber}</strong>
+                <p className="text-gray-600 mb-6 text-lg">
+                  অর্ডার নম্বর: <strong className="text-gray-900">{fetcher.data?.orderNumber}</strong>
                 </p>
-                <p className="text-gray-400 text-sm mb-6">
+                <p className="text-gray-500 mb-8">
                   শীঘ্রই আমাদের টিম আপনার সাথে যোগাযোগ করবে।
                 </p>
                 <button
                   onClick={() => {
                     setShowForm(false);
-                    // Reset fetcher
                     window.location.reload();
                   }}
-                  className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg"
+                  className="px-8 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-gray-700"
                 >
                   বন্ধ করুন
                 </button>
@@ -328,18 +675,18 @@ export function LandingPageTemplate({
               // Order Form
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold">অর্ডার ফর্ম</h3>
+                  <h3 className="text-2xl font-black text-gray-900">অর্ডার ফর্ম</h3>
                   <button
                     onClick={() => setShowForm(false)}
-                    className="p-2 hover:bg-gray-800 rounded-full"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition text-xl"
                   >
                     ✕
                   </button>
                 </div>
 
                 {/* Product Summary */}
-                <div className="bg-gray-800 rounded-lg p-4 mb-6 flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="bg-gray-50 rounded-2xl p-4 mb-6 flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
                     {product.imageUrl ? (
                       <OptimizedImage
                         src={product.imageUrl}
@@ -349,19 +696,19 @@ export function LandingPageTemplate({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">📦</div>
+                      <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium line-clamp-1">{product.title}</p>
-                    <p className="text-emerald-400 font-bold">{formatPrice(product.price)}</p>
+                    <p className="font-bold text-gray-900 line-clamp-1">{product.title}</p>
+                    <p className="text-emerald-600 font-bold text-lg">{formatPrice(product.price)}</p>
                   </div>
                 </div>
 
                 {/* Error Display */}
                 {hasError && (
-                  <div className="bg-red-900/50 border border-red-500 text-red-200 p-4 rounded-lg mb-4">
-                    <p className="font-medium">{fetcher.data?.error}</p>
+                  <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6">
+                    <p className="font-bold">{fetcher.data?.error}</p>
                     {fetcher.data?.details && (
                       <ul className="text-sm mt-2 list-disc list-inside">
                         {Object.entries(fetcher.data.details).map(([field, errors]) => (
@@ -375,24 +722,24 @@ export function LandingPageTemplate({
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Quantity */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">পরিমাণ</label>
-                    <div className="flex items-center gap-3">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">পরিমাণ</label>
+                    <div className="flex items-center gap-4">
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.max(1, d.quantity - 1) }))}
-                        className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-lg text-xl font-bold"
+                        className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl text-2xl font-bold transition"
                       >
                         -
                       </button>
-                      <span className="text-xl font-bold w-12 text-center">{formData.quantity}</span>
+                      <span className="text-2xl font-black w-12 text-center">{formData.quantity}</span>
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.min(10, d.quantity + 1) }))}
-                        className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-lg text-xl font-bold"
+                        className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl text-2xl font-bold transition"
                       >
                         +
                       </button>
-                      <span className="ml-auto text-emerald-400 font-bold">
+                      <span className="ml-auto text-emerald-600 font-bold text-xl">
                         = {formatPrice(totalPrice)}
                       </span>
                     </div>
@@ -400,7 +747,7 @@ export function LandingPageTemplate({
 
                   {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">আপনার নাম *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">আপনার নাম *</label>
                     <input
                       type="text"
                       required
@@ -408,13 +755,13 @@ export function LandingPageTemplate({
                       value={formData.customer_name}
                       onChange={(e) => setFormData(d => ({ ...d, customer_name: e.target.value }))}
                       placeholder="সম্পূর্ণ নাম লিখুন"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
                     />
                   </div>
 
                   {/* Phone */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">মোবাইল নম্বর *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">মোবাইল নম্বর *</label>
                     <input
                       type="tel"
                       required
@@ -422,13 +769,13 @@ export function LandingPageTemplate({
                       value={formData.phone}
                       onChange={(e) => setFormData(d => ({ ...d, phone: e.target.value }))}
                       placeholder="০১XXXXXXXXX"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
                     />
                   </div>
 
                   {/* Address */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">সম্পূর্ণ ঠিকানা *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">সম্পূর্ণ ঠিকানা *</label>
                     <textarea
                       required
                       minLength={10}
@@ -436,16 +783,16 @@ export function LandingPageTemplate({
                       value={formData.address}
                       onChange={(e) => setFormData(d => ({ ...d, address: e.target.value }))}
                       placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none resize-none"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg resize-none"
                     />
                   </div>
 
                   {/* Payment Method */}
-                  <div className="bg-gray-800 p-4 rounded-lg flex items-center gap-3">
-                    <span className="text-2xl">💵</span>
+                  <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center gap-4">
+                    <span className="text-3xl">💵</span>
                     <div>
-                      <p className="font-medium">ক্যাশ অন ডেলিভারি</p>
-                      <p className="text-sm text-gray-400">পণ্য হাতে পেয়ে টাকা পরিশোধ করুন</p>
+                      <p className="font-bold text-gray-900">ক্যাশ অন ডেলিভারি</p>
+                      <p className="text-sm text-gray-600">পণ্য হাতে পেয়ে টাকা পরিশোধ করুন</p>
                     </div>
                   </div>
 
@@ -453,7 +800,7 @@ export function LandingPageTemplate({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-600 disabled:to-gray-600 text-white text-lg font-bold rounded-xl shadow-lg transition"
+                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 text-white text-xl font-bold rounded-xl shadow-lg transition"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center justify-center gap-2">
@@ -475,15 +822,13 @@ export function LandingPageTemplate({
       )}
 
       {/* Mobile Sticky Footer */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-gray-900 border-t border-gray-700 p-4 safe-area-pb">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 p-4 shadow-2xl safe-area-pb">
         <button
           onClick={() => setShowForm(true)}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-lg font-bold rounded-xl shadow-lg flex items-center justify-center gap-2"
+          className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xl font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3"
         >
-          <span>🛒 অর্ডার করুন</span>
-          <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
-            {formatPrice(product.price)}
-          </span>
+          <span className="text-2xl">🛒</span>
+          অর্ডার করুন - {formatPrice(product.price)}
         </button>
       </div>
 
@@ -491,12 +836,10 @@ export function LandingPageTemplate({
       <div className="lg:hidden h-24" />
 
       {/* Footer */}
-      <footer className="bg-gray-900 border-t border-gray-800 py-8">
-        <div className="container-store text-center text-gray-500 text-sm">
-          <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
-          <p className="mt-2">
-            Powered by <span className="text-orange-400">Multi-Store SaaS</span>
-          </p>
+      <footer className="bg-gray-950 text-gray-400 py-8 border-t border-gray-800">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <p className="font-semibold text-white mb-2">{storeName}</p>
+          <p className="text-sm">© {new Date().getFullYear()} সর্বস্বত্ব সংরক্ষিত</p>
         </div>
       </footer>
     </div>

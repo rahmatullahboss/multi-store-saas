@@ -35,7 +35,8 @@ import {
   CreditCard,
   Palette,
   Globe,
-  Crown
+  Crown,
+  ExternalLink
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -129,6 +130,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
 
     console.log('[app.loader] Dashboard data loaded successfully for store:', store.name);
+    
+    // Get SAAS_DOMAIN for store URL
+    const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+    
     return json({
       store: {
         id: store.id,
@@ -141,6 +146,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         email: user.email,
         role: user.role,
       },
+      saasDomain,
     });
     
   } catch (error) {
@@ -194,9 +200,12 @@ const adminNavItems = [
 // MAIN COMPONENT
 // ============================================================================
 export default function AppLayout() {
-  const { store, user } = useLoaderData<typeof loader>();
+  const { store, user, saasDomain } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Build store URL
+  const storeUrl = `https://${store.subdomain}.${saasDomain}`;
 
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -243,7 +252,18 @@ export default function AppLayout() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+            {/* Go to Store Button */}
+            <a
+              href={storeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium rounded-lg transition text-sm"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Go to Store
+            </a>
           </div>
+
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">

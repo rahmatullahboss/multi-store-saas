@@ -257,22 +257,28 @@ export default function DomainSettings() {
           </p>
           
           {!isPaid && (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Lock className="w-5 h-5 text-amber-600" />
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 rounded-xl p-5 mb-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                  <Crown className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-amber-800 font-medium">Paid Plan Feature</p>
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-amber-600" />
+                    <p className="text-amber-900 font-bold text-lg">Premium Feature</p>
+                  </div>
+                  <p className="text-amber-800 mt-2 leading-relaxed">
+                    <strong>Upgrade to Starter</strong> to connect your own domain (e.g., <span className="font-mono bg-white/50 px-1 rounded">myshop.com</span>).
+                  </p>
                   <p className="text-sm text-amber-700 mt-1">
-                    Custom domains are available on Starter and Premium plans.
+                    Free plans use subdomains only. Custom domains require a paid subscription.
                   </p>
                   <a 
                     href="/app/upgrade" 
-                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
+                    className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-md hover:shadow-lg"
                   >
-                    <Crown className="w-4 h-4" />
-                    Upgrade Now
+                    <Crown className="w-5 h-5" />
+                    Upgrade to Starter Plan
                   </a>
                 </div>
               </div>
