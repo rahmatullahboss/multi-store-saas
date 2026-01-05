@@ -14,7 +14,7 @@ import { useState } from 'react';
 import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { getThemeColors, getFontConfig } from '~/lib/theme';
-import { formatPriceSimple } from '~/utils/formatPrice';
+import { useFormatPrice } from '~/contexts/LanguageContext';
 import { LanguageToggle } from '~/components/LanguageToggle';
 
 // Serialized product type
@@ -63,8 +63,8 @@ export function StoreLayout({
   const [cartCount, setCartCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Format price using centralized utility (forces Latin numerals)
-  const formatPrice = (price: number) => formatPriceSimple(price, currency);
+  // Format price using context (responds to language/currency toggle)
+  const formatPrice = useFormatPrice();
 
   // Get preset theme colors (falls back to config colors if no theme set)
   const themeColors = getThemeColors(theme);
@@ -532,8 +532,8 @@ function ProductCard({ product, storeId, currency, primaryColor }: ProductCardPr
   const fetcher = useFetcher();
   const isAdding = fetcher.state !== 'idle';
 
-  // Format price using centralized utility (forces Latin numerals)
-  const formatPrice = (price: number) => formatPriceSimple(price, currency);
+  // Format price using context (responds to language/currency toggle)
+  const formatPrice = useFormatPrice();
 
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
