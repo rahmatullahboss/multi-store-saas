@@ -25,21 +25,26 @@ export const links: LinksFunction = () => [
 
 /**
  * Root Loader - Load store information for all pages
+ * 
+ * On main domain (digitalcare.site), store will be null.
+ * This is expected for auth pages and marketing landing.
  */
 export async function loader({ context }: LoaderFunctionArgs) {
   // The tenant middleware has already resolved the store
   // Access it from context (populated by Hono middleware)
-  const { storeId, store, isCustomDomain, cloudflare } = context;
+  const { storeId, store, isCustomDomain } = context;
   
+  // Handle main domain case where store is null (auth pages, marketing)
   return json({
     store: {
-      id: storeId,
-      name: store?.name || 'Store',
-      logo: store?.logo,
+      id: storeId || 0,
+      name: store?.name || 'Multi-Store SaaS',
+      logo: store?.logo || null,
       theme: store?.theme || 'default',
-      currency: store?.currency || 'USD',
+      currency: store?.currency || 'BDT',
     },
-    isCustomDomain,
+    isCustomDomain: isCustomDomain || false,
+    isMainDomain: !store || storeId === 0,
   });
 }
 
