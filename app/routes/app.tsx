@@ -31,7 +31,8 @@ import {
   Warehouse,
   ShoppingBag,
   FileText,
-  Mail
+  Mail,
+  CreditCard
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -99,6 +100,7 @@ const navItems = [
   { to: '/app/reports', label: 'Reports', icon: FileText },
   { to: '/app/discounts', label: 'Discounts', icon: Tag },
   { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
+  { to: '/app/billing', label: 'Billing', icon: CreditCard },
   { to: '/app/settings', label: 'Settings', icon: Settings },
 ];
 

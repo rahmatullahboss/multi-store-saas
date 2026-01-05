@@ -25,6 +25,7 @@ import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConf
 import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
 import { StoreLayout } from '~/components/templates/StoreLayout';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
+import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -212,7 +213,16 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   const category = url.searchParams.get('category');
   
   // Determine store mode with safe fallback
-  const storeMode = (validatedStore as Store & { mode?: 'landing' | 'store' }).mode || 'store';
+  const dbMode = (validatedStore as Store & { mode?: 'landing' | 'store' }).mode || 'store';
+  const planType = (validatedStore.planType as PlanType) || 'free';
+  
+  // ========================================================================
+  // HYBRID MODE ENFORCEMENT - Free users CANNOT access store mode
+  // ========================================================================
+  // Free tier users are forced to landing mode regardless of DB setting.
+  // When they upgrade, the system simply stops forcing landing mode,
+  // instantly unlocking their chosen layout without data migration.
+  const storeMode = canUseStoreMode(planType) ? dbMode : 'landing';
   
   // ========== LANDING MODE ==========
   if (storeMode === 'landing') {

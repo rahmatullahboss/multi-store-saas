@@ -14,6 +14,8 @@ import { useState } from 'react';
 import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { getThemeColors, getFontConfig } from '~/lib/theme';
+import { formatPriceSimple } from '~/utils/formatPrice';
+import { LanguageToggle } from '~/components/LanguageToggle';
 
 // Serialized product type
 interface SerializedProduct {
@@ -61,13 +63,8 @@ export function StoreLayout({
   const [cartCount, setCartCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  // Format price using centralized utility (forces Latin numerals)
+  const formatPrice = (price: number) => formatPriceSimple(price, currency);
 
   // Get preset theme colors (falls back to config colors if no theme set)
   const themeColors = getThemeColors(theme);
@@ -148,8 +145,10 @@ export function StoreLayout({
               ))}
             </nav>
 
-            {/* Cart Button */}
-            <div className="flex items-center gap-4">
+            {/* Language Toggle & Cart Button */}
+            <div className="flex items-center gap-2 md:gap-4">
+              {/* Language/Currency Toggle */}
+              <LanguageToggle className="hidden sm:block" showCurrency={true} />
               <Link
                 to="/cart"
                 className="relative p-2 text-gray-600 hover:text-gray-900 transition"
@@ -533,13 +532,8 @@ function ProductCard({ product, storeId, currency, primaryColor }: ProductCardPr
   const fetcher = useFetcher();
   const isAdding = fetcher.state !== 'idle';
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  // Format price using centralized utility (forces Latin numerals)
+  const formatPrice = (price: number) => formatPriceSimple(price, currency);
 
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)

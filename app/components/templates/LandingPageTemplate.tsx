@@ -29,6 +29,7 @@ import { useFetcher } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import type { LandingConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
+import { formatPriceSimple } from '~/utils/formatPrice';
 
 // Serialized product type (JSON dates become strings)
 interface SerializedProduct {
@@ -76,14 +77,8 @@ export function LandingPageTemplate({
   const isSuccess = fetcher.data?.success;
   const hasError = fetcher.data && !fetcher.data.success;
 
-  // Format price
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  // Format price using centralized utility (forces Latin numerals)
+  const formatPrice = (price: number) => formatPriceSimple(price, currency);
 
   // Calculate discount
   const discount = product.compareAtPrice

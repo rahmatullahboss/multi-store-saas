@@ -18,6 +18,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, products, stores, users } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
+import { checkUsageLimit } from '~/utils/plans.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -98,6 +99,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const storeData = storeResult[0];
+
+    // ========================================================================
+    // PLAN LIMIT CHECK - Block orders if monthly limit reached
+    // ========================================================================
+    const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, input.store_id, 'order');
+    
+    if (!limitCheck.allowed) {
+      return json(
+        {
+          success: false,
+          error: limitCheck.error?.message || 'Monthly order limit reached. Upgrade to accept more orders.',
+          code: 'LIMIT_REACHED',
+          limit: limitCheck.error?.limit,
+          current: limitCheck.error?.current,
+        },
+        { status: 402 } // Payment Required - upgrade needed
+      );
+    }
 
     // SECURITY: Fetch REAL product price from database
     const product = await db

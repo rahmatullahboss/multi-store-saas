@@ -18,6 +18,14 @@ declare global {
     CLOUDINARY_API_SECRET?: string;
     RESEND_API_KEY?: string; // Email service
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
+    // bKash Payment Gateway
+    BKASH_BASE_URL?: string;
+    BKASH_APP_KEY?: string;
+    BKASH_APP_SECRET?: string;
+    BKASH_USERNAME?: string;
+    BKASH_PASSWORD?: string;
+    // Cloudflare Queue
+    EMAIL_QUEUE?: Queue<unknown>;
   }
 }
 

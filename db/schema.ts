@@ -16,7 +16,9 @@ export const stores = sqliteTable('stores', {
   name: text('name').notNull(),
   subdomain: text('subdomain').notNull().unique(),
   customDomain: text('custom_domain').unique(),
-  planType: text('plan_type').$type<'free' | 'starter' | 'pro' | 'enterprise'>().default('free'),
+  planType: text('plan_type').$type<'free' | 'starter' | 'premium' | 'custom'>().default('free'),
+  subscriptionStatus: text('subscription_status').$type<'active' | 'past_due' | 'canceled'>().default('active'),
+  usageLimits: text('usage_limits'), // JSON: { max_products, max_orders, allow_store_mode, fee_rate }
   
   // === HYBRID MODE FIELDS ===
   // 'landing' = Single product sales page, 'store' = Full e-commerce

@@ -12,6 +12,7 @@ import { json } from '@remix-run/cloudflare';
 
 import './styles/tailwind.css';
 import { GeneralError } from '~/components/GeneralError';
+import { LanguageProvider } from '~/contexts/LanguageContext';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -55,7 +56,9 @@ export default function App() {
         <title>{store.name}</title>
       </head>
       <body className="h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-        <Outlet />
+        <LanguageProvider defaultCurrency={store.currency as 'USD' | 'BDT'}>
+          <Outlet />
+        </LanguageProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
