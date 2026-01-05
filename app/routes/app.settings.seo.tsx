@@ -197,7 +197,7 @@ export default function SeoSettingsPage() {
     });
   };
 
-  const storeUrl = store.customDomain || `${store.subdomain}.stores.digitalcare.site`;
+  const storeUrl = store.customDomain || `${store.subdomain}.online-bazar.top`;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
