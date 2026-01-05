@@ -23,7 +23,8 @@ import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { fontOptions } from '~/lib/theme';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
-import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock } from 'lucide-react';
+import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Eye } from 'lucide-react';
+import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
 
 export const meta: MetaFunction = () => {
@@ -193,7 +194,9 @@ export default function SettingsPage() {
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(store.theme || 'default');
+  const [selectedFont, setSelectedFont] = useState(store.fontFamily || 'inter');
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode as 'landing' | 'store' || 'landing');
+  const [showPreview, setShowPreview] = useState(false);
   
   // Logo upload state
   const [logoUrl, setLogoUrl] = useState<string>(store.logo || '');
@@ -605,14 +608,25 @@ export default function SettingsPage() {
         </div>
         {/* Theme & Font Selection */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Palette className="w-5 h-5 text-purple-600" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Palette className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Theme & Typography</h2>
+                <p className="text-sm text-gray-500">Customize the look of your store</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Theme & Typography</h2>
-              <p className="text-sm text-gray-500">Customize the look of your store</p>
-            </div>
+            {/* Preview Button */}
+            <button
+              type="button"
+              onClick={() => setShowPreview(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-indigo-600 transition shadow-md"
+            >
+              <Eye className="w-4 h-4" />
+              Preview Theme
+            </button>
           </div>
 
           {/* Theme Grid */}
@@ -658,7 +672,8 @@ export default function SettingsPage() {
             <select
               id="fontFamily"
               name="fontFamily"
-              defaultValue={store.fontFamily}
+              value={selectedFont}
+              onChange={(e) => setSelectedFont(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
             >
               {fontOptions.map((font) => (
@@ -669,7 +684,24 @@ export default function SettingsPage() {
             </select>
             <p className="text-xs text-gray-500 mt-1">The font will be applied to your storefront.</p>
           </div>
+
+          {/* Preview Tip */}
+          <div className="mt-4 p-3 bg-purple-50 border border-purple-100 rounded-lg">
+            <p className="text-sm text-purple-700">
+              💡 <strong>Tip:</strong> Click "Preview Theme" above to see how your store will look before saving!
+            </p>
+          </div>
         </div>
+
+        {/* Theme Preview Modal */}
+        <ThemePreview
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          theme={selectedTheme}
+          fontFamily={selectedFont}
+          storeName={store.name}
+          logo={logoUrl || store.logo}
+        />
 
         {/* Social Media Links */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
