@@ -727,10 +727,10 @@ export function LandingPageTemplate({
       </section>
 
       {/* ============================================ */}
-      {/* SECTION 13: Order Form Section (Inline) */}
+      {/* SECTION 13: Order Form Section (Inline) - Full Width 2-Column */}
       {/* ============================================ */}
       <section id="order-form" className="py-16 bg-gradient-to-b from-gray-50 to-white scroll-mt-4">
-        <div className="max-w-2xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
               📝 এখনই অর্ডার করুন
@@ -738,14 +738,14 @@ export function LandingPageTemplate({
             <p className="text-xl text-gray-600">ফর্মটি পূরণ করুন, আমরা শীঘ্রই যোগাযোগ করব</p>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-100">
+          <div className="bg-white rounded-3xl p-6 md:p-10 shadow-2xl border border-gray-100">
             {isSuccess ? (
               // Success Message
-              <div className="text-center py-8">
-                <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl text-white">
+              <div className="text-center py-12">
+                <div className="w-28 h-28 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 text-6xl text-white">
                   ✓
                 </div>
-                <h3 className="text-3xl font-black text-emerald-600 mb-4">
+                <h3 className="text-3xl md:text-4xl font-black text-emerald-600 mb-4">
                   অর্ডার সম্পন্ন হয়েছে!
                 </h3>
                 <p className="text-gray-600 mb-6 text-xl">
@@ -756,59 +756,53 @@ export function LandingPageTemplate({
                 </p>
                 <button
                   onClick={() => window.location.reload()}
-                  className="px-10 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-lg transition"
+                  className="px-12 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-lg transition"
                 >
                   নতুন অর্ডার করুন
                 </button>
               </div>
             ) : (
-              // Order Form
-              <>
-                {/* Product Summary */}
-                <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 mb-8 flex items-center gap-4 border border-orange-100">
-                  <div className="w-20 h-20 bg-white rounded-xl overflow-hidden flex-shrink-0 shadow-md">
-                    {product.imageUrl ? (
-                      <OptimizedImage
-                        src={product.imageUrl}
-                        alt={product.title}
-                        width={80}
-                        height={80}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl bg-gray-100">📦</div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-gray-900 text-lg">{product.title}</p>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-emerald-600 font-black text-2xl">{formatPrice(product.price)}</span>
-                      {product.compareAtPrice && product.compareAtPrice > product.price && (
-                        <span className="text-gray-400 line-through">{formatPrice(product.compareAtPrice)}</span>
-                      )}
+              // Order Form - 2 Column Layout
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                {/* Left Column - Product Info & Quantity */}
+                <div className="space-y-6">
+                  {/* Product Summary */}
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 shadow-md">
+                        {product.imageUrl ? (
+                          <OptimizedImage
+                            src={product.imageUrl}
+                            alt={product.title}
+                            width={96}
+                            height={96}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-100">📦</div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900 text-xl">{product.title}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-emerald-600 font-black text-3xl">{formatPrice(product.price)}</span>
+                          {product.compareAtPrice && product.compareAtPrice > product.price && (
+                            <span className="text-gray-400 line-through text-lg">{formatPrice(product.compareAtPrice)}</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Error Display */}
-                {hasError && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6">
-                    <p className="font-bold">{fetcher.data?.error}</p>
-                    {fetcher.data?.details && (
-                      <ul className="text-sm mt-2 list-disc list-inside">
-                        {Object.entries(fetcher.data.details).map(([field, errors]) => (
-                          <li key={field}>{field}: {errors.join(', ')}</li>
-                        ))}
-                      </ul>
+                    {discount > 0 && (
+                      <div className="bg-red-500 text-white text-center py-2 rounded-lg font-bold">
+                        🎉 {discount}% ছাড়ে পাচ্ছেন! সেভ করছেন {formatPrice(product.compareAtPrice! - product.price)}
+                      </div>
                     )}
                   </div>
-                )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Quantity */}
+                  {/* Quantity Selector */}
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-3">পরিমাণ নির্বাচন করুন</label>
-                    <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-3">
+                    <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-4">
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.max(1, d.quantity - 1) }))}
@@ -826,53 +820,11 @@ export function LandingPageTemplate({
                       </button>
                       <div className="ml-auto text-right">
                         <p className="text-sm text-gray-500">মোট মূল্য</p>
-                        <span className="text-emerald-600 font-black text-2xl">
+                        <span className="text-emerald-600 font-black text-3xl">
                           {formatPrice(totalPrice)}
                         </span>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Name */}
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">আপনার নাম *</label>
-                    <input
-                      type="text"
-                      required
-                      minLength={2}
-                      value={formData.customer_name}
-                      onChange={(e) => setFormData(d => ({ ...d, customer_name: e.target.value }))}
-                      placeholder="সম্পূর্ণ নাম লিখুন"
-                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
-                    />
-                  </div>
-
-                  {/* Phone */}
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">মোবাইল নম্বর *</label>
-                    <input
-                      type="tel"
-                      required
-                      minLength={10}
-                      value={formData.phone}
-                      onChange={(e) => setFormData(d => ({ ...d, phone: e.target.value }))}
-                      placeholder="০১XXXXXXXXX"
-                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
-                    />
-                  </div>
-
-                  {/* Address */}
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">সম্পূর্ণ ঠিকানা *</label>
-                    <textarea
-                      required
-                      minLength={10}
-                      rows={3}
-                      value={formData.address}
-                      onChange={(e) => setFormData(d => ({ ...d, address: e.target.value }))}
-                      placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর"
-                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg resize-none"
-                    />
                   </div>
 
                   {/* Payment Method */}
@@ -887,30 +839,113 @@ export function LandingPageTemplate({
                     <span className="ml-auto text-emerald-600 text-2xl">✓</span>
                   </div>
 
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 text-white text-2xl font-bold rounded-xl shadow-lg transition transform hover:scale-[1.02]"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center justify-center gap-3">
-                        <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        অপেক্ষা করুন...
-                      </span>
-                    ) : (
-                      `✓ অর্ডার কনফার্ম করুন - ${formatPrice(totalPrice)}`
-                    )}
-                  </button>
+                  {/* Trust Badges - Desktop Only */}
+                  <div className="hidden lg:grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
+                      <span className="text-2xl">🚚</span>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">দ্রুত ডেলিভারি</p>
+                        <p className="text-xs text-gray-500">ঢাকায় ২৪ ঘন্টায়</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
+                      <span className="text-2xl">🔄</span>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">ইজি রিটার্ন</p>
+                        <p className="text-xs text-gray-500">৭ দিনের রিটার্ন</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                  <p className="text-center text-gray-500 text-sm">
-                    🔒 আপনার তথ্য সম্পূর্ণ নিরাপদ এবং গোপনীয়
-                  </p>
-                </form>
-              </>
+                {/* Right Column - Customer Info Form */}
+                <div>
+                  {/* Error Display */}
+                  {hasError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6">
+                      <p className="font-bold">{fetcher.data?.error}</p>
+                      {fetcher.data?.details && (
+                        <ul className="text-sm mt-2 list-disc list-inside">
+                          {Object.entries(fetcher.data.details).map(([field, errors]) => (
+                            <li key={field}>{field}: {errors.join(', ')}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <span className="text-2xl">📋</span> ডেলিভারি তথ্য
+                    </h3>
+
+                    {/* Name */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">আপনার নাম *</label>
+                      <input
+                        type="text"
+                        required
+                        minLength={2}
+                        value={formData.customer_name}
+                        onChange={(e) => setFormData(d => ({ ...d, customer_name: e.target.value }))}
+                        placeholder="সম্পূর্ণ নাম লিখুন"
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
+                      />
+                    </div>
+
+                    {/* Phone */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">মোবাইল নম্বর *</label>
+                      <input
+                        type="tel"
+                        required
+                        minLength={10}
+                        value={formData.phone}
+                        onChange={(e) => setFormData(d => ({ ...d, phone: e.target.value }))}
+                        placeholder="০১XXXXXXXXX"
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
+                      />
+                    </div>
+
+                    {/* Address */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">সম্পূর্ণ ঠিকানা *</label>
+                      <textarea
+                        required
+                        minLength={10}
+                        rows={4}
+                        value={formData.address}
+                        onChange={(e) => setFormData(d => ({ ...d, address: e.target.value }))}
+                        placeholder="বাড়ি নং, রাস্তা, এলাকা, থানা, জেলা"
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg resize-none"
+                      />
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 text-white text-2xl font-bold rounded-xl shadow-lg transition transform hover:scale-[1.02]"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center justify-center gap-3">
+                          <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          অপেক্ষা করুন...
+                        </span>
+                      ) : (
+                        `✓ অর্ডার কনফার্ম করুন - ${formatPrice(totalPrice)}`
+                      )}
+                    </button>
+
+                    <p className="text-center text-gray-500 text-sm">
+                      🔒 আপনার তথ্য সম্পূর্ণ নিরাপদ এবং গোপনীয়
+                    </p>
+                  </form>
+                </div>
+              </div>
             )}
           </div>
         </div>
