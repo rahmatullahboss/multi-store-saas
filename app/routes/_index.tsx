@@ -39,172 +39,362 @@ export const headers: HeadersFunction = () => ({
 // ============================================================================
 // META
 // ============================================================================
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data) {
+export const meta: MetaFunction = ({ data }) => {
+  // Type guard for loader data
+  const loaderData = data as LoaderData | undefined;
+  
+  if (!loaderData) {
     return [{ title: 'Store' }];
   }
   
-  const description = data.mode === 'landing' && data.featuredProduct
-    ? `Get ${data.featuredProduct.title} - ${data.landingConfig?.headline || ''}`
-    : `Shop the best products at ${data.storeName}`;
+  const description = loaderData.mode === 'landing' && loaderData.featuredProduct
+    ? `Get ${loaderData.featuredProduct.title} - ${loaderData.landingConfig?.headline || ''}`
+    : `Shop the best products at ${loaderData.storeName}`;
   
   return [
-    { title: data?.storeName || 'Store' },
+    { title: loaderData.storeName || 'Store' },
     { name: 'description', content: description },
   ];
 };
 
 // ============================================================================
-// LOADER - Mode-based data fetching with caching
+// LOADER TYPES - Strict typing for frontend consumption
 // ============================================================================
-export async function loader({ context, request }: LoaderFunctionArgs) {
+interface LandingModeData {
+  mode: 'landing';
+  storeId: number;
+  storeName: string;
+  currency: string;
+  featuredProduct: Product | null;
+  landingConfig: LandingConfig;
+  // Explicitly null for this mode
+  products: null;
+  categories: null;
+  currentCategory: null;
+  themeConfig: null;
+  logo: null;
+  favicon: null;
+  fontFamily: null;
+  theme: null;
+  socialLinks: null;
+  footerConfig: null;
+  businessInfo: null;
+}
+
+interface StoreModeData {
+  mode: 'store';
+  storeId: number;
+  storeName: string;
+  logo: string | null;
+  favicon: string | null;
+  fontFamily: string;
+  currency: string;
+  theme: string;
+  products: Product[];
+  categories: string[];
+  currentCategory: string | null;
+  themeConfig: ThemeConfig | null;
+  socialLinks: SocialLinks | null;
+  footerConfig: FooterConfig | null;
+  businessInfo: Record<string, unknown> | null;
+  // Explicitly null for this mode
+  featuredProduct: null;
+  landingConfig: null;
+}
+
+export type LoaderData = LandingModeData | StoreModeData;
+
+// ============================================================================
+// HELPER: Database query with timeout
+// ============================================================================
+const DB_TIMEOUT_MS = 5000; // 5 seconds
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  errorMessage: string
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+    ),
+  ]);
+}
+
+// ============================================================================
+// HELPER: Safe JSON parse with fallback
+// ============================================================================
+function safeJsonParse<T>(
+  value: string | null | undefined,
+  fallback: T
+): T {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    console.warn('[safeJsonParse] Failed to parse JSON, using fallback');
+    return fallback;
+  }
+}
+
+// ============================================================================
+// LOADER - Mode-based data fetching with defensive programming
+// ============================================================================
+export async function loader({ context, request }: LoaderFunctionArgs): Promise<Response> {
   let { storeId, store } = context;
   const { cloudflare } = context;
+  
+  // Validate cloudflare context exists
+  if (!cloudflare?.env?.DB) {
+    console.error('[loader] Database connection not available');
+    throw new Response('Service temporarily unavailable', { 
+      status: 503,
+      statusText: 'Service Unavailable'
+    });
+  }
+  
   const db = drizzle(cloudflare.env.DB);
   
-  // Fallback: If no store matched from tenant middleware, get first active store
-  // This handles Cloudflare Pages deployment URLs like d3590a80.multi-store-saas.pages.dev
-  if (!store || storeId === 0) {
-    const fallbackStore = await db
-      .select()
-      .from(stores)
-      .where(eq(stores.isActive, true))
-      .limit(1);
-    
-    if (fallbackStore.length > 0) {
-      store = fallbackStore[0] as Store;
-      storeId = fallbackStore[0].id;
-    } else {
-      // No stores in database at all
-      throw new Response('Store not found', { status: 404 });
+  // ========== STORE RESOLUTION ==========
+  try {
+    // Fallback: If no store matched from tenant middleware, get first active store
+    // This handles Cloudflare Pages deployment URLs like d3590a80.multi-store-saas.pages.dev
+    if (!store || storeId === 0) {
+      const fallbackStoreQuery = db
+        .select()
+        .from(stores)
+        .where(eq(stores.isActive, true))
+        .limit(1);
+      
+      const fallbackStore = await withTimeout(
+        fallbackStoreQuery,
+        DB_TIMEOUT_MS,
+        'Database query timed out while fetching store'
+      );
+      
+      if (fallbackStore.length > 0) {
+        store = fallbackStore[0] as Store;
+        storeId = fallbackStore[0].id;
+      } else {
+        // No stores in database at all
+        throw new Response('Store not found', { 
+          status: 404,
+          statusText: 'Not Found',
+          headers: { 'Content-Type': 'text/plain' }
+        });
+      }
     }
+  } catch (error) {
+    // Re-throw Response errors (404, etc.)
+    if (error instanceof Response) {
+      throw error;
+    }
+    
+    // Handle timeout and other database errors
+    console.error('[loader] Store resolution failed:', error);
+    throw new Response('Unable to load store. Please try again later.', { 
+      status: 500,
+      statusText: 'Internal Server Error'
+    });
   }
+
+  // At this point, store is guaranteed to exist
+  // TypeScript assertion for safety
+  if (!store) {
+    throw new Response('Store not found', { status: 404 });
+  }
+  
+  const validatedStore = store as Store;
+  const validatedStoreId = storeId as number;
   
   const url = new URL(request.url);
   const category = url.searchParams.get('category');
   
-  // Determine store mode
-  const storeMode = (store as Store & { mode?: 'landing' | 'store' }).mode || 'store';
+  // Determine store mode with safe fallback
+  const storeMode = (validatedStore as Store & { mode?: 'landing' | 'store' }).mode || 'store';
   
   // ========== LANDING MODE ==========
   if (storeMode === 'landing') {
-    // Fetch only the featured product (minimal D1 read)
-    const featuredProductId = (store as Store & { featuredProductId?: number }).featuredProductId;
-    
-    let featuredProduct: Product | null = null;
-    
-    if (featuredProductId) {
-      const result = await db
-        .select()
-        .from(products)
-        .where(
-          and(
-            eq(products.id, featuredProductId),
-            eq(products.storeId, storeId),
-            eq(products.isPublished, true)
+    try {
+      const featuredProductId = (validatedStore as Store & { featuredProductId?: number }).featuredProductId;
+      
+      let featuredProduct: Product | null = null;
+      
+      if (featuredProductId) {
+        const featuredQuery = db
+          .select()
+          .from(products)
+          .where(
+            and(
+              eq(products.id, featuredProductId),
+              eq(products.storeId, validatedStoreId),
+              eq(products.isPublished, true)
+            )
           )
-        )
-        .limit(1);
-      featuredProduct = result[0] || null;
-    }
-    
-    // Fallback: Get first published product if no featured product
-    if (!featuredProduct) {
-      const fallback = await db
-        .select()
-        .from(products)
-        .where(
-          and(
-            eq(products.storeId, storeId),
-            eq(products.isPublished, true)
+          .limit(1);
+        
+        const result = await withTimeout(
+          featuredQuery,
+          DB_TIMEOUT_MS,
+          'Database query timed out while fetching featured product'
+        );
+        featuredProduct = result[0] ?? null;
+      }
+      
+      // Fallback: Get first published product if no featured product
+      if (!featuredProduct) {
+        const fallbackQuery = db
+          .select()
+          .from(products)
+          .where(
+            and(
+              eq(products.storeId, validatedStoreId),
+              eq(products.isPublished, true)
+            )
           )
-        )
-        .limit(1);
-      featuredProduct = fallback[0] || null;
+          .limit(1);
+        
+        const fallback = await withTimeout(
+          fallbackQuery,
+          DB_TIMEOUT_MS,
+          'Database query timed out while fetching fallback product'
+        );
+        featuredProduct = fallback[0] ?? null;
+      }
+      
+      // Parse landing config with safe fallback
+      const landingConfigRaw = (validatedStore as Store & { landingConfig?: string }).landingConfig;
+      const landingConfig = parseLandingConfig(landingConfigRaw) ?? defaultLandingConfig;
+      
+      const landingData: LandingModeData = {
+        mode: 'landing',
+        storeId: validatedStoreId,
+        storeName: validatedStore.name ?? 'Store',
+        currency: validatedStore.currency ?? 'USD',
+        featuredProduct,
+        landingConfig,
+        // Explicitly null for landing mode
+        products: null,
+        categories: null,
+        currentCategory: null,
+        themeConfig: null,
+        logo: null,
+        favicon: null,
+        fontFamily: null,
+        theme: null,
+        socialLinks: null,
+        footerConfig: null,
+        businessInfo: null,
+      };
+      
+      return json(landingData);
+      
+    } catch (error) {
+      if (error instanceof Response) throw error;
+      console.error('[loader] Landing mode data fetch failed:', error);
+      throw new Response('Unable to load store content. Please try again.', { 
+        status: 500,
+        statusText: 'Internal Server Error'
+      });
     }
-    
-    // Parse landing config
-    const landingConfigRaw = (store as Store & { landingConfig?: string }).landingConfig;
-    const landingConfig = parseLandingConfig(landingConfigRaw) || defaultLandingConfig;
-    
-    return json({
-      mode: 'landing' as const,
-      storeId,
-      storeName: store?.name || 'Store',
-      currency: store?.currency || 'USD',
-      featuredProduct,
-      landingConfig,
-      // Not needed for landing mode
-      products: null,
-      categories: null,
-      currentCategory: null,
-      themeConfig: null,
-      logo: null,
-    });
   }
   
   // ========== FULL STORE MODE ==========
-  // Fetch products with optional category filter
-  const storeProducts = await db
-    .select()
-    .from(products)
-    .where(
-      and(
-        eq(products.storeId, storeId),
-        eq(products.isPublished, true),
-        category ? eq(products.category, category) : undefined
+  try {
+    // Fetch products with optional category filter
+    const productsQuery = db
+      .select()
+      .from(products)
+      .where(
+        and(
+          eq(products.storeId, validatedStoreId),
+          eq(products.isPublished, true),
+          category ? eq(products.category, category) : undefined
+        )
       )
-    )
-    .limit(50);
-  
-  // Get unique categories
-  const allProducts = await db
-    .select({ category: products.category })
-    .from(products)
-    .where(
-      and(
-        eq(products.storeId, storeId),
-        eq(products.isPublished, true)
-      )
+      .limit(50);
+    
+    const storeProducts = await withTimeout(
+      productsQuery,
+      DB_TIMEOUT_MS,
+      'Database query timed out while fetching products'
     );
-  
-  const categories = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
-  
-  // Parse theme config
-  const themeConfigRaw = (store as Store & { themeConfig?: string }).themeConfig;
-  const themeConfig = parseThemeConfig(themeConfigRaw);
-  
-  // Parse Phase 3 configs
-  const socialLinks = parseSocialLinks(store?.socialLinks as string | null);
-  const footerConfig = parseFooterConfig(store?.footerConfig as string | null);
-  
-  return json({
-    mode: 'store' as const,
-    storeId,
-    storeName: store?.name || 'Store',
-    logo: store?.logo,
-    favicon: store?.favicon,
-    fontFamily: store?.fontFamily || 'inter',
-    currency: store?.currency || 'USD',
-    theme: store?.theme || 'default',
-    products: storeProducts,
-    categories,
-    currentCategory: category,
-    themeConfig,
-    socialLinks,
-    footerConfig,
-    businessInfo: store?.businessInfo ? JSON.parse(store.businessInfo) : null,
-    // Not needed for store mode
-    featuredProduct: null,
-    landingConfig: null,
-  });
+    
+    // Get unique categories
+    const categoriesQuery = db
+      .select({ category: products.category })
+      .from(products)
+      .where(
+        and(
+          eq(products.storeId, validatedStoreId),
+          eq(products.isPublished, true)
+        )
+      );
+    
+    const allProducts = await withTimeout(
+      categoriesQuery,
+      DB_TIMEOUT_MS,
+      'Database query timed out while fetching categories'
+    );
+    
+    const categories = [...new Set(
+      allProducts
+        .map(p => p.category)
+        .filter((c): c is string => Boolean(c))
+    )];
+    
+    // Parse configs with safe fallbacks
+    const themeConfigRaw = (validatedStore as Store & { themeConfig?: string }).themeConfig;
+    const themeConfig = parseThemeConfig(themeConfigRaw);
+    
+    const socialLinks = parseSocialLinks(validatedStore.socialLinks as string | null);
+    const footerConfig = parseFooterConfig(validatedStore.footerConfig as string | null);
+    
+    // Safe JSON parse for businessInfo
+    const businessInfo = safeJsonParse<Record<string, unknown> | null>(
+      validatedStore.businessInfo as string | undefined,
+      null
+    );
+    
+    const storeData: StoreModeData = {
+      mode: 'store',
+      storeId: validatedStoreId,
+      storeName: validatedStore.name ?? 'Store',
+      logo: validatedStore.logo ?? null,
+      favicon: validatedStore.favicon ?? null,
+      fontFamily: validatedStore.fontFamily ?? 'inter',
+      currency: validatedStore.currency ?? 'USD',
+      theme: validatedStore.theme ?? 'default',
+      products: storeProducts,
+      categories,
+      currentCategory: category,
+      themeConfig,
+      socialLinks,
+      footerConfig,
+      businessInfo,
+      // Explicitly null for store mode
+      featuredProduct: null,
+      landingConfig: null,
+    };
+    
+    return json(storeData);
+    
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error('[loader] Store mode data fetch failed:', error);
+    throw new Response('Unable to load store content. Please try again.', { 
+      status: 500,
+      statusText: 'Internal Server Error'
+    });
+  }
 }
 
 // ============================================================================
 // COMPONENT - Conditional rendering based on mode
 // ============================================================================
 export default function Index() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<LoaderData>();
 
   // ========== LANDING MODE ==========
   if (data.mode === 'landing') {
