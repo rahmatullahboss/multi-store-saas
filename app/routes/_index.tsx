@@ -159,12 +159,35 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   let { storeId, store } = context;
   const { cloudflare } = context;
   
+  // Get request info for debugging
+  const requestUrl = new URL(request.url);
+  const hostname = requestUrl.hostname;
+  
+  console.log(`[LOADER] ============================================`);
+  console.log(`[LOADER] Request URL: ${request.url}`);
+  console.log(`[LOADER] Hostname: ${hostname}`);
+  console.log(`[LOADER] Context storeId: ${storeId ?? 'undefined'}`);
+  console.log(`[LOADER] Context store: ${store ? `Found (ID: ${(store as { id: number }).id})` : 'undefined'}`);
+  console.log(`[LOADER] Cloudflare bindings available: ${!!cloudflare}`);
+  console.log(`[LOADER] DB binding available: ${!!cloudflare?.env?.DB}`);
+  
   // Validate cloudflare context exists
   if (!cloudflare?.env?.DB) {
-    console.error('[loader] Database connection not available');
-    throw new Response('Service temporarily unavailable', { 
+    console.error('[LOADER] Database connection not available');
+    console.error('[LOADER] cloudflare object:', JSON.stringify(cloudflare, null, 2));
+    throw new Response(JSON.stringify({
+      error: 'Service temporarily unavailable',
+      message: 'Database connection not available',
+      debug: {
+        hostname,
+        hasCloudflare: !!cloudflare,
+        hasEnv: !!cloudflare?.env,
+        hasDB: !!cloudflare?.env?.DB,
+      }
+    }), { 
       status: 503,
-      statusText: 'Service Unavailable'
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'application/json' },
     });
   }
   
@@ -516,22 +539,40 @@ export function ErrorBoundary() {
     window.location.reload();
   };
   
+  // Get current URL for debugging
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : 'SSR';
+  const currentHostname = typeof window !== 'undefined' ? window.location.hostname : 'SSR';
+  const timestamp = new Date().toISOString();
+  
   // Extract error details for display
   let errorMessage = 'An unexpected error occurred.';
   let errorStatus = 500;
   let errorStatusText = 'Internal Server Error';
+  let errorData: unknown = null;
   
   if (isRouteErrorResponse(error)) {
-    errorMessage = error.data || error.statusText;
+    errorMessage = typeof error.data === 'string' ? error.data : error.statusText;
     errorStatus = error.status;
     errorStatusText = error.statusText;
+    errorData = error.data;
   } else if (error instanceof Error) {
     errorMessage = error.message;
   }
   
+  // Log error to console for debugging
+  console.error('[ErrorBoundary] Store Error:', {
+    status: errorStatus,
+    statusText: errorStatusText,
+    message: errorMessage,
+    url: currentUrl,
+    hostname: currentHostname,
+    timestamp,
+    error,
+  });
+  
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+      <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg p-8 text-center">
         {/* Icon */}
         <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
           <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -543,14 +584,25 @@ export function ErrorBoundary() {
         </h2>
         
         {/* Message */}
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 mb-2">
           {errorMessage}
         </p>
         
-        {/* Error Code */}
-        <p className="text-xs text-gray-400 mb-6">
-          Error Code: {errorStatus} ({errorStatusText})
-        </p>
+        {/* Error Code Badge */}
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-200 rounded-full mb-6">
+          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          <span className="text-xs font-mono text-red-700">
+            {errorStatus} {errorStatusText}
+          </span>
+        </div>
+        
+        {/* Quick Debug Info */}
+        <div className="mb-6 p-3 bg-gray-50 rounded-lg text-left">
+          <p className="text-xs text-gray-500 font-mono">
+            <strong>Host:</strong> {currentHostname}<br />
+            <strong>Time:</strong> {timestamp}
+          </p>
+        </div>
         
         {/* Actions */}
         <div className="space-y-3">
@@ -570,32 +622,53 @@ export function ErrorBoundary() {
           </a>
         </div>
         
-        {/* Debug info - always show for production debugging */}
-        {error instanceof Error && (
-          <details className="mt-6 text-left">
-            <summary className="text-sm text-gray-500 cursor-pointer">
-              Technical Details
-            </summary>
-            <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-auto text-gray-700 max-h-40">
-              {error.message}
-              {'\n'}
-              {error.stack}
-            </pre>
-          </details>
-        )}
-        
-        {isRouteErrorResponse(error) && (
-          <details className="mt-6 text-left">
-            <summary className="text-sm text-gray-500 cursor-pointer">
-              Technical Details
-            </summary>
-            <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-auto text-gray-700 max-h-40">
-              Status: {error.status}\n
-              StatusText: {error.statusText}\n
-              Data: {typeof error.data === 'string' ? error.data : JSON.stringify(error.data, null, 2)}
-            </pre>
-          </details>
-        )}
+        {/* Full Technical Details - Always visible for debugging */}
+        <details className="mt-6 text-left" open>
+          <summary className="text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-900">
+            ▶ Technical Details (Debug Info)
+          </summary>
+          <div className="mt-3 space-y-3">
+            {/* Request Info */}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs font-semibold text-blue-800 mb-1">Request Info</p>
+              <pre className="text-xs font-mono text-blue-700 whitespace-pre-wrap break-all">
+URL: {currentUrl}
+Host: {currentHostname}
+Timestamp: {timestamp}
+              </pre>
+            </div>
+            
+            {/* Error Details */}
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs font-semibold text-red-800 mb-1">Error Details</p>
+              <pre className="text-xs font-mono text-red-700 whitespace-pre-wrap break-all">
+Status: {errorStatus}
+StatusText: {errorStatusText}
+Message: {errorMessage}
+              </pre>
+            </div>
+            
+            {/* Raw Error Data */}
+            {errorData && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-xs font-semibold text-amber-800 mb-1">Response Data</p>
+                <pre className="text-xs font-mono text-amber-700 whitespace-pre-wrap break-all max-h-40 overflow-auto">
+{String(typeof errorData === 'string' ? errorData : JSON.stringify(errorData, null, 2))}
+                </pre>
+              </div>
+            )}
+            
+            {/* Stack Trace for JS errors */}
+            {error instanceof Error && error.stack && (
+              <div className="p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                <p className="text-xs font-semibold text-gray-800 mb-1">Stack Trace</p>
+                <pre className="text-xs font-mono text-gray-600 whitespace-pre-wrap break-all max-h-40 overflow-auto">
+{error.stack}
+                </pre>
+              </div>
+            )}
+          </div>
+        </details>
       </div>
     </div>
   );
