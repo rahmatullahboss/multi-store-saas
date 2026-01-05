@@ -248,12 +248,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
 
   } catch (error) {
-    console.error('Order creation error:', error);
+    // Enhanced error logging for debugging
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      type: error?.constructor?.name || typeof error,
+      timestamp: new Date().toISOString(),
+    };
     
+    console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
+    console.error('Raw error:', error);
+    
+    // Return more details in development
     return json(
       { 
         success: false, 
-        error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
+        error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
+        debug: process.env.NODE_ENV !== 'production' ? errorDetails.message : undefined,
       },
       { status: 500 }
     );
