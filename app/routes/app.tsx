@@ -33,7 +33,8 @@ import {
   FileText,
   Mail,
   CreditCard,
-  Palette
+  Palette,
+  Globe
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -83,6 +84,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
     },
   });
 }
@@ -102,8 +104,15 @@ const navItems = [
   { to: '/app/reports', label: 'Reports', icon: FileText },
   { to: '/app/discounts', label: 'Discounts', icon: Tag },
   { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
+  { to: '/app/settings/domain', label: 'Domain', icon: Globe },
   { to: '/app/billing', label: 'Billing', icon: CreditCard },
   { to: '/app/settings', label: 'Settings', icon: Settings },
+];
+
+// Admin-only navigation items
+const adminNavItems = [
+  { to: '/app/admin/payouts', label: 'Payouts', icon: CreditCard },
+  { to: '/app/admin/domains', label: 'Domain Requests', icon: Globe },
 ];
 
 
@@ -163,7 +172,7 @@ export default function AppLayout() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.to);
@@ -185,6 +194,38 @@ export default function AppLayout() {
                 </Link>
               );
             })}
+            
+            {/* Admin Section */}
+            {user.role === 'admin' && (
+              <>
+                <div className="pt-4 pb-2">
+                  <span className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Admin
+                  </span>
+                </div>
+                {adminNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.to);
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`
+                        flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition
+                        ${active 
+                          ? 'bg-purple-50 text-purple-700' 
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        }
+                      `}
+                    >
+                      <Icon className={`w-5 h-5 ${active ? 'text-purple-600' : ''}`} />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
 
           {/* User Info & Logout */}
