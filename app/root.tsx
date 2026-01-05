@@ -5,11 +5,13 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useRouteError,
 } from '@remix-run/react';
 import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 
 import './styles/tailwind.css';
+import { GeneralError } from '~/components/GeneralError';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -62,25 +64,22 @@ export default function App() {
 }
 
 /**
- * Error Boundary for the entire app
+ * Root Error Boundary
+ * 
+ * Catches all unhandled errors at the application level.
+ * Uses GeneralError component with isRootError=true to render
+ * a full HTML document with inline critical CSS (since Tailwind
+ * may not be loaded when an error occurs).
+ * 
+ * Error Types Handled:
+ * - 404: Store Not Found / Page Not Found
+ * - 500+: Server Error / Maintenance Mode
+ * - Unknown: Generic error fallback
  */
 export function ErrorBoundary() {
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Oops!</title>
-      </head>
-      <body className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center p-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Something went wrong</h1>
-          <p className="text-gray-600 mb-6">We're sorry, but something unexpected happened.</p>
-          <a href="/" className="btn btn-primary">
-            Go back home
-          </a>
-        </div>
-      </body>
-    </html>
-  );
+  const error = useRouteError();
+  
+  // GeneralError with isRootError=true wraps content in full HTML document
+  // with inline critical CSS for styling without external stylesheets
+  return <GeneralError error={error} isRootError={true} />;
 }

@@ -9,16 +9,22 @@
  * - max-age=60: Browser cache for 1 minute
  * - s-maxage=3600: CDN cache for 1 hour
  * - stale-while-revalidate=86400: Serve stale for 24h while revalidating
+ * 
+ * ERROR BOUNDARY:
+ * - This route has its own ErrorBoundary for isolated error handling
+ * - If the product grid fails, only this section shows the error
+ * - Parent layout (Header/Footer) remains visible
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
 import { StoreLayout } from '~/components/templates/StoreLayout';
+import { RefreshCw, AlertTriangle } from 'lucide-react';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -243,3 +249,84 @@ export default function Index() {
     />
   );
 }
+
+// ============================================================================
+// NESTED ERROR BOUNDARY - Isolates errors to this route only
+// ============================================================================
+/**
+ * Nested ErrorBoundary for the store homepage
+ * 
+ * When an error occurs in this route:
+ * - Only the content area shows the error UI
+ * - Parent layouts (if any) remain intact
+ * - Users can retry or navigate without full page refresh
+ * 
+ * For 404 errors (store not found), this bubbles up to root
+ * For other errors, shows an inline error message
+ */
+export function ErrorBoundary() {
+  const error = useRouteError();
+  
+  // For store not found (404), let it bubble to root for full-page treatment
+  if (isRouteErrorResponse(error) && error.status === 404) {
+    throw error; // Re-throw to parent ErrorBoundary
+  }
+  
+  const handleReload = () => {
+    window.location.reload();
+  };
+  
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+        {/* Icon */}
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+          <AlertTriangle className="w-8 h-8 text-red-600" />
+        </div>
+        
+        {/* Title */}
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
+          Unable to Load Store
+        </h2>
+        
+        {/* Message */}
+        <p className="text-gray-600 mb-6">
+          We couldn\'t load the store content. This might be a temporary issue.
+        </p>
+        
+        {/* Actions */}
+        <div className="space-y-3">
+          <button
+            onClick={handleReload}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Reload Page
+          </button>
+          
+          <a
+            href="/"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Go to Homepage
+          </a>
+        </div>
+        
+        {/* Debug info in development */}
+        {process.env.NODE_ENV === 'development' && error instanceof Error && (
+          <details className="mt-6 text-left">
+            <summary className="text-sm text-gray-500 cursor-pointer">
+              Technical Details
+            </summary>
+            <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-auto text-gray-700">
+              {error.message}
+              {'\n'}
+              {error.stack}
+            </pre>
+          </details>
+        )}
+      </div>
+    </div>
+  );
+}
+
