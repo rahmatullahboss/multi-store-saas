@@ -24,6 +24,7 @@ import { stores, products, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
 import { StoreLayout } from '~/components/templates/StoreLayout';
+import { MarketingLanding } from '~/components/MarketingLanding';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
 
@@ -46,6 +47,14 @@ export const meta: MetaFunction = ({ data }) => {
   
   if (!loaderData) {
     return [{ title: 'Store' }];
+  }
+  
+  // Marketing mode - return SaaS branding
+  if (loaderData.mode === 'marketing') {
+    return [
+      { title: 'Multi-Store SaaS - Launch Your Online Store in 5 Minutes' },
+      { name: 'description', content: 'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.' },
+    ];
   }
   
   const description = loaderData.mode === 'landing' && loaderData.featuredProduct
@@ -103,7 +112,11 @@ interface StoreModeData {
   landingConfig: null;
 }
 
-export type LoaderData = LandingModeData | StoreModeData;
+interface MarketingModeData {
+  mode: 'marketing';
+}
+
+export type LoaderData = LandingModeData | StoreModeData | MarketingModeData;
 
 // ============================================================================
 // HELPER: Database query with timeout
@@ -157,10 +170,27 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   
   const db = drizzle(cloudflare.env.DB);
   
+  // ========== MAIN DOMAIN CHECK - Show Marketing Page ==========
+  const url = new URL(request.url);
+  const host = url.hostname;
+  
+  // Detect if this is the main domain (no subdomain)
+  const isMainDomain = (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === 'multi-store-saas.pages.dev' ||
+    host === 'stores.digitalcare.site' ||
+    (host.endsWith('.pages.dev') && !host.includes('.') === false && host.split('.').length <= 3)
+  ) && (!store || storeId === 0);
+  
+  if (isMainDomain) {
+    // Return marketing page data
+    return json({ mode: 'marketing' } as MarketingModeData);
+  }
+  
   // ========== STORE RESOLUTION ==========
   try {
     // Fallback: If no store matched from tenant middleware, get first active store
-    // This handles Cloudflare Pages deployment URLs like d3590a80.multi-store-saas.pages.dev
     if (!store || storeId === 0) {
       const fallbackStoreQuery = db
         .select()
@@ -178,12 +208,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         store = fallbackStore[0] as Store;
         storeId = fallbackStore[0].id;
       } else {
-        // No stores in database at all
-        throw new Response('Store not found', { 
-          status: 404,
-          statusText: 'Not Found',
-          headers: { 'Content-Type': 'text/plain' }
-        });
+        // No stores - show marketing page
+        return json({ mode: 'marketing' } as MarketingModeData);
       }
     }
   } catch (error) {
@@ -209,8 +235,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   const validatedStore = store as Store;
   const validatedStoreId = storeId as number;
   
-  const url = new URL(request.url);
-  const category = url.searchParams.get('category');
+  const storeUrl = new URL(request.url);
+  const category = storeUrl.searchParams.get('category');
   
   // Determine store mode with safe fallback
   const dbMode = (validatedStore as Store & { mode?: 'landing' | 'store' }).mode || 'store';
@@ -405,6 +431,11 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 // ============================================================================
 export default function Index() {
   const data = useLoaderData<LoaderData>();
+
+  // ========== MARKETING MODE ==========
+  if (data.mode === 'marketing') {
+    return <MarketingLanding />;
+  }
 
   // ========== LANDING MODE ==========
   if (data.mode === 'landing') {
