@@ -12,6 +12,19 @@ import { Form, Link, useActionData, useNavigation } from '@remix-run/react';
 import { Store, Globe } from 'lucide-react';
 import { register, createUserSession, getUserId } from '~/services/auth.server';
 
+// Define ActionData type for proper TypeScript inference
+interface ActionData {
+  errors?: {
+    form?: string;
+    name?: string;
+    email?: string;
+    password?: string;
+    storeName?: string;
+    subdomain?: string;
+  };
+  subdomain?: string;
+}
+
 export const meta: MetaFunction = () => {
   return [{ title: 'Register - Multi-Store SaaS' }];
 };
@@ -34,7 +47,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const subdomain = formData.get('subdomain') as string;
 
   // Validation
-  const errors: Record<string, string> = {};
+  const errors: ActionData['errors'] = {};
   if (!name || name.length < 2) {
     errors.name = 'Name must be at least 2 characters';
   }
@@ -61,7 +74,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   if (Object.keys(errors).length > 0) {
-    return json({ errors, subdomain: cleanSubdomain }, { status: 400 });
+    return json<ActionData>({ errors, subdomain: cleanSubdomain }, { status: 400 });
   }
 
   // Attempt registration with custom subdomain
@@ -75,7 +88,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   });
 
   if (result.error) {
-    return json({ errors: { form: result.error }, subdomain: cleanSubdomain }, { status: 400 });
+    return json<ActionData>({ errors: { form: result.error }, subdomain: cleanSubdomain }, { status: 400 });
   }
 
   // Create session and redirect
@@ -87,7 +100,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function RegisterPage() {
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   
