@@ -246,6 +246,10 @@ export async function register({ email, password, name, storeName, subdomain: cu
   } catch (error) {
     console.error('[register] Registration failed:', error);
     
+    // Get error message for debugging
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[register] Error message:', errorMessage);
+    
     // Check for specific error types
     if (error instanceof Error) {
       // Unique constraint violation (subdomain or email already exists)
@@ -259,13 +263,15 @@ export async function register({ email, password, name, storeName, subdomain: cu
         return { error: 'Account creation failed due to duplicate data. Please try again.' };
       }
       
-      // D1 Database specific errors
+      // D1 Database specific errors - show actual error for debugging
       if (error.message.includes('D1_ERROR') || error.message.includes('database')) {
-        return { error: 'Database error occurred. Please try again in a moment.' };
+        // TODO: Remove debug message after fixing
+        return { error: `Database error: ${errorMessage.slice(0, 200)}` };
       }
     }
     
-    return { error: 'Registration failed. Please try again.' };
+    // TODO: Remove debug message after fixing
+    return { error: `Registration failed: ${errorMessage.slice(0, 200)}` };
   }
 }
 
