@@ -47,46 +47,118 @@ export const meta: MetaFunction = () => {
 // LOADER - Protect route and fetch user/store data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  // Require authentication
-  const userId = await requireUserId(request);
-  const storeId = await getStoreId(request);
+  console.log('[app.loader] Dashboard loader started');
+  
+  try {
+    // Require authentication
+    let userId;
+    try {
+      userId = await requireUserId(request);
+      console.log('[app.loader] User authenticated - UserID:', userId);
+    } catch (authError) {
+      console.error('[app.loader] Authentication failed:', authError);
+      throw authError; // Re-throw to trigger redirect
+    }
+    
+    let storeId;
+    try {
+      storeId = await getStoreId(request);
+      console.log('[app.loader] StoreID from session:', storeId);
+    } catch (storeIdError) {
+      console.error('[app.loader] Failed to get storeId from session:', storeIdError);
+      throw new Response('Session error. Please login again.', { status: 401 });
+    }
 
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
+    if (!storeId) {
+      console.error('[app.loader] No storeId in session for user:', userId);
+      throw new Response('Store not found. Please contact support.', { status: 404 });
+    }
+
+    // Check database connection
+    if (!context.cloudflare?.env?.DB) {
+      console.error('[app.loader] Database not available in context');
+      throw new Response('Service temporarily unavailable.', { status: 503 });
+    }
+
+    const db = drizzle(context.cloudflare.env.DB);
+
+    // Fetch store info with error handling
+    console.log('[app.loader] Fetching store info for storeId:', storeId);
+    let storeResult;
+    try {
+      storeResult = await db
+        .select()
+        .from(stores)
+        .where(eq(stores.id, storeId))
+        .limit(1);
+      console.log('[app.loader] Store query completed. Found:', storeResult.length, 'store(s)');
+    } catch (storeDbError) {
+      console.error('[app.loader] Database error fetching store:', storeDbError);
+      const errorMessage = storeDbError instanceof Error ? storeDbError.message : String(storeDbError);
+      throw new Response(`Database error: ${errorMessage}`, { status: 500 });
+    }
+
+    // Fetch user info with error handling
+    console.log('[app.loader] Fetching user info for userId:', userId);
+    let userResult;
+    try {
+      userResult = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      console.log('[app.loader] User query completed. Found:', userResult.length, 'user(s)');
+    } catch (userDbError) {
+      console.error('[app.loader] Database error fetching user:', userDbError);
+      const errorMessage = userDbError instanceof Error ? userDbError.message : String(userDbError);
+      throw new Response(`Database error: ${errorMessage}`, { status: 500 });
+    }
+
+    const store = storeResult[0];
+    const user = userResult[0];
+
+    if (!store) {
+      console.error('[app.loader] Store not found in database. StoreID:', storeId);
+      throw new Response('Your store could not be found. Please contact support.', { status: 404 });
+    }
+
+    if (!user) {
+      console.error('[app.loader] User not found in database. UserID:', userId);
+      throw new Response('Your account could not be found. Please login again.', { status: 404 });
+    }
+
+    console.log('[app.loader] Dashboard data loaded successfully for store:', store.name);
+    return json({
+      store: {
+        id: store.id,
+        name: store.name,
+        subdomain: store.subdomain,
+      },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+    
+  } catch (error) {
+    // Re-throw Response errors (redirects, etc.)
+    if (error instanceof Response) {
+      throw error;
+    }
+    
+    console.error('[app.loader] Unhandled error in dashboard loader:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error('[app.loader] Error message:', errorMessage);
+    if (errorStack) {
+      console.error('[app.loader] Error stack:', errorStack);
+    }
+    
+    throw new Response(`Dashboard error: ${errorMessage}`, { status: 500 });
   }
-
-  const db = drizzle(context.cloudflare.env.DB);
-
-  // Fetch store info
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-
-  // Fetch user info
-  const userResult = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-
-  const store = storeResult[0];
-  const user = userResult[0];
-
-  return json({
-    store: {
-      id: store.id,
-      name: store.name,
-      subdomain: store.subdomain,
-    },
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
-  });
 }
 
 // ============================================================================

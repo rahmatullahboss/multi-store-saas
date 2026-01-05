@@ -516,6 +516,19 @@ export function ErrorBoundary() {
     window.location.reload();
   };
   
+  // Extract error details for display
+  let errorMessage = 'An unexpected error occurred.';
+  let errorStatus = 500;
+  let errorStatusText = 'Internal Server Error';
+  
+  if (isRouteErrorResponse(error)) {
+    errorMessage = error.data || error.statusText;
+    errorStatus = error.status;
+    errorStatusText = error.statusText;
+  } else if (error instanceof Error) {
+    errorMessage = error.message;
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
@@ -530,8 +543,13 @@ export function ErrorBoundary() {
         </h2>
         
         {/* Message */}
-        <p className="text-gray-600 mb-6">
-          We couldn\'t load the store content. This might be a temporary issue.
+        <p className="text-gray-600 mb-4">
+          {errorMessage}
+        </p>
+        
+        {/* Error Code */}
+        <p className="text-xs text-gray-400 mb-6">
+          Error Code: {errorStatus} ({errorStatusText})
         </p>
         
         {/* Actions */}
@@ -552,16 +570,29 @@ export function ErrorBoundary() {
           </a>
         </div>
         
-        {/* Debug info in development */}
-        {process.env.NODE_ENV === 'development' && error instanceof Error && (
+        {/* Debug info - always show for production debugging */}
+        {error instanceof Error && (
           <details className="mt-6 text-left">
             <summary className="text-sm text-gray-500 cursor-pointer">
               Technical Details
             </summary>
-            <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-auto text-gray-700">
+            <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-auto text-gray-700 max-h-40">
               {error.message}
               {'\n'}
               {error.stack}
+            </pre>
+          </details>
+        )}
+        
+        {isRouteErrorResponse(error) && (
+          <details className="mt-6 text-left">
+            <summary className="text-sm text-gray-500 cursor-pointer">
+              Technical Details
+            </summary>
+            <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-auto text-gray-700 max-h-40">
+              Status: {error.status}\n
+              StatusText: {error.statusText}\n
+              Data: {typeof error.data === 'string' ? error.data : JSON.stringify(error.data, null, 2)}
             </pre>
           </details>
         )}
@@ -569,4 +600,3 @@ export function ErrorBoundary() {
     </div>
   );
 }
-
