@@ -23,6 +23,7 @@ export interface PlanLimits {
   max_products: number;
   max_orders: number;
   allow_store_mode: boolean;
+  allow_custom_domain: boolean;
   fee_rate: number; // Platform commission rate (0.02 = 2%)
 }
 
@@ -31,24 +32,28 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_products: 1,
     max_orders: 50,
     allow_store_mode: false,
+    allow_custom_domain: false,
     fee_rate: 0.02, // 2% platform fee
   },
   starter: {
     max_products: 50,
     max_orders: 500,
     allow_store_mode: true,
+    allow_custom_domain: true, // Starter users can use custom domain
     fee_rate: 0.015, // 1.5% platform fee
   },
   premium: {
     max_products: 500,
     max_orders: 5000,
     allow_store_mode: true,
+    allow_custom_domain: true,
     fee_rate: 0.01, // 1% platform fee
   },
   custom: {
     max_products: Infinity,
     max_orders: Infinity,
     allow_store_mode: true,
+    allow_custom_domain: true,
     fee_rate: 0, // Custom deal, no standard fee
   },
 };
@@ -271,4 +276,11 @@ export function canUseStoreMode(planType: PlanType): boolean {
 // ============================================================================
 export function getPlatformFeeRate(planType: PlanType): number {
   return PLAN_LIMITS[planType].fee_rate;
+}
+
+// ============================================================================
+// UTILITY: Check if store can use custom domain
+// ============================================================================
+export function canUseCustomDomain(planType: PlanType): boolean {
+  return PLAN_LIMITS[planType].allow_custom_domain;
 }

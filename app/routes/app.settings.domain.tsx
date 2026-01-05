@@ -16,7 +16,8 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
-import { Globe, Check, Clock, X, AlertTriangle, ExternalLink } from 'lucide-react';
+import { canUseCustomDomain, type PlanType } from '~/utils/plans.server';
+import { Globe, Check, Clock, X, AlertTriangle, ExternalLink, Crown, Lock } from 'lucide-react';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Domain Settings' }];
@@ -45,7 +46,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     customDomain: store[0].customDomain,
     customDomainRequest: store[0].customDomainRequest,
     customDomainStatus: store[0].customDomainStatus,
-    planType: store[0].planType,
+    planType: store[0].planType as PlanType,
+    canUseDomain: canUseCustomDomain((store[0].planType as PlanType) || 'free'),
   });
 }
 
@@ -61,6 +63,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   if (actionType === 'request') {
     const domainRequest = formData.get('domain') as string;
+    
+    // ========================================================================
+    // SERVER-SIDE VALIDATION: Prevent free users from requesting custom domain
+    // ========================================================================
+    const store = await db.select({ planType: stores.planType }).from(stores).where(eq(stores.id, storeId)).limit(1);
+    const planType = (store[0]?.planType as PlanType) || 'free';
+    
+    if (!canUseCustomDomain(planType)) {
+      console.warn(`[SECURITY] Free user (store ${storeId}) attempted to request custom domain: ${domainRequest}`);
+      return json<ActionData>({ 
+        error: 'Custom domains require a paid plan. Please upgrade to Starter or Premium to unlock this feature.' 
+      }, { status: 403 });
+    }
     
     // Validate domain format
     const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/;
@@ -111,12 +126,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function DomainSettings() {
-  const { subdomain, customDomain, customDomainRequest, customDomainStatus, planType } = useLoaderData<typeof loader>();
+  const { subdomain, customDomain, customDomainRequest, customDomainStatus, planType, canUseDomain } = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   
-  const isPremium = planType === 'premium' || planType === 'custom';
+  // canUseDomain comes from server, already checked against plan
+  const isPaid = canUseDomain;
   
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -240,15 +256,24 @@ export default function DomainSettings() {
             Connect your own domain to your store. After approval, you'll need to update your DNS settings.
           </p>
           
-          {!isPremium && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          {!isPaid && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-amber-800 font-medium">Premium Feature</p>
+                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-amber-800 font-medium">Paid Plan Feature</p>
                   <p className="text-sm text-amber-700 mt-1">
-                    Custom domains are available on Premium plans. <a href="/app/upgrade" className="underline">Upgrade now</a> to unlock this feature.
+                    Custom domains are available on Starter and Premium plans.
                   </p>
+                  <a 
+                    href="/app/subscription" 
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
+                  >
+                    <Crown className="w-4 h-4" />
+                    Upgrade Now
+                  </a>
                 </div>
               </div>
             </div>
@@ -266,7 +291,7 @@ export default function DomainSettings() {
                 id="domain"
                 name="domain"
                 placeholder="shop.yourdomain.com"
-                disabled={!isPremium}
+                disabled={!isPaid}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
               <p className="text-sm text-gray-500 mt-2">
@@ -276,7 +301,7 @@ export default function DomainSettings() {
             
             <button
               type="submit"
-              disabled={isSubmitting || !isPremium}
+              disabled={isSubmitting || !isPaid}
               className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Request'}
