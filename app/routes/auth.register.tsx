@@ -23,6 +23,8 @@ interface ActionData {
     subdomain?: string;
   };
   subdomain?: string;
+  errorCode?: string;
+  errorDetails?: string;
 }
 
 export const meta: MetaFunction = () => {
@@ -39,64 +41,158 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const name = formData.get('name') as string;
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const storeName = formData.get('storeName') as string;
-  const subdomain = formData.get('subdomain') as string;
-
-  // Validation
-  const errors: ActionData['errors'] = {};
-  if (!name || name.length < 2) {
-    errors.name = 'Name must be at least 2 characters';
-  }
-  if (!email || !email.includes('@')) {
-    errors.email = 'Valid email is required';
-  }
-  if (!password || password.length < 6) {
-    errors.password = 'Password must be at least 6 characters';
-  }
-  if (!storeName || storeName.length < 2) {
-    errors.storeName = 'Store name must be at least 2 characters';
-  }
+  console.log('[auth.register] Registration action started');
   
-  // Subdomain validation
-  const cleanSubdomain = subdomain
-    ? subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30)
-    : storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30);
-  
-  if (!cleanSubdomain || cleanSubdomain.length < 2) {
-    errors.subdomain = 'Subdomain must be at least 2 characters';
-  }
-  if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(cleanSubdomain)) {
-    errors.subdomain = 'Subdomain must start and end with a letter or number';
-  }
+  try {
+    // Parse form data
+    let formData;
+    try {
+      formData = await request.formData();
+    } catch (parseError) {
+      console.error('[auth.register] Failed to parse form data:', parseError);
+      return json<ActionData>({
+        errors: { form: 'Failed to process your request. Please try again.' },
+        errorCode: 'FORM_PARSE_ERROR'
+      }, { status: 400 });
+    }
+    
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const storeName = formData.get('storeName') as string;
+    const subdomain = formData.get('subdomain') as string;
+    
+    console.log('[auth.register] Form data received - Name:', name ? 'Yes' : 'No', ', Email:', email ? 'Yes' : 'No', ', StoreName:', storeName ? 'Yes' : 'No');
 
-  if (Object.keys(errors).length > 0) {
-    return json<ActionData>({ errors, subdomain: cleanSubdomain }, { status: 400 });
+    // Validation
+    const errors: ActionData['errors'] = {};
+    if (!name || name.length < 2) {
+      errors.name = 'Name must be at least 2 characters';
+    }
+    if (!email || !email.includes('@')) {
+      errors.email = 'Valid email is required';
+    }
+    if (!password || password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+    if (!storeName || storeName.length < 2) {
+      errors.storeName = 'Store name must be at least 2 characters';
+    }
+    
+    // Subdomain validation
+    const cleanSubdomain = subdomain
+      ? subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30)
+      : storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30);
+    
+    if (!cleanSubdomain || cleanSubdomain.length < 2) {
+      errors.subdomain = 'Subdomain must be at least 2 characters';
+    }
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(cleanSubdomain)) {
+      errors.subdomain = 'Subdomain must start and end with a letter or number';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      console.log('[auth.register] Validation errors:', Object.keys(errors).join(', '));
+      return json<ActionData>({ errors, subdomain: cleanSubdomain, errorCode: 'VALIDATION_ERROR' }, { status: 400 });
+    }
+
+    // Check database connection
+    if (!context.cloudflare?.env?.DB) {
+      console.error('[auth.register] Database not available in context');
+      return json<ActionData>({
+        errors: { form: 'Service temporarily unavailable. Please try again later.' },
+        subdomain: cleanSubdomain,
+        errorCode: 'DB_UNAVAILABLE'
+      }, { status: 503 });
+    }
+
+    // Attempt registration with custom subdomain
+    console.log('[auth.register] Calling register service...');
+    let result;
+    try {
+      result = await register({
+        email,
+        password,
+        name,
+        storeName,
+        subdomain: cleanSubdomain,
+        db: context.cloudflare.env.DB,
+      });
+      console.log('[auth.register] Register service returned:', result.error ? 'Error' : 'Success');
+    } catch (registerError) {
+      console.error('[auth.register] Register service threw an exception:', registerError);
+      const errorMessage = registerError instanceof Error ? registerError.message : String(registerError);
+      return json<ActionData>({
+        errors: { form: 'Registration failed unexpectedly. Please try again.' },
+        subdomain: cleanSubdomain,
+        errorCode: 'REGISTER_EXCEPTION',
+        errorDetails: errorMessage
+      }, { status: 500 });
+    }
+
+    if (result.error) {
+      console.log('[auth.register] Registration failed with error:', result.error);
+      return json<ActionData>({
+        errors: { form: result.error },
+        subdomain: cleanSubdomain,
+        errorCode: 'REGISTER_FAILED'
+      }, { status: 400 });
+    }
+
+    // Validate user data before creating session
+    if (!result.user) {
+      console.error('[auth.register] Registration succeeded but no user returned');
+      return json<ActionData>({
+        errors: { form: 'Registration failed. Please try again.' },
+        subdomain: cleanSubdomain,
+        errorCode: 'NO_USER_RETURNED'
+      }, { status: 500 });
+    }
+
+    if (!result.storeId) {
+      console.error('[auth.register] Registration succeeded but no store ID returned');
+      return json<ActionData>({
+        errors: { form: 'Store creation failed. Please try again.' },
+        subdomain: cleanSubdomain,
+        errorCode: 'NO_STORE_RETURNED'
+      }, { status: 500 });
+    }
+
+    // Create session and redirect
+    console.log('[auth.register] Creating session for user:', result.user.id, 'store:', result.storeId);
+    try {
+      return await createUserSession(
+        result.user.id,
+        result.storeId,
+        '/app/dashboard/orders'
+      );
+    } catch (sessionError) {
+      console.error('[auth.register] Failed to create session:', sessionError);
+      const errorMessage = sessionError instanceof Error ? sessionError.message : String(sessionError);
+      return json<ActionData>({
+        errors: { form: 'Account created but login failed. Please try logging in.' },
+        subdomain: cleanSubdomain,
+        errorCode: 'SESSION_ERROR',
+        errorDetails: errorMessage
+      }, { status: 500 });
+    }
+    
+  } catch (error) {
+    console.error('[auth.register] Unhandled error in register action:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error('[auth.register] Error message:', errorMessage);
+    if (errorStack) {
+      console.error('[auth.register] Error stack:', errorStack);
+    }
+    
+    return json<ActionData>({
+      errors: { form: 'An unexpected error occurred. Please try again.' },
+      errorCode: 'UNHANDLED_ERROR',
+      errorDetails: errorMessage
+    }, { status: 500 });
   }
-
-  // Attempt registration with custom subdomain
-  const result = await register({
-    email,
-    password,
-    name,
-    storeName,
-    subdomain: cleanSubdomain,
-    db: context.cloudflare.env.DB,
-  });
-
-  if (result.error) {
-    return json<ActionData>({ errors: { form: result.error }, subdomain: cleanSubdomain }, { status: 400 });
-  }
-
-  // Create session and redirect
-  return createUserSession(
-    result.user!.id,
-    result.storeId!,
-    '/app/dashboard/orders'
-  );
 }
 
 export default function RegisterPage() {
@@ -141,8 +237,11 @@ export default function RegisterPage() {
           <Form method="post" className="space-y-5">
             {/* Form Error */}
             {actionData?.errors?.form && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-                {actionData.errors.form}
+              <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-sm">
+                <p className="font-medium">{actionData.errors.form}</p>
+                {actionData.errorCode && (
+                  <p className="text-xs text-red-400 mt-1">Error Code: {actionData.errorCode}</p>
+                )}
               </div>
             )}
 
