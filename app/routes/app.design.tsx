@@ -17,7 +17,7 @@ import { getAllTemplates, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
 import { Check, ExternalLink, Palette, Lock, Crown, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ThemePreview } from '~/components/ThemePreview';
+import { TemplatePreviewModal } from '~/components/TemplatePreview';
 
 export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store SaaS' }];
 
@@ -286,18 +286,20 @@ export default function DesignPage() {
         </ul>
       </div>
 
-      {/* Theme Preview Modal */}
-      <ThemePreview
-        isOpen={showPreview}
-        onClose={() => {
-          setShowPreview(false);
-          setPreviewTemplate(null);
-        }}
-        theme={storeTheme}
-        fontFamily={storeFont}
-        storeName={storeName}
-        logo={storeLogo}
-      />
+      {/* Template Preview Modal */}
+      {previewTemplate && (
+        <TemplatePreviewModal
+          isOpen={showPreview}
+          onClose={() => {
+            setShowPreview(false);
+            setPreviewTemplate(null);
+          }}
+          templateId={previewTemplate}
+          templateName={templates.find(t => t.id === previewTemplate)?.name || 'Template'}
+          storeName={storeName}
+          currency="BDT"
+        />
+      )}
     </div>
   );
 }
