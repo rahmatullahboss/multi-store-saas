@@ -19,6 +19,7 @@ export const onRequest = createPagesFunctionHandler({
     const env = context.env as {
       DB: D1Database;
       R2: R2Bucket;
+      R2_PUBLIC_URL?: string;
       SAAS_DOMAIN?: string;
     };
     
@@ -27,6 +28,7 @@ export const onRequest = createPagesFunctionHandler({
         env: {
           DB: env.DB,
           R2: env.R2,
+          R2_PUBLIC_URL: env.R2_PUBLIC_URL || '',
           SAAS_DOMAIN: env.SAAS_DOMAIN || 'mysaas.com',
         },
         ctx: context as unknown as ExecutionContext,

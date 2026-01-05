@@ -30,18 +30,18 @@ database_name = "multi-store-saas-db"
 database_id = "bf882d16-d67a-4007-b503-33646bd693af"
 migrations_dir = "db/migrations"
 
-# R2 Storage binding (requires R2 activation in Cloudflare Dashboard first)
-# Uncomment after running: wrangler r2 bucket create multi-store-saas-media
-# [[r2_buckets]]
-# binding = "R2"
-# bucket_name = "multi-store-saas-media"
+# R2 Storage binding
+# Create bucket first: wrangler r2 bucket create multi-store-saas-media
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "multi-store-saas-media"
 
 # ============================================================================
 # ENVIRONMENT VARIABLES
 # ============================================================================
 [vars]
 SAAS_DOMAIN = "digitalcare.site"  # Custom domain for the SaaS
-CLOUDINARY_CLOUD_NAME = "dpnccgsja"      # Cloudinary cloud for image optimization
+# R2_PUBLIC_URL - Set in Cloudflare Dashboard > Pages > Settings > Environment Variables
 # RESEND_API_KEY - Set in Cloudflare Dashboard > Pages > Settings > Environment Variables
 # CLOUDFLARE_API_TOKEN - Set in Cloudflare Dashboard (SSL and Certificates: Edit permission)
 # CLOUDFLARE_ZONE_ID - Found in Cloudflare Zone Overview page

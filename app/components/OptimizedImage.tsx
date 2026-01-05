@@ -1,14 +1,14 @@
 /**
  * Optimized Image Component
  * 
- * Uses Cloudinary for image optimization with:
- * - Auto format (WebP/AVIF)
- * - Responsive srcset
- * - Lazy loading
- * - Blur placeholder
+ * Simple image component for R2-hosted images.
+ * Images are pre-compressed on upload, so no runtime transformations needed.
+ * 
+ * Features:
+ * - Lazy loading by default
+ * - Priority loading option for above-the-fold images
+ * - Graceful fallback for missing images
  */
-
-import { cloudinaryUrl, cloudinarySrcSet } from '~/lib/cloudinary';
 
 interface OptimizedImageProps {
   src: string;
@@ -42,20 +42,16 @@ export function OptimizedImage({
     );
   }
 
-  const optimizedSrc = cloudinaryUrl(src, { width, height });
-  const srcSet = cloudinarySrcSet(src);
-
   return (
     <img
-      src={optimizedSrc}
-      srcSet={srcSet}
-      sizes={sizes}
+      src={src}
       alt={alt}
       width={width}
       height={height}
       className={className}
       loading={priority ? 'eager' : 'lazy'}
       decoding={priority ? 'sync' : 'async'}
+      sizes={sizes}
     />
   );
 }

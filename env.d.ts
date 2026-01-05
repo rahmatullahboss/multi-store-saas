@@ -1,7 +1,7 @@
 /**
  * Environment Type Definitions
  * 
- * Cloudflare Workers bindings and Remix context types.
+ * Cloudflare Workers bindings (D1, R2) and Remix context types.
  */
 
 /// <reference types="@cloudflare/workers-types" />
@@ -11,11 +11,9 @@ import type { Store } from '@db/schema';
 declare global {
   interface Env {
     DB: D1Database;
-    R2?: R2Bucket; // Optional - requires R2 activation in dashboard
+    R2: R2Bucket; // R2 bucket for image storage
+    R2_PUBLIC_URL: string; // Public URL for R2 bucket
     SAAS_DOMAIN: string;
-    CLOUDINARY_CLOUD_NAME?: string;
-    CLOUDINARY_API_KEY?: string;
-    CLOUDINARY_API_SECRET?: string;
     RESEND_API_KEY?: string; // Email service
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
     // bKash Payment Gateway
