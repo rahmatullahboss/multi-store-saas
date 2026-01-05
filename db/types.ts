@@ -4,6 +4,7 @@
 
 // Landing page configuration stored in landingConfig JSON field
 export interface LandingConfig {
+  templateId?: string; // Template ID (e.g., 'modern-dark', 'minimal-light', 'video-focus')
   headline: string;
   subheadline?: string;
   videoUrl?: string;

@@ -22,7 +22,7 @@ import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
-import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
+import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
 import { StoreLayout } from '~/components/templates/StoreLayout';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
@@ -419,8 +419,12 @@ export default function Index() {
       );
     }
     
+    // Dynamic template selection from registry
+    const templateId = data.landingConfig?.templateId || DEFAULT_TEMPLATE_ID;
+    const { component: TemplateComponent } = getTemplate(templateId);
+    
     return (
-      <LandingPageTemplate
+      <TemplateComponent
         storeName={data.storeName}
         storeId={data.storeId}
         product={data.featuredProduct}

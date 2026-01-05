@@ -122,3 +122,12 @@ export function useFormatPrice() {
     }).format(price);
   };
 }
+
+// Hook for getting translations based on current locale
+export function useTranslation() {
+  const { locale } = useLanguage();
+  
+  // Dynamic import to avoid SSR issues
+  const { getTranslations } = require('~/utils/translations');
+  return getTranslations(locale);
+}

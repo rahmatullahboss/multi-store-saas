@@ -14,7 +14,7 @@ import { useState } from 'react';
 import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { getThemeColors, getFontConfig } from '~/lib/theme';
-import { useFormatPrice } from '~/contexts/LanguageContext';
+import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { LanguageToggle } from '~/components/LanguageToggle';
 
 // Serialized product type
@@ -65,6 +65,9 @@ export function StoreLayout({
 
   // Format price using context (responds to language/currency toggle)
   const formatPrice = useFormatPrice();
+  
+  // Get translations based on current locale
+  const t = useTranslation();
 
   // Get preset theme colors (falls back to config colors if no theme set)
   const themeColors = getThemeColors(theme);
@@ -129,10 +132,10 @@ export function StoreLayout({
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
               <Link to="/" className="text-gray-600 hover:text-gray-900 font-medium transition">
-                Home
+                {t.home}
               </Link>
               <Link to="/?all=true" className="text-gray-600 hover:text-gray-900 font-medium transition">
-                All Products
+                {t.allProducts}
               </Link>
               {categories.slice(0, 4).map((cat) => (
                 <Link
@@ -294,24 +297,24 @@ export function StoreLayout({
       <main className="container-store py-12">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-            {currentCategory || 'Featured Products'}
+            {currentCategory || t.featuredProducts}
           </h2>
           <span className="text-gray-500">
-            {products.length} {products.length === 1 ? 'product' : 'products'}
+            {products.length} {products.length === 1 ? t.product : t.products}
           </span>
         </div>
 
         {products.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">📦</div>
-            <h3 className="text-xl font-medium text-gray-900 mb-2">No products found</h3>
-            <p className="text-gray-500 mb-6">Check back soon for new arrivals!</p>
+            <h3 className="text-xl font-medium text-gray-900 mb-2">{t.noProductsFound}</h3>
+            <p className="text-gray-500 mb-6">{t.checkBackSoon}</p>
             <Link
               to="/"
               className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-lg font-medium transition hover:opacity-90"
               style={{ backgroundColor: primaryColor }}
             >
-              Browse All Products
+              {t.browseAllProducts}
             </Link>
           </div>
         ) : (
@@ -334,7 +337,7 @@ export function StoreLayout({
         <section className="bg-gray-50 py-16">
           <div className="container-store">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
-              Shop by Category
+              {t.shopByCategory}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {config.collections.map((collection) => (
@@ -534,6 +537,9 @@ function ProductCard({ product, storeId, currency, primaryColor }: ProductCardPr
 
   // Format price using context (responds to language/currency toggle)
   const formatPrice = useFormatPrice();
+  
+  // Get translations
+  const t = useTranslation();
 
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
@@ -593,9 +599,10 @@ function ProductCard({ product, storeId, currency, primaryColor }: ProductCardPr
           className="w-full py-2.5 text-sm font-medium text-white rounded-lg transition hover:opacity-90 disabled:opacity-50"
           style={{ backgroundColor: primaryColor }}
         >
-          {isAdding ? 'Adding...' : 'Add to Cart'}
+          {isAdding ? t.adding : t.addToCart}
         </button>
       </div>
     </article>
   );
 }
+
