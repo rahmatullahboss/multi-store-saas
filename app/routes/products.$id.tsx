@@ -10,6 +10,7 @@ import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products } from '@db/schema';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { resolveStore } from '~/lib/store.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
@@ -21,15 +22,22 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-export async function loader({ params, context }: LoaderFunctionArgs) {
-  const { storeId, store, cloudflare } = context;
+export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const productId = parseInt(params.id || '', 10);
   
   if (isNaN(productId)) {
     throw new Response('Invalid product ID', { status: 400 });
   }
   
-  const db = drizzle(cloudflare.env.DB);
+  // Resolve store (handles both production and development mode)
+  const storeContext = await resolveStore(context, request);
+  
+  if (!storeContext) {
+    throw new Response('Store not found. Please check your store configuration.', { status: 404 });
+  }
+  
+  const { storeId, store } = storeContext;
+  const db = drizzle(context.cloudflare.env.DB);
   
   // Fetch product with store_id filter for security
   const result = await db

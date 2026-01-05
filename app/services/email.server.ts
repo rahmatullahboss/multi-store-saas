@@ -8,7 +8,7 @@
  * - Low stock alerts
  */
 
-import { Resend } from 'resend';
+// Note: Resend is imported dynamically to avoid SSR bundling issues with svix (CommonJS)
 
 // Types for email service
 interface OrderEmailData {
@@ -66,10 +66,16 @@ const currencySymbols: Record<string, string> = {
 
 /**
  * Create email service with Resend API key
+ * Uses dynamic import to avoid SSR bundling issues
  */
 export function createEmailService(apiKey: string, fromEmail?: string) {
-  const resend = new Resend(apiKey);
   const defaultFrom = fromEmail || 'Multi-Store SaaS <noreply@digitalcare.site>';
+  
+  // Lazy load resend to avoid SSR issues
+  const getResend = async () => {
+    const { Resend } = await import('resend');
+    return new Resend(apiKey);
+  };
 
   return {
     /**
@@ -147,6 +153,7 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
           </html>
         `;
 
+        const resend = await getResend();
         const { error } = await resend.emails.send({
           from: defaultFrom,
           to: data.customerEmail,
@@ -200,6 +207,7 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
           </html>
         `;
 
+        const resend = await getResend();
         const { error } = await resend.emails.send({
           from: defaultFrom,
           to: data.merchantEmail,
@@ -258,6 +266,7 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
           </html>
         `;
 
+        const resend = await getResend();
         const { error } = await resend.emails.send({
           from: defaultFrom,
           to: data.customerEmail,
@@ -323,6 +332,7 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
           </html>
         `;
 
+        const resend = await getResend();
         const { error } = await resend.emails.send({
           from: defaultFrom,
           to: data.merchantEmail,
@@ -393,6 +403,7 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
           </html>
         `;
 
+        const resend = await getResend();
         const { error } = await resend.emails.send({
           from: defaultFrom,
           to: data.email,
@@ -442,6 +453,7 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
           </html>
         `;
 
+        const resend = await getResend();
         const { error } = await resend.emails.send({
           from: defaultFrom,
           to: data.email,

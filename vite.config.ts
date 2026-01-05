@@ -1,10 +1,15 @@
-import { vitePlugin as remix } from "@remix-run/dev";
+import {
+  vitePlugin as remix,
+  cloudflareDevProxyVitePlugin,
+} from "@remix-run/dev";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [
+    // cloudflareDevProxyVitePlugin MUST come before remix plugin
+    cloudflareDevProxyVitePlugin(),
     tailwindcss(),
     remix({
       future: {
@@ -21,10 +26,9 @@ export default defineConfig({
     minify: true,
   },
   ssr: {
-    target: "webworker",
-    noExternal: true,
     resolve: {
       conditions: ["workerd", "worker", "browser"],
+      externalConditions: ["workerd", "worker"],
     },
   },
   resolve: {
@@ -34,4 +38,3 @@ export default defineConfig({
     include: ["lucide-react"],
   },
 });
-

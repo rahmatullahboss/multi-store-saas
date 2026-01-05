@@ -1,12 +1,11 @@
 /**
  * AddToCartButton Component
  * 
- * Implements Optimistic UI for instant feedback when adding items to cart.
- * Uses Remix's useFetcher for non-blocking form submissions.
+ * Implements client-side cart management using localStorage.
+ * Provides optimistic UI feedback when adding items to cart.
  */
 
-import { useFetcher } from '@remix-run/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface AddToCartButtonProps {
   productId: number;
@@ -15,32 +14,18 @@ interface AddToCartButtonProps {
 }
 
 export function AddToCartButton({ productId, disabled = false, size = 'default' }: AddToCartButtonProps) {
-  const fetcher = useFetcher();
   const [isAdded, setIsAdded] = useState(false);
-  
-  // Optimistic state - immediately show "Adding..." when submitting
-  const isAdding = fetcher.state === 'submitting';
-  
-  // Show success state briefly after adding
-  useEffect(() => {
-    if (fetcher.state === 'idle' && fetcher.data) {
-      setIsAdded(true);
-      const timer = setTimeout(() => setIsAdded(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [fetcher.state, fetcher.data]);
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = () => {
-    if (disabled || isAdding) return;
+    if (disabled) return;
     
-    // Optimistic UI: Update local cart immediately
-    // (In a real app, this would update a cart context/store)
+    // Update local cart in localStorage
     updateLocalCart(productId, 1);
     
-    fetcher.submit(
-      { productId: productId.toString(), quantity: '1' },
-      { method: 'post', action: '/api/cart' }
-    );
+    // Show success state
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
   };
 
   const buttonClasses = `
