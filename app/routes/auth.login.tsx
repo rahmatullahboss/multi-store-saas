@@ -24,40 +24,154 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+  console.log('[auth.login] Login action started');
+  
+  try {
+    // Parse form data
+    let formData;
+    try {
+      formData = await request.formData();
+    } catch (parseError) {
+      console.error('[auth.login] Failed to parse form data:', parseError);
+      return json({ 
+        errors: { form: 'Failed to process your request. Please try again.' },
+        errorCode: 'FORM_PARSE_ERROR'
+      }, { status: 400 });
+    }
+    
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    
+    console.log('[auth.login] Email provided:', email ? 'Yes' : 'No');
+    console.log('[auth.login] Password provided:', password ? 'Yes (length: ' + password?.length + ')' : 'No');
 
-  // Validation
-  const errors: Record<string, string> = {};
-  if (!email || !email.includes('@')) {
-    errors.email = 'Valid email is required';
+    // Validation
+    const errors: Record<string, string> = {};
+    
+    if (!email) {
+      errors.email = 'Email is required';
+    } else if (!email.includes('@')) {
+      errors.email = 'Please enter a valid email address';
+    } else if (email.length > 255) {
+      errors.email = 'Email is too long';
+    }
+    
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    } else if (password.length > 100) {
+      errors.password = 'Password is too long';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      console.log('[auth.login] Validation errors:', Object.keys(errors).join(', '));
+      return json({ errors, errorCode: 'VALIDATION_ERROR' }, { status: 400 });
+    }
+
+    // Check database connection
+    if (!context.cloudflare?.env?.DB) {
+      console.error('[auth.login] Database not available in context');
+      return json({ 
+        errors: { form: 'Service temporarily unavailable. Please try again later.' },
+        errorCode: 'DB_UNAVAILABLE'
+      }, { status: 503 });
+    }
+
+    // Attempt login
+    console.log('[auth.login] Calling login service...');
+    let result;
+    try {
+      result = await login({
+        email,
+        password,
+        db: context.cloudflare.env.DB,
+      });
+      console.log('[auth.login] Login service returned:', result.error ? 'Error' : 'Success');
+      if (result.errorCode) {
+        console.log('[auth.login] Error code:', result.errorCode);
+      }
+      if (result.errorDetails) {
+        console.log('[auth.login] Error details:', result.errorDetails);
+      }
+    } catch (loginError) {
+      console.error('[auth.login] Login service threw an exception:', loginError);
+      const errorMessage = loginError instanceof Error ? loginError.message : String(loginError);
+      return json({ 
+        errors: { form: 'Login failed unexpectedly. Please try again.' },
+        errorCode: 'LOGIN_EXCEPTION',
+        errorDetails: errorMessage
+      }, { status: 500 });
+    }
+
+    if (result.error) {
+      console.log('[auth.login] Login failed with error:', result.error);
+      return json({ 
+        errors: { form: result.error },
+        errorCode: result.errorCode || 'LOGIN_FAILED',
+        errorDetails: result.errorDetails
+      }, { status: 400 });
+    }
+
+    // Validate user data before creating session
+    if (!result.user) {
+      console.error('[auth.login] Login succeeded but no user returned');
+      return json({ 
+        errors: { form: 'Login failed. Please try again.' },
+        errorCode: 'NO_USER_RETURNED'
+      }, { status: 500 });
+    }
+
+    if (!result.user.id) {
+      console.error('[auth.login] User object missing ID');
+      return json({ 
+        errors: { form: 'Account error. Please contact support.' },
+        errorCode: 'MISSING_USER_ID'
+      }, { status: 500 });
+    }
+
+    if (!result.user.storeId) {
+      console.error('[auth.login] User has no associated store. UserID:', result.user.id);
+      return json({ 
+        errors: { form: 'Your account is not associated with a store. Please contact support.' },
+        errorCode: 'NO_STORE_ID'
+      }, { status: 400 });
+    }
+
+    // Create session and redirect
+    console.log('[auth.login] Creating session for user:', result.user.id, 'store:', result.user.storeId);
+    try {
+      return await createUserSession(
+        result.user.id,
+        result.user.storeId,
+        '/app/dashboard/orders'
+      );
+    } catch (sessionError) {
+      console.error('[auth.login] Failed to create session:', sessionError);
+      const errorMessage = sessionError instanceof Error ? sessionError.message : String(sessionError);
+      return json({ 
+        errors: { form: 'Failed to create login session. Please try again.' },
+        errorCode: 'SESSION_ERROR',
+        errorDetails: errorMessage
+      }, { status: 500 });
+    }
+    
+  } catch (error) {
+    console.error('[auth.login] Unhandled error in login action:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error('[auth.login] Error message:', errorMessage);
+    if (errorStack) {
+      console.error('[auth.login] Error stack:', errorStack);
+    }
+    
+    return json({ 
+      errors: { form: 'An unexpected error occurred. Please try again.' },
+      errorCode: 'UNHANDLED_ERROR',
+      errorDetails: errorMessage
+    }, { status: 500 });
   }
-  if (!password || password.length < 6) {
-    errors.password = 'Password must be at least 6 characters';
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return json({ errors }, { status: 400 });
-  }
-
-  // Attempt login
-  const result = await login({
-    email,
-    password,
-    db: context.cloudflare.env.DB,
-  });
-
-  if (result.error) {
-    return json({ errors: { form: result.error } }, { status: 400 });
-  }
-
-  // Create session and redirect
-  return createUserSession(
-    result.user!.id,
-    result.user!.storeId!,
-    '/app/dashboard/orders'
-  );
 }
 
 export default function LoginPage() {
@@ -67,6 +181,7 @@ export default function LoginPage() {
   
   // Type-safe error access
   const errors = actionData?.errors as Record<string, string> | undefined;
+  const errorCode = (actionData as { errorCode?: string } | undefined)?.errorCode;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
@@ -82,8 +197,11 @@ export default function LoginPage() {
           <Form method="post" className="space-y-6">
             {/* Form Error */}
             {errors?.form && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-                {errors.form}
+              <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-sm">
+                <p className="font-medium">{errors.form}</p>
+                {errorCode && (
+                  <p className="text-xs text-red-400 mt-1">Error Code: {errorCode}</p>
+                )}
               </div>
             )}
 

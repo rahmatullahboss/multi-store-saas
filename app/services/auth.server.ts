@@ -146,30 +146,142 @@ interface RegisterParams {
 
 /**
  * Login a user
+ * Returns detailed error information for debugging
  */
-export async function login({ email, password, db }: LoginParams) {
-  const drizzleDb = drizzle(db);
+export async function login({ email, password, db }: LoginParams): Promise<{
+  user?: typeof users.$inferSelect;
+  error?: string;
+  errorCode?: 'USER_NOT_FOUND' | 'INVALID_PASSWORD' | 'DATABASE_ERROR' | 'STORE_NOT_FOUND' | 'ACCOUNT_DISABLED' | 'UNKNOWN_ERROR';
+  errorDetails?: string;
+}> {
+  const normalizedEmail = email.toLowerCase().trim();
+  console.log('[login] Attempting login for email:', normalizedEmail);
   
-  // Find user by email
-  const userResult = await drizzleDb
-    .select()
-    .from(users)
-    .where(eq(users.email, email.toLowerCase()))
-    .limit(1);
-  
-  if (userResult.length === 0) {
-    return { error: 'Invalid email or password' };
+  try {
+    const drizzleDb = drizzle(db);
+    
+    // Step 1: Find user by email
+    console.log('[login] Step 1: Querying database for user...');
+    let userResult;
+    try {
+      userResult = await drizzleDb
+        .select()
+        .from(users)
+        .where(eq(users.email, normalizedEmail))
+        .limit(1);
+      console.log('[login] User query completed. Found:', userResult.length, 'user(s)');
+    } catch (dbError) {
+      console.error('[login] Database error during user lookup:', dbError);
+      const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
+      return {
+        error: 'Unable to connect to database. Please try again later.',
+        errorCode: 'DATABASE_ERROR',
+        errorDetails: `User lookup failed: ${errorMessage}`,
+      };
+    }
+    
+    // Step 2: Check if user exists
+    if (!userResult || userResult.length === 0) {
+      console.log('[login] User not found for email:', normalizedEmail);
+      return {
+        error: 'Invalid email or password',
+        errorCode: 'USER_NOT_FOUND',
+        errorDetails: `No user found with email: ${normalizedEmail}`,
+      };
+    }
+    
+    const user = userResult[0];
+    console.log('[login] User found - ID:', user.id, ', Role:', user.role, ', StoreID:', user.storeId);
+    
+    // Step 3: Check if user has a store (for merchants)
+    if (user.role === 'merchant' && !user.storeId) {
+      console.error('[login] Merchant user has no associated store. UserID:', user.id);
+      return {
+        error: 'Your account is not properly configured. Please contact support.',
+        errorCode: 'STORE_NOT_FOUND',
+        errorDetails: `Merchant user ${user.id} has no storeId`,
+      };
+    }
+    
+    // Step 4: Verify password
+    console.log('[login] Step 4: Verifying password...');
+    let isValid;
+    try {
+      isValid = await verifyPassword(password, user.passwordHash);
+      console.log('[login] Password verification result:', isValid ? 'VALID' : 'INVALID');
+    } catch (cryptoError) {
+      console.error('[login] Crypto error during password verification:', cryptoError);
+      const errorMessage = cryptoError instanceof Error ? cryptoError.message : String(cryptoError);
+      return {
+        error: 'An error occurred during authentication. Please try again.',
+        errorCode: 'UNKNOWN_ERROR',
+        errorDetails: `Password verification failed: ${errorMessage}`,
+      };
+    }
+    
+    if (!isValid) {
+      console.log('[login] Invalid password for user:', user.id);
+      return {
+        error: 'Invalid email or password',
+        errorCode: 'INVALID_PASSWORD',
+        errorDetails: `Password mismatch for user ${user.id}`,
+      };
+    }
+    
+    // Step 5: Check if user's store exists (for merchants)
+    if (user.role === 'merchant' && user.storeId) {
+      console.log('[login] Step 5: Verifying store exists...');
+      try {
+        const storeResult = await drizzleDb
+          .select({ id: stores.id, name: stores.name, subdomain: stores.subdomain })
+          .from(stores)
+          .where(eq(stores.id, user.storeId))
+          .limit(1);
+        
+        if (!storeResult || storeResult.length === 0) {
+          console.error('[login] Store not found for user. UserID:', user.id, ', StoreID:', user.storeId);
+          return {
+            error: 'Your store could not be found. Please contact support.',
+            errorCode: 'STORE_NOT_FOUND',
+            errorDetails: `Store ${user.storeId} not found for user ${user.id}`,
+          };
+        }
+        console.log('[login] Store verified:', storeResult[0].name, '(', storeResult[0].subdomain, ')');
+      } catch (storeError) {
+        console.error('[login] Database error during store lookup:', storeError);
+        // Don't block login for store lookup errors, just log it
+        console.warn('[login] Proceeding with login despite store lookup error');
+      }
+    }
+    
+    console.log('[login] Login successful for user:', user.id);
+    return { user };
+    
+  } catch (error) {
+    console.error('[login] Unexpected error during login:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error('[login] Error message:', errorMessage);
+    if (errorStack) {
+      console.error('[login] Error stack:', errorStack);
+    }
+    
+    // Check for specific D1 database errors
+    if (errorMessage.includes('D1_ERROR') || errorMessage.includes('database')) {
+      return {
+        error: 'Database connection error. Please try again later.',
+        errorCode: 'DATABASE_ERROR',
+        errorDetails: errorMessage,
+      };
+    }
+    
+    return {
+      error: 'An unexpected error occurred. Please try again.',
+      errorCode: 'UNKNOWN_ERROR',
+      errorDetails: errorMessage,
+    };
   }
-  
-  const user = userResult[0];
-  
-  // Verify password
-  const isValid = await verifyPassword(password, user.passwordHash);
-  if (!isValid) {
-    return { error: 'Invalid email or password' };
-  }
-  
-  return { user };
 }
 
 /**
