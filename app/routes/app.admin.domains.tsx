@@ -1,32 +1,42 @@
 /**
- * Admin Domain Requests Page
+ * Admin Domain Management Page
  * 
- * Platform admin page to view and approve/reject custom domain requests
+ * Platform admin page to view all custom domains and their Cloudflare status
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useNavigation } from '@remix-run/react';
+import { Form, useLoaderData, useNavigation, useRevalidator } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, isNotNull, sql } from 'drizzle-orm';
+import { eq, isNotNull, or } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
-import { Globe, Check, X, Clock, ExternalLink, Copy } from 'lucide-react';
+import { requireUserId } from '~/services/auth.server';
+import { 
+  getHostnameStatus, 
+  deleteCustomHostname,
+  isCloudflareConfigured,
+  type CloudflareEnv 
+} from '~/services/cloudflare.server';
+import { Globe, Check, X, Clock, ExternalLink, Copy, RefreshCw, Trash2, AlertTriangle, Zap } from 'lucide-react';
 import { useState } from 'react';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Domain Requests - Admin' }];
+  return [{ title: 'Domain Management - Admin' }];
 };
 
-interface DomainRequest {
+interface DomainEntry {
   id: number;
   name: string;
   subdomain: string;
   customDomain: string | null;
   customDomainRequest: string | null;
   customDomainStatus: string | null;
+  cloudflareHostnameId: string | null;
+  sslStatus: string | null;
+  dnsVerified: boolean | null;
   customDomainRequestedAt: Date | null;
   ownerEmail: string | null;
+  planType: string | null;
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -39,8 +49,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Unauthorized', { status: 403 });
   }
   
-  // Get all stores with pending domain requests
-  const pendingRequests = await db
+  const env = context.cloudflare.env as CloudflareEnv;
+  const cloudflareConfigured = isCloudflareConfigured(env);
+  
+  // Get all stores with custom domains or pending requests
+  const domainsData = await db
     .select({
       id: stores.id,
       name: stores.name,
@@ -48,27 +61,43 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       customDomain: stores.customDomain,
       customDomainRequest: stores.customDomainRequest,
       customDomainStatus: stores.customDomainStatus,
+      cloudflareHostnameId: stores.cloudflareHostnameId,
+      sslStatus: stores.sslStatus,
+      dnsVerified: stores.dnsVerified,
       customDomainRequestedAt: stores.customDomainRequestedAt,
+      planType: stores.planType,
     })
     .from(stores)
-    .where(isNotNull(stores.customDomainRequest));
+    .where(or(isNotNull(stores.customDomain), isNotNull(stores.customDomainRequest)));
   
   // Get store owner emails
-  const requests: DomainRequest[] = [];
-  for (const store of pendingRequests) {
+  const domains: DomainEntry[] = [];
+  for (const store of domainsData) {
     const owner = await db.select({ email: users.email }).from(users).where(eq(users.storeId, store.id)).limit(1);
-    requests.push({
+    domains.push({
       ...store,
       ownerEmail: owner[0]?.email || null,
     });
   }
   
-  return json({ requests });
+  // Separate by status
+  const activeDomains = domains.filter(d => d.customDomain && d.sslStatus === 'active');
+  const pendingDomains = domains.filter(d => d.customDomain && d.sslStatus !== 'active');
+  const pendingRequests = domains.filter(d => !d.customDomain && d.customDomainRequest);
+  
+  return json({ 
+    activeDomains, 
+    pendingDomains, 
+    pendingRequests,
+    cloudflareConfigured,
+    totalDomains: domains.length,
+  });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const userId = await requireUserId(request);
   const db = drizzle(context.cloudflare.env.DB);
+  const env = context.cloudflare.env as CloudflareEnv;
   
   // Check if user is admin
   const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -78,9 +107,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   const formData = await request.formData();
   const storeId = Number(formData.get('storeId'));
-  const action = formData.get('action') as 'approve' | 'reject';
+  const actionType = formData.get('action') as string;
   
-  if (!storeId || !action) {
+  if (!storeId || !actionType) {
     return json({ error: 'Invalid request' }, { status: 400 });
   }
   
@@ -90,31 +119,70 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Store not found' }, { status: 404 });
   }
   
-  if (action === 'approve') {
-    // Approve - set customDomain to the requested domain
+  // Refresh status from Cloudflare
+  if (actionType === 'refresh' && store[0].cloudflareHostnameId) {
+    try {
+      const result = await getHostnameStatus(store[0].cloudflareHostnameId, env);
+      await db.update(stores).set({
+        sslStatus: result.sslStatus,
+        dnsVerified: result.status === 'active',
+        updatedAt: new Date(),
+      }).where(eq(stores.id, storeId));
+      return json({ success: true, message: 'Status refreshed' });
+    } catch (error) {
+      return json({ error: 'Failed to refresh status' }, { status: 500 });
+    }
+  }
+  
+  // Delete domain
+  if (actionType === 'delete') {
+    try {
+      if (store[0].cloudflareHostnameId && isCloudflareConfigured(env)) {
+        await deleteCustomHostname(store[0].cloudflareHostnameId, env);
+      }
+      await db.update(stores).set({
+        customDomain: null,
+        cloudflareHostnameId: null,
+        sslStatus: 'pending',
+        dnsVerified: false,
+        customDomainStatus: 'none',
+        customDomainRequest: null,
+        updatedAt: new Date(),
+      }).where(eq(stores.id, storeId));
+      return json({ success: true, message: 'Domain removed' });
+    } catch (error) {
+      return json({ error: 'Failed to delete domain' }, { status: 500 });
+    }
+  }
+  
+  // Approve pending request (legacy)
+  if (actionType === 'approve') {
     await db.update(stores).set({
       customDomain: store[0].customDomainRequest,
       customDomainStatus: 'approved',
-      customDomainRequest: null, // Clear the request
+      customDomainRequest: null,
       updatedAt: new Date(),
     }).where(eq(stores.id, storeId));
-    
-    return json({ success: true, message: `Domain approved! Now add "${store[0].customDomainRequest}" to Cloudflare Pages.` });
-  } else {
-    // Reject - clear the request
+    return json({ success: true, message: 'Domain approved!' });
+  }
+  
+  // Reject pending request
+  if (actionType === 'reject') {
     await db.update(stores).set({
       customDomainStatus: 'rejected',
       customDomainRequest: null,
       updatedAt: new Date(),
     }).where(eq(stores.id, storeId));
-    
-    return json({ success: true, message: 'Domain request rejected.' });
+    return json({ success: true, message: 'Request rejected' });
   }
+  
+  return json({ error: 'Invalid action' }, { status: 400 });
 }
 
-export default function AdminDomainRequests() {
-  const { requests } = useLoaderData<typeof loader>();
+export default function AdminDomainManagement() {
+  const { activeDomains, pendingDomains, pendingRequests, cloudflareConfigured, totalDomains } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const revalidator = useRevalidator();
   const isSubmitting = navigation.state === 'submitting';
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   
@@ -124,86 +192,207 @@ export default function AdminDomainRequests() {
     setTimeout(() => setCopiedDomain(null), 2000);
   };
   
-  const pendingRequests = requests.filter(r => r.customDomainStatus === 'pending');
-  const processedRequests = requests.filter(r => r.customDomainStatus !== 'pending');
-  
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Domain Requests</h1>
-        <p className="text-gray-600 mt-1">Manage custom domain requests from merchants</p>
+        <h1 className="text-2xl font-bold text-gray-900">Domain Management</h1>
+        <p className="text-gray-600 mt-1">Manage custom domains across all stores</p>
       </div>
       
-      {/* Pending Requests */}
-      <div className="mb-8">
+      {/* Status Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="text-2xl font-bold text-gray-900">{totalDomains}</div>
+          <div className="text-sm text-gray-500">Total Domains</div>
+        </div>
+        <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-4">
+          <div className="text-2xl font-bold text-emerald-600">{activeDomains.length}</div>
+          <div className="text-sm text-emerald-700">Active (SSL Ready)</div>
+        </div>
+        <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-4">
+          <div className="text-2xl font-bold text-yellow-600">{pendingDomains.length}</div>
+          <div className="text-sm text-yellow-700">Pending DNS/SSL</div>
+        </div>
+        <div className="bg-blue-50 rounded-xl border border-blue-200 p-4">
+          <div className="text-2xl font-bold text-blue-600">{pendingRequests.length}</div>
+          <div className="text-sm text-blue-700">Pending Requests</div>
+        </div>
+      </div>
+      
+      {/* Cloudflare Status */}
+      <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
+        cloudflareConfigured 
+          ? 'bg-emerald-50 border border-emerald-200' 
+          : 'bg-yellow-50 border border-yellow-200'
+      }`}>
+        <Zap className={`w-5 h-5 ${cloudflareConfigured ? 'text-emerald-600' : 'text-yellow-600'}`} />
+        <div>
+          <p className={`font-medium ${cloudflareConfigured ? 'text-emerald-800' : 'text-yellow-800'}`}>
+            {cloudflareConfigured 
+              ? 'Cloudflare API Connected - Auto-provisioning enabled' 
+              : 'Cloudflare API not configured - Manual approval mode'}
+          </p>
+          {!cloudflareConfigured && (
+            <p className="text-sm text-yellow-700 mt-1">
+              Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID in environment variables.
+            </p>
+          )}
+        </div>
+        <button
+          onClick={() => revalidator.revalidate()}
+          className="ml-auto px-3 py-1.5 bg-white rounded-lg text-sm font-medium hover:bg-gray-50"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
+      </div>
+      
+      {/* Active Domains */}
+      <section className="mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-yellow-500" />
-          Pending Requests ({pendingRequests.length})
+          <Check className="w-5 h-5 text-emerald-500" />
+          Active Domains ({activeDomains.length})
         </h2>
         
-        {pendingRequests.length === 0 ? (
-          <div className="bg-gray-50 rounded-xl p-8 text-center">
-            <Globe className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">No pending domain requests</p>
+        {activeDomains.length === 0 ? (
+          <div className="bg-gray-50 rounded-xl p-6 text-center text-gray-500">
+            No active custom domains yet.
           </div>
         ) : (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Store</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Domain</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {activeDomains.map((domain) => (
+                  <tr key={domain.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-900">{domain.name}</div>
+                      <div className="text-sm text-gray-500">{domain.subdomain}.digitalcare.site</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-emerald-600">{domain.customDomain}</span>
+                        <button onClick={() => copyToClipboard(domain.customDomain || '')} className="text-gray-400 hover:text-gray-600">
+                          {copiedDomain === domain.customDomain ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        <Check className="w-3 h-3" /> Active
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-gray-600 capitalize">{domain.planType || 'free'}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <a href={`https://${domain.customDomain}`} target="_blank" rel="noopener" className="p-2 text-gray-400 hover:text-gray-600">
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                        <Form method="post">
+                          <input type="hidden" name="storeId" value={domain.id} />
+                          <input type="hidden" name="action" value="delete" />
+                          <button type="submit" disabled={isSubmitting} className="p-2 text-red-400 hover:text-red-600 disabled:opacity-50">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </Form>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+      
+      {/* Pending DNS/SSL */}
+      {pendingDomains.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-yellow-500" />
+            Pending DNS/SSL ({pendingDomains.length})
+          </h2>
+          
           <div className="space-y-4">
-            {pendingRequests.map((req) => (
-              <div key={req.id} className="bg-white rounded-xl border border-gray-200 p-6">
+            {pendingDomains.map((domain) => (
+              <div key={domain.id} className="bg-yellow-50 rounded-xl border border-yellow-200 p-4">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{req.name}</h3>
-                    <p className="text-sm text-gray-600">
-                      Current: <span className="font-mono">{req.subdomain}.digitalcare.site</span>
-                    </p>
-                    {req.ownerEmail && (
-                      <p className="text-sm text-gray-500">Owner: {req.ownerEmail}</p>
-                    )}
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Requested:</span>
-                      <span className="font-mono font-semibold text-emerald-600">{req.customDomainRequest}</span>
-                      <button
-                        onClick={() => copyToClipboard(req.customDomainRequest || '')}
-                        className="p-1 text-gray-400 hover:text-gray-600"
-                        title="Copy domain"
-                      >
-                        {copiedDomain === req.customDomainRequest ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
+                  <div>
+                    <div className="font-medium text-gray-900">{domain.name}</div>
+                    <div className="font-mono text-yellow-700 mt-1">{domain.customDomain}</div>
+                    <div className="flex gap-2 mt-2">
+                      <StatusBadge status={domain.sslStatus as 'pending' | 'active' | 'failed'} label="SSL" />
+                      <StatusBadge status={domain.dnsVerified ? 'active' : 'pending'} label="DNS" />
                     </div>
-                    {req.customDomainRequestedAt && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        Requested: {new Date(req.customDomainRequestedAt).toLocaleString()}
-                      </p>
+                    {domain.ownerEmail && (
+                      <p className="text-sm text-gray-500 mt-1">{domain.ownerEmail}</p>
                     )}
                   </div>
-                  
+                  <div className="flex gap-2">
+                    <Form method="post">
+                      <input type="hidden" name="storeId" value={domain.id} />
+                      <input type="hidden" name="action" value="refresh" />
+                      <button type="submit" disabled={isSubmitting} className="p-2 bg-white rounded-lg text-blue-600 hover:bg-blue-50 disabled:opacity-50">
+                        <RefreshCw className={`w-4 h-4 ${isSubmitting ? 'animate-spin' : ''}`} />
+                      </button>
+                    </Form>
+                    <Form method="post">
+                      <input type="hidden" name="storeId" value={domain.id} />
+                      <input type="hidden" name="action" value="delete" />
+                      <button type="submit" disabled={isSubmitting} className="p-2 bg-white rounded-lg text-red-600 hover:bg-red-50 disabled:opacity-50">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </Form>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      
+      {/* Pending Requests (Legacy) */}
+      {pendingRequests.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-blue-500" />
+            Pending Requests ({pendingRequests.length})
+          </h2>
+          
+          <div className="space-y-4">
+            {pendingRequests.map((req) => (
+              <div key={req.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="font-medium text-gray-900">{req.name}</div>
+                    <div className="text-sm text-gray-500">{req.subdomain}.digitalcare.site</div>
+                    <div className="font-mono text-blue-600 mt-1">{req.customDomainRequest}</div>
+                    {req.ownerEmail && (
+                      <p className="text-sm text-gray-500 mt-1">{req.ownerEmail}</p>
+                    )}
+                  </div>
                   <div className="flex gap-2">
                     <Form method="post">
                       <input type="hidden" name="storeId" value={req.id} />
                       <input type="hidden" name="action" value="approve" />
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="inline-flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
-                      >
+                      <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50">
                         <Check className="w-4 h-4" />
-                        Approve
                       </button>
                     </Form>
                     <Form method="post">
                       <input type="hidden" name="storeId" value={req.id} />
                       <input type="hidden" name="action" value="reject" />
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="inline-flex items-center gap-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                      >
+                      <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50">
                         <X className="w-4 h-4" />
-                        Reject
                       </button>
                     </Form>
                   </div>
@@ -211,52 +400,23 @@ export default function AdminDomainRequests() {
               </div>
             ))}
           </div>
-        )}
-      </div>
-      
-      {/* Cloudflare Setup Instructions */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-        <h3 className="font-semibold text-blue-900 mb-3">After Approving a Domain:</h3>
-        <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
-          <li>Go to <strong>Cloudflare Dashboard</strong> → <strong>Pages</strong> → <strong>multi-store-saas</strong></li>
-          <li>Click <strong>Custom Domains</strong> → <strong>Add Custom Domain</strong></li>
-          <li>Enter the approved domain and follow Cloudflare's instructions</li>
-          <li>Tell the merchant to add this CNAME record:
-            <div className="mt-2 bg-white p-3 rounded-lg font-mono text-xs">
-              <div><strong>Type:</strong> CNAME</div>
-              <div><strong>Name:</strong> @ (or www)</div>
-              <div><strong>Target:</strong> multi-store-saas.pages.dev</div>
-            </div>
-          </li>
-        </ol>
-      </div>
-      
-      {/* Processed Requests */}
-      {processedRequests.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
-          <div className="space-y-3">
-            {processedRequests.slice(0, 10).map((req) => (
-              <div key={req.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                  <span className="font-medium">{req.name}</span>
-                  <span className="text-gray-500 ml-2">({req.subdomain})</span>
-                  {req.customDomain && (
-                    <span className="ml-2 text-emerald-600 font-mono text-sm">{req.customDomain}</span>
-                  )}
-                </div>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                  req.customDomainStatus === 'approved' 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-red-100 text-red-700'
-                }`}>
-                  {req.customDomainStatus}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        </section>
       )}
     </div>
+  );
+}
+
+function StatusBadge({ status, label }: { status: 'pending' | 'active' | 'failed'; label: string }) {
+  const colors = {
+    pending: 'bg-yellow-100 text-yellow-700',
+    active: 'bg-green-100 text-green-700',
+    failed: 'bg-red-100 text-red-700',
+  };
+  
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${colors[status]}`}>
+      {status === 'active' ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+      {label}: {status}
+    </span>
   );
 }

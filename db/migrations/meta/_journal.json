@@ -50,6 +50,13 @@
       "when": 1767607394111,
       "tag": "0006_certain_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1767622316408,
+      "tag": "0007_cheerful_star_brand",
+      "breakpoints": true
     }
   ]
 }

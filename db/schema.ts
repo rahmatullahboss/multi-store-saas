@@ -20,6 +20,10 @@ export const stores = sqliteTable('stores', {
   customDomainRequest: text('custom_domain_request'), // Pending domain request
   customDomainStatus: text('custom_domain_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
   customDomainRequestedAt: integer('custom_domain_requested_at', { mode: 'timestamp' }),
+  // Cloudflare for SaaS Integration
+  cloudflareHostnameId: text('cloudflare_hostname_id'), // Cloudflare custom hostname ID
+  sslStatus: text('ssl_status').$type<'pending' | 'active' | 'failed'>().default('pending'), // SSL certificate status
+  dnsVerified: integer('dns_verified', { mode: 'boolean' }).default(false), // DNS verification status
   planType: text('plan_type').$type<'free' | 'starter' | 'premium' | 'custom'>().default('free'),
   subscriptionStatus: text('subscription_status').$type<'active' | 'past_due' | 'canceled'>().default('active'),
   usageLimits: text('usage_limits'), // JSON: { max_products, max_orders, allow_store_mode, fee_rate }
