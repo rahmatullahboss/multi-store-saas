@@ -27,6 +27,79 @@ function getVimeoEmbedUrl(url: string): string {
   return videoId ? `https://player.vimeo.com/video/${videoId}` : url;
 }
 
+// ============================================================================
+// TEMPLATE THEME CONFIGURATIONS
+// Each template has unique colors, backgrounds, and styling
+// ============================================================================
+interface ThemeColors {
+  bgPrimary: string;
+  bgSecondary: string;
+  bgAccent: string;
+  textPrimary: string;
+  textSecondary: string;
+  ctaBg: string;
+  ctaText: string;
+  urgencyBg: string;
+  cardBg: string;
+  cardBorder: string;
+  footerBg: string;
+  footerText: string;
+  isDark: boolean;
+}
+
+const TEMPLATE_THEMES: Record<string, ThemeColors> = {
+  'modern-dark': {
+    bgPrimary: 'bg-gray-900',
+    bgSecondary: 'bg-gray-800',
+    bgAccent: 'bg-gradient-to-r from-orange-500 to-red-500',
+    textPrimary: 'text-white',
+    textSecondary: 'text-gray-300',
+    ctaBg: 'bg-gradient-to-r from-orange-500 to-red-600',
+    ctaText: 'text-white',
+    urgencyBg: 'bg-gradient-to-r from-red-600 to-orange-500',
+    cardBg: 'bg-gray-800',
+    cardBorder: 'border-gray-700',
+    footerBg: 'bg-black',
+    footerText: 'text-gray-400',
+    isDark: true,
+  },
+  'minimal-light': {
+    bgPrimary: 'bg-white',
+    bgSecondary: 'bg-gray-50',
+    bgAccent: 'bg-gray-900',
+    textPrimary: 'text-gray-900',
+    textSecondary: 'text-gray-600',
+    ctaBg: 'bg-gray-900 hover:bg-gray-800',
+    ctaText: 'text-white',
+    urgencyBg: 'bg-gray-900',
+    cardBg: 'bg-white',
+    cardBorder: 'border-gray-200',
+    footerBg: 'bg-gray-900',
+    footerText: 'text-gray-400',
+    isDark: false,
+  },
+  'video-focus': {
+    bgPrimary: 'bg-gradient-to-br from-purple-900 via-violet-900 to-indigo-900',
+    bgSecondary: 'bg-purple-800/50',
+    bgAccent: 'bg-gradient-to-r from-pink-500 to-purple-600',
+    textPrimary: 'text-white',
+    textSecondary: 'text-purple-200',
+    ctaBg: 'bg-gradient-to-r from-pink-500 to-purple-600',
+    ctaText: 'text-white',
+    urgencyBg: 'bg-gradient-to-r from-pink-600 to-purple-600',
+    cardBg: 'bg-white/10 backdrop-blur-sm',
+    cardBorder: 'border-white/20',
+    footerBg: 'bg-black',
+    footerText: 'text-gray-400',
+    isDark: true,
+  },
+};
+
+// Get theme or default to minimal-light
+function getTheme(templateId?: string): ThemeColors {
+  return TEMPLATE_THEMES[templateId || 'minimal-light'] || TEMPLATE_THEMES['minimal-light'];
+}
+
 import { useFetcher } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import type { LandingConfig } from '@db/types';
@@ -69,7 +142,7 @@ export function LandingPageTemplate({
     details?: Record<string, string[]>;
   }>();
   
-  const [showForm, setShowForm] = useState(false);
+
   const [formData, setFormData] = useState({
     customer_name: '',
     phone: '',
@@ -83,6 +156,9 @@ export function LandingPageTemplate({
 
   // Format price using context (responds to language/currency toggle)
   const formatPrice = useFormatPrice();
+
+  // Get theme based on templateId
+  const theme = getTheme(config.templateId);
 
   // Calculate discount
   const discount = product.compareAtPrice
@@ -126,10 +202,10 @@ export function LandingPageTemplate({
   }, [fetcher.data]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className={`min-h-screen ${theme.bgPrimary} ${theme.textPrimary}`}>
       {/* Urgency Bar */}
       {config.urgencyText && (
-        <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-center py-3 px-4">
+        <div className={`${theme.urgencyBg} text-white text-center py-3 px-4`}>
           <p className="text-sm md:text-base font-bold">
             🔥 {config.urgencyText} 🔥
           </p>
@@ -139,23 +215,23 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 1: Hero Section */}
       {/* ============================================ */}
-      <section className="bg-gradient-to-b from-gray-50 to-white py-12 lg:py-20">
+      <section className={`${theme.isDark ? '' : 'bg-gradient-to-b from-gray-50 to-white'} py-12 lg:py-20`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Store Badge */}
           <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+            <span className={`inline-flex items-center gap-2 px-4 py-2 ${theme.isDark ? 'bg-white/10 text-white' : 'bg-orange-100 text-orange-700'} rounded-full text-sm font-semibold`}>
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               {storeName}
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-center text-gray-900 mb-6 leading-tight">
+          <h1 className={`text-4xl md:text-5xl lg:text-6xl font-black text-center ${theme.textPrimary} mb-6 leading-tight`}>
             {config.headline}
           </h1>
           
           {config.subheadline && (
-            <p className="text-xl md:text-2xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+            <p className={`text-xl md:text-2xl ${theme.textSecondary} text-center mb-12 max-w-3xl mx-auto`}>
               {config.subheadline}
             </p>
           )}
@@ -165,12 +241,12 @@ export function LandingPageTemplate({
             {/* Product Image */}
             <div className="relative">
               {discount > 0 && (
-                <div className="absolute top-4 left-4 z-10 bg-red-500 text-white px-5 py-2 rounded-full font-bold text-lg shadow-lg">
+                <div className={`absolute top-4 left-4 z-10 ${theme.ctaBg} text-white px-5 py-2 rounded-full font-bold text-lg shadow-lg`}>
                   {discount}% ছাড়!
                 </div>
               )}
               
-              <div className="aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-2xl border-4 border-white">
+              <div className={`aspect-square rounded-3xl overflow-hidden ${theme.isDark ? 'bg-gray-800' : 'bg-gray-100'} shadow-2xl border-4 ${theme.isDark ? 'border-gray-700' : 'border-white'}`}>
                 {product.imageUrl ? (
                   <OptimizedImage
                     src={product.imageUrl}
@@ -181,7 +257,7 @@ export function LandingPageTemplate({
                     priority
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                  <div className={`w-full h-full flex items-center justify-center ${theme.isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
                     <span className="text-9xl">📦</span>
                   </div>
                 )}
@@ -190,28 +266,28 @@ export function LandingPageTemplate({
 
             {/* Product Info */}
             <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{product.title}</h2>
+              <h2 className={`text-3xl md:text-4xl font-bold ${theme.textPrimary}`}>{product.title}</h2>
               
               {product.description && (
-                <p className="text-gray-600 text-lg leading-relaxed">
+                <p className={`${theme.textSecondary} text-lg leading-relaxed`}>
                   {product.description}
                 </p>
               )}
 
               {/* Price Display */}
-              <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200">
+              <div className={`${theme.isDark ? 'bg-white/10' : 'bg-gradient-to-r from-emerald-50 to-green-50'} rounded-2xl p-6 border ${theme.isDark ? 'border-white/20' : 'border-emerald-200'}`}>
                 <div className="flex items-end gap-4 flex-wrap">
-                  <span className="text-5xl md:text-6xl font-black text-emerald-600">
+                  <span className={`text-5xl md:text-6xl font-black ${theme.isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                     {formatPrice(product.price)}
                   </span>
                   {product.compareAtPrice && product.compareAtPrice > product.price && (
-                    <span className="text-2xl text-gray-400 line-through mb-2">
+                    <span className={`text-2xl ${theme.isDark ? 'text-gray-400' : 'text-gray-400'} line-through mb-2`}>
                       {formatPrice(product.compareAtPrice)}
                     </span>
                   )}
                 </div>
                 {discount > 0 && (
-                  <p className="text-emerald-700 font-semibold mt-2">
+                  <p className={`${theme.isDark ? 'text-emerald-400' : 'text-emerald-700'} font-semibold mt-2`}>
                     আপনি সেভ করছেন: {formatPrice(product.compareAtPrice! - product.price)}
                   </p>
                 )}
@@ -219,24 +295,24 @@ export function LandingPageTemplate({
 
               {/* Social Proof */}
               {config.socialProof && (
-                <div className="flex items-center gap-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                <div className={`flex items-center gap-4 ${theme.isDark ? 'bg-white/10 border-white/20' : 'bg-yellow-50 border-yellow-200'} border rounded-xl p-4`}>
                   <div className="text-yellow-500 text-2xl">{'★'.repeat(5)}</div>
-                  <p className="text-gray-700">
-                    <strong className="text-gray-900 text-xl">{config.socialProof.count}+</strong> {config.socialProof.text}
+                  <p className={theme.textSecondary}>
+                    <strong className={`${theme.textPrimary} text-xl`}>{config.socialProof.count}+</strong> {config.socialProof.text}
                   </p>
                 </div>
               )}
 
-              {/* Desktop Order Button */}
+              {/* Desktop Order Button - Scroll to Form */}
               <div className="hidden lg:block">
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="w-full py-5 px-8 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-2xl font-bold rounded-2xl shadow-xl transition transform hover:scale-[1.02]"
+                <a
+                  href="#order-form"
+                  className={`block w-full py-5 px-8 ${theme.ctaBg} ${theme.ctaText} text-2xl font-bold rounded-2xl shadow-xl transition transform hover:scale-[1.02] text-center`}
                 >
-                  🛒 এখনই অর্ডার করুন - {formatPrice(product.price)}
-                </button>
+                  🛒 {config.ctaText || 'এখনই অর্ডার করুন'} - {formatPrice(product.price)}
+                </a>
                 {config.ctaSubtext && (
-                  <p className="text-center text-gray-500 text-sm mt-3">
+                  <p className={`text-center ${theme.textSecondary} text-sm mt-3`}>
                     ✓ {config.ctaSubtext}
                   </p>
                 )}
@@ -249,28 +325,28 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 2: Trust Badges */}
       {/* ============================================ */}
-      <section className="py-12 bg-white border-y border-gray-100">
+      <section className={`py-12 ${theme.bgSecondary} border-y ${theme.cardBorder}`}>
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center p-6 bg-gray-50 rounded-2xl">
+            <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">🚚</div>
-              <h4 className="font-bold text-gray-900">ফ্রি ডেলিভারি</h4>
-              <p className="text-sm text-gray-500 mt-1">ঢাকায় ফ্রি ডেলিভারি</p>
+              <h4 className={`font-bold ${theme.textPrimary}`}>ফ্রি ডেলিভারি</h4>
+              <p className={`text-sm ${theme.textSecondary} mt-1`}>ঢাকায় ফ্রি ডেলিভারি</p>
             </div>
-            <div className="text-center p-6 bg-gray-50 rounded-2xl">
+            <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">💯</div>
-              <h4 className="font-bold text-gray-900">অরিজিনাল প্রোডাক্ট</h4>
-              <p className="text-sm text-gray-500 mt-1">১০০% অরিজিনাল গ্যারান্টি</p>
+              <h4 className={`font-bold ${theme.textPrimary}`}>অরিজিনাল প্রোডাক্ট</h4>
+              <p className={`text-sm ${theme.textSecondary} mt-1`}>১০০% অরিজিনাল গ্যারান্টি</p>
             </div>
-            <div className="text-center p-6 bg-gray-50 rounded-2xl">
+            <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">💵</div>
-              <h4 className="font-bold text-gray-900">ক্যাশ অন ডেলিভারি</h4>
-              <p className="text-sm text-gray-500 mt-1">হাতে পেয়ে মূল্য পরিশোধ</p>
+              <h4 className={`font-bold ${theme.textPrimary}`}>ক্যাশ অন ডেলিভারি</h4>
+              <p className={`text-sm ${theme.textSecondary} mt-1`}>হাতে পেয়ে মূল্য পরিশোধ</p>
             </div>
-            <div className="text-center p-6 bg-gray-50 rounded-2xl">
+            <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">🔄</div>
-              <h4 className="font-bold text-gray-900">ইজি রিটার্ন</h4>
-              <p className="text-sm text-gray-500 mt-1">৭ দিনের রিটার্ন পলিসি</p>
+              <h4 className={`font-bold ${theme.textPrimary}`}>ইজি রিটার্ন</h4>
+              <p className={`text-sm ${theme.textSecondary} mt-1`}>৭ দিনের রিটার্ন পলিসি</p>
             </div>
           </div>
         </div>
@@ -279,40 +355,40 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 3: Why Choose Us */}
       {/* ============================================ */}
-      <section className="py-16 bg-gradient-to-b from-orange-50 to-white">
+      <section className={`py-16 ${theme.isDark ? theme.bgSecondary : 'bg-gradient-to-b from-orange-50 to-white'}`}>
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+            <h2 className={`text-3xl md:text-4xl font-black ${theme.textPrimary} mb-4`}>
               কেন আমাদের থেকে কিনবেন?
             </h2>
-            <p className="text-xl text-gray-600">আমরা প্রতিটি গ্রাহকের সন্তুষ্টি নিশ্চিত করি</p>
+            <p className={`text-xl ${theme.textSecondary}`}>আমরা প্রতিটি গ্রাহকের সন্তুষ্টি নিশ্চিত করি</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-              <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            <div className={`${theme.cardBg} rounded-3xl p-8 shadow-lg border ${theme.cardBorder}`}>
+              <div className={`w-16 h-16 ${theme.isDark ? 'bg-orange-500/20' : 'bg-orange-100'} rounded-2xl flex items-center justify-center text-3xl mb-6`}>
                 ✨
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">প্রিমিয়াম কোয়ালিটি</h3>
-              <p className="text-gray-600">
+              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>প্রিমিয়াম কোয়ালিটি</h3>
+              <p className={theme.textSecondary}>
                 আমরা শুধুমাত্র উচ্চ মানের প্রোডাক্ট সরবরাহ করি। প্রতিটি প্রোডাক্ট কঠোর মান নিয়ন্ত্রণের মধ্য দিয়ে যায়।
               </p>
             </div>
-            <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            <div className={`${theme.cardBg} rounded-3xl p-8 shadow-lg border ${theme.cardBorder}`}>
+              <div className={`w-16 h-16 ${theme.isDark ? 'bg-green-500/20' : 'bg-green-100'} rounded-2xl flex items-center justify-center text-3xl mb-6`}>
                 ⚡
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">দ্রুত ডেলিভারি</h3>
-              <p className="text-gray-600">
+              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>দ্রুত ডেলিভারি</h3>
+              <p className={theme.textSecondary}>
                 ঢাকায় ২৪ ঘন্টায় এবং ঢাকার বাইরে ২-৩ কার্যদিবসের মধ্যে আপনার দোরগোড়ায় পৌঁছে দিই।
               </p>
             </div>
-            <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            <div className={`${theme.cardBg} rounded-3xl p-8 shadow-lg border ${theme.cardBorder}`}>
+              <div className={`w-16 h-16 ${theme.isDark ? 'bg-blue-500/20' : 'bg-blue-100'} rounded-2xl flex items-center justify-center text-3xl mb-6`}>
                 📞
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">২৪/৭ সাপোর্ট</h3>
-              <p className="text-gray-600">
+              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>২৪/৭ সাপোর্ট</h3>
+              <p className={theme.textSecondary}>
                 যেকোনো সমস্যায় আমাদের কাস্টমার সার্ভিস টিম সবসময় আপনার পাশে থাকবে।
               </p>
             </div>
@@ -615,12 +691,12 @@ export function LandingPageTemplate({
             )}
           </div>
           <div>
-            <button
-              onClick={() => setShowForm(true)}
+            <a
+              href="#order-form"
               className="inline-flex items-center gap-3 px-12 py-6 bg-white hover:bg-gray-100 text-orange-600 text-2xl font-black rounded-2xl shadow-2xl transition transform hover:scale-105"
             >
               🛒 এখনই অর্ডার করুন
-            </button>
+            </a>
           </div>
         </div>
       </section>
@@ -650,66 +726,67 @@ export function LandingPageTemplate({
         </div>
       </section>
 
-      {/* Order Form Modal */}
-      {(showForm || isSuccess) && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end lg:items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-t-3xl lg:rounded-3xl p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+      {/* ============================================ */}
+      {/* SECTION 13: Order Form Section (Inline) */}
+      {/* ============================================ */}
+      <section id="order-form" className="py-16 bg-gradient-to-b from-gray-50 to-white scroll-mt-4">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+              📝 এখনই অর্ডার করুন
+            </h2>
+            <p className="text-xl text-gray-600">ফর্মটি পূরণ করুন, আমরা শীঘ্রই যোগাযোগ করব</p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-100">
             {isSuccess ? (
               // Success Message
               <div className="text-center py-8">
-                <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl text-white">
+                <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl text-white">
                   ✓
                 </div>
-                <h3 className="text-2xl font-black text-emerald-600 mb-3">
+                <h3 className="text-3xl font-black text-emerald-600 mb-4">
                   অর্ডার সম্পন্ন হয়েছে!
                 </h3>
-                <p className="text-gray-600 mb-6 text-lg">
+                <p className="text-gray-600 mb-6 text-xl">
                   অর্ডার নম্বর: <strong className="text-gray-900">{fetcher.data?.orderNumber}</strong>
                 </p>
-                <p className="text-gray-500 mb-8">
+                <p className="text-gray-500 mb-8 text-lg">
                   শীঘ্রই আমাদের টিম আপনার সাথে যোগাযোগ করবে।
                 </p>
                 <button
-                  onClick={() => {
-                    setShowForm(false);
-                    window.location.reload();
-                  }}
-                  className="px-8 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-gray-700"
+                  onClick={() => window.location.reload()}
+                  className="px-10 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-lg transition"
                 >
-                  বন্ধ করুন
+                  নতুন অর্ডার করুন
                 </button>
               </div>
             ) : (
               // Order Form
               <>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-black text-gray-900">অর্ডার ফর্ম</h3>
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition text-xl"
-                  >
-                    ✕
-                  </button>
-                </div>
-
                 {/* Product Summary */}
-                <div className="bg-gray-50 rounded-2xl p-4 mb-6 flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 mb-8 flex items-center gap-4 border border-orange-100">
+                  <div className="w-20 h-20 bg-white rounded-xl overflow-hidden flex-shrink-0 shadow-md">
                     {product.imageUrl ? (
                       <OptimizedImage
                         src={product.imageUrl}
                         alt={product.title}
-                        width={64}
-                        height={64}
+                        width={80}
+                        height={80}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                      <div className="w-full h-full flex items-center justify-center text-3xl bg-gray-100">📦</div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-bold text-gray-900 line-clamp-1">{product.title}</p>
-                    <p className="text-emerald-600 font-bold text-lg">{formatPrice(product.price)}</p>
+                    <p className="font-bold text-gray-900 text-lg">{product.title}</p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-emerald-600 font-black text-2xl">{formatPrice(product.price)}</span>
+                      {product.compareAtPrice && product.compareAtPrice > product.price && (
+                        <span className="text-gray-400 line-through">{formatPrice(product.compareAtPrice)}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -727,29 +804,32 @@ export function LandingPageTemplate({
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Quantity */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">পরিমাণ</label>
-                    <div className="flex items-center gap-4">
+                    <label className="block text-sm font-bold text-gray-700 mb-3">পরিমাণ নির্বাচন করুন</label>
+                    <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-3">
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.max(1, d.quantity - 1) }))}
-                        className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl text-2xl font-bold transition"
+                        className="w-14 h-14 bg-white hover:bg-gray-100 rounded-xl text-2xl font-bold transition shadow-sm border border-gray-200"
                       >
                         -
                       </button>
-                      <span className="text-2xl font-black w-12 text-center">{formData.quantity}</span>
+                      <span className="text-3xl font-black w-16 text-center text-gray-900">{formData.quantity}</span>
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.min(10, d.quantity + 1) }))}
-                        className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl text-2xl font-bold transition"
+                        className="w-14 h-14 bg-white hover:bg-gray-100 rounded-xl text-2xl font-bold transition shadow-sm border border-gray-200"
                       >
                         +
                       </button>
-                      <span className="ml-auto text-emerald-600 font-bold text-xl">
-                        = {formatPrice(totalPrice)}
-                      </span>
+                      <div className="ml-auto text-right">
+                        <p className="text-sm text-gray-500">মোট মূল্য</p>
+                        <span className="text-emerald-600 font-black text-2xl">
+                          {formatPrice(totalPrice)}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -763,7 +843,7 @@ export function LandingPageTemplate({
                       value={formData.customer_name}
                       onChange={(e) => setFormData(d => ({ ...d, customer_name: e.target.value }))}
                       placeholder="সম্পূর্ণ নাম লিখুন"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
                     />
                   </div>
 
@@ -777,7 +857,7 @@ export function LandingPageTemplate({
                       value={formData.phone}
                       onChange={(e) => setFormData(d => ({ ...d, phone: e.target.value }))}
                       placeholder="০১XXXXXXXXX"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg"
                     />
                   </div>
 
@@ -791,28 +871,31 @@ export function LandingPageTemplate({
                       value={formData.address}
                       onChange={(e) => setFormData(d => ({ ...d, address: e.target.value }))}
                       placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg resize-none"
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg resize-none"
                     />
                   </div>
 
                   {/* Payment Method */}
-                  <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center gap-4">
-                    <span className="text-3xl">💵</span>
+                  <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-xl flex items-center gap-4">
+                    <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center">
+                      <span className="text-3xl">💵</span>
+                    </div>
                     <div>
-                      <p className="font-bold text-gray-900">ক্যাশ অন ডেলিভারি</p>
+                      <p className="font-bold text-gray-900 text-lg">ক্যাশ অন ডেলিভারি</p>
                       <p className="text-sm text-gray-600">পণ্য হাতে পেয়ে টাকা পরিশোধ করুন</p>
                     </div>
+                    <span className="ml-auto text-emerald-600 text-2xl">✓</span>
                   </div>
 
                   {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 text-white text-xl font-bold rounded-xl shadow-lg transition"
+                    className="w-full py-5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 text-white text-2xl font-bold rounded-xl shadow-lg transition transform hover:scale-[1.02]"
                   >
                     {isSubmitting ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <span className="flex items-center justify-center gap-3">
+                        <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
@@ -822,29 +905,33 @@ export function LandingPageTemplate({
                       `✓ অর্ডার কনফার্ম করুন - ${formatPrice(totalPrice)}`
                     )}
                   </button>
+
+                  <p className="text-center text-gray-500 text-sm">
+                    🔒 আপনার তথ্য সম্পূর্ণ নিরাপদ এবং গোপনীয়
+                  </p>
                 </form>
               </>
             )}
           </div>
         </div>
-      )}
+      </section>
 
-      {/* Mobile Sticky Footer */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 p-4 shadow-2xl safe-area-pb">
-        <button
-          onClick={() => setShowForm(true)}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xl font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3"
+      {/* Mobile Sticky Footer - Scroll to Form */}
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${theme.isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-t p-4 shadow-2xl safe-area-pb`}>
+        <a
+          href="#order-form"
+          className={`w-full py-4 ${theme.ctaBg} ${theme.ctaText} text-xl font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3`}
         >
           <span className="text-2xl">🛒</span>
-          অর্ডার করুন - {formatPrice(product.price)}
-        </button>
+          {config.ctaText || 'অর্ডার করুন'} - {formatPrice(product.price)}
+        </a>
       </div>
 
       {/* Footer Spacer for Mobile */}
       <div className="lg:hidden h-24" />
 
       {/* Footer */}
-      <footer className="bg-gray-950 text-gray-400 py-8 border-t border-gray-800">
+      <footer className={`${theme.footerBg} ${theme.footerText} py-8 border-t ${theme.isDark ? 'border-gray-800' : 'border-gray-200'}`}>
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="font-semibold text-white mb-2">{storeName}</p>
           <p className="text-sm">© {new Date().getFullYear()} সর্বস্বত্ব সংরক্ষিত</p>

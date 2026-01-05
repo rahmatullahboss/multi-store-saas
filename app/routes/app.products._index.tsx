@@ -17,7 +17,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil } from 'lucide-react';
 import { useState } from 'react';
 
 export const meta: MetaFunction = () => {
@@ -258,6 +258,9 @@ export default function ProductsIndexPage() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -316,6 +319,15 @@ export default function ProductsIndexPage() {
                     <td className="px-4 py-4">
                       <StatusBadge published={product.isPublished ?? true} />
                     </td>
+                    <td className="px-4 py-4 text-right">
+                      <Link
+                        to={`/app/products/${product.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Edit
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -360,6 +372,14 @@ export default function ProductsIndexPage() {
                     {product.category && (
                       <p className="mt-1 text-xs text-gray-500">{product.category}</p>
                     )}
+                    {/* Edit Button for Mobile */}
+                    <Link
+                      to={`/app/products/${product.id}`}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      Edit
+                    </Link>
                   </div>
                 </div>
               </div>
