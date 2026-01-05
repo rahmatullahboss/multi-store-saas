@@ -7,12 +7,13 @@
  */
 
 import { createPagesFunctionHandler } from '@remix-run/cloudflare-pages';
+import type { ServerBuild } from '@remix-run/cloudflare';
 
-// @ts-expect-error - Virtual module from Remix build
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as build from '../build/server';
 
 export const onRequest = createPagesFunctionHandler({
-  build,
+  build: build as unknown as ServerBuild,
   getLoadContext: (context) => {
     // Access Cloudflare bindings from context.env
     const env = context.env as {

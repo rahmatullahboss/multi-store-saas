@@ -64,6 +64,9 @@ export default function LoginPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  
+  // Type-safe error access
+  const errors = actionData?.errors as Record<string, string> | undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
@@ -78,9 +81,9 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <Form method="post" className="space-y-6">
             {/* Form Error */}
-            {actionData?.errors?.form && (
+            {errors?.form && (
               <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-                {actionData.errors.form}
+                {errors.form}
               </div>
             )}
 
@@ -97,8 +100,8 @@ export default function LoginPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="you@example.com"
               />
-              {actionData?.errors?.email && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.email}</p>
+              {errors?.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
               )}
             </div>
 
@@ -115,8 +118,8 @@ export default function LoginPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="••••••••"
               />
-              {actionData?.errors?.password && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.password}</p>
+              {errors?.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
               )}
             </div>
 
