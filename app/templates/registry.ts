@@ -2,9 +2,8 @@
  * Template Registry - Dynamic Landing Page Templates
  * 
  * Central registry for all available landing page templates.
- * Adding a new template only requires:
- * 1. Creating the template component file
- * 2. Adding an entry to TEMPLATES array below
+ * All templates use the same LandingPageTemplate component with different theme configs.
+ * This ensures PREVIEW and LIVE store show exactly the same design.
  */
 
 import type { ComponentType } from 'react';
@@ -32,6 +31,7 @@ export interface TemplateProps {
   product: SerializedProduct;
   config: LandingConfig;
   currency: string;
+  isPreview?: boolean;
 }
 
 // ============================================================================
@@ -46,14 +46,12 @@ export interface TemplateDefinition {
 }
 
 // ============================================================================
-// LAZY IMPORTS - Templates are imported dynamically for code splitting
+// SINGLE UNIFIED TEMPLATE - Same component for Preview & Live
 // ============================================================================
-import { ModernDarkTemplate } from '~/components/templates/ModernDark';
-import { MinimalLightTemplate } from '~/components/templates/MinimalLight';
-import { VideoFocusTemplate } from '~/components/templates/VideoFocus';
+import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
 
 // ============================================================================
-// TEMPLATES REGISTRY - All available templates
+// TEMPLATES REGISTRY - All templates use same component, different themes
 // ============================================================================
 export const TEMPLATES: TemplateDefinition[] = [
   {
@@ -61,21 +59,21 @@ export const TEMPLATES: TemplateDefinition[] = [
     name: 'Modern Dark',
     description: 'Bold gradients, urgency colors, and high-converting dark theme design.',
     thumbnail: '/templates/modern-dark.png',
-    component: ModernDarkTemplate,
+    component: LandingPageTemplate,
   },
   {
     id: 'minimal-light',
     name: 'Minimal Light',
     description: 'Clean white background with centered typography and elegant simplicity.',
     thumbnail: '/templates/minimal-light.png',
-    component: MinimalLightTemplate,
+    component: LandingPageTemplate,
   },
   {
     id: 'video-focus',
     name: 'Video Focus',
     description: 'Video-first design with full-width hero video and overlay CTA.',
     thumbnail: '/templates/video-focus.png',
-    component: VideoFocusTemplate,
+    component: LandingPageTemplate,
   },
 ];
 
