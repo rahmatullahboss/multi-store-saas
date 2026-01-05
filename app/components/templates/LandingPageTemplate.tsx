@@ -46,10 +46,11 @@ interface SerializedProduct {
 
 interface LandingPageTemplateProps {
   storeName: string;
-  storeId: number;
+  storeId?: number;
   product: SerializedProduct;
   config: LandingConfig;
   currency: string;
+  isPreview?: boolean; // When true, disables form submission and shows preview mode
 }
 
 export function LandingPageTemplate({
@@ -58,6 +59,7 @@ export function LandingPageTemplate({
   product,
   config,
   currency,
+  isPreview = false,
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -92,6 +94,12 @@ export function LandingPageTemplate({
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Don't submit in preview mode or if storeId is missing
+    if (isPreview || !storeId) {
+      console.log('Preview mode: form submission disabled');
+      return;
+    }
     
     fetcher.submit(
       {
