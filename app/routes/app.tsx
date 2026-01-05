@@ -34,7 +34,8 @@ import {
   Mail,
   CreditCard,
   Palette,
-  Globe
+  Globe,
+  Crown
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -183,6 +184,7 @@ const navItems = [
 
 // Admin-only navigation items
 const adminNavItems = [
+  { to: '/app/admin/plans', label: 'Plan Management', icon: Crown },
   { to: '/app/admin/payouts', label: 'Payouts', icon: CreditCard },
   { to: '/app/admin/domains', label: 'Domain Requests', icon: Globe },
 ];
