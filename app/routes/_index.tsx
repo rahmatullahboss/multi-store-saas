@@ -174,16 +174,21 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   const url = new URL(request.url);
   const host = url.hostname;
   
-  // Detect if this is the main domain (no subdomain)
-  const isMainDomain = (
-    host === 'localhost' ||
-    host === '127.0.0.1' ||
-    host === 'multi-store-saas.pages.dev' ||
-    host === 'digitalcare.site' ||
-    (host.endsWith('.pages.dev') && !host.includes('.') === false && host.split('.').length <= 3)
-  ) && (!store || storeId === 0);
+  // List of domains that should show the marketing page
+  const mainDomains = [
+    'localhost',
+    '127.0.0.1',
+    'multi-store-saas.pages.dev',
+    'digitalcare.site',
+    'www.digitalcare.site',
+  ];
   
-  if (isMainDomain) {
+  // Check if this is a main domain (should show marketing page)
+  const isMainDomain = mainDomains.includes(host) || 
+    (host.endsWith('.pages.dev') && host.split('.').length <= 3);
+  
+  // If it's a main domain AND no store was resolved, show marketing page
+  if (isMainDomain && (!store || storeId === 0)) {
     // Return marketing page data
     return json({ mode: 'marketing' } as MarketingModeData);
   }
