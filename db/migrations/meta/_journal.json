@@ -43,6 +43,13 @@
       "when": 1767562699978,
       "tag": "0005_phase3_theme_customization",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1767607394111,
+      "tag": "0006_certain_patriot",
+      "breakpoints": true
     }
   ]
 }

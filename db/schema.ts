@@ -16,6 +16,10 @@ export const stores = sqliteTable('stores', {
   name: text('name').notNull(),
   subdomain: text('subdomain').notNull().unique(),
   customDomain: text('custom_domain').unique(),
+  // Custom Domain Request System
+  customDomainRequest: text('custom_domain_request'), // Pending domain request
+  customDomainStatus: text('custom_domain_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
+  customDomainRequestedAt: integer('custom_domain_requested_at', { mode: 'timestamp' }),
   planType: text('plan_type').$type<'free' | 'starter' | 'premium' | 'custom'>().default('free'),
   subscriptionStatus: text('subscription_status').$type<'active' | 'past_due' | 'canceled'>().default('active'),
   usageLimits: text('usage_limits'), // JSON: { max_products, max_orders, allow_store_mode, fee_rate }

@@ -176,62 +176,97 @@ export async function login({ email, password, db }: LoginParams) {
  * Register a new merchant with their store
  */
 export async function register({ email, password, name, storeName, subdomain: customSubdomain, db }: RegisterParams) {
-  const drizzleDb = drizzle(db);
-  
-  // Check if email exists
-  const existingUser = await drizzleDb
-    .select()
-    .from(users)
-    .where(eq(users.email, email.toLowerCase()))
-    .limit(1);
-  
-  if (existingUser.length > 0) {
-    return { error: 'Email already registered' };
+  try {
+    const drizzleDb = drizzle(db);
+    
+    // Check if email exists
+    const existingUser = await drizzleDb
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase()))
+      .limit(1);
+    
+    if (existingUser.length > 0) {
+      return { error: 'Email already registered' };
+    }
+    
+    // Hash password
+    const passwordHash = await hashPassword(password);
+    
+    // Use custom subdomain if provided, otherwise generate from store name
+    const subdomain = customSubdomain 
+      ? customSubdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30)
+      : storeName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 30);
+    
+    // Check subdomain uniqueness
+    const existingStore = await drizzleDb
+      .select()
+      .from(stores)
+      .where(eq(stores.subdomain, subdomain))
+      .limit(1);
+    
+    if (existingStore.length > 0) {
+      return { error: `The subdomain "${subdomain}" is already taken. Please choose a different one.` };
+    }
+    
+    // Create store first
+    const storeResult = await drizzleDb.insert(stores).values({
+      name: storeName,
+      subdomain,
+      currency: 'BDT',
+      mode: 'landing',
+    }).returning({ id: stores.id });
+    
+    if (!storeResult || storeResult.length === 0) {
+      console.error('[register] Failed to create store - no result returned');
+      return { error: 'Failed to create store. Please try again.' };
+    }
+    
+    const storeId = storeResult[0].id;
+    
+    // Create user
+    const userResult = await drizzleDb.insert(users).values({
+      email: email.toLowerCase(),
+      passwordHash,
+      name,
+      storeId,
+      role: 'merchant',
+    }).returning();
+    
+    if (!userResult || userResult.length === 0) {
+      console.error('[register] Failed to create user - no result returned');
+      return { error: 'Failed to create account. Please try again.' };
+    }
+    
+    return { user: userResult[0], storeId };
+  } catch (error) {
+    console.error('[register] Registration failed:', error);
+    
+    // Check for specific error types
+    if (error instanceof Error) {
+      // Unique constraint violation (subdomain or email already exists)
+      if (error.message.includes('UNIQUE constraint failed')) {
+        if (error.message.includes('subdomain')) {
+          return { error: 'This subdomain is already taken. Please choose a different one.' };
+        }
+        if (error.message.includes('email')) {
+          return { error: 'This email is already registered. Please login instead.' };
+        }
+        return { error: 'Account creation failed due to duplicate data. Please try again.' };
+      }
+      
+      // D1 Database specific errors
+      if (error.message.includes('D1_ERROR') || error.message.includes('database')) {
+        return { error: 'Database error occurred. Please try again in a moment.' };
+      }
+    }
+    
+    return { error: 'Registration failed. Please try again.' };
   }
-  
-  // Hash password
-  const passwordHash = await hashPassword(password);
-  
-  // Use custom subdomain if provided, otherwise generate from store name
-  const subdomain = customSubdomain 
-    ? customSubdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30)
-    : storeName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        .slice(0, 30);
-  
-  // Check subdomain uniqueness
-  const existingStore = await drizzleDb
-    .select()
-    .from(stores)
-    .where(eq(stores.subdomain, subdomain))
-    .limit(1);
-  
-  if (existingStore.length > 0) {
-    return { error: `The subdomain "${subdomain}" is already taken. Please choose a different one.` };
-  }
-  
-  // Create store first
-  const storeResult = await drizzleDb.insert(stores).values({
-    name: storeName,
-    subdomain,
-    currency: 'BDT',
-    mode: 'landing',
-  }).returning({ id: stores.id });
-  
-  const storeId = storeResult[0].id;
-  
-  // Create user
-  const userResult = await drizzleDb.insert(users).values({
-    email: email.toLowerCase(),
-    passwordHash,
-    name,
-    storeId,
-    role: 'merchant',
-  }).returning();
-  
-  return { user: userResult[0], storeId };
 }
 
 /**
