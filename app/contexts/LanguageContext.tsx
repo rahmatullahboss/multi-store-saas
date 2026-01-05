@@ -1,98 +1,83 @@
 /**
  * Language & Currency Context
  * 
- * Manages user's language and currency preferences
- * Persists to localStorage for consistency across sessions
+ * Provides global language and currency state across the app
+ * Language is read from URL ?lang= param, currency from ?currency=
  */
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { useSearchParams } from '@remix-run/react';
+import { translations, type Language, type TranslationKey } from '~/utils/i18n';
 import type { SupportedLocale, SupportedCurrency } from '~/utils/formatPrice';
 
-interface LanguageContextType {
+interface LanguageContextValue {
+  // Translation system
+  lang: Language;
+  t: (key: TranslationKey) => string;
+  setLang: (lang: Language) => void;
+  toggleLang: () => void;
+  
+  // Legacy compatibility (for existing LanguageToggle)
   locale: SupportedLocale;
   currency: SupportedCurrency;
   setLocale: (locale: SupportedLocale) => void;
   setCurrency: (currency: SupportedCurrency) => void;
-  // Convenience helpers
-  isEnglish: boolean;
-  isBengali: boolean;
 }
 
-const LanguageContext = createContext<LanguageContextType | null>(null);
-
-const STORAGE_KEY_LOCALE = 'store_locale';
-const STORAGE_KEY_CURRENCY = 'store_currency';
+const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 interface LanguageProviderProps {
   children: ReactNode;
-  defaultLocale?: SupportedLocale;
+  defaultLang?: Language;
   defaultCurrency?: SupportedCurrency;
 }
 
 export function LanguageProvider({ 
   children, 
-  defaultLocale = 'en',
-  defaultCurrency = 'USD' 
+  defaultLang = 'en',
+  defaultCurrency = 'BDT'
 }: LanguageProviderProps) {
-  const [locale, setLocaleState] = useState<SupportedLocale>(defaultLocale);
-  const [currency, setCurrencyState] = useState<SupportedCurrency>(defaultCurrency);
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  // Load from localStorage on mount (client-side only)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedLocale = localStorage.getItem(STORAGE_KEY_LOCALE) as SupportedLocale;
-      const storedCurrency = localStorage.getItem(STORAGE_KEY_CURRENCY) as SupportedCurrency;
-      
-      if (storedLocale && ['en', 'bn'].includes(storedLocale)) {
-        setLocaleState(storedLocale);
-      }
-      if (storedCurrency && ['USD', 'BDT', 'EUR', 'GBP'].includes(storedCurrency)) {
-        setCurrencyState(storedCurrency);
-      }
-      setIsHydrated(true);
-    }
-  }, []);
-
-  const setLocale = (newLocale: SupportedLocale) => {
-    setLocaleState(newLocale);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY_LOCALE, newLocale);
-    }
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const lang = (searchParams.get('lang') as Language) || defaultLang;
+  const currency = (searchParams.get('currency') as SupportedCurrency) || defaultCurrency;
+  
+  const setLang = (newLang: Language) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('lang', newLang);
+    setSearchParams(newParams, { preventScrollReset: true });
   };
-
+  
   const setCurrency = (newCurrency: SupportedCurrency) => {
-    setCurrencyState(newCurrency);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY_CURRENCY, newCurrency);
-    }
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('currency', newCurrency);
+    setSearchParams(newParams, { preventScrollReset: true });
   };
-
-  const value: LanguageContextType = {
-    locale,
+  
+  const toggleLang = () => {
+    setLang(lang === 'en' ? 'bn' : 'en');
+  };
+  
+  const t = useMemo(() => {
+    return (key: TranslationKey): string => {
+      return translations[lang][key] || translations.en[key] || key;
+    };
+  }, [lang]);
+  
+  const value = useMemo(() => ({
+    // Translation system
+    lang,
+    t,
+    setLang,
+    toggleLang,
+    
+    // Legacy compatibility
+    locale: lang as SupportedLocale,
     currency,
-    setLocale,
+    setLocale: setLang as (locale: SupportedLocale) => void,
     setCurrency,
-    isEnglish: locale === 'en',
-    isBengali: locale === 'bn',
-  };
-
-  // Prevent hydration mismatch by using default values until client hydrates
-  if (!isHydrated) {
-    return (
-      <LanguageContext.Provider value={{
-        locale: defaultLocale,
-        currency: defaultCurrency,
-        setLocale: () => {},
-        setCurrency: () => {},
-        isEnglish: defaultLocale === 'en',
-        isBengali: defaultLocale === 'bn',
-      }}>
-        {children}
-      </LanguageContext.Provider>
-    );
-  }
-
+  }), [lang, t, currency]);
+  
   return (
     <LanguageContext.Provider value={value}>
       {children}
@@ -100,7 +85,10 @@ export function LanguageProvider({
   );
 }
 
-export function useLanguage() {
+/**
+ * Hook to access language context
+ */
+export function useLanguage(): LanguageContextValue {
   const context = useContext(LanguageContext);
   if (!context) {
     throw new Error('useLanguage must be used within a LanguageProvider');
@@ -108,71 +96,27 @@ export function useLanguage() {
   return context;
 }
 
-// Hook for formatting prices with current locale/currency
-export function useFormatPrice() {
-  const { locale, currency } = useLanguage();
-  
-  return (price: number) => {
-    return new Intl.NumberFormat(locale === 'bn' ? 'bn-BD-u-nu-latn' : 'en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-      numberingSystem: 'latn',
-    }).format(price);
-  };
+/**
+ * Hook to get translation function
+ */
+export function useTranslation() {
+  const { t } = useLanguage();
+  return t;
 }
 
-// Hook for getting translations based on current locale
-export function useTranslation() {
-  const { locale } = useLanguage();
+/**
+ * Hook to get price formatter (uses current currency from context)
+ */
+export function useFormatPrice() {
+  const { currency, lang } = useLanguage();
   
-  // Import translations statically - use locale to pick the right one
-  const translations = locale === 'bn' 
-    ? {
-        // Bengali translations
-        home: 'হোম',
-        allProducts: 'সব পণ্য',
-        cart: 'কার্ট',
-        featuredProducts: 'বিশেষ পণ্যসমূহ',
-        products: 'টি পণ্য',
-        product: 'টি পণ্য',
-        noProductsFound: 'কোনো পণ্য পাওয়া যায়নি',
-        checkBackSoon: 'শীঘ্রই নতুন পণ্য আসবে!',
-        browseAllProducts: 'সব পণ্য দেখুন',
-        addToCart: 'কার্টে যোগ করুন',
-        adding: 'যোগ হচ্ছে...',
-        off: 'ছাড়',
-        orderNow: 'অর্ডার করুন',
-        shopNow: 'কিনুন',
-        shopByCategory: 'ক্যাটাগরি অনুযায়ী কিনুন',
-        quickLinks: 'দ্রুত লিংক',
-        categories: 'ক্যাটাগরি',
-        contact: 'যোগাযোগ',
-        aboutUs: 'আমাদের সম্পর্কে',
-      }
-    : {
-        // English translations
-        home: 'Home',
-        allProducts: 'All Products',
-        cart: 'Cart',
-        featuredProducts: 'Featured Products',
-        products: 'products',
-        product: 'product',
-        noProductsFound: 'No products found',
-        checkBackSoon: 'Check back soon for new arrivals!',
-        browseAllProducts: 'Browse All Products',
-        addToCart: 'Add to Cart',
-        adding: 'Adding...',
-        off: 'OFF',
-        orderNow: 'Order Now',
-        shopNow: 'Shop Now',
-        shopByCategory: 'Shop by Category',
-        quickLinks: 'Quick Links',
-        categories: 'Categories',
-        contact: 'Contact',
-        aboutUs: 'About Us',
-      };
-  
-  return translations;
+  return (price: number): string => {
+    const locale = lang === 'bn' ? 'bn-BD' : 'en-US';
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
 }

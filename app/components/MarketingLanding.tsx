@@ -3,14 +3,15 @@
  * 
  * Shown on main domain (multi-store-saas.pages.dev)
  * Features: Hero, Features, Pricing, CTA
+ * Uses global language context for EN/BN toggle
  */
 
 import { Link } from '@remix-run/react';
 import { Store, Zap, Shield, BarChart3, Globe, Headphones, Check, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
+import { useLanguage } from '~/contexts/LanguageContext';
 
-// Translations
-const translations = {
+// Marketing page specific translations
+const marketingContent = {
   en: {
     tagline: '#1 E-commerce Platform in Bangladesh',
     heroTitle1: 'Launch Your Online Store',
@@ -20,6 +21,7 @@ const translations = {
     viewPricing: 'View Pricing',
     noCreditCard: 'No credit card required • Free forever plan available',
     login: 'Login',
+    register: 'Register',
     featuresTitle: 'Everything You Need to Sell Online',
     featuresSubtitle: 'Powerful features to grow your business',
     pricingTitle: 'Simple, Transparent Pricing',
@@ -28,6 +30,7 @@ const translations = {
     ctaSubtitle: 'Join thousands of merchants who trust Multi-Store for their e-commerce needs.',
     ctaButton: 'Create Your Free Store',
     perMonth: '/month',
+    mostPopular: 'Most Popular',
     features: [
       { title: 'Your Own Store', description: 'Get a professional online store with your custom subdomain in minutes.' },
       { title: 'Lightning Fast', description: 'Built on edge computing for instant page loads worldwide.' },
@@ -51,6 +54,7 @@ const translations = {
     viewPricing: 'মূল্য দেখুন',
     noCreditCard: 'কোনো ক্রেডিট কার্ড প্রয়োজন নেই • চিরকালের জন্য ফ্রি প্ল্যান',
     login: 'লগইন',
+    register: 'রেজিস্টার',
     featuresTitle: 'অনলাইনে বিক্রি করতে যা যা দরকার',
     featuresSubtitle: 'আপনার ব্যবসা বাড়াতে শক্তিশালী ফিচার',
     pricingTitle: 'সহজ, স্বচ্ছ মূল্য',
@@ -59,6 +63,7 @@ const translations = {
     ctaSubtitle: 'হাজার হাজার মার্চেন্ট যারা তাদের ই-কমার্স প্রয়োজনে Multi-Store-কে বিশ্বাস করে তাদের সাথে যোগ দিন।',
     ctaButton: 'আপনার ফ্রি স্টোর তৈরি করুন',
     perMonth: '/মাস',
+    mostPopular: 'সবচেয়ে জনপ্রিয়',
     features: [
       { title: 'আপনার নিজের স্টোর', description: 'মিনিটের মধ্যে আপনার কাস্টম সাবডোমেইন সহ একটি পেশাদার অনলাইন স্টোর পান।' },
       { title: 'অতি দ্রুত', description: 'বিশ্বব্যাপী তাৎক্ষণিক পেজ লোডের জন্য এজ কম্পিউটিং-এ নির্মিত।' },
@@ -78,8 +83,10 @@ const translations = {
 const FEATURE_ICONS = [Store, Zap, Shield, BarChart3, Globe, Headphones];
 
 export function MarketingLanding() {
-  const [lang, setLang] = useState<'en' | 'bn'>('en');
-  const t = translations[lang];
+  // Use global language context
+  const { lang, toggleLang } = useLanguage();
+  // Get marketing-specific content based on language
+  const content = marketingContent[lang];
 
   return (
     <div className="min-h-screen bg-white">
@@ -94,19 +101,19 @@ export function MarketingLanding() {
               <span className="font-bold text-xl text-gray-900">Multi-Store</span>
             </div>
             <div className="flex items-center gap-4">
-              {/* Language Toggle */}
+              {/* Language Toggle - uses global context */}
               <button
-                onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
+                onClick={toggleLang}
                 className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition"
               >
                 <Globe className="w-4 h-4" />
                 {lang === 'en' ? 'বাংলা' : 'EN'}
               </button>
               <Link to="/auth/login" className="text-gray-600 hover:text-gray-900 font-medium">
-                {t.login}
+                {content.login}
               </Link>
               <Link to="/auth/register" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition">
-                {t.startFree}
+                {content.startFree}
               </Link>
             </div>
           </div>
@@ -118,32 +125,32 @@ export function MarketingLanding() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium mb-6">
             <Zap className="w-4 h-4" />
-            {t.tagline}
+            {content.tagline}
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
-            {t.heroTitle1} <br />
+            {content.heroTitle1} <br />
             <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-              {t.heroTitle2}
+              {content.heroTitle2}
             </span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            {t.heroSubtitle}
+            {content.heroSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/auth/register"
               className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-lg shadow-lg shadow-emerald-500/30 transition-all hover:shadow-xl flex items-center gap-2"
             >
-              {t.startFree} <ArrowRight className="w-5 h-5" />
+              {content.startFree} <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               to="#pricing"
               className="px-8 py-4 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl text-lg border border-gray-200 transition"
             >
-              {t.viewPricing}
+              {content.viewPricing}
             </Link>
           </div>
-          <p className="mt-4 text-gray-500 text-sm">{t.noCreditCard}</p>
+          <p className="mt-4 text-gray-500 text-sm">{content.noCreditCard}</p>
         </div>
       </section>
 
@@ -151,11 +158,11 @@ export function MarketingLanding() {
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t.featuresTitle}</h2>
-            <p className="text-gray-600 text-lg">{t.featuresSubtitle}</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{content.featuresTitle}</h2>
+            <p className="text-gray-600 text-lg">{content.featuresSubtitle}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {t.features.map((feature, i) => {
+            {content.features.map((feature, i) => {
               const Icon = FEATURE_ICONS[i];
               return (
                 <div key={i} className="p-6 rounded-2xl bg-gray-50 hover:bg-emerald-50 transition-colors">
@@ -175,11 +182,11 @@ export function MarketingLanding() {
       <section id="pricing" className="py-20 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t.pricingTitle}</h2>
-            <p className="text-gray-600 text-lg">{t.pricingSubtitle}</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{content.pricingTitle}</h2>
+            <p className="text-gray-600 text-lg">{content.pricingSubtitle}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {t.plans.map((plan, i) => {
+            {content.plans.map((plan, i) => {
               const isPopular = i === 1;
               return (
                 <div
@@ -190,14 +197,14 @@ export function MarketingLanding() {
                 >
                   {isPopular && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-emerald-500 text-white text-sm font-semibold rounded-full">
-                      {lang === 'en' ? 'Most Popular' : 'সবচেয়ে জনপ্রিয়'}
+                      {content.mostPopular}
                     </div>
                   )}
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                   <p className="text-gray-500 text-sm mb-4">{plan.description}</p>
                   <div className="mb-6">
                     <span className="text-4xl font-extrabold text-gray-900">৳{plan.price}</span>
-                    <span className="text-gray-500">{t.perMonth}</span>
+                    <span className="text-gray-500">{content.perMonth}</span>
                   </div>
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, j) => (
@@ -228,16 +235,16 @@ export function MarketingLanding() {
       <section className="py-20 px-4 bg-emerald-600">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            {t.ctaTitle}
+            {content.ctaTitle}
           </h2>
           <p className="text-emerald-100 text-lg mb-8">
-            {t.ctaSubtitle}
+            {content.ctaSubtitle}
           </p>
           <Link
             to="/auth/register"
             className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-emerald-600 font-semibold rounded-xl text-lg transition"
           >
-            {t.ctaButton} <ArrowRight className="w-5 h-5" />
+            {content.ctaButton} <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </section>
@@ -254,8 +261,8 @@ export function MarketingLanding() {
             </div>
             <p className="text-sm">© {new Date().getFullYear()} Multi-Store SaaS. All rights reserved.</p>
             <div className="flex items-center gap-6 text-sm">
-              <Link to="/auth/login" className="hover:text-white">{t.login}</Link>
-              <Link to="/auth/register" className="hover:text-white">{lang === 'en' ? 'Register' : 'রেজিস্টার'}</Link>
+              <Link to="/auth/login" className="hover:text-white">{content.login}</Link>
+              <Link to="/auth/register" className="hover:text-white">{content.register}</Link>
             </div>
           </div>
         </div>
@@ -263,4 +270,3 @@ export function MarketingLanding() {
     </div>
   );
 }
-
