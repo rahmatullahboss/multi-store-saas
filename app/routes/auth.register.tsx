@@ -5,9 +5,11 @@
  * POST: Create user + store, create session, redirect to dashboard
  */
 
+import { useState } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, useActionData, useNavigation } from '@remix-run/react';
+import { Store, Globe } from 'lucide-react';
 import { register, createUserSession, getUserId } from '~/services/auth.server';
 
 export const meta: MetaFunction = () => {
@@ -29,6 +31,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
   const storeName = formData.get('storeName') as string;
+  const subdomain = formData.get('subdomain') as string;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -44,22 +47,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeName || storeName.length < 2) {
     errors.storeName = 'Store name must be at least 2 characters';
   }
-
-  if (Object.keys(errors).length > 0) {
-    return json({ errors }, { status: 400 });
+  
+  // Subdomain validation
+  const cleanSubdomain = subdomain
+    ? subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30)
+    : storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30);
+  
+  if (!cleanSubdomain || cleanSubdomain.length < 2) {
+    errors.subdomain = 'Subdomain must be at least 2 characters';
+  }
+  if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(cleanSubdomain)) {
+    errors.subdomain = 'Subdomain must start and end with a letter or number';
   }
 
-  // Attempt registration
+  if (Object.keys(errors).length > 0) {
+    return json({ errors, subdomain: cleanSubdomain }, { status: 400 });
+  }
+
+  // Attempt registration with custom subdomain
   const result = await register({
     email,
     password,
     name,
     storeName,
+    subdomain: cleanSubdomain,
     db: context.cloudflare.env.DB,
   });
 
   if (result.error) {
-    return json({ errors: { form: result.error } }, { status: 400 });
+    return json({ errors: { form: result.error }, subdomain: cleanSubdomain }, { status: 400 });
   }
 
   // Create session and redirect
@@ -74,14 +90,37 @@ export default function RegisterPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  
+  // State for live subdomain preview
+  const [storeName, setStoreName] = useState('');
+  const [customSubdomain, setCustomSubdomain] = useState('');
+  const [useCustomSubdomain, setUseCustomSubdomain] = useState(false);
+  
+  // Generate subdomain from store name
+  const autoSubdomain = storeName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 30);
+  
+  // Clean custom subdomain
+  const cleanCustomSubdomain = customSubdomain
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '')
+    .slice(0, 30);
+  
+  const displaySubdomain = useCustomSubdomain ? cleanCustomSubdomain : autoSubdomain;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl mb-4">
+            <Store className="w-8 h-8 text-white" />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">Multi-Store SaaS</h1>
-          <p className="text-gray-600 mt-2">Create your store</p>
+          <p className="text-gray-600 mt-2">Create your store in 30 seconds</p>
         </div>
 
         {/* Register Form */}
@@ -157,6 +196,8 @@ export default function RegisterPage() {
                 type="text"
                 id="storeName"
                 name="storeName"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="My Awesome Store"
               />
@@ -165,13 +206,77 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Subdomain Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Store URL
+              </label>
+              
+              {/* Auto-generated subdomain preview */}
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 mb-2">
+                <Globe className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                <span className="text-gray-600">
+                  <span className="font-semibold text-emerald-600">
+                    {displaySubdomain || 'yourstore'}
+                  </span>
+                  <span className="text-gray-500">.digitalcare.site</span>
+                </span>
+              </div>
+              
+              {/* Custom subdomain toggle */}
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  id="useCustomSubdomain"
+                  checked={useCustomSubdomain}
+                  onChange={(e) => setUseCustomSubdomain(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                />
+                <label htmlFor="useCustomSubdomain" className="text-sm text-gray-600">
+                  Use custom subdomain
+                </label>
+              </div>
+              
+              {/* Custom subdomain input */}
+              {useCustomSubdomain && (
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="subdomain"
+                    name="subdomain"
+                    value={customSubdomain}
+                    onChange={(e) => setCustomSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition pr-36"
+                    placeholder="yourstore"
+                    maxLength={30}
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                    .digitalcare.site
+                  </span>
+                </div>
+              )}
+              
+              {/* Hidden input for auto-generated subdomain */}
+              {!useCustomSubdomain && (
+                <input type="hidden" name="subdomain" value={autoSubdomain} />
+              )}
+              
+              {actionData?.errors?.subdomain && (
+                <p className="text-red-500 text-sm mt-1">{actionData.errors.subdomain}</p>
+              )}
+              
+              <p className="text-xs text-gray-500 mt-2">
+                Only lowercase letters, numbers, and hyphens allowed. This will be your store's URL.
+              </p>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
               className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Creating account...' : 'Create Account'}
+              {isSubmitting ? 'Creating your store...' : 'Create Store'}
             </button>
           </Form>
 
@@ -184,6 +289,11 @@ export default function RegisterPage() {
               </Link>
             </p>
           </div>
+        </div>
+        
+        {/* Features */}
+        <div className="mt-6 text-center text-sm text-gray-600">
+          <p>✓ Free to start · ✓ No credit card required · ✓ Setup in 30 seconds</p>
         </div>
       </div>
     </div>

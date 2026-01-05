@@ -140,6 +140,7 @@ interface RegisterParams {
   password: string;
   name: string;
   storeName: string;
+  subdomain?: string; // Optional custom subdomain
   db: D1Database;
 }
 
@@ -174,7 +175,7 @@ export async function login({ email, password, db }: LoginParams) {
 /**
  * Register a new merchant with their store
  */
-export async function register({ email, password, name, storeName, db }: RegisterParams) {
+export async function register({ email, password, name, storeName, subdomain: customSubdomain, db }: RegisterParams) {
   const drizzleDb = drizzle(db);
   
   // Check if email exists
@@ -191,12 +192,14 @@ export async function register({ email, password, name, storeName, db }: Registe
   // Hash password
   const passwordHash = await hashPassword(password);
   
-  // Generate subdomain from store name
-  const subdomain = storeName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 30);
+  // Use custom subdomain if provided, otherwise generate from store name
+  const subdomain = customSubdomain 
+    ? customSubdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30)
+    : storeName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 30);
   
   // Check subdomain uniqueness
   const existingStore = await drizzleDb
@@ -206,7 +209,7 @@ export async function register({ email, password, name, storeName, db }: Registe
     .limit(1);
   
   if (existingStore.length > 0) {
-    return { error: 'A store with this name already exists. Please choose a different name.' };
+    return { error: `The subdomain "${subdomain}" is already taken. Please choose a different one.` };
   }
   
   // Create store first
