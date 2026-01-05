@@ -461,7 +461,7 @@ export default function SettingsPage() {
 
             {/* Read-only info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-              <InfoItem label="Subdomain" value={`${store.subdomain}.online-bazar.top`} />
+              <InfoItem label="Subdomain" value={`${store.subdomain}.digitalcare.site`} />
               <InfoItem label="Store Mode" value={store.mode === 'landing' ? 'Landing Page' : 'Full Store'} />
               {store.customDomain && (
                 <InfoItem label="Custom Domain" value={store.customDomain} />
@@ -676,7 +676,7 @@ export default function SettingsPage() {
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm text-gray-600">Your store is currently accessible at:</p>
               <p className="font-medium text-gray-900 mt-1">
-                https://{store.subdomain}.online-bazar.top
+                https://{store.subdomain}.digitalcare.site
               </p>
             </div>
 

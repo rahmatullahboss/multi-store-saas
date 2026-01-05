@@ -179,7 +179,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     host === 'localhost' ||
     host === '127.0.0.1' ||
     host === 'multi-store-saas.pages.dev' ||
-    host === 'online-bazar.top' ||
+    host === 'digitalcare.site' ||
     (host.endsWith('.pages.dev') && !host.includes('.') === false && host.split('.').length <= 3)
   ) && (!store || storeId === 0);
   
