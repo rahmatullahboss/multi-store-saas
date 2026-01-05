@@ -14,7 +14,8 @@ import { stores } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getAllTemplates, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
-import { Check, ExternalLink, Palette } from 'lucide-react';
+import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
+import { Check, ExternalLink, Palette, Lock, Crown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store SaaS' }];
@@ -35,11 +36,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const landingConfig = parseLandingConfig(store[0].landingConfig as string | null) || defaultLandingConfig;
   const currentTemplateId = landingConfig.templateId || DEFAULT_TEMPLATE_ID;
   const templates = getAllTemplates();
+  const planType = (store[0].planType as PlanType) || 'free';
+  const canSelectTemplates = canUseStoreMode(planType); // Paid users can select templates
   
   return json({
     currentTemplateId,
     templates: templates.map(t => ({ id: t.id, name: t.name, description: t.description, thumbnail: t.thumbnail })),
     storeSubdomain: store[0].subdomain,
+    canSelectTemplates,
+    planType,
   });
 }
 
@@ -76,7 +81,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function DesignPage() {
-  const { currentTemplateId, templates, storeSubdomain } = useLoaderData<typeof loader>();
+  const { currentTemplateId, templates, storeSubdomain, canSelectTemplates, planType } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [selectedId, setSelectedId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -123,22 +128,46 @@ export default function DesignPage() {
         </div>
       )}
 
+      {/* Free User Upgrade Banner */}
+      {!canSelectTemplates && (
+        <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+              <Lock className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="font-medium text-amber-900">Template Selection Locked</h3>
+              <p className="text-sm text-amber-700">Upgrade to a paid plan to choose from all templates</p>
+            </div>
+          </div>
+          <a
+            href="/app/subscription"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
+          >
+            <Crown className="w-4 h-4" />
+            Upgrade
+          </a>
+        </div>
+      )}
+
       {/* Template Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templates.map((template) => {
           const isActive = template.id === currentTemplateId;
           const isSelected = template.id === selectedId;
+          const isDefault = template.id === DEFAULT_TEMPLATE_ID;
+          const isLocked = !canSelectTemplates && !isDefault;
           
           return (
             <Form method="post" key={template.id}>
               <input type="hidden" name="templateId" value={template.id} />
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLocked}
                 className={`w-full text-left rounded-2xl overflow-hidden border-2 transition-all ${
                   isActive ? 'border-emerald-500 ring-4 ring-emerald-500/20' : 
                   isSelected ? 'border-gray-400' : 'border-gray-200 hover:border-gray-300'
-                } ${isSubmitting ? 'opacity-50' : ''}`}
+                } ${isSubmitting || isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {/* Thumbnail */}
                 <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 relative">
@@ -168,6 +197,14 @@ export default function DesignPage() {
                       Active
                     </div>
                   )}
+                  
+                  {/* Locked Badge */}
+                  {isLocked && (
+                    <div className="absolute top-3 right-3 bg-gray-800/80 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                      <Lock className="w-3 h-3" />
+                      Pro
+                    </div>
+                  )}
                 </div>
                 
                 {/* Info */}
@@ -175,7 +212,13 @@ export default function DesignPage() {
                   <h3 className="font-semibold text-gray-900">{template.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">{template.description}</p>
                   
-                  {!isActive && (
+                  {isLocked ? (
+                    <div className="mt-3">
+                      <span className="text-sm font-medium text-gray-400">
+                        Upgrade to select →
+                      </span>
+                    </div>
+                  ) : !isActive && (
                     <div className="mt-3">
                       <span className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
                         {isSubmitting && isSelected ? 'Applying...' : 'Select Template →'}

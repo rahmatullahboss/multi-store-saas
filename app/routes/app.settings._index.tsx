@@ -22,7 +22,8 @@ import { stores } from '@db/schema';
 import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { fontOptions } from '~/lib/theme';
-import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle } from 'lucide-react';
+import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
+import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
 export const meta: MetaFunction = () => {
@@ -50,6 +51,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const footerConfig = parseFooterConfig(store.footerConfig as string | null);
 
+  const planType = (store.planType as PlanType) || 'free';
+  const allowStoreMode = canUseStoreMode(planType);
+
   return json({
     store: {
       id: store.id,
@@ -57,7 +61,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       subdomain: store.subdomain,
       customDomain: store.customDomain,
       currency: store.currency,
-      mode: store.mode,
+      mode: store.mode || 'landing',
+      planType,
       theme: store.theme,
       logo: store.logo,
       favicon: store.favicon,
@@ -66,6 +71,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       footerConfig: footerConfig || { description: '', showPoweredBy: true },
       businessInfo: store.businessInfo ? JSON.parse(store.businessInfo) : { phone: '', email: '', address: '' },
     },
+    allowStoreMode,
   });
 }
 
@@ -89,6 +95,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const businessEmail = formData.get('businessEmail') as string;
   const businessAddress = formData.get('businessAddress') as string;
   const customDomain = formData.get('customDomain') as string;
+  const storeMode = formData.get('storeMode') as 'landing' | 'store' | null;
   
   // Social links
   const facebook = formData.get('facebook') as string;
@@ -102,28 +109,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // Build update object
+  const updateData: Record<string, unknown> = {
+    name: name.trim(),
+    currency: currency || 'BDT',
+    theme: theme || 'default',
+    logo: logo || null,
+    favicon: favicon || null,
+    fontFamily: fontFamily || 'inter',
+    customDomain: customDomain?.trim() || null,
+    socialLinks: JSON.stringify({
+      facebook: facebook || '',
+      instagram: instagram || '',
+      whatsapp: whatsapp || '',
+    }),
+    businessInfo: JSON.stringify({
+      phone: businessPhone || '',
+      email: businessEmail || '',
+      address: businessAddress || '',
+    }),
+    updatedAt: new Date(),
+  };
+
+  // Only update mode if provided (for paid users)
+  if (storeMode && (storeMode === 'landing' || storeMode === 'store')) {
+    updateData.mode = storeMode;
+  }
+
   await db
     .update(stores)
-    .set({
-      name: name.trim(),
-      currency: currency || 'BDT',
-      theme: theme || 'default',
-      logo: logo || null,
-      favicon: favicon || null,
-      fontFamily: fontFamily || 'inter',
-      customDomain: customDomain?.trim() || null,
-      socialLinks: JSON.stringify({
-        facebook: facebook || '',
-        instagram: instagram || '',
-        whatsapp: whatsapp || '',
-      }),
-      businessInfo: JSON.stringify({
-        phone: businessPhone || '',
-        email: businessEmail || '',
-        address: businessAddress || '',
-      }),
-      updatedAt: new Date(),
-    })
+    .set(updateData)
     .where(eq(stores.id, storeId));
 
   return json({ success: true });
@@ -156,12 +171,13 @@ const themes = [
 // MAIN COMPONENT
 // ============================================================================
 export default function SettingsPage() {
-  const { store } = useLoaderData<typeof loader>();
+  const { store, allowStoreMode } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(store.theme || 'default');
+  const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode as 'landing' | 'store' || 'landing');
   
   // Logo upload state
   const [logoUrl, setLogoUrl] = useState<string>(store.logo || '');
@@ -462,7 +478,7 @@ export default function SettingsPage() {
             {/* Read-only info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
               <InfoItem label="Subdomain" value={`${store.subdomain}.digitalcare.site`} />
-              <InfoItem label="Store Mode" value={store.mode === 'landing' ? 'Landing Page' : 'Full Store'} />
+              <InfoItem label="Current Plan" value={store.planType === 'free' ? 'Free' : store.planType.charAt(0).toUpperCase() + store.planType.slice(1)} />
               {store.customDomain && (
                 <InfoItem label="Custom Domain" value={store.customDomain} />
               )}
@@ -470,6 +486,107 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Store Mode Selection Card */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
+              <Layout className="w-5 h-5 text-violet-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Store Mode</h2>
+              <p className="text-sm text-gray-500">Choose how your store appears to customers</p>
+            </div>
+          </div>
+
+          {/* Hidden input for form submission */}
+          <input type="hidden" name="storeMode" value={storeMode} />
+
+          {allowStoreMode ? (
+            /* Paid Users - Can toggle between modes */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Landing Page Option */}
+              <button
+                type="button"
+                onClick={() => setStoreMode('landing')}
+                className={`relative flex flex-col items-start p-4 border-2 rounded-xl transition text-left ${
+                  storeMode === 'landing'
+                    ? 'border-violet-500 bg-violet-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-3">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Landing Page</h3>
+                <p className="text-sm text-gray-500">Single product focus with high-converting sales page design. Perfect for featured products.</p>
+                {storeMode === 'landing' && (
+                  <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
+                )}
+              </button>
+
+              {/* Full Store Option */}
+              <button
+                type="button"
+                onClick={() => setStoreMode('store')}
+                className={`relative flex flex-col items-start p-4 border-2 rounded-xl transition text-left ${
+                  storeMode === 'store'
+                    ? 'border-violet-500 bg-violet-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-3">
+                  <ShoppingBag className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Full Store</h3>
+                <p className="text-sm text-gray-500">Complete e-commerce experience with product catalog, cart, categories, and checkout.</p>
+                {storeMode === 'store' && (
+                  <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
+                )}
+              </button>
+            </div>
+          ) : (
+            /* Free Users - Locked to Landing Page with upgrade prompt */
+            <div className="space-y-4">
+              {/* Current Mode - Landing Page */}
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">Landing Page Mode</h3>
+                  <p className="text-sm text-gray-500">Your store displays a single product sales page</p>
+                </div>
+                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">Active</span>
+              </div>
+
+              {/* Upgrade Prompt for Full Store */}
+              <div className="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 opacity-75">
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                  <Lock className="w-3 h-3" />
+                  Pro
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center opacity-50">
+                    <ShoppingBag className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-700">Full Store Mode</h3>
+                    <p className="text-sm text-gray-500">Unlock product catalog, cart & categories</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upgrade CTA */}
+              <a
+                href="/app/subscription"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-lg shadow-amber-500/20"
+              >
+                <Crown className="w-5 h-5" />
+                Upgrade to Unlock Full Store Mode
+              </a>
+            </div>
+          )}
+        </div>
         {/* Theme & Font Selection */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
