@@ -1,0 +1,10 @@
+# Wildcard Proxy Worker Configuration
+name = "wildcard-proxy"
+main = "wildcard-proxy.ts"
+compatibility_date = "2024-12-30"
+
+[vars]
+PAGES_URL = "https://multi-store-saas.pages.dev"
+
+# Routes will be configured in Cloudflare Dashboard:
+# *.digitalcare.site/* → wildcard-proxy
