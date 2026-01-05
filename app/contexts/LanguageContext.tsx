@@ -127,7 +127,52 @@ export function useFormatPrice() {
 export function useTranslation() {
   const { locale } = useLanguage();
   
-  // Dynamic import to avoid SSR issues
-  const { getTranslations } = require('~/utils/translations');
-  return getTranslations(locale);
+  // Import translations statically - use locale to pick the right one
+  const translations = locale === 'bn' 
+    ? {
+        // Bengali translations
+        home: 'হোম',
+        allProducts: 'সব পণ্য',
+        cart: 'কার্ট',
+        featuredProducts: 'বিশেষ পণ্যসমূহ',
+        products: 'টি পণ্য',
+        product: 'টি পণ্য',
+        noProductsFound: 'কোনো পণ্য পাওয়া যায়নি',
+        checkBackSoon: 'শীঘ্রই নতুন পণ্য আসবে!',
+        browseAllProducts: 'সব পণ্য দেখুন',
+        addToCart: 'কার্টে যোগ করুন',
+        adding: 'যোগ হচ্ছে...',
+        off: 'ছাড়',
+        orderNow: 'অর্ডার করুন',
+        shopNow: 'কিনুন',
+        shopByCategory: 'ক্যাটাগরি অনুযায়ী কিনুন',
+        quickLinks: 'দ্রুত লিংক',
+        categories: 'ক্যাটাগরি',
+        contact: 'যোগাযোগ',
+        aboutUs: 'আমাদের সম্পর্কে',
+      }
+    : {
+        // English translations
+        home: 'Home',
+        allProducts: 'All Products',
+        cart: 'Cart',
+        featuredProducts: 'Featured Products',
+        products: 'products',
+        product: 'product',
+        noProductsFound: 'No products found',
+        checkBackSoon: 'Check back soon for new arrivals!',
+        browseAllProducts: 'Browse All Products',
+        addToCart: 'Add to Cart',
+        adding: 'Adding...',
+        off: 'OFF',
+        orderNow: 'Order Now',
+        shopNow: 'Shop Now',
+        shopByCategory: 'Shop by Category',
+        quickLinks: 'Quick Links',
+        categories: 'Categories',
+        contact: 'Contact',
+        aboutUs: 'About Us',
+      };
+  
+  return translations;
 }
