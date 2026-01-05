@@ -57,7 +57,9 @@ function parseHostname(hostname: string, saasDomain: string): { type: 'subdomain
  */
 export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Variables: TenantContext }> => {
   return async (c, next) => {
-    const hostname = c.req.header('host') || '';
+    // Check X-Forwarded-Host first (set by wildcard proxy worker)
+    // This preserves the original subdomain when proxied through Pages
+    const hostname = c.req.header('x-forwarded-host') || c.req.header('host') || '';
     const saasDomain = c.env.SAAS_DOMAIN || 'mysaas.com';
     const requestPath = c.req.path;
     
