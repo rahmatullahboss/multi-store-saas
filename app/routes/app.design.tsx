@@ -15,8 +15,9 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getAllTemplates, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
-import { Check, ExternalLink, Palette, Lock, Crown } from 'lucide-react';
+import { Check, ExternalLink, Palette, Lock, Crown, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { ThemePreview } from '~/components/ThemePreview';
 
 export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store SaaS' }];
 
@@ -43,6 +44,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     currentTemplateId,
     templates: templates.map(t => ({ id: t.id, name: t.name, description: t.description, thumbnail: t.thumbnail })),
     storeSubdomain: store[0].subdomain,
+    storeName: store[0].name,
+    storeLogo: store[0].logo,
+    storeTheme: store[0].theme || 'default',
+    storeFont: store[0].fontFamily || 'inter',
     canSelectTemplates,
     planType,
   });
@@ -96,12 +101,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function DesignPage() {
-  const { currentTemplateId, templates, storeSubdomain, canSelectTemplates, planType } = useLoaderData<typeof loader>();
+  const { currentTemplateId, templates, storeSubdomain, storeName, storeLogo, storeTheme, storeFont, canSelectTemplates, planType } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [selectedId, setSelectedId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   
   const isSubmitting = navigation.state === 'submitting';
+
+  // Handle template preview
+  const handlePreview = (templateId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPreviewTemplate(templateId);
+    setShowPreview(true);
+  };
 
   // Show success toast after selection
   useEffect(() => {
@@ -227,17 +242,30 @@ export default function DesignPage() {
                   <h3 className="font-semibold text-gray-900">{template.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">{template.description}</p>
                   
-                  {isLocked ? (
+                {isLocked ? (
                     <div className="mt-3">
                       <span className="text-sm font-medium text-gray-400">
                         Upgrade to select →
                       </span>
                     </div>
-                  ) : !isActive && (
-                    <div className="mt-3">
-                      <span className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
-                        {isSubmitting && isSelected ? 'Applying...' : 'Select Template →'}
-                      </span>
+                  ) : (
+                    <div className="mt-3 flex items-center justify-between">
+                      {!isActive && (
+                        <span className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
+                          {isSubmitting && isSelected ? 'Applying...' : 'Select Template →'}
+                        </span>
+                      )}
+                      {isActive && (
+                        <span className="text-sm font-medium text-emerald-600">Currently Active</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => handlePreview(template.id, e)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Preview
+                      </button>
                     </div>
                   )}
                 </div>
@@ -254,8 +282,22 @@ export default function DesignPage() {
           <li>• <strong>Modern Dark:</strong> Great for urgency-driven sales with bold colors</li>
           <li>• <strong>Minimal Light:</strong> Clean and elegant, perfect for premium products</li>
           <li>• <strong>Video Focus:</strong> Best when you have a product video to showcase</li>
+          <li>• Click <strong>Preview</strong> on any template to see how it looks before selecting</li>
         </ul>
       </div>
+
+      {/* Theme Preview Modal */}
+      <ThemePreview
+        isOpen={showPreview}
+        onClose={() => {
+          setShowPreview(false);
+          setPreviewTemplate(null);
+        }}
+        theme={storeTheme}
+        fontFamily={storeFont}
+        storeName={storeName}
+        logo={storeLogo}
+      />
     </div>
   );
 }
