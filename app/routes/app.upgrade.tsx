@@ -122,7 +122,7 @@ export default function UpgradePage() {
           For now, please contact us on WhatsApp to upgrade your plan manually.
         </p>
         <a 
-          href="https://wa.me/8801XXXXXXXXX?text=Hi!%20I%20want%20to%20upgrade%20my%20plan"
+          href="https://wa.me/8801739416661?text=Hi!%20I%20want%20to%20upgrade%20my%20plan"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition"
@@ -194,7 +194,7 @@ export default function UpgradePage() {
                 </div>
               ) : (
                 <a
-                  href={`https://wa.me/8801XXXXXXXXX?text=Hi!%20I%20want%20to%20upgrade%20to%20${plan.name}%20plan%20(৳${plan.price}/month)`}
+                  href={`https://wa.me/8801739416661?text=Hi!%20I%20want%20to%20upgrade%20to%20${plan.name}%20plan%20(৳${plan.price}/month)`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`w-full py-3 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition ${

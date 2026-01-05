@@ -268,7 +268,7 @@ export default function DomainSettings() {
                     Custom domains are available on Starter and Premium plans.
                   </p>
                   <a 
-                    href="/app/subscription" 
+                    href="/app/upgrade" 
                     className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
                   >
                     <Crown className="w-4 h-4" />

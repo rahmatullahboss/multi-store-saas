@@ -597,7 +597,7 @@ export default function SettingsPage() {
 
               {/* Upgrade CTA */}
               <a
-                href="/app/subscription"
+                href="/app/upgrade"
                 className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-lg shadow-amber-500/20"
               >
                 <Crown className="w-5 h-5" />

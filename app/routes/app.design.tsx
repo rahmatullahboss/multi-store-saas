@@ -171,7 +171,7 @@ export default function DesignPage() {
             </div>
           </div>
           <a
-            href="/app/subscription"
+            href="/app/upgrade"
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
           >
             <Crown className="w-4 h-4" />
