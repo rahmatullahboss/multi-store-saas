@@ -49,7 +49,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
-// ACTION - Update template selection
+// ACTION - Update template selection (with server-side validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   await requireUserId(request);
@@ -63,9 +63,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
   
-  // Get current landing config
+  // Get store with plan info
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   if (!store[0]) throw new Response('Store not found', { status: 404 });
+  
+  // ========================================================================
+  // SERVER-SIDE VALIDATION: Prevent free users from selecting premium templates
+  // ========================================================================
+  const planType = (store[0].planType as PlanType) || 'free';
+  const canSelectTemplates = canUseStoreMode(planType);
+  
+  // Free users can ONLY use the default template - reject any other selection
+  if (!canSelectTemplates && templateId !== DEFAULT_TEMPLATE_ID) {
+    console.warn(`[SECURITY] Free user (store ${storeId}) attempted to select premium template: ${templateId}`);
+    return json({ 
+      success: false, 
+      error: 'Template selection requires a paid plan. Please upgrade to unlock all templates.' 
+    }, { status: 403 });
+  }
   
   const currentConfig = parseLandingConfig(store[0].landingConfig as string | null) || defaultLandingConfig;
   

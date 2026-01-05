@@ -76,7 +76,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
-// ACTION - Update store settings
+// ACTION - Update store settings (with server-side validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request);
@@ -109,6 +109,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // ========================================================================
+  // SERVER-SIDE VALIDATION: Prevent free users from switching to store mode
+  // ========================================================================
+  if (storeMode === 'store') {
+    // Get current plan from database (not from client!)
+    const storeData = await db.select({ planType: stores.planType }).from(stores).where(eq(stores.id, storeId)).limit(1);
+    const planType = (storeData[0]?.planType as PlanType) || 'free';
+    
+    if (!canUseStoreMode(planType)) {
+      console.warn(`[SECURITY] Free user (store ${storeId}) attempted to switch to store mode`);
+      return json({ 
+        error: 'Full Store mode requires a paid plan. Please upgrade to unlock.' 
+      }, { status: 403 });
+    }
+  }
+
   // Build update object
   const updateData: Record<string, unknown> = {
     name: name.trim(),
@@ -131,7 +147,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     updatedAt: new Date(),
   };
 
-  // Only update mode if provided (for paid users)
+  // Only update mode if provided and validated above
   if (storeMode && (storeMode === 'landing' || storeMode === 'store')) {
     updateData.mode = storeMode;
   }

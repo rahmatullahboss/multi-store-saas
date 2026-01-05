@@ -26,7 +26,7 @@ export const meta: MetaFunction = () => {
 };
 
 // ============================================================================
-// ACTION - Create new product
+// ACTION - Create new product (with plan limit validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request);
@@ -57,6 +57,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (Object.keys(errors).length > 0) {
     return json({ errors }, { status: 400 });
+  }
+
+  // ========================================================================
+  // SERVER-SIDE VALIDATION: Check product limit before creating
+  // ========================================================================
+  const { checkUsageLimit } = await import('~/utils/plans.server');
+  const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
+  
+  if (!limitCheck.allowed) {
+    console.warn(`[SECURITY] Store ${storeId} attempted to exceed product limit`);
+    return json({ 
+      errors: { 
+        form: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.' 
+      } 
+    }, { status: 403 });
   }
 
   const db = drizzle(context.cloudflare.env.DB);
