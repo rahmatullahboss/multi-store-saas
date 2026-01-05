@@ -1,0 +1,15 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "subdomain-proxy"
+main = "workers/subdomain-proxy/index.ts"
+compatibility_date = "2024-12-30"
+
+[vars]
+PAGES_URL = "https://multi-store-saas.pages.dev"
+
+[observability]
+enabled = true
+
+# After deploying, add route in Cloudflare Dashboard:
+# Workers & Pages -> subdomain-proxy -> Settings -> Triggers -> Routes
+# Add: *.digitalcare.site/* (zone: digitalcare.site)

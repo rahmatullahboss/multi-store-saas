@@ -6,7 +6,17 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
+// CDN base URL for static assets in production
+// This serves JS/CSS/images from the main Pages domain, reducing Worker CPU usage
+const CDN_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://multi-store-saas.pages.dev/'
+  : '/';
+
 export default defineConfig({
+  // In production, assets are served from CDN domain
+  // This means HTML from subdomains will reference assets from the main domain
+  base: CDN_BASE_URL,
+  
   plugins: [
     // cloudflareDevProxyVitePlugin MUST come before remix plugin
     cloudflareDevProxyVitePlugin(),
@@ -24,6 +34,14 @@ export default defineConfig({
   ],
   build: {
     minify: true,
+    // Ensure consistent asset naming for caching
+    rollupOptions: {
+      output: {
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+      },
+    },
   },
   ssr: {
     resolve: {
