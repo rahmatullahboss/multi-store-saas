@@ -11,6 +11,7 @@ import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
+import { LanguageSelector } from '~/components/LanguageSelector';
 
 // ============================================================================
 // ARTISAN MARKET THEME CONSTANTS
@@ -133,6 +134,8 @@ export function ArtisanMarketTemplate({
 
             {/* Right Icons */}
             <div className="flex items-center gap-2">
+              {/* Language Selector */}
+              <LanguageSelector variant="toggle" size="sm" showFlag={true} showName={false} />
               <button className="p-2.5 rounded-full transition-colors hover:bg-amber-50">
                 <Search className="w-5 h-5" style={{ color: THEME.text }} />
               </button>

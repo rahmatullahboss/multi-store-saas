@@ -9,6 +9,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, useActionData, useNavigation } from '@remix-run/react';
 import { login, createUserSession, getUserId } from '~/services/auth.server';
+import { LanguageSelector } from '~/components/LanguageSelector';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Login - Multi-Store SaaS' }];
@@ -185,6 +186,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
+      {/* Language Selector - Top Right */}
+      <div className="absolute top-4 right-4">
+        <LanguageSelector variant="toggle" size="sm" />
+      </div>
+      
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">

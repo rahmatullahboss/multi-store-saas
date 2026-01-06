@@ -40,6 +40,7 @@ import {
   Sparkles,
   Home
 } from 'lucide-react';
+import { LanguageSelector } from '~/components/LanguageSelector';
 import { useState } from 'react';
 
 
@@ -392,6 +393,11 @@ export default function AppLayout() {
 
           {/* User Info & Logout */}
           <div className="p-4 border-t border-gray-200">
+            {/* Language Selector */}
+            <div className="mb-3">
+              <LanguageSelector variant="pills" size="sm" className="w-full" />
+            </div>
+            
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-gray-600">

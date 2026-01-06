@@ -11,6 +11,7 @@ import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
+import { LanguageSelector } from '~/components/LanguageSelector';
 
 // ============================================================================
 // TECH MODERN THEME CONSTANTS
@@ -151,6 +152,9 @@ export function TechModernTemplate({
                 />
               </div>
             </div>
+
+            {/* Language Selector */}
+            <LanguageSelector variant="toggle" size="sm" showFlag={true} showName={false} />
 
             {/* Cart Button */}
             <Link 
