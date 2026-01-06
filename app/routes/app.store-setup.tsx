@@ -22,7 +22,7 @@ import { getAllTemplates, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { 
   Loader2, CheckCircle, ExternalLink, Palette, Zap, 
   MessageSquare, Video, Users, Plus, Trash2, Eye,
-  ChevronDown, ChevronUp
+  ChevronDown, ChevronUp, Globe, EyeOff
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { OptimizedImage } from '~/components/OptimizedImage';
@@ -59,6 +59,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeSubdomain: store[0].subdomain,
     storeName: store[0].name,
     featuredProductId: store[0].featuredProductId,
+    isStorePublished: store[0].isActive ?? true,
     landingConfig,
     products: storeProducts,
     currency: store[0].currency || 'BDT',
@@ -73,7 +74,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request);
   if (!storeId) return json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
+  const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+
+  // Handle publish/unpublish toggle
+  if (intent === 'togglePublish') {
+    const isPublished = formData.get('isPublished') === 'true';
+    await db.update(stores).set({ isActive: isPublished, updatedAt: new Date() }).where(eq(stores.id, storeId));
+    return json({ success: true, published: isPublished });
+  }
+
   const templateId = formData.get('templateId') as string;
   const featuredProductId = formData.get('featuredProductId') as string;
   const headline = formData.get('headline') as string;
@@ -94,8 +105,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Invalid JSON, ignore
   }
 
-  const db = drizzle(context.cloudflare.env.DB);
-  
   // Get current config to preserve existing values
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   const currentConfig = parseLandingConfig(store[0]?.landingConfig as string | null) || defaultLandingConfig;
@@ -133,7 +142,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function StoreSetupPage() {
   const { 
     currentTemplateId, templates, storeSubdomain, storeName,
-    featuredProductId, landingConfig, products: storeProducts, currency
+    featuredProductId, isStorePublished, landingConfig, products: storeProducts, currency
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -150,9 +159,11 @@ export default function StoreSetupPage() {
   const [guaranteeText, setGuaranteeText] = useState(landingConfig.guaranteeText || '');
   const [ctaText, setCtaText] = useState(landingConfig.ctaText || 'Buy Now');
   const [ctaSubtext, setCtaSubtext] = useState(landingConfig.ctaSubtext || '');
+  const [storePublished, setStorePublished] = useState(isStorePublished);
   
   // Collapsible sections
   const [expandedSections, setExpandedSections] = useState({
+    publish: true,
     templates: true,
     product: true,
     headlines: true,
@@ -218,6 +229,68 @@ export default function StoreSetupPage() {
           Store setup saved successfully!
         </div>
       )}
+
+      {/* Section 0: Store Status (Publish/Unpublish) */}
+      <div className={`rounded-xl border-2 overflow-hidden transition ${
+        storePublished 
+          ? 'bg-emerald-50 border-emerald-200' 
+          : 'bg-gray-50 border-gray-200'
+      }`}>
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              storePublished ? 'bg-emerald-100' : 'bg-gray-200'
+            }`}>
+              {storePublished ? (
+                <Globe className="w-5 h-5 text-emerald-600" />
+              ) : (
+                <EyeOff className="w-5 h-5 text-gray-500" />
+              )}
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-900">Store Status</h2>
+              <p className="text-sm text-gray-500">
+                {storePublished 
+                  ? 'Your store is live and accepting orders' 
+                  : 'Your store is hidden from customers'
+                }
+              </p>
+            </div>
+          </div>
+          <Form method="post">
+            <input type="hidden" name="intent" value="togglePublish" />
+            <input type="hidden" name="isPublished" value={storePublished ? 'false' : 'true'} />
+            <button
+              type="submit"
+              onClick={() => setStorePublished(!storePublished)}
+              className={`px-4 py-2 font-medium rounded-lg transition flex items-center gap-2 ${
+                storePublished 
+                  ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50' 
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              }`}
+            >
+              {storePublished ? (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  Unpublish
+                </>
+              ) : (
+                <>
+                  <Globe className="w-4 h-4" />
+                  Publish Store
+                </>
+              )}
+            </button>
+          </Form>
+        </div>
+        {!storePublished && (
+          <div className="px-4 pb-4">
+            <div className="bg-yellow-100 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+              ⚠️ Your store is currently unpublished. Customers cannot see your products or place orders.
+            </div>
+          </div>
+        )}
+      </div>
 
       <Form method="post" className="space-y-4">
         <input type="hidden" name="templateId" value={selectedTemplateId} />

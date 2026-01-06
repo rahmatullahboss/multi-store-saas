@@ -56,6 +56,11 @@ export const stores = sqliteTable('stores', {
   fontFamily: text('font_family').default('inter'), // Selected font name
   footerConfig: text('footer_config'), // JSON: { description?, links[], showPoweredBy }
   
+  // === LEGAL POLICIES (Custom Overrides) ===
+  customPrivacyPolicy: text('custom_privacy_policy'), // Override auto-generated privacy policy
+  customTermsOfService: text('custom_terms_of_service'), // Override auto-generated terms
+  customRefundPolicy: text('custom_refund_policy'), // Override auto-generated refund policy
+  
   // === NOTIFICATION SETTINGS ===
   notificationEmail: text('notification_email'), // Override email for alerts
   emailNotificationsEnabled: integer('email_notifications_enabled', { mode: 'boolean' }).default(true),

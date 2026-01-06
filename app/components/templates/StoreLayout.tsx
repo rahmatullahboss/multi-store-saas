@@ -456,6 +456,16 @@ export function StoreLayout({
               </ul>
             </div>
 
+            {/* Legal */}
+            <div>
+              <h4 className="text-white font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/policies/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
+                <li><Link to="/policies/terms" className="hover:text-white transition">Terms of Service</Link></li>
+                <li><Link to="/policies/refund" className="hover:text-white transition">Refund Policy</Link></li>
+              </ul>
+            </div>
+
             {/* Categories */}
             <div>
               <h4 className="text-white font-semibold mb-4">Categories</h4>
