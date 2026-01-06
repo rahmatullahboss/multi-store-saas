@@ -26,6 +26,7 @@ import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
 import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Eye } from 'lucide-react';
 import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
+import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Settings - Multi-Store SaaS' }];
@@ -237,7 +238,7 @@ export default function SettingsPage() {
     }
   }, [actionData]);
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -248,9 +249,24 @@ export default function SettingsPage() {
     };
     reader.readAsDataURL(file);
 
-    // Upload to Cloudinary
+    // Compress image before upload (saves bandwidth & storage)
+    let fileToUpload: File | Blob = file;
+    try {
+      const format = getOptimalFormat();
+      const compressedBlob = await compressImage(file, {
+        maxWidth: 500,
+        maxHeight: 500,
+        quality: 0.85,
+        format,
+      });
+      fileToUpload = new File([compressedBlob], `logo.${format}`, { type: `image/${format}` });
+      console.log(`Logo compressed: ${file.size} -> ${compressedBlob.size} bytes`);
+    } catch (error) {
+      console.warn('Image compression failed, uploading original:', error);
+    }
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', fileToUpload);
     formData.append('folder', 'logos');
 
     logoFetcher.submit(formData, {
@@ -260,7 +276,7 @@ export default function SettingsPage() {
     });
   };
 
-  const handleFaviconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFaviconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -271,9 +287,23 @@ export default function SettingsPage() {
     };
     reader.readAsDataURL(file);
 
-    // Upload to Cloudinary
+    // Compress favicon (small size, but still optimize)
+    let fileToUpload: File | Blob = file;
+    try {
+      const compressedBlob = await compressImage(file, {
+        maxWidth: 64,
+        maxHeight: 64,
+        quality: 0.9,
+        format: 'png', // Keep PNG for favicon
+      });
+      fileToUpload = new File([compressedBlob], 'favicon.png', { type: 'image/png' });
+      console.log(`Favicon compressed: ${file.size} -> ${compressedBlob.size} bytes`);
+    } catch (error) {
+      console.warn('Image compression failed, uploading original:', error);
+    }
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', fileToUpload);
     formData.append('folder', 'favicons');
 
     faviconFetcher.submit(formData, {

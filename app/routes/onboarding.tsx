@@ -1,12 +1,12 @@
 /**
- * Onboarding Wizard Route
+ * Onboarding Wizard Route - Simplified 3-Step Flow
  * 
- * Shopify-style 5-step onboarding:
+ * Quick onboarding for fast store creation:
  * 1. Account (email, password, name)
- * 2. Business (description, category)
- * 3. Plan selection
- * 4. AI generates store
- * 5. Success & redirect
+ * 2. Store Setup (store name, subdomain, category)
+ * 3. Auto-create with category-based landing page
+ * 
+ * Users can customize everything later from Settings.
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -15,28 +15,103 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher, Link } from '@remix-run/react';
 import { Store, ArrowRight, ArrowLeft } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
 import { getUserId, register, createUserSession } from '~/services/auth.server';
-// AI features temporarily disabled for MVP
-// import { createAIService } from '~/services/ai.server';
-import type { PlanType } from '~/utils/plans.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
-import { PlanSelector } from '~/components/onboarding/PlanSelector';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
 
-// Business categories with translation keys
+// Business categories with translation keys and emojis
 const BUSINESS_CATEGORIES = [
-  { id: 'fashion', key: 'categoryFashion' as const },
-  { id: 'electronics', key: 'categoryElectronics' as const },
-  { id: 'beauty', key: 'categoryBeauty' as const },
-  { id: 'food', key: 'categoryFood' as const },
-  { id: 'home', key: 'categoryHome' as const },
-  { id: 'services', key: 'categoryServices' as const },
-  { id: 'other', key: 'categoryOther' as const },
+  { id: 'fashion', key: 'categoryFashion' as const, emoji: '👗' },
+  { id: 'electronics', key: 'categoryElectronics' as const, emoji: '📱' },
+  { id: 'beauty', key: 'categoryBeauty' as const, emoji: '💄' },
+  { id: 'food', key: 'categoryFood' as const, emoji: '🍔' },
+  { id: 'home', key: 'categoryHome' as const, emoji: '🏠' },
+  { id: 'services', key: 'categoryServices' as const, emoji: '🛠️' },
+  { id: 'other', key: 'categoryOther' as const, emoji: '📦' },
 ];
+
+// Category-based landing page templates
+const CATEGORY_TEMPLATES: Record<string, {
+  headline: string;
+  subheadline: string;
+  features: Array<{ icon: string; title: string; description: string }>;
+  product: { title: string; price: number; description: string };
+}> = {
+  fashion: {
+    headline: 'প্রিমিয়াম ফ্যাশন কালেকশন',
+    subheadline: 'ট্রেন্ডি ও স্টাইলিশ পোশাক',
+    features: [
+      { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের ফেব্রিক' },
+      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
+      { icon: '💳', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা দিন' },
+    ],
+    product: { title: 'Premium Fashion Item', price: 1500, description: 'স্টাইলিশ ও ট্রেন্ডি ফ্যাশন আইটেম' },
+  },
+  electronics: {
+    headline: 'সেরা ইলেকট্রনিক্স প্রোডাক্ট',
+    subheadline: 'অরিজিনাল গ্যাজেট ও এক্সেসরিজ',
+    features: [
+      { icon: '✅', title: '১০০% অরিজিনাল', description: 'ওয়ারেন্টি সহ' },
+      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
+      { icon: '🔧', title: 'আফটার সেলস সার্ভিস', description: 'ফ্রি টেকনিক্যাল সাপোর্ট' },
+    ],
+    product: { title: 'Quality Electronics', price: 2500, description: 'প্রিমিয়াম ইলেকট্রনিক্স আইটেম' },
+  },
+  beauty: {
+    headline: 'বিউটি ও স্কিনকেয়ার সলিউশন',
+    subheadline: 'গ্লো করুন নিজেকে',
+    features: [
+      { icon: '💎', title: 'অথেনটিক প্রোডাক্ট', description: '১০০% জেনুইন' },
+      { icon: '🌿', title: 'ন্যাচারাল ইনগ্রিডিয়েন্ট', description: 'স্কিন ফ্রেন্ডলি' },
+      { icon: '💝', title: 'ফ্রি গিফট', description: 'প্রতি অর্ডারে সারপ্রাইজ' },
+    ],
+    product: { title: 'Beauty Product', price: 800, description: 'প্রিমিয়াম বিউটি প্রোডাক্ট' },
+  },
+  food: {
+    headline: 'সুস্বাদু খাবার ও স্ন্যাক্স',
+    subheadline: 'ফ্রেশ ও হাইজিনিক',
+    features: [
+      { icon: '🍽️', title: 'ফ্রেশ প্রোডাক্ট', description: 'প্রতিদিন তৈরি' },
+      { icon: '🚴', title: 'হট ডেলিভারি', description: 'গরম গরম পৌঁছে যাবে' },
+      { icon: '😋', title: 'টেস্ট গ্যারান্টি', description: 'মুখে লেগে যাবে' },
+    ],
+    product: { title: 'Delicious Food Item', price: 350, description: 'সুস্বাদু খাবার' },
+  },
+  home: {
+    headline: 'হোম ও লাইফস্টাইল প্রোডাক্ট',
+    subheadline: 'আপনার ঘরকে সাজান',
+    features: [
+      { icon: '🏡', title: 'কোয়ালিটি প্রোডাক্ট', description: 'লং লাস্টিং' },
+      { icon: '📦', title: 'সেফ প্যাকেজিং', description: 'সঠিক কন্ডিশনে ডেলিভারি' },
+      { icon: '🔄', title: 'ইজি রিটার্ন', description: '৭ দিনে রিটার্ন' },
+    ],
+    product: { title: 'Home & Living Product', price: 1200, description: 'হোম ডেকোর আইটেম' },
+  },
+  services: {
+    headline: 'প্রফেশনাল সার্ভিস',
+    subheadline: 'এক্সপার্ট সলিউশন',
+    features: [
+      { icon: '👨‍💼', title: 'এক্সপার্ট টিম', description: 'অভিজ্ঞ প্রফেশনাল' },
+      { icon: '⏱️', title: 'সময়মত ডেলিভারি', description: 'ডেডলাইন মেইনটেইন' },
+      { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'বেস্ট কোয়ালিটি সার্ভিস' },
+    ],
+    product: { title: 'Professional Service', price: 2000, description: 'প্রফেশনাল সার্ভিস প্যাকেজ' },
+  },
+  other: {
+    headline: 'কোয়ালিটি প্রোডাক্ট',
+    subheadline: 'বেস্ট সিলেকশন',
+    features: [
+      { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের পণ্য' },
+      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
+      { icon: '💳', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা দিন' },
+    ],
+    product: { title: 'Quality Product', price: 1000, description: 'প্রিমিয়াম প্রোডাক্ট' },
+  },
+};
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Create Your Store - Multi-Store SaaS' }];
@@ -47,12 +122,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   
   if (userId) {
-    // Check if user's store has completed onboarding
     try {
       const { env } = context.cloudflare;
       const db = drizzle(env.DB);
       
-      // Get the user's store
       const userResult = await db
         .select({ storeId: users.storeId })
         .from(users)
@@ -66,15 +139,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           .where(eq(stores.id, userResult[0].storeId))
           .limit(1);
         
-        // Only redirect to dashboard if onboarding is completed
         const onboardingStatus = storeResult[0]?.onboardingStatus || 'pending';
         if (onboardingStatus === 'completed') {
           return redirect('/app/orders');
         }
-        // Otherwise, stay on onboarding page (don't redirect)
       }
     } catch (error) {
-      console.error('[onboarding.loader] Error checking onboarding status:', error);
+      console.error('[onboarding.loader] Error:', error);
     }
   }
   
@@ -114,42 +185,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, emailAvailable: true });
   }
 
-  // Step 1: Create account (validation only, no DB insert yet)
-  if (step === 'create_account') {
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
-
-    // Validation
-    if (!email || !email.includes('@')) {
-      return json({ error: 'Valid email required', field: 'email' }, { status: 400 });
-    }
-    if (!password || password.length < 6) {
-      return json({ error: 'Password must be at least 6 characters', field: 'password' }, { status: 400 });
-    }
-    if (!name || name.length < 2) {
-      return json({ error: 'Name required', field: 'name' }, { status: 400 });
-    }
-
-    // Return data to client to proceed to next step
-    return json({ success: true, step: 2, data: { email, name } });
-  }
-
-  // Step 4: Create store with AI
+  // Create store with category-based template
   if (step === 'create_store') {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const name = formData.get('name') as string;
     const storeName = formData.get('storeName') as string;
     const subdomain = formData.get('subdomain') as string;
-    const description = formData.get('description') as string;
-    const category = formData.get('category') as string;
-    const plan = (formData.get('plan') as PlanType) || 'free';
+    const category = formData.get('category') as string || 'other';
 
-    console.log('[Onboarding] Creating store with:', { storeName, subdomain, category, plan });
+    console.log('[Onboarding] Creating store:', { storeName, subdomain, category });
 
     try {
-      // 1. Register user and create store with user-provided name and subdomain
+      // 1. Register user and create store
       const result = await register({
         email,
         password,
@@ -166,84 +214,49 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const db = drizzle(env.DB);
       const storeId = result.storeId!;
 
-      // 2. Update plan type and onboarding status
+      // 2. Get category-based template
+      const template = CATEGORY_TEMPLATES[category] || CATEGORY_TEMPLATES.other;
+      
+      // 3. Create landing config from category template
+      const landingConfig = {
+        templateId: 'modern-dark',
+        headline: template.headline,
+        subheadline: template.subheadline,
+        ctaText: 'এখনই অর্ডার করুন',
+        ctaSubtext: 'ক্যাশ অন ডেলিভারি',
+        features: template.features,
+        testimonials: [
+          { name: 'সন্তুষ্ট ক্রেতা', text: 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!' },
+        ],
+        urgencyText: '🔥 সীমিত সময়ের অফার!',
+        guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি',
+      };
+
+      // 4. Update store with landing config
       await db
         .update(stores)
-        .set({ 
-          planType: plan,
-          onboardingStatus: 'pending_info',
-          setupStep: 1,
+        .set({
+          name: storeName,
+          planType: 'free', // Default to free plan
+          landingConfig: JSON.stringify(landingConfig),
+          onboardingStatus: 'completed',
+          setupStep: 3,
+          updatedAt: new Date(),
         })
         .where(eq(stores.id, storeId));
 
-      // AI features temporarily disabled for MVP - always use fallback
-      const aiSuccess = false;
-      console.log('[Onboarding] AI disabled for MVP, using fallback setup...');
-      
-      // 3b. FALLBACK: Use user-provided info if AI failed or not available
-      if (!aiSuccess) {
-        console.log('[Onboarding] Using fallback with user-provided info...');
-        
-        // Use user-provided store name (already saved during registration)
-        const fallbackStoreName = storeName || 'My Store';
-        
-        // Category-based fallback product
-        const categoryProducts: Record<string, { title: string; price: number }> = {
-          fashion: { title: 'Premium Fashion Item', price: 1500 },
-          electronics: { title: 'Quality Electronics', price: 2500 },
-          beauty: { title: 'Beauty Product', price: 800 },
-          food: { title: 'Delicious Food Item', price: 350 },
-          jewelry: { title: 'Beautiful Jewelry', price: 2000 },
-          handmade: { title: 'Handmade Craft', price: 1200 },
-          other: { title: 'Quality Product', price: 1000 },
-        };
-        
-        const fallbackProduct = categoryProducts[category] || categoryProducts.other;
-        
-        // Fallback landing config using user's description
-        const fallbackLandingConfig = {
-          templateId: 'modern-dark',
-          headline: description.slice(0, 80) || 'আপনার পছন্দের প্রোডাক্ট',
-          subheadline: 'বাংলাদেশে সেরা কোয়ালিটি ও দ্রুত ডেলিভারি',
-          ctaText: 'এখনই অর্ডার করুন',
-          ctaSubtext: 'ক্যাশ অন ডেলিভারি',
-          features: [
-            { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের পণ্য' },
-            { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
-            { icon: '💳', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা দিন' },
-          ],
-          testimonials: [
-            { name: 'সন্তুষ্ট ক্রেতা', text: 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!' },
-          ],
-          urgencyText: 'সীমিত সময়ের অফার!',
-          guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি',
-        };
-        
-        // Update store with fallback content
-        await db
-          .update(stores)
-          .set({
-            name: fallbackStoreName,
-            landingConfig: JSON.stringify(fallbackLandingConfig),
-            onboardingStatus: 'completed',
-            setupStep: 4,
-            updatedAt: new Date(),
-          })
-          .where(eq(stores.id, storeId));
+      // 5. Create sample product based on category
+      await db.insert(products).values({
+        storeId,
+        title: template.product.title,
+        description: template.product.description,
+        price: template.product.price,
+        isPublished: true,
+      });
 
-        // Create fallback product
-        await db.insert(products).values({
-          storeId,
-          title: fallbackProduct.title,
-          description: description.slice(0, 500) || 'উন্নত মানের প্রোডাক্ট',
-          price: fallbackProduct.price,
-          isPublished: true,
-        });
-        
-        console.log('[Onboarding] Fallback setup complete:', fallbackStoreName);
-      }
+      console.log('[Onboarding] Store created successfully:', storeName);
 
-      // 4. Create session and return success
+      // 6. Create session and redirect
       return await createUserSession(
         result.user!.id,
         storeId,
@@ -265,17 +278,14 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   
-  // Form state
+  // Simplified form state - no description, plan, or theme needed
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
     storeName: '',
     subdomain: '',
-    description: '',
     category: 'fashion',
-    plan: 'free' as PlanType,
-    theme: 'minimal' as 'minimal' | 'vibrant',
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -283,34 +293,24 @@ export default function OnboardingPage() {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean }>();
   
-  // Translation hook for reactive i18n
   const { t } = useTranslation();
 
-  // Handle fetcher response - only react to NEW server responses
+  // Handle fetcher response
   const lastFetcherData = useRef(fetcher.data);
   useEffect(() => {
-    // Only process if fetcher.data actually changed (new server response)
     if (fetcher.data === lastFetcherData.current) return;
     lastFetcherData.current = fetcher.data;
     
-    if (fetcher.data?.success && fetcher.data.step) {
-      setCurrentStep(fetcher.data.step);
-      setIsCheckingEmail(false);
-    }
     if (fetcher.data?.emailAvailable) {
-      // Email is available, proceed to next step
       setIsCheckingEmail(false);
       setCurrentStep(2);
     }
     if (fetcher.data?.error) {
       setIsCheckingEmail(false);
       if (fetcher.data.emailExists) {
-        // Email already registered - show in Step 1
         setErrors({ email: fetcher.data.error });
       } else {
-        // Check if we're on step 5 for store creation errors
         setErrors({ form: fetcher.data.error });
-        // If this was a store creation error, mark it
         if (fetcher.data.error.includes('store') || fetcher.data.error.includes('Store')) {
           setStoreCreationFailed(true);
           setIsGenerating(false);
@@ -326,7 +326,7 @@ export default function OnboardingPage() {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       
-      // Auto-generate subdomain from storeName (if not manually edited)
+      // Auto-generate subdomain from storeName
       if (field === 'storeName' && !subdomainManuallyEdited) {
         const autoSubdomain = value
           .toLowerCase()
@@ -336,7 +336,6 @@ export default function OnboardingPage() {
         updated.subdomain = autoSubdomain;
       }
       
-      // Mark subdomain as manually edited when user types in it
       if (field === 'subdomain') {
         setSubdomainManuallyEdited(true);
       }
@@ -347,7 +346,7 @@ export default function OnboardingPage() {
   };
 
   const handleNext = () => {
-    // Validate current step
+    // Step 1: Validate account info
     if (currentStep === 1) {
       const newErrors: Record<string, string> = {};
       if (!formData.email || !formData.email.includes('@')) {
@@ -364,59 +363,52 @@ export default function OnboardingPage() {
         return;
       }
       
-      // Check if email already exists before proceeding
+      // Check if email exists
       setIsCheckingEmail(true);
       setErrors({});
       const checkData = new FormData();
       checkData.append('step', 'check_email');
       checkData.append('email', formData.email);
       fetcher.submit(checkData, { method: 'POST' });
-      return; // Don't proceed yet, wait for server response
+      return;
     }
+    
+    // Step 2: Validate store info and create store
     if (currentStep === 2) {
       const newErrors: Record<string, string> = {};
       if (!formData.storeName || formData.storeName.length < 2) {
-        newErrors.storeName = 'Store name is required (at least 2 characters)';
+        newErrors.storeName = 'Store name is required';
       }
       if (!formData.subdomain || formData.subdomain.length < 3) {
-        newErrors.subdomain = 'Subdomain is required (at least 3 characters)';
-      }
-      if (!formData.description || formData.description.length < 10) {
-        newErrors.description = 'Please describe your business (at least 10 characters)';
+        newErrors.subdomain = 'Subdomain must be at least 3 characters';
       }
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
         return;
       }
-      // Validation passed, proceed to next step
+      
+      // Go to step 3 (create store)
       setErrors({});
       setCurrentStep(3);
+      setIsGenerating(true);
+      
+      // Submit to create store
+      const submitData = new FormData();
+      submitData.append('step', 'create_store');
+      submitData.append('email', formData.email);
+      submitData.append('password', formData.password);
+      submitData.append('name', formData.name);
+      submitData.append('storeName', formData.storeName);
+      submitData.append('subdomain', formData.subdomain);
+      submitData.append('category', formData.category);
+      
+      fetcher.submit(submitData, { method: 'POST' });
       return;
     }
-    
-    setCurrentStep((prev) => prev + 1);
   };
 
   const handleBack = () => {
     setCurrentStep((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleSubmit = () => {
-    setIsGenerating(true);
-    
-    // Submit to server
-    const submitData = new FormData();
-    submitData.append('step', 'create_store');
-    submitData.append('email', formData.email);
-    submitData.append('password', formData.password);
-    submitData.append('name', formData.name);
-    submitData.append('storeName', formData.storeName);
-    submitData.append('subdomain', formData.subdomain);
-    submitData.append('description', formData.description);
-    submitData.append('category', formData.category);
-    submitData.append('plan', formData.plan);
-    
-    fetcher.submit(submitData, { method: 'POST' });
   };
 
   const isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading';
@@ -446,8 +438,8 @@ export default function OnboardingPage() {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Progress Steps */}
-        {currentStep < 6 && <OnboardingSteps currentStep={currentStep} totalSteps={5} />}
+        {/* Progress Steps - 3 steps now */}
+        {currentStep < 4 && <OnboardingSteps currentStep={currentStep} totalSteps={3} />}
 
         {/* Step Content */}
         <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10 lg:p-12">
@@ -456,7 +448,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('createAccount')}</h1>
-
+                <p className="text-gray-500 mt-2">মাত্র ২ মিনিটে স্টোর তৈরি করুন</p>
               </div>
 
               <div>
@@ -503,11 +495,12 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2: Business Info */}
+          {/* Step 2: Quick Store Setup */}
           {currentStep === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">{t('businessInfo')}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">আপনার স্টোর সেটআপ করুন</h1>
+                <p className="text-gray-500 mt-2">পরে সব চেঞ্জ করতে পারবেন</p>
               </div>
 
               {/* Store Name */}
@@ -520,7 +513,7 @@ export default function OnboardingPage() {
                   value={formData.storeName}
                   onChange={(e) => updateField('storeName', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="e.g. Fashion House BD, My Leather Store"
+                  placeholder="Fashion House BD"
                 />
                 {errors.storeName && <p className="text-red-500 text-sm mt-1">{errors.storeName}</p>}
               </div>
@@ -528,7 +521,7 @@ export default function OnboardingPage() {
               {/* Subdomain */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('subdomain')} *
+                  স্টোর লিংক *
                 </label>
                 <div className="flex items-center">
                   <input
@@ -546,114 +539,49 @@ export default function OnboardingPage() {
                   </span>
                 </div>
                 {errors.subdomain && <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>}
-                <p className="text-sm text-gray-500 mt-1">{t('subdomainHelp')}</p>
               </div>
 
-              {/* Description */}
+              {/* Category - Visual Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('whatDoYouSell')}
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  আপনি কী বিক্রি করেন?
                 </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => updateField('description', e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
-                  placeholder="Example: I sell handmade leather bags for women. Made with premium quality leather, targeting young professionals in Dhaka."
-                />
-                {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
-                <p className="text-sm text-gray-500 mt-2">
-                  💡 {t('aiHelpTip')}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {BUSINESS_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => updateField('category', cat.id)}
+                      className={`p-4 rounded-xl border-2 text-center transition-all ${
+                        formData.category === cat.id
+                          ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="text-2xl block mb-2">{cat.emoji}</span>
+                      <span className="text-sm font-medium text-gray-700">{t(cat.key)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick tip */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <p className="text-sm text-emerald-700">
+                  ✨ আপনার category অনুযায়ী automatically একটা সুন্দর landing page তৈরি হবে। পরে সব customize করতে পারবেন!
                 </p>
               </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('businessCategory')}
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => updateField('category', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                >
-                  {BUSINESS_CATEGORIES.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {t(cat.key)}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
           )}
 
-          {/* Step 3: Plan Selection */}
+          {/* Step 3: Store Creation Progress */}
           {currentStep === 3 && (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">{t('choosePlan')}</h1>
-              </div>
-
-              <PlanSelector 
-                selectedPlan={formData.plan} 
-                onSelectPlan={(plan) => updateField('plan', plan)} 
-              />
-
-              <p className="text-center text-sm text-gray-500 mt-4">
-                {t('upgradeAnytime')}
-              </p>
-            </div>
-          )}
-
-          {/* Step 4: Theme Selection */}
-          {currentStep === 4 && (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">{t('chooseStyle')}</h1>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => updateField('theme', 'minimal')}
-                  className={`p-6 rounded-2xl border-2 text-left transition-all ${
-                    formData.theme === 'minimal'
-                      ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-4xl mb-3">🌿</div>
-                  <h3 className="font-bold text-lg text-gray-900">Minimal</h3>
-                  <p className="text-sm text-gray-500 mt-1">Clean, simple, elegant</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => updateField('theme', 'vibrant')}
-                  className={`p-6 rounded-2xl border-2 text-left transition-all ${
-                    formData.theme === 'vibrant'
-                      ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-4xl mb-3">🎨</div>
-                  <h3 className="font-bold text-lg text-gray-900">Vibrant</h3>
-                  <p className="text-sm text-gray-500 mt-1">Bold, colorful, eye-catching</p>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: AI Generation */}
-          {currentStep === 5 && (
             <div>
               <AISetupProgress 
                 isGenerating={isGenerating || isSubmitting}
                 hasError={storeCreationFailed}
                 errorMessage={errors.form}
-                onComplete={() => {
-                  // Submission handled by fetcher
-                }}
+                onComplete={() => {}}
               />
               
               {/* Error Actions */}
@@ -665,7 +593,17 @@ export default function OnboardingPage() {
                       setStoreCreationFailed(false);
                       setErrors({});
                       setIsGenerating(true);
-                      handleSubmit();
+                      
+                      // Retry submission
+                      const submitData = new FormData();
+                      submitData.append('step', 'create_store');
+                      submitData.append('email', formData.email);
+                      submitData.append('password', formData.password);
+                      submitData.append('name', formData.name);
+                      submitData.append('storeName', formData.storeName);
+                      submitData.append('subdomain', formData.subdomain);
+                      submitData.append('category', formData.category);
+                      fetcher.submit(submitData, { method: 'POST' });
                     }}
                     className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
                   >
@@ -684,28 +622,20 @@ export default function OnboardingPage() {
                     <ArrowLeft className="w-4 h-4" />
                     {t('startOver')}
                   </button>
-                  <Link
-                    to="/auth/login"
-                    className="text-emerald-600 hover:text-emerald-700 text-sm underline"
-                  >
-                    {t('alreadyHaveAccount')}
-                  </Link>
                 </div>
               )}
             </div>
           )}
 
-          {/* Step 6: Success (handled by redirect) */}
-
           {/* Error Display */}
-          {errors.form && (
+          {errors.form && currentStep !== 3 && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
               {errors.form}
             </div>
           )}
 
           {/* Navigation Buttons */}
-          {currentStep < 5 && (
+          {currentStep < 3 && (
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
               {currentStep > 1 ? (
                 <button
@@ -720,29 +650,15 @@ export default function OnboardingPage() {
                 <div />
               )}
 
-              {currentStep < 4 ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={isCheckingEmail}
-                  className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                >
-                  {isCheckingEmail ? t('loading') : t('continueBtn')}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentStep(5);
-                    handleSubmit();
-                  }}
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  {isSubmitting ? t('creatingStore') : `🚀 ${t('createMyStore')}`}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={isCheckingEmail || isSubmitting}
+                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {isCheckingEmail ? t('loading') : currentStep === 2 ? `🚀 ${t('createMyStore')}` : t('continueBtn')}
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>

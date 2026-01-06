@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { OptimizedImage } from '~/components/OptimizedImage';
+import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 // AI features temporarily disabled for MVP
 // import { AIEnhanceButton } from '~/components/AIEnhanceButton';
 
@@ -244,10 +245,27 @@ export default function StoreSetupPage() {
     setTestimonials(updated);
   };
 
-  const handleTestimonialImageUpload = (index: number, file: File) => {
+  const handleTestimonialImageUpload = async (index: number, file: File) => {
     setUploadingIndex(index);
+    
+    // Compress image before upload (saves bandwidth & storage)
+    let fileToUpload: File | Blob = file;
+    try {
+      const format = getOptimalFormat();
+      const compressedBlob = await compressImage(file, {
+        maxWidth: 400,
+        maxHeight: 400,
+        quality: 0.8,
+        format,
+      });
+      fileToUpload = new File([compressedBlob], `testimonial.${format}`, { type: `image/${format}` });
+      console.log(`Testimonial image compressed: ${file.size} -> ${compressedBlob.size} bytes`);
+    } catch (error) {
+      console.warn('Image compression failed, uploading original:', error);
+    }
+    
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', fileToUpload);
     formData.append('folder', 'testimonials');
     
     imageFetcher.submit(formData, {
