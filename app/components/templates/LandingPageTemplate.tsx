@@ -1079,7 +1079,15 @@ export function LandingPageTemplate({
       <footer className={`${theme.footerBg} ${theme.footerText} py-8 border-t ${theme.isDark ? 'border-gray-800' : 'border-gray-200'}`}>
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="font-semibold text-white mb-2">{storeName}</p>
-          <p className="text-sm">© {new Date().getFullYear()} সর্বস্বত্ব সংরক্ষিত</p>
+          <p className="text-sm mb-4">© {new Date().getFullYear()} সর্বস্বত্ব সংরক্ষিত</p>
+          {/* Policy Links */}
+          <div className="flex flex-wrap justify-center gap-4 text-xs">
+            <a href="/policies/privacy" className="hover:text-white transition">Privacy Policy</a>
+            <span className="opacity-50">•</span>
+            <a href="/policies/terms" className="hover:text-white transition">Terms of Service</a>
+            <span className="opacity-50">•</span>
+            <a href="/policies/refund" className="hover:text-white transition">Refund Policy</a>
+          </div>
         </div>
       </footer>
     </div>
