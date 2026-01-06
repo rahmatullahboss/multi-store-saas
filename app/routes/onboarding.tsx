@@ -23,6 +23,7 @@ import type { PlanType } from '~/utils/plans.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { PlanSelector } from '~/components/onboarding/PlanSelector';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
+import { LanguageSelector } from '~/components/LanguageSelector';
 
 // Business categories
 const BUSINESS_CATEGORIES = [
@@ -346,12 +347,15 @@ export default function OnboardingPage() {
             </div>
             <span className="font-bold text-xl text-gray-900">Multi-Store</span>
           </Link>
-          <Link 
-            to="/auth/login" 
-            className="text-sm text-gray-600 hover:text-emerald-600"
-          >
-            Already have an account? Login
-          </Link>
+          <div className="flex items-center gap-4">
+            <LanguageSelector variant="toggle" size="sm" />
+            <Link 
+              to="/auth/login" 
+              className="text-sm text-gray-600 hover:text-emerald-600"
+            >
+              Already have an account? Login
+            </Link>
+          </div>
         </div>
       </header>
 

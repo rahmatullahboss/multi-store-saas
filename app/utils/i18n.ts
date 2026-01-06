@@ -1,12 +1,39 @@
 /**
  * Global i18n Translations
  * 
- * Supports English (en) and Bengali (bn)
+ * Supports English (en) and Bengali (bn) with extensible architecture
  * Usage: const t = useTranslation();
  *        t('addToCart')
+ * 
+ * To add a new language:
+ * 1. Add code to Language type
+ * 2. Add config to LANGUAGES
+ * 3. Add translations to translations object
  */
 
 export type Language = 'en' | 'bn';
+
+/**
+ * Language Configuration
+ * Extensible - add new languages here with their metadata
+ */
+export interface LanguageConfig {
+  code: Language;
+  name: string;         // English name
+  nativeName: string;   // Name in that language
+  flag: string;         // Emoji flag
+  direction: 'ltr' | 'rtl';  // Text direction (for future Arabic, Hebrew, etc.)
+}
+
+export const LANGUAGES: LanguageConfig[] = [
+  { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧', direction: 'ltr' },
+  { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', flag: '🇧🇩', direction: 'ltr' },
+  // Add more languages here:
+  // { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳', direction: 'ltr' },
+  // { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', direction: 'rtl' },
+];
+
+export const DEFAULT_LANGUAGE: Language = 'en';
 
 export const translations = {
   en: {
@@ -75,6 +102,24 @@ export const translations = {
     notes: 'Order Notes',
     required: 'Required',
     
+    // Onboarding
+    createAccount: 'Create Account',
+    yourName: 'Your Name',
+    password: 'Password',
+    continueBtn: 'Continue',
+    back: 'Back',
+    businessInfo: 'Tell Us About Your Business',
+    whatDoYouSell: 'What do you sell?',
+    businessCategory: 'Business Category',
+    choosePlan: 'Choose Your Plan',
+    chooseStyle: 'Choose Your Style',
+    creatingStore: 'Creating your store...',
+    storeReady: 'Your store is ready!',
+    retry: 'Retry',
+    startOver: 'Start Over',
+    alreadyHaveAccount: 'Already have an account? Login',
+    emailAlreadyRegistered: 'Email already registered. Please login instead.',
+    
     // Marketing Landing
     tagline: '#1 E-commerce Platform in Bangladesh',
     heroTitle1: 'Launch Your Online Store',
@@ -115,6 +160,10 @@ export const translations = {
     planStarterDesc: 'For growing businesses',
     planPremiumDesc: 'For established stores',
     
+    // Language
+    language: 'Language',
+    selectLanguage: 'Select Language',
+    
     // Common
     loading: 'Loading...',
     error: 'Error',
@@ -124,7 +173,6 @@ export const translations = {
     delete: 'Delete',
     edit: 'Edit',
     view: 'View',
-    back: 'Back',
     next: 'Next',
     previous: 'Previous',
     search: 'Search',
@@ -202,6 +250,24 @@ export const translations = {
     notes: 'অর্ডার নোট',
     required: 'আবশ্যক',
     
+    // Onboarding
+    createAccount: 'একাউন্ট তৈরি করুন',
+    yourName: 'আপনার নাম',
+    password: 'পাসওয়ার্ড',
+    continueBtn: 'চালিয়ে যান',
+    back: 'পেছনে',
+    businessInfo: 'আপনার ব্যবসা সম্পর্কে বলুন',
+    whatDoYouSell: 'আপনি কী বিক্রি করেন?',
+    businessCategory: 'ব্যবসার ক্যাটাগরি',
+    choosePlan: 'আপনার প্ল্যান সিলেক্ট করুন',
+    chooseStyle: 'আপনার স্টাইল সিলেক্ট করুন',
+    creatingStore: 'আপনার স্টোর তৈরি হচ্ছে...',
+    storeReady: 'আপনার স্টোর তৈরি হয়ে গেছে!',
+    retry: 'আবার চেষ্টা করুন',
+    startOver: 'শুরু থেকে শুরু করুন',
+    alreadyHaveAccount: 'ইতিমধ্যে অ্যাকাউন্ট আছে? লগইন করুন',
+    emailAlreadyRegistered: 'এই ইমেইল আগেই রেজিস্টার করা হয়েছে। অনুগ্রহ করে লগইন করুন।',
+    
     // Marketing Landing
     tagline: 'বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম',
     heroTitle1: 'আপনার অনলাইন স্টোর চালু করুন',
@@ -242,6 +308,10 @@ export const translations = {
     planStarterDesc: 'বাড়তে থাকা ব্যবসার জন্য',
     planPremiumDesc: 'প্রতিষ্ঠিত স্টোরের জন্য',
     
+    // Language
+    language: 'ভাষা',
+    selectLanguage: 'ভাষা নির্বাচন করুন',
+    
     // Common
     loading: 'লোড হচ্ছে...',
     error: 'ত্রুটি',
@@ -251,7 +321,6 @@ export const translations = {
     delete: 'মুছুন',
     edit: 'সম্পাদনা',
     view: 'দেখুন',
-    back: 'পেছনে',
     next: 'পরবর্তী',
     previous: 'পূর্ববর্তী',
     search: 'অনুসন্ধান',
@@ -281,15 +350,32 @@ export function createTranslator(lang: Language) {
 }
 
 /**
+ * Get language config by code
+ */
+export function getLanguageConfig(code: Language): LanguageConfig | undefined {
+  return LANGUAGES.find(lang => lang.code === code);
+}
+
+/**
+ * Check if a language code is valid
+ */
+export function isValidLanguage(code: string): code is Language {
+  return LANGUAGES.some(lang => lang.code === code);
+}
+
+/**
  * Get language from URL search params
  */
 export function getLanguageFromUrl(url: string): Language {
   try {
     const urlObj = new URL(url);
     const lang = urlObj.searchParams.get('lang');
-    return lang === 'bn' ? 'bn' : 'en';
+    if (lang && isValidLanguage(lang)) {
+      return lang;
+    }
+    return DEFAULT_LANGUAGE;
   } catch {
-    return 'en';
+    return DEFAULT_LANGUAGE;
   }
 }
 
@@ -305,3 +391,9 @@ export function addLanguageToUrl(url: string, lang: Language): string {
     return `${url}?lang=${lang}`;
   }
 }
+
+/**
+ * Storage key for language preference
+ */
+export const LANGUAGE_STORAGE_KEY = 'preferred-language';
+

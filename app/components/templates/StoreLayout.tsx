@@ -67,7 +67,7 @@ export function StoreLayout({
   const formatPrice = useFormatPrice();
   
   // Get translations based on current locale
-  const t = useTranslation();
+  const { t } = useTranslation();
 
   // Get preset theme colors (falls back to config colors if no theme set)
   const themeColors = getThemeColors(theme);
@@ -549,7 +549,7 @@ function ProductCard({ product, storeId, currency, primaryColor }: ProductCardPr
   const formatPrice = useFormatPrice();
   
   // Get translations
-  const t = useTranslation();
+  const { t } = useTranslation();
 
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)

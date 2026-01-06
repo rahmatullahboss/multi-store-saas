@@ -49,7 +49,7 @@ export function TechModernTemplate({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const formatPrice = useFormatPrice();
-  const t = useTranslation();
+  const { t } = useTranslation();
 
   // Filter valid categories
   const validCategories = categories.filter((c): c is string => Boolean(c));

@@ -47,7 +47,7 @@ export function LuxeBoutiqueTemplate({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const formatPrice = useFormatPrice();
-  const t = useTranslation();
+  const { t } = useTranslation();
 
   // Filter valid categories
   const validCategories = categories.filter((c): c is string => Boolean(c));

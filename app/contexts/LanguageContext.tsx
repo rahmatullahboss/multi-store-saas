@@ -2,12 +2,12 @@
  * Language & Currency Context
  * 
  * Provides global language and currency state across the app
- * Language is read from URL ?lang= param, currency from ?currency=
+ * Language persists in localStorage and syncs with URL ?lang= param
  */
 
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from '@remix-run/react';
-import { translations, type Language, type TranslationKey } from '~/utils/i18n';
+import { translations, LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type Language, type TranslationKey, type LanguageConfig } from '~/utils/i18n';
 import type { SupportedLocale, SupportedCurrency } from '~/utils/formatPrice';
 
 interface LanguageContextValue {
@@ -16,6 +16,10 @@ interface LanguageContextValue {
   t: (key: TranslationKey) => string;
   setLang: (lang: Language) => void;
   toggleLang: () => void;
+  
+  // Language metadata
+  currentLanguage: LanguageConfig | undefined;
+  availableLanguages: LanguageConfig[];
   
   // Legacy compatibility (for existing LanguageToggle)
   locale: SupportedLocale;
@@ -32,17 +36,56 @@ interface LanguageProviderProps {
   defaultCurrency?: SupportedCurrency;
 }
 
+/**
+ * Get initial language from localStorage (client-side only)
+ */
+function getStoredLanguage(): Language | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored && (stored === 'en' || stored === 'bn')) {
+      return stored as Language;
+    }
+  } catch {
+    // localStorage not available
+  }
+  return null;
+}
+
 export function LanguageProvider({ 
   children, 
-  defaultLang = 'en',
+  defaultLang = DEFAULT_LANGUAGE,
   defaultCurrency = 'BDT'
 }: LanguageProviderProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isHydrated, setIsHydrated] = useState(false);
   
-  const lang = (searchParams.get('lang') as Language) || defaultLang;
+  // Get language from URL or localStorage or default
+  const urlLang = searchParams.get('lang') as Language | null;
+  const [storedLang, setStoredLang] = useState<Language | null>(null);
+  
+  // Hydration effect - get stored language on client
+  useEffect(() => {
+    setStoredLang(getStoredLanguage());
+    setIsHydrated(true);
+  }, []);
+  
+  // Priority: URL param > localStorage > default
+  const lang: Language = urlLang && (urlLang === 'en' || urlLang === 'bn') 
+    ? urlLang 
+    : (storedLang || defaultLang);
+  
   const currency = (searchParams.get('currency') as SupportedCurrency) || defaultCurrency;
   
   const setLang = (newLang: Language) => {
+    // Save to localStorage
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
+    } catch {
+      // localStorage not available
+    }
+    
+    // Update URL
     const newParams = new URLSearchParams(searchParams);
     newParams.set('lang', newLang);
     setSearchParams(newParams, { preventScrollReset: true });
@@ -64,6 +107,10 @@ export function LanguageProvider({
     };
   }, [lang]);
   
+  const currentLanguage = useMemo(() => {
+    return LANGUAGES.find(l => l.code === lang);
+  }, [lang]);
+  
   const value = useMemo(() => ({
     // Translation system
     lang,
@@ -71,12 +118,16 @@ export function LanguageProvider({
     setLang,
     toggleLang,
     
+    // Language metadata
+    currentLanguage,
+    availableLanguages: LANGUAGES,
+    
     // Legacy compatibility
     locale: lang as SupportedLocale,
     currency,
     setLocale: setLang as (locale: SupportedLocale) => void,
     setCurrency,
-  }), [lang, t, currency]);
+  }), [lang, t, currency, currentLanguage]);
   
   return (
     <LanguageContext.Provider value={value}>
@@ -100,8 +151,8 @@ export function useLanguage(): LanguageContextValue {
  * Hook to get translation function
  */
 export function useTranslation() {
-  const { t } = useLanguage();
-  return t;
+  const { t, lang } = useLanguage();
+  return { t, lang };
 }
 
 /**
@@ -120,3 +171,4 @@ export function useFormatPrice() {
     }).format(price);
   };
 }
+
