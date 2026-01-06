@@ -14,6 +14,7 @@
 import { Link } from '@remix-run/react';
 import { Store, Zap, Shield, BarChart3, Globe, Headphones, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, CreditCard, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone } from 'lucide-react';
 import { useLanguage } from '~/contexts/LanguageContext';
+import { ChatWidget } from '~/components/ai/ChatWidget';
 
 // Marketing page specific translations - Multi-Store SaaS specific content
 const marketingContent = {
@@ -628,6 +629,17 @@ export function MarketingLanding() {
           </div>
         </div>
       </footer>
+
+      {/* AI Support Chat Bot for Visitors */}
+      <ChatWidget
+        mode="customer"
+        storeId={0}
+        welcomeMessage={lang === 'bn' 
+          ? 'আসসালামু আলাইকুম! 👋 Multi-Store সম্পর্কে কোন প্রশ্ন আছে?' 
+          : 'Hello! 👋 Have any questions about Multi-Store?'
+        }
+        accentColor="#10B981"
+      />
     </div>
   );
 }
