@@ -9,7 +9,7 @@
  * 5. Success & redirect
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher, Link } from '@remix-run/react';
@@ -24,6 +24,7 @@ import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { PlanSelector } from '~/components/onboarding/PlanSelector';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
 import { LanguageSelector } from '~/components/LanguageSelector';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // Business categories
 const BUSINESS_CATEGORIES = [
@@ -274,9 +275,17 @@ export default function OnboardingPage() {
   const [storeCreationFailed, setStoreCreationFailed] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean }>();
+  
+  // Translation hook for reactive i18n
+  const { t } = useTranslation();
 
-  // Handle fetcher response
+  // Handle fetcher response - only react to NEW server responses
+  const lastFetcherData = useRef(fetcher.data);
   useEffect(() => {
+    // Only process if fetcher.data actually changed (new server response)
+    if (fetcher.data === lastFetcherData.current) return;
+    lastFetcherData.current = fetcher.data;
+    
     if (fetcher.data?.success && fetcher.data.step) {
       setCurrentStep(fetcher.data.step);
       setIsCheckingEmail(false);
@@ -291,16 +300,17 @@ export default function OnboardingPage() {
       if (fetcher.data.emailExists) {
         // Email already registered - show in Step 1
         setErrors({ email: fetcher.data.error });
-      } else if (currentStep === 5) {
-        // Error during store creation
-        setStoreCreationFailed(true);
-        setErrors({ form: fetcher.data.error });
-        setIsGenerating(false);
       } else {
+        // Check if we're on step 5 for store creation errors
         setErrors({ form: fetcher.data.error });
+        // If this was a store creation error, mark it
+        if (fetcher.data.error.includes('store') || fetcher.data.error.includes('Store')) {
+          setStoreCreationFailed(true);
+          setIsGenerating(false);
+        }
       }
     }
-  }, [fetcher.data, currentStep]);
+  }, [fetcher.data]);
 
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -339,6 +349,10 @@ export default function OnboardingPage() {
         setErrors({ description: 'Please describe your business (at least 10 characters)' });
         return;
       }
+      // Validation passed, proceed to next step
+      setErrors({});
+      setCurrentStep(3);
+      return;
     }
     
     setCurrentStep((prev) => prev + 1);
@@ -381,9 +395,10 @@ export default function OnboardingPage() {
             <LanguageSelector variant="toggle" size="sm" />
             <Link 
               to="/auth/login" 
+              reloadDocument
               className="text-sm text-gray-600 hover:text-emerald-600"
             >
-              Already have an account? Login
+              {t('alreadyHaveAccount')}
             </Link>
           </div>
         </div>
@@ -400,13 +415,13 @@ export default function OnboardingPage() {
           {currentStep === 1 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Create Your Account</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t('createAccount')}</h1>
                 <p className="text-gray-600 mt-2">আপনার একাউন্ট তৈরি করুন</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Your Name
+                  {t('yourName')}
                 </label>
                 <input
                   type="text"
@@ -420,7 +435,7 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  {t('email')}
                 </label>
                 <input
                   type="email"
@@ -434,7 +449,7 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
+                  {t('password')}
                 </label>
                 <input
                   type="password"
@@ -452,13 +467,13 @@ export default function OnboardingPage() {
           {currentStep === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Tell Us About Your Business</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t('businessInfo')}</h1>
                 <p className="text-gray-600 mt-2">আপনার বিজনেস সম্পর্কে বলুন</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What do you sell? Describe your business
+                  {t('whatDoYouSell')}
                 </label>
                 <textarea
                   value={formData.description}
@@ -475,7 +490,7 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Category
+                  {t('businessCategory')}
                 </label>
                 <select
                   value={formData.category}
@@ -496,7 +511,7 @@ export default function OnboardingPage() {
           {currentStep === 3 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Choose Your Plan</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t('choosePlan')}</h1>
                 <p className="text-gray-600 mt-2">আপনার প্ল্যান সিলেক্ট করুন</p>
               </div>
 
@@ -515,7 +530,7 @@ export default function OnboardingPage() {
           {currentStep === 4 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Choose Your Style</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t('chooseStyle')}</h1>
                 <p className="text-gray-600 mt-2">আপনার স্টাইল সিলেক্ট করুন</p>
               </div>
 

@@ -4,21 +4,24 @@
  */
 
 import { Check } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface OnboardingStepsProps {
   currentStep: number;
   totalSteps?: number;
 }
 
-const STEP_LABELS = [
-  'Account',
-  'Business',
-  'Plan',
-  'Setup',
-  'Done',
-];
-
 export function OnboardingSteps({ currentStep, totalSteps = 5 }: OnboardingStepsProps) {
+  const { t } = useTranslation();
+  
+  const STEP_LABELS = [
+    t('stepAccount'),
+    t('stepBusiness'),
+    t('stepPlan'),
+    t('stepSetup'),
+    t('stepDone'),
+  ];
+
   return (
     <div className="flex items-center justify-center gap-2 mb-8">
       {Array.from({ length: totalSteps }).map((_, index) => {

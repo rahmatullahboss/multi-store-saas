@@ -119,6 +119,12 @@ export const translations = {
     startOver: 'Start Over',
     alreadyHaveAccount: 'Already have an account? Login',
     emailAlreadyRegistered: 'Email already registered. Please login instead.',
+    noAccount: "Don't have an account?",
+    stepAccount: 'Account',
+    stepBusiness: 'Business',
+    stepPlan: 'Plan',
+    stepSetup: 'Setup',
+    stepDone: 'Done',
     
     // Marketing Landing
     tagline: '#1 E-commerce Platform in Bangladesh',
@@ -159,6 +165,13 @@ export const translations = {
     planFreeDesc: 'Perfect to get started',
     planStarterDesc: 'For growing businesses',
     planPremiumDesc: 'For established stores',
+    selected: 'Selected',
+    selectPlan: 'Select Plan',
+    
+    // Checkout
+    paymentSuccessful: 'Payment Successful!',
+    thankYouOrder: 'Thank you for your order. Your payment has been confirmed.',
+    orderDetails: 'Order Details',
     
     // Language
     language: 'Language',
@@ -182,6 +195,121 @@ export const translations = {
     none: 'None',
     yes: 'Yes',
     no: 'No',
+    
+    // Landing Page - Trust Badges
+    freeDelivery: 'Free Delivery',
+    freeDeliveryInDhaka: 'Free delivery in Dhaka',
+    originalProduct: 'Original Product',
+    originalGuarantee: '100% Original Guarantee',
+    payOnReceive: 'Pay when you receive the product',
+    easyReturn: 'Easy Return',
+    returnPolicy: '7 Days Return Policy',
+    
+    // Landing Page - Why Choose Us
+    whyChooseUs: 'Why Buy From Us?',
+    weEnsureSatisfaction: 'We ensure satisfaction for every customer',
+    premiumQuality: 'Premium Quality',
+    premiumQualityDesc: 'We only supply high quality products. Every product goes through strict quality control.',
+    fastDelivery: 'Fast Delivery',
+    fastDeliveryDesc: '24 hours in Dhaka and 2-3 business days outside Dhaka, right to your doorstep.',
+    support247: '24/7 Support',
+    support247Desc: 'Our customer service team is always here to help you with any issues.',
+    
+    // Landing Page - Product Features
+    productFeatures: 'Product Features',
+    whyThisProductSpecial: 'Why this product is special',
+    
+    // Landing Page - Video Section
+    watchInVideo: 'Watch in Video',
+    watchVideoDetails: 'Watch the video for details',
+    
+    // Landing Page - How to Order
+    howToOrder: 'How to Order?',
+    justThreeSteps: 'Just 3 easy steps',
+    stepOne: 'Click Order Button',
+    stepOneDesc: 'Click the "Order Now" button below to open the order form.',
+    stepTwo: 'Provide Information',
+    stepTwoDesc: 'Enter your name, mobile number and full address.',
+    stepThree: 'Receive Delivery',
+    stepThreeDesc: 'Receive the product and pay cash on delivery.',
+    
+    // Landing Page - Testimonials
+    customerReviews: 'Customer Reviews',
+    seeWhatTheySay: 'See what they say',
+    satisfiedCustomer: 'Satisfied Customer',
+    
+    // Landing Page - Delivery Info
+    deliveryInfo: 'Delivery Information',
+    whenWillYouGet: 'When will you get your product',
+    insideDhaka: 'Inside Dhaka',
+    within24Hours: 'Within 24 hours',
+    deliveryCharge: 'Delivery charge',
+    onTimeDelivery: 'On-time delivery',
+    outsideDhaka: 'Outside Dhaka',
+    twoToThreeDays: '2-3 business days',
+    courierService: 'Courier service',
+    nationwideDelivery: 'Nationwide delivery',
+    
+    // Landing Page - FAQ
+    faq: 'FAQ',
+    yourQuestionAnswers: 'Answers to your questions',
+    faqDeliveryQ: 'How long will delivery take?',
+    faqDeliveryA: 'Delivery within 24 hours in Dhaka and 2-3 business days outside Dhaka.',
+    faqPaymentQ: 'How do I pay?',
+    faqPaymentA: 'Cash on delivery available. You can pay when you receive the product. bKash/Nagad payment also available.',
+    faqOriginalQ: 'Is the product original?',
+    faqOriginalA: 'Yes, we guarantee 100% original product. Full refund if fake product.',
+    faqReturnQ: 'What is the return policy?',
+    faqReturnA: 'You can return/exchange within 7 days if there is any problem with the product.',
+    faqChargeQ: 'What is the delivery charge?',
+    faqChargeA: '60 BDT in Dhaka and 120 BDT outside Dhaka. Free delivery on special offers.',
+    faqConfirmQ: 'How will I get order confirmation?',
+    faqConfirmA: "After ordering, our team will call you to confirm the order.",
+    
+    // Landing Page - Guarantee
+    ourGuarantee: 'Our Guarantee',
+    guaranteeDesc: 'We are committed to ensuring your satisfaction. If there is any problem with the product, we will refund the full amount or send a new product.',
+    
+    // Landing Page - Final CTA
+    whyDelay: 'Why Delay?',
+    limitedTimeOffer: 'This special offer is for a limited time!',
+    specialPrice: 'Special price:',
+    orderNowBtn: 'Order Now',
+    
+    // Landing Page - Contact
+    callUs: 'Call Us',
+    callHours: '10 AM - 10 PM',
+    messageUs: 'Message Us',
+    viaMessenger: 'Facebook/WhatsApp',
+    emailUs: 'Email Us',
+    replyIn24Hours: 'Reply within 24 hours',
+    
+    // Landing Page - Order Form
+    orderFormTitle: 'Order Now',
+    fillFormWeContact: 'Fill out the form, we will contact you soon',
+    orderComplete: 'Order Complete!',
+    orderNumberLabel: 'Order Number:',
+    teamWillContact: 'Our team will contact you soon.',
+    newOrder: 'New Order',
+    selectQuantity: 'Select Quantity',
+    totalPrice: 'Total price',
+    deliveryInfoTitle: 'Delivery Info',
+    yourNameLabel: 'Your Name *',
+    enterFullName: 'Enter full name',
+    mobileNumberLabel: 'Mobile Number *',
+    shippingAddressLabel: 'Shipping Address *',
+    requiredField: '(Required)',
+    addressPlaceholder: 'House No, Street, Area, Thana, District - Full address',
+    addressHelp: 'Correct address needed to deliver product',
+    confirmOrderBtn: 'Confirm Order',
+    pleaseWait: 'Please wait...',
+    infoSecure: 'Your information is completely safe and confidential',
+    discount: 'discount',
+    youSave: 'You save',
+    getting: 'Getting',
+    
+    // Footer
+    allRightsReserved: 'All rights reserved',
   },
   
   bn: {
@@ -267,6 +395,12 @@ export const translations = {
     startOver: 'শুরু থেকে শুরু করুন',
     alreadyHaveAccount: 'ইতিমধ্যে অ্যাকাউন্ট আছে? লগইন করুন',
     emailAlreadyRegistered: 'এই ইমেইল আগেই রেজিস্টার করা হয়েছে। অনুগ্রহ করে লগইন করুন।',
+    noAccount: 'একাউন্ট নেই?',
+    stepAccount: 'একাউন্ট',
+    stepBusiness: 'বিজনেস',
+    stepPlan: 'প্ল্যান',
+    stepSetup: 'সেটআপ',
+    stepDone: 'সম্পন্ন',
     
     // Marketing Landing
     tagline: 'বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম',
@@ -307,6 +441,13 @@ export const translations = {
     planFreeDesc: 'শুরু করার জন্য পারফেক্ট',
     planStarterDesc: 'বাড়তে থাকা ব্যবসার জন্য',
     planPremiumDesc: 'প্রতিষ্ঠিত স্টোরের জন্য',
+    selected: 'সিলেক্টেড',
+    selectPlan: 'প্ল্যান সিলেক্ট করুন',
+    
+    // Checkout
+    paymentSuccessful: 'পেমেন্ট সফল হয়েছে!',
+    thankYouOrder: 'আপনার অর্ডারের জন্য ধন্যবাদ। পেমেন্ট কনফার্ম হয়েছে।',
+    orderDetails: 'অর্ডার বিবরণ',
     
     // Language
     language: 'ভাষা',
@@ -330,6 +471,121 @@ export const translations = {
     none: 'কোনোটি না',
     yes: 'হ্যাঁ',
     no: 'না',
+    
+    // Landing Page - Trust Badges
+    freeDelivery: 'ফ্রি ডেলিভারি',
+    freeDeliveryInDhaka: 'ঢাকায় ফ্রি ডেলিভারি',
+    originalProduct: 'অরিজিনাল প্রোডাক্ট',
+    originalGuarantee: '১০০% অরিজিনাল গ্যারান্টি',
+    payOnReceive: 'পণ্য হাতে পেয়ে টাকা পরিশোধ করুন',
+    easyReturn: 'ইজি রিটার্ন',
+    returnPolicy: '৭ দিনের রিটার্ন পলিসি',
+    
+    // Landing Page - Why Choose Us
+    whyChooseUs: 'কেন আমাদের থেকে কিনবেন?',
+    weEnsureSatisfaction: 'আমরা প্রতিটি গ্রাহকের সন্তুষ্টি নিশ্চিত করি',
+    premiumQuality: 'প্রিমিয়াম কোয়ালিটি',
+    premiumQualityDesc: 'আমরা শুধুমাত্র উচ্চ মানের প্রোডাক্ট সরবরাহ করি। প্রতিটি প্রোডাক্ট কঠোর মান নিয়ন্ত্রণের মধ্য দিয়ে যায়।',
+    fastDelivery: 'দ্রুত ডেলিভারি',
+    fastDeliveryDesc: 'ঢাকায় ২৪ ঘন্টায় এবং ঢাকার বাইরে ২-৩ কার্যদিবসের মধ্যে আপনার দোরগোড়ায় পৌঁছে দিই।',
+    support247: '২৪/৭ সাপোর্ট',
+    support247Desc: 'যেকোনো সমস্যায় আমাদের কাস্টমার সার্ভিস টিম সবসময় আপনার পাশে থাকবে।',
+    
+    // Landing Page - Product Features
+    productFeatures: 'প্রোডাক্টের বিশেষত্ব',
+    whyThisProductSpecial: 'এই প্রোডাক্টটি কেন বিশেষ',
+    
+    // Landing Page - Video Section
+    watchInVideo: 'ভিডিওতে দেখুন',
+    watchVideoDetails: 'বিস্তারিত জানতে ভিডিওটি দেখুন',
+    
+    // Landing Page - How to Order
+    howToOrder: 'কিভাবে অর্ডার করবেন?',
+    justThreeSteps: 'মাত্র ৩টি সহজ ধাপে',
+    stepOne: 'অর্ডার বাটনে ক্লিক করুন',
+    stepOneDesc: 'নিচের "অর্ডার করুন" বাটনে ক্লিক করে অর্ডার ফর্ম ওপেন করুন।',
+    stepTwo: 'তথ্য দিন',
+    stepTwoDesc: 'আপনার নাম, মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা দিন।',
+    stepThree: 'ডেলিভারি নিন',
+    stepThreeDesc: 'পণ্য হাতে পেয়ে ক্যাশ অন ডেলিভারিতে মূল্য পরিশোধ করুন।',
+    
+    // Landing Page - Testimonials
+    customerReviews: 'গ্রাহকের মতামত',
+    seeWhatTheySay: 'তারা কি বলছেন দেখুন',
+    satisfiedCustomer: 'সন্তুষ্ট গ্রাহক',
+    
+    // Landing Page - Delivery Info
+    deliveryInfo: 'ডেলিভারি তথ্য',
+    whenWillYouGet: 'আপনার প্রোডাক্ট কবে পাবেন',
+    insideDhaka: 'ঢাকার ভিতরে',
+    within24Hours: '২৪ ঘন্টার মধ্যে',
+    deliveryCharge: 'ডেলিভারি চার্জ',
+    onTimeDelivery: 'সুনির্দিষ্ট সময়ে ডেলিভারি',
+    outsideDhaka: 'ঢাকার বাইরে',
+    twoToThreeDays: '২-৩ কার্যদিবস',
+    courierService: 'কুরিয়ার সার্ভিস',
+    nationwideDelivery: 'সারাদেশে ডেলিভারি',
+    
+    // Landing Page - FAQ
+    faq: 'সাধারণ জিজ্ঞাসা',
+    yourQuestionAnswers: 'আপনার প্রশ্নের উত্তর',
+    faqDeliveryQ: 'ডেলিভারি কতদিনে পাব?',
+    faqDeliveryA: 'ঢাকায় ২৪ ঘন্টা এবং ঢাকার বাইরে ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন।',
+    faqPaymentQ: 'পেমেন্ট কিভাবে করব?',
+    faqPaymentA: 'ক্যাশ অন ডেলিভারি সুবিধা আছে। পণ্য হাতে পেয়ে টাকা পরিশোধ করতে পারবেন। এছাড়া বিকাশ/নগদ পেমেন্টও করতে পারবেন।',
+    faqOriginalQ: 'প্রোডাক্ট অরিজিনাল কিনা?',
+    faqOriginalA: 'হ্যাঁ, আমরা ১০০% অরিজিনাল প্রোডাক্টের গ্যারান্টি দিই। নকল প্রোডাক্ট পেলে সম্পূর্ণ টাকা ফেরত।',
+    faqReturnQ: 'রিটার্ন পলিসি কি?',
+    faqReturnA: 'পণ্যে কোনো সমস্যা থাকলে ৭ দিনের মধ্যে রিটার্ন/এক্সচেঞ্জ করতে পারবেন।',
+    faqChargeQ: 'ডেলিভারি চার্জ কত?',
+    faqChargeA: 'ঢাকায় ৳৬০ এবং ঢাকার বাইরে ৳১২০। বিশেষ অফারে ফ্রি ডেলিভারিও থাকে।',
+    faqConfirmQ: 'অর্ডার কনফার্মেশন পাব কিভাবে?',
+    faqConfirmA: 'অর্ডার করার পর আমাদের টিম ফোনে কল করে অর্ডার কনফার্ম করবে।',
+    
+    // Landing Page - Guarantee
+    ourGuarantee: 'আমাদের গ্যারান্টি',
+    guaranteeDesc: 'আমরা আপনার সন্তুষ্টি নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ। প্রোডাক্টে কোনো সমস্যা থাকলে আমরা সম্পূর্ণ টাকা ফেরত দেব অথবা নতুন প্রোডাক্ট পাঠাব।',
+    
+    // Landing Page - Final CTA
+    whyDelay: 'আর দেরি কেন?',
+    limitedTimeOffer: 'এই বিশেষ অফার সীমিত সময়ের জন্য!',
+    specialPrice: 'বিশেষ মূল্য:',
+    orderNowBtn: 'এখনই অর্ডার করুন',
+    
+    // Landing Page - Contact
+    callUs: 'কল করুন',
+    callHours: 'সকাল ১০টা - রাত ১০টা',
+    messageUs: 'ম্যাসেজ করুন',
+    viaMessenger: 'ফেসবুক/হোয়াটসঅ্যাপে',
+    emailUs: 'ইমেইল করুন',
+    replyIn24Hours: '২৪ ঘন্টার মধ্যে উত্তর',
+    
+    // Landing Page - Order Form
+    orderFormTitle: 'এখনই অর্ডার করুন',
+    fillFormWeContact: 'ফর্মটি পূরণ করুন, আমরা শীঘ্রই যোগাযোগ করব',
+    orderComplete: 'অর্ডার সম্পন্ন হয়েছে!',
+    orderNumberLabel: 'অর্ডার নম্বর:',
+    teamWillContact: 'শীঘ্রই আমাদের টিম আপনার সাথে যোগাযোগ করবে।',
+    newOrder: 'নতুন অর্ডার করুন',
+    selectQuantity: 'পরিমাণ নির্বাচন করুন',
+    totalPrice: 'মোট মূল্য',
+    deliveryInfoTitle: 'ডেলিভারি তথ্য',
+    yourNameLabel: 'আপনার নাম *',
+    enterFullName: 'সম্পূর্ণ নাম লিখুন',
+    mobileNumberLabel: 'মোবাইল নম্বর *',
+    shippingAddressLabel: 'শিপিং ঠিকানা *',
+    requiredField: '(আবশ্যক)',
+    addressPlaceholder: 'বাড়ি নং, রাস্তা, এলাকা, থানা, জেলা - সম্পূর্ণ ঠিকানা দিন',
+    addressHelp: 'পণ্য পৌঁছে দেওয়ার জন্য সঠিক ঠিকানা প্রয়োজন',
+    confirmOrderBtn: 'অর্ডার কনফার্ম করুন',
+    pleaseWait: 'অপেক্ষা করুন...',
+    infoSecure: 'আপনার তথ্য সম্পূর্ণ নিরাপদ এবং গোপনীয়',
+    discount: 'ছাড়',
+    youSave: 'সেভ করছেন',
+    getting: 'পাচ্ছেন',
+    
+    // Footer
+    allRightsReserved: 'সর্বস্বত্ব সংরক্ষিত',
   },
 } as const;
 

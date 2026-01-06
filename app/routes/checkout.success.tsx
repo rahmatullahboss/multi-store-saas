@@ -13,6 +13,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { orders, stores } from '@db/schema';
 import { CheckCircle, Package, ArrowRight } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Payment Successful - Thank You!' }];
@@ -54,6 +55,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export default function CheckoutSuccessPage() {
   const { order, store, trxID } = useLoaderData<typeof loader>();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center p-4">
@@ -65,10 +67,10 @@ export default function CheckoutSuccessPage() {
 
         {/* Title */}
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Payment Successful! 🎉
+          {t('paymentSuccessful')} 🎉
         </h1>
         <p className="text-gray-600 mb-6">
-          Thank you for your order. Your payment has been confirmed.
+          {t('thankYouOrder')}
         </p>
 
         {/* Order Details */}
@@ -76,11 +78,11 @@ export default function CheckoutSuccessPage() {
           <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
             <div className="flex items-center gap-3 mb-3">
               <Package className="w-5 h-5 text-emerald-600" />
-              <span className="font-semibold text-gray-900">Order Details</span>
+              <span className="font-semibold text-gray-900">{t('orderDetails')}</span>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Order Number</span>
+                <span className="text-gray-500">{t('orderNumber')}</span>
                 <span className="font-medium text-gray-900">{order.orderNumber}</span>
               </div>
               {trxID && (
@@ -90,7 +92,7 @@ export default function CheckoutSuccessPage() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">Total</span>
+                <span className="text-gray-500">{t('total')}</span>
                 <span className="font-bold text-emerald-600">৳{order.total.toFixed(2)}</span>
               </div>
             </div>
@@ -109,7 +111,7 @@ export default function CheckoutSuccessPage() {
           to="/"
           className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition"
         >
-          Continue Shopping
+          {t('continueShopping')}
           <ArrowRight className="w-4 h-4" />
         </Link>
 

@@ -104,7 +104,7 @@ import { useFetcher } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import type { LandingConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
-import { useFormatPrice } from '~/contexts/LanguageContext';
+import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { MagicSectionWrapper } from '~/components/editor';
 
 // Serialized product type (JSON dates become strings)
@@ -162,6 +162,9 @@ export function LandingPageTemplate({
 
   // Format price using context (responds to language/currency toggle)
   const formatPrice = useFormatPrice();
+  
+  // Translation function (responds to language toggle)
+  const { t } = useTranslation();
 
   // Local editable config state - for live updates via Magic Editor
   const [editableConfig, setEditableConfig] = useState(config);
@@ -417,23 +420,23 @@ export function LandingPageTemplate({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">🚚</div>
-              <h4 className={`font-bold ${theme.textPrimary}`}>ফ্রি ডেলিভারি</h4>
-              <p className={`text-sm ${theme.textSecondary} mt-1`}>ঢাকায় ফ্রি ডেলিভারি</p>
+              <h4 className={`font-bold ${theme.textPrimary}`}>{t('freeDelivery')}</h4>
+              <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('freeDeliveryInDhaka')}</p>
             </div>
             <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">💯</div>
-              <h4 className={`font-bold ${theme.textPrimary}`}>অরিজিনাল প্রোডাক্ট</h4>
-              <p className={`text-sm ${theme.textSecondary} mt-1`}>১০০% অরিজিনাল গ্যারান্টি</p>
+              <h4 className={`font-bold ${theme.textPrimary}`}>{t('originalProduct')}</h4>
+              <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('originalGuarantee')}</p>
             </div>
             <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">💵</div>
-              <h4 className={`font-bold ${theme.textPrimary}`}>ক্যাশ অন ডেলিভারি</h4>
-              <p className={`text-sm ${theme.textSecondary} mt-1`}>হাতে পেয়ে মূল্য পরিশোধ</p>
+              <h4 className={`font-bold ${theme.textPrimary}`}>{t('cashOnDelivery')}</h4>
+              <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('payOnReceive')}</p>
             </div>
             <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">🔄</div>
-              <h4 className={`font-bold ${theme.textPrimary}`}>ইজি রিটার্ন</h4>
-              <p className={`text-sm ${theme.textSecondary} mt-1`}>৭ দিনের রিটার্ন পলিসি</p>
+              <h4 className={`font-bold ${theme.textPrimary}`}>{t('easyReturn')}</h4>
+              <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('returnPolicy')}</p>
             </div>
           </div>
         </div>
@@ -446,9 +449,9 @@ export function LandingPageTemplate({
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className={`text-3xl md:text-4xl font-black ${theme.textPrimary} mb-4`}>
-              কেন আমাদের থেকে কিনবেন?
+              {t('whyChooseUs')}
             </h2>
-            <p className={`text-xl ${theme.textSecondary}`}>আমরা প্রতিটি গ্রাহকের সন্তুষ্টি নিশ্চিত করি</p>
+            <p className={`text-xl ${theme.textSecondary}`}>{t('weEnsureSatisfaction')}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -456,27 +459,27 @@ export function LandingPageTemplate({
               <div className={`w-16 h-16 ${theme.isDark ? 'bg-orange-500/20' : 'bg-orange-100'} rounded-2xl flex items-center justify-center text-3xl mb-6`}>
                 ✨
               </div>
-              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>প্রিমিয়াম কোয়ালিটি</h3>
+              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>{t('premiumQuality')}</h3>
               <p className={theme.textSecondary}>
-                আমরা শুধুমাত্র উচ্চ মানের প্রোডাক্ট সরবরাহ করি। প্রতিটি প্রোডাক্ট কঠোর মান নিয়ন্ত্রণের মধ্য দিয়ে যায়।
+                {t('premiumQualityDesc')}
               </p>
             </div>
             <div className={`${theme.cardBg} rounded-3xl p-8 shadow-lg border ${theme.cardBorder}`}>
               <div className={`w-16 h-16 ${theme.isDark ? 'bg-green-500/20' : 'bg-green-100'} rounded-2xl flex items-center justify-center text-3xl mb-6`}>
                 ⚡
               </div>
-              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>দ্রুত ডেলিভারি</h3>
+              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>{t('fastDelivery')}</h3>
               <p className={theme.textSecondary}>
-                ঢাকায় ২৪ ঘন্টায় এবং ঢাকার বাইরে ২-৩ কার্যদিবসের মধ্যে আপনার দোরগোড়ায় পৌঁছে দিই।
+                {t('fastDeliveryDesc')}
               </p>
             </div>
             <div className={`${theme.cardBg} rounded-3xl p-8 shadow-lg border ${theme.cardBorder}`}>
               <div className={`w-16 h-16 ${theme.isDark ? 'bg-blue-500/20' : 'bg-blue-100'} rounded-2xl flex items-center justify-center text-3xl mb-6`}>
                 📞
               </div>
-              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>২৪/৭ সাপোর্ট</h3>
+              <h3 className={`text-xl font-bold ${theme.textPrimary} mb-3`}>{t('support247')}</h3>
               <p className={theme.textSecondary}>
-                যেকোনো সমস্যায় আমাদের কাস্টমার সার্ভিস টিম সবসময় আপনার পাশে থাকবে।
+                {t('support247Desc')}
               </p>
             </div>
           </div>
@@ -498,9 +501,9 @@ export function LandingPageTemplate({
             <div className="max-w-6xl mx-auto px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-                  প্রোডাক্টের বিশেষত্ব
+                  {t('productFeatures')}
                 </h2>
-                <p className="text-xl text-gray-600">এই প্রোডাক্টটি কেন বিশেষ</p>
+                <p className="text-xl text-gray-600">{t('whyThisProductSpecial')}</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -543,9 +546,9 @@ export function LandingPageTemplate({
             <div className="max-w-5xl mx-auto px-4">
               <div className="text-center mb-10">
                 <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-                  🎬 ভিডিওতে দেখুন
+                  🎬 {t('watchInVideo')}
                 </h2>
-                <p className="text-xl text-gray-400">বিস্তারিত জানতে ভিডিওটি দেখুন</p>
+                <p className="text-xl text-gray-400">{t('watchVideoDetails')}</p>
               </div>
               
               <div className="aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-800">
@@ -587,9 +590,9 @@ export function LandingPageTemplate({
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-              কিভাবে অর্ডার করবেন?
+              {t('howToOrder')}
             </h2>
-            <p className="text-xl text-gray-600">মাত্র ৩টি সহজ ধাপে</p>
+            <p className="text-xl text-gray-600">{t('justThreeSteps')}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -597,27 +600,27 @@ export function LandingPageTemplate({
               <div className="w-20 h-20 bg-orange-500 text-white rounded-full flex items-center justify-center text-3xl font-black mx-auto mb-6 shadow-lg">
                 ১
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">অর্ডার বাটনে ক্লিক করুন</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">{t('stepOne')}</h3>
               <p className="text-gray-600">
-                নিচের "অর্ডার করুন" বাটনে ক্লিক করে অর্ডার ফর্ম ওপেন করুন।
+                {t('stepOneDesc')}
               </p>
             </div>
             <div className="relative text-center">
               <div className="w-20 h-20 bg-orange-500 text-white rounded-full flex items-center justify-center text-3xl font-black mx-auto mb-6 shadow-lg">
                 ২
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">তথ্য দিন</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">{t('stepTwo')}</h3>
               <p className="text-gray-600">
-                আপনার নাম, মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা দিন।
+                {t('stepTwoDesc')}
               </p>
             </div>
             <div className="relative text-center">
               <div className="w-20 h-20 bg-orange-500 text-white rounded-full flex items-center justify-center text-3xl font-black mx-auto mb-6 shadow-lg">
                 ৩
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">ডেলিভারি নিন</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">{t('stepThree')}</h3>
               <p className="text-gray-600">
-                পণ্য হাতে পেয়ে ক্যাশ অন ডেলিভারিতে মূল্য পরিশোধ করুন।
+                {t('stepThreeDesc')}
               </p>
             </div>
           </div>
@@ -639,24 +642,24 @@ export function LandingPageTemplate({
             <div className="max-w-6xl mx-auto px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-                  গ্রাহকের মতামত
+                  {t('customerReviews')}
                 </h2>
-                <p className="text-xl text-gray-600">তারা কি বলছেন দেখুন</p>
+                <p className="text-xl text-gray-600">{t('seeWhatTheySay')}</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {editableConfig.testimonials.map((t, i) => (
+                {editableConfig.testimonials.map((testimonial, i) => (
                   <div key={i} className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
                     <div className="flex items-center gap-1 text-yellow-500 text-xl mb-4">
                       {'★'.repeat(5)}
                     </div>
-                    <p className="text-gray-700 text-lg mb-6 italic">"{t.text}"</p>
+                    <p className="text-gray-700 text-lg mb-6 italic">"{testimonial.text}"</p>
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg">
-                        {t.name[0]}
+                        {testimonial.name[0]}
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">{t.name}</p>
+                        <p className="font-bold text-gray-900">{testimonial.name}</p>
                         <p className="text-sm text-gray-500">সন্তুষ্ট গ্রাহক</p>
                       </div>
                     </div>
@@ -675,9 +678,9 @@ export function LandingPageTemplate({
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-              ডেলিভারি তথ্য
+              {t('deliveryInfo')}
             </h2>
-            <p className="text-xl text-gray-600">আপনার প্রোডাক্ট কবে পাবেন</p>
+            <p className="text-xl text-gray-600">{t('whenWillYouGet')}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -687,19 +690,19 @@ export function LandingPageTemplate({
                   <span className="text-3xl">🏙️</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">ঢাকার ভিতরে</h3>
-                  <p className="text-green-600 font-semibold">২৪ ঘন্টার মধ্যে</p>
+                  <h3 className="text-xl font-bold text-gray-900">{t('insideDhaka')}</h3>
+                  <p className="text-green-600 font-semibold">{t('within24Hours')}</p>
                 </div>
               </div>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> ডেলিভারি চার্জ: ৳৬০
+                  <span className="text-green-500">✓</span> {t('deliveryCharge')}: ৳৬০
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> সুনির্দিষ্ট সময়ে ডেলিভারি
+                  <span className="text-green-500">✓</span> {t('onTimeDelivery')}
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> ক্যাশ অন ডেলিভারি
+                  <span className="text-green-500">✓</span> {t('cashOnDelivery')}
                 </li>
               </ul>
             </div>
@@ -709,19 +712,19 @@ export function LandingPageTemplate({
                   <span className="text-3xl">🌍</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">ঢাকার বাইরে</h3>
-                  <p className="text-blue-600 font-semibold">২-৩ কার্যদিবস</p>
+                  <h3 className="text-xl font-bold text-gray-900">{t('outsideDhaka')}</h3>
+                  <p className="text-blue-600 font-semibold">{t('twoToThreeDays')}</p>
                 </div>
               </div>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> ডেলিভারি চার্জ: ৳১২০
+                  <span className="text-blue-500">✓</span> {t('deliveryCharge')}: ৳১২০
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> সারাদেশে ডেলিভারি
+                  <span className="text-blue-500">✓</span> {t('nationwideDelivery')}
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> কুরিয়ার সার্ভিস
+                  <span className="text-blue-500">✓</span> {t('courierService')}
                 </li>
               </ul>
             </div>
@@ -736,19 +739,19 @@ export function LandingPageTemplate({
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-              সাধারণ জিজ্ঞাসা
+              {t('faq')}
             </h2>
-            <p className="text-xl text-gray-600">আপনার প্রশ্নের উত্তর</p>
+            <p className="text-xl text-gray-600">{t('yourQuestionAnswers')}</p>
           </div>
           
           <div className="space-y-4">
             {[
-              { q: 'ডেলিভারি কতদিনে পাব?', a: 'ঢাকায় ২৪ ঘন্টা এবং ঢাকার বাইরে ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন।' },
-              { q: 'পেমেন্ট কিভাবে করব?', a: 'ক্যাশ অন ডেলিভারি সুবিধা আছে। পণ্য হাতে পেয়ে টাকা পরিশোধ করতে পারবেন। এছাড়া বিকাশ/নগদ পেমেন্টও করতে পারবেন।' },
-              { q: 'প্রোডাক্ট অরিজিনাল কিনা?', a: 'হ্যাঁ, আমরা ১০০% অরিজিনাল প্রোডাক্টের গ্যারান্টি দিই। নকল প্রোডাক্ট পেলে সম্পূর্ণ টাকা ফেরত।' },
-              { q: 'রিটার্ন পলিসি কি?', a: 'পণ্যে কোনো সমস্যা থাকলে ৭ দিনের মধ্যে রিটার্ন/এক্সচেঞ্জ করতে পারবেন।' },
-              { q: 'ডেলিভারি চার্জ কত?', a: 'ঢাকায় ৳৬০ এবং ঢাকার বাইরে ৳১২০। বিশেষ অফারে ফ্রি ডেলিভারিও থাকে।' },
-              { q: 'অর্ডার কনফার্মেশন পাব কিভাবে?', a: 'অর্ডার করার পর আমাদের টিম ফোনে কল করে অর্ডার কনফার্ম করবে।' },
+              { q: t('faqDeliveryQ'), a: t('faqDeliveryA') },
+              { q: t('faqPaymentQ'), a: t('faqPaymentA') },
+              { q: t('faqOriginalQ'), a: t('faqOriginalA') },
+              { q: t('faqReturnQ'), a: t('faqReturnA') },
+              { q: t('faqChargeQ'), a: t('faqChargeA') },
+              { q: t('faqConfirmQ'), a: t('faqConfirmA') },
             ].map((faq, i) => (
               <div key={i} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
                 <h4 className="text-lg font-bold text-gray-900 flex items-start gap-3">
@@ -786,13 +789,13 @@ export function LandingPageTemplate({
                 🛡️
               </div>
               <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-                আমাদের গ্যারান্টি
+                {t('ourGuarantee')}
               </h2>
               <p className="text-2xl text-emerald-700 font-semibold mb-4">
                 {editableConfig.guaranteeText}
               </p>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                আমরা আপনার সন্তুষ্টি নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ। প্রোডাক্টে কোনো সমস্যা থাকলে আমরা সম্পূর্ণ টাকা ফেরত দেব অথবা নতুন প্রোডাক্ট পাঠাব।
+                {t('guaranteeDesc')}
               </p>
             </div>
           </section>
@@ -817,13 +820,13 @@ export function LandingPageTemplate({
         <section className="py-20 bg-gradient-to-r from-orange-500 to-red-500">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
-              আর দেরি কেন?
+              {t('whyDelay')}
             </h2>
             <p className="text-xl text-orange-100 mb-4">
-              এই বিশেষ অফার সীমিত সময়ের জন্য!
+              {t('limitedTimeOffer')}
             </p>
             <div className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-8">
-              <p className="text-white text-lg mb-2">বিশেষ মূল্য:</p>
+              <p className="text-white text-lg mb-2">{t('specialPrice')}</p>
               <p className="text-5xl font-black text-white">{formatPrice(product.price)}</p>
               {product.compareAtPrice && product.compareAtPrice > product.price && (
                 <p className="text-orange-200 line-through text-xl mt-2">
@@ -836,7 +839,7 @@ export function LandingPageTemplate({
                 href="#order-form"
                 className="inline-flex items-center gap-3 px-12 py-6 bg-white hover:bg-gray-100 text-orange-600 text-2xl font-black rounded-2xl shadow-2xl transition transform hover:scale-105"
               >
-                🛒 এখনই অর্ডার করুন
+                🛒 {t('orderNowBtn')}
               </a>
             </div>
           </div>
@@ -851,18 +854,18 @@ export function LandingPageTemplate({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
               <div className="text-3xl mb-3">📞</div>
-              <h4 className="font-bold text-lg mb-2">কল করুন</h4>
-              <p className="text-gray-400">সকাল ১০টা - রাত ১০টা</p>
+              <h4 className="font-bold text-lg mb-2">{t('callUs')}</h4>
+              <p className="text-gray-400">{t('callHours')}</p>
             </div>
             <div>
               <div className="text-3xl mb-3">💬</div>
-              <h4 className="font-bold text-lg mb-2">ম্যাসেজ করুন</h4>
-              <p className="text-gray-400">ফেসবুক/হোয়াটসঅ্যাপে</p>
+              <h4 className="font-bold text-lg mb-2">{t('messageUs')}</h4>
+              <p className="text-gray-400">{t('viaMessenger')}</p>
             </div>
             <div>
               <div className="text-3xl mb-3">📧</div>
-              <h4 className="font-bold text-lg mb-2">ইমেইল করুন</h4>
-              <p className="text-gray-400">২৪ ঘন্টার মধ্যে উত্তর</p>
+              <h4 className="font-bold text-lg mb-2">{t('emailUs')}</h4>
+              <p className="text-gray-400">{t('replyIn24Hours')}</p>
             </div>
           </div>
         </div>
@@ -875,9 +878,9 @@ export function LandingPageTemplate({
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-              📝 এখনই অর্ডার করুন
+              📝 {t('orderFormTitle')}
             </h2>
-            <p className="text-xl text-gray-600">ফর্মটি পূরণ করুন, আমরা শীঘ্রই যোগাযোগ করব</p>
+            <p className="text-xl text-gray-600">{t('fillFormWeContact')}</p>
           </div>
 
           <div className="bg-white rounded-3xl p-6 md:p-10 shadow-2xl border border-gray-100">
@@ -888,19 +891,19 @@ export function LandingPageTemplate({
                   ✓
                 </div>
                 <h3 className="text-3xl md:text-4xl font-black text-emerald-600 mb-4">
-                  অর্ডার সম্পন্ন হয়েছে!
+                  {t('orderComplete')}
                 </h3>
                 <p className="text-gray-600 mb-6 text-xl">
-                  অর্ডার নম্বর: <strong className="text-gray-900">{fetcher.data?.orderNumber}</strong>
+                  {t('orderNumberLabel')} <strong className="text-gray-900">{fetcher.data?.orderNumber}</strong>
                 </p>
                 <p className="text-gray-500 mb-8 text-lg">
-                  শীঘ্রই আমাদের টিম আপনার সাথে যোগাযোগ করবে।
+                  {t('teamWillContact')}
                 </p>
                 <button
                   onClick={() => window.location.reload()}
                   className="px-12 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-lg transition"
                 >
-                  নতুন অর্ডার করুন
+                  {t('newOrder')}
                 </button>
               </div>
             ) : (
@@ -943,7 +946,7 @@ export function LandingPageTemplate({
 
                   {/* Quantity Selector */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3">পরিমাণ নির্বাচন করুন</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-3">{t('selectQuantity')}</label>
                     <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-4">
                       <button
                         type="button"
@@ -961,7 +964,7 @@ export function LandingPageTemplate({
                         +
                       </button>
                       <div className="ml-auto text-right">
-                        <p className="text-sm text-gray-500">মোট মূল্য</p>
+                        <p className="text-sm text-gray-500">{t('totalPrice')}</p>
                         <span className="text-emerald-600 font-black text-3xl">
                           {formatPrice(totalPrice)}
                         </span>
@@ -975,8 +978,8 @@ export function LandingPageTemplate({
                       <span className="text-3xl">💵</span>
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 text-lg">ক্যাশ অন ডেলিভারি</p>
-                      <p className="text-sm text-gray-600">পণ্য হাতে পেয়ে টাকা পরিশোধ করুন</p>
+                        <p className="font-bold text-gray-900 text-lg">{t('cashOnDelivery')}</p>
+                        <p className="text-sm text-gray-600">{t('payOnReceive')}</p>
                     </div>
                     <span className="ml-auto text-emerald-600 text-2xl">✓</span>
                   </div>
@@ -986,15 +989,15 @@ export function LandingPageTemplate({
                     <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
                       <span className="text-2xl">🚚</span>
                       <div>
-                        <p className="font-bold text-gray-900 text-sm">দ্রুত ডেলিভারি</p>
-                        <p className="text-xs text-gray-500">ঢাকায় ২৪ ঘন্টায়</p>
+                        <p className="font-bold text-gray-900 text-sm">{t('fastDelivery')}</p>
+                        <p className="text-xs text-gray-500">{t('within24Hours')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
                       <span className="text-2xl">🔄</span>
                       <div>
-                        <p className="font-bold text-gray-900 text-sm">ইজি রিটার্ন</p>
-                        <p className="text-xs text-gray-500">৭ দিনের রিটার্ন</p>
+                        <p className="font-bold text-gray-900 text-sm">{t('easyReturn')}</p>
+                        <p className="text-xs text-gray-500">{t('returnPolicy')}</p>
                       </div>
                     </div>
                   </div>
@@ -1027,12 +1030,12 @@ export function LandingPageTemplate({
 
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="text-2xl">📋</span> ডেলিভারি তথ্য
+                      <span className="text-2xl">📋</span> {t('deliveryInfoTitle')}
                     </h3>
 
                     {/* Name */}
                     <div className={validationErrors.customer_name ? 'field-error' : ''}>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">আপনার নাম *</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">{t('yourNameLabel')}</label>
                       <input
                         type="text"
                         required
@@ -1044,7 +1047,7 @@ export function LandingPageTemplate({
                             setValidationErrors(v => ({ ...v, customer_name: '' }));
                           }
                         }}
-                        placeholder="সম্পূর্ণ নাম লিখুন"
+                        placeholder={t('enterFullName')}
                         className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg ${
                           validationErrors.customer_name ? 'border-red-500 bg-red-50' : 'border-gray-200'
                         }`}
@@ -1056,7 +1059,7 @@ export function LandingPageTemplate({
 
                     {/* Phone */}
                     <div className={validationErrors.phone ? 'field-error' : ''}>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">মোবাইল নম্বর *</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">{t('mobileNumberLabel')}</label>
                       <input
                         type="tel"
                         required
@@ -1081,7 +1084,7 @@ export function LandingPageTemplate({
                     {/* Address - CRITICAL FIELD */}
                     <div className={validationErrors.address ? 'field-error' : ''}>
                       <label className="block text-sm font-bold text-gray-700 mb-2">
-                        📍 শিপিং ঠিকানা * <span className="text-red-500 text-xs">(আবশ্যক)</span>
+                        📍 {t('shippingAddressLabel')} <span className="text-red-500 text-xs">{t('requiredField')}</span>
                       </label>
                       <textarea
                         required
@@ -1094,7 +1097,7 @@ export function LandingPageTemplate({
                             setValidationErrors(v => ({ ...v, address: '' }));
                           }
                         }}
-                        placeholder="বাড়ি নং, রাস্তা, এলাকা, থানা, জেলা - সম্পূর্ণ ঠিকানা দিন"
+                        placeholder={t('addressPlaceholder')}
                         className={`w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg resize-none ${
                           validationErrors.address 
                             ? 'border-red-500 bg-red-50 ring-2 ring-red-200' 
@@ -1106,7 +1109,7 @@ export function LandingPageTemplate({
                           <span>⚠️</span> {validationErrors.address}
                         </p>
                       ) : (
-                        <p className="text-gray-500 text-xs mt-1">পণ্য পৌঁছে দেওয়ার জন্য সঠিক ঠিকানা প্রয়োজন</p>
+                        <p className="text-gray-500 text-xs mt-1">{t('addressHelp')}</p>
                       )}
                     </div>
 
@@ -1122,15 +1125,15 @@ export function LandingPageTemplate({
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                           </svg>
-                          অপেক্ষা করুন...
+                          {t('pleaseWait')}
                         </span>
                       ) : (
-                        `✓ অর্ডার কনফার্ম করুন - ${formatPrice(totalPrice)}`
+                        `✓ ${t('confirmOrderBtn')} - ${formatPrice(totalPrice)}`
                       )}
                     </button>
 
                     <p className="text-center text-gray-500 text-sm">
-                      🔒 আপনার তথ্য সম্পূর্ণ নিরাপদ এবং গোপনীয়
+                      🔒 {t('infoSecure')}
                     </p>
                   </form>
                 </div>
@@ -1158,7 +1161,7 @@ export function LandingPageTemplate({
       <footer className={`${theme.footerBg} ${theme.footerText} py-8 border-t ${theme.isDark ? 'border-gray-800' : 'border-gray-200'}`}>
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="font-semibold text-white mb-2">{storeName}</p>
-          <p className="text-sm mb-4">© {new Date().getFullYear()} সর্বস্বত্ব সংরক্ষিত</p>
+          <p className="text-sm mb-4">© {new Date().getFullYear()} {t('allRightsReserved')}</p>
           {/* Policy Links */}
           <div className="flex flex-wrap justify-center gap-4 text-xs">
             <a href="/policies/privacy" className="hover:text-white transition">Privacy Policy</a>

@@ -10,6 +10,7 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, useActionData, useNavigation } from '@remix-run/react';
 import { login, createUserSession, getUserId } from '~/services/auth.server';
 import { LanguageSelector } from '~/components/LanguageSelector';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Login - Multi-Store SaaS' }];
@@ -183,6 +184,9 @@ export default function LoginPage() {
   // Type-safe error access
   const errors = actionData?.errors as Record<string, string> | undefined;
   const errorCode = (actionData as { errorCode?: string } | undefined)?.errorCode;
+  
+  // Translation hook for reactive i18n
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
@@ -195,7 +199,7 @@ export default function LoginPage() {
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Multi-Store SaaS</h1>
-          <p className="text-gray-600 mt-2">Merchant Login</p>
+          <p className="text-gray-600 mt-2">{t('login')}</p>
         </div>
 
         {/* Login Form */}
@@ -214,7 +218,7 @@ export default function LoginPage() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                {t('email')}
               </label>
               <input
                 type="email"
@@ -232,7 +236,7 @@ export default function LoginPage() {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('password')}
               </label>
               <input
                 type="password"
@@ -253,16 +257,16 @@ export default function LoginPage() {
               disabled={isSubmitting}
               className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Logging in...' : 'Login'}
+              {isSubmitting ? t('loading') : t('login')}
             </button>
           </Form>
 
           {/* Register Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Don't have an account?{' '}
+              {t('noAccount')}{' '}
               <Link to="/auth/register" className="text-emerald-600 hover:underline font-medium">
-                Register here
+                {t('register')}
               </Link>
             </p>
           </div>

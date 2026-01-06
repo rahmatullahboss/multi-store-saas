@@ -5,6 +5,7 @@
 
 import { Check, Crown, Zap, Sparkles } from 'lucide-react';
 import type { PlanType } from '~/utils/plans.server';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface PlanOption {
   id: PlanType;
@@ -73,6 +74,8 @@ interface PlanSelectorProps {
 }
 
 export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) {
+  const { t } = useTranslation();
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {PLANS.map((plan) => {
@@ -96,7 +99,7 @@ export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) 
             {plan.popular && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="px-3 py-1 bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-xs font-bold rounded-full">
-                  Most Popular
+                  {t('mostPopular')}
                 </span>
               </div>
             )}
@@ -115,7 +118,7 @@ export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) 
             {/* Price */}
             <div className="mb-4">
               {plan.price === 0 ? (
-                <div className="text-3xl font-bold text-gray-900">Free</div>
+                <div className="text-3xl font-bold text-gray-900">{t('planFree')}</div>
               ) : (
                 <div>
                   <span className="text-3xl font-bold text-gray-900">৳{plan.price}</span>
@@ -142,7 +145,7 @@ export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) 
                 : 'bg-gray-100 text-gray-600'
               }
             `}>
-              {isSelected ? '✓ Selected' : 'Select Plan'}
+              {isSelected ? `✓ ${t('selected')}` : t('selectPlan')}
             </div>
           </button>
         );

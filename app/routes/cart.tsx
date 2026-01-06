@@ -9,6 +9,7 @@ import { useLoaderData, useFetcher, Link } from '@remix-run/react';
 import { eq, and, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products } from '@db/schema';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const { store } = context;
@@ -52,6 +53,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function Cart() {
   const { storeName, currency } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const { t } = useTranslation();
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -75,7 +77,7 @@ export default function Cart() {
 
       {/* Cart Content */}
       <main className="container-store py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('yourCart')}</h1>
         
         {/* Cart items will be managed client-side and rendered here */}
         <div id="cart-container" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -83,9 +85,9 @@ export default function Cart() {
           <div className="lg:col-span-2 space-y-4" id="cart-items">
             {/* Placeholder - items loaded client-side from localStorage */}
             <div className="card p-6 text-center text-gray-500">
-              <p>Your cart is empty</p>
+              <p>{t('cartEmpty')}</p>
               <Link to="/" className="btn btn-primary mt-4">
-                Continue Shopping
+                {t('continueShopping')}
               </Link>
             </div>
           </div>
@@ -93,19 +95,19 @@ export default function Cart() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="card p-6 sticky top-24">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('orderSummary')}</h2>
               
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-600">{t('subtotal')}</span>
                   <span className="font-medium" id="cart-subtotal">{formatPrice(0)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-600">{t('shipping')}</span>
                   <span className="text-gray-500">Calculated at checkout</span>
                 </div>
                 <div className="border-t border-gray-200 pt-3 flex justify-between">
-                  <span className="font-semibold">Total</span>
+                  <span className="font-semibold">{t('total')}</span>
                   <span className="font-bold text-lg" id="cart-total">{formatPrice(0)}</span>
                 </div>
               </div>
@@ -114,7 +116,7 @@ export default function Cart() {
                 to="/checkout"
                 className="btn btn-primary w-full mt-6"
               >
-                Proceed to Checkout
+                {t('proceedToCheckout')}
               </Link>
             </div>
           </div>

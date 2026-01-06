@@ -6,6 +6,8 @@
  */
 
 import { Link } from '@remix-run/react';
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import type { ThemeConfig } from '@db/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
 
@@ -45,6 +47,8 @@ export function FullStoreTemplate({
   config,
   currency,
 }: FullStoreTemplateProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -88,15 +92,28 @@ export function FullStoreTemplate({
               <span className="text-2xl font-bold text-gray-900">{storeName}</span>
             </Link>
             
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden lg:flex items-center gap-8">
               <Link to="/" className="text-gray-600 hover:text-gray-900 font-medium">Home</Link>
               <Link to="/products" className="text-gray-600 hover:text-gray-900 font-medium">Shop</Link>
               <Link to="/about" className="text-gray-600 hover:text-gray-900 font-medium">About</Link>
               <Link to="/contact" className="text-gray-600 hover:text-gray-900 font-medium">Contact</Link>
             </nav>
             
-            <div className="flex items-center gap-4">
-              <Link to="/cart" className="relative p-2 hover:bg-gray-100 rounded-full transition">
+            <div className="flex items-center gap-2">
+              {/* Mobile Menu Toggle */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition active:scale-95"
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6 text-gray-700" />
+                ) : (
+                  <Menu className="w-6 h-6 text-gray-700" />
+                )}
+              </button>
+              
+              <Link to="/cart" className="relative p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-gray-100 rounded-full transition active:scale-95">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -105,6 +122,42 @@ export function FullStoreTemplate({
             </div>
           </div>
         </div>
+        
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <nav className="lg:hidden border-t border-gray-100 bg-white">
+            <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
+              <Link 
+                to="/" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 min-h-[44px] text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium rounded-lg transition active:scale-[0.98]"
+              >
+                Home
+              </Link>
+              <Link 
+                to="/products" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 min-h-[44px] text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium rounded-lg transition active:scale-[0.98]"
+              >
+                Shop
+              </Link>
+              <Link 
+                to="/about" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 min-h-[44px] text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium rounded-lg transition active:scale-[0.98]"
+              >
+                About
+              </Link>
+              <Link 
+                to="/contact" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 min-h-[44px] text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium rounded-lg transition active:scale-[0.98]"
+              >
+                Contact
+              </Link>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Hero Banner */}
@@ -122,17 +175,17 @@ export function FullStoreTemplate({
                   <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">{config.bannerText}</h1>
                 )}
                 <p className="text-xl text-white/90 mb-8">Discover our latest collection with premium quality and style.</p>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Link 
                     to="/products"
-                    className="px-8 py-4 text-lg font-semibold rounded-xl text-white transition transform hover:scale-105 shadow-lg"
+                    className="px-8 py-4 min-h-[48px] text-lg font-semibold rounded-xl text-white transition transform hover:scale-105 active:scale-95 shadow-lg text-center"
                     style={{ backgroundColor: primaryColor }}
                   >
                     Shop Now
                   </Link>
                   <Link 
                     to="/about"
-                    className="px-8 py-4 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-lg font-semibold rounded-xl transition"
+                    className="px-8 py-4 min-h-[48px] bg-white/20 backdrop-blur-sm hover:bg-white/30 active:scale-95 text-white text-lg font-semibold rounded-xl transition text-center"
                   >
                     Learn More
                   </Link>
@@ -148,7 +201,7 @@ export function FullStoreTemplate({
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">Discover our amazing products with the best quality and prices.</p>
             <Link 
               to="/products"
-              className="inline-flex items-center px-8 py-4 text-lg font-semibold rounded-xl text-white transition transform hover:scale-105 shadow-lg"
+              className="inline-flex items-center px-8 py-4 min-h-[48px] text-lg font-semibold rounded-xl text-white transition transform hover:scale-105 active:scale-95 shadow-lg"
               style={{ backgroundColor: primaryColor }}
             >
               Explore Products
@@ -237,7 +290,7 @@ export function FullStoreTemplate({
                 View All →
               </Link>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
                 <article key={product.id} className="bg-white rounded-2xl shadow-sm overflow-hidden group hover:shadow-xl transition-shadow">
                   <Link to={`/products/${product.id}`} className="block aspect-square overflow-hidden">
@@ -280,7 +333,7 @@ export function FullStoreTemplate({
             <div className="text-center mt-8 md:hidden">
               <Link 
                 to="/products" 
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white"
+                className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] rounded-xl font-semibold text-white active:scale-95 transition"
                 style={{ backgroundColor: primaryColor }}
               >
                 View All Products
@@ -345,7 +398,7 @@ export function FullStoreTemplate({
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.map((product) => (
                 <article key={product.id} className="bg-white rounded-2xl shadow-sm overflow-hidden group hover:shadow-xl transition-shadow">
                   <Link to={`/products/${product.id}`} className="block aspect-square overflow-hidden">
@@ -402,7 +455,7 @@ export function FullStoreTemplate({
             />
             <button 
               type="submit"
-              className="px-8 py-4 rounded-xl font-semibold transition hover:opacity-90"
+              className="px-8 py-4 min-h-[48px] rounded-xl font-semibold transition hover:opacity-90 active:scale-95"
               style={{ backgroundColor: primaryColor }}
             >
               Subscribe
