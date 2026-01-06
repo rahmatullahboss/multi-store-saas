@@ -232,6 +232,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   }),
   orderItems: many(orderItems),
   variants: many(productVariants),
+  reviews: many(reviews),
 }));
 
 export const customersRelations = relations(customers, ({ one, many }) => ({
@@ -578,6 +579,34 @@ export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ on
 }));
 
 // ============================================================================
+// REVIEWS TABLE - Product reviews with moderation (Paid plans only)
+// ============================================================================
+export const reviews = sqliteTable('reviews', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  customerName: text('customer_name').notNull(),
+  rating: integer('rating').notNull(), // 1-5 stars
+  comment: text('comment'),
+  status: text('status').$type<'pending' | 'approved' | 'rejected'>().default('pending'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('reviews_store_product_idx').on(table.storeId, table.productId),
+  index('reviews_status_idx').on(table.storeId, table.status),
+]);
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  store: one(stores, {
+    fields: [reviews.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [reviews.productId],
+    references: [products.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -614,4 +643,5 @@ export type EmailCampaign = typeof emailCampaigns.$inferSelect;
 export type NewEmailCampaign = typeof emailCampaigns.$inferInsert;
 export type SavedLandingConfig = typeof savedLandingConfigs.$inferSelect;
 export type NewSavedLandingConfig = typeof savedLandingConfigs.$inferInsert;
-
+export type Review = typeof reviews.$inferSelect;
+export type NewReview = typeof reviews.$inferInsert;

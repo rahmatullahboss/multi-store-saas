@@ -38,7 +38,8 @@ import {
   Crown,
   ExternalLink,
   Sparkles,
-  Home
+  Home,
+  MessageSquare
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useState } from 'react';
@@ -219,6 +220,7 @@ const navSections: NavSection[] = [
     items: [
       { to: '/app/campaigns', label: 'Campaigns', icon: Mail },
       { to: '/app/subscribers', label: 'Subscribers', icon: Mail },
+      { to: '/app/reviews', label: 'Reviews', icon: MessageSquare },
     ],
   },
   {
