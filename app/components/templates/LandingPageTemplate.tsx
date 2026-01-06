@@ -871,6 +871,15 @@ export function LandingPageTemplate({
                           ))}
                         </ul>
                       )}
+                      {/* Debug info for troubleshooting */}
+                      {(fetcher.data as { debug?: string })?.debug && (
+                        <div className="mt-3 p-2 bg-red-100 rounded text-xs font-mono">
+                          <p><strong>Debug:</strong> {(fetcher.data as { debug?: string }).debug}</p>
+                          {(fetcher.data as { debugType?: string })?.debugType && (
+                            <p><strong>Type:</strong> {(fetcher.data as { debugType?: string }).debugType}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 

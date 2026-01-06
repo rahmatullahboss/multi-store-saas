@@ -259,12 +259,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
     console.error('Raw error:', error);
     
-    // Return more details in development
+    // TEMPORARILY return detailed error for debugging production issues
     return json(
       { 
         success: false, 
         error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
-        debug: process.env.NODE_ENV !== 'production' ? errorDetails.message : undefined,
+        debug: errorDetails.message, // Show error details for debugging
+        debugType: errorDetails.type,
       },
       { status: 500 }
     );
