@@ -314,6 +314,16 @@ export default function SettingsPage() {
   };
 
   const removeLogo = () => {
+    // Delete from R2 bucket if logo exists
+    if (logoUrl) {
+      const deleteFormData = new FormData();
+      deleteFormData.append('imageUrl', logoUrl);
+      fetch('/api/delete-image', {
+        method: 'POST',
+        body: deleteFormData,
+      }).catch(err => console.warn('Failed to delete logo from R2:', err));
+    }
+    
     setLogoUrl('');
     setLogoPreview('');
     if (fileInputRef.current) {
@@ -322,6 +332,16 @@ export default function SettingsPage() {
   };
 
   const removeFavicon = () => {
+    // Delete from R2 bucket if favicon exists
+    if (faviconUrl) {
+      const deleteFormData = new FormData();
+      deleteFormData.append('imageUrl', faviconUrl);
+      fetch('/api/delete-image', {
+        method: 'POST',
+        body: deleteFormData,
+      }).catch(err => console.warn('Failed to delete favicon from R2:', err));
+    }
+    
     setFaviconUrl('');
     setFaviconPreview('');
     if (faviconInputRef.current) {

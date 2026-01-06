@@ -21,14 +21,15 @@ import { stores, users } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { Crown, Zap, Gift, Search, Check, Store, Calendar, ArrowUpCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => [{ title: 'Plan Management - Admin' }];
 
 // Plan options
 const PLAN_OPTIONS = [
-  { value: 'free', label: 'Free', color: 'gray', icon: Gift },
-  { value: 'starter', label: 'Starter', color: 'emerald', icon: Zap },
-  { value: 'premium', label: 'Premium', color: 'purple', icon: Crown },
+  { value: 'free', label: 'Free', labelKey: 'planFree' as const, color: 'gray', icon: Gift },
+  { value: 'starter', label: 'Starter', labelKey: 'planStarter' as const, color: 'emerald', icon: Zap },
+  { value: 'premium', label: 'Premium', labelKey: 'planPremium' as const, color: 'purple', icon: Crown },
 ];
 
 // ============================================================================
@@ -131,17 +132,18 @@ export default function AdminPlansPage() {
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const isSubmitting = navigation.state === 'submitting';
 
   // Handle successful update
   useEffect(() => {
     if (actionData && 'success' in actionData && actionData.success) {
-      setSuccessMessage('Plan updated successfully!');
+      setSuccessMessage(t('planUpdatedSuccess'));
       const timer = setTimeout(() => setSuccessMessage(null), 3000);
       return () => clearTimeout(timer);
     }
-  }, [actionData]);
+  }, [actionData, t]);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -149,9 +151,9 @@ export default function AdminPlansPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <Crown className="w-7 h-7 text-purple-600" />
-          Plan Management
+          {t('planManagement')}
         </h1>
-        <p className="text-gray-600 mt-1">Manually upgrade or downgrade store plans</p>
+        <p className="text-gray-600 mt-1">{t('planManagementDesc')}</p>
       </div>
 
       {/* Success Message */}
@@ -167,6 +169,7 @@ export default function AdminPlansPage() {
         {PLAN_OPTIONS.map((plan) => {
           const Icon = plan.icon;
           const count = planCounts[plan.value as keyof typeof planCounts] || 0;
+          const storeLabel = plan.value === 'free' ? t('freeStores') : plan.value === 'starter' ? t('starterStores') : t('premiumStores');
           return (
             <div 
               key={plan.value}
@@ -183,7 +186,7 @@ export default function AdminPlansPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{count}</p>
-                <p className="text-sm text-gray-500">{plan.label} Stores</p>
+                <p className="text-sm text-gray-500">{storeLabel}</p>
               </div>
             </div>
           );
@@ -199,7 +202,7 @@ export default function AdminPlansPage() {
               type="search"
               name="search"
               defaultValue={search}
-              placeholder="Search stores by name or subdomain..."
+              placeholder={t('searchStores')}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
@@ -207,7 +210,7 @@ export default function AdminPlansPage() {
             type="submit"
             className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition"
           >
-            Search
+            {t('search')}
           </button>
         </Form>
       </div>
@@ -218,18 +221,18 @@ export default function AdminPlansPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Store</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Subdomain</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Current Plan</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Created</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Action</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('store')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('subdomain')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('currentPlan')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('created')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {allStores.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                    No stores found
+                    {t('noResults')}
                   </td>
                 </tr>
               ) : (
@@ -257,7 +260,7 @@ export default function AdminPlansPage() {
                       </a>
                     </td>
                     <td className="px-4 py-3">
-                      <PlanBadge plan={store.planType || 'free'} />
+                    <PlanBadge plan={store.planType || 'free'} />
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {store.createdAt ? new Date(store.createdAt).toLocaleDateString() : 'N/A'}
@@ -270,9 +273,9 @@ export default function AdminPlansPage() {
                           defaultValue={store.planType || 'free'}
                           className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
-                          <option value="free">Free</option>
-                          <option value="starter">Starter</option>
-                          <option value="premium">Premium</option>
+                          <option value="free">{t('planFree')}</option>
+                          <option value="starter">{t('planStarter')}</option>
+                          <option value="premium">{t('planPremium')}</option>
                         </select>
                         <button
                           type="submit"
@@ -280,7 +283,7 @@ export default function AdminPlansPage() {
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
                         >
                           <ArrowUpCircle className="w-4 h-4" />
-                          Update
+                          {t('update')}
                         </button>
                       </Form>
                     </td>
@@ -294,12 +297,12 @@ export default function AdminPlansPage() {
 
       {/* Info Box */}
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <h4 className="font-medium text-blue-900 mb-2">💡 Plan Management Notes</h4>
+        <h4 className="font-medium text-blue-900 mb-2">💡 {t('planNotes')}</h4>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>• <strong>Free:</strong> 10 products, landing page only, basic features</li>
-          <li>• <strong>Starter (৳999/mo):</strong> 50 products, full store mode, custom domain</li>
-          <li>• <strong>Premium (৳2999/mo):</strong> 500 products, priority support, all features</li>
-          <li>• Plans take effect immediately after update</li>
+          <li>• {t('planFreeNote')}</li>
+          <li>• {t('planStarterNote')}</li>
+          <li>• {t('planPremiumNote')}</li>
+          <li>• {t('plansEffectImmediate')}</li>
         </ul>
       </div>
     </div>
@@ -308,16 +311,18 @@ export default function AdminPlansPage() {
 
 // Plan Badge Component
 function PlanBadge({ plan }: { plan: string }) {
+  const { t } = useTranslation();
   const config = {
-    free: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Free' },
-    starter: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Starter' },
-    premium: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Premium' },
-    custom: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Custom' },
-  }[plan] || { bg: 'bg-gray-100', text: 'text-gray-700', label: plan };
+    free: { bg: 'bg-gray-100', text: 'text-gray-700', labelKey: 'planFree' as const },
+    starter: { bg: 'bg-emerald-100', text: 'text-emerald-700', labelKey: 'planStarter' as const },
+    premium: { bg: 'bg-purple-100', text: 'text-purple-700', labelKey: 'planPremium' as const },
+    custom: { bg: 'bg-blue-100', text: 'text-blue-700', labelKey: 'planPremium' as const },
+  }[plan] || { bg: 'bg-gray-100', text: 'text-gray-700', labelKey: 'planFree' as const };
 
   return (
     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-      {config.label}
+      {t(config.labelKey)}
     </span>
   );
 }
+

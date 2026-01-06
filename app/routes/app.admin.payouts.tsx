@@ -22,6 +22,7 @@ import {
   Store,
   Loader2
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Payouts - Admin' }];
@@ -162,9 +163,10 @@ export default function AdminPayoutsPage() {
   const { merchants, weekStart, weekEnd, summary } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -172,7 +174,7 @@ export default function AdminPayoutsPage() {
   };
   
   const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency: 'BDT',
       minimumFractionDigits: 0,
@@ -180,7 +182,7 @@ export default function AdminPayoutsPage() {
   };
   
   const exportToCSV = () => {
-    const headers = ['Store Name', 'Subdomain', 'Orders', 'Gross Sales', 'Platform Fee', 'Net Payout', 'Status'];
+    const headers = [t('storeName'), t('subdomain'), t('orders'), t('grossSales'), t('platformFee'), t('netPayout'), t('status')];
     const rows = merchants.map(m => [
       m.storeName,
       m.subdomain,
@@ -209,7 +211,7 @@ export default function AdminPayoutsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Merchant Payouts</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('merchantPayouts')}</h1>
           <p className="text-gray-600 flex items-center gap-2 mt-1">
             <Calendar className="w-4 h-4" />
             {formatDate(weekStart)} - {formatDate(weekEnd)}
@@ -220,7 +222,7 @@ export default function AdminPayoutsPage() {
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
         >
           <Download className="w-4 h-4" />
-          Export CSV
+          {t('exportCsv')}
         </button>
       </div>
 
@@ -232,7 +234,7 @@ export default function AdminPayoutsPage() {
               <Store className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Merchants</p>
+              <p className="text-sm text-gray-600">{t('totalMerchants')}</p>
               <p className="text-xl font-bold text-gray-900">{summary.merchantCount}</p>
             </div>
           </div>
@@ -244,7 +246,7 @@ export default function AdminPayoutsPage() {
               <DollarSign className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Sales</p>
+              <p className="text-sm text-gray-600">{t('totalSales')}</p>
               <p className="text-xl font-bold text-emerald-600">{formatPrice(summary.totalGross)}</p>
             </div>
           </div>
@@ -256,7 +258,7 @@ export default function AdminPayoutsPage() {
               <DollarSign className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Platform Fee ({summary.platformFeePercent}%)</p>
+              <p className="text-sm text-gray-600">{t('platformFee')} ({summary.platformFeePercent}%)</p>
               <p className="text-xl font-bold text-purple-600">{formatPrice(summary.totalFee)}</p>
             </div>
           </div>
@@ -268,7 +270,7 @@ export default function AdminPayoutsPage() {
               <DollarSign className="w-5 h-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Payouts</p>
+              <p className="text-sm text-gray-600">{t('totalPayouts')}</p>
               <p className="text-xl font-bold text-orange-600">{formatPrice(summary.totalNet)}</p>
             </div>
           </div>
@@ -281,13 +283,13 @@ export default function AdminPayoutsPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Store</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Orders</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gross Sales</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fee (10%)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net Payout</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('store')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('orders')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('grossSales')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('fee')} (10%)</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('netPayout')}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('status')}</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -306,11 +308,11 @@ export default function AdminPayoutsPage() {
                   <td className="px-6 py-4">
                     {merchant.payoutStatus === 'paid' ? (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-                        <CheckCircle className="w-3 h-3" /> Paid
+                        <CheckCircle className="w-3 h-3" /> {t('paid')}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                        <Clock className="w-3 h-3" /> Pending
+                        <Clock className="w-3 h-3" /> {t('pending')}
                       </span>
                     )}
                   </td>
@@ -334,7 +336,7 @@ export default function AdminPayoutsPage() {
                           ) : (
                             <CheckCircle className="w-3 h-3" />
                           )}
-                          Mark Paid
+                          {t('markPaid')}
                         </button>
                       </Form>
                     )}
@@ -345,7 +347,7 @@ export default function AdminPayoutsPage() {
               {merchants.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No merchants found
+                    {t('noMerchantsFound')}
                   </td>
                 </tr>
               )}

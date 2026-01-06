@@ -201,6 +201,16 @@ export default function NewProductPage() {
   };
 
   const removeImage = () => {
+    // Delete from R2 bucket if image exists
+    if (imageUrl) {
+      const deleteFormData = new FormData();
+      deleteFormData.append('imageUrl', imageUrl);
+      fetch('/api/delete-image', {
+        method: 'POST',
+        body: deleteFormData,
+      }).catch(err => console.warn('Failed to delete image from R2:', err));
+    }
+    
     setImageUrl('');
     setImagePreview('');
     if (fileInputRef.current) {

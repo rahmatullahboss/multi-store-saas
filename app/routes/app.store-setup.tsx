@@ -104,6 +104,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const whatsappEnabled = formData.get('whatsappEnabled') === 'true';
   const whatsappNumber = formData.get('whatsappNumber') as string;
   const whatsappMessage = formData.get('whatsappMessage') as string;
+  
+  // Countdown Timer settings
+  const countdownEnabled = formData.get('countdownEnabled') === 'true';
+  const countdownText = formData.get('countdownText') as string;
+  
+  // Stock Counter settings
+  const showStockCounter = formData.get('showStockCounter') === 'true';
+  
+  // Social Proof settings
+  const showSocialProof = formData.get('showSocialProof') === 'true';
+  const socialProofInterval = parseInt(formData.get('socialProofInterval') as string) || 15;
 
   let testimonials: LandingConfig['testimonials'] = [];
   let features: LandingConfig['features'] = [];
@@ -141,6 +152,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     whatsappEnabled,
     whatsappNumber: whatsappNumber || currentConfig.whatsappNumber,
     whatsappMessage: whatsappMessage || currentConfig.whatsappMessage,
+    // New settings
+    countdownEnabled,
+    countdownText: countdownText || currentConfig.countdownText || '🔥 অফার শেষ হতে বাকি',
+    showStockCounter,
+    showSocialProof,
+    socialProofInterval,
   };
 
   await db
@@ -187,6 +204,17 @@ export default function StoreSetupPage() {
   const [ctaSubtext, setCtaSubtext] = useState(landingConfig.ctaSubtext || '');
   const [storePublished, setStorePublished] = useState(isStorePublished);
   
+  // Countdown Timer settings
+  const [countdownEnabled, setCountdownEnabled] = useState(landingConfig.countdownEnabled || false);
+  const [countdownText, setCountdownText] = useState(landingConfig.countdownText || '🔥 অফার শেষ হতে বাকি');
+  
+  // Stock Counter settings
+  const [showStockCounter, setShowStockCounter] = useState(landingConfig.showStockCounter || false);
+  
+  // Social Proof Popup settings
+  const [showSocialProof, setShowSocialProof] = useState(landingConfig.showSocialProof || false);
+  const [socialProofInterval, setSocialProofInterval] = useState(landingConfig.socialProofInterval || 15);
+  
   // Collapsible sections
   const [expandedSections, setExpandedSections] = useState({
     publish: true,
@@ -199,6 +227,9 @@ export default function StoreSetupPage() {
     features: false,
     faq: false,
     whatsapp: false,
+    countdown: false,
+    stock: false,
+    socialProof: false,
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -276,6 +307,17 @@ export default function StoreSetupPage() {
   };
 
   const removeTestimonialImage = (index: number) => {
+    // Delete from R2 bucket if image exists
+    const imageUrl = testimonials?.[index]?.imageUrl;
+    if (imageUrl) {
+      const deleteFormData = new FormData();
+      deleteFormData.append('imageUrl', imageUrl);
+      fetch('/api/delete-image', {
+        method: 'POST',
+        body: deleteFormData,
+      }).catch(err => console.warn('Failed to delete testimonial image from R2:', err));
+    }
+    
     const updated = [...(testimonials || [])];
     updated[index] = { ...updated[index], imageUrl: '' };
     setTestimonials(updated);
@@ -382,6 +424,11 @@ export default function StoreSetupPage() {
         <input type="hidden" name="whatsappEnabled" value={whatsappEnabled ? 'true' : 'false'} />
         <input type="hidden" name="whatsappNumber" value={whatsappNumber} />
         <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
+        <input type="hidden" name="countdownEnabled" value={countdownEnabled ? 'true' : 'false'} />
+        <input type="hidden" name="countdownText" value={countdownText} />
+        <input type="hidden" name="showStockCounter" value={showStockCounter ? 'true' : 'false'} />
+        <input type="hidden" name="showSocialProof" value={showSocialProof ? 'true' : 'false'} />
+        <input type="hidden" name="socialProofInterval" value={socialProofInterval.toString()} />
 
         {/* Section 1: Template Selection */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -998,6 +1045,157 @@ export default function StoreSetupPage() {
                     />
                   </div>
                 </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Section 10: Countdown Timer */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection('countdown')}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <span className="text-xl">⏰</span>
+              </div>
+              <div className="text-left">
+                <h2 className="font-semibold text-gray-900">10. Countdown Timer</h2>
+                <p className="text-sm text-gray-500">{countdownEnabled ? 'Enabled' : 'Disabled'}</p>
+              </div>
+            </div>
+            {expandedSections.countdown ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          
+          {expandedSections.countdown && (
+            <div className="p-4 pt-0 space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Enable Countdown Timer</span>
+                <button
+                  type="button"
+                  onClick={() => setCountdownEnabled(!countdownEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                    countdownEnabled ? 'bg-red-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                    countdownEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+              
+              {countdownEnabled && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Countdown Text</label>
+                  <input
+                    type="text"
+                    value={countdownText}
+                    onChange={(e) => setCountdownText(e.target.value)}
+                    placeholder="🔥 অফার শেষ হতে বাকি"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Section 11: Stock Counter */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection('stock')}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <span className="text-xl">📦</span>
+              </div>
+              <div className="text-left">
+                <h2 className="font-semibold text-gray-900">11. Stock Counter</h2>
+                <p className="text-sm text-gray-500">{showStockCounter ? 'Enabled' : 'Disabled'}</p>
+              </div>
+            </div>
+            {expandedSections.stock ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          
+          {expandedSections.stock && (
+            <div className="p-4 pt-0 space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Show "Only X left!" Counter</span>
+                  <p className="text-xs text-gray-500">Based on product inventory</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowStockCounter(!showStockCounter)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                    showStockCounter ? 'bg-yellow-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                    showStockCounter ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 12: Social Proof Popup */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection('socialProof')}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                <span className="text-xl">🔔</span>
+              </div>
+              <div className="text-left">
+                <h2 className="font-semibold text-gray-900">12. Social Proof Popup</h2>
+                <p className="text-sm text-gray-500">{showSocialProof ? 'Enabled' : 'Disabled'}</p>
+              </div>
+            </div>
+            {expandedSections.socialProof ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          
+          {expandedSections.socialProof && (
+            <div className="p-4 pt-0 space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <span className="text-sm font-medium text-gray-700">"Someone just ordered" Popups</span>
+                  <p className="text-xs text-gray-500">Random names from Dhaka, Chittagong, etc.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSocialProof(!showSocialProof)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                    showSocialProof ? 'bg-pink-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                    showSocialProof ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+              
+              {showSocialProof && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Popup Interval (seconds)</label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="60"
+                    value={socialProofInterval}
+                    onChange={(e) => setSocialProofInterval(parseInt(e.target.value) || 15)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Default: 15 seconds between popups</p>
+                </div>
               )}
             </div>
           )}

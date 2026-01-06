@@ -63,8 +63,17 @@ export function WhatsAppButton({
   // WhatsApp click-to-chat URL
   const whatsappUrl = `https://wa.me/${formattedPhone.replace('+', '')}?text=${encodeURIComponent(defaultMessage)}`;
   
-  const handleClick = () => {
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+  // Handle click with fallback for maximum compatibility
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Try window.open first
+    const newWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    
+    // If popup was blocked, use direct navigation
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+      e.preventDefault();
+      // Fallback: redirect in same tab
+      window.location.href = whatsappUrl;
+    }
   };
   
   if (!phoneNumber) return null;
@@ -97,8 +106,11 @@ export function WhatsAppButton({
           </div>
         )}
         
-        {/* WhatsApp Button */}
-        <button
+        {/* WhatsApp Button - Using anchor tag with fallback */}
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={handleClick}
           className="group relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300"
           aria-label="Chat on WhatsApp"
@@ -119,7 +131,7 @@ export function WhatsAppButton({
           <span className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
             WhatsApp এ মেসেজ করুন
           </span>
-        </button>
+        </a>
       </div>
       
       {/* Keyframe animation for floating effect */}
