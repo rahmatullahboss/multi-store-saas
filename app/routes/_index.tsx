@@ -23,6 +23,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
+import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { StoreLayout } from '~/components/templates/StoreLayout';
 import { MarketingLanding } from '~/components/MarketingLanding';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
@@ -499,8 +500,12 @@ export default function Index() {
   }
 
   // ========== FULL STORE MODE ==========
+  // Dynamic template selection from registry
+  const storeTemplateId = (data.themeConfig as ThemeConfig | null)?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+  const { component: StoreTemplateComponent } = getStoreTemplate(storeTemplateId);
+  
   return (
-    <StoreLayout
+    <StoreTemplateComponent
       storeName={data.storeName}
       storeId={data.storeId}
       logo={data.logo}

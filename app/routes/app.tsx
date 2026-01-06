@@ -223,6 +223,7 @@ const navSections: NavSection[] = [
     title: 'Settings',
     items: [
       { to: '/app/store-setup', label: 'Store Setup', icon: Palette },
+      { to: '/app/store-design', label: 'Store Templates', icon: Sparkles },
       { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
       { to: '/app/settings/domain', label: 'Domain', icon: Globe },
       { to: '/app/billing', label: 'Billing', icon: CreditCard },

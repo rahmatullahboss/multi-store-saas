@@ -49,7 +49,7 @@ export function TechModernTemplate({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const formatPrice = useFormatPrice();
-  const { t } = useTranslation();
+  const t = useTranslation();
 
   // Filter valid categories
   const validCategories = categories.filter((c): c is string => Boolean(c));
@@ -233,7 +233,7 @@ export function TechModernTemplate({
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold transition-all hover:scale-105"
                   style={{ backgroundColor: THEME.accent, color: 'white' }}
                 >
-                  {t('shopNow')}
+                  {t('buyNow')}
                   <ChevronRight className="w-5 h-5" />
                 </Link>
                 <Link

@@ -5,15 +5,27 @@
  * Provides optimistic UI feedback when adding items to cart.
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode, type CSSProperties } from 'react';
 
 interface AddToCartButtonProps {
   productId: number;
+  storeId?: number;
   disabled?: boolean;
   size?: 'default' | 'large';
+  className?: string;
+  style?: CSSProperties;
+  children?: ReactNode;
 }
 
-export function AddToCartButton({ productId, disabled = false, size = 'default' }: AddToCartButtonProps) {
+export function AddToCartButton({ 
+  productId, 
+  storeId,
+  disabled = false, 
+  size = 'default',
+  className,
+  style,
+  children,
+}: AddToCartButtonProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -21,41 +33,55 @@ export function AddToCartButton({ productId, disabled = false, size = 'default' 
     if (disabled) return;
     
     // Update local cart in localStorage
-    updateLocalCart(productId, 1);
+    updateLocalCart(productId, 1, storeId);
     
     // Show success state
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  const buttonClasses = `
+  // If custom className/style provided, use minimal base styling
+  const hasCustomStyles = className || style;
+  
+  const defaultClasses = `
     add-to-cart
     ${isAdding ? 'adding' : ''}
     ${isAdded ? 'bg-emerald-600 hover:bg-emerald-600' : ''}
     ${size === 'large' ? 'py-4 text-lg' : ''}
   `.trim();
 
+  const buttonClasses = hasCustomStyles 
+    ? `${className || ''} ${isAdded ? 'bg-emerald-600!' : ''}`
+    : defaultClasses;
+
   return (
     <button
       onClick={handleAddToCart}
       disabled={disabled || isAdding}
       className={buttonClasses}
+      style={style}
       aria-label={isAdding ? 'Adding to cart...' : 'Add to cart'}
     >
-      {isAdding ? (
-        <>
-          <LoadingSpinner />
-          <span className="ml-2">Adding...</span>
-        </>
-      ) : isAdded ? (
-        <>
-          <CheckIcon />
-          <span className="ml-2">Added!</span>
-        </>
+      {children ? (
+        isAdding ? 'Adding...' : isAdded ? 'Added!' : children
       ) : (
         <>
-          <CartIcon />
-          <span className="ml-2">Add to Cart</span>
+          {isAdding ? (
+            <>
+              <LoadingSpinner />
+              <span className="ml-2">Adding...</span>
+            </>
+          ) : isAdded ? (
+            <>
+              <CheckIcon />
+              <span className="ml-2">Added!</span>
+            </>
+          ) : (
+            <>
+              <CartIcon />
+              <span className="ml-2">Add to Cart</span>
+            </>
+          )}
         </>
       )}
     </button>
@@ -63,7 +89,7 @@ export function AddToCartButton({ productId, disabled = false, size = 'default' 
 }
 
 // Helper to update cart count in header (client-side)
-function updateLocalCart(productId: number, quantity: number) {
+function updateLocalCart(productId: number, quantity: number, storeId?: number) {
   // Update the cart badge count
   const cartBadge = document.getElementById('cart-count');
   if (cartBadge) {
