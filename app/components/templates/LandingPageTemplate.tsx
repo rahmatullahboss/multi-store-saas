@@ -124,6 +124,7 @@ interface LandingPageTemplateProps {
   config: LandingConfig;
   currency: string;
   isPreview?: boolean; // When true, disables form submission and shows preview mode
+  isEditMode?: boolean; // When true, enables Magic Editor hover overlays
 }
 
 export function LandingPageTemplate({
@@ -133,6 +134,7 @@ export function LandingPageTemplate({
   config,
   currency,
   isPreview = false,
+  isEditMode = false,
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -203,6 +205,16 @@ export function LandingPageTemplate({
 
   return (
     <div className={`min-h-screen ${theme.bgPrimary} ${theme.textPrimary}`}>
+      {/* Edit Mode Indicator */}
+      {isEditMode && (
+        <div className="fixed top-4 left-4 z-50 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-medium rounded-full shadow-lg animate-pulse">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+          Edit Mode Active
+        </div>
+      )}
+
       {/* Urgency Bar */}
       {config.urgencyText && (
         <div className={`${theme.urgencyBg} text-white text-center py-3 px-4`}>

@@ -242,6 +242,51 @@ Return the updated JSON for this section only:`;
 }
 
 // ============================================================================
+// ACTION: Enhance Text (For field-specific text improvement)
+// ============================================================================
+
+// Field-specific prompts
+const ENHANCE_PROMPTS: Record<string, string> = {
+  headline: 'You are a conversion copywriter. Create a compelling, attention-grabbing headline.',
+  subheadline: 'You are a conversion copywriter. Create a supporting subheadline that builds desire.',
+  description: 'You are a product copywriter. Write persuasive product descriptions that highlight benefits.',
+  urgency: 'You are a marketing expert. Create urgency text that motivates immediate action.',
+  guarantee: 'You are a trust-building expert. Write a reassuring guarantee statement.',
+  cta: 'You are a CTA specialist. Write a short, action-oriented button text.',
+  testimonial: 'You are a review writer. Create a realistic, specific customer testimonial.',
+  seo: 'You are an SEO expert. Generate relevant search keywords.',
+};
+
+export async function enhanceText(
+  apiKey: string,
+  fieldType: string,
+  currentText: string,
+  keywords: string
+): Promise<string> {
+  const basePrompt = ENHANCE_PROMPTS[fieldType] || ENHANCE_PROMPTS.headline;
+  
+  const systemPrompt = `${basePrompt}
+
+Guidelines:
+- Use Bengali if keywords appear to be in Bengali, otherwise use English
+- Keep it concise and impactful
+- Focus on benefits and emotions
+- Return ONLY the enhanced text, no explanations or quotes`;
+
+  const userPrompt = currentText 
+    ? `Current text: "${currentText}"
+Keywords/Topic: "${keywords}"
+
+Improve this text based on the keywords:`
+    : `Keywords/Topic: "${keywords}"
+
+Create new text based on these keywords:`;
+
+  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  return response.trim().replace(/^["']|["']$/g, ''); // Remove surrounding quotes if any
+}
+
+// ============================================================================
 // ACTION: Quick Edit (Simple text changes)
 // ============================================================================
 export async function quickEdit(
@@ -279,7 +324,11 @@ export function createAIService(apiKey: string) {
     editSection: (sectionName: string, currentData: unknown, prompt: string) =>
       editSection(apiKey, sectionName, currentData, prompt),
     
+    enhanceText: (fieldType: string, currentText: string, keywords: string) =>
+      enhanceText(apiKey, fieldType, currentText, keywords),
+    
     quickEdit: (currentText: string, prompt: string) =>
       quickEdit(apiKey, currentText, prompt),
   };
 }
+

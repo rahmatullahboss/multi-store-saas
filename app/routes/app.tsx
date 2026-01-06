@@ -170,24 +170,65 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
-// NAVIGATION ITEMS
+// NAVIGATION ITEMS - Grouped by Category (Shopify-inspired)
 // ============================================================================
-const navItems = [
-  { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/app/products', label: 'Products', icon: Package },
-  { to: '/app/store-setup', label: 'Store Setup', icon: Palette },
-  { to: '/app/ai-setup', label: 'AI Magic', icon: Sparkles },
-  { to: '/app/inventory', label: 'Inventory', icon: Warehouse },
-  { to: '/app/dashboard/orders', label: 'Orders', icon: ShoppingCart },
-  { to: '/app/abandoned-carts', label: 'Abandoned Carts', icon: ShoppingBag },
-  { to: '/app/campaigns', label: 'Campaigns', icon: Mail },
-  { to: '/app/analytics', label: 'Analytics', icon: BarChart3 },
-  { to: '/app/reports', label: 'Reports', icon: FileText },
-  { to: '/app/discounts', label: 'Discounts', icon: Tag },
-  { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
-  { to: '/app/settings/domain', label: 'Domain', icon: Globe },
-  { to: '/app/billing', label: 'Billing', icon: CreditCard },
-  { to: '/app/settings', label: 'Settings', icon: Settings },
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+};
+
+type NavSection = {
+  title: string;
+  items: NavItem[];
+};
+
+const navSections: NavSection[] = [
+  {
+    title: 'Home',
+    items: [
+      { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    title: 'Catalog',
+    items: [
+      { to: '/app/products', label: 'Products', icon: Package },
+      { to: '/app/inventory', label: 'Inventory', icon: Warehouse },
+      { to: '/app/discounts', label: 'Discounts', icon: Tag },
+    ],
+  },
+  {
+    title: 'Orders',
+    items: [
+      { to: '/app/dashboard/orders', label: 'All Orders', icon: ShoppingCart },
+      { to: '/app/abandoned-carts', label: 'Abandoned Carts', icon: ShoppingBag },
+    ],
+  },
+  {
+    title: 'Marketing',
+    items: [
+      { to: '/app/campaigns', label: 'Campaigns', icon: Mail },
+      { to: '/app/subscribers', label: 'Subscribers', icon: Mail },
+    ],
+  },
+  {
+    title: 'Analytics',
+    items: [
+      { to: '/app/analytics', label: 'Overview', icon: BarChart3 },
+      { to: '/app/reports', label: 'Reports', icon: FileText },
+    ],
+  },
+  {
+    title: 'Settings',
+    items: [
+      { to: '/app/store-setup', label: 'Store Setup', icon: Palette },
+      { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
+      { to: '/app/settings/domain', label: 'Domain', icon: Globe },
+      { to: '/app/billing', label: 'Billing', icon: CreditCard },
+      { to: '/app/settings', label: 'All Settings', icon: Settings },
+    ],
+  },
 ];
 
 // Admin-only navigation items
@@ -268,28 +309,43 @@ export default function AppLayout() {
 
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.to);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition
-                    ${active 
-                      ? 'bg-emerald-50 text-emerald-700' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }
-                  `}
-                >
-                  <Icon className={`w-5 h-5 ${active ? 'text-emerald-600' : ''}`} />
-                  {item.label}
-                </Link>
-              );
-            })}
+          <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+            {navSections.map((section) => (
+              <div key={section.title}>
+                {/* Section Header - hide for Home */}
+                {section.title !== 'Home' && (
+                  <div className="px-3 pb-2">
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {section.title}
+                    </span>
+                  </div>
+                )}
+                {/* Section Items */}
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.to);
+                    return (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`
+                          flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
+                          ${active 
+                            ? 'bg-emerald-50 text-emerald-700' 
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                          }
+                        `}
+                      >
+                        <Icon className={`w-5 h-5 ${active ? 'text-emerald-600' : ''}`} />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
             
             {/* Admin Section */}
             {user.role === 'admin' && (

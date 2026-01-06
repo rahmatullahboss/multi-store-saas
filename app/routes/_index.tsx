@@ -17,7 +17,7 @@
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
-import { useLoaderData, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import { useLoaderData, useRouteError, isRouteErrorResponse, useSearchParams } from '@remix-run/react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
@@ -459,6 +459,10 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 // ============================================================================
 export default function Index() {
   const data = useLoaderData<LoaderData>();
+  const [searchParams] = useSearchParams();
+  
+  // Check for edit mode via URL param (for merchant editing)
+  const isEditMode = searchParams.get('edit') === 'true';
 
   // ========== MARKETING MODE ==========
   if (data.mode === 'marketing') {
@@ -489,6 +493,7 @@ export default function Index() {
         product={data.featuredProduct}
         config={data.landingConfig as LandingConfig}
         currency={data.currency}
+        isEditMode={isEditMode}
       />
     );
   }

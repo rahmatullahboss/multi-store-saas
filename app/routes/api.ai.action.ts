@@ -18,7 +18,7 @@ import { canUseAI, type PlanType } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
 
 // Action types
-type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'EDIT_SECTION';
+type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT';
 
 interface ActionPayload {
   action: ActionType;
@@ -31,6 +31,10 @@ interface ActionPayload {
   sectionName?: string;
   currentData?: unknown;
   editPrompt?: string;
+  // ENHANCE_TEXT
+  fieldType?: string;
+  currentText?: string;
+  keywords?: string;
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -130,6 +134,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
           payload.sectionName,
           payload.currentData || {},
           payload.editPrompt
+        );
+        return json({ success: true, data: result });
+      }
+
+      case 'ENHANCE_TEXT': {
+        if (!payload.fieldType || !payload.keywords) {
+          return json({ error: 'Field type and keywords required' }, { status: 400 });
+        }
+
+        const result = await ai.enhanceText(
+          payload.fieldType,
+          payload.currentText || '',
+          payload.keywords
         );
         return json({ success: true, data: result });
       }

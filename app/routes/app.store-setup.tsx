@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { OptimizedImage } from '~/components/OptimizedImage';
+import { AIEnhanceButton } from '~/components/AIEnhanceButton';
 
 export const meta: MetaFunction = () => [{ title: 'Store Setup - Multi-Store SaaS' }];
 
@@ -139,6 +140,14 @@ export default function StoreSetupPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [testimonials, setTestimonials] = useState<LandingConfig['testimonials']>(landingConfig.testimonials || []);
+  
+  // Controlled text fields for AI enhancement
+  const [headline, setHeadline] = useState(landingConfig.headline || '');
+  const [subheadline, setSubheadline] = useState(landingConfig.subheadline || '');
+  const [urgencyText, setUrgencyText] = useState(landingConfig.urgencyText || '');
+  const [guaranteeText, setGuaranteeText] = useState(landingConfig.guaranteeText || '');
+  const [ctaText, setCtaText] = useState(landingConfig.ctaText || 'Buy Now');
+  const [ctaSubtext, setCtaSubtext] = useState(landingConfig.ctaSubtext || '');
   
   // Collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -352,41 +361,77 @@ export default function StoreSetupPage() {
           {expandedSections.headlines && (
             <div className="p-4 pt-0 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Main Headline *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Main Headline *</label>
+                  <AIEnhanceButton
+                    fieldType="headline"
+                    currentText={headline}
+                    onTextGenerated={setHeadline}
+                    size="sm"
+                  />
+                </div>
                 <input
                   type="text"
                   name="headline"
-                  defaultValue={landingConfig.headline}
+                  value={headline}
+                  onChange={(e) => setHeadline(e.target.value)}
                   placeholder="আপনার জীবন বদলে দিন"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subheadline</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Subheadline</label>
+                  <AIEnhanceButton
+                    fieldType="subheadline"
+                    currentText={subheadline}
+                    onTextGenerated={setSubheadline}
+                    size="sm"
+                  />
+                </div>
                 <input
                   type="text"
                   name="subheadline"
-                  defaultValue={landingConfig.subheadline || ''}
+                  value={subheadline}
+                  onChange={(e) => setSubheadline(e.target.value)}
                   placeholder="সেরা পণ্য, সেরা দাম"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Urgency Text (Top Banner)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Urgency Text (Top Banner)</label>
+                  <AIEnhanceButton
+                    fieldType="urgency"
+                    currentText={urgencyText}
+                    onTextGenerated={setUrgencyText}
+                    size="sm"
+                  />
+                </div>
                 <input
                   type="text"
                   name="urgencyText"
-                  defaultValue={landingConfig.urgencyText || ''}
+                  value={urgencyText}
+                  onChange={(e) => setUrgencyText(e.target.value)}
                   placeholder="🔥 সীমিত সময়ের অফার!"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Guarantee Text</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Guarantee Text</label>
+                  <AIEnhanceButton
+                    fieldType="guarantee"
+                    currentText={guaranteeText}
+                    onTextGenerated={setGuaranteeText}
+                    size="sm"
+                  />
+                </div>
                 <input
                   type="text"
                   name="guaranteeText"
-                  defaultValue={landingConfig.guaranteeText || ''}
+                  value={guaranteeText}
+                  onChange={(e) => setGuaranteeText(e.target.value)}
                   placeholder="৭ দিনের মানি ব্যাক গ্যারান্টি"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
@@ -449,21 +494,39 @@ export default function StoreSetupPage() {
           {expandedSections.cta && (
             <div className="p-4 pt-0 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Button Text</label>
+                  <AIEnhanceButton
+                    fieldType="cta"
+                    currentText={ctaText}
+                    onTextGenerated={setCtaText}
+                    size="sm"
+                  />
+                </div>
                 <input
                   type="text"
                   name="ctaText"
-                  defaultValue={landingConfig.ctaText}
+                  value={ctaText}
+                  onChange={(e) => setCtaText(e.target.value)}
                   placeholder="এখনই অর্ডার করুন"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Button Subtext</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Button Subtext</label>
+                  <AIEnhanceButton
+                    fieldType="cta"
+                    currentText={ctaSubtext}
+                    onTextGenerated={setCtaSubtext}
+                    size="sm"
+                  />
+                </div>
                 <input
                   type="text"
                   name="ctaSubtext"
-                  defaultValue={landingConfig.ctaSubtext || ''}
+                  value={ctaSubtext}
+                  onChange={(e) => setCtaSubtext(e.target.value)}
                   placeholder="ক্যাশ অন ডেলিভারি"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />

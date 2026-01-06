@@ -32,6 +32,8 @@ export interface TemplateProps {
   config: LandingConfig;
   currency: string;
   isPreview?: boolean;
+  isEditMode?: boolean;  // For Magic Editor integration
+  onConfigUpdate?: (newConfig: Partial<LandingConfig>) => void;
 }
 
 // ============================================================================
