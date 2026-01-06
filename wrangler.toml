@@ -13,7 +13,7 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "build/client"
 
 # ============================================================================
-# BINDINGS - Work in both Workers and Pages
+# BINDINGS - Work in Pages Functions
 # ============================================================================
 
 [observability]
@@ -55,31 +55,3 @@ R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"  # R2 buck
 [dev]
 port = 8787
 local_protocol = "http"
-
-# ============================================================================
-# PAGES FUNCTIONS CONFIGURATION
-# ============================================================================
-# When deploying to Pages, the functions are auto-discovered from:
-# - functions/ directory (for catch-all SSR)
-# - Or using the Remix adapter which handles this automatically
-
-# For local development with Pages:
-# wrangler pages dev ./build/client --d1=DB --r2=R2
-
-# For production deployment:
-# 1. Build: npm run build
-# 2. Deploy: wrangler pages deploy ./build/client --project-name=multi-store-saas
-# 3. Configure bindings in Cloudflare Dashboard > Pages > Settings > Functions
-
-# ============================================================================
-# CLOUDFLARE QUEUES - Email Campaign Scheduling (DISABLED)
-# ============================================================================
-# Queue is disabled for now. Email campaigns will run synchronously.
-# To enable later:
-# 1. Enable Queues at: https://dash.cloudflare.com > Workers > Queues
-# 2. Create queue: npx wrangler queues create email-campaign-queue
-# 3. Uncomment the producer binding below:
-#
-# [[queues.producers]]
-# binding = "EMAIL_QUEUE"
-# queue = "email-campaign-queue"
