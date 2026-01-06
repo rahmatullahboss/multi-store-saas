@@ -37,7 +37,8 @@ import {
   Globe,
   Crown,
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Home
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -224,6 +225,7 @@ const navSections: NavSection[] = [
     items: [
       { to: '/app/store-setup', label: 'Store Setup', icon: Palette },
       { to: '/app/store-design', label: 'Store Templates', icon: Sparkles },
+      { to: '/app/settings/homepage', label: 'Homepage', icon: Home },
       { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
       { to: '/app/settings/domain', label: 'Domain', icon: Globe },
       { to: '/app/billing', label: 'Billing', icon: CreditCard },

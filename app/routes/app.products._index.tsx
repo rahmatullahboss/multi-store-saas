@@ -20,7 +20,7 @@ import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
-  AlertTriangle, CheckCircle, Archive, Rocket, Check, Copy
+  AlertTriangle, CheckCircle, Archive, Rocket, Check, Copy, Star
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
@@ -67,6 +67,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // Store info for campaign links
     storeSubdomain: store.subdomain,
     storeCustomDomain: store.customDomain || null,
+    // Featured product for Primary Product badge
+    featuredProductId: store.featuredProductId || null,
+    storeMode: store.mode || 'landing',
     stats: {
       total: totalProducts,
       published: publishedCount,
@@ -115,7 +118,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ProductsIndexPage() {
-  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain } = useLoaderData<typeof loader>();
+  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, storeMode } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
@@ -443,12 +446,23 @@ export default function ProductsIndexPage() {
                           </div>
                         )}
                         <div className="min-w-0">
-                          <Link
-                            to={`/app/products/${product.id}`}
-                            className="font-medium text-gray-900 hover:text-emerald-600 transition truncate block"
-                          >
-                            {product.title}
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              to={`/app/products/${product.id}`}
+                              className="font-medium text-gray-900 hover:text-emerald-600 transition truncate block"
+                            >
+                              {product.title}
+                            </Link>
+                            {featuredProductId === product.id && (
+                              <span 
+                                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full"
+                                title="This is your featured product in Landing Mode"
+                              >
+                                <Star className="w-3 h-3 fill-amber-400" />
+                                Primary
+                              </span>
+                            )}
+                          </div>
                           {product.sku && (
                             <p className="text-xs text-gray-500">SKU: {product.sku}</p>
                           )}
@@ -540,9 +554,16 @@ export default function ProductsIndexPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <Link to={`/app/products/${product.id}`} className="font-medium text-gray-900 truncate hover:text-emerald-600">
-                        {product.title}
-                      </Link>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Link to={`/app/products/${product.id}`} className="font-medium text-gray-900 truncate hover:text-emerald-600">
+                          {product.title}
+                        </Link>
+                        {featuredProductId === product.id && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full flex-shrink-0">
+                            <Star className="w-3 h-3 fill-amber-400" />
+                          </span>
+                        )}
+                      </div>
                       <StatusBadge published={product.isPublished ?? true} />
                     </div>
                     <div className="mt-1 flex items-center gap-4 text-sm">

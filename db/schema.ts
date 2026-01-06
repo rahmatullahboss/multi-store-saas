@@ -535,6 +535,33 @@ export const emailCampaignsRelations = relations(emailCampaigns, ({ one }) => ({
 }));
 
 // ============================================================================
+// SAVED LANDING CONFIGS TABLE - Preserve landing pages when switching to Store mode
+// ============================================================================
+export const savedLandingConfigs = sqliteTable('saved_landing_configs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').references(() => products.id),
+  name: text('name').notNull(), // e.g., "Homepage Backup - Jan 2026"
+  landingConfig: text('landing_config').notNull(), // Full JSON config
+  offerSlug: text('offer_slug'), // Custom slug like "old-home"
+  isHomepageBackup: integer('is_homepage_backup', { mode: 'boolean' }).default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('saved_landing_configs_store_id_idx').on(table.storeId),
+]);
+
+export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ one }) => ({
+  store: one(stores, {
+    fields: [savedLandingConfigs.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [savedLandingConfigs.productId],
+    references: [products.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -569,3 +596,6 @@ export type EmailSubscriber = typeof emailSubscribers.$inferSelect;
 export type NewEmailSubscriber = typeof emailSubscribers.$inferInsert;
 export type EmailCampaign = typeof emailCampaigns.$inferSelect;
 export type NewEmailCampaign = typeof emailCampaigns.$inferInsert;
+export type SavedLandingConfig = typeof savedLandingConfigs.$inferSelect;
+export type NewSavedLandingConfig = typeof savedLandingConfigs.$inferInsert;
+
