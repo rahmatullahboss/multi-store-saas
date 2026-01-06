@@ -141,8 +141,19 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
           <h2 className="text-2xl font-bold text-emerald-600 mb-2">
             🎉 Your store is ready!
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-6">
             আপনার স্টোর তৈরি হয়ে গেছে!
+          </p>
+          
+          {/* Go to Dashboard Button */}
+          <a
+            href="/app/orders"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-lg font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            🚀 Go to Dashboard
+          </a>
+          <p className="text-sm text-gray-500 mt-4">
+            ড্যাশবোর্ডে যান
           </p>
         </div>
       )}

@@ -77,7 +77,7 @@ export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) 
   const { t } = useTranslation();
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
       {PLANS.map((plan) => {
         const isSelected = selectedPlan === plan.id;
         
@@ -87,7 +87,7 @@ export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) 
             type="button"
             onClick={() => onSelectPlan(plan.id)}
             className={`
-              relative p-6 rounded-2xl border-2 text-left transition-all
+              relative p-5 md:p-6 lg:p-8 rounded-2xl border-2 text-left transition-all
               ${isSelected 
                 ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200' 
                 : 'border-gray-200 bg-white hover:border-gray-300'

@@ -180,16 +180,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       // 3. Generate AI content if API key available
       const apiKey = env.MIMO_API_KEY;
+      let aiSuccess = false;
+      
       if (apiKey) {
+        console.log('[Onboarding] API Key found, attempting AI generation...');
         try {
           const ai = createAIService(apiKey);
           
           // Generate store setup
+          console.log('[Onboarding] Calling AI generateStoreSetup with:', { description, category });
           const storeSetup = await ai.generateStoreSetup(
             `${description}. Category: ${category}. Target: Bangladesh market.`
           );
+          console.log('[Onboarding] AI generateStoreSetup SUCCESS:', storeSetup.storeName);
 
           // Generate landing config
+          console.log('[Onboarding] Calling AI generateLandingConfig...');
           const landingConfig = await ai.generateLandingConfig(
             {
               title: storeSetup.product.title,
@@ -198,6 +204,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             },
             'Professional, trustworthy, Bangladesh market'
           );
+          console.log('[Onboarding] AI generateLandingConfig SUCCESS');
 
           // Build full landing config
           const fullLandingConfig = {
@@ -232,10 +239,79 @@ export async function action({ request, context }: ActionFunctionArgs) {
             price: storeSetup.product.suggestedPrice,
             isPublished: true,
           });
+          
+          aiSuccess = true;
+          console.log('[Onboarding] AI setup complete!');
         } catch (aiError) {
           console.error('[Onboarding] AI generation failed:', aiError);
-          // Continue without AI content - store is still created
+          // Will use fallback below
         }
+      } else {
+        console.log('[Onboarding] No API Key found, using fallback');
+      }
+      
+      // 3b. FALLBACK: Use user-provided info if AI failed or not available
+      if (!aiSuccess) {
+        console.log('[Onboarding] Using fallback with user-provided info...');
+        
+        // Generate a store name from description (first 3 words + "Store")
+        const words = description.split(' ').slice(0, 3).join(' ');
+        const fallbackStoreName = words.length > 3 ? `${words} Store` : `${name}'s Store`;
+        
+        // Category-based fallback product
+        const categoryProducts: Record<string, { title: string; price: number }> = {
+          fashion: { title: 'Premium Fashion Item', price: 1500 },
+          electronics: { title: 'Quality Electronics', price: 2500 },
+          beauty: { title: 'Beauty Product', price: 800 },
+          food: { title: 'Delicious Food Item', price: 350 },
+          jewelry: { title: 'Beautiful Jewelry', price: 2000 },
+          handmade: { title: 'Handmade Craft', price: 1200 },
+          other: { title: 'Quality Product', price: 1000 },
+        };
+        
+        const fallbackProduct = categoryProducts[category] || categoryProducts.other;
+        
+        // Fallback landing config using user's description
+        const fallbackLandingConfig = {
+          templateId: 'modern-dark',
+          headline: description.slice(0, 80) || 'আপনার পছন্দের প্রোডাক্ট',
+          subheadline: 'বাংলাদেশে সেরা কোয়ালিটি ও দ্রুত ডেলিভারি',
+          ctaText: 'এখনই অর্ডার করুন',
+          ctaSubtext: 'ক্যাশ অন ডেলিভারি',
+          features: [
+            { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের পণ্য' },
+            { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
+            { icon: '💳', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা দিন' },
+          ],
+          testimonials: [
+            { name: 'সন্তুষ্ট ক্রেতা', text: 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!' },
+          ],
+          urgencyText: 'সীমিত সময়ের অফার!',
+          guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি',
+        };
+        
+        // Update store with fallback content
+        await db
+          .update(stores)
+          .set({
+            name: fallbackStoreName,
+            landingConfig: JSON.stringify(fallbackLandingConfig),
+            onboardingStatus: 'completed',
+            setupStep: 4,
+            updatedAt: new Date(),
+          })
+          .where(eq(stores.id, storeId));
+
+        // Create fallback product
+        await db.insert(products).values({
+          storeId,
+          title: fallbackProduct.title,
+          description: description.slice(0, 500) || 'উন্নত মানের প্রোডাক্ট',
+          price: fallbackProduct.price,
+          isPublished: true,
+        });
+        
+        console.log('[Onboarding] Fallback setup complete:', fallbackStoreName);
       }
 
       // 4. Create session and return success
@@ -384,7 +460,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
       {/* Header */}
       <header className="py-6 px-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div className="p-2 bg-emerald-600 rounded-xl">
               <Store className="w-6 h-6 text-white" />
@@ -405,12 +481,12 @@ export default function OnboardingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Progress Steps */}
         {currentStep < 6 && <OnboardingSteps currentStep={currentStep} totalSteps={5} />}
 
         {/* Step Content */}
-        <div className="bg-white rounded-3xl shadow-xl p-8">
+        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10 lg:p-12">
           {/* Step 1: Account */}
           {currentStep === 1 && (
             <div className="space-y-6">
