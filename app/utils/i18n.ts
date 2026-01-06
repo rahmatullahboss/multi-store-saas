@@ -314,6 +314,7 @@ export const translations = {
     // Onboarding Setup Progress
     creatingYourStore: 'Creating your store...',
     aiNamingStore: 'AI is naming your store...',
+    settingUpStore: 'Setting up your store...',
     addingDemoProduct: 'Adding demo product...',
     designingLandingPage: 'Designing landing page...',
     almostDone: 'Almost done!',
@@ -617,6 +618,7 @@ export const translations = {
     // Onboarding Setup Progress
     creatingYourStore: 'আপনার স্টোর তৈরি হচ্ছে...',
     aiNamingStore: 'AI আপনার স্টোরের নাম দিচ্ছে...',
+    settingUpStore: 'আপনার স্টোর সেটআপ হচ্ছে...',
     addingDemoProduct: 'ডেমো প্রোডাক্ট যোগ হচ্ছে...',
     designingLandingPage: 'ল্যান্ডিং পেজ ডিজাইন হচ্ছে...',
     almostDone: 'প্রায় শেষ!',

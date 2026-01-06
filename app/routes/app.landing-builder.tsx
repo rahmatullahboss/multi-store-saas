@@ -21,7 +21,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Eye, Sparkles, Save, 
-  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image
+  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -190,6 +190,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const whatsappNumber = formData.get('whatsappNumber') as string || '';
     const whatsappMessage = formData.get('whatsappMessage') as string || '';
     const testimonials = JSON.parse(formData.get('testimonials') as string || '[]');
+    const faq = JSON.parse(formData.get('faq') as string || '[]');
 
     const newConfig: LandingConfig = {
       templateId,
@@ -205,6 +206,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       whatsappNumber,
       whatsappMessage,
       testimonials: testimonials.filter((t: {name: string; imageUrl?: string}) => t.name && t.imageUrl), // Only save testimonials with photo
+      faq: faq.filter((f: {question: string; answer: string}) => f.question && f.answer), // Only save complete FAQs
     };
 
     await db
@@ -254,9 +256,10 @@ export default function LandingBuilderPage() {
   
   // Testimonials state
   const [testimonials, setTestimonials] = useState<Array<{name: string; text?: string; imageUrl?: string}>>(store.landingConfig.testimonials || []);
+  const [faq, setFaq] = useState<Array<{question: string; answer: string}>>(store.landingConfig.faq || []);
 
   // Current tab
-  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'testimonials' | 'whatsapp'>('template');
+  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'testimonials' | 'faq' | 'whatsapp'>('template');
 
   // Show success message
   useEffect(() => {
@@ -344,6 +347,7 @@ export default function LandingBuilderPage() {
                 <input type="hidden" name="whatsappNumber" value={whatsappNumber} />
                 <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
                 <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
+                <input type="hidden" name="faq" value={JSON.stringify(faq)} />
                 
                 <button
                   type="submit"
@@ -382,6 +386,7 @@ export default function LandingBuilderPage() {
             { id: 'content', icon: Settings, label: 'কন্টেন্ট', labelEn: 'Content' },
             { id: 'sections', icon: Layout, label: 'সেকশন', labelEn: 'Sections' },
             { id: 'testimonials', icon: Star, label: 'টেস্টিমোনিয়াল', labelEn: 'Testimonials' },
+            { id: 'faq', icon: HelpCircle, label: 'FAQ', labelEn: 'FAQ' },
             { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', labelEn: 'WhatsApp' },
           ].map((tab) => (
             <button
@@ -672,6 +677,107 @@ export default function LandingBuilderPage() {
                     💡 {language === 'bn' 
                       ? 'টিপ: গ্রাহকের স্ক্রিনশট বা প্রোডাক্ট সাথে ছবি দিলে ৩০%+ বেশি কনভার্ট হয়!' 
                       : 'Tip: Screenshots or photos with product convert 30%+ better!'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'faq' && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {language === 'bn' ? 'প্রশ্নোত্তর (FAQ)' : 'Frequently Asked Questions'}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {language === 'bn' ? 'কাস্টম প্রশ্ন ও উত্তর যোগ করুন' : 'Add custom questions and answers'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFaq([...faq, { question: '', answer: '' }])}
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {language === 'bn' ? 'যোগ করুন' : 'Add'}
+                  </button>
+                </div>
+
+                {faq.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl">
+                    <HelpCircle className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500">
+                      {language === 'bn' ? 'কোনো কাস্টম FAQ নেই। ডিফল্ট FAQ দেখাবে।' : 'No custom FAQ. Default FAQ will show.'}
+                    </p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      {language === 'bn' ? 'উপরের বাটনে ক্লিক করে যোগ করুন।' : 'Click button above to add.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {faq.map((item, index) => (
+                      <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                        <div className="flex items-start gap-4">
+                          <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                            {index + 1}
+                          </div>
+                          
+                          <div className="flex-1 space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">
+                                {language === 'bn' ? 'প্রশ্ন' : 'Question'}
+                              </label>
+                              <input
+                                type="text"
+                                value={item.question}
+                                onChange={(e) => {
+                                  const updated = [...faq];
+                                  updated[index].question = e.target.value;
+                                  setFaq(updated);
+                                }}
+                                placeholder={language === 'bn' ? 'প্রোডাক্ট কি অরিজিনাল?' : 'Is the product original?'}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">
+                                {language === 'bn' ? 'উত্তর' : 'Answer'}
+                              </label>
+                              <textarea
+                                value={item.answer}
+                                onChange={(e) => {
+                                  const updated = [...faq];
+                                  updated[index].answer = e.target.value;
+                                  setFaq(updated);
+                                }}
+                                rows={2}
+                                placeholder={language === 'bn' ? 'হ্যাঁ, ১০০% অরিজিনাল প্রোডাক্ট।' : 'Yes, 100% original product.'}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm resize-none"
+                              />
+                            </div>
+                          </div>
+                          
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = faq.filter((_, i) => i !== index);
+                              setFaq(updated);
+                            }}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    💡 {language === 'bn' 
+                      ? 'টিপ: কাস্টম FAQ না থাকলে ডিফল্ট ডেলিভারি, পেমেন্ট সংক্রান্ত প্রশ্ন দেখাবে।' 
+                      : 'Tip: Without custom FAQ, default delivery/payment questions will show.'}
                   </p>
                 </div>
               </div>

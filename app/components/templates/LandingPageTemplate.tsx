@@ -208,7 +208,9 @@ export function LandingPageTemplate({
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
 
-  const totalPrice = product.price * formData.quantity;
+  const subtotal = product.price * formData.quantity;
+  const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
+  const totalPrice = subtotal + shippingCost;
 
   // Validate form fields
   const validateForm = (): boolean => {

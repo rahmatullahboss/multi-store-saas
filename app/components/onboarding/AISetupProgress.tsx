@@ -1,6 +1,7 @@
 /**
- * AI Setup Progress Component
- * Shows animated step-by-step AI generation progress
+ * Setup Progress Component
+ * Shows animated step-by-step store setup progress
+ * Note: AI features temporarily disabled for MVP
  */
 
 import { useEffect, useState } from 'react';
@@ -18,7 +19,7 @@ interface AISetupProgressProps {
 // Step keys for translation
 const STEP_KEYS: { icon: typeof Store; key: TranslationKey }[] = [
   { icon: Store, key: 'creatingYourStore' },
-  { icon: Sparkles, key: 'aiNamingStore' },
+  { icon: Sparkles, key: 'settingUpStore' },
   { icon: Package, key: 'addingDemoProduct' },
   { icon: Palette, key: 'designingLandingPage' },
   { icon: CheckCircle2, key: 'almostDone' },

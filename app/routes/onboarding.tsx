@@ -18,7 +18,8 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
 import { getUserId, register, createUserSession } from '~/services/auth.server';
-import { createAIService } from '~/services/ai.server';
+// AI features temporarily disabled for MVP
+// import { createAIService } from '~/services/ai.server';
 import type { PlanType } from '~/utils/plans.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { PlanSelector } from '~/components/onboarding/PlanSelector';
@@ -175,77 +176,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         })
         .where(eq(stores.id, storeId));
 
-      // 3. Generate AI content if API key available
-      const apiKey = env.OPENROUTER_API_KEY;
-      let aiSuccess = false;
-      
-      if (apiKey) {
-        console.log('[Onboarding] API Key found, attempting AI generation...');
-        try {
-          const ai = createAIService(apiKey);
-          
-          // Generate store setup
-          console.log('[Onboarding] Calling AI generateStoreSetup with:', { description, category });
-          const storeSetup = await ai.generateStoreSetup(
-            `${description}. Category: ${category}. Target: Bangladesh market.`
-          );
-          console.log('[Onboarding] AI generateStoreSetup SUCCESS:', storeSetup.storeName);
-
-          // Generate landing config
-          console.log('[Onboarding] Calling AI generateLandingConfig...');
-          const landingConfig = await ai.generateLandingConfig(
-            {
-              title: storeSetup.product.title,
-              description: storeSetup.product.description,
-              price: storeSetup.product.suggestedPrice,
-            },
-            'Professional, trustworthy, Bangladesh market'
-          );
-          console.log('[Onboarding] AI generateLandingConfig SUCCESS');
-
-          // Build full landing config
-          const fullLandingConfig = {
-            templateId: 'modern-dark',
-            headline: landingConfig.hero.headline,
-            subheadline: landingConfig.hero.subheadline,
-            ctaText: landingConfig.hero.ctaText || 'এখনই অর্ডার করুন',
-            ctaSubtext: landingConfig.hero.ctaSubtext || 'ক্যাশ অন ডেলিভারি',
-            features: landingConfig.features,
-            testimonials: landingConfig.testimonials,
-            urgencyText: landingConfig.trust?.urgencyText,
-            guaranteeText: landingConfig.trust?.guaranteeText,
-          };
-
-          // Update store with AI-generated content and mark onboarding as completed
-          await db
-            .update(stores)
-            .set({
-              name: storeSetup.storeName,
-              landingConfig: JSON.stringify(fullLandingConfig),
-              onboardingStatus: 'completed',
-              setupStep: 4,
-              updatedAt: new Date(),
-            })
-            .where(eq(stores.id, storeId));
-
-          // Create AI-generated product
-          await db.insert(products).values({
-            storeId,
-            title: storeSetup.product.title,
-            description: storeSetup.product.description,
-            price: storeSetup.product.suggestedPrice,
-            isPublished: true,
-          });
-          
-          aiSuccess = true;
-          console.log('[Onboarding] AI setup complete!');
-        } catch (aiError) {
-          console.error('[Onboarding] AI generation failed:', aiError);
-          // Will use fallback below
-        }
-      } else {
-        console.log('[Onboarding] No API Key found, using fallback');
-      }
+      // AI features temporarily disabled for MVP - always use fallback
+      const aiSuccess = false;
+      console.log('[Onboarding] AI disabled for MVP, using fallback setup...');
       
       // 3b. FALLBACK: Use user-provided info if AI failed or not available
       if (!aiSuccess) {

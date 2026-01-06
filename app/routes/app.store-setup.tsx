@@ -12,7 +12,7 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { Form, Link, useLoaderData, useActionData, useNavigation } from '@remix-run/react';
+import { Form, Link, useLoaderData, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
@@ -22,11 +22,12 @@ import { getAllTemplates, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { 
   Loader2, CheckCircle, ExternalLink, Palette, Zap, 
   MessageSquare, Video, Users, Plus, Trash2, Eye,
-  ChevronDown, ChevronUp, Globe, EyeOff
+  ChevronDown, ChevronUp, Globe, EyeOff, Upload, X, Image as ImageIcon
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { OptimizedImage } from '~/components/OptimizedImage';
-import { AIEnhanceButton } from '~/components/AIEnhanceButton';
+// AI features temporarily disabled for MVP
+// import { AIEnhanceButton } from '~/components/AIEnhanceButton';
 
 export const meta: MetaFunction = () => [{ title: 'Store Setup - Multi-Store SaaS' }];
 
@@ -95,15 +96,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const urgencyText = formData.get('urgencyText') as string;
   const guaranteeText = formData.get('guaranteeText') as string;
   const testimonialsJson = formData.get('testimonials') as string;
+  const featuresJson = formData.get('features') as string;
+  const faqJson = formData.get('faq') as string;
+  
+  // WhatsApp settings
+  const whatsappEnabled = formData.get('whatsappEnabled') === 'true';
+  const whatsappNumber = formData.get('whatsappNumber') as string;
+  const whatsappMessage = formData.get('whatsappMessage') as string;
 
   let testimonials: LandingConfig['testimonials'] = [];
+  let features: LandingConfig['features'] = [];
+  let faq: LandingConfig['faq'] = [];
+  
   try {
-    if (testimonialsJson) {
-      testimonials = JSON.parse(testimonialsJson);
-    }
-  } catch {
-    // Invalid JSON, ignore
-  }
+    if (testimonialsJson) testimonials = JSON.parse(testimonialsJson);
+  } catch { /* ignore */ }
+  try {
+    if (featuresJson) features = JSON.parse(featuresJson);
+  } catch { /* ignore */ }
+  try {
+    if (faqJson) faq = JSON.parse(faqJson);
+  } catch { /* ignore */ }
 
   // Get current config to preserve existing values
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
@@ -122,6 +135,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     urgencyText: urgencyText !== null ? urgencyText : (currentConfig.urgencyText || ''),
     guaranteeText: guaranteeText !== null ? guaranteeText : (currentConfig.guaranteeText || ''),
     testimonials,
+    features: (features?.length ?? 0) > 0 ? features : currentConfig.features,
+    faq: (faq?.length ?? 0) > 0 ? faq : currentConfig.faq,
+    whatsappEnabled,
+    whatsappNumber: whatsappNumber || currentConfig.whatsappNumber,
+    whatsappMessage: whatsappMessage || currentConfig.whatsappMessage,
   };
 
   await db
@@ -151,6 +169,13 @@ export default function StoreSetupPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [testimonials, setTestimonials] = useState<LandingConfig['testimonials']>(landingConfig.testimonials || []);
+  const [features, setFeatures] = useState<LandingConfig['features']>(landingConfig.features || []);
+  const [faq, setFaq] = useState<LandingConfig['faq']>(landingConfig.faq || []);
+  
+  // WhatsApp settings
+  const [whatsappEnabled, setWhatsappEnabled] = useState(landingConfig.whatsappEnabled || false);
+  const [whatsappNumber, setWhatsappNumber] = useState(landingConfig.whatsappNumber || '');
+  const [whatsappMessage, setWhatsappMessage] = useState(landingConfig.whatsappMessage || '');
   
   // Controlled text fields for AI enhancement
   const [headline, setHeadline] = useState(landingConfig.headline || '');
@@ -170,6 +195,9 @@ export default function StoreSetupPage() {
     video: false,
     cta: false,
     testimonials: false,
+    features: false,
+    faq: false,
+    whatsapp: false,
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -185,8 +213,25 @@ export default function StoreSetupPage() {
     }
   }, [actionData]);
 
+  // File input refs for testimonial photos
+  const testimonialFileRefs = useRef<(HTMLInputElement | null)[]>([]);
+  
+  // Image upload fetcher
+  const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+
+  // Handle testimonial image upload response
+  useEffect(() => {
+    if (imageFetcher.data?.success && imageFetcher.data?.url && uploadingIndex !== null) {
+      const updated = [...(testimonials || [])];
+      updated[uploadingIndex] = { ...updated[uploadingIndex], imageUrl: imageFetcher.data.url };
+      setTestimonials(updated);
+      setUploadingIndex(null);
+    }
+  }, [imageFetcher.data]);
+
   const addTestimonial = () => {
-    setTestimonials([...(testimonials || []), { name: '', text: '' }]);
+    setTestimonials([...(testimonials || []), { name: '', text: '', imageUrl: '' }]);
   };
 
   const removeTestimonial = (index: number) => {
@@ -196,6 +241,25 @@ export default function StoreSetupPage() {
   const updateTestimonial = (index: number, field: 'name' | 'text', value: string) => {
     const updated = [...(testimonials || [])];
     updated[index] = { ...updated[index], [field]: value };
+    setTestimonials(updated);
+  };
+
+  const handleTestimonialImageUpload = (index: number, file: File) => {
+    setUploadingIndex(index);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'testimonials');
+    
+    imageFetcher.submit(formData, {
+      method: 'post',
+      action: '/api/upload-image',
+      encType: 'multipart/form-data',
+    });
+  };
+
+  const removeTestimonialImage = (index: number) => {
+    const updated = [...(testimonials || [])];
+    updated[index] = { ...updated[index], imageUrl: '' };
     setTestimonials(updated);
   };
 
@@ -295,6 +359,11 @@ export default function StoreSetupPage() {
       <Form method="post" className="space-y-4">
         <input type="hidden" name="templateId" value={selectedTemplateId} />
         <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
+        <input type="hidden" name="features" value={JSON.stringify(features)} />
+        <input type="hidden" name="faq" value={JSON.stringify(faq)} />
+        <input type="hidden" name="whatsappEnabled" value={whatsappEnabled ? 'true' : 'false'} />
+        <input type="hidden" name="whatsappNumber" value={whatsappNumber} />
+        <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
 
         {/* Section 1: Template Selection */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -438,12 +507,6 @@ export default function StoreSetupPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Main Headline *</label>
-                  <AIEnhanceButton
-                    fieldType="headline"
-                    currentText={headline}
-                    onTextGenerated={setHeadline}
-                    size="sm"
-                  />
                 </div>
                 <input
                   type="text"
@@ -457,12 +520,6 @@ export default function StoreSetupPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Subheadline</label>
-                  <AIEnhanceButton
-                    fieldType="subheadline"
-                    currentText={subheadline}
-                    onTextGenerated={setSubheadline}
-                    size="sm"
-                  />
                 </div>
                 <input
                   type="text"
@@ -476,12 +533,6 @@ export default function StoreSetupPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Urgency Text (Top Banner)</label>
-                  <AIEnhanceButton
-                    fieldType="urgency"
-                    currentText={urgencyText}
-                    onTextGenerated={setUrgencyText}
-                    size="sm"
-                  />
                 </div>
                 <input
                   type="text"
@@ -495,12 +546,6 @@ export default function StoreSetupPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Guarantee Text</label>
-                  <AIEnhanceButton
-                    fieldType="guarantee"
-                    currentText={guaranteeText}
-                    onTextGenerated={setGuaranteeText}
-                    size="sm"
-                  />
                 </div>
                 <input
                   type="text"
@@ -571,12 +616,6 @@ export default function StoreSetupPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Button Text</label>
-                  <AIEnhanceButton
-                    fieldType="cta"
-                    currentText={ctaText}
-                    onTextGenerated={setCtaText}
-                    size="sm"
-                  />
                 </div>
                 <input
                   type="text"
@@ -590,12 +629,6 @@ export default function StoreSetupPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Button Subtext</label>
-                  <AIEnhanceButton
-                    fieldType="cta"
-                    currentText={ctaSubtext}
-                    onTextGenerated={setCtaSubtext}
-                    size="sm"
-                  />
                 </div>
                 <input
                   type="text"
@@ -635,6 +668,52 @@ export default function StoreSetupPage() {
                 testimonials.map((testimonial, index) => (
                   <div key={index} className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-start gap-4">
+                      {/* Photo Upload Section */}
+                      <div className="flex-shrink-0">
+                        {testimonial.imageUrl ? (
+                          <div className="relative w-20 h-20">
+                            <img
+                              src={testimonial.imageUrl}
+                              alt={`${testimonial.name}'s photo`}
+                              className="w-20 h-20 rounded-lg object-cover border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeTestimonialImage(index)}
+                              className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => testimonialFileRefs.current[index]?.click()}
+                            disabled={uploadingIndex === index}
+                            className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-emerald-400 hover:text-emerald-500 transition cursor-pointer"
+                          >
+                            {uploadingIndex === index ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                              <>
+                                <ImageIcon className="w-5 h-5 mb-1" />
+                                <span className="text-xs">Photo</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                        <input
+                          ref={(el) => { testimonialFileRefs.current[index] = el; }}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleTestimonialImageUpload(index, file);
+                          }}
+                          className="hidden"
+                        />
+                      </div>
+                      {/* Text Fields */}
                       <div className="flex-1 space-y-3">
                         <input
                           type="text"
@@ -644,9 +723,9 @@ export default function StoreSetupPage() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                         />
                         <textarea
-                          value={testimonial.text}
+                          value={testimonial.text || ''}
                           onChange={(e) => updateTestimonial(index, 'text', e.target.value)}
-                          placeholder="Their review..."
+                          placeholder="Their review... (optional if photo added)"
                           rows={2}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
                         />
