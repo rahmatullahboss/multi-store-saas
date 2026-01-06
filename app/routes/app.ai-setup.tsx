@@ -89,25 +89,52 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   try {
     const ai = createAIService(apiKey);
-    const result = await ai.generateStoreSetup(description);
+    
+    // Step 1: Generate store setup
+    const storeSetup = await ai.generateStoreSetup(description);
 
-    // Update store name
+    // Step 2: Generate landing page config in parallel with DB updates
+    const [landingConfig] = await Promise.all([
+      ai.generateLandingConfig(
+        { 
+          title: storeSetup.product.title, 
+          description: storeSetup.product.description,
+          price: storeSetup.product.suggestedPrice 
+        },
+        'Professional and trustworthy, Bangladesh market'
+      ),
+      // Create product while waiting for landing config
+      db.insert(products).values({
+        storeId,
+        title: storeSetup.product.title,
+        description: storeSetup.product.description,
+        price: storeSetup.product.suggestedPrice,
+        isPublished: true,
+      })
+    ]);
+
+    // Build full landing config JSON
+    const fullLandingConfig = {
+      templateId: 'modern-dark',
+      headline: landingConfig.hero.headline,
+      subheadline: landingConfig.hero.subheadline,
+      ctaText: landingConfig.hero.ctaText || 'এখনই অর্ডার করুন',
+      ctaSubtext: landingConfig.hero.ctaSubtext || 'ক্যাশ অন ডেলিভারি',
+      features: landingConfig.features,
+      testimonials: landingConfig.testimonials,
+      urgencyText: landingConfig.trust?.urgencyText,
+      guaranteeText: landingConfig.trust?.guaranteeText,
+    };
+
+    // Update store with name and landing config
     await db
       .update(stores)
       .set({ 
-        name: result.storeName,
+        name: storeSetup.storeName,
+        landingConfig: JSON.stringify(fullLandingConfig),
         updatedAt: new Date()
       })
       .where(eq(stores.id, storeId));
-
-    // Create product
-    await db.insert(products).values({
-      storeId,
-      title: result.product.title,
-      description: result.product.description,
-      price: result.product.suggestedPrice,
-      isPublished: true,
-    });
 
     return redirect('/app?ai_setup=success');
   } catch (error) {

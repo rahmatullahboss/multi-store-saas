@@ -36,6 +36,12 @@ migrations_dir = "db/migrations"
 binding = "R2"
 bucket_name = "multi-store-saas-media"
 
+# KV Namespace for AI Rate Limiting
+# Create first: wrangler kv namespace create AI_RATE_LIMIT
+[[kv_namespaces]]
+binding = "AI_RATE_LIMIT"
+id = "placeholder-replace-with-actual-id"
+
 # ============================================================================
 # ENVIRONMENT VARIABLES
 # ============================================================================

@@ -110,7 +110,7 @@ export function AIEditPanel({
       }),
       {
         method: 'POST',
-        action: '/api/ai/action',
+        action: '/api/ai.action',
         encType: 'application/json',
       }
     );

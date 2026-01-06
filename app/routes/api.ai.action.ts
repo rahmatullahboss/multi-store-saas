@@ -16,6 +16,7 @@ import { stores } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { canUseAI, type PlanType } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
+import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 
 // Action types
 type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT';
@@ -63,15 +64,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const planType = (store.planType as PlanType) || 'free';
 
-  // Plan gating - AI only for paid users
-  if (!canUseAI(planType)) {
+  // Check rate limit (applies to all users, but limits differ by plan)
+  const rateCheck = await checkAIRateLimit(env.AI_RATE_LIMIT, storeId, planType);
+  if (!rateCheck.allowed) {
     return json(
       { 
-        error: 'AI features require Starter or Premium plan',
-        code: 'PLAN_REQUIRED',
-        upgradeUrl: '/app/upgrade'
+        error: `Daily AI limit reached (${rateCheck.limit} requests). ${planType === 'free' ? 'Upgrade to get more requests!' : 'Try again tomorrow.'}`,
+        code: 'RATE_LIMIT_EXCEEDED',
+        remaining: rateCheck.remaining,
+        limit: rateCheck.limit,
+        upgradeUrl: planType === 'free' ? '/app/upgrade' : undefined
       }, 
-      { status: 403 }
+      { status: 429 }
     );
   }
 
@@ -110,6 +114,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.generateStoreSetup(payload.description);
+        // Increment usage after successful call
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }
 
@@ -122,6 +128,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           payload.productInfo,
           payload.style
         );
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }
 
@@ -135,6 +142,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           payload.currentData || {},
           payload.editPrompt
         );
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }
 
@@ -148,6 +156,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           payload.currentText || '',
           payload.keywords
         );
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }
 

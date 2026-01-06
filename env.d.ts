@@ -26,6 +26,8 @@ declare global {
     BKASH_PASSWORD?: string;
     // Cloudflare Queue
     EMAIL_QUEUE?: Queue<unknown>;
+    // KV Namespace for AI Rate Limiting
+    AI_RATE_LIMIT?: KVNamespace;
   }
 }
 
