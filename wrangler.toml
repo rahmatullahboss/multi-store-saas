@@ -3,20 +3,14 @@
 name = "multi-store-saas"
 compatibility_date = "2024-11-18"
 compatibility_flags = ["nodejs_compat"]
-main = "build/server/index.js"
 
 # ============================================================================
 # CLOUDFLARE PAGES CONFIGURATION
 # ============================================================================
-# For Pages deployment, we don't use 'main' - Pages uses the functions directory
+# For Pages deployment - Pages uses the functions directory automatically
 # Deploy with: npx wrangler pages deploy ./build/client --project-name=multi-store-saas
 
-# Pages specific configuration
 pages_build_output_dir = "build/client"
-
-# Build configuration for Pages (REQUIRED for GitHub-connected Pages)
-[build]
-command = "npm run build"
 
 # ============================================================================
 # BINDINGS - Work in both Workers and Pages
@@ -80,14 +74,12 @@ local_protocol = "http"
 # ============================================================================
 # CLOUDFLARE QUEUES - Email Campaign Scheduling
 # ============================================================================
+# Note: Queue consumers are configured in Cloudflare Dashboard for Pages projects
 # First create the queue: npx wrangler queues create email-campaign-queue
 
 [[queues.producers]]
 binding = "EMAIL_QUEUE"
 queue = "email-campaign-queue"
 
-[[queues.consumers]]
-queue = "email-campaign-queue"
-max_batch_size = 10
-max_batch_timeout = 30
-max_retries = 3
+# Note: Queue consumers must be configured in Cloudflare Dashboard > Pages > Settings > Functions
+# for Pages projects. The queues.consumers config is not supported in wrangler.toml for Pages.
