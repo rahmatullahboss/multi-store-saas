@@ -19,6 +19,7 @@ import { getStoreId } from '~/services/auth.server';
 import { getPolicyContent } from '~/lib/policies';
 import { useState } from 'react';
 import { FileText, Eye, Save, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => [
   { title: 'Legal Policies - Settings' },
@@ -127,6 +128,7 @@ export default function LegalSettingsPage() {
   const { store, defaultPolicies, contactEmail } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
 
   // Local state for policy content
   const [privacyPolicy, setPrivacyPolicy] = useState(store.customPrivacyPolicy || '');
@@ -153,8 +155,8 @@ export default function LegalSettingsPage() {
             <FileText className="w-5 h-5 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Legal Policies</h1>
-            <p className="text-gray-500 text-sm">Customize your store's legal pages</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('legalSettings')}</h1>
+            <p className="text-gray-500 text-sm">{lang === 'bn' ? 'আপনার স্টোরের লিগ্যাল পেজ কাস্টমাইজ করুন' : "Customize your store's legal pages"}</p>
           </div>
         </div>
       </div>

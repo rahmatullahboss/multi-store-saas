@@ -22,6 +22,7 @@ import {
   Clock, FileText
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Activity Log - Multi-Store SaaS' }];
@@ -115,6 +116,7 @@ export default function ActivityLogsPage() {
   const { logs, teamMembers, uniqueActions, pagination } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [expandedLogs, setExpandedLogs] = useState<Set<number>>(new Set());
+  const { t, lang } = useTranslation();
 
   const filterUser = searchParams.get('user') || '';
   const filterAction = searchParams.get('action') || '';
@@ -142,7 +144,7 @@ export default function ActivityLogsPage() {
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return 'Unknown';
-    return new Date(date).toLocaleString('en-US', {
+    return new Date(date).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -169,8 +171,8 @@ export default function ActivityLogsPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Activity Log</h1>
-        <p className="text-gray-600">Track all actions in your store</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('activityLogs')}</h1>
+        <p className="text-gray-600">{lang === 'bn' ? 'আপনার স্টোরের সকল কার্যক্রম ট্র্যাক করুন' : 'Track all actions in your store'}</p>
       </div>
 
       {/* Filters */}

@@ -25,6 +25,7 @@ import {
   Loader2, CheckCircle, AlertCircle, X, Copy
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Team Management - Multi-Store SaaS' }];
@@ -332,6 +333,7 @@ export default function TeamManagementPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
@@ -355,8 +357,8 @@ export default function TeamManagementPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
-        <p className="text-gray-600">Invite and manage your team members</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('teamSettings')}</h1>
+        <p className="text-gray-600">{lang === 'bn' ? 'আপনার টিম মেম্বারদের ইনভাইট এবং ম্যানেজ করুন' : 'Invite and manage your team members'}</p>
       </div>
 
       {/* Success Message */}

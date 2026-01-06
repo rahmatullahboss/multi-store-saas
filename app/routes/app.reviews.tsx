@@ -28,6 +28,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Reviews - Multi-Store SaaS' }];
@@ -188,6 +189,7 @@ function ReviewRow({ review }: { review: {
 export default function ReviewsPage() {
   const { reviews: allReviews } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t, lang } = useTranslation();
   const activeTab = searchParams.get('tab') || 'pending';
   
   // Filter reviews by status
@@ -212,8 +214,8 @@ export default function ReviewsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Product Reviews</h1>
-        <p className="text-gray-500 mt-1">Manage customer reviews for your products</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('reviewsSection')}</h1>
+        <p className="text-gray-500 mt-1">{lang === 'bn' ? 'আপনার প্রোডাক্টের কাস্টমার রিভিউ ম্যানেজ করুন' : 'Manage customer reviews for your products'}</p>
       </div>
 
       {/* Stats */}

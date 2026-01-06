@@ -25,6 +25,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Discount Codes - Settings' }];
@@ -132,12 +133,13 @@ export default function DiscountCodesPage() {
   const { codes, currency } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   const [showForm, setShowForm] = useState(false);
   const [editingCode, setEditingCode] = useState<typeof codes[0] | null>(null);
 
   const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -171,8 +173,8 @@ export default function DiscountCodesPage() {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Discount Codes</h1>
-            <p className="text-gray-600">Create promo codes for your customers</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('discounts')}</h1>
+            <p className="text-gray-600">{lang === 'bn' ? 'আপনার কাস্টমারদের জন্য প্রোমো কোড তৈরি করুন' : 'Create promo codes for your customers'}</p>
           </div>
         </div>
         {!showForm && (

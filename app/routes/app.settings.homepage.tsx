@@ -24,6 +24,7 @@ import {
   Rocket, Crown, ExternalLink, ArrowRight, Sparkles
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Homepage Strategy - Settings' }];
@@ -195,6 +196,7 @@ export default function HomepageStrategyPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   const [selectedMode, setSelectedMode] = useState<'landing' | 'store'>(store.mode as 'landing' | 'store');
 
@@ -210,10 +212,10 @@ export default function HomepageStrategyPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Home className="w-6 h-6 text-violet-600" />
-          Homepage Strategy
+          {t('homepageSettings')}
         </h1>
         <p className="text-gray-600 mt-1">
-          Choose how your store's homepage appears to customers
+          {lang === 'bn' ? 'আপনার স্টোরের হোমপেজ কেমন হবে তা নির্ধারণ করুন' : "Choose how your store's homepage appears to customers"}
         </p>
       </div>
 

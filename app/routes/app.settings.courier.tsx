@@ -34,6 +34,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Courier Settings - Multi-Store SaaS' }];
@@ -316,6 +317,7 @@ export default function CourierSettingsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
 
   const [selectedProvider, setSelectedProvider] = useState<string>(settings.provider || '');
 
@@ -355,8 +357,8 @@ export default function CourierSettingsPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Courier Settings</h1>
-            <p className="text-gray-600">Connect your courier account for shipment management</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('courierSettings')}</h1>
+            <p className="text-gray-600">{lang === 'bn' ? 'শিপমেন্ট ম্যানেজমেন্টের জন্য কুরিয়ার অ্যাকাউন্ট কানেক্ট করুন' : 'Connect your courier account for shipment management'}</p>
           </div>
         </div>
       </div>

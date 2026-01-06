@@ -22,6 +22,7 @@ import {
   ArrowLeft,
   MessageCircle
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Upgrade Plan - Multi-Store SaaS' }];
@@ -98,6 +99,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export default function UpgradePage() {
   const { currentPlan } = useLoaderData<typeof loader>();
+  const { t, lang } = useTranslation();
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -108,10 +110,10 @@ export default function UpgradePage() {
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Billing
+          {t('backToBilling')}
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Upgrade Your Plan</h1>
-        <p className="text-gray-500 mt-1">Choose a plan to unlock more features</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('upgradePlan')}</h1>
+        <p className="text-gray-500 mt-1">{lang === 'bn' ? 'আরো ফিচার আনলক করতে প্ল্যান আপগ্রেড করুন' : 'Choose a plan to unlock more features'}</p>
       </div>
 
       {/* Coming Soon Notice */}

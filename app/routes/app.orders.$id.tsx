@@ -22,6 +22,7 @@ import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer,
 import { useState } from 'react';
 import { RiskBadge } from '~/components/RiskBadge';
 import { TrackingTimeline } from '~/components/TrackingTimeline';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.order ? `Order ${data.order.orderNumber}` : 'Order Details' }];
@@ -410,9 +411,10 @@ export default function OrderDetailPage() {
   const isBooking = steadfastFetcher.state === 'submitting';
 
   const currency = store?.currency || 'BDT';
+  const { t, lang } = useTranslation();
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -420,7 +422,7 @@ export default function OrderDetailPage() {
   };
 
   const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('bn-BD', {
+    return new Date(date).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -496,7 +498,7 @@ export default function OrderDetailPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
               >
                 <Printer className="w-4 h-4" />
-                Print Invoice
+                {t('printInvoice')}
               </button>
             </div>
           </div>
@@ -504,7 +506,7 @@ export default function OrderDetailPage() {
 
         {/* Status Update - Hidden on Print */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 no-print">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('updateStatus')}</h2>
           <Form method="post" className="flex flex-wrap gap-3">
             {statusOptions.map((option) => (
               <button

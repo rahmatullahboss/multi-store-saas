@@ -7,7 +7,7 @@
 
 import { X, Monitor, Smartphone } from 'lucide-react';
 import { useState } from 'react';
-import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
+import { getTemplateComponent } from '~/templates/registry';
 import type { LandingConfig } from '@db/types';
 
 // Mock product for preview
@@ -100,6 +100,8 @@ export function TemplatePreviewModal({
     testimonials: MOCK_TESTIMONIALS,
   };
 
+  const TemplateComponent = getTemplateComponent(templateId);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       {/* Overlay click to close */}
@@ -163,8 +165,9 @@ export function TemplatePreviewModal({
           >
             <div className="overflow-auto max-h-[calc(90vh-120px)]">
               {/* Render the ACTUAL LandingPageTemplate with mock data */}
-              <LandingPageTemplate
+              <TemplateComponent
                 storeName={storeName}
+                storeId={1} 
                 product={MOCK_PRODUCT}
                 config={landingConfig}
                 currency={currency}

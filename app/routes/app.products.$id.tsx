@@ -20,6 +20,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.product?.title ? `Edit ${data.product.title}` : 'Edit Product' }];
@@ -181,6 +182,7 @@ export default function EditProductPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
 
   // Image upload state
   const [imageUrl, setImageUrl] = useState<string>(product.imageUrl || '');
@@ -342,7 +344,7 @@ export default function EditProductPage() {
         {/* Image Upload */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Product Image
+            {t('productImage')}
           </label>
           
           {imagePreview ? (
@@ -376,7 +378,7 @@ export default function EditProductPage() {
                 <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
               )}
               <p className="text-sm text-gray-600">
-                {isUploading ? 'Uploading...' : 'Click to upload or drag and drop'}
+                {isUploading ? 'Uploading...' : (lang === 'bn' ? 'আপলোড করতে ক্লিক করুন অথবা ড্র্যাগ অ্যান্ড ড্রপ করুন' : 'Click to upload or drag and drop')}
               </p>
               <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP up to 10MB</p>
             </div>
@@ -454,7 +456,7 @@ export default function EditProductPage() {
           {/* Category */}
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-              Category
+              {t('category')}
             </label>
             <select
               id="category"
@@ -462,7 +464,7 @@ export default function EditProductPage() {
               defaultValue={product.category || ''}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
             >
-              <option value="">Select a category</option>
+              <option value="">{t('selectCategory')}</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}

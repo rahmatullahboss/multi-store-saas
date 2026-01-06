@@ -21,6 +21,7 @@ import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft } from 'lucide-react'
 import { Link } from '@remix-run/react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Multi-Store SaaS' }];
@@ -138,6 +139,7 @@ export default function NewProductPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
 
   // Image upload state
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -227,10 +229,10 @@ export default function NewProductPage() {
           className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 mb-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Products
+          {t('backToProducts')}
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
-        <p className="text-gray-600">Fill in the details to create a new product</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('addNewProduct')}</h1>
+        <p className="text-gray-600">{lang === 'bn' ? 'নতুন প্রোডাক্ট তৈরি করতে বিস্তারিত তথ্য দিন' : 'Fill in the details to create a new product'}</p>
       </div>
 
       {/* Form */}
@@ -248,7 +250,7 @@ export default function NewProductPage() {
         {/* Image Upload */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Product Image
+            {t('productImage')}
           </label>
           
           {imagePreview ? (
@@ -282,7 +284,7 @@ export default function NewProductPage() {
                 <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
               )}
               <p className="text-sm text-gray-600">
-                {isUploading ? 'Uploading...' : 'Click to upload or drag and drop'}
+                {isUploading ? 'Uploading...' : (lang === 'bn' ? 'আপলোড করতে ক্লিক করুন অথবা ড্র্যাগ অ্যান্ড ড্রপ করুন' : 'Click to upload or drag and drop')}
               </p>
               <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP up to 10MB</p>
             </div>
@@ -306,14 +308,14 @@ export default function NewProductPage() {
           {/* Title */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-              Product Title <span className="text-red-500">*</span>
+              {t('productTitle')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               id="title"
               name="title"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              placeholder="Enter product title"
+              placeholder={lang === 'bn' ? 'প্রোডাক্টের নাম লিখুন' : 'Enter product title'}
             />
             {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.title && (
               <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).title}</p>
@@ -324,7 +326,7 @@ export default function NewProductPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                Price <span className="text-red-500">*</span>
+                {t('price')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -341,7 +343,7 @@ export default function NewProductPage() {
             </div>
             <div>
               <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                Stock <span className="text-red-500">*</span>
+                {t('stock')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -360,14 +362,14 @@ export default function NewProductPage() {
           {/* Category */}
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-              Category
+              {t('category')}
             </label>
             <select
               id="category"
               name="category"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
             >
-              <option value="">Select a category</option>
+              <option value="">{t('selectCategory')}</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
@@ -379,14 +381,14 @@ export default function NewProductPage() {
           {/* Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              {t('description')}
             </label>
             <textarea
               id="description"
               name="description"
               rows={4}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-              placeholder="Describe your product..."
+              placeholder={lang === 'bn' ? 'পণ্যের বিবরণ লিখুন...' : 'Describe your product...'}
             />
           </div>
         </div>
@@ -406,7 +408,7 @@ export default function NewProductPage() {
             to="/app/products"
             className="px-6 py-2.5 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition"
           >
-            Cancel
+            {t('cancel')}
           </Link>
           <button
             type="submit"
@@ -416,10 +418,10 @@ export default function NewProductPage() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Creating...
+                {t('createProduct')}...
               </>
             ) : (
-              'Create Product'
+              t('createProduct')
             )}
           </button>
         </div>

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Landing Mode Settings - Multi-Store SaaS' }];
@@ -138,6 +139,7 @@ export default function LandingSettingsPage() {
   const [testimonials, setTestimonials] = useState<LandingConfig['testimonials']>(
     store.landingConfig.testimonials || []
   );
+  const { t, lang } = useTranslation();
 
   // Show success message
   useEffect(() => {
@@ -173,8 +175,8 @@ export default function LandingSettingsPage() {
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Landing Mode Settings</h1>
-          <p className="text-gray-600">Configure your single-product landing page</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('landingSettings')}</h1>
+          <p className="text-gray-600">{lang === 'bn' ? 'আপনার সিঙ্গেল প্রোডাক্ট ল্যান্ডিং পেজ কনফিগার করুন' : 'Configure your single-product landing page'}</p>
         </div>
       </div>
 

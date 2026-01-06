@@ -20,7 +20,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrowLeft, ExternalLink, Sparkles } from 'lucide-react';
-import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
+import { getTemplateComponent } from '~/templates/registry';
 import { EditorSaveBar } from '~/components/editor';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -222,6 +222,9 @@ export default function LandingEditorPage() {
   // Preview URL
   const previewUrl = `https://${store.subdomain}.digitalcare.site`;
 
+  // Dynamic Template Component
+  const TemplateComponent = getTemplateComponent(currentConfig.templateId);
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Editor Header */}
@@ -261,7 +264,7 @@ export default function LandingEditorPage() {
 
       {/* Editor Content - LandingPageTemplate in Edit Mode */}
       <main className="pt-14 pb-20">
-        <LandingPageTemplate
+        <TemplateComponent
           storeName={store.name}
           storeId={store.id}
           product={product}

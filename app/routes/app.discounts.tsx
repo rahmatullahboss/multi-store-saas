@@ -31,6 +31,7 @@ import {
   Copy
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Discount Codes - Multi-Store SaaS' }];
@@ -165,6 +166,7 @@ export default function DiscountsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   const [showForm, setShowForm] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState<typeof allDiscounts[0] | null>(null);
@@ -204,8 +206,8 @@ export default function DiscountsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Discount Codes</h1>
-          <p className="text-gray-600">Create promo codes to boost sales</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('discounts')}</h1>
+          <p className="text-gray-600">{lang === 'bn' ? 'বিক্রয় বাড়াতে প্রোমো কোড তৈরি করুন' : 'Create promo codes to boost sales'}</p>
         </div>
         {!showForm && (
           <button

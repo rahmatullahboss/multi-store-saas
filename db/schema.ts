@@ -76,6 +76,9 @@ export const stores = sqliteTable('stores', {
   // === COURIER SETTINGS ===
   courierSettings: text('courier_settings'), // JSON: { provider, pathao?, redx?, steadfast?, isConnected }
   
+  // === MANUAL PAYMENT CONFIG (bKash/Nagad Personal/Merchant) ===
+  manualPaymentConfig: text('manual_payment_config'), // JSON: { bkashPersonal, bkashMerchant, nagadPersonal, ... }
+  
   // === AI CHATBOT SETTINGS ===
   isCustomerAiEnabled: integer('is_customer_ai_enabled', { mode: 'boolean' }).default(false), // Paid add-on
   aiBotPersona: text('ai_bot_persona'), // Custom AI personality e.g., "You are a friendly fashion expert"
@@ -159,7 +162,11 @@ export const orders = sqliteTable('orders', {
   shippingAddress: text('shipping_address'), // JSON object
   billingAddress: text('billing_address'), // JSON object
   status: text('status').$type<'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>().default('pending'),
+  // Payment Information
   paymentStatus: text('payment_status').$type<'pending' | 'paid' | 'failed' | 'refunded'>().default('pending'),
+  paymentMethod: text('payment_method').default('cod'), // 'cod' | 'bkash' | 'nagad' | 'rocket'
+  transactionId: text('transaction_id'), // For manual payments
+  manualPaymentDetails: text('manual_payment_details'), // JSON: { senderNumber, method, ... }
   // Courier tracking
   courierProvider: text('courier_provider').$type<'pathao' | 'redx' | 'steadfast' | null>(),
   courierConsignmentId: text('courier_consignment_id'), // Tracking ID from courier

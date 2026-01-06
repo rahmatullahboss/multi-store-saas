@@ -23,7 +23,7 @@ import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
-import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
+import { getTemplateComponent } from '~/templates/registry';
 
 // ============================================================================
 // CDN CACHING HEADERS - Same as _index.tsx
@@ -210,9 +210,10 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
 // ============================================================================
 export default function OfferProductPage() {
   const data = useLoaderData<LoaderData>();
+  const TemplateComponent = getTemplateComponent(data.landingConfig.templateId);
 
   return (
-    <LandingPageTemplate
+    <TemplateComponent
       storeName={data.storeName}
       storeId={data.storeId}
       product={data.product}

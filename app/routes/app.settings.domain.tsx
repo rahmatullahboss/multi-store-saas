@@ -28,6 +28,7 @@ import {
 } from '~/services/cloudflare.server';
 import { Globe, Check, Clock, X, AlertTriangle, ExternalLink, Crown, Lock, RefreshCw, Trash2, Loader2, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Domain Settings' }];
@@ -266,6 +267,7 @@ export default function DomainSettings() {
   const navigation = useNavigation();
   const revalidator = useRevalidator();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   const { 
     subdomain, 
@@ -299,8 +301,8 @@ export default function DomainSettings() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Domain Settings</h1>
-        <p className="text-gray-600 mt-1">Manage your store's domain and URL</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('domainSettings')}</h1>
+        <p className="text-gray-600 mt-1">{lang === 'bn' ? 'আপনার স্টোরের ডোমেইন ও URL পরিচালনা করুন' : "Manage your store's domain and URL"}</p>
       </div>
       
       {/* Success/Error Messages */}

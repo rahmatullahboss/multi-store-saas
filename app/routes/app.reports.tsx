@@ -22,6 +22,7 @@ import {
   Users, DollarSign, Filter
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Reports - Multi-Store SaaS' }];
@@ -307,10 +308,11 @@ function generateTaxCSV(data: unknown[]): string {
 export default function ReportsPage() {
   const { reportType, reportData, currency, storeName, startDate, endDate } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t, lang } = useTranslation();
 
   const formatPrice = (amount: number) => {
     const symbols: Record<string, string> = { BDT: '৳', USD: '$', EUR: '€', GBP: '£', INR: '₹' };
-    return `${symbols[currency] || currency} ${amount.toLocaleString()}`;
+    return `${symbols[currency] || currency} ${amount.toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-BD')}`;
   };
 
   const handleReportChange = (type: string) => {
@@ -374,8 +376,8 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-          <p className="text-gray-600">Export data for {storeName}</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('reports')}</h1>
+          <p className="text-gray-600">{lang === 'bn' ? `${storeName} এর ডেটা এক্সপোর্ট করুন` : `Export data for ${storeName}`}</p>
         </div>
         <button
           onClick={handleExportCSV}

@@ -30,6 +30,7 @@ import {
   Package,
   RefreshCw
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Abandoned Carts - Multi-Store SaaS' }];
@@ -144,9 +145,10 @@ export default function AbandonedCartsPage() {
   const { carts, currency, stats } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
 
   const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -154,7 +156,7 @@ export default function AbandonedCartsPage() {
   };
 
   const formatDate = (date: Date | string | number) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -176,8 +178,8 @@ export default function AbandonedCartsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Abandoned Carts</h1>
-        <p className="text-gray-600">Track and recover abandoned shopping carts</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('abandonedCarts')}</h1>
+        <p className="text-gray-600">{lang === 'bn' ? 'পরিত্যক্ত কার্ট ট্র্যাক ও পুনরুদ্ধার করুন' : 'Track and recover abandoned shopping carts'}</p>
       </div>
 
       {/* Stats */}

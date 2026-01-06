@@ -138,6 +138,7 @@ export const translations = {
     featuresSubtitle: 'Powerful features to grow your business',
     pricingTitle: 'Simple, Transparent Pricing',
     pricingSubtitle: 'Start free, upgrade when you\'re ready',
+
     ctaTitle: 'Ready to Start Your Online Business?',
     ctaSubtitle: 'Join thousands of merchants who trust Multi-Store for their e-commerce needs.',
     ctaButton: 'Create Your Free Store',
@@ -380,6 +381,7 @@ export const translations = {
     pending: 'Pending',
     noMerchantsFound: 'No merchants found',
     orders: 'Orders',
+    discounts: 'Discount Codes',
     
     // Admin - Domain Management  
     domainManagement: 'Domain Management',
@@ -445,29 +447,60 @@ export const translations = {
     noBillingHistory: 'No billing history yet',
     
     // Products
+    // Products
     productName: 'Product Name',
     productDescription: 'Product Description',
     productPrice: 'Product Price',
     productInventory: 'Inventory',
     productCategory: 'Category',
+    productDetail: 'Product Detail',
     productImages: 'Product Images',
+    
+    // Actions & Labels
     addNewProduct: 'Add New Product',
+    createProduct: 'Create Product',
     editProduct: 'Edit Product',
+    updateProduct: 'Update Product',
     deleteProduct: 'Delete Product',
     productSaved: 'Product saved successfully!',
     productDeleted: 'Product deleted',
+    
+    // Status
     noProducts: 'No products yet',
     addYourFirstProduct: 'Add your first product to get started',
     lowStock: 'Low Stock',
     outOfStockLabel: 'Out of Stock',
     inStockLabel: 'In Stock',
     
+    // New Additions
+    backToProducts: 'Back to Products',
+    productImage: 'Product Image',
+    selectCategory: 'Select a category',
+    stock: 'Stock',
+    productTitle: 'Product Title',
+    category: 'Category',
+    
     // Orders
     orderId: 'Order Number',
     orderDate: 'Order Date',
     orderStatus: 'Order Status',
     orderTotal: 'Order Total',
+    backToOrders: 'Back to Orders',
+    
+    // Campaigns
+    createCampaign: 'Create Campaign',
+    campaignName: 'Campaign Name',
+    saveAsDraft: 'Save as Draft',
+    sendNow: 'Send Now',
+    sendTo: 'Send to',
+    emailContent: 'Email Content',
+
     orderCustomerName: 'Customer Name',
+    
+    // Billing & Upgrade
+    backToBilling: 'Back to Billing',
+    upgradePlan: 'Upgrade Your Plan',
+
     customerPhone: 'Customer Phone',
     customerAddress: 'Customer Address',
     orderShippingAddress: 'Shipping Address',
@@ -551,13 +584,24 @@ export const translations = {
     // Marketing
     campaigns: 'Campaigns',
     newCampaign: 'New Campaign',
-    campaignName: 'Campaign Name',
     campaignStatus: 'Campaign Status',
     subscribers: 'Subscribers',
     totalSubscribers: 'Total Subscribers',
     reviewsSection: 'Reviews',
+    reports: 'Reports',
     pendingReviews: 'Pending Reviews',
     approvedReviews: 'Approved Reviews',
+    
+    // Settings Pages
+    domainSettings: 'Domain Settings',
+    courierSettings: 'Courier Settings',
+    shippingZones: 'Shipping Zones',
+    seoSettings: 'SEO Settings',
+    legalSettings: 'Legal Pages',
+    teamSettings: 'Team Members',
+    activityLogs: 'Activity Global Logs',
+    homepageSettings: 'Homepage Strategy',
+    landingSettings: 'Landing Page Settings',
     
     // Analytics
     analyticsOverview: 'Analytics Overview',
@@ -725,6 +769,35 @@ export const translations = {
     feature5Desc: 'আপনার বাংলাদেশী গ্রাহকদের জন্য সম্পূর্ণ দ্বিভাষিক সমর্থন।',
     feature6Title: '২৪/৭ সাপোর্ট',
     feature6Desc: 'আমরা যেকোনো সময় আপনাকে সফল হতে সাহায্য করতে এখানে আছি।',
+    
+    // Products
+    backToProducts: 'প্রোডাক্ট ভিউতে ফিরে যান',
+    addNewProduct: 'নতুন প্রোডাক্ট যোগ করুন',
+    productImage: 'প্রোডাক্ট ছবি',
+    selectCategory: 'ক্যাটেগরি সিলেক্ট করুন',
+    stock: 'স্টক',
+    productTitle: 'প্রোডাক্টের নাম',
+    category: 'ক্যাটেগরি',
+    productDetail: 'প্রোডাক্ট বিবরণ',
+    createProduct: 'প্রোডাক্ট তৈরি করুন',
+    editProduct: 'প্রোডাক্ট এডিট করুন', 
+    updateProduct: 'প্রোডাক্ট আপডেট করুন',
+    outOfStockLabel: 'স্টক নেই',
+    lowStockLabel: 'লো স্টক',
+    
+    // Orders & Campaigns
+    backToOrders: 'অর্ডার তালিকায় ফিরুন',
+    createCampaign: 'ক্যাম্পেইন তৈরি করুন',
+    campaignName: 'ক্যাম্পেইনের নাম',
+    saveAsDraft: 'ড্রাফট হিসেবে সংরক্ষণ করুন',
+    sendNow: 'এখনই পাঠান',
+    sendTo: 'পাঠান',
+    emailContent: 'ইমেইল কন্টেন্ট',
+    
+    // Billing & Upgrade
+    backToBilling: 'বিলিং এ ফিরুন',
+    upgradePlan: 'প্ল্যান আপগ্রেড করুন',
+    abandonedCarts: 'পরিত্যক্ত কার্ট',
     
     // Plans
     planFree: 'ফ্রি',
@@ -948,6 +1021,7 @@ export const translations = {
     pending: 'পেন্ডিং',
     noMerchantsFound: 'কোনো মার্চেন্ট পাওয়া যায়নি',
     orders: 'অর্ডার',
+    discounts: 'ডিসকাউন্ট কোড',
     
     // Admin - Domain Management  
     domainManagement: 'ডোমেইন ম্যানেজমেন্ট',
@@ -990,7 +1064,6 @@ export const translations = {
     productsRunningLow: 'টি প্রোডাক্টে স্টক কম',
     ordersNeedProcessing: 'টি অর্ডার প্রসেস করতে হবে',
     cartsWaitingRecovery: 'টি কার্ট রিকভারির অপেক্ষায়',
-    abandonedCarts: 'পরিত্যক্ত কার্ট',
     recentOrders: 'সাম্প্রতিক অর্ডার',
     viewAll: 'সব দেখুন',
     noRecentOrders: 'এখনো কোনো অর্ডার নেই',
@@ -1019,15 +1092,12 @@ export const translations = {
     productInventory: 'ইনভেন্টরি',
     productCategory: 'ক্যাটাগরি',
     productImages: 'প্রোডাক্টের ছবি',
-    addNewProduct: 'নতুন প্রোডাক্ট যোগ করুন',
-    editProduct: 'প্রোডাক্ট সম্পাদনা',
     deleteProduct: 'প্রোডাক্ট মুছুন',
     productSaved: 'প্রোডাক্ট সেভ হয়েছে!',
     productDeleted: 'প্রোডাক্ট মুছে ফেলা হয়েছে',
     noProducts: 'এখনো কোনো প্রোডাক্ট নেই',
     addYourFirstProduct: 'শুরু করতে প্রথম প্রোডাক্ট যোগ করুন',
     lowStock: 'কম স্টক',
-    outOfStockLabel: 'স্টক শেষ',
     inStockLabel: 'স্টকে আছে',
     
     // Orders
@@ -1119,13 +1189,24 @@ export const translations = {
     // Marketing
     campaigns: 'ক্যাম্পেইন',
     newCampaign: 'নতুন ক্যাম্পেইন',
-    campaignName: 'ক্যাম্পেইনের নাম',
     campaignStatus: 'ক্যাম্পেইন স্ট্যাটাস',
     subscribers: 'সাবস্ক্রাইবার',
     totalSubscribers: 'মোট সাবস্ক্রাইবার',
     reviewsSection: 'রিভিউ',
     pendingReviews: 'পেন্ডিং রিভিউ',
     approvedReviews: 'অনুমোদিত রিভিউ',
+    reports: 'রিপোর্ট',
+
+    // Settings Pages
+    courierSettings: 'কুরিয়ার সেটিংস',
+    shippingZones: 'শিপিং জোন',
+    domainSettings: 'ডোমেইন সেটিংস',
+    seoSettings: 'SEO সেটিংস',
+    legalSettings: 'লিগ্যাল পেজ',
+    teamSettings: 'টিম মেম্বারস',
+    activityLogs: 'অ্যাক্টিভিটি লগ',
+    homepageSettings: 'হোমপেজ সেটিংস',
+    landingSettings: 'ল্যান্ডিং স্টাইল',
     
     // Analytics
     analyticsOverview: 'অ্যানালিটিক্স সারসংক্ষেপ',

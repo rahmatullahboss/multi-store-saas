@@ -29,6 +29,7 @@ import {
   Eye,
   AlertCircle
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Campaign Details - Multi-Store SaaS' }];
@@ -174,6 +175,7 @@ export default function CampaignDetailPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSending = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
 
   const statusConfig: Record<string, { bg: string; text: string; icon: typeof Clock }> = {
     draft: { bg: 'bg-gray-100', text: 'text-gray-700', icon: Clock },
@@ -262,7 +264,7 @@ export default function CampaignDetailPage() {
       {/* Campaign Details */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Email Content</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('emailContent')}</h2>
           
           <div className="space-y-4">
             <div>
@@ -320,7 +322,7 @@ export default function CampaignDetailPage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
-              {isSending ? 'Sending...' : `Send to ${subscriberCount} subscribers`}
+              {isSending ? (lang === 'bn' ? 'পাঠানো হচ্ছে...' : 'Sending...') : `${t('sendTo')} ${subscriberCount} ${lang === 'bn' ? 'সাবস্ক্রাইবার' : 'subscribers'}`}
             </button>
           </Form>
         </div>

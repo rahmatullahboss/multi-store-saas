@@ -44,6 +44,13 @@ const OrderSchema = z.object({
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation
+  // New Payment Fields
+  payment_method: z.string().default('cod'), // 'cod', 'bkash', 'nagad'
+  transaction_id: z.string().optional(),
+  manual_payment_details: z.object({
+    senderNumber: z.string().optional(),
+    method: z.string().optional(),
+  }).optional(),
 });
 
 type OrderInput = z.infer<typeof OrderSchema>;
@@ -169,7 +176,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         storeId: input.store_id,
         orderNumber,
         status: 'pending',
-        paymentStatus: 'pending', // COD - payment pending until delivery
+        paymentStatus: 'pending', // Pending verification for manual payments too
+        paymentMethod: input.payment_method,
+        transactionId: input.transaction_id || null,
+        manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
         customerName: input.customer_name,
         customerPhone: input.phone,
         customerEmail: input.customer_email || '', // Empty string instead of null for NOT NULL constraint
@@ -222,7 +232,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
               price: unitPrice,
             }],
             shippingAddress: input.address,
-            paymentMethod: 'Cash on Delivery',
+            paymentMethod: input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
           })
         );
       }

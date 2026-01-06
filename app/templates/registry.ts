@@ -7,7 +7,7 @@
  */
 
 import type { ComponentType } from 'react';
-import type { LandingConfig } from '@db/types';
+import type { LandingConfig, ManualPaymentConfig } from '@db/types';
 
 // ============================================================================
 // SERIALIZED PRODUCT TYPE - Matches what loader provides
@@ -33,7 +33,9 @@ export interface TemplateProps {
   currency: string;
   isPreview?: boolean;
   isEditMode?: boolean;  // For Magic Editor integration
-  onConfigUpdate?: (newConfig: Partial<LandingConfig>) => void;
+  isCustomerAiEnabled?: boolean; // For AI Sales Agent
+  manualPaymentConfig?: ManualPaymentConfig | null; // For checkout
+  onConfigChange?: (newConfig: LandingConfig) => void;
 }
 
 // ============================================================================
@@ -51,11 +53,51 @@ export interface TemplateDefinition {
 // SINGLE UNIFIED TEMPLATE - Same component for Preview & Live
 // ============================================================================
 import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
+import { PremiumBDTemplate } from '~/components/templates/PremiumBDTemplate';
+import { MobileFirstTemplate } from '~/components/templates/MobileFirstTemplate';
+import { FlashSaleTemplate } from '~/components/templates/FlashSaleTemplate';
+import { LuxeTemplate } from '~/components/templates/LuxeTemplate';
+import { OrganicTemplate } from '~/components/templates/OrganicTemplate';
 
 // ============================================================================
 // TEMPLATES REGISTRY - All templates use same component, different themes
 // ============================================================================
 export const TEMPLATES: TemplateDefinition[] = [
+  {
+    id: 'premium-bd',
+    name: 'Premium BD (Mobile First)',
+    description: 'World-class, high-converting design optimized for Bangladeshi market.',
+    thumbnail: '/templates/premium-bd.png',
+    component: PremiumBDTemplate,
+  },
+  {
+    id: 'flash-sale',
+    name: '🔥 Flash Sale (Urgency)',
+    description: 'High urgency design with sticky countdown, shake animations, and stock warnings. Perfect for limited-time offers.',
+    thumbnail: '/templates/flash-sale.png',
+    component: FlashSaleTemplate,
+  },
+  {
+    id: 'mobile-first',
+    name: 'Simple Mobile (Single Column)',
+    description: 'Clean, single-column layout optimized for easy checkout on mobile devices.',
+    thumbnail: '/templates/mobile-first.png',
+    component: MobileFirstTemplate,
+  },
+  {
+    id: 'luxury',
+    name: 'Luxury Black (Gold Edition)',
+    description: 'Premium black and gold aesthetic with serif typography, perfect for high-ticket items.',
+    thumbnail: '/templates/luxury.png',
+    component: LuxeTemplate,
+  },
+  {
+    id: 'organic',
+    name: 'Organic Green (Nature)',
+    description: 'Earthy tones, organic shapes, and a natural feel. Perfect for health and eco-friendly products.',
+    thumbnail: '/templates/organic.png',
+    component: OrganicTemplate,
+  },
   {
     id: 'modern-dark',
     name: 'Modern Dark',
@@ -82,7 +124,7 @@ export const TEMPLATES: TemplateDefinition[] = [
 // ============================================================================
 // DEFAULT TEMPLATE - Fallback when no template is specified
 // ============================================================================
-export const DEFAULT_TEMPLATE_ID = 'modern-dark';
+export const DEFAULT_TEMPLATE_ID = 'premium-bd';
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -99,6 +141,14 @@ export function getTemplate(id: string | undefined): TemplateDefinition {
     return TEMPLATES.find((t) => t.id === DEFAULT_TEMPLATE_ID) ?? TEMPLATES[0];
   }
   return template;
+}
+
+/**
+ * Helper to get the component for a template ID
+ */
+export function getTemplateComponent(id: string | undefined): ComponentType<TemplateProps> {
+  const template = getTemplate(id);
+  return template.component;
 }
 
 /**

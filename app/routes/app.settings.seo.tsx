@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'SEO Settings - Multi-Store SaaS' }];
@@ -155,6 +156,7 @@ export default function SeoSettingsPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
+  const { t, lang } = useTranslation();
 
   // OG Image upload
   const [ogImageUrl, setOgImageUrl] = useState(seoConfig.ogImage || '');
@@ -232,8 +234,8 @@ export default function SeoSettingsPage() {
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">SEO Settings</h1>
-          <p className="text-gray-600">Optimize your store for search engines</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('seoSettings')}</h1>
+          <p className="text-gray-600">{lang === 'bn' ? 'সার্চ ইঞ্জিনের জন্য আপনার স্টোর অপ্টিমাইজ করুন' : 'Optimize your store for search engines'}</p>
         </div>
       </div>
 

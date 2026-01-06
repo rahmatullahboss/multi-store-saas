@@ -30,6 +30,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Subscribers - Multi-Store SaaS' }];
@@ -131,6 +132,7 @@ export default function SubscribersPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
@@ -150,8 +152,8 @@ export default function SubscribersPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Subscribers</h1>
-            <p className="text-gray-500 mt-1">Manage your email list</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('subscribers')}</h1>
+            <p className="text-gray-500 mt-1">{lang === 'bn' ? 'আপনার ইমেইল লিস্ট ম্যানেজ করুন' : 'Manage your email list'}</p>
           </div>
         </div>
         <div className="flex gap-3">

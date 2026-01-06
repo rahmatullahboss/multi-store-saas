@@ -29,6 +29,7 @@ import {
   Users,
   BarChart3
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Email Campaigns - Multi-Store SaaS' }];
@@ -131,6 +132,7 @@ function StatusBadge({ status }: { status: string }) {
 export default function CampaignsPage() {
   const { campaigns, subscriberCount } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const { t, lang } = useTranslation();
   const isDeleting = navigation.state === 'submitting' && 
     navigation.formData?.get('intent') === 'delete';
 
@@ -139,9 +141,9 @@ export default function CampaignsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Email Campaigns</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('campaigns')}</h1>
           <p className="text-gray-500 mt-1">
-            Create and manage marketing email campaigns
+            {lang === 'bn' ? 'মার্কেটিং ইমেিল ক্যাম্পেইন তৈরি ও পরিচালনা করুন' : 'Create and manage marketing email campaigns'}
           </p>
         </div>
         <div className="flex gap-3">

@@ -134,10 +134,29 @@ export function parseLandingConfig(json: string | null): LandingConfig | null {
   }
 }
 
+export interface ManualPaymentConfig {
+  bkashPersonal?: string;
+  bkashMerchant?: string;
+  nagadPersonal?: string;
+  nagadMerchant?: string;
+  rocketPersonal?: string;
+  rocketMerchant?: string;
+  instructions?: string; // Markdown supported
+}
+
 export function parseThemeConfig(json: string | null): ThemeConfig | null {
   if (!json) return null;
   try {
     return JSON.parse(json) as ThemeConfig;
+  } catch {
+    return null;
+  }
+}
+
+export function parseManualPaymentConfig(json: string | null): ManualPaymentConfig | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as ManualPaymentConfig;
   } catch {
     return null;
   }

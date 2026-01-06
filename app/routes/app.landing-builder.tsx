@@ -191,6 +191,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const whatsappMessage = formData.get('whatsappMessage') as string || '';
     const testimonials = JSON.parse(formData.get('testimonials') as string || '[]');
     const faq = JSON.parse(formData.get('faq') as string || '[]');
+    
+    // Conversion features
+    const countdownEnabled = formData.get('countdownEnabled') === 'true';
+    const countdownEndTime = formData.get('countdownEndTime') as string || '';
+    const showStockCounter = formData.get('showStockCounter') === 'true';
+    const lowStockThreshold = parseInt(formData.get('lowStockThreshold') as string) || 10;
+    const showSocialProof = formData.get('showSocialProof') === 'true';
+    const socialProofInterval = parseInt(formData.get('socialProofInterval') as string) || 15;
 
     const newConfig: LandingConfig = {
       templateId,
@@ -205,8 +213,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
       whatsappEnabled,
       whatsappNumber,
       whatsappMessage,
-      testimonials: testimonials.filter((t: {name: string; imageUrl?: string}) => t.name && t.imageUrl), // Only save testimonials with photo
-      faq: faq.filter((f: {question: string; answer: string}) => f.question && f.answer), // Only save complete FAQs
+      testimonials: testimonials.filter((t: {name: string; imageUrl?: string}) => t.name && t.imageUrl),
+      faq: faq.filter((f: {question: string; answer: string}) => f.question && f.answer),
+      // Conversion features
+      countdownEnabled,
+      countdownEndTime,
+      showStockCounter,
+      lowStockThreshold,
+      showSocialProof,
+      socialProofInterval,
     };
 
     await db
@@ -581,6 +596,160 @@ export default function LandingBuilderPage() {
                 onOrderChange={setSectionOrder}
                 onVisibilityChange={handleVisibilityChange}
               />
+            )}
+
+            {/* Conversion Features Tab */}
+            {activeTab === 'conversion' && (
+              <div className="space-y-6">
+                {/* Countdown Timer */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                        <Timer className="w-5 h-5 text-red-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {language === 'bn' ? 'কাউন্টডাউন টাইমার' : 'Countdown Timer'}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {language === 'bn' ? 'আর্জেন্সি তৈরি করুন' : 'Create urgency for sales'}
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={countdownEnabled} 
+                        onChange={(e) => setCountdownEnabled(e.target.checked)}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+                  
+                  {countdownEnabled && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'bn' ? 'অফার শেষ হওয়ার তারিখ ও সময়' : 'Offer End Date & Time'}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={countdownEndTime}
+                        onChange={(e) => setCountdownEndTime(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        {language === 'bn' ? 'এই সময়ের পর টাইমার "শেষ" দেখাবে' : 'Timer will show "Expired" after this time'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Stock Counter */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <span className="text-xl">📦</span>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {language === 'bn' ? 'স্টক কাউন্টার' : 'Stock Counter'}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {language === 'bn' ? '"মাত্র X টি বাকি!" দেখান' : 'Show "Only X left!" warning'}
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={showStockCounter} 
+                        onChange={(e) => setShowStockCounter(e.target.checked)}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+                  
+                  {showStockCounter && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'bn' ? 'লো স্টক থ্রেশহোল্ড' : 'Low Stock Threshold'}
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={lowStockThreshold}
+                        onChange={(e) => setLowStockThreshold(parseInt(e.target.value) || 10)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        {language === 'bn' ? 'এই সংখ্যার নিচে স্টক থাকলে ওয়ার্নিং দেখাবে' : 'Show warning when stock is below this number'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Social Proof */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <span className="text-xl">👤</span>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {language === 'bn' ? 'সোশাল প্রুফ পপআপ' : 'Social Proof Popup'}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {language === 'bn' ? '"X এইমাত্র অর্ডার করেছেন" দেখান' : 'Show "X just ordered" notifications'}
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={showSocialProof} 
+                        onChange={(e) => setShowSocialProof(e.target.checked)}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+                  
+                  {showSocialProof && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'bn' ? 'পপআপ ইন্টারভাল (সেকেন্ড)' : 'Popup Interval (seconds)'}
+                      </label>
+                      <input
+                        type="number"
+                        min={5}
+                        max={120}
+                        value={socialProofInterval}
+                        onChange={(e) => setSocialProofInterval(parseInt(e.target.value) || 15)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        {language === 'bn' ? 'কতক্ষণ পর পর নতুন নোটিফিকেশন দেখাবে' : 'How often to show new notifications'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tips */}
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
+                  <h4 className="font-semibold text-orange-900 mb-2">💡 {language === 'bn' ? 'কনভার্শন টিপস' : 'Conversion Tips'}</h4>
+                  <ul className="text-sm text-orange-800 space-y-2">
+                    <li>• {language === 'bn' ? 'কাউন্টডাউন টাইমার ৩০%+ কনভার্শন বাড়ায়' : 'Countdown timers increase conversions by 30%+'}</li>
+                    <li>• {language === 'bn' ? 'স্টক কাউন্টার FOMO তৈরি করে' : 'Stock counters create FOMO (Fear Of Missing Out)'}</li>
+                    <li>• {language === 'bn' ? 'সোশাল প্রুফ ট্রাস্ট বাড়ায়' : 'Social proof builds trust with new visitors'}</li>
+                  </ul>
+                </div>
+              </div>
             )}
 
             {activeTab === 'testimonials' && (

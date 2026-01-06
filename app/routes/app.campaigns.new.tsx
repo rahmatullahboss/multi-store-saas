@@ -20,6 +20,7 @@ import { createCampaignService } from '~/services/campaign.server';
 import { createEmailService } from '~/services/email.server';
 import { ArrowLeft, Send, Save, Users, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'New Campaign - Multi-Store SaaS' }];
@@ -167,6 +168,7 @@ export default function NewCampaignPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
 
   const [content, setContent] = useState(`<h2 style="color: #333; margin-bottom: 16px;">Hello!</h2>
 <p style="color: #555; line-height: 1.6;">
@@ -191,8 +193,8 @@ export default function NewCampaignPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Create Campaign</h1>
-          <p className="text-gray-500">Send an email to your subscribers</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('createCampaign')}</h1>
+          <p className="text-gray-500">{lang === 'bn' ? 'আপনার সাবস্ক্রাইবারদের ইমেইল পাঠান' : 'Send an email to your subscribers'}</p>
         </div>
       </div>
 
@@ -223,7 +225,7 @@ export default function NewCampaignPage() {
         {/* Campaign Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Campaign Name <span className="text-red-500">*</span>
+            {t('campaignName')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -318,7 +320,7 @@ export default function NewCampaignPage() {
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            Save as Draft
+            {t('saveAsDraft')}
           </button>
           <button
             type="submit"
@@ -328,7 +330,7 @@ export default function NewCampaignPage() {
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
-            {isSubmitting ? 'Sending...' : 'Send Now'}
+            {isSubmitting ? (lang === 'bn' ? 'পাঠানো হচ্ছে...' : 'Sending...') : t('sendNow')}
           </button>
         </div>
       </Form>

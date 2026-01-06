@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Inventory - Multi-Store SaaS' }];
@@ -143,6 +144,7 @@ export default function InventoryPage() {
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   // Filter state
   const statusFilter = searchParams.get('filter') || 'all';
@@ -152,10 +154,10 @@ export default function InventoryPage() {
 
   // Status tabs configuration
   const statusTabs = [
-    { id: 'all', label: 'All', count: stats.total },
-    { id: 'healthy', label: 'In Stock', count: stats.healthy },
-    { id: 'low', label: 'Low Stock', count: stats.lowStock },
-    { id: 'out', label: 'Out of Stock', count: stats.outOfStock },
+    { id: 'all', label: t('allOrders'), count: stats.total },
+    { id: 'healthy', label: t('inStock'), count: stats.healthy },
+    { id: 'low', label: t('lowStock'), count: stats.lowStock },
+    { id: 'out', label: t('outOfStockLabel'), count: stats.outOfStock },
   ];
 
   // Filter products
@@ -199,7 +201,7 @@ export default function InventoryPage() {
   }, [setSearchParams]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -223,15 +225,15 @@ export default function InventoryPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Inventory"
-        description="Manage stock levels and track inventory"
+        title={t('inventory')}
+        description={lang === 'bn' ? 'স্টক লেভেল ম্যানেজ করুন এবং ইনভেন্টরি ট্র্যাক করুন' : 'Manage stock levels and track inventory'}
         secondaryAction={{
-          label: 'Import CSV',
+          label: lang === 'bn' ? 'CSV ইম্পোর্ট' : 'Import CSV',
           href: '/app/inventory/import',
           icon: <Upload className="w-4 h-4" />,
         }}
         primaryAction={{
-          label: 'Export CSV',
+          label: lang === 'bn' ? 'CSV এক্সপোর্ট' : 'Export CSV',
           href: '/api/products/export',
           icon: <Download className="w-4 h-4" />,
         }}

@@ -23,6 +23,7 @@ import {
   MapPin 
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Shipping Zones - Settings' }];
@@ -115,12 +116,13 @@ export default function ShippingZonesPage() {
   const { zones, currency } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   const [showForm, setShowForm] = useState(false);
   const [editingZone, setEditingZone] = useState<typeof zones[0] | null>(null);
 
   const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -149,8 +151,8 @@ export default function ShippingZonesPage() {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Shipping Zones</h1>
-            <p className="text-gray-600">Set up delivery areas and rates</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('shippingZones')}</h1>
+            <p className="text-gray-600">{lang === 'bn' ? 'ডেলিভারি এরিয়া ও রেট সেটআপ করুন' : 'Set up delivery areas and rates'}</p>
           </div>
         </div>
         {!showForm && (
