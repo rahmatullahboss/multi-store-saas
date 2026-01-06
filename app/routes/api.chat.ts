@@ -233,12 +233,49 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'));
   const merchantStoreId = session.get('storeId');
   
-  // Determine context: Merchant (logged in) or Customer (public visitor)
+  // Determine context: Merchant (logged in), Customer (store visitor), or Marketing (SaaS visitor)
   const context_type: ChatContext = merchantStoreId ? 'merchant' : 'customer';
   const storeId = context_type === 'merchant' ? merchantStoreId : clientStoreId;
 
-  if (!storeId) {
-    return json({ error: 'Store ID required' }, { status: 400 });
+  // MARKETING PAGE MODE: storeId = 0 or undefined = SaaS landing page visitor
+  if (!storeId || storeId === 0) {
+    console.log('[AI Chat] Marketing mode - no storeId');
+    
+    const saasSystemPrompt = `You are a helpful AI assistant for Multi-Store SaaS - an e-commerce platform for Bangladeshi sellers.
+
+## About Multi-Store
+- E-commerce platform to create online stores
+- Supports bKash, Nagad, Cash on Delivery
+- Free plan: 1 product, 50 orders/month
+- Starter: ৳500/month - 50 products, 500 orders
+- Premium: ৳1500/month - unlimited products, custom domain
+
+## Features
+- Instant subdomain (yourstore.digitalcare.site)
+- Order management dashboard
+- Inventory tracking
+- Courier integration (Pathao, Steadfast, RedX)
+- Landing page mode for single products
+- Email campaigns
+
+## Guidelines
+- Use Bengali if user writes in Bengali
+- Help visitors understand our platform
+- Encourage them to sign up for free`;
+
+    try {
+      const openrouter = createOpenRouter({ apiKey });
+      const result = await generateText({
+        model: openrouter('google/gemini-2.0-flash-001'),
+        system: saasSystemPrompt,
+        prompt: message,
+      });
+
+      return json({ success: true, response: result.text, context: 'marketing' });
+    } catch (error) {
+      console.error('[AI Chat] Marketing error:', error);
+      return json({ error: 'AI service error' }, { status: 500 });
+    }
   }
 
   // Get store data
