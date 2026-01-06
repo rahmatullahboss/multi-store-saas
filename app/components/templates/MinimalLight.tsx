@@ -14,6 +14,7 @@ export function MinimalLightTemplate({ storeName, storeId, product, config }: Te
   const fetcher = useFetcher<{ success: boolean; orderId?: number; orderNumber?: string; error?: string; details?: Record<string, string[]> }>();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ customer_name: '', phone: '', address: '', quantity: 1 });
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
   const hasError = fetcher.data && !fetcher.data.success;
@@ -21,8 +22,26 @@ export function MinimalLightTemplate({ storeName, storeId, product, config }: Te
   const discount = product.compareAtPrice ? Math.round((1 - product.price / product.compareAtPrice) * 100) : 0;
   const totalPrice = product.price * formData.quantity;
 
+  // Validate form fields - CRITICAL: Must have shipping address
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!formData.customer_name.trim()) errors.customer_name = 'নাম দেওয়া আবশ্যক';
+    else if (formData.customer_name.trim().length < 2) errors.customer_name = 'নাম কমপক্ষে ২ অক্ষর হতে হবে';
+    
+    const bdPhoneRegex = /^(\+880|880|0)?1[3-9]\d{8}$/;
+    if (!formData.phone.trim()) errors.phone = 'মোবাইল নম্বর দেওয়া আবশ্যক';
+    else if (!bdPhoneRegex.test(formData.phone.replace(/[\s-]/g, ''))) errors.phone = 'সঠিক মোবাইল নম্বর দিন';
+    
+    if (!formData.address.trim()) errors.address = '⚠️ শিপিং ঠিকানা ছাড়া অর্ডার কনফার্ম হবে না!';
+    else if (formData.address.trim().length < 10) errors.address = 'সম্পূর্ণ ঠিকানা দিন';
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
     fetcher.submit({ store_id: storeId, product_id: product.id, customer_name: formData.customer_name, phone: formData.phone, address: formData.address, quantity: formData.quantity }, { method: 'POST', action: '/api/create-order', encType: 'application/json' });
   };
 
@@ -100,11 +119,23 @@ export function MinimalLightTemplate({ storeName, storeId, product, config }: Te
                 {hasError && <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl mb-4"><p className="font-medium">{fetcher.data?.error}</p></div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div><label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label><div className="flex items-center gap-3"><button type="button" onClick={() => setFormData(d => ({ ...d, quantity: Math.max(1, d.quantity - 1) }))} className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-xl text-xl font-medium">-</button><span className="text-xl font-semibold w-12 text-center">{formData.quantity}</span><button type="button" onClick={() => setFormData(d => ({ ...d, quantity: Math.min(10, d.quantity + 1) }))} className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-xl text-xl font-medium">+</button><span className="ml-auto text-emerald-600 font-bold">= {formatPrice(totalPrice)}</span></div></div>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-2">Your Name *</label><input type="text" required minLength={2} value={formData.customer_name} onChange={(e) => setFormData(d => ({ ...d, customer_name: e.target.value }))} placeholder="Full name" className="w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none border-0" /></div>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label><input type="tel" required minLength={10} value={formData.phone} onChange={(e) => setFormData(d => ({ ...d, phone: e.target.value }))} placeholder="01XXXXXXXXX" className="w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none border-0" /></div>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-2">Delivery Address *</label><textarea required minLength={10} rows={3} value={formData.address} onChange={(e) => setFormData(d => ({ ...d, address: e.target.value }))} placeholder="House, Street, Area, City" className="w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none border-0 resize-none" /></div>
-                  <div className="bg-gray-50 p-4 rounded-xl flex items-center gap-3"><span className="text-2xl">💵</span><div><p className="font-medium">Cash on Delivery</p><p className="text-sm text-gray-500">Pay when you receive your order</p></div></div>
-                  <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white text-lg font-semibold rounded-xl shadow-lg">{isSubmitting ? 'Processing...' : `Confirm Order — ${formatPrice(totalPrice)}`}</button>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">আপনার নাম *</label>
+                    <input type="text" required minLength={2} value={formData.customer_name} onChange={(e) => { setFormData(d => ({ ...d, customer_name: e.target.value })); if (validationErrors.customer_name) setValidationErrors(v => ({ ...v, customer_name: '' })); }} placeholder="সম্পূর্ণ নাম" className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none ${validationErrors.customer_name ? 'border-2 border-red-500' : 'border-0'}`} />
+                    {validationErrors.customer_name && <p className="text-red-600 text-sm mt-1">{validationErrors.customer_name}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">মোবাইল নম্বর *</label>
+                    <input type="tel" required minLength={10} value={formData.phone} onChange={(e) => { setFormData(d => ({ ...d, phone: e.target.value })); if (validationErrors.phone) setValidationErrors(v => ({ ...v, phone: '' })); }} placeholder="01XXXXXXXXX" className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none ${validationErrors.phone ? 'border-2 border-red-500' : 'border-0'}`} />
+                    {validationErrors.phone && <p className="text-red-600 text-sm mt-1">{validationErrors.phone}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">📍 শিপিং ঠিকানা * <span className="text-red-500 text-xs">(আবশ্যক)</span></label>
+                    <textarea required minLength={10} rows={3} value={formData.address} onChange={(e) => { setFormData(d => ({ ...d, address: e.target.value })); if (validationErrors.address) setValidationErrors(v => ({ ...v, address: '' })); }} placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর - সম্পূর্ণ ঠিকানা দিন" className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none resize-none ${validationErrors.address ? 'border-2 border-red-500 ring-2 ring-red-200' : 'border-0'}`} />
+                    {validationErrors.address ? <p className="text-red-600 text-sm mt-1 font-bold">⚠️ {validationErrors.address}</p> : <p className="text-gray-500 text-xs mt-1">পণ্য পৌঁছে দেওয়ার জন্য সঠিক ঠিকানা প্রয়োজন</p>}
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl flex items-center gap-3"><span className="text-2xl">💵</span><div><p className="font-medium">ক্যাশ অন ডেলিভারি</p><p className="text-sm text-gray-500">পণ্য হাতে পেয়ে টাকা পরিশোধ করুন</p></div></div>
+                  <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white text-lg font-semibold rounded-xl shadow-lg">{isSubmitting ? 'অপেক্ষা করুন...' : `✓ অর্ডার কনফার্ম করুন — ${formatPrice(totalPrice)}`}</button>
                 </form>
               </>
             )}

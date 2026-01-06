@@ -54,6 +54,9 @@ export function ModernDarkTemplate({
     quantity: 1,
   });
 
+  // Client-side validation errors
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
   const hasError = fetcher.data && !fetcher.data.success;
@@ -68,9 +71,42 @@ export function ModernDarkTemplate({
 
   const totalPrice = product.price * formData.quantity;
 
+  // Validate form fields
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.customer_name.trim()) {
+      errors.customer_name = 'নাম দেওয়া আবশ্যক';
+    } else if (formData.customer_name.trim().length < 2) {
+      errors.customer_name = 'নাম কমপক্ষে ২ অক্ষর হতে হবে';
+    }
+    
+    const bdPhoneRegex = /^(\+880|880|0)?1[3-9]\d{8}$/;
+    if (!formData.phone.trim()) {
+      errors.phone = 'মোবাইল নম্বর দেওয়া আবশ্যক';
+    } else if (!bdPhoneRegex.test(formData.phone.replace(/[\s-]/g, ''))) {
+      errors.phone = 'সঠিক বাংলাদেশী মোবাইল নম্বর দিন';
+    }
+    
+    // CRITICAL: Shipping address is mandatory
+    if (!formData.address.trim()) {
+      errors.address = '⚠️ শিপিং ঠিকানা ছাড়া অর্ডার কনফার্ম হবে না!';
+    } else if (formData.address.trim().length < 10) {
+      errors.address = 'সম্পূর্ণ ঠিকানা দিন';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate before submission
+    if (!validateForm()) {
+      return;
+    }
     
     fetcher.submit(
       {
@@ -387,10 +423,18 @@ export function ModernDarkTemplate({
                       required
                       minLength={2}
                       value={formData.customer_name}
-                      onChange={(e) => setFormData(d => ({ ...d, customer_name: e.target.value }))}
+                      onChange={(e) => {
+                        setFormData(d => ({ ...d, customer_name: e.target.value }));
+                        if (validationErrors.customer_name) setValidationErrors(v => ({ ...v, customer_name: '' }));
+                      }}
                       placeholder="সম্পূর্ণ নাম লিখুন"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none ${
+                        validationErrors.customer_name ? 'border-red-500' : 'border-gray-600'
+                      }`}
                     />
+                    {validationErrors.customer_name && (
+                      <p className="text-red-400 text-sm mt-1">{validationErrors.customer_name}</p>
+                    )}
                   </div>
 
                   {/* Phone */}
@@ -401,24 +445,44 @@ export function ModernDarkTemplate({
                       required
                       minLength={10}
                       value={formData.phone}
-                      onChange={(e) => setFormData(d => ({ ...d, phone: e.target.value }))}
+                      onChange={(e) => {
+                        setFormData(d => ({ ...d, phone: e.target.value }));
+                        if (validationErrors.phone) setValidationErrors(v => ({ ...v, phone: '' }));
+                      }}
                       placeholder="০১XXXXXXXXX"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none ${
+                        validationErrors.phone ? 'border-red-500' : 'border-gray-600'
+                      }`}
                     />
+                    {validationErrors.phone && (
+                      <p className="text-red-400 text-sm mt-1">{validationErrors.phone}</p>
+                    )}
                   </div>
 
-                  {/* Address */}
+                  {/* Address - CRITICAL */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">সম্পূর্ণ ঠিকানা *</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      📍 শিপিং ঠিকানা * <span className="text-red-400 text-xs">(আবশ্যক)</span>
+                    </label>
                     <textarea
                       required
                       minLength={10}
                       rows={3}
                       value={formData.address}
-                      onChange={(e) => setFormData(d => ({ ...d, address: e.target.value }))}
-                      placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none resize-none"
+                      onChange={(e) => {
+                        setFormData(d => ({ ...d, address: e.target.value }));
+                        if (validationErrors.address) setValidationErrors(v => ({ ...v, address: '' }));
+                      }}
+                      placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর - সম্পূর্ণ ঠিকানা দিন"
+                      className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none resize-none ${
+                        validationErrors.address ? 'border-red-500 ring-2 ring-red-500/30' : 'border-gray-600'
+                      }`}
                     />
+                    {validationErrors.address ? (
+                      <p className="text-red-400 text-sm mt-1 font-bold">⚠️ {validationErrors.address}</p>
+                    ) : (
+                      <p className="text-gray-500 text-xs mt-1">পণ্য পৌঁছে দেওয়ার জন্য সঠিক ঠিকানা প্রয়োজন</p>
+                    )}
                   </div>
 
                   {/* Payment Method */}

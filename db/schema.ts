@@ -66,6 +66,9 @@ export const stores = sqliteTable('stores', {
   emailNotificationsEnabled: integer('email_notifications_enabled', { mode: 'boolean' }).default(true),
   lowStockThreshold: integer('low_stock_threshold').default(10),
   
+  // === COURIER SETTINGS ===
+  courierSettings: text('courier_settings'), // JSON: { provider, pathao?, redx?, steadfast?, isConnected }
+  
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
@@ -143,6 +146,10 @@ export const orders = sqliteTable('orders', {
   billingAddress: text('billing_address'), // JSON object
   status: text('status').$type<'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>().default('pending'),
   paymentStatus: text('payment_status').$type<'pending' | 'paid' | 'failed' | 'refunded'>().default('pending'),
+  // Courier tracking
+  courierProvider: text('courier_provider').$type<'pathao' | 'redx' | 'steadfast' | null>(),
+  courierConsignmentId: text('courier_consignment_id'), // Tracking ID from courier
+  courierStatus: text('courier_status'), // Latest status from courier
   subtotal: real('subtotal').notNull(),
   tax: real('tax').default(0),
   shipping: real('shipping').default(0),
