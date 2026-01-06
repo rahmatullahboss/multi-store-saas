@@ -1024,7 +1024,7 @@ export function LandingPageTemplate({
                       <div className="ml-auto text-right">
                         <p className="text-sm text-gray-500">{t('totalPrice')}</p>
                         <span className="text-emerald-600 font-black text-3xl">
-                          {formatPrice(totalPrice)}
+                          {formatPrice(subtotal)}
                         </span>
                       </div>
                     </div>
