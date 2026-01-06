@@ -36,7 +36,8 @@ import {
   Palette,
   Globe,
   Crown,
-  ExternalLink
+  ExternalLink,
+  Sparkles
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -175,6 +176,7 @@ const navItems = [
   { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/app/products', label: 'Products', icon: Package },
   { to: '/app/store-setup', label: 'Store Setup', icon: Palette },
+  { to: '/app/ai-setup', label: 'AI Magic', icon: Sparkles },
   { to: '/app/inventory', label: 'Inventory', icon: Warehouse },
   { to: '/app/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { to: '/app/abandoned-carts', label: 'Abandoned Carts', icon: ShoppingBag },

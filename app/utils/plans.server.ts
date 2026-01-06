@@ -284,3 +284,10 @@ export function getPlatformFeeRate(planType: PlanType): number {
 export function canUseCustomDomain(planType: PlanType): boolean {
   return PLAN_LIMITS[planType].allow_custom_domain;
 }
+
+// ============================================================================
+// UTILITY: Check if store can use AI features
+// ============================================================================
+export function canUseAI(planType: PlanType): boolean {
+  return planType !== 'free';
+}

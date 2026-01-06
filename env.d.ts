@@ -16,6 +16,8 @@ declare global {
     SAAS_DOMAIN: string;
     RESEND_API_KEY?: string; // Email service
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
+    // MiMo AI API for AI Co-pilot
+    MIMO_API_KEY?: string;
     // bKash Payment Gateway
     BKASH_BASE_URL?: string;
     BKASH_APP_KEY?: string;
