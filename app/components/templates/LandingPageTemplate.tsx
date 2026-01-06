@@ -129,6 +129,7 @@ interface LandingPageTemplateProps {
   isPreview?: boolean; // When true, disables form submission and shows preview mode
   isEditMode?: boolean; // When true, enables Magic Editor hover overlays
   isCustomerAiEnabled?: boolean; // When true, shows AI Sales Agent chatbot
+  onConfigChange?: (newConfig: LandingConfig) => void; // Callback when config changes (for editor wrapper)
 }
 
 export function LandingPageTemplate({
@@ -140,6 +141,7 @@ export function LandingPageTemplate({
   isPreview = false,
   isEditMode = false,
   isCustomerAiEnabled = false,
+  onConfigChange,
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -181,10 +183,13 @@ export function LandingPageTemplate({
 
   // Handler for section updates from Magic Editor
   const handleSectionUpdate = (sectionId: string, newData: unknown) => {
-    setEditableConfig(prev => ({
-      ...prev,
+    const newConfig = {
+      ...editableConfig,
       [sectionId]: newData,
-    }));
+    };
+    setEditableConfig(newConfig);
+    // Bubble up to parent editor wrapper if callback provided
+    onConfigChange?.(newConfig);
   };
 
   // Get theme based on templateId

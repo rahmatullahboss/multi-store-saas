@@ -3,10 +3,12 @@
  * 
  * Unified AI endpoint handling:
  * - SETUP_STORE: Generate store name, SEO, product
- * - GENERATE_PAGE: Generate full landing config
+ * - GENERATE_PAGE: Generate landing config from product info
+ * - GENERATE_FULL_PAGE: Generate complete landing page from business description
  * - EDIT_SECTION: Edit specific landing section
+ * - ENHANCE_TEXT: Improve text for a specific field type
  * 
- * Plan-gated: Only Starter/Premium users can access.
+ * Rate-limited with plan-based quotas.
  */
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
@@ -19,7 +21,7 @@ import { createAIService } from '~/services/ai.server';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 
 // Action types
-type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT';
+type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'GENERATE_FULL_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT';
 
 interface ActionPayload {
   action: ActionType;
@@ -28,6 +30,8 @@ interface ActionPayload {
   // GENERATE_PAGE
   productInfo?: { title: string; description?: string; price: number };
   style?: string;
+  // GENERATE_FULL_PAGE
+  businessDescription?: string;
   // EDIT_SECTION
   sectionName?: string;
   currentData?: unknown;
@@ -130,6 +134,29 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
         await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
+      }
+
+      case 'GENERATE_FULL_PAGE': {
+        if (!payload.businessDescription) {
+          return json({ error: 'Business description required' }, { status: 400 });
+        }
+
+        try {
+          const result = await ai.generateFullPage(payload.businessDescription);
+          await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+          return json({ success: true, data: result });
+        } catch (genError) {
+          // Specific handling for JSON parsing failures
+          if (genError instanceof SyntaxError || 
+              (genError instanceof Error && genError.message.includes('JSON'))) {
+            console.error('[AI Action] Full page generation JSON parse failed:', genError);
+            return json({
+              error: 'AI returned invalid format. Please try again.',
+              code: 'JSON_PARSE_ERROR',
+            }, { status: 422 });
+          }
+          throw genError;
+        }
       }
 
       case 'EDIT_SECTION': {

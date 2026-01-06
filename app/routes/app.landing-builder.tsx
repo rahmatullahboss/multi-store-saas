@@ -301,6 +301,15 @@ export default function LandingBuilderPage() {
             </div>
             
             <div className="flex items-center gap-3">
+              {/* Visual Editor Button */}
+              <Link
+                to="/app/landing-editor"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-medium rounded-lg hover:opacity-90 transition shadow-md"
+              >
+                <Sparkles className="w-4 h-4" />
+                {language === 'bn' ? 'ভিজ্যুয়াল এডিটর' : 'Visual Editor'}
+              </Link>
+
               {/* Preview Button */}
               <a
                 href={previewUrl}

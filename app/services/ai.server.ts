@@ -116,6 +116,41 @@ const SECTION_SCHEMAS: Record<string, z.ZodSchema> = {
 };
 
 // ============================================================================
+// FULL PAGE GENERATION SCHEMA
+// ============================================================================
+
+// Full page config response schema (for GENERATE_FULL_PAGE action)
+export const FullPageConfigSchema = z.object({
+  templateId: z.string().optional(),
+  headline: z.string(),
+  subheadline: z.string().optional(),
+  ctaText: z.string(),
+  ctaSubtext: z.string().optional(),
+  urgencyText: z.string().optional(),
+  guaranteeText: z.string().optional(),
+  features: z.array(z.object({
+    icon: z.string(),
+    title: z.string(),
+    description: z.string(),
+  })).optional(),
+  testimonials: z.array(z.object({
+    name: z.string(),
+    text: z.string(),
+  })).optional(),
+  colors: z.object({
+    primary: z.string(),
+    secondary: z.string().optional(),
+    accent: z.string().optional(),
+  }).optional(),
+  socialProof: z.object({
+    count: z.number(),
+    text: z.string(),
+  }).optional(),
+});
+
+export type FullPageConfigResult = z.infer<typeof FullPageConfigSchema>;
+
+// ============================================================================
 // HELPER: Make OpenRouter API call
 // ============================================================================
 async function callAI(
@@ -413,6 +448,68 @@ Edited text:`;
 }
 
 // ============================================================================
+// ACTION: Generate Full Page from Business Description
+// ============================================================================
+export async function generateFullPage(
+  apiKey: string,
+  businessDescription: string
+): Promise<FullPageConfigResult> {
+  const systemPrompt = `You are an expert e-commerce landing page designer. Given a business description, generate a complete high-converting landing page configuration.
+
+Your response MUST be valid JSON in this exact structure:
+{
+  "templateId": "modern-dark",
+  "headline": "Compelling Bengali/English headline (max 100 chars)",
+  "subheadline": "Supporting text that builds desire",
+  "ctaText": "Action button text like 'এখনই অর্ডার করুন'",
+  "ctaSubtext": "Risk reducer like 'ক্যাশ অন ডেলিভারি'",
+  "urgencyText": "সীমিত সময়ের অফার! 🔥",
+  "guaranteeText": "১০০% অরিজিনাল প্রোডাক্ট গ্যারান্টি",
+  "features": [
+    { "icon": "✨", "title": "Feature 1 Title", "description": "Benefit description" },
+    { "icon": "🚚", "title": "Feature 2 Title", "description": "Benefit description" },
+    { "icon": "💯", "title": "Feature 3 Title", "description": "Benefit description" }
+  ],
+  "testimonials": [
+    { "name": "Customer Name, Location", "text": "Their positive review in Bengali" },
+    { "name": "Another Customer", "text": "Another review" }
+  ],
+  "colors": {
+    "primary": "#HEX_CODE",
+    "secondary": "#HEX_CODE",
+    "accent": "#HEX_CODE"
+  },
+  "socialProof": {
+    "count": 500,
+    "text": "সন্তুষ্ট গ্রাহক"
+  }
+}
+
+Color Guidelines:
+- Honey/Food: Warm colors (Gold #F59E0B, Orange #F97316, Amber #D97706)
+- Tech/Electronics: Cool colors (Blue #3B82F6, Indigo #6366F1)
+- Health/Beauty: Fresh colors (Green #10B981, Teal #14B8A6)
+- Fashion/Luxury: Elegant colors (Purple #8B5CF6, Rose #F43F5E)
+- General: Professional (Blue #2563EB, Gray #374151)
+
+Important:
+- Detect if business is Bangladeshi, use Bengali for all copy
+- Create exactly 3 features with relevant emojis
+- Create exactly 2 testimonials with realistic Bengali names
+- Choose colors that match the product category
+- Write compelling, benefit-focused copy
+- Make urgency text feel authentic, not pushy`;
+
+  const userPrompt = `Business description: ${businessDescription}
+
+Generate a complete landing page configuration JSON:`;
+
+  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  const parsed = extractJSON(response);
+  return FullPageConfigSchema.parse(parsed);
+}
+
+// ============================================================================
 // EXPORT: AI Service Factory
 // ============================================================================
 export function createAIService(apiKey: string) {
@@ -426,6 +523,9 @@ export function createAIService(apiKey: string) {
     
     generateLandingConfig: (productInfo: { title: string; description?: string; price: number }, style?: string) =>
       generateLandingConfig(apiKey, productInfo, style),
+    
+    generateFullPage: (businessDescription: string) =>
+      generateFullPage(apiKey, businessDescription),
     
     editSection: (sectionName: string, currentData: unknown, prompt: string) =>
       editSection(apiKey, sectionName, currentData, prompt),
