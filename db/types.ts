@@ -28,11 +28,23 @@ export interface LandingConfig {
   };
 }
 
+// Store template configuration for full store mode
+export interface StoreTemplateConfig {
+  templateId: string; // 'luxe-boutique' | 'tech-modern' | 'artisan-market'
+  settings?: {
+    headerStyle?: 'minimal' | 'full' | 'centered';
+    productGridColumns?: 2 | 3 | 4;
+    showQuickView?: boolean;
+    showWishlist?: boolean;
+  };
+}
+
 // Theme configuration for full store mode
 export interface ThemeConfig {
   primaryColor: string;
   accentColor: string;
   customAccentColor?: string; // Override preset accent color
+  storeTemplateId?: string; // Selected store template ID
   bannerUrl?: string;
   bannerText?: string;
   collections?: {

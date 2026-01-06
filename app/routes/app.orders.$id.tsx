@@ -1,7 +1,7 @@
 /**
  * Order Detail Page
  * 
- * Route: /app/dashboard/orders/:id
+ * Route: /app/orders/:id
  * 
  * Features:
  * - View order details
@@ -273,7 +273,7 @@ export default function OrderDetailPage() {
         {/* Header */}
         <div className="no-print">
           <Link
-            to="/app/dashboard/orders"
+            to="/app/orders"
             className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 mb-2"
           >
             <ArrowLeft className="w-4 h-4" />

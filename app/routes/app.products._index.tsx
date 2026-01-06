@@ -1,24 +1,29 @@
 /**
- * Products List Page (Index Route)
+ * Products List Page - Shopify-Inspired Design
  * 
  * Route: /app/products
  * 
  * Features:
+ * - Stats header (Total, Published, Low Stock)
+ * - Search and status filter tabs
  * - Image thumbnail, Name, Price, Stock, Category, Status
- * - Add Product button
  * - Bulk actions (delete, publish, unpublish)
  * - Responsive table/card design
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, Form, useNavigation } from '@remix-run/react';
+import { useLoaderData, Link, Form, useNavigation, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc, inArray } from 'drizzle-orm';
+import { eq, desc, inArray, sql, and, like, count } from 'drizzle-orm';
 import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil } from 'lucide-react';
-import { useState } from 'react';
+import { 
+  Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
+  AlertTriangle, CheckCircle, Archive
+} from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Products - Multi-Store SaaS' }];
@@ -47,11 +52,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(products)
     .where(eq(products.storeId, storeId))
     .orderBy(desc(products.createdAt))
-    .limit(100);
+    .limit(200);
+
+  // Calculate stats
+  const totalProducts = storeProducts.length;
+  const publishedCount = storeProducts.filter(p => p.isPublished).length;
+  const draftCount = storeProducts.filter(p => !p.isPublished).length;
+  const lowStockCount = storeProducts.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5).length;
+  const outOfStockCount = storeProducts.filter(p => (p.inventory || 0) <= 0).length;
 
   return json({
     products: storeProducts,
     currency: store.currency || 'BDT',
+    stats: {
+      total: totalProducts,
+      published: publishedCount,
+      draft: draftCount,
+      lowStock: lowStockCount,
+      outOfStock: outOfStockCount,
+    },
   });
 }
 
@@ -93,12 +112,71 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ProductsIndexPage() {
-  const { products: storeProducts, currency } = useLoaderData<typeof loader>();
+  const { products: storeProducts, currency, stats } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
+  
+  // Filter state from URL
+  const statusFilter = searchParams.get('status') || 'all';
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  
+  // Status tabs configuration
+  const statusTabs = [
+    { id: 'all', label: 'All', count: stats.total },
+    { id: 'published', label: 'Published', count: stats.published },
+    { id: 'draft', label: 'Draft', count: stats.draft },
+    { id: 'low-stock', label: 'Low Stock', count: stats.lowStock },
+    { id: 'out-of-stock', label: 'Out of Stock', count: stats.outOfStock },
+  ];
+
+  // Filter products based on status and search
+  const filteredProducts = useMemo(() => {
+    let filtered = [...storeProducts];
+
+    // Apply status filter
+    switch (statusFilter) {
+      case 'published':
+        filtered = filtered.filter(p => p.isPublished);
+        break;
+      case 'draft':
+        filtered = filtered.filter(p => !p.isPublished);
+        break;
+      case 'low-stock':
+        filtered = filtered.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5);
+        break;
+      case 'out-of-stock':
+        filtered = filtered.filter(p => (p.inventory || 0) <= 0);
+        break;
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.title.toLowerCase().includes(query) ||
+        (p.sku && p.sku.toLowerCase().includes(query)) ||
+        (p.category && p.category.toLowerCase().includes(query))
+      );
+    }
+
+    return filtered;
+  }, [storeProducts, statusFilter, searchQuery]);
+
+  const handleStatusChange = useCallback((tabId: string) => {
+    setSearchParams(prev => {
+      if (tabId === 'all') {
+        prev.delete('status');
+      } else {
+        prev.set('status', tabId);
+      }
+      return prev;
+    });
+    setSelectedIds(new Set());
+  }, [setSearchParams]);
   
   const toggleSelect = (id: number) => {
     setSelectedIds(prev => {
@@ -113,17 +191,17 @@ export default function ProductsIndexPage() {
   };
   
   const toggleSelectAll = () => {
-    if (selectedIds.size === storeProducts.length) {
+    if (selectedIds.size === filteredProducts.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(storeProducts.map(p => p.id)));
+      setSelectedIds(new Set(filteredProducts.map(p => p.id)));
     }
   };
   
   const clearSelection = () => setSelectedIds(new Set());
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -133,27 +211,72 @@ export default function ProductsIndexPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <p className="text-gray-600">Manage your product catalog</p>
+      <PageHeader
+        title="Products"
+        description="Manage your product catalog"
+        primaryAction={{
+          label: 'Add Product',
+          href: '/app/products/new',
+          icon: <Plus className="w-4 h-4" />,
+        }}
+      />
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard
+          label="Total Products"
+          value={stats.total}
+          icon={<Package className="w-5 h-5" />}
+          color="blue"
+        />
+        <StatCard
+          label="Published"
+          value={stats.published}
+          icon={<CheckCircle className="w-5 h-5" />}
+          color="emerald"
+        />
+        <StatCard
+          label="Draft"
+          value={stats.draft}
+          icon={<Archive className="w-5 h-5" />}
+          color="gray"
+        />
+        <StatCard
+          label="Low Stock"
+          value={stats.lowStock + stats.outOfStock}
+          icon={<AlertTriangle className="w-5 h-5" />}
+          color={stats.lowStock + stats.outOfStock > 0 ? 'red' : 'gray'}
+          href="/app/inventory?filter=low"
+        />
+      </div>
+
+      {/* Filters Row */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Search */}
+        <SearchInput
+          placeholder="Search by name, SKU, or category..."
+          value={searchQuery}
+          onChange={setSearchQuery}
+          className="w-full md:w-80"
+        />
+        
+        {/* Status Tabs */}
+        <div className="flex-1">
+          <StatusTabs
+            tabs={statusTabs}
+            activeTab={statusFilter}
+            onChange={handleStatusChange}
+          />
         </div>
-        <Link
-          to="/app/products/new"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Add Product
-        </Link>
       </div>
 
       {/* Bulk Action Bar */}
       {selectedIds.size > 0 && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center justify-between">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <span className="text-emerald-800 font-medium">
             {selectedIds.size} product{selectedIds.size > 1 ? 's' : ''} selected
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Form method="post" className="inline">
               {Array.from(selectedIds).map(id => (
                 <input key={id} type="hidden" name="productIds" value={id} />
@@ -163,7 +286,7 @@ export default function ProductsIndexPage() {
                 name="intent"
                 value="publish"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
                 <Eye className="w-4 h-4" /> Publish
               </button>
@@ -177,7 +300,7 @@ export default function ProductsIndexPage() {
                 name="intent"
                 value="unpublish"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
                 <EyeOff className="w-4 h-4" /> Unpublish
               </button>
@@ -195,14 +318,14 @@ export default function ProductsIndexPage() {
                 name="intent"
                 value="delete"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
               >
                 <Trash2 className="w-4 h-4" /> Delete
               </button>
             </Form>
             <button
               onClick={clearSelection}
-              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900"
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
             >
               Cancel
             </button>
@@ -210,23 +333,32 @@ export default function ProductsIndexPage() {
         </div>
       )}
 
-      {/* Products Table/Grid */}
+      {/* Products List */}
       {storeProducts.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200">
+          <EmptyState
+            icon={<Package className="w-10 h-10" />}
+            title="No products yet"
+            description="Get started by adding your first product to your store."
+            action={{
+              label: 'Add Your First Product',
+              href: '/app/products/new',
+              icon: <Plus className="w-4 h-4" />,
+            }}
+          />
+        </div>
+      ) : filteredProducts.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No products yet</h3>
-          <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-            Get started by adding your first product to your store.
-          </p>
-          <Link
-            to="/app/products/new"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition"
+          <p className="text-gray-500">No products match your filters.</p>
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              handleStatusChange('all');
+            }}
+            className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            <Plus className="w-4 h-4" />
-            Add Your First Product
-          </Link>
+            Clear filters
+          </button>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -235,10 +367,10 @@ export default function ProductsIndexPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left">
+                  <th className="px-4 py-3 text-left w-10">
                     <input
                       type="checkbox"
-                      checked={selectedIds.size === storeProducts.length && storeProducts.length > 0}
+                      checked={selectedIds.size === filteredProducts.length && filteredProducts.length > 0}
                       onChange={toggleSelectAll}
                       className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                     />
@@ -264,8 +396,11 @@ export default function ProductsIndexPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {storeProducts.map((product) => (
-                  <tr key={product.id} className={`hover:bg-gray-50 transition ${selectedIds.has(product.id) ? 'bg-emerald-50' : ''}`}>
+                {filteredProducts.map((product) => (
+                  <tr 
+                    key={product.id} 
+                    className={`hover:bg-gray-50 transition ${selectedIds.has(product.id) ? 'bg-emerald-50' : ''}`}
+                  >
                     <td className="px-4 py-4">
                       <input
                         type="checkbox"
@@ -280,17 +415,17 @@ export default function ProductsIndexPage() {
                           <img
                             src={product.imageUrl}
                             alt={product.title}
-                            className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                            className="w-14 h-14 object-cover rounded-lg border border-gray-200"
                           />
                         ) : (
-                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <ImageOff className="w-5 h-5 text-gray-400" />
+                          <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <ImageOff className="w-6 h-6 text-gray-400" />
                           </div>
                         )}
-                        <div>
+                        <div className="min-w-0">
                           <Link
                             to={`/app/products/${product.id}`}
-                            className="font-medium text-gray-900 hover:text-emerald-600 transition"
+                            className="font-medium text-gray-900 hover:text-emerald-600 transition truncate block"
                           >
                             {product.title}
                           </Link>
@@ -309,9 +444,7 @@ export default function ProductsIndexPage() {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <span className={`font-medium ${(product.inventory || 0) <= 0 ? 'text-red-600' : (product.inventory || 0) < 10 ? 'text-yellow-600' : 'text-gray-900'}`}>
-                        {product.inventory ?? 0}
-                      </span>
+                      <StockBadge stock={product.inventory || 0} />
                     </td>
                     <td className="px-4 py-4">
                       <span className="text-gray-600">{product.category || '—'}</span>
@@ -336,7 +469,7 @@ export default function ProductsIndexPage() {
 
           {/* Mobile Cards */}
           <div className="md:hidden divide-y divide-gray-100">
-            {storeProducts.map((product) => (
+            {filteredProducts.map((product) => (
               <div key={product.id} className={`p-4 ${selectedIds.has(product.id) ? 'bg-emerald-50' : ''}`}>
                 <div className="flex items-start gap-3">
                   <input
@@ -365,14 +498,11 @@ export default function ProductsIndexPage() {
                     </div>
                     <div className="mt-1 flex items-center gap-4 text-sm">
                       <span className="font-semibold text-gray-900">{formatPrice(product.price)}</span>
-                      <span className={`${(product.inventory || 0) <= 0 ? 'text-red-600' : 'text-gray-500'}`}>
-                        Stock: {product.inventory ?? 0}
-                      </span>
+                      <StockBadge stock={product.inventory || 0} />
                     </div>
                     {product.category && (
                       <p className="mt-1 text-xs text-gray-500">{product.category}</p>
                     )}
-                    {/* Edit Button for Mobile */}
                     <Link
                       to={`/app/products/${product.id}`}
                       className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
@@ -410,12 +540,39 @@ function StatusBadge({ published }: { published: boolean }) {
       className={`
         inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full
         ${published 
-          ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
-          : 'bg-gray-100 text-gray-600 border border-gray-200'
+          ? 'bg-emerald-100 text-emerald-700' 
+          : 'bg-gray-100 text-gray-600'
         }
       `}
     >
       {published ? 'Published' : 'Draft'}
     </span>
+  );
+}
+
+// ============================================================================
+// STOCK BADGE COMPONENT
+// ============================================================================
+function StockBadge({ stock }: { stock: number }) {
+  if (stock <= 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+        Out of stock
+      </span>
+    );
+  }
+  
+  if (stock <= 5) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
+        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
+        {stock} left
+      </span>
+    );
+  }
+  
+  return (
+    <span className="font-medium text-gray-900">{stock}</span>
   );
 }

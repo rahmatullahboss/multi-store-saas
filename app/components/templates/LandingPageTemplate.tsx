@@ -105,6 +105,7 @@ import { useState, useEffect } from 'react';
 import type { LandingConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { useFormatPrice } from '~/contexts/LanguageContext';
+import { MagicSectionWrapper } from '~/components/editor';
 
 // Serialized product type (JSON dates become strings)
 interface SerializedProduct {
@@ -159,8 +160,24 @@ export function LandingPageTemplate({
   // Format price using context (responds to language/currency toggle)
   const formatPrice = useFormatPrice();
 
+  // Local editable config state - for live updates via Magic Editor
+  const [editableConfig, setEditableConfig] = useState(config);
+  
+  // Update when parent config changes
+  useEffect(() => {
+    setEditableConfig(config);
+  }, [config]);
+
+  // Handler for section updates from Magic Editor
+  const handleSectionUpdate = (sectionId: string, newData: unknown) => {
+    setEditableConfig(prev => ({
+      ...prev,
+      [sectionId]: newData,
+    }));
+  };
+
   // Get theme based on templateId
-  const theme = getTheme(config.templateId);
+  const theme = getTheme(editableConfig.templateId);
 
   // Calculate discount
   const discount = product.compareAtPrice
@@ -216,10 +233,10 @@ export function LandingPageTemplate({
       )}
 
       {/* Urgency Bar */}
-      {config.urgencyText && (
+      {editableConfig.urgencyText && (
         <div className={`${theme.urgencyBg} text-white text-center py-3 px-4`}>
           <p className="text-sm md:text-base font-bold">
-            🔥 {config.urgencyText} 🔥
+            🔥 {editableConfig.urgencyText} 🔥
           </p>
         </div>
       )}
@@ -227,112 +244,129 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 1: Hero Section */}
       {/* ============================================ */}
-      <section className={`${theme.isDark ? '' : 'bg-gradient-to-b from-gray-50 to-white'} py-12 lg:py-20`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          {/* Store Badge */}
-          <div className="text-center mb-8">
-            <span className={`inline-flex items-center gap-2 px-4 py-2 ${theme.isDark ? 'bg-white/10 text-white' : 'bg-orange-100 text-orange-700'} rounded-full text-sm font-semibold`}>
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              {storeName}
-            </span>
-          </div>
+      <MagicSectionWrapper
+        sectionId="hero"
+        sectionLabel="Hero & Headlines"
+        data={{ headline: editableConfig.headline, subheadline: editableConfig.subheadline, ctaText: editableConfig.ctaText, ctaSubtext: editableConfig.ctaSubtext }}
+        onUpdate={(newData) => {
+          const heroData = newData as { headline?: string; subheadline?: string; ctaText?: string; ctaSubtext?: string };
+          setEditableConfig(prev => ({
+            ...prev,
+            headline: heroData.headline || prev.headline,
+            subheadline: heroData.subheadline || prev.subheadline,
+            ctaText: heroData.ctaText || prev.ctaText,
+            ctaSubtext: heroData.ctaSubtext || prev.ctaSubtext,
+          }));
+        }}
+        isEditable={isEditMode}
+      >
+        <section className={`${theme.isDark ? '' : 'bg-gradient-to-b from-gray-50 to-white'} py-12 lg:py-20`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            {/* Store Badge */}
+            <div className="text-center mb-8">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 ${theme.isDark ? 'bg-white/10 text-white' : 'bg-orange-100 text-orange-700'} rounded-full text-sm font-semibold`}>
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                {storeName}
+              </span>
+            </div>
 
-          {/* Headline */}
-          <h1 className={`text-4xl md:text-5xl lg:text-6xl font-black text-center ${theme.textPrimary} mb-6 leading-tight`}>
-            {config.headline}
-          </h1>
-          
-          {config.subheadline && (
-            <p className={`text-xl md:text-2xl ${theme.textSecondary} text-center mb-12 max-w-3xl mx-auto`}>
-              {config.subheadline}
-            </p>
-          )}
+            {/* Headline */}
+            <h1 className={`text-4xl md:text-5xl lg:text-6xl font-black text-center ${theme.textPrimary} mb-6 leading-tight`}>
+              {editableConfig.headline}
+            </h1>
+            
+            {editableConfig.subheadline && (
+              <p className={`text-xl md:text-2xl ${theme.textSecondary} text-center mb-12 max-w-3xl mx-auto`}>
+                {editableConfig.subheadline}
+              </p>
+            )}
 
-          {/* Product Showcase */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start max-w-6xl mx-auto">
-            {/* Product Image */}
-            <div className="relative">
-              {discount > 0 && (
-                <div className={`absolute top-4 left-4 z-10 ${theme.ctaBg} text-white px-5 py-2 rounded-full font-bold text-lg shadow-lg`}>
-                  {discount}% ছাড়!
-                </div>
-              )}
-              
-              <div className={`aspect-square rounded-3xl overflow-hidden ${theme.isDark ? 'bg-gray-800' : 'bg-gray-100'} shadow-2xl border-4 ${theme.isDark ? 'border-gray-700' : 'border-white'}`}>
-                {product.imageUrl ? (
-                  <OptimizedImage
-                    src={product.imageUrl}
-                    alt={product.title}
-                    width={700}
-                    height={700}
-                    className="w-full h-full object-cover"
-                    priority
-                  />
-                ) : (
-                  <div className={`w-full h-full flex items-center justify-center ${theme.isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                    <span className="text-9xl">📦</span>
+            {/* Product Showcase */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start max-w-6xl mx-auto">
+              {/* Product Image */}
+              <div className="relative">
+                {discount > 0 && (
+                  <div className={`absolute top-4 left-4 z-10 ${theme.ctaBg} text-white px-5 py-2 rounded-full font-bold text-lg shadow-lg`}>
+                    {discount}% ছাড়!
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Product Info */}
-            <div className="space-y-6">
-              <h2 className={`text-3xl md:text-4xl font-bold ${theme.textPrimary}`}>{product.title}</h2>
-              
-              {product.description && (
-                <p className={`${theme.textSecondary} text-lg leading-relaxed`}>
-                  {product.description}
-                </p>
-              )}
-
-              {/* Price Display */}
-              <div className={`${theme.isDark ? 'bg-white/10' : 'bg-gradient-to-r from-emerald-50 to-green-50'} rounded-2xl p-6 border ${theme.isDark ? 'border-white/20' : 'border-emerald-200'}`}>
-                <div className="flex items-end gap-4 flex-wrap">
-                  <span className={`text-5xl md:text-6xl font-black ${theme.isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                    {formatPrice(product.price)}
-                  </span>
-                  {product.compareAtPrice && product.compareAtPrice > product.price && (
-                    <span className={`text-2xl ${theme.isDark ? 'text-gray-400' : 'text-gray-400'} line-through mb-2`}>
-                      {formatPrice(product.compareAtPrice)}
-                    </span>
+                
+                <div className={`aspect-square rounded-3xl overflow-hidden ${theme.isDark ? 'bg-gray-800' : 'bg-gray-100'} shadow-2xl border-4 ${theme.isDark ? 'border-gray-700' : 'border-white'}`}>
+                  {product.imageUrl ? (
+                    <OptimizedImage
+                      src={product.imageUrl}
+                      alt={product.title}
+                      width={700}
+                      height={700}
+                      className="w-full h-full object-cover"
+                      priority
+                    />
+                  ) : (
+                    <div className={`w-full h-full flex items-center justify-center ${theme.isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                      <span className="text-9xl">📦</span>
+                    </div>
                   )}
                 </div>
-                {discount > 0 && (
-                  <p className={`${theme.isDark ? 'text-emerald-400' : 'text-emerald-700'} font-semibold mt-2`}>
-                    আপনি সেভ করছেন: {formatPrice(product.compareAtPrice! - product.price)}
-                  </p>
-                )}
               </div>
 
-              {/* Social Proof */}
-              {config.socialProof && (
-                <div className={`flex items-center gap-4 ${theme.isDark ? 'bg-white/10 border-white/20' : 'bg-yellow-50 border-yellow-200'} border rounded-xl p-4`}>
-                  <div className="text-yellow-500 text-2xl">{'★'.repeat(5)}</div>
-                  <p className={theme.textSecondary}>
-                    <strong className={`${theme.textPrimary} text-xl`}>{config.socialProof.count}+</strong> {config.socialProof.text}
-                  </p>
-                </div>
-              )}
-
-              {/* Desktop Order Button - Scroll to Form */}
-              <div className="hidden lg:block">
-                <a
-                  href="#order-form"
-                  className={`block w-full py-5 px-8 ${theme.ctaBg} ${theme.ctaText} text-2xl font-bold rounded-2xl shadow-xl transition transform hover:scale-[1.02] text-center`}
-                >
-                  🛒 {config.ctaText || 'এখনই অর্ডার করুন'} - {formatPrice(product.price)}
-                </a>
-                {config.ctaSubtext && (
-                  <p className={`text-center ${theme.textSecondary} text-sm mt-3`}>
-                    ✓ {config.ctaSubtext}
+              {/* Product Info */}
+              <div className="space-y-6">
+                <h2 className={`text-3xl md:text-4xl font-bold ${theme.textPrimary}`}>{product.title}</h2>
+                
+                {product.description && (
+                  <p className={`${theme.textSecondary} text-lg leading-relaxed`}>
+                    {product.description}
                   </p>
                 )}
+
+                {/* Price Display */}
+                <div className={`${theme.isDark ? 'bg-white/10' : 'bg-gradient-to-r from-emerald-50 to-green-50'} rounded-2xl p-6 border ${theme.isDark ? 'border-white/20' : 'border-emerald-200'}`}>
+                  <div className="flex items-end gap-4 flex-wrap">
+                    <span className={`text-5xl md:text-6xl font-black ${theme.isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                      {formatPrice(product.price)}
+                    </span>
+                    {product.compareAtPrice && product.compareAtPrice > product.price && (
+                      <span className={`text-2xl ${theme.isDark ? 'text-gray-400' : 'text-gray-400'} line-through mb-2`}>
+                        {formatPrice(product.compareAtPrice)}
+                      </span>
+                    )}
+                  </div>
+                  {discount > 0 && (
+                    <p className={`${theme.isDark ? 'text-emerald-400' : 'text-emerald-700'} font-semibold mt-2`}>
+                      আপনি সেভ করছেন: {formatPrice(product.compareAtPrice! - product.price)}
+                    </p>
+                  )}
+                </div>
+
+                {/* Social Proof */}
+                {editableConfig.socialProof && (
+                  <div className={`flex items-center gap-4 ${theme.isDark ? 'bg-white/10 border-white/20' : 'bg-yellow-50 border-yellow-200'} border rounded-xl p-4`}>
+                    <div className="text-yellow-500 text-2xl">{'★'.repeat(5)}</div>
+                    <p className={theme.textSecondary}>
+                      <strong className={`${theme.textPrimary} text-xl`}>{editableConfig.socialProof.count}+</strong> {editableConfig.socialProof.text}
+                    </p>
+                  </div>
+                )}
+
+                {/* Desktop Order Button - Scroll to Form */}
+                <div className="hidden lg:block">
+                  <a
+                    href="#order-form"
+                    className={`block w-full py-5 px-8 ${theme.ctaBg} ${theme.ctaText} text-2xl font-bold rounded-2xl shadow-xl transition transform hover:scale-[1.02] text-center`}
+                  >
+                    🛒 {editableConfig.ctaText || 'এখনই অর্ডার করুন'} - {formatPrice(product.price)}
+                  </a>
+                  {editableConfig.ctaSubtext && (
+                    <p className={`text-center ${theme.textSecondary} text-sm mt-3`}>
+                      ✓ {editableConfig.ctaSubtext}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </MagicSectionWrapper>
 
       {/* ============================================ */}
       {/* SECTION 2: Trust Badges */}
@@ -411,77 +445,98 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 4: Features (from config) */}
       {/* ============================================ */}
-      {config.features && config.features.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-                প্রোডাক্টের বিশেষত্ব
-              </h2>
-              <p className="text-xl text-gray-600">এই প্রোডাক্টটি কেন বিশেষ</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {config.features.map((feature, i) => (
-                <div key={i} className="flex items-start gap-4 bg-gray-50 rounded-2xl p-6">
-                  <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
-                    {feature.icon}
+      {editableConfig.features && editableConfig.features.length > 0 && (
+        <MagicSectionWrapper
+          sectionId="features"
+          sectionLabel="Product Features"
+          data={editableConfig.features}
+          onUpdate={(newData) => handleSectionUpdate('features', newData)}
+          isEditable={isEditMode}
+        >
+          <section className="py-16 bg-white">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                  প্রোডাক্টের বিশেষত্ব
+                </h2>
+                <p className="text-xl text-gray-600">এই প্রোডাক্টটি কেন বিশেষ</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {editableConfig.features.map((feature, i) => (
+                  <div key={i} className="flex items-start gap-4 bg-gray-50 rounded-2xl p-6">
+                    <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-gray-900">{feature.title}</h4>
+                      {feature.description && (
+                        <p className="text-gray-600 mt-1">{feature.description}</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-gray-900">{feature.title}</h4>
-                    {feature.description && (
-                      <p className="text-gray-600 mt-1">{feature.description}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </MagicSectionWrapper>
       )}
 
       {/* ============================================ */}
       {/* SECTION 5: Video Embed */}
       {/* ============================================ */}
-      {config.videoUrl && (
-        <section className="py-16 bg-gray-900">
-          <div className="max-w-5xl mx-auto px-4">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-                🎬 ভিডিওতে দেখুন
-              </h2>
-              <p className="text-xl text-gray-400">বিস্তারিত জানতে ভিডিওটি দেখুন</p>
+      {editableConfig.videoUrl && (
+        <MagicSectionWrapper
+          sectionId="video"
+          sectionLabel="Video Section"
+          data={{ videoUrl: editableConfig.videoUrl }}
+          onUpdate={(newData) => {
+            const videoData = newData as { videoUrl?: string };
+            if (videoData.videoUrl) {
+              handleSectionUpdate('videoUrl', videoData.videoUrl);
+            }
+          }}
+          isEditable={isEditMode}
+        >
+          <section className="py-16 bg-gray-900">
+            <div className="max-w-5xl mx-auto px-4">
+              <div className="text-center mb-10">
+                <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+                  🎬 ভিডিওতে দেখুন
+                </h2>
+                <p className="text-xl text-gray-400">বিস্তারিত জানতে ভিডিওটি দেখুন</p>
+              </div>
+              
+              <div className="aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-800">
+                {editableConfig.videoUrl.includes('youtube.com') || editableConfig.videoUrl.includes('youtu.be') ? (
+                  <iframe
+                    src={getYouTubeEmbedUrl(editableConfig.videoUrl)}
+                    title="Product Video"
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : editableConfig.videoUrl.includes('vimeo.com') ? (
+                  <iframe
+                    src={getVimeoEmbedUrl(editableConfig.videoUrl)}
+                    title="Product Video"
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    src={editableConfig.videoUrl}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
             </div>
-            
-            <div className="aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-800">
-              {config.videoUrl.includes('youtube.com') || config.videoUrl.includes('youtu.be') ? (
-                <iframe
-                  src={getYouTubeEmbedUrl(config.videoUrl)}
-                  title="Product Video"
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : config.videoUrl.includes('vimeo.com') ? (
-                <iframe
-                  src={getVimeoEmbedUrl(config.videoUrl)}
-                  title="Product Video"
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <video
-                  src={config.videoUrl}
-                  controls
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-          </div>
-        </section>
+          </section>
+        </MagicSectionWrapper>
       )}
 
       {/* ============================================ */}
@@ -531,37 +586,45 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 7: Testimonials */}
       {/* ============================================ */}
-      {config.testimonials && config.testimonials.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-                গ্রাহকের মতামত
-              </h2>
-              <p className="text-xl text-gray-600">তারা কি বলছেন দেখুন</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {config.testimonials.map((t, i) => (
-                <div key={i} className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
-                  <div className="flex items-center gap-1 text-yellow-500 text-xl mb-4">
-                    {'★'.repeat(5)}
-                  </div>
-                  <p className="text-gray-700 text-lg mb-6 italic">"{t.text}"</p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg">
-                      {t.name[0]}
+      {editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
+        <MagicSectionWrapper
+          sectionId="testimonials"
+          sectionLabel="Testimonials"
+          data={editableConfig.testimonials}
+          onUpdate={(newData) => handleSectionUpdate('testimonials', newData)}
+          isEditable={isEditMode}
+        >
+          <section className="py-16 bg-white">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                  গ্রাহকের মতামত
+                </h2>
+                <p className="text-xl text-gray-600">তারা কি বলছেন দেখুন</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {editableConfig.testimonials.map((t, i) => (
+                  <div key={i} className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
+                    <div className="flex items-center gap-1 text-yellow-500 text-xl mb-4">
+                      {'★'.repeat(5)}
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-900">{t.name}</p>
-                      <p className="text-sm text-gray-500">সন্তুষ্ট গ্রাহক</p>
+                    <p className="text-gray-700 text-lg mb-6 italic">"{t.text}"</p>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg">
+                        {t.name[0]}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{t.name}</p>
+                        <p className="text-sm text-gray-500">সন্তুষ্ট গ্রাহক</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </MagicSectionWrapper>
       )}
 
       {/* ============================================ */}
@@ -663,55 +726,81 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 10: Guarantee */}
       {/* ============================================ */}
-      {config.guaranteeText && (
-        <section className="py-16 bg-emerald-50">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-500 text-white rounded-full text-5xl mb-6 shadow-lg">
-              🛡️
+      {editableConfig.guaranteeText && (
+        <MagicSectionWrapper
+          sectionId="guarantee"
+          sectionLabel="Guarantee Section"
+          data={{ guaranteeText: editableConfig.guaranteeText }}
+          onUpdate={(newData) => {
+            const guaranteeData = newData as { guaranteeText?: string };
+            if (guaranteeData.guaranteeText) {
+              handleSectionUpdate('guaranteeText', guaranteeData.guaranteeText);
+            }
+          }}
+          isEditable={isEditMode}
+        >
+          <section className="py-16 bg-emerald-50">
+            <div className="max-w-4xl mx-auto px-4 text-center">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-500 text-white rounded-full text-5xl mb-6 shadow-lg">
+                🛡️
+              </div>
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                আমাদের গ্যারান্টি
+              </h2>
+              <p className="text-2xl text-emerald-700 font-semibold mb-4">
+                {editableConfig.guaranteeText}
+              </p>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                আমরা আপনার সন্তুষ্টি নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ। প্রোডাক্টে কোনো সমস্যা থাকলে আমরা সম্পূর্ণ টাকা ফেরত দেব অথবা নতুন প্রোডাক্ট পাঠাব।
+              </p>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-              আমাদের গ্যারান্টি
-            </h2>
-            <p className="text-2xl text-emerald-700 font-semibold mb-4">
-              {config.guaranteeText}
-            </p>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              আমরা আপনার সন্তুষ্টি নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ। প্রোডাক্টে কোনো সমস্যা থাকলে আমরা সম্পূর্ণ টাকা ফেরত দেব অথবা নতুন প্রোডাক্ট পাঠাব।
-            </p>
-          </div>
-        </section>
+          </section>
+        </MagicSectionWrapper>
       )}
 
       {/* ============================================ */}
       {/* SECTION 11: Final CTA */}
       {/* ============================================ */}
-      <section className="py-20 bg-gradient-to-r from-orange-500 to-red-500">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
-            আর দেরি কেন?
-          </h2>
-          <p className="text-xl text-orange-100 mb-4">
-            এই বিশেষ অফার সীমিত সময়ের জন্য!
-          </p>
-          <div className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-8">
-            <p className="text-white text-lg mb-2">বিশেষ মূল্য:</p>
-            <p className="text-5xl font-black text-white">{formatPrice(product.price)}</p>
-            {product.compareAtPrice && product.compareAtPrice > product.price && (
-              <p className="text-orange-200 line-through text-xl mt-2">
-                {formatPrice(product.compareAtPrice)}
-              </p>
-            )}
+      <MagicSectionWrapper
+        sectionId="cta"
+        sectionLabel="Final CTA"
+        data={{ urgencyText: editableConfig.urgencyText }}
+        onUpdate={(newData) => {
+          const ctaData = newData as { urgencyText?: string };
+          if (ctaData.urgencyText) {
+            handleSectionUpdate('urgencyText', ctaData.urgencyText);
+          }
+        }}
+        isEditable={isEditMode}
+      >
+        <section className="py-20 bg-gradient-to-r from-orange-500 to-red-500">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+              আর দেরি কেন?
+            </h2>
+            <p className="text-xl text-orange-100 mb-4">
+              এই বিশেষ অফার সীমিত সময়ের জন্য!
+            </p>
+            <div className="inline-block bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-8">
+              <p className="text-white text-lg mb-2">বিশেষ মূল্য:</p>
+              <p className="text-5xl font-black text-white">{formatPrice(product.price)}</p>
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <p className="text-orange-200 line-through text-xl mt-2">
+                  {formatPrice(product.compareAtPrice)}
+                </p>
+              )}
+            </div>
+            <div>
+              <a
+                href="#order-form"
+                className="inline-flex items-center gap-3 px-12 py-6 bg-white hover:bg-gray-100 text-orange-600 text-2xl font-black rounded-2xl shadow-2xl transition transform hover:scale-105"
+              >
+                🛒 এখনই অর্ডার করুন
+              </a>
+            </div>
           </div>
-          <div>
-            <a
-              href="#order-form"
-              className="inline-flex items-center gap-3 px-12 py-6 bg-white hover:bg-gray-100 text-orange-600 text-2xl font-black rounded-2xl shadow-2xl transition transform hover:scale-105"
-            >
-              🛒 এখনই অর্ডার করুন
-            </a>
-          </div>
-        </div>
-      </section>
+        </section>
+      </MagicSectionWrapper>
 
       {/* ============================================ */}
       {/* SECTION 12: Contact Info */}
@@ -979,7 +1068,7 @@ export function LandingPageTemplate({
           className={`w-full py-4 ${theme.ctaBg} ${theme.ctaText} text-xl font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3`}
         >
           <span className="text-2xl">🛒</span>
-          {config.ctaText || 'অর্ডার করুন'} - {formatPrice(product.price)}
+          {editableConfig.ctaText || 'অর্ডার করুন'} - {formatPrice(product.price)}
         </a>
       </div>
 

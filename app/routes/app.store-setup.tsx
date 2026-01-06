@@ -100,16 +100,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   const currentConfig = parseLandingConfig(store[0]?.landingConfig as string | null) || defaultLandingConfig;
 
+  // Build new config - use submitted values, fallback to current saved values
+  // This ensures merchant's saved data is never overwritten by hardcoded defaults
   const landingConfig: LandingConfig = {
     ...currentConfig,
     templateId: templateId || currentConfig.templateId || DEFAULT_TEMPLATE_ID,
-    headline: headline || 'Transform Your Life Today',
-    subheadline: subheadline || '',
-    videoUrl: videoUrl || '',
-    ctaText: ctaText || 'Buy Now',
-    ctaSubtext: ctaSubtext || '',
-    urgencyText: urgencyText || '',
-    guaranteeText: guaranteeText || '',
+    headline: headline !== null ? headline : currentConfig.headline,
+    subheadline: subheadline !== null ? subheadline : (currentConfig.subheadline || ''),
+    videoUrl: videoUrl !== null ? videoUrl : (currentConfig.videoUrl || ''),
+    ctaText: ctaText || currentConfig.ctaText || 'Buy Now',
+    ctaSubtext: ctaSubtext !== null ? ctaSubtext : (currentConfig.ctaSubtext || ''),
+    urgencyText: urgencyText !== null ? urgencyText : (currentConfig.urgencyText || ''),
+    guaranteeText: guaranteeText !== null ? guaranteeText : (currentConfig.guaranteeText || ''),
     testimonials,
   };
 

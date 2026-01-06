@@ -192,7 +192,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       title: 'Pending Orders',
       description: `${pendingCount} order${pendingCount > 1 ? 's' : ''} need${pendingCount === 1 ? 's' : ''} processing`,
       count: pendingCount,
-      link: '/app/dashboard/orders?status=pending',
+      link: '/app/orders?status=pending',
       priority: 'high',
     });
   }
@@ -327,7 +327,7 @@ export default function DashboardPage() {
           value={stats.pendingOrders}
           icon={Clock}
           color={stats.pendingOrders > 0 ? 'orange' : 'blue'}
-          link="/app/dashboard/orders?status=pending"
+          link="/app/orders?status=pending"
         />
         <MetricCard
           title="Total Products"
@@ -361,7 +361,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
           <Link 
-            to="/app/dashboard/orders" 
+            to="/app/orders" 
             className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
           >
             View all
@@ -382,7 +382,7 @@ export default function DashboardPage() {
           <span className="font-medium text-gray-900">Add Product</span>
         </Link>
         <Link
-          to="/app/dashboard/orders"
+          to="/app/orders"
           className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition text-center group"
         >
           <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition">

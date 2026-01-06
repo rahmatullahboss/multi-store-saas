@@ -201,7 +201,7 @@ const navSections: NavSection[] = [
   {
     title: 'Orders',
     items: [
-      { to: '/app/dashboard/orders', label: 'All Orders', icon: ShoppingCart },
+      { to: '/app/orders', label: 'All Orders', icon: ShoppingCart },
       { to: '/app/abandoned-carts', label: 'Abandoned Carts', icon: ShoppingBag },
     ],
   },

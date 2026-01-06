@@ -18,7 +18,7 @@ export const meta: MetaFunction = () => {
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   if (userId) {
-    return redirect('/app/dashboard/orders');
+    return redirect('/app/orders');
   }
   return json({});
 }
@@ -144,7 +144,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return await createUserSession(
         result.user.id,
         result.user.storeId,
-        '/app/dashboard/orders'
+        '/app/orders'
       );
     } catch (sessionError) {
       console.error('[auth.login] Failed to create session:', sessionError);

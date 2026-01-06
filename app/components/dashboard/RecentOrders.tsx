@@ -93,7 +93,7 @@ export function RecentOrders({ orders, currency = 'BDT' }: RecentOrdersProps) {
         return (
           <Link
             key={order.id}
-            to={`/app/dashboard/orders/${order.id}`}
+            to={`/app/orders/${order.id}`}
             className="flex items-center gap-4 py-4 hover:bg-gray-50 -mx-4 px-4 transition group first:pt-0 last:pb-0"
           >
             <div className="flex-1 min-w-0">
@@ -121,7 +121,7 @@ export function RecentOrders({ orders, currency = 'BDT' }: RecentOrdersProps) {
       {/* View All Link */}
       <div className="pt-4">
         <Link
-          to="/app/dashboard/orders"
+          to="/app/orders"
           className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition"
         >
           View all orders

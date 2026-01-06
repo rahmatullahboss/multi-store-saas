@@ -1,21 +1,21 @@
 /**
- * Inventory Management Dashboard
+ * Inventory Management Dashboard - Shopify-Inspired Design
  * 
  * Route: /app/inventory
  * 
  * Features:
+ * - Visual stock bars with progress indicators
+ * - Quick +/- stock adjustment buttons
  * - Low stock alerts with configurable threshold
- * - Quick inline stock editing
- * - Bulk stock updates
- * - CSV export functionality
- * - Stock level filtering
+ * - Search and filtering
+ * - CSV import/export
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Form, useNavigation, Link } from '@remix-run/react';
+import { useLoaderData, Form, useNavigation, Link, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc, lte, and } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
@@ -23,15 +23,14 @@ import {
   Package, 
   Download, 
   Upload, 
-  Edit2, 
-  Save,
-  X,
-  Filter,
-  Search,
+  Minus,
+  Plus,
   Loader2,
-  CheckCircle
+  CheckCircle,
+  ImageOff
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Inventory - Multi-Store SaaS' }];
@@ -47,9 +46,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const db = drizzle(context.cloudflare.env.DB);
-  const url = new URL(request.url);
-  const filter = url.searchParams.get('filter') || 'all';
-  const search = url.searchParams.get('search') || '';
 
   // Fetch store info
   const storeResult = await db
@@ -59,41 +55,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(1);
 
   const store = storeResult[0];
-  const lowStockThreshold = 10; // Default threshold
+  const lowStockThreshold = 10;
 
   // Fetch all products
-  let storeProducts = await db
+  const storeProducts = await db
     .select()
     .from(products)
     .where(eq(products.storeId, storeId))
     .orderBy(desc(products.createdAt));
 
-  // Apply search filter
-  if (search) {
-    storeProducts = storeProducts.filter(p => 
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
-    );
-  }
-
-  // Apply stock filter
-  if (filter === 'low') {
-    storeProducts = storeProducts.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= lowStockThreshold);
-  } else if (filter === 'out') {
-    storeProducts = storeProducts.filter(p => (p.inventory || 0) <= 0);
-  }
-
   // Calculate stats
-  const allProducts = await db
-    .select()
-    .from(products)
-    .where(eq(products.storeId, storeId));
-
   const stats = {
-    total: allProducts.length,
-    lowStock: allProducts.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= lowStockThreshold).length,
-    outOfStock: allProducts.filter(p => (p.inventory || 0) <= 0).length,
-    healthy: allProducts.filter(p => (p.inventory || 0) > lowStockThreshold).length,
+    total: storeProducts.length,
+    lowStock: storeProducts.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= lowStockThreshold).length,
+    outOfStock: storeProducts.filter(p => (p.inventory || 0) <= 0).length,
+    healthy: storeProducts.filter(p => (p.inventory || 0) > lowStockThreshold).length,
+    totalUnits: storeProducts.reduce((sum, p) => sum + (p.inventory || 0), 0),
   };
 
   return json({
@@ -101,8 +78,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     currency: store.currency || 'BDT',
     stats,
     lowStockThreshold,
-    filter,
-    search,
   });
 }
 
@@ -119,7 +94,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const intent = formData.get('intent') as string;
   const db = drizzle(context.cloudflare.env.DB);
 
-  if (intent === 'updateStock') {
+  if (intent === 'adjustStock') {
+    const productId = parseInt(formData.get('productId') as string);
+    const adjustment = parseInt(formData.get('adjustment') as string);
+
+    if (isNaN(productId) || isNaN(adjustment)) {
+      return json({ error: 'Invalid data' }, { status: 400 });
+    }
+
+    // Get current stock
+    const product = await db.select().from(products).where(eq(products.id, productId)).limit(1);
+    if (!product[0]) {
+      return json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    const newStock = Math.max(0, (product[0].inventory || 0) + adjustment);
+
+    await db.update(products)
+      .set({ inventory: newStock, updatedAt: new Date() })
+      .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
+
+    return json({ success: true, message: 'Stock updated', newStock });
+  }
+
+  if (intent === 'setStock') {
     const productId = parseInt(formData.get('productId') as string);
     const newStock = parseInt(formData.get('stock') as string);
 
@@ -134,17 +132,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, message: 'Stock updated' });
   }
 
-  if (intent === 'bulkUpdateStock') {
-    const updates = formData.getAll('updates');
-    for (const update of updates) {
-      const [productId, stock] = (update as string).split(':');
-      await db.update(products)
-        .set({ inventory: parseInt(stock), updatedAt: new Date() })
-        .where(and(eq(products.id, parseInt(productId)), eq(products.storeId, storeId)));
-    }
-    return json({ success: true, message: `${updates.length} products updated` });
-  }
-
   return json({ error: 'Invalid action' }, { status: 400 });
 }
 
@@ -152,65 +139,106 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function InventoryPage() {
-  const { products: storeProducts, currency, stats, lowStockThreshold, filter, search } = useLoaderData<typeof loader>();
+  const { products: storeProducts, currency, stats, lowStockThreshold } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
   
+  // Filter state
+  const statusFilter = searchParams.get('filter') || 'all';
+  const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editValue, setEditValue] = useState<string>('');
+  const [editValue, setEditValue] = useState('');
 
-  const startEdit = (id: number, currentStock: number) => {
-    setEditingId(id);
-    setEditValue(currentStock.toString());
-  };
+  // Status tabs configuration
+  const statusTabs = [
+    { id: 'all', label: 'All', count: stats.total },
+    { id: 'healthy', label: 'In Stock', count: stats.healthy },
+    { id: 'low', label: 'Low Stock', count: stats.lowStock },
+    { id: 'out', label: 'Out of Stock', count: stats.outOfStock },
+  ];
 
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditValue('');
-  };
+  // Filter products
+  const filteredProducts = useMemo(() => {
+    let filtered = [...storeProducts];
+
+    // Apply status filter
+    switch (statusFilter) {
+      case 'healthy':
+        filtered = filtered.filter(p => (p.inventory || 0) > lowStockThreshold);
+        break;
+      case 'low':
+        filtered = filtered.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= lowStockThreshold);
+        break;
+      case 'out':
+        filtered = filtered.filter(p => (p.inventory || 0) <= 0);
+        break;
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.title.toLowerCase().includes(query) ||
+        (p.sku && p.sku.toLowerCase().includes(query))
+      );
+    }
+
+    return filtered;
+  }, [storeProducts, statusFilter, searchQuery, lowStockThreshold]);
+
+  const handleStatusChange = useCallback((tabId: string) => {
+    setSearchParams(prev => {
+      if (tabId === 'all') {
+        prev.delete('filter');
+      } else {
+        prev.set('filter', tabId);
+      }
+      return prev;
+    });
+  }, [setSearchParams]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
     }).format(price);
   };
 
-  const getStockStatus = (stock: number) => {
-    if (stock <= 0) return { label: 'Out of Stock', color: 'bg-red-100 text-red-700 border-red-200' };
-    if (stock <= lowStockThreshold) return { label: 'Low Stock', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
-    return { label: 'In Stock', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
+  const getStockLevel = (stock: number) => {
+    if (stock <= 0) return 0;
+    if (stock <= lowStockThreshold) return 25;
+    if (stock <= 50) return 50;
+    return Math.min(100, stock);
+  };
+
+  const getStockColor = (stock: number) => {
+    if (stock <= 0) return 'bg-red-500';
+    if (stock <= lowStockThreshold) return 'bg-yellow-500';
+    return 'bg-emerald-500';
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
-          <p className="text-gray-600">Manage stock levels and track inventory</p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            to="/app/inventory/import"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
-          >
-            <Upload className="w-4 h-4" />
-            Import CSV
-          </Link>
-          <a
-            href="/api/products/export"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition"
-          >
-            <Download className="w-4 h-4" />
-            Export CSV
-          </a>
-        </div>
-      </div>
+      <PageHeader
+        title="Inventory"
+        description="Manage stock levels and track inventory"
+        secondaryAction={{
+          label: 'Import CSV',
+          href: '/app/inventory/import',
+          icon: <Upload className="w-4 h-4" />,
+        }}
+        primaryAction={{
+          label: 'Export CSV',
+          href: '/api/products/export',
+          icon: <Download className="w-4 h-4" />,
+        }}
+      />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard
           label="Total Products"
           value={stats.total}
@@ -218,7 +246,13 @@ export default function InventoryPage() {
           color="blue"
         />
         <StatCard
-          label="Healthy Stock"
+          label="Total Units"
+          value={stats.totalUnits.toLocaleString()}
+          icon={<Package className="w-5 h-5" />}
+          color="purple"
+        />
+        <StatCard
+          label="In Stock"
           value={stats.healthy}
           icon={<CheckCircle className="w-5 h-5" />}
           color="emerald"
@@ -227,88 +261,87 @@ export default function InventoryPage() {
           label="Low Stock"
           value={stats.lowStock}
           icon={<AlertTriangle className="w-5 h-5" />}
-          color="yellow"
-          href="?filter=low"
+          color={stats.lowStock > 0 ? 'yellow' : 'gray'}
         />
         <StatCard
           label="Out of Stock"
           value={stats.outOfStock}
           icon={<AlertTriangle className="w-5 h-5" />}
-          color="red"
-          href="?filter=out"
+          color={stats.outOfStock > 0 ? 'red' : 'gray'}
         />
       </div>
 
       {/* Low Stock Alert */}
-      {stats.lowStock > 0 && filter === 'all' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center justify-between">
+      {stats.lowStock > 0 && statusFilter === 'all' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-600" />
-            <span className="text-yellow-800">
-              <strong>{stats.lowStock}</strong> product{stats.lowStock > 1 ? 's' : ''} running low on stock (≤{lowStockThreshold} units)
-            </span>
+            <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-yellow-600" />
+            </div>
+            <div>
+              <p className="font-medium text-yellow-800">
+                {stats.lowStock} product{stats.lowStock > 1 ? 's' : ''} running low on stock
+              </p>
+              <p className="text-sm text-yellow-600">
+                Stock level is at or below {lowStockThreshold} units
+              </p>
+            </div>
           </div>
-          <Link
-            to="?filter=low"
-            className="text-yellow-700 font-medium hover:text-yellow-800 underline"
+          <button
+            onClick={() => handleStatusChange('low')}
+            className="px-4 py-2 bg-yellow-100 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 transition"
           >
-            View All
-          </Link>
+            View Low Stock
+          </button>
         </div>
       )}
 
-      {/* Filters & Search */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <Form method="get" className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              name="search"
-              defaultValue={search}
-              placeholder="Search by name or SKU..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <select
-              name="filter"
-              defaultValue={filter}
-              className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="all">All Products</option>
-              <option value="low">Low Stock Only</option>
-              <option value="out">Out of Stock Only</option>
-            </select>
-            <button
-              type="submit"
-              className="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition"
-            >
-              Apply
-            </button>
-          </div>
-        </Form>
+      {/* Filters Row */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Search */}
+        <SearchInput
+          placeholder="Search by name or SKU..."
+          value={searchQuery}
+          onChange={setSearchQuery}
+          className="w-full md:w-80"
+        />
+        
+        {/* Status Tabs */}
+        <div className="flex-1">
+          <StatusTabs
+            tabs={statusTabs}
+            activeTab={statusFilter}
+            onChange={handleStatusChange}
+          />
+        </div>
       </div>
 
-      {/* Products Table */}
+      {/* Products List */}
       {storeProducts.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200">
+          <EmptyState
+            icon={<Package className="w-10 h-10" />}
+            title="No products yet"
+            description="Add products to start tracking inventory."
+            action={{
+              label: 'Add Product',
+              href: '/app/products/new',
+              icon: <Plus className="w-4 h-4" />,
+            }}
+          />
+        </div>
+      ) : filteredProducts.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
-          <p className="text-gray-500 mb-6">
-            {filter !== 'all' ? 'No products match the current filter.' : 'Add products to start tracking inventory.'}
-          </p>
-          {filter !== 'all' && (
-            <Link
-              to="/app/inventory"
-              className="text-emerald-600 font-medium hover:underline"
-            >
-              Clear Filters
-            </Link>
-          )}
+          <p className="text-gray-500">No products match your filters.</p>
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              handleStatusChange('all');
+            }}
+            className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
+          >
+            Clear filters
+          </button>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -325,20 +358,19 @@ export default function InventoryPage() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Price
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Stock
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px]">
+                    Stock Level
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Adjust
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {storeProducts.map((product) => {
-                  const stockStatus = getStockStatus(product.inventory || 0);
+                {filteredProducts.map((product) => {
+                  const stock = product.inventory || 0;
+                  const stockLevel = getStockLevel(stock);
+                  const stockColor = getStockColor(stock);
                   const isEditing = editingId === product.id;
 
                   return (
@@ -349,19 +381,24 @@ export default function InventoryPage() {
                             <img
                               src={product.imageUrl}
                               alt={product.title}
-                              className="w-10 h-10 object-cover rounded-lg border border-gray-200"
+                              className="w-12 h-12 object-cover rounded-lg border border-gray-200"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                              <Package className="w-4 h-4 text-gray-400" />
+                            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <ImageOff className="w-5 h-5 text-gray-400" />
                             </div>
                           )}
-                          <Link
-                            to={`/app/products/${product.id}`}
-                            className="font-medium text-gray-900 hover:text-emerald-600"
-                          >
-                            {product.title}
-                          </Link>
+                          <div className="min-w-0">
+                            <Link
+                              to={`/app/products/${product.id}`}
+                              className="font-medium text-gray-900 hover:text-emerald-600 transition truncate block"
+                            >
+                              {product.title}
+                            </Link>
+                            {product.category && (
+                              <p className="text-xs text-gray-500">{product.category}</p>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-gray-600 font-mono text-sm">
@@ -373,7 +410,7 @@ export default function InventoryPage() {
                       <td className="px-4 py-4">
                         {isEditing ? (
                           <Form method="post" className="flex items-center gap-2">
-                            <input type="hidden" name="intent" value="updateStock" />
+                            <input type="hidden" name="intent" value="setStock" />
                             <input type="hidden" name="productId" value={product.id} />
                             <input
                               type="number"
@@ -381,49 +418,75 @@ export default function InventoryPage() {
                               value={editValue}
                               onChange={(e) => setEditValue(e.target.value)}
                               min="0"
-                              className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500"
+                              className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-center"
                               autoFocus
                             />
                             <button
                               type="submit"
                               disabled={isSubmitting}
-                              className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                              className="px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition"
                             >
-                              <Save className="w-4 h-4" />
+                              Save
                             </button>
                             <button
                               type="button"
-                              onClick={cancelEdit}
-                              className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+                              onClick={() => setEditingId(null)}
+                              className="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-100 rounded-lg transition"
                             >
-                              <X className="w-4 h-4" />
+                              Cancel
                             </button>
                           </Form>
                         ) : (
-                          <span className={`font-semibold ${
-                            (product.inventory || 0) <= 0 ? 'text-red-600' : 
-                            (product.inventory || 0) <= lowStockThreshold ? 'text-yellow-600' : 
-                            'text-gray-900'
-                          }`}>
-                            {product.inventory ?? 0}
-                          </span>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <button
+                                onClick={() => {
+                                  setEditingId(product.id);
+                                  setEditValue(stock.toString());
+                                }}
+                                className="font-bold text-lg hover:text-emerald-600 transition"
+                              >
+                                {stock} <span className="text-xs text-gray-500 font-normal">units</span>
+                              </button>
+                              <StockStatusBadge stock={stock} threshold={lowStockThreshold} />
+                            </div>
+                            {/* Visual stock bar */}
+                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full ${stockColor} transition-all duration-300`}
+                                style={{ width: `${stockLevel}%` }}
+                              />
+                            </div>
+                          </div>
                         )}
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full border ${stockStatus.color}`}>
-                          {stockStatus.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4">
-                        {!isEditing && (
-                          <button
-                            onClick={() => startEdit(product.id, product.inventory || 0)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                            Edit Stock
-                          </button>
-                        )}
+                        <div className="flex items-center justify-center gap-1">
+                          <Form method="post">
+                            <input type="hidden" name="intent" value="adjustStock" />
+                            <input type="hidden" name="productId" value={product.id} />
+                            <input type="hidden" name="adjustment" value="-1" />
+                            <button
+                              type="submit"
+                              disabled={isSubmitting || stock <= 0}
+                              className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                          </Form>
+                          <Form method="post">
+                            <input type="hidden" name="intent" value="adjustStock" />
+                            <input type="hidden" name="productId" value={product.id} />
+                            <input type="hidden" name="adjustment" value="1" />
+                            <button
+                              type="submit"
+                              disabled={isSubmitting}
+                              className="w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 disabled:opacity-50 transition"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </Form>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -448,41 +511,31 @@ export default function InventoryPage() {
 }
 
 // ============================================================================
-// STAT CARD COMPONENT
+// STOCK STATUS BADGE COMPONENT
 // ============================================================================
-function StatCard({ 
-  label, 
-  value, 
-  icon, 
-  color, 
-  href 
-}: { 
-  label: string; 
-  value: number; 
-  icon: React.ReactNode;
-  color: 'blue' | 'emerald' | 'yellow' | 'red';
-  href?: string;
-}) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-100',
-    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    yellow: 'bg-yellow-50 text-yellow-600 border-yellow-100',
-    red: 'bg-red-50 text-red-600 border-red-100',
-  };
-
-  const content = (
-    <div className={`p-4 rounded-xl border ${colorClasses[color]} ${href ? 'hover:opacity-80 transition cursor-pointer' : ''}`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium opacity-80">{label}</span>
-        {icon}
-      </div>
-      <p className="text-2xl font-bold">{value}</p>
-    </div>
-  );
-
-  if (href) {
-    return <Link to={href}>{content}</Link>;
+function StockStatusBadge({ stock, threshold }: { stock: number; threshold: number }) {
+  if (stock <= 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+        Out of stock
+      </span>
+    );
   }
   
-  return content;
+  if (stock <= threshold) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
+        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
+        Low stock
+      </span>
+    );
+  }
+  
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">
+      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+      In stock
+    </span>
+  );
 }

@@ -201,7 +201,7 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
                 <p style="margin: 0; font-size: 20px; color: #1d4ed8;"><strong>Total: ${symbol}${data.total.toLocaleString()}</strong></p>
               </div>
               
-              <a href="https://digitalcare.site/app/dashboard/orders" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">View Order Details</a>
+              <a href="https://digitalcare.site/app/orders" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">View Order Details</a>
             </div>
           </body>
           </html>
