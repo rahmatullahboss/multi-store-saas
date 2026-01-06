@@ -310,6 +310,33 @@ export const translations = {
     
     // Footer
     allRightsReserved: 'All rights reserved',
+    
+    // Onboarding Setup Progress
+    creatingYourStore: 'Creating your store...',
+    aiNamingStore: 'AI is naming your store...',
+    addingDemoProduct: 'Adding demo product...',
+    designingLandingPage: 'Designing landing page...',
+    almostDone: 'Almost done!',
+    somethingWentWrong: 'Something went wrong!',
+    goToDashboard: 'Go to Dashboard',
+    
+    // Business Categories
+    categoryFashion: 'Fashion & Clothing',
+    categoryElectronics: 'Electronics',
+    categoryBeauty: 'Beauty & Health',
+    categoryFood: 'Food & Grocery',
+    categoryHome: 'Home & Living',
+    categoryServices: 'Services',
+    categoryOther: 'Other',
+    
+    // Form Labels
+    storeName: 'Store Name',
+    subdomain: 'Subdomain',
+    subdomainHelp: 'Only lowercase letters, numbers, and hyphens',
+    aiHelpTip: 'The more details you provide, the better AI can set up your store!',
+    upgradeAnytime: 'You can upgrade anytime from your dashboard',
+    createMyStore: 'Create My Store',
+    termsAgree: 'By continuing, you agree to our Terms of Service and Privacy Policy',
   },
   
   bn: {
@@ -586,6 +613,33 @@ export const translations = {
     
     // Footer
     allRightsReserved: 'সর্বস্বত্ব সংরক্ষিত',
+    
+    // Onboarding Setup Progress
+    creatingYourStore: 'আপনার স্টোর তৈরি হচ্ছে...',
+    aiNamingStore: 'AI আপনার স্টোরের নাম দিচ্ছে...',
+    addingDemoProduct: 'ডেমো প্রোডাক্ট যোগ হচ্ছে...',
+    designingLandingPage: 'ল্যান্ডিং পেজ ডিজাইন হচ্ছে...',
+    almostDone: 'প্রায় শেষ!',
+    somethingWentWrong: 'সমস্যা হয়েছে!',
+    goToDashboard: 'ড্যাশবোর্ডে যান',
+    
+    // Business Categories
+    categoryFashion: 'ফ্যাশন ও পোশাক',
+    categoryElectronics: 'ইলেকট্রনিক্স',
+    categoryBeauty: 'বিউটি ও স্বাস্থ্য',
+    categoryFood: 'খাবার ও মুদি',
+    categoryHome: 'হোম ও লিভিং',
+    categoryServices: 'সার্ভিস',
+    categoryOther: 'অন্যান্য',
+    
+    // Form Labels
+    storeName: 'স্টোরের নাম',
+    subdomain: 'সাবডোমেইন',
+    subdomainHelp: 'শুধুমাত্র ছোট হাতের অক্ষর, সংখ্যা এবং হাইফেন',
+    aiHelpTip: 'যত বেশি তথ্য দেবেন, AI তত ভালো আপনার স্টোর সেটআপ করতে পারবে!',
+    upgradeAnytime: 'আপনি যেকোনো সময় ড্যাশবোর্ড থেকে আপগ্রেড করতে পারবেন',
+    createMyStore: 'আমার স্টোর তৈরি করুন',
+    termsAgree: 'চালিয়ে যাওয়ার মাধ্যমে আপনি আমাদের ব্যবহারের শর্তাবলী এবং গোপনীয়তা নীতিতে সম্মত হচ্ছেন',
   },
 } as const;
 

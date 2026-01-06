@@ -82,7 +82,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Please provide a more detailed description (at least 10 characters)' }, { status: 400 });
   }
 
-  const apiKey = env.MIMO_API_KEY;
+  const apiKey = env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return json({ error: 'AI service not configured' }, { status: 503 });
   }

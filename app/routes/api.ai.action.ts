@@ -80,9 +80,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // Check for API key
-  const apiKey = env.MIMO_API_KEY;
+  const apiKey = env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    console.error('[AI Action] MIMO_API_KEY not configured');
+    console.error('[AI Action] OPENROUTER_API_KEY not configured');
     return json(
       { error: 'AI service not configured. Please contact support.' },
       { status: 503 }

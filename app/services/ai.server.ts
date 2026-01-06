@@ -1,21 +1,23 @@
 /**
- * AI Service - XiaoMi MiMo API Integration
+ * AI Service - OpenRouter API Integration
  * 
- * Uses MiMo API with OpenAI-compatible endpoint for:
+ * Uses OpenRouter with Google Gemini for:
  * - Store setup generation
  * - Landing page generation
  * - Section editing with natural language
+ * - Customer chat support
  * 
  * All responses are validated with Zod schemas.
  */
 
 import { z } from 'zod';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { generateText } from 'ai';
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
-const MIMO_API_URL = 'https://api.xiaomimimo.com/v1/chat/completions';
-const DEFAULT_MODEL = 'mimo-v2-flash';
+const DEFAULT_MODEL = 'google/gemini-2.0-flash-001';
 
 // ============================================================================
 // ZOD SCHEMAS - Structured AI Output Validation
@@ -63,7 +65,7 @@ export type LandingConfigResult = z.infer<typeof LandingConfigSchema>;
 export const SectionEditSchema = z.record(z.unknown());
 
 // ============================================================================
-// HELPER: Make MiMo API call (OpenAI-compatible)
+// HELPER: Make OpenRouter API call
 // ============================================================================
 async function callAI(
   apiKey: string,
@@ -71,38 +73,19 @@ async function callAI(
   userPrompt: string,
   model: string = DEFAULT_MODEL
 ): Promise<string> {
-  const response = await fetch(MIMO_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      stream: false,
-    }),
+  const openrouter = createOpenRouter({ apiKey });
+  
+  const result = await generateText({
+    model: openrouter(model),
+    system: systemPrompt,
+    prompt: userPrompt,
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('[AI Service] MiMo API Error:', errorText);
-    throw new Error(`MiMo API error: ${response.status}`);
-  }
-
-  const data = await response.json() as {
-    choices: Array<{ message: { content: string } }>;
-  };
-
-  const content = data.choices[0]?.message?.content;
-  if (!content) {
+  if (!result.text) {
     throw new Error('No response from AI');
   }
 
-  return content;
+  return result.text;
 }
 
 // ============================================================================
@@ -311,7 +294,7 @@ Edited text:`;
 // ============================================================================
 export function createAIService(apiKey: string) {
   if (!apiKey) {
-    throw new Error('MiMo API key is required');
+    throw new Error('OpenRouter API key is required');
   }
 
   return {
@@ -331,4 +314,3 @@ export function createAIService(apiKey: string) {
       quickEdit(apiKey, currentText, prompt),
   };
 }
-

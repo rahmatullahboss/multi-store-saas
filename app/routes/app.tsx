@@ -42,6 +42,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
+import { ChatWidget } from '~/components/ai/ChatWidget';
 import { useState } from 'react';
 
 
@@ -150,6 +151,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         id: store.id,
         name: store.name,
         subdomain: store.subdomain,
+        planType: store.planType || 'free',
       },
       user: {
         id: user.id,
@@ -447,6 +449,15 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* AI Co-pilot Widget - Only for paid plans */}
+      {store.planType !== 'free' && (
+        <ChatWidget 
+          mode="merchant" 
+          storeId={store.id}
+          accentColor="#10b981"
+        />
+      )}
     </div>
   );
 }

@@ -26,15 +26,15 @@ import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
 
-// Business categories
+// Business categories with translation keys
 const BUSINESS_CATEGORIES = [
-  { id: 'fashion', label: 'Fashion & Clothing', labelBn: 'ফ্যাশন ও পোশাক' },
-  { id: 'electronics', label: 'Electronics', labelBn: 'ইলেকট্রনিক্স' },
-  { id: 'beauty', label: 'Beauty & Health', labelBn: 'বিউটি ও স্বাস্থ্য' },
-  { id: 'food', label: 'Food & Grocery', labelBn: 'খাবার ও মুদি' },
-  { id: 'home', label: 'Home & Living', labelBn: 'হোম ও লিভিং' },
-  { id: 'services', label: 'Services', labelBn: 'সার্ভিস' },
-  { id: 'other', label: 'Other', labelBn: 'অন্যান্য' },
+  { id: 'fashion', key: 'categoryFashion' as const },
+  { id: 'electronics', key: 'categoryElectronics' as const },
+  { id: 'beauty', key: 'categoryBeauty' as const },
+  { id: 'food', key: 'categoryFood' as const },
+  { id: 'home', key: 'categoryHome' as const },
+  { id: 'services', key: 'categoryServices' as const },
+  { id: 'other', key: 'categoryOther' as const },
 ];
 
 export const meta: MetaFunction = () => {
@@ -176,7 +176,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .where(eq(stores.id, storeId));
 
       // 3. Generate AI content if API key available
-      const apiKey = env.MIMO_API_KEY;
+      const apiKey = env.OPENROUTER_API_KEY;
       let aiSuccess = false;
       
       if (apiKey) {
@@ -580,7 +580,7 @@ export default function OnboardingPage() {
               {/* Store Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Store Name *
+                  {t('storeName')} *
                 </label>
                 <input
                   type="text"
@@ -595,7 +595,7 @@ export default function OnboardingPage() {
               {/* Subdomain */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subdomain *
+                  {t('subdomain')} *
                 </label>
                 <div className="flex items-center">
                   <input
@@ -613,7 +613,7 @@ export default function OnboardingPage() {
                   </span>
                 </div>
                 {errors.subdomain && <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>}
-                <p className="text-sm text-gray-500 mt-1">Only lowercase letters, numbers, and hyphens</p>
+                <p className="text-sm text-gray-500 mt-1">{t('subdomainHelp')}</p>
               </div>
 
               {/* Description */}
@@ -630,7 +630,7 @@ export default function OnboardingPage() {
                 />
                 {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                 <p className="text-sm text-gray-500 mt-2">
-                  💡 The more details you provide, the better AI can set up your store!
+                  💡 {t('aiHelpTip')}
                 </p>
               </div>
 
@@ -646,7 +646,7 @@ export default function OnboardingPage() {
                 >
                   {BUSINESS_CATEGORIES.map((cat) => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.label}
+                      {t(cat.key)}
                     </option>
                   ))}
                 </select>
@@ -667,7 +667,7 @@ export default function OnboardingPage() {
               />
 
               <p className="text-center text-sm text-gray-500 mt-4">
-                You can upgrade anytime from your dashboard
+                {t('upgradeAnytime')}
               </p>
             </div>
           )}
@@ -736,7 +736,7 @@ export default function OnboardingPage() {
                     }}
                     className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
                   >
-                    🔄 Retry
+                    🔄 {t('retry')}
                   </button>
                   <button
                     type="button"
@@ -749,13 +749,13 @@ export default function OnboardingPage() {
                     className="flex items-center gap-2 px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    Start Over
+                    {t('startOver')}
                   </button>
                   <Link
                     to="/auth/login"
                     className="text-emerald-600 hover:text-emerald-700 text-sm underline"
                   >
-                    Already have an account? Login
+                    {t('alreadyHaveAccount')}
                   </Link>
                 </div>
               )}
@@ -781,7 +781,7 @@ export default function OnboardingPage() {
                   className="flex items-center gap-2 px-6 py-3 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Back
+                  {t('back')}
                 </button>
               ) : (
                 <div />
@@ -794,7 +794,7 @@ export default function OnboardingPage() {
                   disabled={isCheckingEmail}
                   className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50"
                 >
-                  {isCheckingEmail ? 'Checking...' : 'Continue'}
+                  {isCheckingEmail ? t('loading') : t('continueBtn')}
                   <ArrowRight className="w-4 h-4" />
                 </button>
               ) : (
@@ -807,16 +807,15 @@ export default function OnboardingPage() {
                   disabled={isSubmitting}
                   className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Creating...' : '🚀 Create My Store'}
+                  {isSubmitting ? t('creatingStore') : `🚀 ${t('createMyStore')}`}
                 </button>
               )}
             </div>
           )}
         </div>
 
-        {/* Footer */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          By continuing, you agree to our Terms of Service and Privacy Policy
+          {t('termsAgree')}
         </p>
       </main>
     </div>

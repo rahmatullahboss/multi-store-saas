@@ -106,6 +106,7 @@ import type { LandingConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { MagicSectionWrapper } from '~/components/editor';
+import { ChatWidget } from '~/components/ai/ChatWidget';
 
 // Serialized product type (JSON dates become strings)
 interface SerializedProduct {
@@ -126,6 +127,7 @@ interface LandingPageTemplateProps {
   currency: string;
   isPreview?: boolean; // When true, disables form submission and shows preview mode
   isEditMode?: boolean; // When true, enables Magic Editor hover overlays
+  isCustomerAiEnabled?: boolean; // When true, shows AI Sales Agent chatbot
 }
 
 export function LandingPageTemplate({
@@ -136,6 +138,7 @@ export function LandingPageTemplate({
   currency,
   isPreview = false,
   isEditMode = false,
+  isCustomerAiEnabled = false,
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -1172,6 +1175,15 @@ export function LandingPageTemplate({
           </div>
         </div>
       </footer>
+
+      {/* AI Sales Agent Widget - Only when enabled */}
+      {isCustomerAiEnabled && storeId && (
+        <ChatWidget 
+          mode="customer" 
+          storeId={storeId}
+          accentColor="#f97316"
+        />
+      )}
     </div>
   );
 }

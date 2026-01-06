@@ -5,6 +5,8 @@
 
 import { useEffect, useState } from 'react';
 import { Store, Sparkles, Package, Palette, CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
+import type { TranslationKey } from '~/utils/i18n';
 
 interface AISetupProgressProps {
   isGenerating: boolean;
@@ -13,17 +15,19 @@ interface AISetupProgressProps {
   onComplete?: () => void;
 }
 
-const STEPS = [
-  { icon: Store, label: '🏪 Creating your store...' },
-  { icon: Sparkles, label: '🤖 AI is naming your store...' },
-  { icon: Package, label: '📦 Adding demo product...' },
-  { icon: Palette, label: '🎨 Designing landing page...' },
-  { icon: CheckCircle2, label: '✅ Almost done!' },
+// Step keys for translation
+const STEP_KEYS: { icon: typeof Store; key: TranslationKey }[] = [
+  { icon: Store, key: 'creatingYourStore' },
+  { icon: Sparkles, key: 'aiNamingStore' },
+  { icon: Package, key: 'addingDemoProduct' },
+  { icon: Palette, key: 'designingLandingPage' },
+  { icon: CheckCircle2, key: 'almostDone' },
 ];
 
 export function AISetupProgress({ isGenerating, hasError, errorMessage, onComplete }: AISetupProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!isGenerating || hasError) return;
@@ -31,7 +35,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
     // Progress through steps
     const interval = setInterval(() => {
       setCurrentStep((prev) => {
-        if (prev >= STEPS.length - 1) {
+        if (prev >= STEP_KEYS.length - 1) {
           clearInterval(interval);
           setIsComplete(true);
           onComplete?.();
@@ -50,6 +54,12 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
       setIsComplete(false);
     }
   }, [hasError]);
+
+  // Get current step label with emoji
+  const getStepLabel = (index: number): string => {
+    const emojis = ['🏪', '🤖', '📦', '🎨', '✅'];
+    return `${emojis[index]} ${t(STEP_KEYS[index].key)}`;
+  };
 
   return (
     <div className="flex flex-col items-center justify-center py-12">
@@ -92,7 +102,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
         {hasError ? (
           <>
             <p className="text-xl font-semibold text-red-600 mb-2">
-              ❌ Something went wrong!
+              ❌ {t('somethingWentWrong')}
             </p>
             {errorMessage && (
               <p className="text-sm text-red-500 bg-red-50 px-4 py-2 rounded-lg max-w-sm">
@@ -102,7 +112,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
           </>
         ) : (
           <p className="text-xl font-semibold text-gray-900">
-            {STEPS[currentStep]?.label}
+            {getStepLabel(currentStep)}
           </p>
         )}
       </div>
@@ -110,7 +120,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
       {/* Step Progress Dots */}
       {!hasError && (
         <div className="flex items-center gap-2">
-          {STEPS.map((_, index) => (
+          {STEP_KEYS.map((_, index) => (
             <div
               key={index}
               className={`
@@ -131,7 +141,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
       {isComplete && !hasError && (
         <div className="mt-8 text-center animate-fade-in">
           <h2 className="text-2xl font-bold text-emerald-600 mb-4">
-            🎉 Your store is ready!
+            🎉 {t('storeReady')}
           </h2>
           
           {/* Go to Dashboard Button */}
@@ -139,7 +149,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
             href="/app/orders"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-lg font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            🚀 Go to Dashboard
+            🚀 {t('goToDashboard')}
           </a>
         </div>
       )}
