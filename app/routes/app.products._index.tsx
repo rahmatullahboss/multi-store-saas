@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Products - Multi-Store SaaS' }];
@@ -122,6 +123,7 @@ export default function ProductsIndexPage() {
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   
   // Filter state from URL
   const statusFilter = searchParams.get('status') || 'all';
@@ -135,11 +137,11 @@ export default function ProductsIndexPage() {
   
   // Status tabs configuration
   const statusTabs = [
-    { id: 'all', label: 'All', count: stats.total },
-    { id: 'published', label: 'Published', count: stats.published },
-    { id: 'draft', label: 'Draft', count: stats.draft },
-    { id: 'low-stock', label: 'Low Stock', count: stats.lowStock },
-    { id: 'out-of-stock', label: 'Out of Stock', count: stats.outOfStock },
+    { id: 'all', label: t('allOrders'), count: stats.total },
+    { id: 'published', label: t('publishedStatus'), count: stats.published },
+    { id: 'draft', label: t('draftStatus'), count: stats.draft },
+    { id: 'low-stock', label: t('lowStock'), count: stats.lowStock },
+    { id: 'out-of-stock', label: t('outOfStockLabel'), count: stats.outOfStock },
   ];
 
   // Filter products based on status and search
@@ -210,7 +212,7 @@ export default function ProductsIndexPage() {
   const clearSelection = () => setSelectedIds(new Set());
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -235,10 +237,10 @@ export default function ProductsIndexPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Products"
-        description="Manage your product catalog"
+        title={t('products')}
+        description={t('noProducts') ? t('noProducts').replace('No products yet', 'Manage your product catalog') : 'Manage your product catalog'}
         primaryAction={{
-          label: 'Add Product',
+          label: t('addProduct'),
           href: '/app/products/new',
           icon: <Plus className="w-4 h-4" />,
         }}
@@ -247,25 +249,25 @@ export default function ProductsIndexPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          label="Total Products"
+          label={t('totalProducts')}
           value={stats.total}
           icon={<Package className="w-5 h-5" />}
           color="blue"
         />
         <StatCard
-          label="Published"
+          label={t('publishedStatus')}
           value={stats.published}
           icon={<CheckCircle className="w-5 h-5" />}
           color="emerald"
         />
         <StatCard
-          label="Draft"
+          label={t('draftStatus')}
           value={stats.draft}
           icon={<Archive className="w-5 h-5" />}
           color="gray"
         />
         <StatCard
-          label="Low Stock"
+          label={t('lowStock')}
           value={stats.lowStock + stats.outOfStock}
           icon={<AlertTriangle className="w-5 h-5" />}
           color={stats.lowStock + stats.outOfStock > 0 ? 'red' : 'gray'}

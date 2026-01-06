@@ -21,7 +21,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Eye, Sparkles, Save, 
-  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle
+  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -258,8 +258,16 @@ export default function LandingBuilderPage() {
   const [testimonials, setTestimonials] = useState<Array<{name: string; text?: string; imageUrl?: string}>>(store.landingConfig.testimonials || []);
   const [faq, setFaq] = useState<Array<{question: string; answer: string}>>(store.landingConfig.faq || []);
 
+  // Conversion features state (MVP)
+  const [countdownEnabled, setCountdownEnabled] = useState(store.landingConfig.countdownEnabled || false);
+  const [countdownEndTime, setCountdownEndTime] = useState(store.landingConfig.countdownEndTime || '');
+  const [showStockCounter, setShowStockCounter] = useState(store.landingConfig.showStockCounter || false);
+  const [lowStockThreshold, setLowStockThreshold] = useState(store.landingConfig.lowStockThreshold || 10);
+  const [showSocialProof, setShowSocialProof] = useState(store.landingConfig.showSocialProof || false);
+  const [socialProofInterval, setSocialProofInterval] = useState(store.landingConfig.socialProofInterval || 15);
+
   // Current tab
-  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'testimonials' | 'faq' | 'whatsapp'>('template');
+  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp'>('template');
 
   // Show success message
   useEffect(() => {
@@ -348,6 +356,13 @@ export default function LandingBuilderPage() {
                 <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
                 <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
                 <input type="hidden" name="faq" value={JSON.stringify(faq)} />
+                {/* Conversion features */}
+                <input type="hidden" name="countdownEnabled" value={countdownEnabled.toString()} />
+                <input type="hidden" name="countdownEndTime" value={countdownEndTime} />
+                <input type="hidden" name="showStockCounter" value={showStockCounter.toString()} />
+                <input type="hidden" name="lowStockThreshold" value={lowStockThreshold.toString()} />
+                <input type="hidden" name="showSocialProof" value={showSocialProof.toString()} />
+                <input type="hidden" name="socialProofInterval" value={socialProofInterval.toString()} />
                 
                 <button
                   type="submit"
@@ -385,6 +400,7 @@ export default function LandingBuilderPage() {
             { id: 'template', icon: Palette, label: 'টেমপ্লেট', labelEn: 'Template' },
             { id: 'content', icon: Settings, label: 'কন্টেন্ট', labelEn: 'Content' },
             { id: 'sections', icon: Layout, label: 'সেকশন', labelEn: 'Sections' },
+            { id: 'conversion', icon: TrendingUp, label: 'কনভার্শন', labelEn: 'Conversion' },
             { id: 'testimonials', icon: Star, label: 'টেস্টিমোনিয়াল', labelEn: 'Testimonials' },
             { id: 'faq', icon: HelpCircle, label: 'FAQ', labelEn: 'FAQ' },
             { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', labelEn: 'WhatsApp' },

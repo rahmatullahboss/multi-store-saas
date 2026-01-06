@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Orders - Merchant Dashboard' }];
@@ -81,6 +82,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export default function DashboardOrdersPage() {
   const { orders: storeOrders, currency, stats } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t, lang } = useTranslation();
   
   // Filter state
   const statusFilter = searchParams.get('status') || 'all';
@@ -88,13 +90,13 @@ export default function DashboardOrdersPage() {
 
   // Status tabs configuration
   const statusTabs = [
-    { id: 'all', label: 'All Orders', count: stats.total },
-    { id: 'pending', label: 'Pending', count: stats.pending },
-    { id: 'confirmed', label: 'Confirmed', count: stats.confirmed },
-    { id: 'processing', label: 'Processing', count: stats.processing },
-    { id: 'shipped', label: 'Shipped', count: stats.shipped },
-    { id: 'delivered', label: 'Delivered', count: stats.delivered },
-    { id: 'cancelled', label: 'Cancelled', count: stats.cancelled },
+    { id: 'all', label: t('allOrders'), count: stats.total },
+    { id: 'pending', label: t('pending'), count: stats.pending },
+    { id: 'confirmed', label: lang === 'bn' ? 'নিশ্চিত' : 'Confirmed', count: stats.confirmed },
+    { id: 'processing', label: t('processingOrders'), count: stats.processing },
+    { id: 'shipped', label: t('shippedOrders'), count: stats.shipped },
+    { id: 'delivered', label: t('deliveredOrders'), count: stats.delivered },
+    { id: 'cancelled', label: t('cancelledOrders'), count: stats.cancelled },
   ];
 
   // Filter orders
@@ -131,7 +133,7 @@ export default function DashboardOrdersPage() {
   }, [setSearchParams]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -147,11 +149,12 @@ export default function DashboardOrdersPage() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    const agoText = lang === 'bn' ? 'আগে' : 'ago';
+    if (diffMins < 60) return `${diffMins} ${lang === 'bn' ? 'মিনিট' : 'min'} ${agoText}`;
+    if (diffHours < 24) return `${diffHours}${lang === 'bn' ? 'ঘন্টা' : 'h'} ${agoText}`;
+    if (diffDays < 7) return `${diffDays}${lang === 'bn' ? 'দিন' : 'd'} ${agoText}`;
     
-    return d.toLocaleDateString('en-BD', {
+    return d.toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -163,33 +166,33 @@ export default function DashboardOrdersPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Orders"
-        description="View and manage customer orders"
+        title={t('orders')}
+        description={lang === 'bn' ? 'কাস্টমার অর্ডার দেখুন ও ম্যানেজ করুন' : 'View and manage customer orders'}
       />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          label="Total Orders"
+          label={lang === 'bn' ? 'মোট অর্ডার' : 'Total Orders'}
           value={stats.total}
           icon={<ShoppingCart className="w-5 h-5" />}
           color="blue"
         />
         <StatCard
-          label="Pending"
+          label={t('pending')}
           value={stats.pending}
           icon={<Clock className="w-5 h-5" />}
           color={stats.pending > 0 ? 'yellow' : 'gray'}
           href="/app/orders?status=pending"
         />
         <StatCard
-          label="Delivered"
+          label={t('deliveredOrders')}
           value={stats.delivered}
           icon={<CheckCircle className="w-5 h-5" />}
           color="emerald"
         />
         <StatCard
-          label="Revenue"
+          label={t('totalRevenue')}
           value={formatPrice(stats.revenue)}
           icon={<DollarSign className="w-5 h-5" />}
           color="purple"

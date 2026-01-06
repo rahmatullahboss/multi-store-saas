@@ -28,6 +28,7 @@ import {
   Clock
 } from 'lucide-react';
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Multi-Store SaaS' }];
@@ -270,13 +271,21 @@ export default function DashboardPage() {
     actionItems,
     recentOrders 
   } = useLoaderData<typeof loader>();
+  const { t, lang } = useTranslation();
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  // Get translated greeting
+  const getGreeting = () => {
+    if (greeting === 'Good morning') return t('goodMorning');
+    if (greeting === 'Good afternoon') return t('goodAfternoon');
+    return t('goodEvening');
   };
 
   return (
@@ -287,13 +296,13 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="w-5 h-5" />
-              <span className="text-emerald-100 text-sm font-medium">{greeting}</span>
+              <span className="text-emerald-100 text-sm font-medium">{getGreeting()}</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold mb-2">
-              Welcome to {storeName}
+              {t('welcomeTo')} {storeName}
             </h1>
             <p className="text-emerald-100">
-              Here's what's happening with your store today.
+              {t('dashboardSubtitle')}
             </p>
           </div>
           <a
@@ -303,7 +312,7 @@ export default function DashboardPage() {
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-medium transition"
           >
             <ExternalLink className="w-4 h-4" />
-            View Store
+            {t('viewStore')}
           </a>
         </div>
       </div>
@@ -311,30 +320,30 @@ export default function DashboardPage() {
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Today's Sales"
+          title={t('todaysSales')}
           value={formatPrice(stats.todaySales)}
           icon={DollarSign}
           color="emerald"
           trend={{
             value: stats.salesTrend,
-            label: 'vs yesterday',
+            label: t('vsYesterday'),
           }}
         />
         <MetricCard
-          title="Total Revenue"
+          title={t('totalRevenue')}
           value={formatPrice(stats.revenue)}
           icon={TrendingUp}
           color="purple"
         />
         <MetricCard
-          title="Pending Orders"
+          title={t('pendingOrders')}
           value={stats.pendingOrders}
           icon={Clock}
           color={stats.pendingOrders > 0 ? 'orange' : 'blue'}
           link="/app/orders?status=pending"
         />
         <MetricCard
-          title="Total Products"
+          title={t('totalProducts')}
           value={stats.products}
           icon={Package}
           color="blue"
@@ -347,15 +356,15 @@ export default function DashboardPage() {
         {/* Sales Chart - Takes 2 columns */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Sales Overview</h2>
-            <span className="text-sm text-gray-500">Last 7 days</span>
+            <h2 className="text-lg font-semibold text-gray-900">{t('salesOverview')}</h2>
+            <span className="text-sm text-gray-500">{t('last7Days')}</span>
           </div>
           <SalesChart data={salesData} currency={currency} />
         </div>
 
         {/* Action Items */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Action Items</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('actionItems')}</h2>
           <ActionItems items={actionItems} />
         </div>
       </div>
@@ -363,12 +372,12 @@ export default function DashboardPage() {
       {/* Recent Orders */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('recentOrders')}</h2>
           <Link 
             to="/app/orders" 
             className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            View all
+            {t('viewAll')}
           </Link>
         </div>
         <RecentOrders orders={recentOrders} currency={currency} />
@@ -383,7 +392,7 @@ export default function DashboardPage() {
           <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition">
             <Package className="w-6 h-6 text-emerald-600" />
           </div>
-          <span className="font-medium text-gray-900">Add Product</span>
+          <span className="font-medium text-gray-900">{t('addProduct')}</span>
         </Link>
         <Link
           to="/app/orders"
@@ -392,7 +401,7 @@ export default function DashboardPage() {
           <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition">
             <ShoppingCart className="w-6 h-6 text-blue-600" />
           </div>
-          <span className="font-medium text-gray-900">View Orders</span>
+          <span className="font-medium text-gray-900">{t('viewOrders')}</span>
         </Link>
         <Link
           to="/app/analytics"
@@ -401,7 +410,7 @@ export default function DashboardPage() {
           <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition">
             <TrendingUp className="w-6 h-6 text-purple-600" />
           </div>
-          <span className="font-medium text-gray-900">Analytics</span>
+          <span className="font-medium text-gray-900">{t('analytics')}</span>
         </Link>
         <Link
           to="/app/settings"
@@ -410,7 +419,7 @@ export default function DashboardPage() {
           <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition">
             <Sparkles className="w-6 h-6 text-gray-600" />
           </div>
-          <span className="font-medium text-gray-900">Settings</span>
+          <span className="font-medium text-gray-900">{t('settings')}</span>
         </Link>
       </div>
     </div>

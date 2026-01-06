@@ -27,6 +27,7 @@ import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, M
 import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Settings - Multi-Store SaaS' }];
@@ -193,6 +194,7 @@ export default function SettingsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t, lang } = useTranslation();
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(store.theme || 'default');
   const [selectedFont, setSelectedFont] = useState(store.fontFamily || 'inter');
@@ -353,8 +355,8 @@ export default function SettingsPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600">Manage your store configuration</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('settings')}</h1>
+        <p className="text-gray-600">{lang === 'bn' ? 'আপনার স্টোর কনফিগারেশন ম্যানেজ করুন' : 'Manage your store configuration'}</p>
       </div>
 
       {/* Success Message */}

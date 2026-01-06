@@ -30,6 +30,7 @@ import {
   Percent,
   ShoppingBag
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Analytics - Multi-Store SaaS' }];
@@ -287,10 +288,11 @@ export default function AnalyticsPage() {
     customerDemographics,
     conversionMetrics,
   } = useLoaderData<typeof loader>();
+  const { t, lang } = useTranslation();
 
   const formatPrice = (amount: number) => {
     const symbols: Record<string, string> = { BDT: '৳', USD: '$', EUR: '€', GBP: '£', INR: '₹' };
-    return `${symbols[currency] || currency} ${amount.toLocaleString()}`;
+    return `${symbols[currency] || currency} ${amount.toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-BD')}`;
   };
 
   const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue), 1);
@@ -299,8 +301,8 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-gray-600">Track your store performance</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('analytics')}</h1>
+        <p className="text-gray-600">{lang === 'bn' ? 'আপনার স্টোরের পারফরম্যান্স ট্র্যাক করুন' : 'Track your store performance'}</p>
       </div>
 
       {/* Stats Overview */}

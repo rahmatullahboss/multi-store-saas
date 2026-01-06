@@ -32,6 +32,7 @@ import {
   Bot,
   Loader2
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Billing & Plans - Multi-Store SaaS' }];
@@ -194,6 +195,7 @@ export default function BillingPage() {
   const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher<{ success?: boolean; isCustomerAiEnabled?: boolean }>();
+  const { t, lang } = useTranslation();
   
   const success = searchParams.get('success');
   const upgradedPlan = searchParams.get('plan');
@@ -235,8 +237,8 @@ export default function BillingPage() {
       
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Billing & Subscription</h1>
-        <p className="text-gray-500 mt-1">Manage your plan and monitor usage</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('billing')}</h1>
+        <p className="text-gray-500 mt-1">{lang === 'bn' ? 'আপনার প্ল্যান ও ব্যবহার ম্যানেজ করুন' : 'Manage your plan and monitor usage'}</p>
       </div>
 
       {/* Current Plan Card */}
