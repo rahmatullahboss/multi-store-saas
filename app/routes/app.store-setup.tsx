@@ -757,6 +757,234 @@ export default function StoreSetupPage() {
           )}
         </div>
 
+        {/* Section 7: Features */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection('features')}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <h2 className="font-semibold text-gray-900">7. Features</h2>
+                <p className="text-sm text-gray-500">{features?.length || 0} features added</p>
+              </div>
+            </div>
+            {expandedSections.features ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          
+          {expandedSections.features && (
+            <div className="p-4 pt-0 space-y-4">
+              {features && features.length > 0 ? (
+                features.map((feature, index) => (
+                  <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                    <div className="flex items-start gap-4">
+                      <input
+                        type="text"
+                        value={feature.icon}
+                        onChange={(e) => {
+                          const updated = [...(features || [])];
+                          updated[index] = { ...updated[index], icon: e.target.value };
+                          setFeatures(updated);
+                        }}
+                        placeholder="Icon (emoji)"
+                        className="w-16 px-3 py-2 border border-gray-300 rounded-lg text-center text-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      />
+                      <div className="flex-1 space-y-2">
+                        <input
+                          type="text"
+                          value={feature.title}
+                          onChange={(e) => {
+                            const updated = [...(features || [])];
+                            updated[index] = { ...updated[index], title: e.target.value };
+                            setFeatures(updated);
+                          }}
+                          placeholder="Feature title"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        />
+                        <textarea
+                          value={feature.description}
+                          onChange={(e) => {
+                            const updated = [...(features || [])];
+                            updated[index] = { ...updated[index], description: e.target.value };
+                            setFeatures(updated);
+                          }}
+                          placeholder="Feature description"
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFeatures(features?.filter((_, i) => i !== index) || [])}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <p className="text-sm">No features yet</p>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setFeatures([...(features || []), { icon: '✨', title: '', description: '' }])}
+                className="w-full py-2.5 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg hover:border-emerald-400 hover:text-emerald-600 transition flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Feature
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Section 8: FAQ */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection('faq')}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                <MessageSquare className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="text-left">
+                <h2 className="font-semibold text-gray-900">8. FAQ</h2>
+                <p className="text-sm text-gray-500">{faq?.length || 0} questions added</p>
+              </div>
+            </div>
+            {expandedSections.faq ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          
+          {expandedSections.faq && (
+            <div className="p-4 pt-0 space-y-4">
+              {faq && faq.length > 0 ? (
+                faq.map((item, index) => (
+                  <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-1 space-y-2">
+                        <input
+                          type="text"
+                          value={item.question}
+                          onChange={(e) => {
+                            const updated = [...(faq || [])];
+                            updated[index] = { ...updated[index], question: e.target.value };
+                            setFaq(updated);
+                          }}
+                          placeholder="Question"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        />
+                        <textarea
+                          value={item.answer}
+                          onChange={(e) => {
+                            const updated = [...(faq || [])];
+                            updated[index] = { ...updated[index], answer: e.target.value };
+                            setFaq(updated);
+                          }}
+                          placeholder="Answer"
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFaq(faq?.filter((_, i) => i !== index) || [])}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <p className="text-sm">No FAQ items yet</p>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setFaq([...(faq || []), { question: '', answer: '' }])}
+                className="w-full py-2.5 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg hover:border-emerald-400 hover:text-emerald-600 transition flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add FAQ
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Section 9: WhatsApp / Contact */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleSection('whatsapp')}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <span className="text-xl">📱</span>
+              </div>
+              <div className="text-left">
+                <h2 className="font-semibold text-gray-900">9. WhatsApp / Contact</h2>
+                <p className="text-sm text-gray-500">{whatsappEnabled ? 'Enabled' : 'Disabled'}</p>
+              </div>
+            </div>
+            {expandedSections.whatsapp ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          
+          {expandedSections.whatsapp && (
+            <div className="p-4 pt-0 space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Enable WhatsApp Button</span>
+                <button
+                  type="button"
+                  onClick={() => setWhatsappEnabled(!whatsappEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                    whatsappEnabled ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                    whatsappEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+              
+              {whatsappEnabled && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
+                    <input
+                      type="tel"
+                      value={whatsappNumber}
+                      onChange={(e) => setWhatsappNumber(e.target.value)}
+                      placeholder="8801XXXXXXXXX"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Format: Country code + number (no + sign)</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pre-filled Message (Optional)</label>
+                    <textarea
+                      value={whatsappMessage}
+                      onChange={(e) => setWhatsappMessage(e.target.value)}
+                      placeholder="আমি আপনার পণ্য সম্পর্কে জানতে চাই..."
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Sticky Submit Button */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 md:left-64">
           <div className="max-w-4xl mx-auto flex items-center justify-between">

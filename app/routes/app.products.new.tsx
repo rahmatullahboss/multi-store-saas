@@ -20,6 +20,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
+import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Multi-Store SaaS' }];
@@ -159,7 +160,7 @@ export default function NewProductPage() {
     }
   }, [imageFetcher.data]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -170,9 +171,26 @@ export default function NewProductPage() {
     };
     reader.readAsDataURL(file);
 
-    // Upload to Cloudinary
+    // Compress image before upload (saves bandwidth & storage)
+    let fileToUpload: File | Blob = file;
+    try {
+      const format = getOptimalFormat();
+      const compressedBlob = await compressImage(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+        format,
+      });
+      // Create a new File from the compressed blob
+      fileToUpload = new File([compressedBlob], `image.${format}`, { type: `image/${format}` });
+      console.log(`Image compressed: ${file.size} -> ${compressedBlob.size} bytes (${Math.round((1 - compressedBlob.size / file.size) * 100)}% reduction)`);
+    } catch (error) {
+      console.warn('Image compression failed, uploading original:', error);
+    }
+
+    // Upload to R2
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', fileToUpload);
     formData.append('folder', 'products');
 
     imageFetcher.submit(formData, {

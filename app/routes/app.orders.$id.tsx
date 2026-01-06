@@ -280,6 +280,64 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     })
     .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
+  // ============================================================================
+  // INVENTORY UPDATES - Auto-adjust stock based on status changes
+  // ============================================================================
+  
+  // When order is delivered: Decrease inventory for all order items
+  if (status === 'delivered' && previousStatus !== 'delivered') {
+    const items = await db
+      .select({ productId: orderItems.productId, quantity: orderItems.quantity })
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId));
+    
+    for (const item of items) {
+      if (item.productId) {
+        // Get current inventory first
+        const productResult = await db
+          .select({ inventory: products.inventory })
+          .from(products)
+          .where(eq(products.id, item.productId))
+          .limit(1);
+        
+        const currentInventory = productResult[0]?.inventory ?? 0;
+        const newInventory = Math.max(0, currentInventory - item.quantity);
+        
+        await db
+          .update(products)
+          .set({ inventory: newInventory })
+          .where(eq(products.id, item.productId));
+      }
+    }
+  }
+  
+  // When order is cancelled from delivered: Restore inventory
+  if (status === 'cancelled' && previousStatus === 'delivered') {
+    const items = await db
+      .select({ productId: orderItems.productId, quantity: orderItems.quantity })
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId));
+    
+    for (const item of items) {
+      if (item.productId) {
+        // Get current inventory first
+        const productResult = await db
+          .select({ inventory: products.inventory })
+          .from(products)
+          .where(eq(products.id, item.productId))
+          .limit(1);
+        
+        const currentInventory = productResult[0]?.inventory ?? 0;
+        const newInventory = currentInventory + item.quantity;
+        
+        await db
+          .update(products)
+          .set({ inventory: newInventory })
+          .where(eq(products.id, item.productId));
+      }
+    }
+  }
+
   // Send shipping notification if status changed to shipped/delivered and customer has email
   const shippingStatuses = ['shipped', 'delivered'];
   if (

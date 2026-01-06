@@ -29,6 +29,7 @@ import {
   Facebook
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'SEO Settings - Multi-Store SaaS' }];
@@ -181,7 +182,7 @@ export default function SeoSettingsPage() {
     }
   }, [actionData]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -191,8 +192,24 @@ export default function SeoSettingsPage() {
     };
     reader.readAsDataURL(file);
 
+    // Compress image before upload (saves bandwidth & storage)
+    let fileToUpload: File | Blob = file;
+    try {
+      const format = getOptimalFormat();
+      const compressedBlob = await compressImage(file, {
+        maxWidth: 1200,
+        maxHeight: 630,
+        quality: 0.85,
+        format,
+      });
+      fileToUpload = new File([compressedBlob], `og-image.${format}`, { type: `image/${format}` });
+      console.log(`OG Image compressed: ${file.size} -> ${compressedBlob.size} bytes`);
+    } catch (error) {
+      console.warn('Image compression failed, uploading original:', error);
+    }
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', fileToUpload);
     formData.append('folder', 'og-images');
 
     imageFetcher.submit(formData, {
