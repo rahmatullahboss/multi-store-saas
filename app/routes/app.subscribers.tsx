@@ -88,7 +88,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (intent === 'delete') {
     const subscriberId = Number(formData.get('subscriberId'));
     await campaignService.deleteSubscriber(storeId, subscriberId);
-    return json({ success: true });
+    return json({ success: true, message: 'Subscriber deleted' });
   }
 
   if (intent === 'import') {
@@ -135,8 +135,8 @@ export default function SubscribersPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
 
-  const activeCount = subscribers.filter(s => s.status === 'subscribed').length;
-  const unsubscribedCount = subscribers.filter(s => s.status === 'unsubscribed').length;
+  const activeCount: number = subscribers.filter(s => s.status === 'subscribed').length;
+  const unsubscribedCount: number = subscribers.filter(s => s.status === 'unsubscribed').length;
 
   return (
     <div className="space-y-6">
@@ -179,7 +179,7 @@ export default function SubscribersPage() {
             <Users className="w-4 h-4" />
             Total
           </div>
-          <p className="text-2xl font-bold text-gray-900">{subscribers.length}</p>
+          <p className="text-2xl font-bold text-gray-900">{Number(subscribers.length)}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
@@ -200,7 +200,7 @@ export default function SubscribersPage() {
       {/* Success/Error Message */}
       {actionData && 'message' in actionData && actionData.message && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <p className="text-green-800">{actionData.message}</p>
+          <p className="text-green-800">{String(actionData.message)}</p>
         </div>
       )}
       {actionData && 'error' in actionData && actionData.error && (

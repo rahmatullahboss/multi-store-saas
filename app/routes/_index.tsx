@@ -558,13 +558,13 @@ export function ErrorBoundary() {
   let errorMessage = 'An unexpected error occurred.';
   let errorStatus = 500;
   let errorStatusText = 'Internal Server Error';
-  let errorData: unknown = null;
+  let errorData: string | null = null;
   
   if (isRouteErrorResponse(error)) {
     errorMessage = typeof error.data === 'string' ? error.data : error.statusText;
     errorStatus = error.status;
     errorStatusText = error.statusText;
-    errorData = error.data;
+    errorData = typeof error.data === 'string' ? error.data : JSON.stringify(error.data);
   } else if (error instanceof Error) {
     errorMessage = error.message;
   }

@@ -108,7 +108,7 @@ export default function ThankYouPage() {
               </div>
               <div className="text-right">
                 <p className="text-gray-400 text-sm">তারিখ</p>
-                <p className="font-medium">{formatDate(order.createdAt as Date)}</p>
+                <p className="font-medium">{order.createdAt ? formatDate(order.createdAt) : '-'}</p>
               </div>
             </div>
 
