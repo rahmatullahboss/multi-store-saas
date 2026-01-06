@@ -450,14 +450,14 @@ export default function AppLayout() {
         </main>
       </div>
 
-      {/* AI Co-pilot Widget - Only for paid plans */}
-      {store.planType !== 'free' && (
+      {/* AI Co-pilot Widget - Temporarily disabled */}
+      {/* {store.planType !== 'free' && (
         <ChatWidget 
           mode="merchant" 
           storeId={store.id}
           accentColor="#10b981"
         />
-      )}
+      )} */}
     </div>
   );
 }

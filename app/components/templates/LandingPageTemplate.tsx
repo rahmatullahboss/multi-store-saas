@@ -1274,14 +1274,14 @@ export function LandingPageTemplate({
         </div>
       </footer>
 
-      {/* AI Sales Agent Widget - Only when enabled */}
-      {isCustomerAiEnabled && storeId && (
+      {/* AI Sales Agent Widget - Temporarily disabled */}
+      {/* {isCustomerAiEnabled && storeId && (
         <ChatWidget 
           mode="customer" 
           storeId={storeId}
           accentColor="#f97316"
         />
-      )}
+      )} */}
 
       {/* Social Proof Popup - Shows "X just ordered" notifications */}
       {editableConfig.showSocialProof && (

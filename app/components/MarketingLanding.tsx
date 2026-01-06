@@ -630,8 +630,8 @@ export function MarketingLanding() {
         </div>
       </footer>
 
-      {/* AI Support Chat Bot for Visitors */}
-      <ChatWidget
+      {/* AI Support Chat Bot for Visitors - Temporarily disabled */}
+      {/* <ChatWidget
         mode="customer"
         storeId={0}
         welcomeMessage={lang === 'bn' 
@@ -639,7 +639,7 @@ export function MarketingLanding() {
           : 'Hello! 👋 Have any questions about Multi-Store?'
         }
         accentColor="#10B981"
-      />
+      /> */}
     </div>
   );
 }
