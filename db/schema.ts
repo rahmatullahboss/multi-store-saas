@@ -28,6 +28,10 @@ export const stores = sqliteTable('stores', {
   subscriptionStatus: text('subscription_status').$type<'active' | 'past_due' | 'canceled'>().default('active'),
   usageLimits: text('usage_limits'), // JSON: { max_products, max_orders, allow_store_mode, fee_rate }
   
+  // === ONBOARDING TRACKING ===
+  onboardingStatus: text('onboarding_status').$type<'pending_plan' | 'pending_info' | 'completed'>().default('pending_plan'),
+  setupStep: integer('setup_step').default(0), // Current step in onboarding wizard
+  
   // === HYBRID MODE FIELDS ===
   // 'landing' = Single product sales page, 'store' = Full e-commerce
   mode: text('mode').$type<'landing' | 'store'>().default('store'),

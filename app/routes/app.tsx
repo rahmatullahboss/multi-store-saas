@@ -10,7 +10,7 @@
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, Outlet, useLoaderData, useLocation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
@@ -129,6 +129,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     if (!user) {
       console.error('[app.loader] User not found in database. UserID:', userId);
       throw new Response('Your account could not be found. Please login again.', { status: 404 });
+    }
+
+    // Check onboarding status - force redirect if not completed
+    const onboardingStatus = (store as { onboardingStatus?: string }).onboardingStatus || 'completed';
+    if (onboardingStatus !== 'completed') {
+      console.log('[app.loader] Onboarding not complete, redirecting to /onboarding');
+      throw redirect('/onboarding');
     }
 
     console.log('[app.loader] Dashboard data loaded successfully for store:', store.name);
