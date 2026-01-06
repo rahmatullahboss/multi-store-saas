@@ -150,13 +150,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const dayStart = new Date(todayStart.getTime() - i * 86400000);
     const dayEnd = new Date(dayStart.getTime() + 86400000);
     
+    // Convert to Unix timestamps (seconds) for SQLite integer comparison
+    const dayStartTimestamp = Math.floor(dayStart.getTime() / 1000);
+    const dayEndTimestamp = Math.floor(dayEnd.getTime() / 1000);
+    
     const dayRevenue = await db
       .select({ total: sql<number>`COALESCE(SUM(total), 0)` })
       .from(orders)
       .where(and(
         eq(orders.storeId, storeId),
-        gte(orders.createdAt, dayStart),
-        sql`${orders.createdAt} < ${dayEnd.toISOString()}`
+        sql`${orders.createdAt} >= ${dayStartTimestamp}`,
+        sql`${orders.createdAt} < ${dayEndTimestamp}`
       ));
     
     salesData.push({

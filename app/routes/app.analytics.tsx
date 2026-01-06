@@ -74,32 +74,47 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(orders)
     .where(eq(orders.storeId, storeId));
 
-  // Calculate stats
-  const todayOrders = allOrders.filter(o => o.createdAt && o.createdAt >= todayStart);
-  const weekOrders = allOrders.filter(o => o.createdAt && o.createdAt >= weekStart);
-  const monthOrders = allOrders.filter(o => o.createdAt && o.createdAt >= monthStart);
+  // Calculate stats - include ALL orders for revenue (COD orders have pending payment status)
+  // Convert timestamps for proper comparison with SQLite integer timestamps
+  const todayStartTs = Math.floor(todayStart.getTime() / 1000);
+  const weekStartTs = Math.floor(weekStart.getTime() / 1000);
+  const monthStartTs = Math.floor(monthStart.getTime() / 1000);
   
-  const paidOrders = allOrders.filter(o => o.paymentStatus === 'paid');
-  const todayPaid = todayOrders.filter(o => o.paymentStatus === 'paid');
-  const weekPaid = weekOrders.filter(o => o.paymentStatus === 'paid');
-  const monthPaid = monthOrders.filter(o => o.paymentStatus === 'paid');
+  const todayOrders = allOrders.filter(o => {
+    const orderTs = o.createdAt instanceof Date ? Math.floor(o.createdAt.getTime() / 1000) : o.createdAt;
+    return orderTs && orderTs >= todayStartTs;
+  });
+  const weekOrders = allOrders.filter(o => {
+    const orderTs = o.createdAt instanceof Date ? Math.floor(o.createdAt.getTime() / 1000) : o.createdAt;
+    return orderTs && orderTs >= weekStartTs;
+  });
+  const monthOrders = allOrders.filter(o => {
+    const orderTs = o.createdAt instanceof Date ? Math.floor(o.createdAt.getTime() / 1000) : o.createdAt;
+    return orderTs && orderTs >= monthStartTs;
+  });
+  
+  // Revenue includes all non-cancelled orders (COD orders have pending payment but still count)
+  const validOrders = allOrders.filter(o => o.status !== 'cancelled');
+  const todayValid = todayOrders.filter(o => o.status !== 'cancelled');
+  const weekValid = weekOrders.filter(o => o.status !== 'cancelled');
+  const monthValid = monthOrders.filter(o => o.status !== 'cancelled');
 
   const stats = {
     today: {
       orders: todayOrders.length,
-      revenue: todayPaid.reduce((sum, o) => sum + (o.total || 0), 0),
+      revenue: todayValid.reduce((sum, o) => sum + (o.total || 0), 0),
     },
     week: {
       orders: weekOrders.length,
-      revenue: weekPaid.reduce((sum, o) => sum + (o.total || 0), 0),
+      revenue: weekValid.reduce((sum, o) => sum + (o.total || 0), 0),
     },
     month: {
       orders: monthOrders.length,
-      revenue: monthPaid.reduce((sum, o) => sum + (o.total || 0), 0),
+      revenue: monthValid.reduce((sum, o) => sum + (o.total || 0), 0),
     },
     allTime: {
       orders: allOrders.length,
-      revenue: paidOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+      revenue: validOrders.reduce((sum, o) => sum + (o.total || 0), 0),
     },
   };
 
@@ -150,15 +165,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const nextDate = new Date(date);
     nextDate.setDate(nextDate.getDate() + 1);
     
+    // Convert to Unix timestamps for comparison
+    const dateTs = Math.floor(date.getTime() / 1000);
+    const nextDateTs = Math.floor(nextDate.getTime() / 1000);
+    
     const dayOrders = allOrders.filter(o => {
       if (!o.createdAt) return false;
-      return o.createdAt >= date && o.createdAt < nextDate;
+      const orderTs = o.createdAt instanceof Date ? Math.floor(o.createdAt.getTime() / 1000) : o.createdAt;
+      return orderTs >= dateTs && orderTs < nextDateTs;
     });
-    const dayPaid = dayOrders.filter(o => o.paymentStatus === 'paid');
+    // Include all non-cancelled orders in revenue (not just paid - for COD support)
+    const dayValid = dayOrders.filter(o => o.status !== 'cancelled');
     
     dailyRevenue.push({
       date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-      revenue: dayPaid.reduce((sum, o) => sum + (o.total || 0), 0),
+      revenue: dayValid.reduce((sum, o) => sum + (o.total || 0), 0),
       orders: dayOrders.length,
     });
   }
@@ -225,9 +246,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ? ((totalAbandoned - recoveredCarts) / (totalAbandoned + allOrders.length) * 100).toFixed(1)
     : '0';
 
-  // Average order value
-  const avgOrderValue = paidOrders.length > 0 
-    ? Math.round(paidOrders.reduce((sum, o) => sum + (o.total || 0), 0) / paidOrders.length)
+  // Average order value (from non-cancelled orders)
+  const avgOrderValue = validOrders.length > 0 
+    ? Math.round(validOrders.reduce((sum, o) => sum + (o.total || 0), 0) / validOrders.length)
     : 0;
 
   return json({
