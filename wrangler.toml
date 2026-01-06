@@ -40,7 +40,7 @@ bucket_name = "multi-store-saas-media"
 # Create first: wrangler kv namespace create AI_RATE_LIMIT
 [[kv_namespaces]]
 binding = "AI_RATE_LIMIT"
-id = "placeholder-replace-with-actual-id"
+id = "65513509a7a146d1b348548fb98a93cf"
 
 # ============================================================================
 # ENVIRONMENT VARIABLES
