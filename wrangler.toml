@@ -43,10 +43,10 @@ id = "65513509a7a146d1b348548fb98a93cf"
 # ============================================================================
 [vars]
 SAAS_DOMAIN = "digitalcare.site"  # Custom domain for the SaaS
-# OPENROUTER_API_KEY - AI chatbot (Get from https://openrouter.ai/keys)
-# R2_PUBLIC_URL - Set in Cloudflare Dashboard > Pages > Settings > Environment Variables
-# RESEND_API_KEY - Set in Cloudflare Dashboard > Pages > Settings > Environment Variables
-# CLOUDFLARE_API_TOKEN - Set in Cloudflare Dashboard (SSL and Certificates: Edit permission)
+R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"  # R2 bucket public URL
+# OPENROUTER_API_KEY - AI chatbot - SET IN DASHBOARD (secret, not here)
+# RESEND_API_KEY - SET IN DASHBOARD (secret)
+# CLOUDFLARE_API_TOKEN - SET IN DASHBOARD (secret)
 # CLOUDFLARE_ZONE_ID - Found in Cloudflare Zone Overview page
 
 # ============================================================================
