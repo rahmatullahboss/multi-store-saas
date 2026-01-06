@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect('/app/orders');
   }
   // Redirect to new Shopify-style onboarding wizard
-  return redirect('/auth/onboarding');
+  return redirect('/onboarding');
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
