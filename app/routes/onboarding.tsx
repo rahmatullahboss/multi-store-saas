@@ -139,25 +139,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const name = formData.get('name') as string;
+    const storeName = formData.get('storeName') as string;
+    const subdomain = formData.get('subdomain') as string;
     const description = formData.get('description') as string;
     const category = formData.get('category') as string;
     const plan = (formData.get('plan') as PlanType) || 'free';
 
-    // Generate subdomain from description or fallback
-    const subdomain = description
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 20) + '-store';
+    console.log('[Onboarding] Creating store with:', { storeName, subdomain, category, plan });
 
     try {
-      // 1. Register user and create store
+      // 1. Register user and create store with user-provided name and subdomain
       const result = await register({
         email,
         password,
         name,
-        storeName: 'My Store', // Temporary, will be updated by AI
-        subdomain,
+        storeName: storeName || 'My Store',
+        subdomain: subdomain || `store-${Date.now()}`,
         db: env.DB,
       });
 
@@ -254,9 +251,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (!aiSuccess) {
         console.log('[Onboarding] Using fallback with user-provided info...');
         
-        // Generate a store name from description (first 3 words + "Store")
-        const words = description.split(' ').slice(0, 3).join(' ');
-        const fallbackStoreName = words.length > 3 ? `${words} Store` : `${name}'s Store`;
+        // Use user-provided store name (already saved during registration)
+        const fallbackStoreName = storeName || 'My Store';
         
         // Category-based fallback product
         const categoryProducts: Record<string, { title: string; price: number }> = {
@@ -341,6 +337,8 @@ export default function OnboardingPage() {
     email: '',
     password: '',
     name: '',
+    storeName: '',
+    subdomain: '',
     description: '',
     category: 'fashion',
     plan: 'free' as PlanType,
@@ -388,8 +386,30 @@ export default function OnboardingPage() {
     }
   }, [fetcher.data]);
 
+  // Track if subdomain was manually edited
+  const [subdomainManuallyEdited, setSubdomainManuallyEdited] = useState(false);
+
   const updateField = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      
+      // Auto-generate subdomain from storeName (if not manually edited)
+      if (field === 'storeName' && !subdomainManuallyEdited) {
+        const autoSubdomain = value
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 20);
+        updated.subdomain = autoSubdomain;
+      }
+      
+      // Mark subdomain as manually edited when user types in it
+      if (field === 'subdomain') {
+        setSubdomainManuallyEdited(true);
+      }
+      
+      return updated;
+    });
     setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
@@ -421,8 +441,18 @@ export default function OnboardingPage() {
       return; // Don't proceed yet, wait for server response
     }
     if (currentStep === 2) {
+      const newErrors: Record<string, string> = {};
+      if (!formData.storeName || formData.storeName.length < 2) {
+        newErrors.storeName = 'Store name is required (at least 2 characters)';
+      }
+      if (!formData.subdomain || formData.subdomain.length < 3) {
+        newErrors.subdomain = 'Subdomain is required (at least 3 characters)';
+      }
       if (!formData.description || formData.description.length < 10) {
-        setErrors({ description: 'Please describe your business (at least 10 characters)' });
+        newErrors.description = 'Please describe your business (at least 10 characters)';
+      }
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
         return;
       }
       // Validation passed, proceed to next step
@@ -447,6 +477,8 @@ export default function OnboardingPage() {
     submitData.append('email', formData.email);
     submitData.append('password', formData.password);
     submitData.append('name', formData.name);
+    submitData.append('storeName', formData.storeName);
+    submitData.append('subdomain', formData.subdomain);
     submitData.append('description', formData.description);
     submitData.append('category', formData.category);
     submitData.append('plan', formData.plan);
@@ -469,13 +501,12 @@ export default function OnboardingPage() {
           </Link>
           <div className="flex items-center gap-4">
             <LanguageSelector variant="toggle" size="sm" />
-            <Link 
-              to="/auth/login" 
-              reloadDocument
+            <a 
+              href="/auth/logout?redirect=/auth/login" 
               className="text-sm text-gray-600 hover:text-emerald-600"
             >
               {t('alreadyHaveAccount')}
-            </Link>
+            </a>
           </div>
         </div>
       </header>
@@ -547,6 +578,46 @@ export default function OnboardingPage() {
                 <p className="text-gray-600 mt-2">আপনার বিজনেস সম্পর্কে বলুন</p>
               </div>
 
+              {/* Store Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Store Name / স্টোরের নাম *
+                </label>
+                <input
+                  type="text"
+                  value={formData.storeName}
+                  onChange={(e) => updateField('storeName', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="e.g. Fashion House BD, My Leather Store"
+                />
+                {errors.storeName && <p className="text-red-500 text-sm mt-1">{errors.storeName}</p>}
+              </div>
+
+              {/* Subdomain */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subdomain / সাবডোমেইন *
+                </label>
+                <div className="flex items-center">
+                  <input
+                    type="text"
+                    value={formData.subdomain}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20);
+                      updateField('subdomain', cleaned);
+                    }}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="my-store"
+                  />
+                  <span className="px-4 py-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-xl text-gray-500 text-sm">
+                    .digitalcare.site
+                  </span>
+                </div>
+                {errors.subdomain && <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>}
+                <p className="text-sm text-gray-500 mt-1">Only lowercase letters, numbers, and hyphens</p>
+              </div>
+
+              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('whatDoYouSell')}
@@ -554,7 +625,7 @@ export default function OnboardingPage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => updateField('description', e.target.value)}
-                  rows={4}
+                  rows={3}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
                   placeholder="Example: I sell handmade leather bags for women. Made with premium quality leather, targeting young professionals in Dhaka."
                 />
@@ -564,6 +635,7 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
+              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('businessCategory')}
