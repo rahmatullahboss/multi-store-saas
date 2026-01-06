@@ -523,7 +523,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('createAccount')}</h1>
-                <p className="text-gray-600 mt-2">আপনার একাউন্ট তৈরি করুন</p>
+
               </div>
 
               <div>
@@ -575,13 +575,12 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('businessInfo')}</h1>
-                <p className="text-gray-600 mt-2">আপনার বিজনেস সম্পর্কে বলুন</p>
               </div>
 
               {/* Store Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Store Name / স্টোরের নাম *
+                  Store Name *
                 </label>
                 <input
                   type="text"
@@ -596,7 +595,7 @@ export default function OnboardingPage() {
               {/* Subdomain */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subdomain / সাবডোমেইন *
+                  Subdomain *
                 </label>
                 <div className="flex items-center">
                   <input
@@ -647,7 +646,7 @@ export default function OnboardingPage() {
                 >
                   {BUSINESS_CATEGORIES.map((cat) => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.label} ({cat.labelBn})
+                      {cat.label}
                     </option>
                   ))}
                 </select>
@@ -660,7 +659,6 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('choosePlan')}</h1>
-                <p className="text-gray-600 mt-2">আপনার প্ল্যান সিলেক্ট করুন</p>
               </div>
 
               <PlanSelector 
@@ -679,7 +677,6 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('chooseStyle')}</h1>
-                <p className="text-gray-600 mt-2">আপনার স্টাইল সিলেক্ট করুন</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -739,7 +736,7 @@ export default function OnboardingPage() {
                     }}
                     className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
                   >
-                    🔄 আবার চেষ্টা করুন (Retry)
+                    🔄 Retry
                   </button>
                   <button
                     type="button"
@@ -752,13 +749,13 @@ export default function OnboardingPage() {
                     className="flex items-center gap-2 px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    শুরু থেকে শুরু করুন (Start Over)
+                    Start Over
                   </button>
                   <Link
                     to="/auth/login"
                     className="text-emerald-600 hover:text-emerald-700 text-sm underline"
                   >
-                    ইতিমধ্যে অ্যাকাউন্ট আছে? লগইন করুন
+                    Already have an account? Login
                   </Link>
                 </div>
               )}

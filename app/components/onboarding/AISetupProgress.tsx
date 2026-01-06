@@ -14,11 +14,11 @@ interface AISetupProgressProps {
 }
 
 const STEPS = [
-  { icon: Store, label: '🏪 Creating your store...', labelBn: '🏪 আপনার স্টোর তৈরি হচ্ছে...' },
-  { icon: Sparkles, label: '🤖 AI is naming your store...', labelBn: '🤖 AI আপনার স্টোরের নাম দিচ্ছে...' },
-  { icon: Package, label: '📦 Adding demo product...', labelBn: '📦 ডেমো প্রোডাক্ট যোগ হচ্ছে...' },
-  { icon: Palette, label: '🎨 Designing landing page...', labelBn: '🎨 ল্যান্ডিং পেজ ডিজাইন হচ্ছে...' },
-  { icon: CheckCircle2, label: '✅ Almost done!', labelBn: '✅ প্রায় শেষ!' },
+  { icon: Store, label: '🏪 Creating your store...' },
+  { icon: Sparkles, label: '🤖 AI is naming your store...' },
+  { icon: Package, label: '📦 Adding demo product...' },
+  { icon: Palette, label: '🎨 Designing landing page...' },
+  { icon: CheckCircle2, label: '✅ Almost done!' },
 ];
 
 export function AISetupProgress({ isGenerating, hasError, errorMessage, onComplete }: AISetupProgressProps) {
@@ -92,10 +92,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
         {hasError ? (
           <>
             <p className="text-xl font-semibold text-red-600 mb-2">
-              ❌ সমস্যা হয়েছে!
-            </p>
-            <p className="text-gray-600 mb-4">
-              Something went wrong
+              ❌ Something went wrong!
             </p>
             {errorMessage && (
               <p className="text-sm text-red-500 bg-red-50 px-4 py-2 rounded-lg max-w-sm">
@@ -104,14 +101,9 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
             )}
           </>
         ) : (
-          <>
-            <p className="text-xl font-semibold text-gray-900 mb-2">
-              {STEPS[currentStep]?.label}
-            </p>
-            <p className="text-gray-500">
-              {STEPS[currentStep]?.labelBn}
-            </p>
-          </>
+          <p className="text-xl font-semibold text-gray-900">
+            {STEPS[currentStep]?.label}
+          </p>
         )}
       </div>
 
@@ -138,12 +130,9 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
       {/* Success Message */}
       {isComplete && !hasError && (
         <div className="mt-8 text-center animate-fade-in">
-          <h2 className="text-2xl font-bold text-emerald-600 mb-2">
+          <h2 className="text-2xl font-bold text-emerald-600 mb-4">
             🎉 Your store is ready!
           </h2>
-          <p className="text-gray-600 mb-6">
-            আপনার স্টোর তৈরি হয়ে গেছে!
-          </p>
           
           {/* Go to Dashboard Button */}
           <a
@@ -152,9 +141,6 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
           >
             🚀 Go to Dashboard
           </a>
-          <p className="text-sm text-gray-500 mt-4">
-            ড্যাশবোর্ডে যান
-          </p>
         </div>
       )}
     </div>
