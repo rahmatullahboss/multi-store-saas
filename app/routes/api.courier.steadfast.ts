@@ -1,0 +1,359 @@
+/**
+ * Steadfast Courier API Route
+ * 
+ * Route: /api/courier/steadfast
+ * 
+ * Actions:
+ * - CHECK_RISK: Analyze customer phone number for fraud risk
+ * - BOOK_ORDER: Create shipment and update order
+ * - SYNC_STATUS: Bulk sync shipment statuses for cron job
+ */
+
+import type { ActionFunctionArgs } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq, and, inArray } from 'drizzle-orm';
+import { orders, customers, stores, shipments } from '@db/schema';
+import { getStoreId } from '~/services/auth.server';
+import { 
+  createSteadfastClient, 
+  checkCustomerRisk,
+  STEADFAST_STATUS_MAP,
+} from '~/services/steadfast.server';
+
+// Types for responses
+interface CheckRiskResponse {
+  isHighRisk: boolean;
+  successRate: number;
+  totalOrders: number;
+  returnedOrders: number;
+  riskScore: number;
+}
+
+interface BookOrderResponse {
+  success: boolean;
+  consignmentId: string;
+  trackingCode: string;
+}
+
+interface SyncStatusResponse {
+  success: boolean;
+  updated: number;
+  errors: string[];
+}
+
+// ============================================================================
+// ACTION HANDLER
+// ============================================================================
+export async function action({ request, context }: ActionFunctionArgs) {
+  const storeId = await getStoreId(request);
+  if (!storeId) {
+    return json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // ========================================
+  // CHECK_RISK - Analyze customer fraud risk
+  // ========================================
+  if (intent === 'CHECK_RISK') {
+    const phone = formData.get('phone') as string;
+    
+    if (!phone) {
+      return json({ error: 'Phone number is required' }, { status: 400 });
+    }
+
+    try {
+      const riskResult = await checkCustomerRisk(phone, db, storeId);
+
+      // Optionally cache the result in customers table if they exist
+      const normalizedPhone = phone.replace(/[\s\-]/g, '');
+      await db
+        .update(customers)
+        .set({
+          riskScore: riskResult.riskScore,
+          riskCheckedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(customers.phone, normalizedPhone),
+            eq(customers.storeId, storeId)
+          )
+        );
+
+      return json<CheckRiskResponse>({
+        isHighRisk: riskResult.isHighRisk,
+        successRate: riskResult.successRate,
+        totalOrders: riskResult.totalOrders,
+        returnedOrders: riskResult.returnedOrders,
+        riskScore: riskResult.riskScore,
+      });
+    } catch (error) {
+      console.error('Risk check error:', error);
+      return json(
+        { error: error instanceof Error ? error.message : 'Risk check failed' },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ========================================
+  // BOOK_ORDER - Create Steadfast shipment
+  // ========================================
+  if (intent === 'BOOK_ORDER') {
+    const orderId = parseInt(formData.get('orderId') as string);
+    
+    if (!orderId) {
+      return json({ error: 'Order ID is required' }, { status: 400 });
+    }
+
+    try {
+      // Get order
+      const orderResult = await db
+        .select()
+        .from(orders)
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+        .limit(1);
+
+      if (!orderResult[0]) {
+        return json({ error: 'Order not found' }, { status: 404 });
+      }
+
+      const order = orderResult[0];
+
+      // Check if already shipped
+      if (order.courierConsignmentId) {
+        return json(
+          { error: 'Order already has a shipment' },
+          { status: 400 }
+        );
+      }
+
+      // Get store courier settings
+      const storeResult = await db
+        .select({ courierSettings: stores.courierSettings, name: stores.name })
+        .from(stores)
+        .where(eq(stores.id, storeId))
+        .limit(1);
+
+      if (!storeResult[0]?.courierSettings) {
+        return json(
+          { error: 'Steadfast not configured. Go to Settings > Courier.' },
+          { status: 400 }
+        );
+      }
+
+      const courierSettings = JSON.parse(storeResult[0].courierSettings as string);
+
+      if (!courierSettings.steadfast) {
+        return json(
+          { error: 'Steadfast credentials not configured' },
+          { status: 400 }
+        );
+      }
+
+      // Create Steadfast client
+      const client = createSteadfastClient(courierSettings.steadfast);
+
+      // Parse shipping address
+      let address = '';
+      if (order.shippingAddress) {
+        const parsed = typeof order.shippingAddress === 'string'
+          ? JSON.parse(order.shippingAddress)
+          : order.shippingAddress;
+        address = [parsed.address, parsed.city].filter(Boolean).join(', ');
+      }
+
+      // Create shipment
+      const result = await client.createOrder({
+        invoice: order.orderNumber,
+        recipient_name: order.customerName || 'Customer',
+        recipient_phone: order.customerPhone || '',
+        recipient_address: address || 'N/A',
+        cod_amount: order.total,
+        note: order.notes || undefined,
+      });
+
+      // Update order with courier info
+      await db
+        .update(orders)
+        .set({
+          courierProvider: 'steadfast',
+          courierConsignmentId: result.consignment_id,
+          courierStatus: 'booked',
+          status: 'processing',
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, orderId));
+
+      // Create shipment record
+      await db.insert(shipments).values({
+        orderId,
+        courier: 'steadfast',
+        trackingNumber: result.tracking_code,
+        status: 'pending',
+        courierData: JSON.stringify(result),
+        shippedAt: new Date(),
+      });
+
+      return json<BookOrderResponse>({
+        success: true,
+        consignmentId: result.consignment_id,
+        trackingCode: result.tracking_code,
+      });
+    } catch (error) {
+      console.error('Book order error:', error);
+      return json(
+        { error: error instanceof Error ? error.message : 'Booking failed' },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ========================================
+  // SYNC_STATUS - Bulk sync shipment statuses
+  // ========================================
+  if (intent === 'SYNC_STATUS') {
+    try {
+      // Get store courier settings
+      const storeResult = await db
+        .select({ courierSettings: stores.courierSettings })
+        .from(stores)
+        .where(eq(stores.id, storeId))
+        .limit(1);
+
+      if (!storeResult[0]?.courierSettings) {
+        return json({ error: 'Steadfast not configured' }, { status: 400 });
+      }
+
+      const courierSettings = JSON.parse(storeResult[0].courierSettings as string);
+
+      if (!courierSettings.steadfast) {
+        return json({ error: 'Steadfast credentials not found' }, { status: 400 });
+      }
+
+      // Create client
+      const client = createSteadfastClient(courierSettings.steadfast);
+
+      // Get all in-transit orders with Steadfast
+      const inTransitOrders = await db
+        .select({
+          id: orders.id,
+          consignmentId: orders.courierConsignmentId,
+          currentStatus: orders.courierStatus,
+        })
+        .from(orders)
+        .where(
+          and(
+            eq(orders.storeId, storeId),
+            eq(orders.courierProvider, 'steadfast'),
+            inArray(orders.status, ['processing', 'shipped'])
+          )
+        );
+
+      let updated = 0;
+      const errors: string[] = [];
+
+      // Check status for each order
+      for (const order of inTransitOrders) {
+        if (!order.consignmentId) continue;
+
+        try {
+          const status = await client.checkStatus(order.consignmentId);
+          const normalizedStatus = client.normalizeStatus(status.delivery_status);
+
+          // Only update if status changed
+          if (status.delivery_status !== order.currentStatus) {
+            await db
+              .update(orders)
+              .set({
+                courierStatus: status.delivery_status,
+                status: normalizedStatus as 'processing' | 'shipped' | 'delivered' | 'cancelled',
+                updatedAt: new Date(),
+              })
+              .where(eq(orders.id, order.id));
+
+            // Update shipment record
+            await db
+              .update(shipments)
+              .set({
+                status: normalizedStatus as 'pending' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'returned',
+                courierData: JSON.stringify(status),
+                deliveredAt: normalizedStatus === 'delivered' ? new Date() : undefined,
+                updatedAt: new Date(),
+              })
+              .where(eq(shipments.orderId, order.id));
+
+            updated++;
+          }
+        } catch (error) {
+          errors.push(`Order ${order.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      return json<SyncStatusResponse>({
+        success: true,
+        updated,
+        errors,
+      });
+    } catch (error) {
+      console.error('Sync status error:', error);
+      return json(
+        { error: error instanceof Error ? error.message : 'Sync failed' },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ========================================
+  // GET_STATUS - Get single order status
+  // ========================================
+  if (intent === 'GET_STATUS') {
+    const consignmentId = formData.get('consignmentId') as string;
+    
+    if (!consignmentId) {
+      return json({ error: 'Consignment ID is required' }, { status: 400 });
+    }
+
+    try {
+      // Get store courier settings
+      const storeResult = await db
+        .select({ courierSettings: stores.courierSettings })
+        .from(stores)
+        .where(eq(stores.id, storeId))
+        .limit(1);
+
+      if (!storeResult[0]?.courierSettings) {
+        return json({ error: 'Steadfast not configured' }, { status: 400 });
+      }
+
+      const courierSettings = JSON.parse(storeResult[0].courierSettings as string);
+
+      if (!courierSettings.steadfast) {
+        return json({ error: 'Steadfast credentials not found' }, { status: 400 });
+      }
+
+      const client = createSteadfastClient(courierSettings.steadfast);
+      const status = await client.checkStatus(consignmentId);
+
+      return json({
+        status: status.delivery_status,
+        trackingCode: status.tracking_code,
+        normalizedStatus: client.normalizeStatus(status.delivery_status),
+        timelineStep: client.getTimelineStepIndex(status.delivery_status),
+      });
+    } catch (error) {
+      console.error('Get status error:', error);
+      return json(
+        { error: error instanceof Error ? error.message : 'Status check failed' },
+        { status: 500 }
+      );
+    }
+  }
+
+  return json({ error: 'Invalid intent' }, { status: 400 });
+}

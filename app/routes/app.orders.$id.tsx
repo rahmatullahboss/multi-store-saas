@@ -18,7 +18,10 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { orders, orderItems, products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send } from 'lucide-react';
+import { useState } from 'react';
+import { RiskBadge } from '~/components/RiskBadge';
+import { TrackingTimeline } from '~/components/TrackingTimeline';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.order ? `Order ${data.order.orderNumber}` : 'Order Details' }];
@@ -341,9 +344,12 @@ function StatusBadge({ status }: { status: string }) {
 // MAIN COMPONENT
 // ============================================================================
 export default function OrderDetailPage() {
-  const { order, items, store } = useLoaderData<typeof loader>();
+  const { order, items, store, connectedCourier } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isUpdating = navigation.state === 'submitting';
+  const [isTrackingOpen, setIsTrackingOpen] = useState(false);
+  const steadfastFetcher = useFetcher();
+  const isBooking = steadfastFetcher.state === 'submitting';
 
   const currency = store?.currency || 'BDT';
 
@@ -577,9 +583,14 @@ export default function OrderDetailPage() {
               Customer
             </h2>
             <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Name</p>
-                <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Name</p>
+                  <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
+                </div>
+                {order.customerPhone && (
+                  <RiskBadge phone={order.customerPhone} showDetails />
+                )}
               </div>
               <div className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-gray-400 mt-1" />
@@ -596,6 +607,59 @@ export default function OrderDetailPage() {
                   <p className="font-medium text-gray-900">{order.customerEmail}</p>
                 </div>
               )}
+              
+              {/* Courier Actions */}
+              <div className="pt-3 mt-3 border-t border-gray-100">
+                {!order.courierConsignmentId ? (
+                  // Not shipped yet - show booking button
+                  connectedCourier === 'steadfast' ? (
+                    <steadfastFetcher.Form method="post" action="/api/courier/steadfast">
+                      <input type="hidden" name="intent" value="BOOK_ORDER" />
+                      <input type="hidden" name="orderId" value={order.id} />
+                      <button
+                        type="submit"
+                        disabled={isBooking || order.status === 'delivered' || order.status === 'cancelled'}
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
+                      >
+                        {isBooking ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        Send to Steadfast
+                      </button>
+                    </steadfastFetcher.Form>
+                  ) : (
+                    <Link
+                      to="/app/settings/courier"
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+                    >
+                      <Truck className="w-4 h-4" />
+                      Connect Courier
+                    </Link>
+                  )
+                ) : (
+                  // Already shipped - show tracking button
+                  <button
+                    type="button"
+                    onClick={() => setIsTrackingOpen(true)}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Track Order
+                  </button>
+                )}
+                {(() => {
+                  const data = steadfastFetcher.data as { error?: string; success?: boolean } | undefined;
+                  if (data?.error) {
+                    return <p className="text-sm text-red-600 mt-2">{data.error}</p>;
+                  }
+                  if (data?.success) {
+                    return <p className="text-sm text-emerald-600 mt-2">✓ Shipment booked!</p>;
+                  }
+                  return null;
+                })()}
+              </div>
             </div>
           </div>
 
@@ -674,6 +738,17 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Tracking Timeline Modal */}
+      {order.courierConsignmentId && (
+        <TrackingTimeline
+          consignmentId={order.courierConsignmentId}
+          trackingCode={order.courierConsignmentId}
+          currentStatus={order.courierStatus || undefined}
+          isOpen={isTrackingOpen}
+          onClose={() => setIsTrackingOpen(false)}
+        />
+      )}
     </>
   );
 }

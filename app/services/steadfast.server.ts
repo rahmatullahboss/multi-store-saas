@@ -8,7 +8,11 @@
  * - Bulk order creation
  * - Check delivery status
  * - Check account balance
+ * - Fraud/Risk check using internal order history
  */
+
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import { eq, and, or, sql } from 'drizzle-orm';
 
 // Types
 export interface SteadfastCredentials {
@@ -51,6 +55,17 @@ export interface SteadfastBalanceResponse {
   pending_balance: number;
 }
 
+// Risk check result
+export interface CustomerRiskResult {
+  isHighRisk: boolean;
+  successRate: number;
+  totalOrders: number;
+  returnedOrders: number;
+  deliveredOrders: number;
+  cancelledOrders: number;
+  riskScore: number; // 0-100 (higher = more risky)
+}
+
 // Status mapping to our order status
 export const STEADFAST_STATUS_MAP: Record<string, string> = {
   'pending': 'processing',
@@ -60,45 +75,190 @@ export const STEADFAST_STATUS_MAP: Record<string, string> = {
   'partial_delivered': 'delivered',
   'hold': 'processing',
   'unknown': 'processing',
+  'picked': 'shipped',
+  'in_transit': 'shipped',
+  'out_for_delivery': 'shipped',
+  'returned': 'cancelled',
 };
 
+// Normalized status for tracking timeline
+export const STEADFAST_TIMELINE_STEPS = [
+  { key: 'pending', label: 'Order Placed', labelBn: 'অর্ডার প্লেসড' },
+  { key: 'picked', label: 'Picked Up', labelBn: 'পিক আপ' },
+  { key: 'in_transit', label: 'In Transit', labelBn: 'ট্রানজিটে' },
+  { key: 'out_for_delivery', label: 'Out for Delivery', labelBn: 'ডেলিভারিতে' },
+  { key: 'delivered', label: 'Delivered', labelBn: 'ডেলিভার্ড' },
+];
+
 /**
- * Create Steadfast API client
+ * Check customer risk based on their order history
+ * Uses internal order data to calculate return rate
+ */
+export async function checkCustomerRisk(
+  phone: string,
+  db: DrizzleD1Database<Record<string, never>>,
+  storeId?: number
+): Promise<CustomerRiskResult> {
+  // Import orders schema dynamically to avoid circular imports
+  const { orders } = await import('@db/schema');
+  
+  // Normalize phone number (remove spaces, dashes)
+  const normalizedPhone = phone.replace(/[\s\-]/g, '');
+  
+  // Build query conditions
+  const conditions = storeId 
+    ? and(
+        eq(orders.customerPhone, normalizedPhone),
+        eq(orders.storeId, storeId)
+      )
+    : eq(orders.customerPhone, normalizedPhone);
+  
+  // Fetch all orders for this phone number
+  const customerOrders = await db
+    .select({
+      status: orders.status,
+      courierStatus: orders.courierStatus,
+    })
+    .from(orders)
+    .where(conditions);
+  
+  const totalOrders = customerOrders.length;
+  
+  if (totalOrders === 0) {
+    // New customer - no history
+    return {
+      isHighRisk: false,
+      successRate: 100,
+      totalOrders: 0,
+      returnedOrders: 0,
+      deliveredOrders: 0,
+      cancelledOrders: 0,
+      riskScore: 0,
+    };
+  }
+  
+  // Count outcomes
+  let deliveredOrders = 0;
+  let returnedOrders = 0;
+  let cancelledOrders = 0;
+  
+  for (const order of customerOrders) {
+    const status = order.status?.toLowerCase() || '';
+    const courierStatus = order.courierStatus?.toLowerCase() || '';
+    
+    if (status === 'delivered' || courierStatus === 'delivered') {
+      deliveredOrders++;
+    } else if (
+      status === 'cancelled' || 
+      courierStatus === 'cancelled' ||
+      courierStatus === 'returned'
+    ) {
+      returnedOrders++;
+      if (status === 'cancelled') {
+        cancelledOrders++;
+      }
+    }
+  }
+  
+  // Calculate success rate (delivered / total * 100)
+  const successRate = totalOrders > 0 
+    ? Math.round((deliveredOrders / totalOrders) * 100) 
+    : 100;
+  
+  // Calculate risk score (inverse of success rate, weighted by volume)
+  // More orders = more reliable data = higher confidence
+  const returnRate = totalOrders > 0 
+    ? (returnedOrders / totalOrders) * 100 
+    : 0;
+  
+  // Risk score: return rate with a minimum of 5 orders for high confidence
+  const confidenceFactor = Math.min(totalOrders / 5, 1);
+  const riskScore = Math.round(returnRate * confidenceFactor);
+  
+  // High risk if return rate > 30%
+  const isHighRisk = returnRate > 30;
+  
+  return {
+    isHighRisk,
+    successRate,
+    totalOrders,
+    returnedOrders,
+    deliveredOrders,
+    cancelledOrders,
+    riskScore,
+  };
+}
+
+/**
+ * Create Steadfast API client with retry logic and error handling
  */
 export function createSteadfastClient(credentials: SteadfastCredentials) {
   const baseUrl = credentials.baseUrl || 'https://portal.packzy.com/api/v1';
+  const DEFAULT_TIMEOUT = 10000; // 10 seconds
+  const MAX_RETRIES = 3;
 
   /**
-   * Make API request with auth headers
+   * Make API request with auth headers, timeout, and retry logic
    */
   async function apiRequest<T>(
     endpoint: string, 
-    options: RequestInit = {}
+    options: RequestInit = {},
+    retries = MAX_RETRIES
   ): Promise<T> {
-    const response = await fetch(`${baseUrl}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Api-Key': credentials.apiKey,
-        'Secret-Key': credentials.secretKey,
-        ...options.headers,
-      },
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Steadfast API error: ${error}`);
+    try {
+      const response = await fetch(`${baseUrl}${endpoint}`, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Api-Key': credentials.apiKey,
+          'Secret-Key': credentials.secretKey,
+          ...options.headers,
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Steadfast API error (${response.status}): ${error}`);
+      }
+
+      const data: T & { status?: number; message?: string } = await response.json();
+      
+      // Steadfast wraps responses in a status/message structure
+      if (data.status && data.status !== 200) {
+        throw new Error(data.message || 'Steadfast API error');
+      }
+
+      return data;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      // Handle abort/timeout
+      if (error instanceof Error && error.name === 'AbortError') {
+        if (retries > 0) {
+          // Exponential backoff: wait 1s, 2s, 4s
+          const delay = Math.pow(2, MAX_RETRIES - retries) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return apiRequest<T>(endpoint, options, retries - 1);
+        }
+        throw new Error('Steadfast API timeout - please try again');
+      }
+      
+      // Retry on network errors
+      if (retries > 0 && error instanceof TypeError) {
+        const delay = Math.pow(2, MAX_RETRIES - retries) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return apiRequest<T>(endpoint, options, retries - 1);
+      }
+      
+      throw error;
     }
-
-    const data: T & { status?: number; message?: string } = await response.json();
-    
-    // Steadfast wraps responses in a status/message structure
-    if (data.status && data.status !== 200) {
-      throw new Error(data.message || 'Steadfast API error');
-    }
-
-    return data;
   }
 
   return {
@@ -130,9 +290,20 @@ export function createSteadfastClient(credentials: SteadfastCredentials) {
     },
 
     /**
-     * Create a new order
+     * Create a new order (enhanced with better error messages)
      */
     async createOrder(order: SteadfastCreateOrderRequest): Promise<SteadfastOrder> {
+      // Validate required fields
+      if (!order.recipient_phone) {
+        throw new Error('Recipient phone number is required');
+      }
+      if (!order.recipient_address) {
+        throw new Error('Recipient address is required');
+      }
+      if (!order.invoice) {
+        throw new Error('Invoice/Order number is required');
+      }
+
       const result = await apiRequest<{
         status: number;
         consignment: SteadfastOrder;
@@ -140,6 +311,11 @@ export function createSteadfastClient(credentials: SteadfastCredentials) {
         method: 'POST',
         body: JSON.stringify(order),
       });
+      
+      if (!result.consignment) {
+        throw new Error('Failed to create shipment - no consignment returned');
+      }
+      
       return result.consignment;
     },
 
@@ -215,6 +391,25 @@ export function createSteadfastClient(credentials: SteadfastCredentials) {
         delivery_status: result.delivery_status,
         status: result.delivery_status,
       };
+    },
+
+    /**
+     * Get normalized status for our system
+     */
+    normalizeStatus(steadfastStatus: string): string {
+      return STEADFAST_STATUS_MAP[steadfastStatus.toLowerCase()] || 'processing';
+    },
+
+    /**
+     * Get timeline step index for a status
+     */
+    getTimelineStepIndex(status: string): number {
+      const normalizedStatus = status.toLowerCase();
+      const index = STEADFAST_TIMELINE_STEPS.findIndex(step => 
+        step.key === normalizedStatus || 
+        normalizedStatus.includes(step.key)
+      );
+      return index >= 0 ? index : 0;
     },
   };
 }

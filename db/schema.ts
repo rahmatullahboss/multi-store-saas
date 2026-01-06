@@ -135,6 +135,9 @@ export const customers = sqliteTable('customers', {
   name: text('name'),
   phone: text('phone'),
   address: text('address'), // JSON object with address details
+  // Fraud check cache
+  riskScore: integer('risk_score'), // 0-100 (higher = more risky)
+  riskCheckedAt: integer('risk_checked_at', { mode: 'timestamp' }), // Last check time
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
