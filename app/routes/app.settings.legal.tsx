@@ -12,10 +12,10 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useLoaderData, Form, Link, useNavigation } from '@remix-run/react';
+import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { requireUser } from '~/services/auth.server';
-import { getDb } from '~/lib/db.server';
+import { getStoreId } from '~/services/auth.server';
 import { getPolicyContent } from '~/lib/policies';
 import { useState } from 'react';
 import { FileText, Eye, Save, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
@@ -25,12 +25,12 @@ export const meta: MetaFunction = () => [
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const user = await requireUser(request, context);
-  if (!user?.storeId) {
+  const storeId = await getStoreId(request);
+  if (!storeId) {
     throw redirect('/auth/login');
   }
 
-  const db = getDb(context);
+  const db = drizzle(context.cloudflare.env.DB);
   const [store] = await db
     .select({
       id: stores.id,
@@ -41,7 +41,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       businessInfo: stores.businessInfo,
     })
     .from(stores)
-    .where(eq(stores.id, user.storeId))
+    .where(eq(stores.id, storeId))
     .limit(1);
 
   if (!store) {
@@ -74,15 +74,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const user = await requireUser(request, context);
-  if (!user?.storeId) {
+  const storeId = await getStoreId(request);
+  if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
   
-  const db = getDb(context);
+  const db = drizzle(context.cloudflare.env.DB);
 
   if (intent === 'save') {
     const privacyPolicy = formData.get('privacyPolicy') as string || null;
@@ -97,7 +97,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         customRefundPolicy: refundPolicy?.trim() || null,
         updatedAt: new Date(),
       })
-      .where(eq(stores.id, user.storeId));
+      .where(eq(stores.id, storeId));
 
     return json({ success: true, message: 'Policies saved successfully!' });
   }
@@ -114,7 +114,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       await db
         .update(stores)
         .set({ ...updateData, updatedAt: new Date() })
-        .where(eq(stores.id, user.storeId));
+        .where(eq(stores.id, storeId));
     }
 
     return json({ success: true, message: 'Policy reset to auto-generated' });

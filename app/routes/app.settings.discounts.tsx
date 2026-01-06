@@ -154,7 +154,7 @@ export default function DiscountCodesPage() {
     setShowForm(false);
   };
 
-  const isExpired = (expiresAt: Date | null) => {
+  const isExpired = (expiresAt: string | Date | null) => {
     if (!expiresAt) return false;
     return new Date(expiresAt) < new Date();
   };

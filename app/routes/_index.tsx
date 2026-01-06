@@ -663,7 +663,7 @@ Message: {errorMessage}
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-xs font-semibold text-amber-800 mb-1">Response Data</p>
                 <pre className="text-xs font-mono text-amber-700 whitespace-pre-wrap break-all max-h-40 overflow-auto">
-{String(typeof errorData === 'string' ? errorData : JSON.stringify(errorData, null, 2))}
+{typeof errorData === 'string' ? errorData : JSON.stringify(errorData, null, 2)}
                 </pre>
               </div>
             )}

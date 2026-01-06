@@ -345,7 +345,7 @@ export default function BillingPage() {
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                {'popular' in plan && plan.popular && (
+                {(plan as { popular?: boolean }).popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                       Most Popular

@@ -211,9 +211,9 @@ export default function NewProductPage() {
         <input type="hidden" name="imageUrl" value={imageUrl} />
 
         {/* Form Error */}
-        {actionData?.errors?.form && (
+        {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.form && (
           <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm border border-red-200">
-            {actionData.errors.form}
+            {(actionData.errors as Record<string, string>).form}
           </div>
         )}
 
@@ -287,8 +287,8 @@ export default function NewProductPage() {
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               placeholder="Enter product title"
             />
-            {actionData?.errors?.title && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.title}</p>
+            {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.title && (
+              <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).title}</p>
             )}
           </div>
 
@@ -307,8 +307,8 @@ export default function NewProductPage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="0.00"
               />
-              {actionData?.errors?.price && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.price}</p>
+              {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.price && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).price}</p>
               )}
             </div>
             <div>
@@ -323,8 +323,8 @@ export default function NewProductPage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="0"
               />
-              {actionData?.errors?.stock && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.stock}</p>
+              {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.stock && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).stock}</p>
               )}
             </div>
           </div>

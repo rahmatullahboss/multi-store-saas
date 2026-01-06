@@ -198,12 +198,12 @@ export default function SubscribersPage() {
       </div>
 
       {/* Success/Error Message */}
-      {actionData?.message && (
+      {actionData && 'message' in actionData && actionData.message && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
           <p className="text-green-800">{actionData.message}</p>
         </div>
       )}
-      {actionData?.error && (
+      {actionData && 'error' in actionData && actionData.error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4">
           <p className="text-red-800">{actionData.error}</p>
         </div>

@@ -382,8 +382,8 @@ export default function EditProductPage() {
               defaultValue={product.title}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
             />
-            {actionData?.errors?.title && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.title}</p>
+            {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.title && (
+              <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).title}</p>
             )}
           </div>
 
@@ -402,8 +402,8 @@ export default function EditProductPage() {
                 defaultValue={product.price}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              {actionData?.errors?.price && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.price}</p>
+              {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.price && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).price}</p>
               )}
             </div>
             <div>
@@ -418,8 +418,8 @@ export default function EditProductPage() {
                 defaultValue={product.inventory ?? 0}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              {actionData?.errors?.stock && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.stock}</p>
+              {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.stock && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).stock}</p>
               )}
             </div>
           </div>

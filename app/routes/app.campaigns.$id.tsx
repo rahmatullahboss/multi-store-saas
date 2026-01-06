@@ -209,16 +209,16 @@ export default function CampaignDetailPage() {
       </div>
 
       {/* Success/Error Message */}
-      {actionData?.success && (
+      {actionData && 'success' in actionData && actionData.success && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
           <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
           <p className="text-green-800">
-            Campaign sent successfully to {actionData.sentCount} subscribers!
+            Campaign sent successfully to {'sentCount' in actionData ? actionData.sentCount : 0} subscribers!
           </p>
         </div>
       )}
       
-      {actionData?.error && (
+      {actionData && 'error' in actionData && actionData.error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
           <p className="text-red-800">{actionData.error}</p>

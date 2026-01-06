@@ -230,11 +230,11 @@ export default function NewCampaignPage() {
             name="name"
             placeholder="e.g., January Newsletter"
             className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-              actionData?.errors?.name ? 'border-red-300' : 'border-gray-300'
+              actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.name ? 'border-red-300' : 'border-gray-300'
             }`}
           />
-          {actionData?.errors?.name && (
-            <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+          {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.name && (
+            <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).name}</p>
           )}
         </div>
 
@@ -248,11 +248,11 @@ export default function NewCampaignPage() {
             name="subject"
             placeholder="e.g., New arrivals just for you! 🎉"
             className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-              actionData?.errors?.subject ? 'border-red-300' : 'border-gray-300'
+              actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.subject ? 'border-red-300' : 'border-gray-300'
             }`}
           />
-          {actionData?.errors?.subject && (
-            <p className="text-red-500 text-sm mt-1">{actionData.errors.subject}</p>
+          {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.subject && (
+            <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).subject}</p>
           )}
         </div>
 
@@ -283,11 +283,11 @@ export default function NewCampaignPage() {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className={`w-full px-4 py-3 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
-              actionData?.errors?.content ? 'border-red-300' : 'border-gray-300'
+              actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.content ? 'border-red-300' : 'border-gray-300'
             }`}
           />
-          {actionData?.errors?.content && (
-            <p className="text-red-500 text-sm mt-1">{actionData.errors.content}</p>
+          {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.content && (
+            <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).content}</p>
           )}
         </div>
 

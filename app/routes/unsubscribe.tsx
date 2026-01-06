@@ -86,7 +86,7 @@ export default function UnsubscribePage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
-  if (loaderData.error) {
+  if ('error' in loaderData && loaderData.error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-md w-full text-center">
@@ -96,7 +96,7 @@ export default function UnsubscribePage() {
     );
   }
 
-  if (actionData?.success) {
+  if (actionData && 'success' in actionData && actionData.success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-md w-full text-center">
@@ -105,7 +105,7 @@ export default function UnsubscribePage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Unsubscribed</h1>
           <p className="text-gray-600">
-            You have been successfully unsubscribed from {loaderData.storeName}.
+            You have been successfully unsubscribed from {'storeName' in loaderData ? loaderData.storeName : 'Store'}.
           </p>
         </div>
       </div>
@@ -120,12 +120,12 @@ export default function UnsubscribePage() {
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Unsubscribe</h1>
         <p className="text-gray-600 mb-6">
-          Are you sure you want to unsubscribe <strong>{loaderData.email}</strong> from {loaderData.storeName}?
+          Are you sure you want to unsubscribe <strong>{'email' in loaderData ? loaderData.email : ''}</strong> from {'storeName' in loaderData ? loaderData.storeName : 'Store'}?
         </p>
 
         <Form method="post">
-          <input type="hidden" name="email" value={loaderData.email} />
-          <input type="hidden" name="storeId" value={loaderData.storeId} />
+          <input type="hidden" name="email" value={'email' in loaderData ? loaderData.email : ''} />
+          <input type="hidden" name="storeId" value={'storeId' in loaderData ? loaderData.storeId : 0} />
           <button
             type="submit"
             disabled={isSubmitting}
