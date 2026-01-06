@@ -40,12 +40,42 @@ export const meta: MetaFunction = () => {
   return [{ title: 'Create Your Store - Multi-Store SaaS' }];
 };
 
-// Redirect if already logged in
-export async function loader({ request }: LoaderFunctionArgs) {
+// Redirect if already logged in AND onboarding is completed
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
+  
   if (userId) {
-    return redirect('/app/orders');
+    // Check if user's store has completed onboarding
+    try {
+      const { env } = context.cloudflare;
+      const db = drizzle(env.DB);
+      
+      // Get the user's store
+      const userResult = await db
+        .select({ storeId: users.storeId })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      
+      if (userResult[0]?.storeId) {
+        const storeResult = await db
+          .select({ onboardingStatus: stores.onboardingStatus })
+          .from(stores)
+          .where(eq(stores.id, userResult[0].storeId))
+          .limit(1);
+        
+        // Only redirect to dashboard if onboarding is completed
+        const onboardingStatus = storeResult[0]?.onboardingStatus || 'pending';
+        if (onboardingStatus === 'completed') {
+          return redirect('/app/orders');
+        }
+        // Otherwise, stay on onboarding page (don't redirect)
+      }
+    } catch (error) {
+      console.error('[onboarding.loader] Error checking onboarding status:', error);
+    }
   }
+  
   return json({});
 }
 
