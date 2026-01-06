@@ -10,9 +10,9 @@
  * - Upgrade CTAs
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
+import { useLoaderData, Link, useSearchParams, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
@@ -28,7 +28,9 @@ import {
   TrendingUp,
   Package,
   ShoppingCart,
-  ArrowRight
+  ArrowRight,
+  Bot,
+  Loader2
 } from 'lucide-react';
 
 export const meta: MetaFunction = () => {
@@ -129,6 +131,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       planType: stores.planType,
       subscriptionStatus: stores.subscriptionStatus,
       name: stores.name,
+      isCustomerAiEnabled: stores.isCustomerAiEnabled,
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -147,15 +150,50 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     subscriptionStatus,
     usage,
     limits: PLAN_LIMITS[planType],
+    isCustomerAiEnabled: store?.isCustomerAiEnabled || false,
   });
+}
+
+// ============================================================================
+// ACTION - Toggle AI Add-on
+// ============================================================================
+export async function action({ request, context }: ActionFunctionArgs) {
+  await requireUserId(request);
+  const storeId = await getStoreId(request);
+  
+  if (!storeId) {
+    return json({ error: 'Store not found' }, { status: 404 });
+  }
+
+  const formData = await request.formData();
+  const action = formData.get('action');
+
+  if (action === 'toggle_ai_agent') {
+    const enabled = formData.get('enabled') === 'true';
+    
+    const db = drizzle(context.cloudflare.env.DB);
+    
+    await db
+      .update(stores)
+      .set({ 
+        isCustomerAiEnabled: enabled,
+        updatedAt: new Date()
+      })
+      .where(eq(stores.id, storeId));
+    
+    return json({ success: true, isCustomerAiEnabled: enabled });
+  }
+
+  return json({ error: 'Invalid action' }, { status: 400 });
 }
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 export default function BillingPage() {
-  const { storeName, planType, subscriptionStatus, usage } = useLoaderData<typeof loader>();
+  const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
+  const fetcher = useFetcher<{ success?: boolean; isCustomerAiEnabled?: boolean }>();
   
   const success = searchParams.get('success');
   const upgradedPlan = searchParams.get('plan');
@@ -163,6 +201,12 @@ export default function BillingPage() {
   const error = searchParams.get('error');
   
   const currentPlan = PLAN_DISPLAY[planType as keyof typeof PLAN_DISPLAY];
+  
+  // Use optimistic UI for AI toggle
+  const isAiEnabled = fetcher.formData 
+    ? fetcher.formData.get('enabled') === 'true'
+    : isCustomerAiEnabled;
+  const isTogglingAi = fetcher.state !== 'idle';
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -301,6 +345,65 @@ export default function BillingPage() {
           </div>
         </div>
       </div>
+
+      {/* Add-ons Section */}
+      {planType !== 'free' && (
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Add-ons</h2>
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-gray-900">AI Sales Agent</h3>
+                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-orange-100 text-orange-700">
+                      ৳500/month
+                    </span>
+                  </div>
+                  <p className="text-gray-500 text-sm">
+                    AI-powered chatbot that helps customers find products and answers FAQs on your storefront.
+                  </p>
+                </div>
+              </div>
+              <fetcher.Form method="post">
+                <input type="hidden" name="action" value="toggle_ai_agent" />
+                <input type="hidden" name="enabled" value={isAiEnabled ? 'false' : 'true'} />
+                <button
+                  type="submit"
+                  disabled={isTogglingAi}
+                  className={`px-6 py-2.5 font-medium rounded-lg transition flex items-center gap-2 ${
+                    isAiEnabled
+                      ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                      : 'bg-orange-600 text-white hover:bg-orange-700'
+                  }`}
+                >
+                  {isTogglingAi ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : isAiEnabled ? (
+                    'Disable'
+                  ) : (
+                    'Enable'
+                  )}
+                </button>
+              </fetcher.Form>
+            </div>
+            {isAiEnabled && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <Check className="w-4 h-4" />
+                  <span>AI Sales Agent is active on your storefront</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Upgrade CTA for Free Users */}
       {planType === 'free' && (

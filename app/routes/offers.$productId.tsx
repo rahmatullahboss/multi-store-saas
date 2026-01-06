@@ -66,6 +66,7 @@ interface LoaderData {
   currency: string;
   product: Product;
   landingConfig: LandingConfig;
+  isCustomerAiEnabled: boolean;
 }
 
 // ============================================================================
@@ -193,6 +194,7 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
       currency: resolvedStore.currency ?? 'BDT',
       product,
       landingConfig,
+      isCustomerAiEnabled: (resolvedStore as Store & { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled ?? false,
     };
 
     return json(loaderData);
@@ -218,6 +220,7 @@ export default function OfferProductPage() {
       currency={data.currency}
       isPreview={false}
       isEditMode={false}
+      isCustomerAiEnabled={data.isCustomerAiEnabled}
     />
   );
 }
