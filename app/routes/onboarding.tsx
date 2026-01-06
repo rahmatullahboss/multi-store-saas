@@ -15,7 +15,7 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher, Link } from '@remix-run/react';
 import { Store, ArrowRight, ArrowLeft } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
 import { getUserId, register, createUserSession } from '~/services/auth.server';
 import { createAIService } from '~/services/ai.server';
@@ -54,7 +54,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const step = formData.get('step') as string;
 
-  // Step 1: Create account
+  // Check if email already exists
+  if (step === 'check_email') {
+    const email = formData.get('email') as string;
+    
+    if (!email || !email.includes('@')) {
+      return json({ error: 'Valid email required', field: 'email' }, { status: 400 });
+    }
+    
+    const db = drizzle(env.DB);
+    const existingUser = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email.toLowerCase()))
+      .limit(1);
+    
+    if (existingUser.length > 0) {
+      return json({ 
+        error: 'এই ইমেইল আগেই রেজিস্টার করা হয়েছে। অনুগ্রহ করে লগইন করুন।', 
+        errorEn: 'Email already registered. Please login instead.',
+        field: 'email',
+        emailExists: true 
+      }, { status: 400 });
+    }
+    
+    return json({ success: true, emailAvailable: true });
+  }
+
+  // Step 1: Create account (validation only, no DB insert yet)
   if (step === 'create_account') {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
@@ -213,17 +240,36 @@ export default function OnboardingPage() {
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const fetcher = useFetcher<{ success?: boolean; error?: string; step?: number }>();
+  const [storeCreationFailed, setStoreCreationFailed] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean }>();
 
   // Handle fetcher response
   useEffect(() => {
     if (fetcher.data?.success && fetcher.data.step) {
       setCurrentStep(fetcher.data.step);
+      setIsCheckingEmail(false);
+    }
+    if (fetcher.data?.emailAvailable) {
+      // Email is available, proceed to next step
+      setIsCheckingEmail(false);
+      setCurrentStep(2);
     }
     if (fetcher.data?.error) {
-      setErrors({ form: fetcher.data.error });
+      setIsCheckingEmail(false);
+      if (fetcher.data.emailExists) {
+        // Email already registered - show in Step 1
+        setErrors({ email: fetcher.data.error });
+      } else if (currentStep === 5) {
+        // Error during store creation
+        setStoreCreationFailed(true);
+        setErrors({ form: fetcher.data.error });
+        setIsGenerating(false);
+      } else {
+        setErrors({ form: fetcher.data.error });
+      }
     }
-  }, [fetcher.data]);
+  }, [fetcher.data, currentStep]);
 
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -247,6 +293,15 @@ export default function OnboardingPage() {
         setErrors(newErrors);
         return;
       }
+      
+      // Check if email already exists before proceeding
+      setIsCheckingEmail(true);
+      setErrors({});
+      const checkData = new FormData();
+      checkData.append('step', 'check_email');
+      checkData.append('email', formData.email);
+      fetcher.submit(checkData, { method: 'POST' });
+      return; // Don't proceed yet, wait for server response
     }
     if (currentStep === 2) {
       if (!formData.description || formData.description.length < 10) {
@@ -466,11 +521,50 @@ export default function OnboardingPage() {
           {currentStep === 5 && (
             <div>
               <AISetupProgress 
-                isGenerating={isGenerating || isSubmitting} 
+                isGenerating={isGenerating || isSubmitting}
+                hasError={storeCreationFailed}
+                errorMessage={errors.form}
                 onComplete={() => {
                   // Submission handled by fetcher
                 }}
               />
+              
+              {/* Error Actions */}
+              {storeCreationFailed && (
+                <div className="flex flex-col items-center gap-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStoreCreationFailed(false);
+                      setErrors({});
+                      setIsGenerating(true);
+                      handleSubmit();
+                    }}
+                    className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
+                  >
+                    🔄 আবার চেষ্টা করুন (Retry)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentStep(1);
+                      setStoreCreationFailed(false);
+                      setErrors({});
+                      setIsGenerating(false);
+                    }}
+                    className="flex items-center gap-2 px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    শুরু থেকে শুরু করুন (Start Over)
+                  </button>
+                  <Link
+                    to="/auth/login"
+                    className="text-emerald-600 hover:text-emerald-700 text-sm underline"
+                  >
+                    ইতিমধ্যে অ্যাকাউন্ট আছে? লগইন করুন
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 
@@ -503,9 +597,10 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
+                  disabled={isCheckingEmail}
+                  className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50"
                 >
-                  Continue
+                  {isCheckingEmail ? 'Checking...' : 'Continue'}
                   <ArrowRight className="w-4 h-4" />
                 </button>
               ) : (
