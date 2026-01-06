@@ -162,7 +162,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         paymentStatus: 'pending', // COD - payment pending until delivery
         customerName: input.customer_name,
         customerPhone: input.phone,
-        customerEmail: input.customer_email || null,
+        customerEmail: input.customer_email || '', // Empty string instead of null for NOT NULL constraint
         shippingAddress: input.address,
         billingAddress: null,
         subtotal,
