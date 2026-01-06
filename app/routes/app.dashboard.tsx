@@ -99,7 +99,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(and(
       eq(orders.storeId, storeId),
       gte(orders.createdAt, yesterdayStart),
-      sql`${orders.createdAt} < ${todayStart.getTime()}`
+      sql`${orders.createdAt} < ${todayStart.toISOString()}`
     ));
 
   // Total revenue
@@ -156,7 +156,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .where(and(
         eq(orders.storeId, storeId),
         gte(orders.createdAt, dayStart),
-        sql`${orders.createdAt} < ${dayEnd.getTime()}`
+        sql`${orders.createdAt} < ${dayEnd.toISOString()}`
       ));
     
     salesData.push({
