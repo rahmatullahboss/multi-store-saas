@@ -16,6 +16,7 @@ import { OptimizedImage } from '~/components/OptimizedImage';
 import { getThemeColors, getFontConfig } from '~/lib/theme';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { LanguageSelector } from '~/components/LanguageSelector';
+import { WhatsAppButton } from '~/components/WhatsAppButton';
 
 // Serialized product type
 interface SerializedProduct {
@@ -526,6 +527,14 @@ export function StoreLayout({
           </div>
         </div>
       </footer>
+
+      {/* WhatsApp Floating Button */}
+      {socialLinks?.whatsapp && (
+        <WhatsAppButton
+          phoneNumber={socialLinks.whatsapp}
+          storeName={storeName}
+        />
+      )}
     </div>
     </>
   );

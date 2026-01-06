@@ -26,6 +26,21 @@ export interface LandingConfig {
     count: number; // e.g., "500+ sold"
     text: string;
   };
+  // === NEW: Landing Page Builder Fields ===
+  faq?: {
+    question: string;
+    answer: string;
+  }[];
+  sectionOrder?: string[]; // e.g., ['hero', 'features', 'video', 'testimonials', 'faq', 'cta']
+  hiddenSections?: string[]; // Sections to hide
+  // WhatsApp Integration
+  whatsappEnabled?: boolean;
+  whatsappNumber?: string; // e.g., '8801712345678'
+  whatsappMessage?: string; // Pre-filled message template
+  // Countdown Timer
+  countdownEnabled?: boolean;
+  countdownEndTime?: string; // ISO date string
+  countdownText?: string; // e.g., "অফার শেষ হতে বাকি"
 }
 
 // Store template configuration for full store mode

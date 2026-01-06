@@ -19,11 +19,15 @@ import { orders, orderItems, products, stores, users } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { checkUsageLimit } from '~/utils/plans.server';
+import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
 // ============================================================================
 const bdPhoneRegex = /^(\+880|880|0)?1[3-9]\d{8}$/;
+
+// Valid division values
+const validDivisions = BD_DIVISIONS.map(d => d.value);
 
 const OrderSchema = z.object({
   store_id: z.number().int().positive('Store ID is required'),
@@ -36,6 +40,7 @@ const OrderSchema = z.object({
       message: 'সঠিক বাংলাদেশী মোবাইল নম্বর দিন (01XXXXXXXXX)',
     }),
   address: z.string().min(10, 'ঠিকানা কমপক্ষে ১০ অক্ষর হতে হবে').max(500),
+  division: z.enum(validDivisions as [string, ...string[]]).default('dhaka'), // Inside/Outside Dhaka
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation
@@ -144,7 +149,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const itemTotal = unitPrice * input.quantity;
     const subtotal = itemTotal;
     const tax = 0; // Can be calculated based on store settings
-    const shipping = 0; // Can be calculated based on store settings
+    
+    // Calculate shipping based on store config and customer division
+    const shippingConfig = parseShippingConfig(storeData.shippingConfig as string | null);
+    const shippingResult = calculateShipping(shippingConfig, input.division, subtotal);
+    const shipping = shippingResult.cost;
+    
     const total = subtotal + tax + shipping;
 
     // Generate order number

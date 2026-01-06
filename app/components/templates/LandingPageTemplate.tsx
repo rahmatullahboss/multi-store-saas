@@ -107,6 +107,7 @@ import { OptimizedImage } from '~/components/OptimizedImage';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { MagicSectionWrapper } from '~/components/editor';
 import { ChatWidget } from '~/components/ai/ChatWidget';
+import { BD_DIVISIONS, calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
 
 // Serialized product type (JSON dates become strings)
 interface SerializedProduct {
@@ -153,6 +154,7 @@ export function LandingPageTemplate({
     customer_name: '',
     phone: '',
     address: '',
+    division: 'dhaka' as DivisionValue,
     quantity: 1,
   });
 
@@ -250,6 +252,7 @@ export function LandingPageTemplate({
         customer_name: formData.customer_name,
         phone: formData.phone,
         address: formData.address,
+        division: formData.division,
         quantity: formData.quantity,
       },
       {
@@ -1082,6 +1085,49 @@ export function LandingPageTemplate({
                       {validationErrors.phone && (
                         <p className="text-red-600 text-sm mt-1 font-medium">{validationErrors.phone}</p>
                       )}
+                    </div>
+
+                    {/* Division Selector - Inside/Outside Dhaka */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">🗺️ ডেলিভারি এলাকা</label>
+                      <select
+                        value={formData.division}
+                        onChange={(e) => setFormData(d => ({ ...d, division: e.target.value as DivisionValue }))}
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.5rem' }}
+                      >
+                        {BD_DIVISIONS.map((div) => (
+                          <option key={div.value} value={div.value}>
+                            {div.label}
+                          </option>
+                        ))}
+                      </select>
+                      {/* Shipping cost preview */}
+                      {(() => {
+                        const shippingResult = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, product.price * formData.quantity);
+                        const divInfo = BD_DIVISIONS.find(d => d.value === formData.division);
+                        return (
+                          <div className={`mt-3 p-3 rounded-lg flex items-center justify-between ${divInfo?.isInsideDhaka ? 'bg-green-50 border border-green-200' : 'bg-blue-50 border border-blue-200'}`}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{divInfo?.isInsideDhaka ? '🏙️' : '🌍'}</span>
+                              <div>
+                                <p className={`text-sm font-medium ${divInfo?.isInsideDhaka ? 'text-green-700' : 'text-blue-700'}`}>
+                                  {divInfo?.isInsideDhaka ? 'ঢাকার ভেতরে' : 'ঢাকার বাইরে'}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {divInfo?.isInsideDhaka ? '২৪ ঘণ্টায় ডেলিভারি' : '২-৩ দিনে ডেলিভারি'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500">ডেলিভারি চার্জ</p>
+                              <p className={`font-bold ${shippingResult.isFree ? 'text-green-600' : 'text-gray-900'}`}>
+                                {shippingResult.isFree ? 'ফ্রি!' : `৳${shippingResult.cost}`}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Address - CRITICAL FIELD */}

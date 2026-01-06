@@ -13,6 +13,7 @@ import { json } from '@remix-run/cloudflare';
 import './styles/tailwind.css';
 import { GeneralError } from '~/components/GeneralError';
 import { LanguageProvider } from '~/contexts/LanguageContext';
+import { getPixelInitScript } from '~/utils/pixel';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -43,6 +44,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
       logo: store?.logo || null,
       theme: store?.theme || 'default',
       currency: store?.currency || 'BDT',
+      facebookPixelId: store?.facebookPixelId || null,
     },
     isCustomDomain: isCustomDomain || false,
     isMainDomain: !store || storeId === 0,
@@ -60,6 +62,12 @@ export default function App() {
         <Meta />
         <Links />
         <title>{store.name}</title>
+        {/* Facebook Pixel - Conversion Tracking */}
+        {store.facebookPixelId && (
+          <script
+            dangerouslySetInnerHTML={{ __html: getPixelInitScript(store.facebookPixelId) }}
+          />
+        )}
       </head>
       <body className="h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
         <LanguageProvider defaultCurrency={store.currency as 'USD' | 'BDT'}>

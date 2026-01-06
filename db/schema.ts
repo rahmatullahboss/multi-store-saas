@@ -66,6 +66,13 @@ export const stores = sqliteTable('stores', {
   emailNotificationsEnabled: integer('email_notifications_enabled', { mode: 'boolean' }).default(true),
   lowStockThreshold: integer('low_stock_threshold').default(10),
   
+  // === SIMPLIFIED SHIPPING CONFIG (BD SME Friendly) ===
+  // JSON: { insideDhaka: 60, outsideDhaka: 120, freeShippingAbove: 1000, enabled: true }
+  shippingConfig: text('shipping_config'),
+  
+  // === FACEBOOK PIXEL TRACKING ===
+  facebookPixelId: text('facebook_pixel_id'), // e.g., "123456789012345"
+  
   // === COURIER SETTINGS ===
   courierSettings: text('courier_settings'), // JSON: { provider, pathao?, redx?, steadfast?, isConnected }
   
