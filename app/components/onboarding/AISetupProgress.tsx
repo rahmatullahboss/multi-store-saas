@@ -16,11 +16,9 @@ interface AISetupProgressProps {
   onComplete?: () => void;
 }
 
-// Step keys for translation
+// Simplified step keys for quick onboarding
 const STEP_KEYS: { icon: typeof Store; key: TranslationKey }[] = [
   { icon: Store, key: 'creatingYourStore' },
-  { icon: Sparkles, key: 'settingUpStore' },
-  { icon: Package, key: 'addingDemoProduct' },
   { icon: Palette, key: 'designingLandingPage' },
   { icon: CheckCircle2, key: 'almostDone' },
 ];
@@ -33,7 +31,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
   useEffect(() => {
     if (!isGenerating || hasError) return;
 
-    // Progress through steps
+    // Progress through steps faster (1.5 seconds per step)
     const interval = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev >= STEP_KEYS.length - 1) {
@@ -44,7 +42,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
         }
         return prev + 1;
       });
-    }, 2000); // 2 seconds per step
+    }, 1500);
 
     return () => clearInterval(interval);
   }, [isGenerating, hasError, onComplete]);
@@ -58,7 +56,7 @@ export function AISetupProgress({ isGenerating, hasError, errorMessage, onComple
 
   // Get current step label with emoji
   const getStepLabel = (index: number): string => {
-    const emojis = ['🏪', '🤖', '📦', '🎨', '✅'];
+    const emojis = ['🏪', '🎨', '✅'];
     return `${emojis[index]} ${t(STEP_KEYS[index].key)}`;
   };
 
