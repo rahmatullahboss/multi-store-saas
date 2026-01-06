@@ -20,7 +20,7 @@ import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
-  AlertTriangle, CheckCircle, Archive
+  AlertTriangle, CheckCircle, Archive, Rocket, Check, Copy
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
@@ -64,6 +64,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({
     products: storeProducts,
     currency: store.currency || 'BDT',
+    // Store info for campaign links
+    storeSubdomain: store.subdomain,
+    storeCustomDomain: store.customDomain || null,
     stats: {
       total: totalProducts,
       published: publishedCount,
@@ -112,7 +115,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ProductsIndexPage() {
-  const { products: storeProducts, currency, stats } = useLoaderData<typeof loader>();
+  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
@@ -123,6 +126,9 @@ export default function ProductsIndexPage() {
   
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  
+  // Ad Link copy state - shows checkmark briefly after copy
+  const [copiedProductId, setCopiedProductId] = useState<number | null>(null);
   
   // Status tabs configuration
   const statusTabs = [
@@ -206,6 +212,20 @@ export default function ProductsIndexPage() {
       currency,
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  // Generate offer URL for a product
+  const getOfferUrl = (productId: number) => {
+    const domain = storeCustomDomain || `${storeSubdomain}.digitalcare.site`;
+    return `https://${domain}/offers/${productId}`;
+  };
+
+  // Copy Ad Link to clipboard
+  const copyAdLink = async (productId: number) => {
+    const url = getOfferUrl(productId);
+    await navigator.clipboard.writeText(url);
+    setCopiedProductId(productId);
+    setTimeout(() => setCopiedProductId(null), 2000);
   };
 
   return (
@@ -453,13 +473,42 @@ export default function ProductsIndexPage() {
                       <StatusBadge published={product.isPublished ?? true} />
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <Link
-                        to={`/app/products/${product.id}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        Edit
-                      </Link>
+                      <div className="inline-flex items-center gap-2">
+                        {/* Ad Link Button */}
+                        <button
+                          type="button"
+                          onClick={() => copyAdLink(product.id)}
+                          disabled={!product.isPublished}
+                          title={product.isPublished ? 'Copy Ad Link for Facebook Ads' : 'Publish product to get Ad Link'}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition ${
+                            copiedProductId === product.id
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                              : product.isPublished
+                                ? 'text-violet-600 hover:text-white hover:bg-violet-600 border border-violet-200 hover:border-violet-600'
+                                : 'text-gray-400 border border-gray-200 cursor-not-allowed'
+                          }`}
+                        >
+                          {copiedProductId === product.id ? (
+                            <>
+                              <Check className="w-4 h-4" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Rocket className="w-4 h-4" />
+                              Ad Link
+                            </>
+                          )}
+                        </button>
+                        {/* Edit Button */}
+                        <Link
+                          to={`/app/products/${product.id}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          Edit
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -503,13 +552,42 @@ export default function ProductsIndexPage() {
                     {product.category && (
                       <p className="mt-1 text-xs text-gray-500">{product.category}</p>
                     )}
-                    <Link
-                      to={`/app/products/${product.id}`}
-                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
-                    >
-                      <Pencil className="w-4 h-4" />
-                      Edit
-                    </Link>
+                    <div className="mt-2 flex items-center gap-2">
+                      {/* Ad Link Button - Mobile */}
+                      <button
+                        type="button"
+                        onClick={() => copyAdLink(product.id)}
+                        disabled={!product.isPublished}
+                        title={product.isPublished ? 'Copy Ad Link for Facebook Ads' : 'Publish product first'}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition ${
+                          copiedProductId === product.id
+                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                            : product.isPublished
+                              ? 'text-violet-600 hover:bg-violet-50 border border-violet-200'
+                              : 'text-gray-400 border border-gray-200 cursor-not-allowed'
+                        }`}
+                      >
+                        {copiedProductId === product.id ? (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Rocket className="w-4 h-4" />
+                            Ad Link
+                          </>
+                        )}
+                      </button>
+                      {/* Edit Button - Mobile */}
+                      <Link
+                        to={`/app/products/${product.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Edit
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
