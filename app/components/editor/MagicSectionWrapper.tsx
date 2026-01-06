@@ -5,11 +5,14 @@
  * - Gradient border highlight on hover
  * - Floating "✨ Magic Edit" button
  * - AI edit modal for natural language editing
+ * - Upgrade modal for free users
  */
 
 import { useState, useRef, type ReactNode } from 'react';
 import { Sparkles } from 'lucide-react';
 import { AIEditPanel } from './AIEditPanel';
+import { AIUpgradeModal } from '~/components/modals/AIUpgradeModal';
+import type { PlanType } from '~/utils/plans.server';
 
 interface MagicSectionWrapperProps {
   sectionId: string;
@@ -17,6 +20,7 @@ interface MagicSectionWrapperProps {
   data: unknown;
   onUpdate: (newData: unknown) => void;
   isEditable?: boolean;
+  planType?: PlanType;
   children: ReactNode;
 }
 
@@ -26,10 +30,12 @@ export function MagicSectionWrapper({
   data,
   onUpdate,
   isEditable = true,
+  planType = 'free',
   children,
 }: MagicSectionWrapperProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // Don't add any wrapper if not editable
@@ -37,8 +43,16 @@ export function MagicSectionWrapper({
     return <>{children}</>;
   }
 
+  // Check if user can use AI (paid plans only get unlimited, free gets 5/day)
+  const canUseUnlimitedAI = planType !== 'free';
+
   const handleEditClick = () => {
-    setIsEditing(true);
+    // Free users see upgrade modal, paid users see edit panel
+    if (!canUseUnlimitedAI) {
+      setShowUpgradeModal(true);
+    } else {
+      setIsEditing(true);
+    }
   };
 
   const handleClose = () => {
@@ -133,6 +147,13 @@ export function MagicSectionWrapper({
           onUpdate={handleUpdate}
         />
       )}
+
+      {/* Upgrade Modal for Free Users */}
+      <AIUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        remainingToday={5}
+      />
     </div>
   );
 }

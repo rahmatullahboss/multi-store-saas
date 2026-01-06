@@ -31,13 +31,14 @@ export const meta: MetaFunction = () => {
   return [{ title: 'Register - Multi-Store SaaS' }];
 };
 
-// Redirect if already logged in
+// Redirect if already logged in, otherwise redirect to new onboarding wizard
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await getUserId(request);
   if (userId) {
     return redirect('/app/orders');
   }
-  return json({});
+  // Redirect to new Shopify-style onboarding wizard
+  return redirect('/auth/onboarding');
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
