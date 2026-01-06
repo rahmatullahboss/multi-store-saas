@@ -266,7 +266,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     try {
       const openrouter = createOpenRouter({ apiKey });
       const result = await generateText({
-        model: openrouter('google/gemini-2.0-flash-001'),
+        model: openrouter('xiaomi/mimo-v2-flash:free'),
         system: saasSystemPrompt,
         prompt: message,
       });
@@ -317,7 +317,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     try {
       const openrouter = createOpenRouter({ apiKey });
       const result = await generateText({
-        model: openrouter('google/gemini-2.0-flash-001'),
+        model: openrouter('xiaomi/mimo-v2-flash:free'),
         system: systemPrompt,
         prompt: message,
       });
@@ -355,7 +355,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     try {
       const openrouter = createOpenRouter({ apiKey });
       const result = await generateText({
-        model: openrouter('google/gemini-2.0-flash-001'),
+        model: openrouter('xiaomi/mimo-v2-flash:free'),
         system: systemPrompt,
         prompt: message,
       });
