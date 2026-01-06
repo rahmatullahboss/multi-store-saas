@@ -72,14 +72,14 @@ local_protocol = "http"
 # 3. Configure bindings in Cloudflare Dashboard > Pages > Settings > Functions
 
 # ============================================================================
-# CLOUDFLARE QUEUES - Email Campaign Scheduling
+# CLOUDFLARE QUEUES - Email Campaign Scheduling (DISABLED)
 # ============================================================================
-# Note: Queue consumers are configured in Cloudflare Dashboard for Pages projects
-# First create the queue: npx wrangler queues create email-campaign-queue
-
-[[queues.producers]]
-binding = "EMAIL_QUEUE"
-queue = "email-campaign-queue"
-
-# Note: Queue consumers must be configured in Cloudflare Dashboard > Pages > Settings > Functions
-# for Pages projects. The queues.consumers config is not supported in wrangler.toml for Pages.
+# Queue is disabled for now. Email campaigns will run synchronously.
+# To enable later:
+# 1. Enable Queues at: https://dash.cloudflare.com > Workers > Queues
+# 2. Create queue: npx wrangler queues create email-campaign-queue
+# 3. Uncomment the producer binding below:
+#
+# [[queues.producers]]
+# binding = "EMAIL_QUEUE"
+# queue = "email-campaign-queue"
