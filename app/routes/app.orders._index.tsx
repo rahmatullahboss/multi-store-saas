@@ -18,7 +18,7 @@ import { eq, desc } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { 
   ShoppingCart, Clock, Package, Truck, CheckCircle, XCircle, 
-  Phone, Eye, DollarSign
+  Phone, Eye, DollarSign, ThumbsUp
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
@@ -59,6 +59,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const stats = {
     total: storeOrders.length,
     pending: storeOrders.filter(o => o.status === 'pending').length,
+    confirmed: storeOrders.filter(o => o.status === 'confirmed').length,
     processing: storeOrders.filter(o => o.status === 'processing').length,
     shipped: storeOrders.filter(o => o.status === 'shipped').length,
     delivered: storeOrders.filter(o => o.status === 'delivered').length,
@@ -89,6 +90,7 @@ export default function DashboardOrdersPage() {
   const statusTabs = [
     { id: 'all', label: 'All Orders', count: stats.total },
     { id: 'pending', label: 'Pending', count: stats.pending },
+    { id: 'confirmed', label: 'Confirmed', count: stats.confirmed },
     { id: 'processing', label: 'Processing', count: stats.processing },
     { id: 'shipped', label: 'Shipped', count: stats.shipped },
     { id: 'delivered', label: 'Delivered', count: stats.delivered },
@@ -371,6 +373,12 @@ function StatusBadge({ status }: { status: string }) {
       bg: 'bg-yellow-100', 
       text: 'text-yellow-700', 
       label: 'Pending' 
+    },
+    confirmed: { 
+      icon: ThumbsUp, 
+      bg: 'bg-cyan-100', 
+      text: 'text-cyan-700', 
+      label: 'Confirmed' 
     },
     processing: { 
       icon: Package, 

@@ -141,7 +141,7 @@ export const orders = sqliteTable('orders', {
   customerName: text('customer_name'),
   shippingAddress: text('shipping_address'), // JSON object
   billingAddress: text('billing_address'), // JSON object
-  status: text('status').$type<'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>().default('pending'),
+  status: text('status').$type<'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>().default('pending'),
   paymentStatus: text('payment_status').$type<'pending' | 'paid' | 'failed' | 'refunded'>().default('pending'),
   subtotal: real('subtotal').notNull(),
   tax: real('tax').default(0),
