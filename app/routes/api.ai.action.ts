@@ -137,13 +137,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
           return json({ error: 'Section name and edit prompt required' }, { status: 400 });
         }
 
-        const result = await ai.editSection(
-          payload.sectionName,
-          payload.currentData || {},
-          payload.editPrompt
-        );
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
-        return json({ success: true, data: result });
+        try {
+          const result = await ai.editSection(
+            payload.sectionName,
+            payload.currentData || {},
+            payload.editPrompt
+          );
+          await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+          return json({ success: true, data: result });
+        } catch (editError) {
+          // Specific handling for JSON parsing failures
+          if (editError instanceof SyntaxError || 
+              (editError instanceof Error && editError.message.includes('JSON'))) {
+            console.error('[AI Action] JSON parsing failed:', editError);
+            return json({
+              error: 'AI returned invalid format. Please try rephrasing your request.',
+              code: 'JSON_PARSE_ERROR',
+            }, { status: 422 });
+          }
+          // Zod validation failures (imported at top)
+          if (editError && typeof editError === 'object' && 'issues' in editError) {
+            console.error('[AI Action] Schema validation failed:', editError);
+            return json({
+              error: 'AI response did not match expected format. Please try again.',
+              code: 'SCHEMA_VALIDATION_ERROR',
+            }, { status: 422 });
+          }
+          // Re-throw unknown errors to be caught by outer handler
+          throw editError;
+        }
       }
 
       case 'ENHANCE_TEXT': {

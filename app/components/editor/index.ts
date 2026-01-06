@@ -6,3 +6,4 @@
 
 export { MagicSectionWrapper } from './MagicSectionWrapper';
 export { AIEditPanel } from './AIEditPanel';
+export { EditorSaveBar } from './EditorSaveBar';

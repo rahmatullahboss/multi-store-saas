@@ -18,6 +18,7 @@ import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { createPathaoClient } from '~/services/pathao.server';
+import { createSteadfastClient } from '~/services/steadfast.server';
 import { 
   Truck, 
   Settings, 
@@ -182,6 +183,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
 
+    // Also save to courierSettings for Steadfast/RedX
+    if (provider === 'steadfast' || provider === 'redx') {
+      await db
+        .update(stores)
+        .set({ 
+          courierSettings: JSON.stringify(courierSettings),
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId));
+    }
+
     return json({ success: true, message: 'Credentials saved!' });
   }
 
@@ -224,6 +236,43 @@ export async function action({ request, context }: ActionFunctionArgs) {
             success: true, 
             message: 'Connection successful!',
             stores: pathaoStores,
+          });
+        } else {
+          return json({ error: 'Connection failed. Check your credentials.' });
+        }
+      } catch (error) {
+        return json({ error: `Connection error: ${String(error)}` });
+      }
+    }
+
+    // Steadfast test connection
+    if (courierSettings.provider === 'steadfast' && courierSettings.steadfast) {
+      try {
+        const client = createSteadfastClient({
+          apiKey: courierSettings.steadfast.apiKey,
+          secretKey: courierSettings.steadfast.secretKey,
+        });
+
+        const connected = await client.testConnection();
+
+        if (connected) {
+          // Update connection status and save to courierSettings field
+          courierSettings.isConnected = true;
+          
+          await db
+            .update(stores)
+            .set({ 
+              courierSettings: JSON.stringify(courierSettings),
+              themeConfig: JSON.stringify(themeConfig),
+              updatedAt: new Date(),
+            })
+            .where(eq(stores.id, storeId));
+
+          const balance = await client.getBalance();
+          
+          return json({ 
+            success: true, 
+            message: `Connected! Balance: ৳${balance.current_balance}`,
           });
         } else {
           return json({ error: 'Connection failed. Check your credentials.' });
@@ -464,13 +513,12 @@ export default function CourierSettingsPage() {
             </div>
           )}
 
-          {/* RedX / Steadfast Fields */}
-          {(selectedProvider === 'redx' || selectedProvider === 'steadfast') && (
+          {/* RedX Fields (Still coming soon) */}
+          {selectedProvider === 'redx' && (
             <div className="space-y-4">
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
                 <AlertCircle className="w-4 h-4 inline mr-1" />
-                {selectedProvider === 'redx' ? 'RedX' : 'Steadfast'} integration coming soon!
-                Contact your {selectedProvider === 'redx' ? 'RedX' : 'Steadfast'} account manager for API credentials.
+                RedX integration coming soon! Contact your RedX account manager for API credentials.
               </div>
 
               <div className="grid grid-cols-2 gap-4 opacity-50">
@@ -500,13 +548,54 @@ export default function CourierSettingsPage() {
             </div>
           )}
 
+          {/* Steadfast Fields */}
+          {selectedProvider === 'steadfast' && (
+            <div className="space-y-4">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-sm text-emerald-800">
+                <p className="font-medium mb-1">📋 How to get Steadfast credentials:</p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Login to <a href="https://portal.packzy.com" target="_blank" rel="noopener noreferrer" className="underline">portal.packzy.com</a></li>
+                  <li>Go to Settings → API Settings</li>
+                  <li>Copy your API Key and Secret Key</li>
+                </ol>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    API Key
+                  </label>
+                  <input
+                    type="text"
+                    name="apiKey"
+                    defaultValue={settings.steadfast?.apiKey || ''}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Secret Key
+                  </label>
+                  <input
+                    type="password"
+                    name="secretKey"
+                    placeholder={settings.steadfast?.secretKey || 'Enter secret key'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    required={!settings.steadfast?.secretKey}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200">
             <button
               type="submit"
               name="intent"
               value="save"
-              disabled={isSubmitting || selectedProvider !== 'pathao'}
+              disabled={isSubmitting || (selectedProvider !== 'pathao' && selectedProvider !== 'steadfast')}
               className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
             >
               {isSubmitting ? (

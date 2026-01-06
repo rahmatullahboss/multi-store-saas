@@ -55,10 +55,9 @@ export function ChatWidget({
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const isLoading = fetcher.state === 'submitting';
   
   // Use lang for language checks
   const language = lang;
@@ -123,11 +122,46 @@ export function ChatWidget({
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
-    // Send to API
-    fetcher.submit(
-      { message: input.trim(), storeId: storeId || '' },
-      { method: 'POST', action: '/api/chat', encType: 'application/json' }
-    );
+    // Send to API using native fetch (bypass Remix single-fetch .data suffix)
+    const formData = new FormData();
+    formData.append('message', input.trim());
+    formData.append('storeId', String(storeId || ''));
+    
+    fetch('/api/chat', {
+      method: 'POST',
+      body: formData,
+    })
+      .then(res => res.json() as Promise<{ success?: boolean; response?: string; error?: string }>)
+      .then((data) => {
+        if (data.success && data.response) {
+          const assistantMessage: Message = {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: data.response,
+            timestamp: Date.now(),
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+        } else if (data.error) {
+          setMessages(prev => [...prev, {
+            id: `error-${Date.now()}`,
+            role: 'assistant',
+            content: `Error: ${data.error}`,
+            timestamp: Date.now(),
+          }]);
+        }
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setMessages(prev => [...prev, {
+          id: `error-${Date.now()}`,
+          role: 'assistant',
+          content: 'Failed to connect to AI service',
+          timestamp: Date.now(),
+        }]);
+        setIsLoading(false);
+      });
+    
+    setIsLoading(true);
   };
 
   // Handle Enter key
@@ -211,8 +245,8 @@ export function ChatWidget({
             </button>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          {/* Messages Area - flex-col to start from top */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 flex flex-col">
             {/* Welcome message */}
             {messages.length === 0 && (
               <div className="flex gap-3">

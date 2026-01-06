@@ -186,29 +186,46 @@ ${productList || 'No specific products found. Ask what they are looking for!'}
 }
 
 // ============================================================================
+// LOADER - Required for Remix single-fetch compatibility
+// ============================================================================
+export async function loader() {
+  return json({ error: 'Method not allowed' }, { status: 405 });
+}
+
+// ============================================================================
 // MAIN ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
+  console.log('[AI Chat] Action started');
+  
   const { env } = context.cloudflare;
   const db = drizzle(env.DB);
 
-  // Parse request
-  let payload: ChatRequest;
+  // Parse request - Remix fetcher sends FormData by default
+  let message: string;
+  let clientStoreId: number | undefined;
+  
   try {
-    payload = await request.json();
-  } catch {
+    const formData = await request.formData();
+    message = formData.get('message')?.toString() || '';
+    const storeIdStr = formData.get('storeId')?.toString();
+    clientStoreId = storeIdStr ? parseInt(storeIdStr) : undefined;
+    console.log('[AI Chat] Parsed message:', message, 'storeId:', clientStoreId);
+  } catch (err) {
+    console.error('[AI Chat] FormData parse error:', err);
     return json({ error: 'Invalid request' }, { status: 400 });
   }
 
-  const { message, storeId: clientStoreId } = payload;
-
   if (!message) {
+    console.log('[AI Chat] No message provided');
     return json({ error: 'Message required' }, { status: 400 });
   }
 
   // Get API key
   const apiKey = env.OPENROUTER_API_KEY;
+  console.log('[AI Chat] API Key present:', !!apiKey);
   if (!apiKey) {
+    console.error('[AI Chat] OPENROUTER_API_KEY not configured');
     return json({ error: 'AI service not configured' }, { status: 503 });
   }
 

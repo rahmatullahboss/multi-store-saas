@@ -65,6 +65,57 @@ export type LandingConfigResult = z.infer<typeof LandingConfigSchema>;
 export const SectionEditSchema = z.record(z.unknown());
 
 // ============================================================================
+// SECTION-SPECIFIC SCHEMAS
+// ============================================================================
+
+// Hero section schema
+export const HeroSectionSchema = z.object({
+  headline: z.string().min(1),
+  subheadline: z.string().optional(),
+  ctaText: z.string().optional(),
+  ctaSubtext: z.string().optional(),
+});
+
+// Feature item schema
+export const FeatureSchema = z.object({
+  icon: z.string(),
+  title: z.string(),
+  description: z.string(),
+});
+
+// Features section schema (array of features)
+export const FeaturesSectionSchema = z.array(FeatureSchema);
+
+// Testimonial schema
+export const TestimonialSchema = z.object({
+  name: z.string(),
+  text: z.string(),
+  avatar: z.string().optional(),
+});
+
+// Testimonials section schema
+export const TestimonialsSectionSchema = z.array(TestimonialSchema);
+
+// Theme/Colors config schema
+export const ThemeConfigSchema = z.object({
+  primaryColor: z.string().optional(),
+  secondaryColor: z.string().optional(),
+  accentColor: z.string().optional(),
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
+});
+
+// Section schema map for validation
+const SECTION_SCHEMAS: Record<string, z.ZodSchema> = {
+  hero: HeroSectionSchema,
+  features: FeaturesSectionSchema,
+  testimonials: TestimonialsSectionSchema,
+  theme: ThemeConfigSchema,
+  colors: ThemeConfigSchema,
+  themeConfig: ThemeConfigSchema,
+};
+
+// ============================================================================
 // HELPER: Make OpenRouter API call
 // ============================================================================
 async function callAI(
@@ -195,32 +246,104 @@ Generate landing page JSON:`;
 }
 
 // ============================================================================
-// ACTION: Edit Section
+// ACTION: Edit Section (Strict JSON Enforcement)
 // ============================================================================
+
+// Strict system prompt for JSON-only responses
+const EDIT_SECTION_SYSTEM_PROMPT = `You are a UI Configuration Assistant. You receive a JSON object representing a website section and a user request.
+
+Your task: Modify the JSON values based on the request.
+
+Rules:
+1. RETURN ONLY JSON. No markdown, no explanations, no code fences.
+2. Do NOT change keys or data structure. Only change values.
+3. Maintain professional, high-converting copywriting.
+4. If asked to add items (e.g., "add a feature", "add a testimonial"), append new items to the existing array.
+5. For theme/color changes, update the appropriate color values in hex format (e.g., "#3B82F6" for blue).
+6. Keep text concise and impactful.
+7. For Bengali products, use Bengali language in the copy.`;
+
+// Detect if the prompt is asking to add items to an array
+function isAddItemIntent(prompt: string): boolean {
+  const addPatterns = [
+    /add\s+(a\s+)?(new\s+)?feature/i,
+    /add\s+(a\s+)?(new\s+)?benefit/i,
+    /add\s+(a\s+)?(new\s+)?testimonial/i,
+    /add\s+(a\s+)?(new\s+)?review/i,
+    /add\s+\d+\s+more/i,
+    /include\s+(a\s+)?new/i,
+    /append/i,
+  ];
+  return addPatterns.some(pattern => pattern.test(prompt));
+}
+
+// Detect theme/color change intent
+function isThemeChangeIntent(prompt: string): boolean {
+  const themePatterns = [
+    /change\s+(the\s+)?(theme|color|primary|secondary|accent)/i,
+    /make\s+it\s+(blue|red|green|purple|orange|pink|yellow)/i,
+    /use\s+(blue|red|green|purple|orange|pink|yellow)/i,
+    /(primary|secondary|accent)\s+color/i,
+  ];
+  return themePatterns.some(pattern => pattern.test(prompt));
+}
+
 export async function editSection(
   apiKey: string,
   sectionName: string,
   currentData: unknown,
   editPrompt: string
 ): Promise<unknown> {
-  const systemPrompt = `You are an expert copywriter editing a landing page section.
+  // Normalize section name for schema lookup
+  const normalizedSection = sectionName.toLowerCase().replace(/[^a-z]/g, '');
+  
+  // Detect special intents
+  const isAddIntent = isAddItemIntent(editPrompt);
+  const isThemeIntent = isThemeChangeIntent(editPrompt);
+  
+  // Build context-aware user prompt
+  let contextHint = '';
+  if (isAddIntent && (normalizedSection === 'features' || normalizedSection === 'testimonials')) {
+    contextHint = '\n\nIMPORTANT: The user wants to ADD new items. Append new items to the array while keeping all existing items intact.';
+  }
+  if (isThemeIntent) {
+    contextHint = '\n\nIMPORTANT: The user wants to change colors. Use hex color codes (e.g., "#3B82F6" for blue, "#EF4444" for red, "#10B981" for green).';
+  }
 
-The user wants to modify the "${sectionName}" section. Apply their requested changes while:
-- Keeping the same JSON structure
-- Improving the copy if possible
-- Following their specific instructions
+  const userPrompt = `Section: ${sectionName}
 
-Return ONLY the updated JSON for this section, no explanations.`;
-
-  const userPrompt = `Current ${sectionName} section:
+Current JSON:
 ${JSON.stringify(currentData, null, 2)}
 
-User's request: "${editPrompt}"
+User's request: "${editPrompt}"${contextHint}
 
-Return the updated JSON for this section only:`;
+Return ONLY the updated JSON:`;
 
-  const response = await callAI(apiKey, systemPrompt, userPrompt);
-  const parsed = extractJSON(response);
+  const response = await callAI(apiKey, EDIT_SECTION_SYSTEM_PROMPT, userPrompt);
+  
+  // Parse JSON from response
+  let parsed: unknown;
+  try {
+    parsed = extractJSON(response);
+  } catch (parseError) {
+    console.error('[AI editSection] JSON parse failed:', response.substring(0, 500));
+    throw new Error(`Failed to parse AI response as JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+  }
+  
+  // Validate against section-specific schema if available
+  const schema = SECTION_SCHEMAS[normalizedSection];
+  if (schema) {
+    try {
+      return schema.parse(parsed);
+    } catch (validationError) {
+      // Log but don't fail - the AI might return a slightly different structure
+      console.warn('[AI editSection] Schema validation warning:', validationError);
+      // Return parsed data anyway for flexibility
+      return parsed;
+    }
+  }
+  
+  // No schema for this section, return as-is
   return parsed;
 }
 
