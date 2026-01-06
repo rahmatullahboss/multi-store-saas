@@ -26,7 +26,16 @@
 - [x] Injected pixel script in `root.tsx`
 - [x] Added settings UI in SEO settings page
 
-### 4. Manual bKash/Nagad Payment
+### 4. Landing Page MVP Features ✅ COMPLETE
+
+- [x] **Countdown Timer** - 3 variants (default, compact, banner)
+- [x] **Stock Counter** - Low stock warning with progress bar
+- [x] **Social Proof Popup** - "X just ordered" notifications
+- [x] **WhatsApp Order Button** - Direct WhatsApp ordering
+- [x] **Product Gallery** - Multi-image with thumbnails/zoom
+- [x] **Variant Selector** - Size/Color selection (buttons/colors/dropdown)
+
+### 5. Manual bKash/Nagad Payment
 
 - [ ] Add manual payment fields to stores schema
 - [ ] Create payment method selection at checkout

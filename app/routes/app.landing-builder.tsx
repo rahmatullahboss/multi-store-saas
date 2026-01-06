@@ -21,7 +21,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Eye, Sparkles, Save, 
-  Layout, Settings, Palette, MessageCircle, ExternalLink
+  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -189,6 +189,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const whatsappEnabled = formData.get('whatsappEnabled') === 'true';
     const whatsappNumber = formData.get('whatsappNumber') as string || '';
     const whatsappMessage = formData.get('whatsappMessage') as string || '';
+    const testimonials = JSON.parse(formData.get('testimonials') as string || '[]');
 
     const newConfig: LandingConfig = {
       templateId,
@@ -203,6 +204,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       whatsappEnabled,
       whatsappNumber,
       whatsappMessage,
+      testimonials: testimonials.filter((t: {name: string; imageUrl?: string}) => t.name && t.imageUrl), // Only save testimonials with photo
     };
 
     await db
@@ -249,9 +251,12 @@ export default function LandingBuilderPage() {
   const [ctaSubtext, setCtaSubtext] = useState(store.landingConfig.ctaSubtext || '');
   const [urgencyText, setUrgencyText] = useState(store.landingConfig.urgencyText || '');
   const [videoUrl, setVideoUrl] = useState(store.landingConfig.videoUrl || '');
+  
+  // Testimonials state
+  const [testimonials, setTestimonials] = useState<Array<{name: string; text?: string; imageUrl?: string}>>(store.landingConfig.testimonials || []);
 
   // Current tab
-  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'whatsapp'>('template');
+  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'testimonials' | 'whatsapp'>('template');
 
   // Show success message
   useEffect(() => {
@@ -338,6 +343,7 @@ export default function LandingBuilderPage() {
                 <input type="hidden" name="whatsappEnabled" value={whatsappEnabled.toString()} />
                 <input type="hidden" name="whatsappNumber" value={whatsappNumber} />
                 <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
+                <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
                 
                 <button
                   type="submit"
@@ -375,6 +381,7 @@ export default function LandingBuilderPage() {
             { id: 'template', icon: Palette, label: 'টেমপ্লেট', labelEn: 'Template' },
             { id: 'content', icon: Settings, label: 'কন্টেন্ট', labelEn: 'Content' },
             { id: 'sections', icon: Layout, label: 'সেকশন', labelEn: 'Sections' },
+            { id: 'testimonials', icon: Star, label: 'টেস্টিমোনিয়াল', labelEn: 'Testimonials' },
             { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', labelEn: 'WhatsApp' },
           ].map((tab) => (
             <button
@@ -553,6 +560,121 @@ export default function LandingBuilderPage() {
                 onOrderChange={setSectionOrder}
                 onVisibilityChange={handleVisibilityChange}
               />
+            )}
+
+            {activeTab === 'testimonials' && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {language === 'bn' ? 'কাস্টমার টেস্টিমোনিয়াল' : 'Customer Testimonials'}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {language === 'bn' ? 'ফটো দিন - সেরা কনভার্শন!' : 'Add photos - best for conversions!'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTestimonials([...testimonials, { name: '', imageUrl: '' }])}
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {language === 'bn' ? 'যোগ করুন' : 'Add'}
+                  </button>
+                </div>
+
+                {testimonials.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl">
+                    <Image className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500">
+                      {language === 'bn' ? 'কোনো টেস্টিমোনিয়াল নেই। উপরের বাটনে ক্লিক করুন।' : 'No testimonials. Click the button above.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {testimonials.map((testimonial, index) => (
+                      <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                        <div className="flex items-start gap-4">
+                          {/* Photo Preview */}
+                          <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                            {testimonial.imageUrl ? (
+                              <img 
+                                src={testimonial.imageUrl} 
+                                alt="Customer" 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <Image className="w-8 h-8" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Fields */}
+                          <div className="flex-1 space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">
+                                {language === 'bn' ? 'গ্রাহকের নাম' : 'Customer Name'}
+                              </label>
+                              <input
+                                type="text"
+                                value={testimonial.name}
+                                onChange={(e) => {
+                                  const updated = [...testimonials];
+                                  updated[index].name = e.target.value;
+                                  setTestimonials(updated);
+                                }}
+                                placeholder="রহমান সাহেব"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">
+                                {language === 'bn' ? 'ফটো URL' : 'Photo URL'}
+                              </label>
+                              <input
+                                type="url"
+                                value={testimonial.imageUrl || ''}
+                                onChange={(e) => {
+                                  const updated = [...testimonials];
+                                  updated[index].imageUrl = e.target.value;
+                                  setTestimonials(updated);
+                                }}
+                                placeholder="https://..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                              />
+                              <p className="text-xs text-gray-400 mt-1">
+                                {language === 'bn' ? 'Cloudinary বা অন্য হোস্ট থেকে URL দিন' : 'Use Cloudinary or another image host'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Delete Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = testimonials.filter((_, i) => i !== index);
+                              setTestimonials(updated);
+                            }}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Tip */}
+                <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                  <p className="text-sm text-amber-800">
+                    💡 {language === 'bn' 
+                      ? 'টিপ: গ্রাহকের স্ক্রিনশট বা প্রোডাক্ট সাথে ছবি দিলে ৩০%+ বেশি কনভার্ট হয়!' 
+                      : 'Tip: Screenshots or photos with product convert 30%+ better!'}
+                  </p>
+                </div>
+              </div>
             )}
 
             {activeTab === 'whatsapp' && (

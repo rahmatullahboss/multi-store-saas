@@ -12,8 +12,9 @@ export interface LandingConfig {
   ctaSubtext?: string;
   testimonials?: {
     name: string;
-    text: string;
+    text?: string; // Optional - can show just photo
     avatar?: string;
+    imageUrl?: string; // Customer photo/screenshot
   }[];
   features?: {
     icon: string;
@@ -41,6 +42,14 @@ export interface LandingConfig {
   countdownEnabled?: boolean;
   countdownEndTime?: string; // ISO date string
   countdownText?: string; // e.g., "অফার শেষ হতে বাকি"
+  // Stock Counter Display
+  showStockCounter?: boolean;
+  lowStockThreshold?: number; // Show warning below this number
+  // Social Proof Popup
+  showSocialProof?: boolean;
+  socialProofInterval?: number; // Seconds between popups
+  // Product Gallery
+  productImages?: string[]; // Additional product images
 }
 
 // Store template configuration for full store mode

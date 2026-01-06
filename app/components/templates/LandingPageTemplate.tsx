@@ -108,6 +108,14 @@ import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { MagicSectionWrapper } from '~/components/editor';
 import { ChatWidget } from '~/components/ai/ChatWidget';
 import { BD_DIVISIONS, calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
+import { CountdownTimer, StockCounter, SocialProofPopup, WhatsAppOrderButton } from '~/components/landing';
+import { WhatsAppButton } from '~/components/WhatsAppButton';
+
+// Helper to check if section should be visible
+const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
+  if (!hiddenSections || hiddenSections.length === 0) return true;
+  return !hiddenSections.includes(sectionId);
+};
 
 // Serialized product type (JSON dates become strings)
 interface SerializedProduct {
@@ -293,6 +301,16 @@ export function LandingPageTemplate({
           <p className="text-sm md:text-base font-bold">
             🔥 {editableConfig.urgencyText} 🔥
           </p>
+        </div>
+      )}
+
+      {/* Countdown Timer */}
+      {editableConfig.countdownEnabled && editableConfig.countdownEndTime && (
+        <div className={`py-6 ${theme.bgSecondary}`}>
+          <CountdownTimer
+            endDate={editableConfig.countdownEndTime}
+            variant="banner"
+          />
         </div>
       )}
 
@@ -500,7 +518,8 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 4: Features (from config) */}
       {/* ============================================ */}
-      {editableConfig.features && editableConfig.features.length > 0 && (
+      {editableConfig.features && editableConfig.features.length > 0 && 
+       isSectionVisible('features', editableConfig.hiddenSections) && (
         <MagicSectionWrapper
           sectionId="features"
           sectionLabel="Product Features"
@@ -540,7 +559,7 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 5: Video Embed */}
       {/* ============================================ */}
-      {editableConfig.videoUrl && (
+      {editableConfig.videoUrl && isSectionVisible('video', editableConfig.hiddenSections) && (
         <MagicSectionWrapper
           sectionId="video"
           sectionLabel="Video Section"
@@ -639,9 +658,11 @@ export function LandingPageTemplate({
       </section>
 
       {/* ============================================ */}
-      {/* SECTION 7: Testimonials */}
+      {/* SECTION 7: Testimonials (Photo-focused) */}
       {/* ============================================ */}
-      {editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
+      {editableConfig.testimonials && editableConfig.testimonials.length > 0 && 
+       editableConfig.testimonials.some(t => t.imageUrl || t.text) &&
+       isSectionVisible('testimonials', editableConfig.hiddenSections) && (
         <MagicSectionWrapper
           sectionId="testimonials"
           sectionLabel="Testimonials"
@@ -659,19 +680,37 @@ export function LandingPageTemplate({
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {editableConfig.testimonials.map((testimonial, i) => (
-                  <div key={i} className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
-                    <div className="flex items-center gap-1 text-yellow-500 text-xl mb-4">
-                      {'★'.repeat(5)}
-                    </div>
-                    <p className="text-gray-700 text-lg mb-6 italic">"{testimonial.text}"</p>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg">
-                        {testimonial.name[0]}
+                {editableConfig.testimonials
+                  .filter(t => t.imageUrl || t.text) // Only show testimonials with image or text
+                  .map((testimonial, i) => (
+                  <div key={i} className="bg-gray-50 rounded-3xl overflow-hidden border border-gray-100">
+                    {/* Customer Photo - Main Focus */}
+                    {testimonial.imageUrl && (
+                      <div className="aspect-square w-full overflow-hidden">
+                        <img 
+                          src={testimonial.imageUrl} 
+                          alt={`${testimonial.name}'s review`}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <div>
-                        <p className="font-bold text-gray-900">{testimonial.name}</p>
-                        <p className="text-sm text-gray-500">সন্তুষ্ট গ্রাহক</p>
+                    )}
+                    
+                    {/* Customer Info Footer */}
+                    <div className="p-4">
+                      <div className="flex items-center gap-1 text-yellow-500 text-lg mb-2">
+                        {'★'.repeat(5)}
+                      </div>
+                      {testimonial.text && (
+                        <p className="text-gray-700 text-sm mb-3 line-clamp-2">"{testimonial.text}"</p>
+                      )}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold">
+                          {testimonial.name[0]}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-sm">{testimonial.name}</p>
+                          <p className="text-xs text-gray-500">সন্তুষ্ট গ্রাহক ✓</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -744,39 +783,45 @@ export function LandingPageTemplate({
       </section>
 
       {/* ============================================ */}
-      {/* SECTION 9: FAQ */}
+      {/* SECTION 9: FAQ (Custom or Default) */}
       {/* ============================================ */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-              {t('faq')}
-            </h2>
-            <p className="text-xl text-gray-600">{t('yourQuestionAnswers')}</p>
+      {isSectionVisible('faq', editableConfig.hiddenSections) && (
+        <section className="py-16 bg-white">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                {t('faq')}
+              </h2>
+              <p className="text-xl text-gray-600">{t('yourQuestionAnswers')}</p>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Use custom FAQs from config if available, otherwise use defaults */}
+              {(editableConfig.faq && editableConfig.faq.length > 0 
+                ? editableConfig.faq.map(f => ({ q: f.question, a: f.answer }))
+                : [
+                    { q: t('faqDeliveryQ'), a: t('faqDeliveryA') },
+                    { q: t('faqPaymentQ'), a: t('faqPaymentA') },
+                    { q: t('faqOriginalQ'), a: t('faqOriginalA') },
+                    { q: t('faqReturnQ'), a: t('faqReturnA') },
+                    { q: t('faqChargeQ'), a: t('faqChargeA') },
+                    { q: t('faqConfirmQ'), a: t('faqConfirmA') },
+                  ]
+              ).map((faq, i) => (
+                <div key={i} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                  <h4 className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                    <span className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                      ?
+                    </span>
+                    {faq.q}
+                  </h4>
+                  <p className="text-gray-600 mt-3 ml-11">{faq.a}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          
-          <div className="space-y-4">
-            {[
-              { q: t('faqDeliveryQ'), a: t('faqDeliveryA') },
-              { q: t('faqPaymentQ'), a: t('faqPaymentA') },
-              { q: t('faqOriginalQ'), a: t('faqOriginalA') },
-              { q: t('faqReturnQ'), a: t('faqReturnA') },
-              { q: t('faqChargeQ'), a: t('faqChargeA') },
-              { q: t('faqConfirmQ'), a: t('faqConfirmA') },
-            ].map((faq, i) => (
-              <div key={i} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                <h4 className="text-lg font-bold text-gray-900 flex items-start gap-3">
-                  <span className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">
-                    ?
-                  </span>
-                  {faq.q}
-                </h4>
-                <p className="text-gray-600 mt-3 ml-11">{faq.a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ============================================ */}
       {/* SECTION 10: Guarantee */}
@@ -1233,6 +1278,23 @@ export function LandingPageTemplate({
           mode="customer" 
           storeId={storeId}
           accentColor="#f97316"
+        />
+      )}
+
+      {/* Social Proof Popup - Shows "X just ordered" notifications */}
+      {editableConfig.showSocialProof && (
+        <SocialProofPopup
+          productName={product.title}
+          interval={editableConfig.socialProofInterval || 15}
+        />
+      )}
+
+      {/* WhatsApp Floating Button - Shows on all devices */}
+      {editableConfig.whatsappEnabled && editableConfig.whatsappNumber && (
+        <WhatsAppButton
+          phoneNumber={editableConfig.whatsappNumber}
+          message={editableConfig.whatsappMessage || `হ্যালো, আমি ${product.title} প্রোডাক্টটি সম্পর্কে জানতে চাই।`}
+          storeName={storeName}
         />
       )}
     </div>
