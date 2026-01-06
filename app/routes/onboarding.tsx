@@ -109,10 +109,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const db = drizzle(env.DB);
       const storeId = result.storeId!;
 
-      // 2. Update plan type
+      // 2. Update plan type and onboarding status
       await db
         .update(stores)
-        .set({ planType: plan })
+        .set({ 
+          planType: plan,
+          onboardingStatus: 'pending_info',
+          setupStep: 1,
+        })
         .where(eq(stores.id, storeId));
 
       // 3. Generate AI content if API key available
@@ -149,12 +153,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
             guaranteeText: landingConfig.trust?.guaranteeText,
           };
 
-          // Update store with AI-generated content
+          // Update store with AI-generated content and mark onboarding as completed
           await db
             .update(stores)
             .set({
               name: storeSetup.storeName,
               landingConfig: JSON.stringify(fullLandingConfig),
+              onboardingStatus: 'completed',
+              setupStep: 4,
               updatedAt: new Date(),
             })
             .where(eq(stores.id, storeId));
@@ -203,6 +209,7 @@ export default function OnboardingPage() {
     description: '',
     category: 'fashion',
     plan: 'free' as PlanType,
+    theme: 'minimal' as 'minimal' | 'vibrant',
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -296,7 +303,7 @@ export default function OnboardingPage() {
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 py-8">
         {/* Progress Steps */}
-        {currentStep < 5 && <OnboardingSteps currentStep={currentStep} />}
+        {currentStep < 6 && <OnboardingSteps currentStep={currentStep} totalSteps={5} />}
 
         {/* Step Content */}
         <div className="bg-white rounded-3xl shadow-xl p-8">
@@ -415,8 +422,48 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 4: AI Generation */}
+          {/* Step 4: Theme Selection */}
           {currentStep === 4 && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-900">Choose Your Style</h1>
+                <p className="text-gray-600 mt-2">আপনার স্টাইল সিলেক্ট করুন</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => updateField('theme', 'minimal')}
+                  className={`p-6 rounded-2xl border-2 text-left transition-all ${
+                    formData.theme === 'minimal'
+                      ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-4xl mb-3">🌿</div>
+                  <h3 className="font-bold text-lg text-gray-900">Minimal</h3>
+                  <p className="text-sm text-gray-500 mt-1">Clean, simple, elegant</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => updateField('theme', 'vibrant')}
+                  className={`p-6 rounded-2xl border-2 text-left transition-all ${
+                    formData.theme === 'vibrant'
+                      ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-4xl mb-3">🎨</div>
+                  <h3 className="font-bold text-lg text-gray-900">Vibrant</h3>
+                  <p className="text-sm text-gray-500 mt-1">Bold, colorful, eye-catching</p>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: AI Generation */}
+          {currentStep === 5 && (
             <div>
               <AISetupProgress 
                 isGenerating={isGenerating || isSubmitting} 
@@ -427,7 +474,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 5: Success (handled by redirect) */}
+          {/* Step 6: Success (handled by redirect) */}
 
           {/* Error Display */}
           {errors.form && (
@@ -437,7 +484,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Navigation Buttons */}
-          {currentStep < 4 && (
+          {currentStep < 5 && (
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
               {currentStep > 1 ? (
                 <button
@@ -452,7 +499,7 @@ export default function OnboardingPage() {
                 <div />
               )}
 
-              {currentStep < 3 ? (
+              {currentStep < 4 ? (
                 <button
                   type="button"
                   onClick={handleNext}
@@ -465,7 +512,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setCurrentStep(4);
+                    setCurrentStep(5);
                     handleSubmit();
                   }}
                   disabled={isSubmitting}
