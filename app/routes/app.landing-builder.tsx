@@ -605,14 +605,16 @@ export default function LandingBuilderPage() {
                 </button>
               </div>
 
-              {/* Preview Toggle Button - Navigate to Live Editor */}
-              <Link
-                to="/app/landing-live-editor"
+              {/* Preview Toggle Button - Navigate to Live Editor in New Tab */}
+              <a
+                href="/app/landing-live-editor"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hidden lg:inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition font-medium"
               >
                 <Eye className="w-4 h-4" />
                 {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
-              </Link>
+              </a>
 
               {/* Open in New Tab */}
               <a
@@ -1800,14 +1802,16 @@ export default function LandingBuilderPage() {
 
       {/* Mobile Floating Action Bar */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between gap-3 z-50 shadow-lg">
-        {/* Preview Button - Navigate to Live Editor */}
-        <Link
-          to="/app/landing-live-editor"
+        {/* Preview Button - Navigate to Live Editor in New Tab */}
+        <a
+          href="/app/landing-live-editor"
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg"
         >
           <Eye className="w-4 h-4" />
           {language === 'bn' ? 'লাইভ এডিটর' : 'Live Editor'}
-        </Link>
+        </a>
         
         {/* Save Button */}
         <Form 
