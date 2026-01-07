@@ -23,7 +23,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Eye, Sparkles, Save, 
-  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp, Paintbrush, Smartphone, Monitor, Rocket
+  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp, Paintbrush, Rocket
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -355,10 +355,6 @@ export default function LandingBuilderPage() {
   // Store Mode state (landing or store)
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
 
-  // Preview panel state
-  const [showPreview, setShowPreview] = useState(true);
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('mobile');
-
   // Current tab
   const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp' | 'colors' | 'settings'>('template');
 
@@ -585,38 +581,18 @@ export default function LandingBuilderPage() {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Device Toggle for Preview */}
-              <div className="hidden lg:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                <button
-                  type="button"
-                  onClick={() => setPreviewDevice('mobile')}
-                  className={`p-2 rounded-md transition ${previewDevice === 'mobile' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  title="Mobile Preview"
-                >
-                  <Smartphone className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewDevice('desktop')}
-                  className={`p-2 rounded-md transition ${previewDevice === 'desktop' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  title="Desktop Preview"
-                >
-                  <Monitor className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Preview Toggle Button - Navigate to Live Editor in New Tab */}
+              {/* Live Editor Button - Opens in New Tab */}
               <a
                 href="/app/landing-live-editor"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden lg:inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition font-medium"
               >
                 <Eye className="w-4 h-4" />
-                {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
+                {language === 'bn' ? 'লাইভ এডিটর' : 'Live Editor'}
               </a>
 
-              {/* Open in New Tab */}
+              {/* Open Store in New Tab */}
               <a
                 href={previewUrl}
                 target="_blank"
@@ -731,10 +707,10 @@ export default function LandingBuilderPage() {
         </div>
       )}
 
-      {/* Main Content - Split View */}
-      <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 64px - 56px)' }}>
-        {/* Left Panel - Settings */}
-        <div className={`${showPreview ? 'w-full lg:w-1/2 xl:w-2/5' : 'w-full'} overflow-y-auto bg-gray-50 p-4 lg:p-6 pb-24 lg:pb-6`}>
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto" style={{ height: 'calc(100vh - 64px - 56px)' }}>
+        {/* Settings Panel - Full Width */}
+        <div className="max-w-5xl mx-auto p-4 lg:p-6 pb-24 lg:pb-6">
           {/* Tabs - Compact on mobile */}
           <div className="flex gap-1.5 sm:gap-2 mb-4 overflow-x-auto pb-2 -mx-2 px-2">
           {[
@@ -1756,48 +1732,6 @@ export default function LandingBuilderPage() {
           </div>
         </div>
 
-        {/* Right Panel - Live Preview (Desktop only when showPreview is true) */}
-        {showPreview && (
-          <div className="hidden lg:flex lg:flex-1 bg-gray-900 flex-col">
-            {/* Preview Header */}
-            <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
-              <span className="text-gray-300 text-sm font-medium">
-                {language === 'bn' ? 'লাইভ প্রিভিউ' : 'Live Preview'}
-              </span>
-              <span className="text-gray-500 text-xs">
-                {previewDevice === 'mobile' ? '📱 375px' : '🖥️ Full'}
-              </span>
-            </div>
-            
-            {/* Preview Container */}
-            <div className="flex-1 flex items-start justify-center overflow-auto p-4">
-              <div 
-                className={`bg-white rounded-lg shadow-2xl overflow-hidden ${
-                  previewDevice === 'mobile' 
-                    ? 'w-[375px]' 
-                    : 'w-full max-w-4xl'
-                }`}
-                style={{
-                  transform: previewDevice === 'mobile' ? 'scale(0.85)' : 'scale(0.75)',
-                  transformOrigin: 'top center',
-                  maxHeight: previewDevice === 'mobile' ? '800px' : '1200px',
-                }}
-              >
-                {/* Render Template with Preview Props */}
-                <div className="overflow-hidden">
-                  <TemplateComponent 
-                    storeName={store.name}
-                    storeId={store.id}
-                    product={previewProduct as any}
-                    config={previewConfig}
-                    currency="৳"
-                    isPreview={true}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Mobile Floating Action Bar */}
