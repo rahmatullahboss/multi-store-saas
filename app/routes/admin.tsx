@@ -30,7 +30,8 @@ import {
   CreditCard,
   Globe,
   Ticket,
-  HardDrive
+  HardDrive,
+  Bot
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -71,6 +72,7 @@ const navItems = [
   { to: '/admin/stores', label: 'All Stores', icon: Store },
   { to: '/admin/domains', label: 'Domain Health', icon: Globe },
   { to: '/admin/billing', label: 'Billing', icon: CreditCard },
+  { to: '/admin/ai-requests', label: 'AI Requests', icon: Bot },
   { to: '/admin/storage', label: 'Storage', icon: HardDrive },
   { to: '/admin/marketing', label: 'Marketing', icon: Ticket },
   { to: '/admin/broadcasts', label: 'Broadcasts', icon: Radio },

@@ -82,6 +82,9 @@ export const stores = sqliteTable('stores', {
   // === AI CHATBOT SETTINGS ===
   isCustomerAiEnabled: integer('is_customer_ai_enabled', { mode: 'boolean' }).default(false), // Paid add-on
   aiBotPersona: text('ai_bot_persona'), // Custom AI personality e.g., "You are a friendly fashion expert"
+  // AI Agent Activation Request System
+  aiAgentRequestStatus: text('ai_agent_request_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
+  aiAgentRequestedAt: integer('ai_agent_requested_at', { mode: 'timestamp' }),
   
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID

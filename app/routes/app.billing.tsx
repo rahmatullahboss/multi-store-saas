@@ -133,6 +133,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       subscriptionStatus: stores.subscriptionStatus,
       name: stores.name,
       isCustomerAiEnabled: stores.isCustomerAiEnabled,
+      aiAgentRequestStatus: stores.aiAgentRequestStatus,
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -152,11 +153,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     usage,
     limits: PLAN_LIMITS[planType],
     isCustomerAiEnabled: store?.isCustomerAiEnabled || false,
+    aiAgentRequestStatus: store?.aiAgentRequestStatus || 'none',
   });
 }
 
 // ============================================================================
-// ACTION - Toggle AI Add-on
+// ACTION - Request AI Agent Activation
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   await requireUserId(request);
@@ -167,22 +169,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const formData = await request.formData();
-  const action = formData.get('action');
+  const actionType = formData.get('action');
 
-  if (action === 'toggle_ai_agent') {
-    const enabled = formData.get('enabled') === 'true';
-    
-    const db = drizzle(context.cloudflare.env.DB);
-    
+  const db = drizzle(context.cloudflare.env.DB);
+
+  if (actionType === 'request_ai_agent') {
+    // Submit activation request
     await db
       .update(stores)
       .set({ 
-        isCustomerAiEnabled: enabled,
+        aiAgentRequestStatus: 'pending',
+        aiAgentRequestedAt: new Date(),
         updatedAt: new Date()
       })
       .where(eq(stores.id, storeId));
     
-    return json({ success: true, isCustomerAiEnabled: enabled });
+    return json({ success: true, aiAgentRequestStatus: 'pending' });
+  }
+
+  if (actionType === 'disable_ai_agent') {
+    // Disable AI agent (only if currently enabled)
+    await db
+      .update(stores)
+      .set({ 
+        isCustomerAiEnabled: false,
+        aiAgentRequestStatus: 'none',
+        updatedAt: new Date()
+      })
+      .where(eq(stores.id, storeId));
+    
+    return json({ success: true, isCustomerAiEnabled: false });
   }
 
   return json({ error: 'Invalid action' }, { status: 400 });
@@ -192,9 +208,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function BillingPage() {
-  const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled } = useLoaderData<typeof loader>();
+  const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled, aiAgentRequestStatus } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
-  const fetcher = useFetcher<{ success?: boolean; isCustomerAiEnabled?: boolean }>();
+  const fetcher = useFetcher<{ success?: boolean; aiAgentRequestStatus?: string; isCustomerAiEnabled?: boolean }>();
   const { t, lang } = useTranslation();
   
   const success = searchParams.get('success');
@@ -204,11 +220,12 @@ export default function BillingPage() {
   
   const currentPlan = PLAN_DISPLAY[planType as keyof typeof PLAN_DISPLAY];
   
-  // Use optimistic UI for AI toggle
-  const isAiEnabled = fetcher.formData 
-    ? fetcher.formData.get('enabled') === 'true'
-    : isCustomerAiEnabled;
-  const isTogglingAi = fetcher.state !== 'idle';
+  // Use optimistic UI for AI request
+  const currentRequestStatus = fetcher.formData 
+    ? (fetcher.formData.get('action') === 'request_ai_agent' ? 'pending' : 
+       fetcher.formData.get('action') === 'disable_ai_agent' ? 'none' : aiAgentRequestStatus)
+    : aiAgentRequestStatus;
+  const isSubmitting = fetcher.state !== 'idle';
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -370,36 +387,94 @@ export default function BillingPage() {
                   </p>
                 </div>
               </div>
-              <fetcher.Form method="post">
-                <input type="hidden" name="action" value="toggle_ai_agent" />
-                <input type="hidden" name="enabled" value={isAiEnabled ? 'false' : 'true'} />
-                <button
-                  type="submit"
-                  disabled={isTogglingAi}
-                  className={`px-6 py-2.5 font-medium rounded-lg transition flex items-center gap-2 ${
-                    isAiEnabled
-                      ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
-                      : 'bg-orange-600 text-white hover:bg-orange-700'
-                  }`}
-                >
-                  {isTogglingAi ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : isAiEnabled ? (
-                    'Disable'
-                  ) : (
-                    'Enable'
-                  )}
-                </button>
-              </fetcher.Form>
+              {/* AI Agent Status/Action */}
+              {isCustomerAiEnabled ? (
+                // AI is active - show disable button
+                <fetcher.Form method="post">
+                  <input type="hidden" name="action" value="disable_ai_agent" />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 font-medium rounded-lg transition flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Disable'
+                    )}
+                  </button>
+                </fetcher.Form>
+              ) : currentRequestStatus === 'pending' ? (
+                // Request pending - show waiting status
+                <div className="px-6 py-2.5 font-medium rounded-lg bg-yellow-50 text-yellow-700 border border-yellow-200 flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Pending Approval
+                </div>
+              ) : currentRequestStatus === 'rejected' ? (
+                // Request rejected - allow re-request
+                <fetcher.Form method="post">
+                  <input type="hidden" name="action" value="request_ai_agent" />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 font-medium rounded-lg transition flex items-center gap-2 bg-orange-600 text-white hover:bg-orange-700"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Requesting...
+                      </>
+                    ) : (
+                      'Request Again'
+                    )}
+                  </button>
+                </fetcher.Form>
+              ) : (
+                // No request yet - show request button
+                <fetcher.Form method="post">
+                  <input type="hidden" name="action" value="request_ai_agent" />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 font-medium rounded-lg transition flex items-center gap-2 bg-orange-600 text-white hover:bg-orange-700"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Requesting...
+                      </>
+                    ) : (
+                      'Request to Activate'
+                    )}
+                  </button>
+                </fetcher.Form>
+              )}
             </div>
-            {isAiEnabled && (
+            {/* Status Messages */}
+            {isCustomerAiEnabled && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-2 text-sm text-green-600">
                   <Check className="w-4 h-4" />
                   <span>AI Sales Agent is active on your storefront</span>
+                </div>
+              </div>
+            )}
+            {currentRequestStatus === 'pending' && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-sm text-yellow-600">
+                  <Loader2 className="w-4 h-4" />
+                  <span>Your activation request is under review. We'll notify you once approved.</span>
+                </div>
+              </div>
+            )}
+            {currentRequestStatus === 'rejected' && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-sm text-red-600">
+                  <X className="w-4 h-4" />
+                  <span>Your previous request was not approved. Please contact support or try again.</span>
                 </div>
               </div>
             )}
