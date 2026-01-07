@@ -165,8 +165,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Store name must be at least 2 characters' }, { status: 400 });
   }
 
-  const db = drizzle(context.cloudflare.env.DB);
-
   // ========================================================================
   // SERVER-SIDE VALIDATION: Prevent free users from switching to store mode
   // ========================================================================
