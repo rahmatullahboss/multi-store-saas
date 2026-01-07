@@ -184,45 +184,74 @@ export function LandingTemplateGallery({
           >
             {/* Template Preview */}
             <div
-              className="h-40 relative flex items-center justify-center"
+              className="h-44 relative flex items-center justify-center overflow-hidden"
               style={{ background: template.colors.bg }}
             >
-              {/* Placeholder preview design */}
-              <div className="absolute inset-4 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 flex flex-col items-center justify-center gap-2">
-                <span className="text-4xl">{template.emoji}</span>
+              {/* Enhanced template preview mockup */}
+              <div className="absolute inset-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 flex flex-col p-3 overflow-hidden">
+                {/* Mini Header */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">{template.emoji}</span>
+                  <div className="flex-1 h-2 rounded bg-white/30" />
+                </div>
+                
+                {/* Mini Hero Section */}
+                <div className="flex-1 flex flex-col items-center justify-center gap-1.5">
+                  <div className="w-16 h-16 rounded-lg bg-white/20 border border-white/30 flex items-center justify-center">
+                    <span className="text-2xl">📦</span>
+                  </div>
+                  <div className="w-24 h-2 rounded bg-white/40" />
+                  <div className="w-16 h-1.5 rounded bg-white/30" />
+                </div>
+                
+                {/* Mini CTA Button */}
                 <div 
-                  className="w-20 h-2 rounded-full"
+                  className="w-full h-6 rounded flex items-center justify-center"
                   style={{ backgroundColor: template.colors.accent }}
-                />
-                <div className="flex gap-1 mt-1">
-                  <div className="w-6 h-1 rounded bg-white/40" />
-                  <div className="w-6 h-1 rounded bg-white/40" />
-                  <div className="w-6 h-1 rounded bg-white/40" />
+                >
+                  <span className="text-[10px] text-white font-medium">
+                    {template.id === 'flash-sale' ? '🔥 ORDER NOW' : 'BUY NOW'}
+                  </span>
+                </div>
+                
+                {/* Mini Features */}
+                <div className="flex justify-center gap-1 mt-2">
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[8px]">✓</div>
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[8px]">🚚</div>
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[8px]">💯</div>
                 </div>
               </div>
 
               {/* Selected checkmark */}
               {isSelected && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                <div className="absolute top-2 right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
                   <Check className="w-4 h-4 text-white" />
                 </div>
               )}
 
+              {/* Category Badge */}
+              <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/40 text-white text-[10px] font-medium rounded-full backdrop-blur-sm">
+                {template.category === 'premium' && '⭐ Premium'}
+                {template.category === 'sales' && '🔥 Sales'}
+                {template.category === 'minimal' && '✨ Minimal'}
+                {template.category === 'video' && '🎬 Video'}
+              </div>
+
               {/* Hover overlay */}
               {isHovered && !isSelected && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 backdrop-blur-sm">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onPreview?.(template.id);
                     }}
-                    className="px-3 py-1.5 bg-white text-gray-900 text-sm font-medium rounded-lg flex items-center gap-1.5 hover:bg-gray-100 transition"
+                    className="px-3 py-1.5 bg-white text-gray-900 text-sm font-medium rounded-lg flex items-center gap-1.5 hover:bg-gray-100 transition shadow-lg"
                   >
                     <Eye className="w-4 h-4" />
                     {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
                   </button>
                   <button
-                    className="px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg flex items-center gap-1.5 hover:bg-emerald-600 transition"
+                    className="px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg flex items-center gap-1.5 hover:bg-emerald-600 transition shadow-lg"
                   >
                     <Sparkles className="w-4 h-4" />
                     {language === 'bn' ? 'সিলেক্ট' : 'Select'}
@@ -230,6 +259,7 @@ export function LandingTemplateGallery({
                 </div>
               )}
             </div>
+
 
             {/* Template Info */}
             <div className="p-3 bg-white">

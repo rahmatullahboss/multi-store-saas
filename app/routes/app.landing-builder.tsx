@@ -13,7 +13,8 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
+import { Form, useLoaderData, useActionData, useNavigation, Link, useFetcher } from '@remix-run/react';
+
 
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
@@ -429,8 +430,78 @@ export default function LandingBuilderPage() {
     return errors.length === 0;
   }, [storeMode, featuredProductId, headline, whatsappEnabled, whatsappNumber, language]);
 
+  // Auto-save functionality
+  const autoSaveFetcher = useFetcher();
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  // Auto-save effect - runs every 30 seconds if there are unsaved changes
+  useEffect(() => {
+    // Only auto-save if there are unsaved changes
+    if (!hasChanges) return;
+    
+    const autoSaveInterval = setInterval(() => {
+      // Validate before auto-save
+      if (!validateBeforeSave()) {
+        return; // Skip auto-save if validation fails
+      }
+
+      // Build form data for auto-save
+      const formData = new FormData();
+      formData.append('intent', 'save-all');
+      formData.append('templateId', templateId);
+      formData.append('featuredProductId', featuredProductId);
+      formData.append('headline', headline);
+      formData.append('subheadline', subheadline);
+      formData.append('ctaText', ctaText);
+      formData.append('ctaSubtext', ctaSubtext);
+      formData.append('urgencyText', urgencyText);
+      formData.append('videoUrl', videoUrl);
+      formData.append('sectionOrder', JSON.stringify(sectionOrder));
+      formData.append('hiddenSections', JSON.stringify(hiddenSections));
+      formData.append('whatsappEnabled', whatsappEnabled.toString());
+      formData.append('whatsappNumber', whatsappNumber);
+      formData.append('whatsappMessage', whatsappMessage);
+      formData.append('testimonials', JSON.stringify(testimonials));
+      formData.append('faq', JSON.stringify(faq));
+      formData.append('guaranteeText', guaranteeText);
+      formData.append('features', JSON.stringify(features));
+      formData.append('countdownEnabled', countdownEnabled.toString());
+      formData.append('countdownEndTime', countdownEndTime);
+      formData.append('showStockCounter', showStockCounter.toString());
+      formData.append('lowStockThreshold', lowStockThreshold.toString());
+      formData.append('primaryColor', primaryColor);
+      formData.append('accentColor', accentColor);
+      formData.append('storeMode', storeMode);
+
+      setAutoSaveStatus('saving');
+      autoSaveFetcher.submit(formData, { method: 'post' });
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [hasChanges, validateBeforeSave, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, guaranteeText, features, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, autoSaveFetcher]);
+
+  // Update auto-save status when fetcher completes
+  useEffect(() => {
+    if (autoSaveFetcher.state === 'idle' && autoSaveFetcher.data) {
+      const data = autoSaveFetcher.data as { success?: boolean };
+      if (data && typeof data === 'object' && 'success' in data && data.success) {
+        setAutoSaveStatus('saved');
+        setLastAutoSave(new Date());
+        setHasChanges(false);
+        // Reset status after 3 seconds
+        setTimeout(() => setAutoSaveStatus('idle'), 3000);
+      } else {
+        setAutoSaveStatus('error');
+        setTimeout(() => setAutoSaveStatus('idle'), 3000);
+      }
+    }
+  }, [autoSaveFetcher.state, autoSaveFetcher.data]);
+
+
 
   // Handlers
+
   const handleVisibilityChange = (sectionId: string, visible: boolean) => {
     if (visible) {
       setHiddenSections(hiddenSections.filter(id => id !== sectionId));
@@ -618,7 +689,21 @@ export default function LandingBuilderPage() {
                   {language === 'bn' ? 'সেভ করুন' : 'Save'}
                   {hasChanges && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
                 </button>
+                
+                {/* Auto-save status indicator */}
+                {autoSaveStatus !== 'idle' && (
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    autoSaveStatus === 'saving' ? 'bg-blue-100 text-blue-600' :
+                    autoSaveStatus === 'saved' ? 'bg-emerald-100 text-emerald-600' :
+                    'bg-red-100 text-red-600'
+                  }`}>
+                    {autoSaveStatus === 'saving' && (language === 'bn' ? 'অটো-সেভ হচ্ছে...' : 'Auto-saving...')}
+                    {autoSaveStatus === 'saved' && (language === 'bn' ? 'অটো-সেভড ✓' : 'Auto-saved ✓')}
+                    {autoSaveStatus === 'error' && (language === 'bn' ? 'অটো-সেভ ব্যর্থ' : 'Auto-save failed')}
+                  </span>
+                )}
               </Form>
+
 
             </div>
           </div>
