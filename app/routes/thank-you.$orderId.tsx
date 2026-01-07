@@ -3,6 +3,8 @@
  * 
  * Displays order confirmation after successful order submission.
  * Route: /thank-you/$orderId
+ * 
+ * Includes Purchase tracking for FB Pixel and GA4.
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
@@ -10,6 +12,8 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, stores } from '@db/schema';
 import { eq } from 'drizzle-orm';
+import { useEffect, useRef } from 'react';
+import { trackingEvents } from '~/utils/tracking';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -61,6 +65,31 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
 export default function ThankYouPage() {
   const { order, items, storeName, currency } = useLoaderData<typeof loader>();
+  const hasTracked = useRef(false);
+  
+  // Track Purchase event (FB Pixel + GA4) - only once on mount
+  useEffect(() => {
+    if (hasTracked.current) return;
+    hasTracked.current = true;
+    
+    trackingEvents.purchase({
+      orderId: order.orderNumber,
+      value: order.total,
+      currency: currency,
+      shipping: order.shipping || 0,
+      tax: order.tax || 0,
+      items: items.map(item => ({
+        id: String(item.productId || item.id),
+        name: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        variant: item.variantTitle || undefined,
+        currency: currency,
+      })),
+    });
+    
+    console.log('[Tracking] Purchase event fired:', order.orderNumber, order.total);
+  }, [order, items, currency]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('bn-BD', {

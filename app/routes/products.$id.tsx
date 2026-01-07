@@ -16,7 +16,8 @@ import { products, reviews } from '@db/schema';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { resolveStore } from '~/lib/store.server';
 import { Star, Send, CheckCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { trackingEvents } from '~/utils/tracking';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
@@ -328,6 +329,24 @@ export default function ProductDetail() {
     reviewCount,
     storeId 
   } = useLoaderData<typeof loader>();
+  
+  const hasTracked = useRef(false);
+  
+  // Track ViewContent event (FB Pixel + GA4) - only once on mount
+  useEffect(() => {
+    if (hasTracked.current) return;
+    hasTracked.current = true;
+    
+    trackingEvents.viewContent({
+      id: String(product.id),
+      name: product.title,
+      price: product.price,
+      currency: currency,
+      category: product.category || undefined,
+    });
+    
+    console.log('[Tracking] ViewContent event fired:', product.title, product.price);
+  }, [product, currency]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
