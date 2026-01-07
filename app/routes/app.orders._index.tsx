@@ -10,15 +10,15 @@
  * - Responsive table design with quick actions
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
+import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
+import { useLoaderData, Link, useSearchParams, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, stores } from '@db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { 
   ShoppingCart, Clock, Package, Truck, CheckCircle, XCircle, 
-  Phone, Eye, DollarSign, ThumbsUp
+  Phone, Eye, DollarSign, ThumbsUp, Loader2, ChevronDown
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
@@ -75,6 +75,64 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     stats,
   });
 }
+
+// ============================================================================
+// ACTION - Update order status inline
+// ============================================================================
+export async function action({ request, context }: ActionFunctionArgs) {
+  const storeId = await getStoreId(request);
+  if (!storeId) {
+    return json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const formData = await request.formData();
+  const orderId = parseInt(formData.get('orderId') as string);
+  const status = formData.get('status') as string;
+
+  if (!orderId) {
+    return json({ error: 'Order ID required' }, { status: 400 });
+  }
+
+  if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
+    return json({ error: 'Invalid status' }, { status: 400 });
+  }
+
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // Verify order belongs to this store
+  const orderResult = await db
+    .select({ id: orders.id })
+    .from(orders)
+    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+    .limit(1);
+
+  if (!orderResult[0]) {
+    return json({ error: 'Order not found' }, { status: 404 });
+  }
+
+  // Update the order status
+  await db
+    .update(orders)
+    .set({ 
+      status: status as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
+      updatedAt: new Date() 
+    })
+    .where(eq(orders.id, orderId));
+
+  return json({ success: true, orderId, status });
+}
+
+// ============================================================================
+// STATUS OPTIONS
+// ============================================================================
+const statusOptions = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'processing', label: 'Processing' },
+  { value: 'shipped', label: 'Shipped' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
 
 // ============================================================================
 // MAIN COMPONENT
@@ -307,7 +365,7 @@ export default function DashboardOrdersPage() {
                       <span className="font-semibold text-gray-900">{formatPrice(order.total)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={order.status || 'pending'} />
+                      <StatusDropdown orderId={order.id} currentStatus={order.status || 'pending'} />
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link
@@ -327,23 +385,19 @@ export default function DashboardOrdersPage() {
           {/* Mobile Cards */}
           <div className="md:hidden divide-y divide-gray-100">
             {filteredOrders.map((order) => (
-              <Link 
-                key={order.id} 
-                to={`/app/orders/${order.id}`}
-                className="block p-4 hover:bg-gray-50 transition"
-              >
+              <div key={order.id} className="p-4 hover:bg-gray-50 transition">
                 <div className="flex items-start justify-between mb-2">
-                  <div>
+                  <Link to={`/app/orders/${order.id}`}>
                     <span className="font-mono text-sm font-medium text-emerald-600">
                       {order.orderNumber}
                     </span>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {formatDate(order.createdAt)}
                     </p>
-                  </div>
-                  <StatusBadge status={order.status || 'pending'} />
+                  </Link>
+                  <StatusDropdown orderId={order.id} currentStatus={order.status || 'pending'} />
                 </div>
-                <div className="flex items-center justify-between">
+                <Link to={`/app/orders/${order.id}`} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-medium text-sm">
                       {order.customerName?.charAt(0).toUpperCase() || 'C'}
@@ -356,13 +410,71 @@ export default function DashboardOrdersPage() {
                   <p className="font-bold text-gray-900">
                     {formatPrice(order.total)}
                   </p>
-                </div>
-              </Link>
+                </Link>
+              </div>
             ))}
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+// ============================================================================
+// STATUS DROPDOWN COMPONENT
+// ============================================================================
+function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
+  const fetcher = useFetcher();
+  const isUpdating = fetcher.state !== 'idle';
+  
+  // Determine the displayed status (optimistic update)
+  const displayStatus = fetcher.formData 
+    ? (fetcher.formData.get('status') as string) 
+    : currentStatus;
+
+  const configs: Record<string, { icon: typeof Clock; bg: string; text: string; border: string }> = {
+    pending: { icon: Clock, bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
+    confirmed: { icon: ThumbsUp, bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' },
+    processing: { icon: Package, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    shipped: { icon: Truck, bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    delivered: { icon: CheckCircle, bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+    cancelled: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  };
+
+  const config = configs[displayStatus] || configs.pending;
+  const Icon = config.icon;
+
+  return (
+    <fetcher.Form method="post" className="relative">
+      <input type="hidden" name="orderId" value={orderId} />
+      <div className="relative">
+        <select
+          name="status"
+          value={displayStatus}
+          onChange={(e) => fetcher.submit(e.target.form)}
+          disabled={isUpdating}
+          className={`
+            appearance-none cursor-pointer pl-8 pr-8 py-1.5 text-xs font-semibold rounded-full border
+            ${config.bg} ${config.text} ${config.border}
+            focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500
+            disabled:opacity-50 disabled:cursor-wait
+            transition-all
+          `}
+        >
+          {statusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <Icon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" />
+        {isUpdating ? (
+          <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin pointer-events-none" />
+        ) : (
+          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" />
+        )}
+      </div>
+    </fetcher.Form>
   );
 }
 
