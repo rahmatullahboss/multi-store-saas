@@ -23,7 +23,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Eye, Sparkles, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp, Paintbrush, Smartphone, Monitor, Rocket
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { 
   LandingTemplateGallery, 
@@ -335,14 +335,41 @@ export default function LandingBuilderPage() {
   // Current tab
   const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp' | 'colors' | 'settings'>('template');
 
-  // Show success message
+  // Show success message and reset dirty state
   useEffect(() => {
     if (actionData && 'success' in actionData && actionData.success) {
       setShowSuccess(true);
+      setHasChanges(false); // Reset dirty state on save
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [actionData]);
+
+  // Track unsaved changes
+  const [hasChanges, setHasChanges] = useState(false);
+  const initialLoadRef = useRef(true);
+  
+  // Mark as dirty when any field changes (skip initial load)
+  useEffect(() => {
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
+    }
+    setHasChanges(true);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode]);
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasChanges]);
+
 
   // Handlers
   const handleVisibilityChange = (sectionId: string, visible: boolean) => {
@@ -509,7 +536,11 @@ export default function LandingBuilderPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
+                  className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition ${
+                    hasChanges 
+                      ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                      : 'bg-gray-200 text-gray-600'
+                  } disabled:opacity-50`}
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -517,8 +548,10 @@ export default function LandingBuilderPage() {
                     <Save className="w-4 h-4" />
                   )}
                   {language === 'bn' ? 'সেভ করুন' : 'Save'}
+                  {hasChanges && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
                 </button>
               </Form>
+
             </div>
           </div>
         </div>
@@ -1616,11 +1649,15 @@ export default function LandingBuilderPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg disabled:opacity-50"
+            className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 font-medium rounded-lg disabled:opacity-50 ${
+              hasChanges ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+            }`}
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {language === 'bn' ? 'সেভ করুন' : 'Save'}
+            {hasChanges && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
           </button>
+
         </Form>
       </div>
     </div>
