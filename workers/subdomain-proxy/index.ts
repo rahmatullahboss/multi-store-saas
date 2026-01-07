@@ -35,12 +35,12 @@ export default {
     const pathname = url.pathname;
     
     // ========================================================================
-    // OPTIMIZATION: Skip static assets - let CDN handle them directly
+    // OPTIMIZATION: Serve static assets directly - no redirect (saves 1 request)
     // ========================================================================
     if (isStaticAsset(pathname)) {
-      // Redirect to CDN or return 404 (CDN should be serving these)
-      const cdnUrl = new URL(pathname, env.PAGES_URL || 'https://multi-store-saas.pages.dev');
-      return Response.redirect(cdnUrl.toString(), 302);
+      // Direct fetch from CDN - avoids 302 redirect which causes 2 requests
+      const cdnUrl = new URL(pathname + url.search, env.PAGES_URL || 'https://multi-store-saas.pages.dev');
+      return fetch(cdnUrl.toString());
     }
     
     console.log(`[Proxy] Request: ${hostname}${pathname}`);

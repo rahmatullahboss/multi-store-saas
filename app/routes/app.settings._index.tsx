@@ -17,13 +17,14 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
-import { stores } from '@db/schema';
+import { eq, count, sum } from 'drizzle-orm';
+import { stores, products, customers, orders, emailSubscribers, savedLandingConfigs, emailCampaigns } from '@db/schema';
 import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { fontOptions } from '~/lib/theme';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
-import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Eye } from 'lucide-react';
+import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Eye, Trash2, AlertTriangle } from 'lucide-react';
+import { StoreDeleteWarningModal } from '~/components/StoreDeleteWarningModal';
 import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
@@ -57,6 +58,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const planType = (store.planType as PlanType) || 'free';
   const allowStoreMode = canUseStoreMode(planType);
 
+  // Fetch data counts for retention modal
+  const [productsCount, customersCount, ordersData, subscribersCount, landingPagesCount, campaignsCount] = await Promise.all([
+    db.select({ count: count() }).from(products).where(eq(products.storeId, storeId)),
+    db.select({ count: count() }).from(customers).where(eq(customers.storeId, storeId)),
+    db.select({ count: count(), totalRevenue: sum(orders.total) }).from(orders).where(eq(orders.storeId, storeId)),
+    db.select({ count: count() }).from(emailSubscribers).where(eq(emailSubscribers.storeId, storeId)),
+    db.select({ count: count() }).from(savedLandingConfigs).where(eq(savedLandingConfigs.storeId, storeId)),
+    db.select({ count: count() }).from(emailCampaigns).where(eq(emailCampaigns.storeId, storeId)),
+  ]);
+
   return json({
     store: {
       id: store.id,
@@ -76,6 +87,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       businessInfo: store.businessInfo ? JSON.parse(store.businessInfo) : { phone: '', email: '', address: '' },
     },
     allowStoreMode,
+    dataCounts: {
+      products: productsCount[0]?.count || 0,
+      customers: customersCount[0]?.count || 0,
+      orders: ordersData[0]?.count || 0,
+      totalRevenue: Number(ordersData[0]?.totalRevenue) || 0,
+      subscribers: subscribersCount[0]?.count || 0,
+      landingPages: landingPagesCount[0]?.count || 0,
+      campaigns: campaignsCount[0]?.count || 0,
+      currency: store.currency || 'BDT',
+    },
   });
 }
 
@@ -89,6 +110,38 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // Handle Store Deletion (Soft Delete)
+  if (intent === 'deleteStore') {
+    const exitReason = formData.get('exitReason') as string;
+    const feedback = formData.get('feedback') as string;
+    
+    // Log exit survey if provided
+    if (exitReason) {
+      console.log(`[EXIT_SURVEY] Store ${storeId}: reason=${exitReason}, feedback=${feedback}`);
+      // TODO: Store in exitSurveys table for Super Admin analysis
+    }
+
+    // Soft delete the store
+    await db
+      .update(stores)
+      .set({ 
+        deletedAt: new Date(),
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+
+    // Redirect to logout (they can no longer access this store)
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': '/auth/logout',
+      },
+    });
+  }
   const name = formData.get('name') as string;
   const currency = formData.get('currency') as string;
   const theme = formData.get('theme') as string;
@@ -193,7 +246,7 @@ const themes = [
 // MAIN COMPONENT
 // ============================================================================
 export default function SettingsPage() {
-  const { store, allowStoreMode } = useLoaderData<typeof loader>();
+  const { store, allowStoreMode, dataCounts } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
@@ -203,6 +256,7 @@ export default function SettingsPage() {
   const [selectedFont, setSelectedFont] = useState(store.fontFamily || 'inter');
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode as 'landing' | 'store' || 'landing');
   const [showPreview, setShowPreview] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   
   // Logo upload state
   const [logoUrl, setLogoUrl] = useState<string>(store.logo || '');
@@ -1039,6 +1093,44 @@ export default function SettingsPage() {
           </button>
         </div>
       </Form>
+
+        {/* Danger Zone - Delete Store */}
+        <div className="bg-red-50 rounded-xl border border-red-200 p-6 mt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-red-800">Danger Zone</h2>
+              <p className="text-sm text-red-600">Irreversible actions</p>
+            </div>
+          </div>
+
+          <div className="p-4 bg-white rounded-lg border border-red-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900">Delete Store</h3>
+                <p className="text-sm text-gray-500">Permanently delete this store and all its data</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Store
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Store Delete Warning Modal */}
+        <StoreDeleteWarningModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          storeName={store.name}
+          dataCounts={dataCounts}
+        />
     </div>
   );
 }
