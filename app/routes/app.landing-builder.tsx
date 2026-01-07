@@ -693,51 +693,23 @@ export default function LandingBuilderPage() {
                   )}
                 </div>
 
-                {/* Social Proof */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">👤</span>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">
-                          {language === 'bn' ? 'সোশাল প্রুফ পপআপ' : 'Social Proof Popup'}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          {language === 'bn' ? '"X এইমাত্র অর্ডার করেছেন" দেখান' : 'Show "X just ordered" notifications'}
-                        </p>
-                      </div>
+                {/* Social Proof - REMOVED */}
+                <div className="bg-gray-100 rounded-xl border border-gray-200 p-6 opacity-60">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                      <span className="text-xl">🚫</span>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={showSocialProof} 
-                        onChange={(e) => setShowSocialProof(e.target.checked)}
-                        className="sr-only peer" 
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                    </label>
-                  </div>
-                  
-                  {showSocialProof && (
-                    <div className="pt-4 border-t border-gray-100">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'bn' ? 'পপআপ ইন্টারভাল (সেকেন্ড)' : 'Popup Interval (seconds)'}
-                      </label>
-                      <input
-                        type="number"
-                        min={5}
-                        max={120}
-                        value={socialProofInterval}
-                        onChange={(e) => setSocialProofInterval(parseInt(e.target.value) || 15)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                      />
-                      <p className="text-xs text-gray-500 mt-2">
-                        {language === 'bn' ? 'কতক্ষণ পর পর নতুন নোটিফিকেশন দেখাবে' : 'How often to show new notifications'}
+                    <div>
+                      <h3 className="font-semibold text-gray-600">
+                        {language === 'bn' ? 'সোশাল প্রুফ পপআপ (বন্ধ)' : 'Social Proof Popup (Disabled)'}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {language === 'bn' 
+                          ? 'ভুয়া নোটিফিকেশন গ্রাহকদের বিশ্বাস কমায়। এই ফিচার বন্ধ করা হয়েছে।' 
+                          : 'Fake notifications reduce customer trust. This feature has been disabled.'}
                       </p>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* Tips */}
@@ -754,103 +726,107 @@ export default function LandingBuilderPage() {
 
             {activeTab === 'testimonials' && (
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">
-                      {language === 'bn' ? 'কাস্টমার টেস্টিমোনিয়াল' : 'Customer Testimonials'}
+                      {language === 'bn' ? 'গ্রাহক রিভিউ স্ক্রিনশট' : 'Customer Review Screenshots'}
                     </h2>
                     <p className="text-sm text-gray-500">
-                      {language === 'bn' ? 'ফটো দিন - সেরা কনভার্শন!' : 'Add photos - best for conversions!'}
+                      {language === 'bn' ? 'সর্বোচ্চ ২-৩টি স্ক্রিনশট যোগ করুন' : 'Add 2-3 screenshots maximum'}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setTestimonials([...testimonials, { name: '', imageUrl: '' }])}
-                    className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
-                  >
-                    <Plus className="w-4 h-4" />
-                    {language === 'bn' ? 'যোগ করুন' : 'Add'}
-                  </button>
+                  {testimonials.length < 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setTestimonials([...testimonials, { name: 'Customer Review', imageUrl: '' }])}
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      {language === 'bn' ? 'যোগ করুন' : 'Add'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Photo Size Recommendation */}
+                <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+                    📐 {language === 'bn' ? 'ফটো সাইজ গাইড' : 'Photo Size Guide'}
+                  </h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• {language === 'bn' ? 'রেকমেন্ডেড সাইজ: 400x600 পিক্সেল (Portrait)' : 'Recommended: 400x600 pixels (Portrait)'}</li>
+                    <li>• {language === 'bn' ? 'ফাইল ফরম্যাট: JPG, PNG, বা WebP' : 'Format: JPG, PNG, or WebP'}</li>
+                    <li>• {language === 'bn' ? 'ফাইল সাইজ: সর্বোচ্চ 500KB' : 'Max file size: 500KB'}</li>
+                  </ul>
                 </div>
 
                 {testimonials.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-xl">
-                    <Image className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-500">
-                      {language === 'bn' ? 'কোনো টেস্টিমোনিয়াল নেই। উপরের বাটনে ক্লিক করুন।' : 'No testimonials. Click the button above.'}
+                  <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                    <Image className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-600 font-medium mb-2">
+                      {language === 'bn' ? 'কোনো রিভিউ স্ক্রিনশট নেই' : 'No review screenshots yet'}
                     </p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      {language === 'bn' 
+                        ? 'Facebook, Messenger বা WhatsApp থেকে গ্রাহকের রিভিউ স্ক্রিনশট নিন' 
+                        : 'Take screenshots from Facebook, Messenger or WhatsApp reviews'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setTestimonials([{ name: 'Customer Review', imageUrl: '' }])}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      {language === 'bn' ? 'প্রথম স্ক্রিনশট যোগ করুন' : 'Add First Screenshot'}
+                    </button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {testimonials.map((testimonial, index) => (
-                      <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                        <div className="flex items-start gap-4">
-                          {/* Photo Preview */}
-                          <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                            {testimonial.imageUrl ? (
-                              <img 
-                                src={testimonial.imageUrl} 
-                                alt="Customer" 
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                <Image className="w-8 h-8" />
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Fields */}
-                          <div className="flex-1 space-y-3">
-                            <div>
-                              <label className="block text-xs font-medium text-gray-500 mb-1">
-                                {language === 'bn' ? 'গ্রাহকের নাম' : 'Customer Name'}
-                              </label>
-                              <input
-                                type="text"
-                                value={testimonial.name}
-                                onChange={(e) => {
-                                  const updated = [...testimonials];
-                                  updated[index].name = e.target.value;
-                                  setTestimonials(updated);
-                                }}
-                                placeholder="রহমান সাহেব"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-gray-500 mb-1">
-                                {language === 'bn' ? 'ফটো URL' : 'Photo URL'}
-                              </label>
-                              <input
-                                type="url"
-                                value={testimonial.imageUrl || ''}
-                                onChange={(e) => {
-                                  const updated = [...testimonials];
-                                  updated[index].imageUrl = e.target.value;
-                                  setTestimonials(updated);
-                                }}
-                                placeholder="https://..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                              />
-                              <p className="text-xs text-gray-400 mt-1">
-                                {language === 'bn' ? 'Cloudinary বা অন্য হোস্ট থেকে URL দিন' : 'Use Cloudinary or another image host'}
+                      <div key={index} className="relative group">
+                        {/* Screenshot Card */}
+                        <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-emerald-400 transition">
+                          {testimonial.imageUrl ? (
+                            <img 
+                              src={testimonial.imageUrl} 
+                              alt={`Review ${index + 1}`} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4">
+                              <Image className="w-12 h-12 mb-3" />
+                              <p className="text-sm text-center">
+                                {language === 'bn' ? 'স্ক্রিনশট URL দিন' : 'Add screenshot URL'}
                               </p>
                             </div>
-                          </div>
-                          
-                          {/* Delete Button */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = testimonials.filter((_, i) => i !== index);
+                          )}
+                        </div>
+                        
+                        {/* URL Input */}
+                        <div className="mt-2">
+                          <input
+                            type="url"
+                            value={testimonial.imageUrl || ''}
+                            onChange={(e) => {
+                              const updated = [...testimonials];
+                              updated[index].imageUrl = e.target.value;
                               setTestimonials(updated);
                             }}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            placeholder={language === 'bn' ? 'স্ক্রিনশট URL...' : 'Screenshot URL...'}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                          />
                         </div>
+                        
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = testimonials.filter((_, i) => i !== index);
+                            setTestimonials(updated);
+                          }}
+                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition shadow-lg"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -862,23 +838,23 @@ export default function LandingBuilderPage() {
                     <span className="text-red-600 text-lg">⚠️</span>
                     <div>
                       <p className="text-sm font-medium text-red-800 mb-1">
-                        {language === 'bn' ? 'গুরুত্বপূর্ণ' : 'Important'}
+                        {language === 'bn' ? 'গুরুত্বপূর্ণ নোটিশ' : 'Important Notice'}
                       </p>
                       <p className="text-sm text-red-700">
                         {language === 'bn' 
-                          ? 'এখানে শুধু আসল গ্রাহকদের রিভিউ এর স্ক্রিনশট দিন। ভুয়া রিভিউ দিলে গ্রাহকরা বিশ্বাস করে না এবং ব্র্যান্ডের ক্ষতি হয়।' 
-                          : 'Only use real customer review screenshots. Fake reviews destroy customer trust and hurt your brand.'}
+                          ? 'শুধুমাত্র আসল গ্রাহকের রিভিউ স্ক্রিনশট আপলোড করুন। ভুয়া রিভিউ ব্র্যান্ডের বিশ্বাসযোগ্যতা নষ্ট করে।' 
+                          : 'Only upload real customer review screenshots. Fake reviews destroy brand credibility.'}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Tip */}
-                <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                  <p className="text-sm text-amber-800">
-                    💡 {language === 'bn' 
-                      ? 'টিপ: Facebook, Messenger বা WhatsApp থেকে আসল গ্রাহকের রিভিউ স্ক্রিনশট নিয়ে আপলোড করুন - ৩০%+ বেশি কনভার্ট হয়!' 
-                      : 'Tip: Upload real customer review screenshots from Facebook, Messenger or WhatsApp - converts 30%+ better!'}
+                {/* Pro Tip */}
+                <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <p className="text-sm text-emerald-800">
+                    💡 <strong>{language === 'bn' ? 'প্রো টিপ:' : 'Pro Tip:'}</strong> {language === 'bn' 
+                      ? 'Facebook Page রিভিউ, Messenger চ্যাট বা WhatsApp থেকে স্ক্রিনশট নিন। ২-৩টি ভালো রিভিউই যথেষ্ট!' 
+                      : 'Take screenshots from Facebook Page reviews, Messenger chats or WhatsApp. 2-3 good reviews are enough!'}
                   </p>
                 </div>
               </div>

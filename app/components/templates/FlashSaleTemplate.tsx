@@ -242,7 +242,7 @@ export function FlashSaleTemplate({
             ⚡ ফ্ল্যাশ সেল - {discount}% ছাড়!
           </div>
           
-          <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-white mb-2 px-2">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white mb-2 px-2 leading-tight">
             {config.headline || product.title}
           </h1>
           <p className="text-yellow-400 text-base sm:text-lg md:text-xl font-semibold px-2">
@@ -340,7 +340,7 @@ export function FlashSaleTemplate({
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="আপনার নাম লিখুন"
-                  className={`w-full px-4 py-3 bg-gray-800 border-2 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
+                  className={`w-full px-4 py-3 bg-gray-800 border-2 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-base ${
                     formErrors.name ? 'border-red-500' : 'border-gray-700'
                   }`}
                 />
@@ -357,7 +357,7 @@ export function FlashSaleTemplate({
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="01XXXXXXXXX"
-                  className={`w-full px-4 py-3 bg-gray-800 border-2 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
+                  className={`w-full px-4 py-3 bg-gray-800 border-2 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-base ${
                     formErrors.phone ? 'border-red-500' : 'border-gray-700'
                   }`}
                 />
@@ -374,7 +374,7 @@ export function FlashSaleTemplate({
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   placeholder="বাসা/হোল্ডিং, রোড, এলাকা, থানা, জেলা"
                   rows={2}
-                  className={`w-full px-4 py-3 bg-gray-800 border-2 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none ${
+                  className={`w-full px-4 py-3 bg-gray-800 border-2 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none text-base ${
                     formErrors.address ? 'border-red-500' : 'border-gray-700'
                   }`}
                 />
@@ -489,32 +489,24 @@ export function FlashSaleTemplate({
         </div>
       </section>
 
-      {/* TESTIMONIALS - Urgency Style */}
+      {/* TESTIMONIALS - Screenshot Gallery Flash Sale Style */}
       {isSectionVisible('testimonials', config.hiddenSections) && config.testimonials && config.testimonials.length > 0 && (
         <section className="bg-gray-950 py-8 px-4">
           <h3 className="text-xl font-bold text-white text-center mb-6">
-            <span className="text-yellow-400">⭐</span> সন্তুষ্ট গ্রাহকরা <span className="text-yellow-400">⭐</span>
+            <span className="text-yellow-400">⭐</span> সন্তুষ্ট গ্রাহকদের রিভিউ <span className="text-yellow-400">⭐</span>
           </h3>
-          <div className="max-w-md mx-auto space-y-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide md:justify-center">
             {config.testimonials.slice(0, 3).map((testimonial, idx) => (
-              <div key={idx} className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                <div className="flex items-center gap-1 mb-2">
-                  {[1,2,3,4,5].map((i) => (
-                    <Star key={i} size={14} className="text-yellow-400 fill-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-300 text-sm mb-3">"{testimonial.text}"</p>
-                <div className="flex items-center gap-2">
-                  {(testimonial.avatar || testimonial.imageUrl) ? (
-                    <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-8 h-8 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-sm">
-                      {testimonial.name.charAt(0)}
-                    </div>
-                  )}
-                  <span className="font-semibold text-sm text-white">{testimonial.name}</span>
-                  <span className="text-xs text-green-400">✓ Verified</span>
-                </div>
+              <div key={idx} className="flex-shrink-0 w-40 md:w-48 snap-center">
+                {(testimonial.imageUrl || testimonial.avatar) && (
+                  <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-800">
+                    <img 
+                      src={testimonial.imageUrl || testimonial.avatar} 
+                      alt={`Review ${idx + 1}`} 
+                      className="w-full aspect-[2/3] object-cover"
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

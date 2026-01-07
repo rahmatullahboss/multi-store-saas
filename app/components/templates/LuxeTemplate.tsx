@@ -164,7 +164,7 @@ export function LuxeTemplate({
                    <span className="inline-block text-amber-400 tracking-[0.3em] uppercase text-sm font-medium mb-6 border-b border-amber-400 pb-2">
                      Official Premium Collection
                    </span>
-                   <h1 className="font-serif-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-tight md:leading-none mb-4 md:mb-6 text-white drop-shadow-2xl">
+                   <h1 className="font-serif-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-tight md:leading-none mb-4 md:mb-6 text-white drop-shadow-2xl">
                      {editableConfig.headline}
                    </h1>
                    <p className="font-light text-zinc-300 text-base md:text-lg lg:text-xl max-w-2xl mx-auto mb-6 md:mb-10 tracking-wide leading-relaxed px-2 md:px-0">
@@ -233,43 +233,31 @@ export function LuxeTemplate({
       </section>
       )}
 
-      {/* 4. TESTIMONIALS (Elegant Cards) */}
+      {/* 4. TESTIMONIALS (Screenshot Gallery - Elegant) */}
       {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
         <section className="py-20 bg-zinc-950">
           <div className="container mx-auto px-6">
             <div className="text-center mb-12">
-              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Client Reviews</span>
+              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Real Reviews</span>
               <h2 className="font-serif-display text-3xl md:text-4xl mt-4 text-white">What Our Customers Say</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {editableConfig.testimonials.map((testimonial, idx) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {editableConfig.testimonials.slice(0, 3).map((testimonial, idx) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
-                  className="bg-black border border-zinc-800 p-8 relative"
+                  className="bg-black border border-zinc-800 rounded-lg overflow-hidden"
                 >
-                  <div className="flex items-center gap-1 mb-4">
-                    {[1,2,3,4,5].map((i) => (
-                      <Star key={i} size={16} className="text-amber-500 fill-amber-500" />
-                    ))}
-                  </div>
-                  <p className="text-zinc-300 italic mb-6 leading-relaxed">"{testimonial.text}"</p>
-                  <div className="flex items-center gap-4">
-                    {(testimonial.avatar || testimonial.imageUrl) ? (
-                      <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-12 h-12 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold">
-                        {testimonial.name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-medium text-white">{testimonial.name}</p>
-                      <p className="text-xs text-zinc-500 uppercase tracking-wider">Verified Buyer</p>
-                    </div>
-                  </div>
+                  {(testimonial.imageUrl || testimonial.avatar) && (
+                    <img 
+                      src={testimonial.imageUrl || testimonial.avatar} 
+                      alt={`Customer review ${idx + 1}`} 
+                      className="w-full aspect-[2/3] object-cover"
+                    />
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -401,7 +389,7 @@ export function LuxeTemplate({
                              key={opt.id}
                              type="button"
                              onClick={() => setFormData({...formData, division: opt.id as DivisionValue})}
-                             className={`flex-1 pb-3 sm:pb-4 text-xs sm:text-sm uppercase tracking-wide sm:tracking-wider transition-colors relative ${
+                             className={`flex-1 pb-3 sm:pb-4 text-sm sm:text-base uppercase tracking-wide sm:tracking-wider transition-colors relative ${
                                 formData.division === opt.id ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'
                              }`}
                            >

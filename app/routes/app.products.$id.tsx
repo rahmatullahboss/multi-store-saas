@@ -17,11 +17,12 @@ import { eq, and } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { logActivity } from '~/lib/activity.server';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, X, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.product?.title ? `Edit ${data.product.title}` : 'Edit Product' }];
@@ -233,6 +234,50 @@ export default function EditProductPage() {
       inventory: v.inventory || 0,
     }))
   );
+  
+  // Category state (for dynamic variant suggestions)
+  const [selectedCategory, setSelectedCategory] = useState<string>(product.category || '');
+  
+  // Track form values for change detection
+  const [formTitle, setFormTitle] = useState<string>(product.title || '');
+  const [formPrice, setFormPrice] = useState<string>(String(product.price || ''));
+  const [formDescription, setFormDescription] = useState<string>(product.description || '');
+  const [formStock, setFormStock] = useState<string>(String(product.inventory ?? 0));
+  
+  // Track newly uploaded images (not the original)
+  const [newlyUploadedImage, setNewlyUploadedImage] = useState<string>('');
+  
+  // Check if form has unsaved changes
+  const hasUnsavedChanges = 
+    formTitle !== (product.title || '') ||
+    formPrice !== String(product.price || '') ||
+    formDescription !== (product.description || '') ||
+    formStock !== String(product.inventory ?? 0) ||
+    selectedCategory !== (product.category || '') ||
+    imageUrl !== (product.imageUrl || '') ||
+    JSON.stringify(variants) !== JSON.stringify(loadedVariants.map(v => ({
+      id: v.id,
+      option1Name: v.option1Name || 'Size',
+      option1Value: v.option1Value || '',
+      option2Name: v.option2Name || undefined,
+      option2Value: v.option2Value || undefined,
+      price: v.price || undefined,
+      sku: v.sku || undefined,
+      inventory: v.inventory || 0,
+    })));
+  
+  // Cleanup callback for orphaned images (only delete newly uploaded images)
+  const handleAbandon = useCallback(() => {
+    if (newlyUploadedImage) {
+      deleteOrphanedImage(newlyUploadedImage);
+    }
+  }, [newlyUploadedImage]);
+  
+  // Unsaved changes warning hook
+  const { ConfirmationModal } = useUnsavedChanges({
+    hasUnsavedChanges: hasUnsavedChanges && !isSubmitting,
+    onAbandon: handleAbandon,
+  });
 
   // useFetcher for async image upload
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
@@ -243,8 +288,12 @@ export default function EditProductPage() {
     if (imageFetcher.data?.success && imageFetcher.data?.url) {
       setImageUrl(imageFetcher.data.url);
       setImagePreview(imageFetcher.data.url);
+      // Track newly uploaded images for potential cleanup
+      if (imageFetcher.data.url !== product.imageUrl) {
+        setNewlyUploadedImage(imageFetcher.data.url);
+      }
     }
-  }, [imageFetcher.data]);
+  }, [imageFetcher.data, product.imageUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -438,7 +487,8 @@ export default function EditProductPage() {
               type="text"
               id="title"
               name="title"
-              defaultValue={product.title}
+              value={formTitle}
+              onChange={(e) => setFormTitle(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
             />
             {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.title && (
@@ -458,7 +508,8 @@ export default function EditProductPage() {
                 name="price"
                 step="0.01"
                 min="0"
-                defaultValue={product.price}
+                value={formPrice}
+                onChange={(e) => setFormPrice(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
               {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.price && (
@@ -474,7 +525,8 @@ export default function EditProductPage() {
                 id="stock"
                 name="stock"
                 min="0"
-                defaultValue={product.inventory ?? 0}
+                value={formStock}
+                onChange={(e) => setFormStock(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
               {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.stock && (
@@ -491,7 +543,8 @@ export default function EditProductPage() {
             <select
               id="category"
               name="category"
-              defaultValue={product.category || ''}
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
             >
               <option value="">{t('selectCategory')}</option>
@@ -512,7 +565,8 @@ export default function EditProductPage() {
               id="description"
               name="description"
               rows={4}
-              defaultValue={product.description || ''}
+              value={formDescription}
+              onChange={(e) => setFormDescription(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
             />
           </div>
@@ -539,6 +593,7 @@ export default function EditProductPage() {
             variants={variants}
             onChange={setVariants}
             basePrice={product.price}
+            category={selectedCategory}
           />
         </div>
 
@@ -566,6 +621,9 @@ export default function EditProductPage() {
           </button>
         </div>
       </Form>
+
+      {/* Unsaved Changes Warning Modal */}
+      <ConfirmationModal />
     </div>
   );
 }

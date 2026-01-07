@@ -177,7 +177,8 @@ export function PremiumBDTemplate({
             )}
 
             {/* Headline */}
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-center mb-4 leading-tight text-gray-900 px-2">
+            {/* Headline */}
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-center mb-4 leading-tight text-gray-900 px-2 tracking-tight">
               {editableConfig.headline}
             </h1>
             
@@ -236,7 +237,7 @@ export function PremiumBDTemplate({
 
       {/* 2. TRUST FACTORS (Glassmorphism) */}
       <section className="py-10 container max-w-6xl mx-auto px-4 -mt-8 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
           {[
             { icon: <Truck size={24} />, title: "দ্রুত ডেলিভারি", sub: "সারা বাংলাদেশে" },
             { icon: <Banknote size={24} />, title: "ক্যাশ অন ডেলিভারি", sub: "পণ্য হাতে পেয়ে পেমেন্ট" },
@@ -247,8 +248,8 @@ export function PremiumBDTemplate({
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-1">
                 {item.icon}
               </div>
-              <h3 className="font-bold text-gray-800 text-xs sm:text-sm md:text-base leading-tight">{item.title}</h3>
-              <p className="text-[10px] sm:text-xs text-gray-500 leading-tight">{item.sub}</p>
+              <h3 className="font-bold text-gray-800 text-xs sm:text-base leading-tight mt-1">{item.title}</h3>
+              <p className="text-[10px] sm:text-sm text-gray-500 leading-tight">{item.sub}</p>
             </div>
           ))}
         </div>
@@ -482,40 +483,28 @@ export function PremiumBDTemplate({
         )}
       </AnimatePresence>
 
-      {/* TESTIMONIALS */}
+      {/* TESTIMONIALS - Screenshot Gallery Premium Style */}
       {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
         <section className="py-12 bg-white">
           <div className="container max-w-4xl mx-auto px-4">
-            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">গ্রাহকদের মন্তব্য</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {editableConfig.testimonials.map((testimonial, idx) => (
+            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">গ্রাহকদের রিভিউ</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {editableConfig.testimonials.slice(0, 3).map((testimonial, idx) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
-                  className="bg-gray-50 rounded-2xl p-5 border border-gray-100"
+                  className="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-sm"
                 >
-                  <div className="flex items-center gap-1 mb-3">
-                    {[1,2,3,4,5].map((i) => (
-                      <Star key={i} size={14} className="text-yellow-500 fill-yellow-500" />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 text-sm mb-4">"{testimonial.text}"</p>
-                  <div className="flex items-center gap-3">
-                    {(testimonial.avatar || testimonial.imageUrl) ? (
-                      <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
-                        {testimonial.name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-semibold text-gray-800 text-sm">{testimonial.name}</p>
-                      <p className="text-xs text-emerald-600">✓ ভেরিফাইড ক্রেতা</p>
-                    </div>
-                  </div>
+                  {(testimonial.imageUrl || testimonial.avatar) && (
+                    <img 
+                      src={testimonial.imageUrl || testimonial.avatar} 
+                      alt={`Customer review ${idx + 1}`} 
+                      className="w-full aspect-[2/3] object-cover"
+                    />
+                  )}
                 </motion.div>
               ))}
             </div>

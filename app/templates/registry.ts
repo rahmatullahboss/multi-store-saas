@@ -58,6 +58,7 @@ import { MobileFirstTemplate } from '~/components/templates/MobileFirstTemplate'
 import { FlashSaleTemplate } from '~/components/templates/FlashSaleTemplate';
 import { LuxeTemplate } from '~/components/templates/LuxeTemplate';
 import { OrganicTemplate } from '~/components/templates/OrganicTemplate';
+import { ShowcaseTemplate } from '~/components/templates/ShowcaseTemplate';
 
 // ============================================================================
 // TEMPLATES REGISTRY - All templates use same component, different themes
@@ -118,6 +119,13 @@ export const TEMPLATES: TemplateDefinition[] = [
     description: 'Video-first design with full-width hero video and overlay CTA.',
     thumbnail: '/templates/video-focus.png',
     component: LandingPageTemplate,
+  },
+  {
+    id: 'showcase',
+    name: '✨ Showcase Gallery (Multi-Image)',
+    description: 'Premium dark aesthetic designed to showcase product details with a gallery grid. Perfect for luxury items.',
+    thumbnail: '/templates/showcase.png', // We will need to generate this later
+    component: ShowcaseTemplate,
   },
 ];
 

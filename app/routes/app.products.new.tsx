@@ -17,12 +17,13 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Multi-Store SaaS' }];
@@ -168,6 +169,30 @@ export default function NewProductPage() {
   // Variants state
   const [variants, setVariants] = useState<Variant[]>([]);
   const [basePrice, setBasePrice] = useState<number>(0);
+  
+  // Category state (for dynamic variant suggestions)
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  
+  // Form dirty state (track if user has made changes)
+  const [formTitle, setFormTitle] = useState<string>('');
+  const [formPrice, setFormPrice] = useState<string>('');
+  const [formDescription, setFormDescription] = useState<string>('');
+  
+  // Check if form has unsaved changes
+  const hasUnsavedChanges = !!(formTitle || formPrice || formDescription || imageUrl || variants.length > 0);
+  
+  // Cleanup callback for orphaned images
+  const handleAbandon = useCallback(() => {
+    if (imageUrl) {
+      deleteOrphanedImage(imageUrl);
+    }
+  }, [imageUrl]);
+  
+  // Unsaved changes warning hook
+  const { ConfirmationModal } = useUnsavedChanges({
+    hasUnsavedChanges: hasUnsavedChanges && !isSubmitting,
+    onAbandon: handleAbandon,
+  });
 
   // useFetcher for async image upload
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
@@ -333,6 +358,8 @@ export default function NewProductPage() {
               type="text"
               id="title"
               name="title"
+              value={formTitle}
+              onChange={(e) => setFormTitle(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               placeholder={lang === 'bn' ? 'প্রোডাক্টের নাম লিখুন' : 'Enter product title'}
             />
@@ -353,6 +380,8 @@ export default function NewProductPage() {
                 name="price"
                 step="0.01"
                 min="0"
+                value={formPrice}
+                onChange={(e) => setFormPrice(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="0.00"
               />
@@ -386,6 +415,8 @@ export default function NewProductPage() {
             <select
               id="category"
               name="category"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
             >
               <option value="">{t('selectCategory')}</option>
@@ -406,6 +437,8 @@ export default function NewProductPage() {
               id="description"
               name="description"
               rows={4}
+              value={formDescription}
+              onChange={(e) => setFormDescription(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
               placeholder={lang === 'bn' ? 'পণ্যের বিবরণ লিখুন...' : 'Describe your product...'}
             />
@@ -418,6 +451,7 @@ export default function NewProductPage() {
             variants={variants}
             onChange={setVariants}
             basePrice={basePrice}
+            category={selectedCategory}
           />
         </div>
 
@@ -445,6 +479,9 @@ export default function NewProductPage() {
           </button>
         </div>
       </Form>
+
+      {/* Unsaved Changes Warning Modal */}
+      <ConfirmationModal />
     </div>
   );
 }

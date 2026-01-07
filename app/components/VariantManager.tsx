@@ -3,10 +3,14 @@
  * 
  * Reusable component for managing product variants (size, color, etc.)
  * Used in both product creation and editing forms.
+ * 
+ * Features:
+ * - Category-based dynamic variant suggestions
+ * - All variant options available with Bengali translations
  */
 
-import { useState } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Trash2, X, Sparkles } from 'lucide-react';
 
 export interface Variant {
   id?: number;
@@ -23,21 +27,113 @@ interface VariantManagerProps {
   variants: Variant[];
   onChange: (variants: Variant[]) => void;
   basePrice: number;
+  category?: string; // Selected product category
 }
 
-const defaultOptionNames = ['সাইজ (Size)', 'কালার (Color)'];
+// ============================================================================
+// CATEGORY-BASED VARIANT OPTIONS MAPPING
+// ============================================================================
+const CATEGORY_VARIANT_MAP: Record<string, { primary: string[]; secondary: string[] }> = {
+  'Electronics': {
+    primary: ['Model', 'Color', 'Storage', 'Memory'],
+    secondary: ['Color', 'Type', 'Size'],
+  },
+  'Clothing': {
+    primary: ['Size', 'Color'],
+    secondary: ['Color', 'Material', 'Style', 'Pattern'],
+  },
+  'Home & Garden': {
+    primary: ['Size', 'Color', 'Material'],
+    secondary: ['Color', 'Style', 'Pattern'],
+  },
+  'Sports': {
+    primary: ['Size', 'Color'],
+    secondary: ['Color', 'Material', 'Type'],
+  },
+  'Books': {
+    primary: ['Type', 'Language'],
+    secondary: ['Format'],
+  },
+  'Toys': {
+    primary: ['Size', 'Color', 'Type'],
+    secondary: ['Color', 'Type'],
+  },
+  'Health & Beauty': {
+    primary: ['Size', 'Scent', 'Type'],
+    secondary: ['Volume', 'Pack Size', 'Scent'],
+  },
+  'Food & Beverages': {
+    primary: ['Weight', 'Flavor', 'Pack Size'],
+    secondary: ['Flavor', 'Volume', 'Pack Size'],
+  },
+  'Automotive': {
+    primary: ['Size', 'Model', 'Type'],
+    secondary: ['Color', 'Material'],
+  },
+  'Other': {
+    primary: ['Size', 'Color', 'Type'],
+    secondary: ['Color', 'Material', 'Weight'],
+  },
+};
 
-export function VariantManager({ variants, onChange, basePrice }: VariantManagerProps) {
+// All available variant options with Bengali translations
+const ALL_VARIANT_OPTIONS = [
+  { value: 'Size', label: 'Size (সাইজ)' },
+  { value: 'Color', label: 'Color (রং)' },
+  { value: 'Weight', label: 'Weight (ওজন - গ্রাম/কেজি)' },
+  { value: 'Flavor', label: 'Flavor (স্বাদ)' },
+  { value: 'Pack Size', label: 'Pack Size (প্যাক সাইজ)' },
+  { value: 'Volume', label: 'Volume (পরিমাণ - ml/L)' },
+  { value: 'Length', label: 'Length (দৈর্ঘ্য)' },
+  { value: 'Material', label: 'Material (উপাদান)' },
+  { value: 'Model', label: 'Model (মডেল)' },
+  { value: 'Type', label: 'Type (ধরন)' },
+  { value: 'Style', label: 'Style (স্টাইল)' },
+  { value: 'Scent', label: 'Scent (সুগন্ধ)' },
+  { value: 'Pattern', label: 'Pattern (প্যাটার্ন)' },
+  { value: 'Storage', label: 'Storage (স্টোরেজ)' },
+  { value: 'Memory', label: 'Memory (মেমরি)' },
+  { value: 'Language', label: 'Language (ভাষা)' },
+  { value: 'Format', label: 'Format (ফরম্যাট)' },
+];
+
+// Helper function to get option label
+const getOptionLabel = (value: string): string => {
+  const option = ALL_VARIANT_OPTIONS.find(opt => opt.value === value);
+  return option?.label || value;
+};
+
+// Helper function to get suggested options based on category
+const getSuggestedOptions = (category: string | undefined, isPrimary: boolean): string[] => {
+  if (!category) return [];
+  const mapping = CATEGORY_VARIANT_MAP[category];
+  if (!mapping) return [];
+  return isPrimary ? mapping.primary : mapping.secondary;
+};
+
+export function VariantManager({ variants, onChange, basePrice, category }: VariantManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newVariant, setNewVariant] = useState<Variant>({
     option1Name: 'Size',
     option1Value: '',
-    option2Name: 'Color',
+    option2Name: '',
     option2Value: '',
     price: undefined,
     sku: '',
     inventory: 0,
   });
+
+  // Update default options when category changes
+  useEffect(() => {
+    if (category && CATEGORY_VARIANT_MAP[category]) {
+      const suggested = CATEGORY_VARIANT_MAP[category];
+      setNewVariant(prev => ({
+        ...prev,
+        option1Name: suggested.primary[0] || 'Size',
+        option2Name: suggested.secondary[0] || '',
+      }));
+    }
+  }, [category]);
 
   const addVariant = () => {
     if (!newVariant.option1Value.trim()) return;
@@ -71,13 +167,17 @@ export function VariantManager({ variants, onChange, basePrice }: VariantManager
     return title;
   };
 
+  // Get suggested and other options for rendering
+  const suggestedPrimary = getSuggestedOptions(category, true);
+  const suggestedSecondary = getSuggestedOptions(category, false);
+
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-medium text-gray-700">Product Variants</h3>
-          <p className="text-xs text-gray-500">Add size, color, or other options</p>
+          <p className="text-xs text-gray-500">Add size, color, weight or other options</p>
         </div>
         {!showAddForm && (
           <button
@@ -90,6 +190,17 @@ export function VariantManager({ variants, onChange, basePrice }: VariantManager
           </button>
         )}
       </div>
+
+      {/* Category Hint */}
+      {category && suggestedPrimary.length > 0 && !showAddForm && variants.length === 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+          <Sparkles className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-blue-700">
+            <span className="font-medium">{category}</span> ক্যাটাগরির জন্য সাজেস্টেড: {' '}
+            <span className="font-medium">{suggestedPrimary.join(', ')}</span>
+          </div>
+        </div>
+      )}
 
       {/* Add Variant Form */}
       {showAddForm && (
@@ -116,10 +227,22 @@ export function VariantManager({ variants, onChange, basePrice }: VariantManager
                 onChange={(e) => setNewVariant({ ...newVariant, option1Name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
-                <option value="Size">Size</option>
-                <option value="Color">Color</option>
-                <option value="Material">Material</option>
-                <option value="Style">Style</option>
+                {/* Suggested options first (if category selected) */}
+                {suggestedPrimary.length > 0 && (
+                  <optgroup label="✨ সাজেস্টেড (Suggested)">
+                    {suggestedPrimary.map(opt => (
+                      <option key={`suggested-${opt}`} value={opt}>{getOptionLabel(opt)}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {/* All other options */}
+                <optgroup label={suggestedPrimary.length > 0 ? "📋 সব অপশন (All Options)" : ""}>
+                  {ALL_VARIANT_OPTIONS
+                    .filter(opt => !suggestedPrimary.includes(opt.value))
+                    .map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </optgroup>
               </select>
             </div>
             <div>
@@ -128,7 +251,7 @@ export function VariantManager({ variants, onChange, basePrice }: VariantManager
               </label>
               <input
                 type="text"
-                placeholder="e.g., Large, XL"
+                placeholder={getPlaceholder(newVariant.option1Name)}
                 value={newVariant.option1Value}
                 onChange={(e) => setNewVariant({ ...newVariant, option1Value: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
@@ -145,11 +268,23 @@ export function VariantManager({ variants, onChange, basePrice }: VariantManager
                 onChange={(e) => setNewVariant({ ...newVariant, option2Name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
-                <option value="">None</option>
-                <option value="Size">Size</option>
-                <option value="Color">Color</option>
-                <option value="Material">Material</option>
-                <option value="Style">Style</option>
+                <option value="">None (নেই)</option>
+                {/* Suggested options first (if category selected) */}
+                {suggestedSecondary.length > 0 && (
+                  <optgroup label="✨ সাজেস্টেড (Suggested)">
+                    {suggestedSecondary.map(opt => (
+                      <option key={`suggested2-${opt}`} value={opt}>{getOptionLabel(opt)}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {/* All other options */}
+                <optgroup label={suggestedSecondary.length > 0 ? "📋 সব অপশন (All Options)" : ""}>
+                  {ALL_VARIANT_OPTIONS
+                    .filter(opt => !suggestedSecondary.includes(opt.value))
+                    .map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </optgroup>
               </select>
             </div>
             <div>
@@ -158,7 +293,7 @@ export function VariantManager({ variants, onChange, basePrice }: VariantManager
               </label>
               <input
                 type="text"
-                placeholder="e.g., Red, Blue"
+                placeholder={newVariant.option2Name ? getPlaceholder(newVariant.option2Name) : 'Select option first'}
                 value={newVariant.option2Value || ''}
                 onChange={(e) => setNewVariant({ ...newVariant, option2Value: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
@@ -287,4 +422,30 @@ export function VariantManager({ variants, onChange, basePrice }: VariantManager
       />
     </div>
   );
+}
+
+// ============================================================================
+// HELPER: Dynamic placeholder based on option type
+// ============================================================================
+function getPlaceholder(optionName: string): string {
+  const placeholders: Record<string, string> = {
+    'Size': 'e.g., S, M, L, XL, XXL',
+    'Color': 'e.g., Red, Blue, Black',
+    'Weight': 'e.g., 250g, 500g, 1kg',
+    'Flavor': 'e.g., Chocolate, Vanilla, Mango',
+    'Pack Size': 'e.g., 1 Pack, 3 Pack, 6 Pack',
+    'Volume': 'e.g., 100ml, 250ml, 1L',
+    'Length': 'e.g., 1m, 2m, 5m',
+    'Material': 'e.g., Cotton, Polyester, Leather',
+    'Model': 'e.g., Pro, Max, Lite',
+    'Type': 'e.g., Regular, Premium, Deluxe',
+    'Style': 'e.g., Classic, Modern, Vintage',
+    'Scent': 'e.g., Lavender, Rose, Jasmine',
+    'Pattern': 'e.g., Striped, Solid, Printed',
+    'Storage': 'e.g., 64GB, 128GB, 256GB',
+    'Memory': 'e.g., 4GB, 8GB, 16GB',
+    'Language': 'e.g., Bengali, English, Arabic',
+    'Format': 'e.g., Paperback, Hardcover, eBook',
+  };
+  return placeholders[optionName] || 'Enter value';
 }

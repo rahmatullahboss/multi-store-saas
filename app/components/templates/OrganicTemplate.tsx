@@ -136,7 +136,7 @@ export function OrganicTemplate({
                         <Leaf size={14} />
                         100% Natural & Eco-friendly
                      </span>
-                     <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-emerald-950 leading-tight mb-4 md:mb-6">
+                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-emerald-950 leading-tight mb-4 md:mb-6">
                        {editableConfig.headline}
                      </h1>
                      <p className="text-base md:text-lg text-stone-600 mb-6 md:mb-8 leading-relaxed">
@@ -220,43 +220,31 @@ export function OrganicTemplate({
          </div>
       </section>
 
-      {/* 3. TESTIMONIALS */}
+      {/* 3. TESTIMONIALS (Screenshot Gallery - Organic Style) */}
       {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
         <section className="py-16 bg-white">
           <div className="container mx-auto px-6 max-w-5xl">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-emerald-950 mb-4">What Customers Say</h2>
+              <h2 className="text-3xl font-bold text-emerald-950 mb-4">গ্রাহকদের মতামত</h2>
               <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {editableConfig.testimonials.map((testimonial, idx) => (
+              {editableConfig.testimonials.slice(0, 3).map((testimonial, idx) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
-                  className="bg-stone-50 rounded-3xl p-6 border border-stone-100"
+                  className="bg-stone-50 rounded-3xl overflow-hidden border border-stone-100 shadow-sm"
                 >
-                  <div className="flex items-center gap-1 mb-4">
-                    {[1,2,3,4,5].map((i) => (
-                      <Star key={i} size={16} className="text-amber-500 fill-amber-500" />
-                    ))}
-                  </div>
-                  <p className="text-stone-600 mb-6 leading-relaxed">"{testimonial.text}"</p>
-                  <div className="flex items-center gap-3">
-                    {(testimonial.avatar || testimonial.imageUrl) ? (
-                      <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">
-                        {testimonial.name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-semibold text-stone-800">{testimonial.name}</p>
-                      <p className="text-xs text-emerald-600">Verified Buyer</p>
-                    </div>
-                  </div>
+                  {(testimonial.imageUrl || testimonial.avatar) && (
+                    <img 
+                      src={testimonial.imageUrl || testimonial.avatar} 
+                      alt={`Customer review ${idx + 1}`} 
+                      className="w-full aspect-[2/3] object-cover"
+                    />
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -322,7 +310,7 @@ export function OrganicTemplate({
                         type="text"
                         value={formData.customer_name}
                         onChange={e => setFormData({...formData, customer_name: e.target.value})}
-                        className="w-full px-5 py-3 rounded-2xl bg-stone-50 border border-stone-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                        className="w-full px-5 py-3 rounded-2xl bg-stone-50 border border-stone-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-base"
                         placeholder="Your name"
                       />
                       {validationErrors.customer_name && <p className="text-red-500 text-xs mt-1">{validationErrors.customer_name}</p>}
@@ -335,7 +323,7 @@ export function OrganicTemplate({
                         type="tel"
                         value={formData.phone}
                         onChange={e => setFormData({...formData, phone: e.target.value})}
-                        className="w-full px-5 py-3 rounded-2xl bg-stone-50 border border-stone-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                        className="w-full px-5 py-3 rounded-2xl bg-stone-50 border border-stone-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-base"
                         placeholder="017XXXXXXXX"
                       />
                       {validationErrors.phone && <p className="text-red-500 text-xs mt-1">{validationErrors.phone}</p>}
@@ -348,7 +336,7 @@ export function OrganicTemplate({
                         value={formData.address}
                         onChange={e => setFormData({...formData, address: e.target.value})}
                         rows={3}
-                        className="w-full px-5 py-3 rounded-2xl bg-stone-50 border border-stone-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all resize-none"
+                        className="w-full px-5 py-3 rounded-2xl bg-stone-50 border border-stone-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all resize-none text-base"
                         placeholder="Delivery address"
                       />
                       {validationErrors.address && <p className="text-red-500 text-xs mt-1">{validationErrors.address}</p>}

@@ -365,29 +365,22 @@ export function MobileFirstTemplate({
         </div>
       </div>
 
-      {/* TESTIMONIALS - Compact for Mobile */}
+      {/* TESTIMONIALS - Horizontal Scroll Screenshots for Mobile */}
       {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
-        <section className="py-8 px-5 bg-gray-50">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">গ্রাহকদের মন্তব্য</h3>
-          <div className="space-y-4">
+        <section className="py-8 px-4 bg-gray-50">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">গ্রাহকদের রিভিউ</h3>
+          <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide">
             {editableConfig.testimonials.slice(0, 3).map((testimonial, idx) => (
-              <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-1 mb-2">
-                  {[1,2,3,4,5].map((i) => (
-                    <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-gray-600 text-sm mb-3">"{testimonial.text}"</p>
-                <div className="flex items-center gap-2">
-                  {(testimonial.avatar || testimonial.imageUrl) ? (
-                    <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-8 h-8 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
-                      {testimonial.name.charAt(0)}
-                    </div>
-                  )}
-                  <span className="font-semibold text-sm text-gray-800">{testimonial.name}</span>
-                </div>
+              <div key={idx} className="flex-shrink-0 w-48 snap-center">
+                {(testimonial.imageUrl || testimonial.avatar) && (
+                  <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                    <img 
+                      src={testimonial.imageUrl || testimonial.avatar} 
+                      alt={`Review ${idx + 1}`} 
+                      className="w-full aspect-[2/3] object-cover"
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

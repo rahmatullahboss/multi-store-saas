@@ -346,7 +346,7 @@ export function LandingPageTemplate({
             </div>
 
             {/* Headline */}
-            <h1 className={`text-4xl md:text-5xl lg:text-6xl font-black text-center ${theme.textPrimary} mb-6 leading-tight`}>
+            <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-center ${theme.textPrimary} mb-6 leading-tight tracking-tight`}>
               {editableConfig.headline}
             </h1>
             
@@ -448,8 +448,8 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       <section className={`py-12 ${theme.bgSecondary} border-y ${theme.cardBorder}`}>
         <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+            <div className={`text-center p-4 md:p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
               <div className="text-4xl mb-3">🚚</div>
               <h4 className={`font-bold ${theme.textPrimary}`}>{t('freeDelivery')}</h4>
               <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('freeDeliveryInDhaka')}</p>
@@ -1283,13 +1283,7 @@ export function LandingPageTemplate({
         />
       )} */}
 
-      {/* Social Proof Popup - Shows "X just ordered" notifications */}
-      {editableConfig.showSocialProof && (
-        <SocialProofPopup
-          productName={product.title}
-          interval={editableConfig.socialProofInterval || 15}
-        />
-      )}
+      {/* Social Proof Popup - REMOVED: Fake buyer notifications are misleading */}
 
       {/* WhatsApp Floating Button - Shows on all devices */}
       {editableConfig.whatsappEnabled && editableConfig.whatsappNumber && (

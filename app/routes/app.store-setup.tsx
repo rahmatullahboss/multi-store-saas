@@ -1297,61 +1297,17 @@ export default function StoreSetupPage() {
           )}
         </div>
 
-        {/* Section 12: Social Proof Popup */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => toggleSection('socialProof')}
-            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                <span className="text-xl">🔔</span>
-              </div>
-              <div className="text-left">
-                <h2 className="font-semibold text-gray-900">12. Social Proof Popup</h2>
-                <p className="text-sm text-gray-500">{showSocialProof ? 'Enabled' : 'Disabled'}</p>
-              </div>
+        {/* Section 12: Social Proof Popup - DISABLED */}
+        <div className="bg-gray-100 rounded-xl border border-gray-200 overflow-hidden opacity-60">
+          <div className="p-4 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+              <span className="text-xl">🚫</span>
             </div>
-            {expandedSections.socialProof ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-          </button>
-          
-          {expandedSections.socialProof && (
-            <div className="p-4 pt-0 space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">"Someone just ordered" Popups</span>
-                  <p className="text-xs text-gray-500">Random names from Dhaka, Chittagong, etc.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSocialProof(!showSocialProof)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                    showSocialProof ? 'bg-pink-500' : 'bg-gray-300'
-                  }`}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                    showSocialProof ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
-                </button>
-              </div>
-              
-              {showSocialProof && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Popup Interval (seconds)</label>
-                  <input
-                    type="number"
-                    min="5"
-                    max="60"
-                    value={socialProofInterval}
-                    onChange={(e) => setSocialProofInterval(parseInt(e.target.value) || 15)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Default: 15 seconds between popups</p>
-                </div>
-              )}
+            <div className="text-left">
+              <h2 className="font-semibold text-gray-600">12. Social Proof Popup (Disabled)</h2>
+              <p className="text-sm text-gray-500">Fake "X just ordered" notifications reduce customer trust. This feature has been permanently disabled.</p>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Sticky Submit Button */}
