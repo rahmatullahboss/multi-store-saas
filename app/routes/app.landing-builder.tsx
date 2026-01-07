@@ -13,7 +13,8 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, Link, useFetcher } from '@remix-run/react';
+import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
+
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
@@ -118,7 +119,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // Safe JSON parse helper - prevents server crashes from malformed JSON
+  function safeJSONParse<T>(str: string | null, fallback: T): T {
+    if (!str) return fallback;
+    try {
+      return JSON.parse(str);
+    } catch {
+      return fallback;
+    }
+  }
+
   // Handle different actions
+
   if (intent === 'save-template') {
     const templateId = formData.get('templateId') as string;
     
@@ -144,8 +156,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   if (intent === 'save-sections') {
-    const sectionOrder = JSON.parse(formData.get('sectionOrder') as string || '[]');
-    const hiddenSections = JSON.parse(formData.get('hiddenSections') as string || '[]');
+    const sectionOrder = safeJSONParse(formData.get('sectionOrder') as string, DEFAULT_SECTION_ORDER);
+    const hiddenSections = safeJSONParse(formData.get('hiddenSections') as string, []);
+
     
     const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
     const currentConfig = parseLandingConfig(storeResult[0]?.landingConfig as string | null) || defaultLandingConfig;
@@ -193,18 +206,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, message: 'WhatsApp settings saved!' });
   }
 
-  // Safe JSON parse helper
-  function safeJSONParse<T>(str: string | null, fallback: T): T {
-    if (!str) return fallback;
-    try {
-      return JSON.parse(str);
-    } catch {
-      return fallback;
-    }
-  }
-
-
   if (intent === 'save-all') {
+
     const templateId = formData.get('templateId') as string;
     const featuredProductId = formData.get('featuredProductId') as string;
     const headline = formData.get('headline') as string;
@@ -354,10 +357,12 @@ export default function LandingBuilderPage() {
     if (actionData && 'success' in actionData && actionData.success) {
       setShowSuccess(true);
       setHasChanges(false); // Reset dirty state on save
+      setValidationErrors([]); // Clear any validation errors
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [actionData]);
+
 
   // Track unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
