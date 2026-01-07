@@ -189,15 +189,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const allOrdersForCustomers = await db
     .select({
       customerEmail: orders.customerEmail,
+      customerPhone: orders.customerPhone,
       shippingAddress: orders.shippingAddress,
       createdAt: orders.createdAt,
     })
     .from(orders)
     .where(eq(orders.storeId, storeId));
 
-  // Unique customers by email
-  const uniqueEmails = new Set(allOrdersForCustomers.filter(o => o.customerEmail).map(o => o.customerEmail));
-  const totalCustomers = uniqueEmails.size;
+  // Unique customers by email OR phone (many BD customers use phone only)
+  const uniqueCustomers = new Set<string>();
+  allOrdersForCustomers.forEach(o => {
+    // Use email if available, otherwise use phone
+    const identifier = o.customerEmail || o.customerPhone;
+    if (identifier) {
+      uniqueCustomers.add(identifier);
+    }
+  });
+  const totalCustomers = uniqueCustomers.size;
 
   // New vs returning (orders in last 30 days by first-time vs repeat customers)
   const thirtyDaysAgo = new Date();
@@ -205,8 +213,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   const customerOrderCounts = new Map<string, number>();
   allOrdersForCustomers.forEach(o => {
-    if (o.customerEmail) {
-      customerOrderCounts.set(o.customerEmail, (customerOrderCounts.get(o.customerEmail) || 0) + 1);
+    // Use email if available, otherwise use phone
+    const identifier = o.customerEmail || o.customerPhone;
+    if (identifier) {
+      customerOrderCounts.set(identifier, (customerOrderCounts.get(identifier) || 0) + 1);
     }
   });
   
