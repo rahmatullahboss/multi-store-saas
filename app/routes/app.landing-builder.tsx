@@ -384,6 +384,37 @@ export default function LandingBuilderPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasChanges]);
 
+  // Validation errors state
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // Validate before save
+  const validateBeforeSave = useCallback(() => {
+    const errors: string[] = [];
+    
+    // Landing mode requires a featured product
+    if (storeMode === 'landing' && !featuredProductId) {
+      errors.push(language === 'bn' ? 'ল্যান্ডিং মোডে একটি প্রোডাক্ট সিলেক্ট করতে হবে' : 'Landing mode requires a featured product');
+    }
+    
+    // Headline is required
+    if (!headline?.trim()) {
+      errors.push(language === 'bn' ? 'হেডলাইন দিতে হবে' : 'Headline is required');
+    }
+    
+    // WhatsApp validation (if enabled)
+    if (whatsappEnabled && whatsappNumber) {
+      const digits = whatsappNumber.replace(/\D/g, '');
+      const isValid = (digits.startsWith('01') && digits.length === 11) || 
+                      (digits.startsWith('880') && digits.length === 13);
+      if (!isValid) {
+        errors.push(language === 'bn' ? 'সঠিক WhatsApp নম্বর দিন' : 'Invalid WhatsApp number');
+      }
+    }
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
+  }, [storeMode, featuredProductId, headline, whatsappEnabled, whatsappNumber, language]);
+
 
   // Handlers
   const handleVisibilityChange = (sectionId: string, visible: boolean) => {
@@ -393,6 +424,7 @@ export default function LandingBuilderPage() {
       setHiddenSections([...hiddenSections, sectionId]);
     }
   };
+
 
   // Preview URL - use saasDomain from loader
   const previewUrl = `https://${store.subdomain}.${saasDomain}`;
@@ -514,8 +546,16 @@ export default function LandingBuilderPage() {
               </a>
               
               {/* Save Button */}
-              <Form method="post">
+              <Form 
+                method="post"
+                onSubmit={(e) => {
+                  if (!validateBeforeSave()) {
+                    e.preventDefault();
+                  }
+                }}
+              >
                 <input type="hidden" name="intent" value="save-all" />
+
                 <input type="hidden" name="templateId" value={templateId} />
                 <input type="hidden" name="featuredProductId" value={featuredProductId} />
                 <input type="hidden" name="headline" value={headline} />
@@ -577,6 +617,20 @@ export default function LandingBuilderPage() {
           <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
             <CheckCircle className="w-5 h-5" />
             {language === 'bn' ? 'সেভ হয়েছে!' : 'Saved successfully!'}
+          </div>
+        </div>
+      )}
+
+      {/* Validation Errors */}
+      {validationErrors.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <p className="font-medium mb-2">{language === 'bn' ? 'সেভ করতে সমস্যা:' : 'Please fix the following:'}</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
@@ -1679,8 +1733,17 @@ export default function LandingBuilderPage() {
         </a>
         
         {/* Save Button */}
-        <Form method="post" className="flex-1">
+        <Form 
+          method="post" 
+          className="flex-1"
+          onSubmit={(e) => {
+            if (!validateBeforeSave()) {
+              e.preventDefault();
+            }
+          }}
+        >
           <input type="hidden" name="intent" value="save-all" />
+
           <input type="hidden" name="templateId" value={templateId} />
           <input type="hidden" name="featuredProductId" value={featuredProductId} />
           <input type="hidden" name="headline" value={headline} />
