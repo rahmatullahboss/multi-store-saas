@@ -36,6 +36,17 @@ export interface TemplateProps {
   isCustomerAiEnabled?: boolean; // For AI Sales Agent
   manualPaymentConfig?: ManualPaymentConfig | null; // For checkout
   onConfigChange?: (newConfig: LandingConfig) => void;
+  // Product variants for variant selection in order forms
+  productVariants?: Array<{
+    id: number;
+    option1Name: string | null;
+    option1Value: string | null;
+    option2Name: string | null;
+    option2Value: string | null;
+    price: number | null;
+    inventory: number | null;
+    isAvailable: boolean | null;
+  }>;
 }
 
 // ============================================================================

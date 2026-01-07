@@ -15,7 +15,7 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, products, stores, users } from '@db/schema';
+import { orders, orderItems, products, productVariants, stores, users } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { checkUsageLimit } from '~/utils/plans.server';
@@ -44,9 +44,9 @@ const OrderSchema = z.object({
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation
-  // New Payment Fields
   payment_method: z.string().default('cod'), // 'cod', 'bkash', 'nagad'
   transaction_id: z.string().optional(),
+  variant_id: z.number().int().optional(), // Product variant ID
   manual_payment_details: z.object({
     senderNumber: z.string().optional(),
     method: z.string().optional(),
@@ -152,7 +152,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // SECURITY: Calculate price on SERVER, never trust frontend
     const productData = product[0];
-    const unitPrice = productData.price;
+    let unitPrice = productData.price;
+    let variantInfo: string | null = null;
+    
+    // If variant_id provided, fetch variant price
+    if (input.variant_id) {
+      const variant = await db
+        .select()
+        .from(productVariants)
+        .where(
+          and(
+            eq(productVariants.id, input.variant_id),
+            eq(productVariants.productId, productData.id)
+          )
+        )
+        .limit(1);
+      
+      if (variant.length > 0 && variant[0].price) {
+        unitPrice = variant[0].price;
+        variantInfo = [variant[0].option1Value, variant[0].option2Value]
+          .filter(Boolean)
+          .join(' - ');
+      }
+    }
+    
     const itemTotal = unitPrice * input.quantity;
     const subtotal = itemTotal;
     const tax = 0; // Can be calculated based on store settings
@@ -197,13 +220,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const orderId = orderResult[0].id;
 
-    // Step 2: Insert order item
+    // Step 2: Insert order item (with variant info if applicable)
     await db
       .insert(orderItems)
       .values({
         orderId,
         productId: productData.id,
-        title: productData.title,
+        title: variantInfo ? `${productData.title} (${variantInfo})` : productData.title,
         quantity: input.quantity,
         price: unitPrice,
         total: itemTotal,

@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS `reviews` (
 	FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `reviews_store_product_idx` ON `reviews` (`store_id`,`product_id`);--> statement-breakpoint
-CREATE INDEX `reviews_status_idx` ON `reviews` (`store_id`,`status`);
+CREATE INDEX IF NOT EXISTS `reviews_store_product_idx` ON `reviews` (`store_id`,`product_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `reviews_status_idx` ON `reviews` (`store_id`,`status`);

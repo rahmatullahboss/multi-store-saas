@@ -20,7 +20,7 @@ import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction 
 import { useLoaderData, useRouteError, isRouteErrorResponse, useSearchParams } from '@remix-run/react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores, products, type Product, type Store } from '@db/schema';
+import { stores, products, productVariants, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
@@ -77,6 +77,16 @@ interface LandingModeData {
   storeName: string;
   currency: string;
   featuredProduct: Product | null;
+  productVariants: Array<{
+    id: number;
+    option1Name: string | null;
+    option1Value: string | null;
+    option2Name: string | null;
+    option2Value: string | null;
+    price: number | null;
+    inventory: number | null;
+    isAvailable: boolean | null;
+  }>;
   landingConfig: LandingConfig;
   // Explicitly null for this mode
   products: null;
@@ -328,6 +338,40 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         featuredProduct = fallback[0] ?? null;
       }
       
+      // Fetch product variants if we have a featured product
+      let variants: Array<{
+        id: number;
+        option1Name: string | null;
+        option1Value: string | null;
+        option2Name: string | null;
+        option2Value: string | null;
+        price: number | null;
+        inventory: number | null;
+        isAvailable: boolean | null;
+      }> = [];
+      
+      if (featuredProduct) {
+        const variantsQuery = db
+          .select({
+            id: productVariants.id,
+            option1Name: productVariants.option1Name,
+            option1Value: productVariants.option1Value,
+            option2Name: productVariants.option2Name,
+            option2Value: productVariants.option2Value,
+            price: productVariants.price,
+            inventory: productVariants.inventory,
+            isAvailable: productVariants.isAvailable,
+          })
+          .from(productVariants)
+          .where(eq(productVariants.productId, featuredProduct.id));
+        
+        variants = await withTimeout(
+          variantsQuery,
+          DB_TIMEOUT_MS,
+          'Database query timed out while fetching product variants'
+        );
+      }
+      
       // Parse landing config with safe fallback
       const landingConfigRaw = (validatedStore as Store & { landingConfig?: string }).landingConfig;
       const landingConfig = parseLandingConfig(landingConfigRaw) ?? defaultLandingConfig;
@@ -338,6 +382,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         storeName: validatedStore.name ?? 'Store',
         currency: validatedStore.currency ?? 'USD',
         featuredProduct,
+        productVariants: variants,
         landingConfig,
         // Explicitly null for landing mode
         products: null,
@@ -495,6 +540,7 @@ export default function Index() {
         config={data.landingConfig as LandingConfig}
         currency={data.currency}
         isEditMode={isEditMode}
+        productVariants={data.productVariants}
       />
     );
   }

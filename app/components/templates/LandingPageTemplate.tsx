@@ -138,6 +138,17 @@ interface LandingPageTemplateProps {
   isEditMode?: boolean; // When true, enables Magic Editor hover overlays
   isCustomerAiEnabled?: boolean; // When true, shows AI Sales Agent chatbot
   onConfigChange?: (newConfig: LandingConfig) => void; // Callback when config changes (for editor wrapper)
+  // Product variants for variant selection
+  productVariants?: Array<{
+    id: number;
+    option1Name: string | null;
+    option1Value: string | null;
+    option2Name: string | null;
+    option2Value: string | null;
+    price: number | null;
+    inventory: number | null;
+    isAvailable: boolean | null;
+  }>;
 }
 
 export function LandingPageTemplate({
@@ -150,6 +161,7 @@ export function LandingPageTemplate({
   isEditMode = false,
   isCustomerAiEnabled = false,
   onConfigChange,
+  productVariants = [],
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -167,6 +179,11 @@ export function LandingPageTemplate({
     division: 'dhaka' as DivisionValue,
     quantity: 1,
   });
+
+  // Selected variant ID for variant selection
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
+    productVariants.length > 0 ? productVariants[0].id : null
+  );
 
   // Client-side validation errors
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -221,7 +238,14 @@ export function LandingPageTemplate({
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
 
-  const subtotal = product.price * formData.quantity;
+  // Get selected variant if any
+  const selectedVariant = selectedVariantId 
+    ? productVariants.find(v => v.id === selectedVariantId)
+    : null;
+  
+  // Use variant price if selected, otherwise product price
+  const effectivePrice = selectedVariant?.price ?? product.price;
+  const subtotal = effectivePrice * formData.quantity;
   const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
   const totalPrice = subtotal + shippingCost;
 
@@ -282,6 +306,7 @@ export function LandingPageTemplate({
         address: formData.address,
         division: formData.division,
         quantity: formData.quantity,
+        variant_id: selectedVariantId,
       },
       {
         method: 'POST',
@@ -1019,6 +1044,53 @@ export function LandingPageTemplate({
                     )}
                   </div>
 
+                  {/* Variant Selector - Only show if product has variants */}
+                  {productVariants.length > 0 && (
+                    <div className="mb-6">
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        📦 {productVariants[0]?.option1Name || 'Select Option'}
+                      </label>
+                      <div className="space-y-2">
+                        {productVariants.map((variant) => {
+                          const isSelected = selectedVariantId === variant.id;
+                          const variantLabel = [
+                            variant.option1Value,
+                            variant.option2Value, 
+                          ].filter(Boolean).join(' - ');
+                          const variantPrice = variant.price ?? product.price;
+                          
+                          return (
+                            <label
+                              key={variant.id}
+                              className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                isSelected 
+                                  ? 'border-emerald-500 bg-emerald-50' 
+                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="radio"
+                                  name="variant"
+                                  value={variant.id}
+                                  checked={isSelected}
+                                  onChange={() => setSelectedVariantId(variant.id)}
+                                  className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+                                />
+                                <span className={`font-medium ${isSelected ? 'text-emerald-700' : 'text-gray-700'}`}>
+                                  {variantLabel}
+                                </span>
+                              </div>
+                              <span className={`font-bold text-lg ${isSelected ? 'text-emerald-600' : 'text-gray-900'}`}>
+                                {formatPrice(variantPrice)}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Quantity Selector */}
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-3">{t('selectQuantity')}</label>
@@ -1026,7 +1098,7 @@ export function LandingPageTemplate({
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.max(1, d.quantity - 1) }))}
-                        className="w-14 h-14 bg-white hover:bg-gray-100 rounded-xl text-2xl font-bold transition shadow-sm border border-gray-200"
+                        className="w-14 h-14 bg-white hover:bg-gray-100 rounded-xl text-2xl font-bold text-gray-900 transition shadow-sm border border-gray-200"
                       >
                         -
                       </button>
@@ -1034,7 +1106,7 @@ export function LandingPageTemplate({
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.min(10, d.quantity + 1) }))}
-                        className="w-14 h-14 bg-white hover:bg-gray-100 rounded-xl text-2xl font-bold transition shadow-sm border border-gray-200"
+                        className="w-14 h-14 bg-white hover:bg-gray-100 rounded-xl text-2xl font-bold text-gray-900 transition shadow-sm border border-gray-200"
                       >
                         +
                       </button>
@@ -1113,6 +1185,8 @@ export function LandingPageTemplate({
                       <label className="block text-sm font-bold text-gray-700 mb-2">{t('yourNameLabel')}</label>
                       <input
                         type="text"
+                        name="customer_name"
+                        autoComplete="name"
                         required
                         minLength={2}
                         value={formData.customer_name}
@@ -1123,7 +1197,7 @@ export function LandingPageTemplate({
                           }
                         }}
                         placeholder={t('enterFullName')}
-                        className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg ${
+                        className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg text-gray-900 ${
                           validationErrors.customer_name ? 'border-red-500 bg-red-50' : 'border-gray-200'
                         }`}
                       />
@@ -1137,6 +1211,8 @@ export function LandingPageTemplate({
                       <label className="block text-sm font-bold text-gray-700 mb-2">{t('mobileNumberLabel')}</label>
                       <input
                         type="tel"
+                        name="phone"
+                        autoComplete="tel"
                         required
                         minLength={10}
                         value={formData.phone}
@@ -1147,7 +1223,7 @@ export function LandingPageTemplate({
                           }
                         }}
                         placeholder="০১XXXXXXXXX"
-                        className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg ${
+                        className={`w-full px-5 py-4 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg text-gray-900 ${
                           validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-200'
                         }`}
                       />
@@ -1162,7 +1238,7 @@ export function LandingPageTemplate({
                       <select
                         value={formData.division}
                         onChange={(e) => setFormData(d => ({ ...d, division: e.target.value as DivisionValue }))}
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg appearance-none cursor-pointer"
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg text-gray-900 appearance-none cursor-pointer"
                         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.5rem' }}
                       >
                         {BD_DIVISIONS.map((div) => (
@@ -1205,6 +1281,8 @@ export function LandingPageTemplate({
                         📍 {t('shippingAddressLabel')} <span className="text-red-500 text-xs">{t('requiredField')}</span>
                       </label>
                       <textarea
+                        name="address"
+                        autoComplete="street-address"
                         required
                         minLength={10}
                         rows={4}
@@ -1216,7 +1294,7 @@ export function LandingPageTemplate({
                           }
                         }}
                         placeholder={t('addressPlaceholder')}
-                        className={`w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg resize-none ${
+                        className={`w-full px-5 py-4 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-lg text-gray-900 resize-none ${
                           validationErrors.address 
                             ? 'border-red-500 bg-red-50 ring-2 ring-red-200' 
                             : 'bg-gray-50 border-gray-200'
