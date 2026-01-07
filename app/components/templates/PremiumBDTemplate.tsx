@@ -296,6 +296,56 @@ export function PremiumBDTemplate({
         </MagicSectionWrapper>
       )}
 
+      {/* GALLERY SECTION */}
+      {isSectionVisible('gallery', editableConfig.hiddenSections) && editableConfig.galleryImages && editableConfig.galleryImages.length > 0 && (
+        <section className="py-12 bg-gray-50">
+          <div className="container max-w-6xl mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">পণ্যের ছবি গ্যালারি</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {editableConfig.galleryImages.map((url, idx) => (
+                <div key={idx} className="aspect-square rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition">
+                  <OptimizedImage 
+                    src={url} 
+                    alt={`Gallery ${idx + 1}`} 
+                    className="w-full h-full object-cover hover:scale-105 transition duration-300"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BENEFITS SECTION */}
+      {isSectionVisible('benefits', editableConfig.hiddenSections) && editableConfig.benefits && editableConfig.benefits.length > 0 && (
+        <section className="py-12 bg-white">
+          <div className="container max-w-5xl mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">কেন আমাদের থেকে কিনবেন?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {editableConfig.benefits.map((benefit, idx) => (
+                <div key={idx} className="bg-emerald-50 p-6 rounded-2xl text-center hover:shadow-lg transition">
+                  <div className="text-4xl mb-3">{benefit.icon}</div>
+                  <h3 className="font-bold text-lg text-gray-800 mb-2">{benefit.title}</h3>
+                  <p className="text-gray-600 text-sm">{benefit.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SOCIAL PROOF SECTION */}
+      {isSectionVisible('social', editableConfig.hiddenSections) && editableConfig.socialProof && (editableConfig.socialProof.count > 0 || editableConfig.socialProof.text) && (
+        <section className="py-8 bg-emerald-600">
+          <div className="container max-w-4xl mx-auto px-4 text-center text-white">
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-4xl md:text-5xl font-bold">{editableConfig.socialProof.count}+</span>
+              <span className="text-xl md:text-2xl">{editableConfig.socialProof.text}</span>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 4. WHY YOU NEED THIS (Before/After) */}
       <section className="py-16 bg-gradient-to-br from-emerald-900 to-gray-900 text-white overflow-hidden relative">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
