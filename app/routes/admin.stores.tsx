@@ -311,7 +311,7 @@ export default function AdminStores() {
                         
                         {/* Impersonate - Only if has owner */}
                         {store.ownerId && (
-                          <fetcher.Form method="post">
+                          <Form method="post">
                             <input type="hidden" name="intent" value="impersonate" />
                             <input type="hidden" name="storeId" value={store.id} />
                             <input type="hidden" name="userId" value={store.ownerId} />
@@ -323,7 +323,7 @@ export default function AdminStores() {
                               <UserRound className="w-4 h-4" />
                               Impersonate
                             </button>
-                          </fetcher.Form>
+                          </Form>
                         )}
                       </div>
                     </td>
