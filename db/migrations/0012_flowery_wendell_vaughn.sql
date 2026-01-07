@@ -1,4 +1,4 @@
-CREATE TABLE `reviews` (
+CREATE TABLE IF NOT EXISTS `reviews` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`product_id` integer NOT NULL,

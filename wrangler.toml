@@ -44,6 +44,7 @@ id = "65513509a7a146d1b348548fb98a93cf"
 [vars]
 SAAS_DOMAIN = "digitalcare.site"  # Custom domain for the SaaS
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"  # R2 bucket public URL
+SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"  # Only this email can impersonate users
 # IMPORTANT: Sensitive API keys must be set in Cloudflare Dashboard for security
 # OPENROUTER_API_KEY - AI chatbot - SET IN DASHBOARD (secret, not here)
 # RESEND_API_KEY - Email service - SET IN DASHBOARD (secret)
