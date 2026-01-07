@@ -49,7 +49,10 @@ export interface LandingConfig {
   showSocialProof?: boolean;
   socialProofInterval?: number; // Seconds between popups
   // Product Gallery
-  productImages?: string[]; // Additional product images
+  productImages?: string[];
+  // Color Theme Customization
+  primaryColor?: string; // Main brand color (buttons, accents)
+  accentColor?: string;  // Secondary accent color // Additional product images
 }
 
 // Store template configuration for full store mode

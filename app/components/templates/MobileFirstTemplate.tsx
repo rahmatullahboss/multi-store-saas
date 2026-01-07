@@ -188,7 +188,7 @@ export function MobileFirstTemplate({
                 isEditable={isEditMode}
             >
                 <div className="mb-6">
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-2">
+                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-2">
                     {editableConfig.headline}
                   </h1>
                   

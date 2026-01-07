@@ -115,7 +115,7 @@ export function PaymentMethodSelector({
             <input
               type="tel"
               placeholder="01XXXXXXXXX"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
               onChange={(e) => onSenderNumberChange(e.target.value)}
               required
             />
@@ -127,7 +127,7 @@ export function PaymentMethodSelector({
             <input
               type="text"
               placeholder="e.g. 9G7SH..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase text-base"
               onChange={(e) => onTransactionIdChange(e.target.value)}
               required
             />

@@ -329,7 +329,7 @@ export function ShowcaseTemplate({
                            type="text" 
                            value={formData.customer_name}
                            onChange={e => setFormData({...formData, customer_name: e.target.value})}
-                           className="w-full bg-[#0a0a0a] border border-zinc-800 focus:border-rose-500 rounded px-4 py-3 text-white outline-none transition-colors"
+                           className="w-full bg-[#0a0a0a] border border-zinc-800 focus:border-rose-500 rounded px-4 py-3 text-white outline-none transition-colors text-base"
                            placeholder="Your full name"
                         />
                         {validationErrors.customer_name && <span className="text-rose-500 text-xs mt-1 block">{validationErrors.customer_name}</span>}
@@ -342,7 +342,7 @@ export function ShowcaseTemplate({
                            type="tel" 
                            value={formData.phone}
                            onChange={e => setFormData({...formData, phone: e.target.value})}
-                           className="w-full bg-[#0a0a0a] border border-zinc-800 focus:border-rose-500 rounded px-4 py-3 text-white outline-none transition-colors"
+                           className="w-full bg-[#0a0a0a] border border-zinc-800 focus:border-rose-500 rounded px-4 py-3 text-white outline-none transition-colors text-base"
                            placeholder="017XXXXXXXX"
                         />
                         {validationErrors.phone && <span className="text-rose-500 text-xs mt-1 block">{validationErrors.phone}</span>}
@@ -355,7 +355,7 @@ export function ShowcaseTemplate({
                            value={formData.address}
                            onChange={e => setFormData({...formData, address: e.target.value})}
                            rows={3}
-                           className="w-full bg-[#0a0a0a] border border-zinc-800 focus:border-rose-500 rounded px-4 py-3 text-white outline-none transition-colors resize-none"
+                           className="w-full bg-[#0a0a0a] border border-zinc-800 focus:border-rose-500 rounded px-4 py-3 text-white outline-none transition-colors resize-none text-base"
                            placeholder="House, Road, Area, City..."
                         />
                         {validationErrors.address && <span className="text-rose-500 text-xs mt-1 block">{validationErrors.address}</span>}

@@ -162,7 +162,7 @@ export function FullStoreTemplate({
 
       {/* Hero Banner */}
       {config?.bannerUrl ? (
-        <section className="relative h-[500px] md:h-[600px]">
+        <section className="relative h-[400px] md:h-[600px]">
           <img
             src={config.bannerUrl}
             alt="Banner"
@@ -290,7 +290,7 @@ export function FullStoreTemplate({
                 View All →
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {featuredProducts.map((product) => (
                 <article key={product.id} className="bg-white rounded-2xl shadow-sm overflow-hidden group hover:shadow-xl transition-shadow">
                   <Link to={`/products/${product.id}`} className="block aspect-square overflow-hidden">
@@ -398,7 +398,7 @@ export function FullStoreTemplate({
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
               {products.map((product) => (
                 <article key={product.id} className="bg-white rounded-2xl shadow-sm overflow-hidden group hover:shadow-xl transition-shadow">
                   <Link to={`/products/${product.id}`} className="block aspect-square overflow-hidden">
@@ -451,7 +451,7 @@ export function FullStoreTemplate({
             <input 
               type="email" 
               placeholder="Enter your email"
-              className="flex-1 px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="flex-1 px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 text-base"
             />
             <button 
               type="submit"

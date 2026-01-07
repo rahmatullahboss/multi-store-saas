@@ -125,7 +125,7 @@ export function StoreLayout({
                   {storeName[0]}
                 </div>
               )}
-              <span className="text-xl font-bold text-gray-900 hidden sm:block">
+              <span className="text-lg sm:text-xl font-bold text-gray-900 block">
                 {storeName}
               </span>
             </Link>

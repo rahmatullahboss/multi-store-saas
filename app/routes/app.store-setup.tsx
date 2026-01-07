@@ -1297,19 +1297,6 @@ export default function StoreSetupPage() {
           )}
         </div>
 
-        {/* Section 12: Social Proof Popup - DISABLED */}
-        <div className="bg-gray-100 rounded-xl border border-gray-200 overflow-hidden opacity-60">
-          <div className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-              <span className="text-xl">🚫</span>
-            </div>
-            <div className="text-left">
-              <h2 className="font-semibold text-gray-600">12. Social Proof Popup (Disabled)</h2>
-              <p className="text-sm text-gray-500">Fake "X just ordered" notifications reduce customer trust. This feature has been permanently disabled.</p>
-            </div>
-          </div>
-        </div>
-
         {/* Sticky Submit Button */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 md:left-64">
           <div className="max-w-4xl mx-auto flex items-center justify-between">

@@ -203,6 +203,19 @@ export function LandingPageTemplate({
   // Get theme based on templateId
   const theme = getTheme(editableConfig.templateId);
 
+  // Custom colors from config (overrides theme defaults)
+  const customPrimaryColor = editableConfig.primaryColor;
+  const customAccentColor = editableConfig.accentColor;
+  
+  // Create inline style for buttons if custom color is set
+  const ctaButtonStyle = customPrimaryColor 
+    ? { backgroundColor: customPrimaryColor } 
+    : undefined;
+  
+  const accentBadgeStyle = customAccentColor 
+    ? { backgroundColor: customAccentColor } 
+    : undefined;
+
   // Calculate discount
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
@@ -361,7 +374,10 @@ export function LandingPageTemplate({
               {/* Product Image */}
               <div className="relative">
                 {discount > 0 && (
-                  <div className={`absolute top-4 left-4 z-10 ${theme.ctaBg} text-white px-5 py-2 rounded-full font-bold text-lg shadow-lg`}>
+                  <div 
+                    className={`absolute top-4 left-4 z-10 ${ctaButtonStyle ? '' : theme.ctaBg} text-white px-5 py-2 rounded-full font-bold text-lg shadow-lg`}
+                    style={ctaButtonStyle}
+                  >
                     {discount}% ছাড়!
                   </div>
                 )}
@@ -427,7 +443,8 @@ export function LandingPageTemplate({
                 <div className="hidden lg:block">
                   <a
                     href="#order-form"
-                    className={`block w-full py-5 px-8 ${theme.ctaBg} ${theme.ctaText} text-2xl font-bold rounded-2xl shadow-xl transition transform hover:scale-[1.02] text-center`}
+                    className={`block w-full py-5 px-8 ${ctaButtonStyle ? '' : theme.ctaBg} ${theme.ctaText} text-2xl font-bold rounded-2xl shadow-xl transition transform hover:scale-[1.02] text-center`}
+                    style={ctaButtonStyle}
                   >
                     🛒 {editableConfig.ctaText || 'এখনই অর্ডার করুন'} - {formatPrice(product.price)}
                   </a>
@@ -1248,7 +1265,8 @@ export function LandingPageTemplate({
       <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${theme.isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-t p-4 shadow-2xl safe-area-pb`}>
         <a
           href="#order-form"
-          className={`w-full py-4 ${theme.ctaBg} ${theme.ctaText} text-xl font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3`}
+          className={`w-full py-4 ${ctaButtonStyle ? '' : theme.ctaBg} ${theme.ctaText} text-xl font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3`}
+          style={ctaButtonStyle}
         >
           <span className="text-2xl">🛒</span>
           {editableConfig.ctaText || 'অর্ডার করুন'} - {formatPrice(product.price)}

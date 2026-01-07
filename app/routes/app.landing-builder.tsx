@@ -21,7 +21,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Eye, Sparkles, Save, 
-  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp
+  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp, Paintbrush
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -200,6 +200,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const showSocialProof = formData.get('showSocialProof') === 'true';
     const socialProofInterval = parseInt(formData.get('socialProofInterval') as string) || 15;
 
+    // Color theme
+    const primaryColor = formData.get('primaryColor') as string || '';
+    const accentColor = formData.get('accentColor') as string || '';
+
     const newConfig: LandingConfig = {
       templateId,
       headline: headline || 'Transform Your Life Today',
@@ -222,6 +226,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
       lowStockThreshold,
       showSocialProof,
       socialProofInterval,
+      // Color theme
+      primaryColor: primaryColor || undefined,
+      accentColor: accentColor || undefined,
     };
 
     await db
@@ -281,8 +288,12 @@ export default function LandingBuilderPage() {
   const [showSocialProof, setShowSocialProof] = useState(store.landingConfig.showSocialProof || false);
   const [socialProofInterval, setSocialProofInterval] = useState(store.landingConfig.socialProofInterval || 15);
 
+  // Color theme state
+  const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '');
+  const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '');
+
   // Current tab
-  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp'>('template');
+  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp' | 'colors'>('template');
 
   // Show success message
   useEffect(() => {
@@ -378,6 +389,9 @@ export default function LandingBuilderPage() {
                 <input type="hidden" name="lowStockThreshold" value={lowStockThreshold.toString()} />
                 <input type="hidden" name="showSocialProof" value={showSocialProof.toString()} />
                 <input type="hidden" name="socialProofInterval" value={socialProofInterval.toString()} />
+                {/* Color theme */}
+                <input type="hidden" name="primaryColor" value={primaryColor} />
+                <input type="hidden" name="accentColor" value={accentColor} />
                 
                 <button
                   type="submit"
@@ -419,6 +433,7 @@ export default function LandingBuilderPage() {
             { id: 'testimonials', icon: Star, label: 'টেস্টিমোনিয়াল', labelEn: 'Testimonials' },
             { id: 'faq', icon: HelpCircle, label: 'FAQ', labelEn: 'FAQ' },
             { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', labelEn: 'WhatsApp' },
+            { id: 'colors', icon: Paintbrush, label: 'রং', labelEn: 'Colors' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -693,25 +708,6 @@ export default function LandingBuilderPage() {
                   )}
                 </div>
 
-                {/* Social Proof - REMOVED */}
-                <div className="bg-gray-100 rounded-xl border border-gray-200 p-6 opacity-60">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <span className="text-xl">🚫</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-600">
-                        {language === 'bn' ? 'সোশাল প্রুফ পপআপ (বন্ধ)' : 'Social Proof Popup (Disabled)'}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {language === 'bn' 
-                          ? 'ভুয়া নোটিফিকেশন গ্রাহকদের বিশ্বাস কমায়। এই ফিচার বন্ধ করা হয়েছে।' 
-                          : 'Fake notifications reduce customer trust. This feature has been disabled.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Tips */}
                 <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
                   <h4 className="font-semibold text-orange-900 mb-2">💡 {language === 'bn' ? 'কনভার্শন টিপস' : 'Conversion Tips'}</h4>
@@ -970,6 +966,186 @@ export default function LandingBuilderPage() {
                 onPhoneChange={setWhatsappNumber}
                 onMessageChange={setWhatsappMessage}
               />
+            )}
+
+            {activeTab === 'colors' && (
+              <div className="space-y-6">
+                {/* Primary Color */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                    {language === 'bn' ? 'প্রাইমারি কালার' : 'Primary Color'}
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-4">
+                    {language === 'bn' ? 'বাটন এবং মেইন হাইলাইটের জন্য' : 'For buttons and main highlights'}
+                  </p>
+                  
+                  {/* Preset Colors */}
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    {[
+                      { name: 'Orange', value: '#f97316' },
+                      { name: 'Red', value: '#ef4444' },
+                      { name: 'Emerald', value: '#10b981' },
+                      { name: 'Blue', value: '#3b82f6' },
+                      { name: 'Purple', value: '#8b5cf6' },
+                      { name: 'Pink', value: '#ec4899' },
+                      { name: 'Amber', value: '#f59e0b' },
+                      { name: 'Teal', value: '#14b8a6' },
+                    ].map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        onClick={() => setPrimaryColor(color.value)}
+                        className={`w-10 h-10 rounded-lg border-2 transition-all ${
+                          primaryColor === color.value 
+                            ? 'ring-2 ring-offset-2 ring-gray-400 border-gray-400' 
+                            : 'border-gray-200 hover:scale-110'
+                        }`}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Custom Color Picker */}
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm text-gray-600">
+                      {language === 'bn' ? 'কাস্টম:' : 'Custom:'}
+                    </label>
+                    <input
+                      type="color"
+                      value={primaryColor || '#f97316'}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      placeholder="#f97316"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                    />
+                    {primaryColor && (
+                      <button
+                        type="button"
+                        onClick={() => setPrimaryColor('')}
+                        className="text-sm text-gray-500 hover:text-red-500"
+                      >
+                        {language === 'bn' ? 'রিসেট' : 'Reset'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Accent Color */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                    {language === 'bn' ? 'অ্যাকসেন্ট কালার' : 'Accent Color'}
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-4">
+                    {language === 'bn' ? 'সেকেন্ডারি হাইলাইট ও ব্যাজের জন্য' : 'For secondary highlights and badges'}
+                  </p>
+                  
+                  {/* Preset Colors */}
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    {[
+                      { name: 'Gold', value: '#d4af37' },
+                      { name: 'Yellow', value: '#facc15' },
+                      { name: 'Lime', value: '#84cc16' },
+                      { name: 'Cyan', value: '#06b6d4' },
+                      { name: 'Indigo', value: '#6366f1' },
+                      { name: 'Rose', value: '#f43f5e' },
+                      { name: 'Black', value: '#18181b' },
+                      { name: 'White', value: '#ffffff' },
+                    ].map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        onClick={() => setAccentColor(color.value)}
+                        className={`w-10 h-10 rounded-lg border-2 transition-all ${
+                          accentColor === color.value 
+                            ? 'ring-2 ring-offset-2 ring-gray-400 border-gray-400' 
+                            : 'border-gray-200 hover:scale-110'
+                        }`}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Custom Color Picker */}
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm text-gray-600">
+                      {language === 'bn' ? 'কাস্টম:' : 'Custom:'}
+                    </label>
+                    <input
+                      type="color"
+                      value={accentColor || '#d4af37'}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      placeholder="#d4af37"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                    />
+                    {accentColor && (
+                      <button
+                        type="button"
+                        onClick={() => setAccentColor('')}
+                        className="text-sm text-gray-500 hover:text-red-500"
+                      >
+                        {language === 'bn' ? 'রিসেট' : 'Reset'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
+                  </h3>
+                  <div className="space-y-4">
+                    {/* Button Preview */}
+                    <div>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {language === 'bn' ? 'বাটন প্রিভিউ' : 'Button Preview'}
+                      </p>
+                      <button
+                        type="button"
+                        className="px-6 py-3 text-white font-bold rounded-xl shadow-lg transition"
+                        style={{ backgroundColor: primaryColor || '#f97316' }}
+                      >
+                        🛒 {language === 'bn' ? 'এখনই অর্ডার করুন' : 'Order Now'}
+                      </button>
+                    </div>
+                    
+                    {/* Badge Preview */}
+                    <div>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {language === 'bn' ? 'ব্যাজ প্রিভিউ' : 'Badge Preview'}
+                      </p>
+                      <span
+                        className="inline-block px-4 py-2 text-white font-bold rounded-full text-sm"
+                        style={{ backgroundColor: accentColor || '#d4af37' }}
+                      >
+                        ⚡ {language === 'bn' ? '৫০% ছাড়!' : '50% OFF!'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="bg-blue-50 rounded-xl border border-blue-200 p-4">
+                  <p className="text-sm text-blue-800">
+                    💡 {language === 'bn' 
+                      ? 'নোট: সব টেমপ্লেট কাস্টম কালার সাপোর্ট করে না। Modern Dark, Minimal Light, ও Video Focus টেমপ্লেটে এই কালার প্রযোজ্য হবে।' 
+                      : 'Note: Not all templates support custom colors. Colors will apply to Modern Dark, Minimal Light, and Video Focus templates.'}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 
