@@ -827,20 +827,23 @@ export default function LiveEditorPage() {
                   setHiddenSections([...hiddenSections, sectionId]);
                 }
               }}
-              onEditSection={(sectionId) => {
-                // Map section IDs to their accordion section names
-                const accordionMap: Record<string, string> = {
-                  'features': 'features',
-                  'video': 'content', // Video URL is in content section
-                  'testimonials': 'testimonials',
-                  'faq': 'faq',
-                };
-                const accordionName = accordionMap[sectionId];
-                if (accordionName) {
-                  setOpenSection(accordionName);
-                }
-              }}
+              // Content editing props
+              features={features}
+              onFeaturesChange={setFeatures}
+              faq={faq}
+              onFaqChange={setFaq}
+              testimonials={testimonials}
+              onTestimonialsChange={setTestimonials}
+              videoUrl={videoUrl}
+              onVideoUrlChange={setVideoUrl}
+              guaranteeText={guaranteeText}
+              onGuaranteeTextChange={setGuaranteeText}
+              // Image upload handlers
+              onTestimonialImageUpload={handleTestimonialImageUpload}
+              onTestimonialImageRemove={handleRemoveTestimonialImage}
+              uploadingIndex={uploadingIndex}
             />
+
 
           </AccordionSection>
 
@@ -910,91 +913,8 @@ export default function LiveEditorPage() {
             </div>
           </AccordionSection>
 
-          {/* Features Section */}
-          <AccordionSection
-            title={language === 'bn' ? 'ফিচার্স' : 'Features'}
-            icon={Star}
-            isOpen={openSection === 'features'}
-            onToggle={() => setOpenSection(openSection === 'features' ? '' : 'features')}
-          >
-            <div className="space-y-3">
-              {/* Guarantee Text */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'bn' ? 'গ্যারান্টি টেক্সট' : 'Guarantee Text'}
-                </label>
-                <textarea
-                  value={guaranteeText}
-                  onChange={(e) => setGuaranteeText(e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  placeholder={language === 'bn' ? '১০০% গ্যারান্টি...' : '100% Guarantee...'}
-                />
-              </div>
-              
-              {/* Feature Items */}
-              <p className="text-xs font-medium text-gray-700">
-                {language === 'bn' ? 'ফিচার আইটেম' : 'Feature Items'}
-              </p>
-              {features.map((feature, index) => (
-                <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={feature.icon}
-                      onChange={(e) => {
-                        const newFeatures = [...features];
-                        newFeatures[index].icon = e.target.value;
-                        setFeatures(newFeatures);
-                      }}
-                      placeholder="✅"
-                      className="w-14 px-2 py-2 border border-gray-300 rounded-lg text-sm text-center"
-                    />
-                    <input
-                      type="text"
-                      value={feature.title}
-                      onChange={(e) => {
-                        const newFeatures = [...features];
-                        newFeatures[index].title = e.target.value;
-                        setFeatures(newFeatures);
-                      }}
-                      placeholder={language === 'bn' ? 'টাইটেল' : 'Title'}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    value={feature.description}
-                    onChange={(e) => {
-                      const newFeatures = [...features];
-                      newFeatures[index].description = e.target.value;
-                      setFeatures(newFeatures);
-                    }}
-                    placeholder={language === 'bn' ? 'বর্ণনা' : 'Description'}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFeatures(features.filter((_, i) => i !== index))}
-                    className="text-red-500 hover:text-red-600 text-xs flex items-center gap-1"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    {language === 'bn' ? 'মুছুন' : 'Remove'}
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setFeatures([...features, { icon: '✅', title: '', description: '' }])}
-                className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                {language === 'bn' ? 'ফিচার যোগ করুন' : 'Add Feature'}
-              </button>
-            </div>
-          </AccordionSection>
-
           {/* Colors Section */}
+
           <AccordionSection
             title={language === 'bn' ? 'রং' : 'Colors'}
             icon={Paintbrush}
@@ -1065,170 +985,8 @@ export default function LiveEditorPage() {
             />
           </AccordionSection>
 
-          {/* FAQ Section */}
-          <AccordionSection
-            title="FAQ"
-            icon={HelpCircle}
-            isOpen={openSection === 'faq'}
-            onToggle={() => setOpenSection(openSection === 'faq' ? '' : 'faq')}
-          >
-            <div className="space-y-3">
-              {faq.map((item, index) => (
-                <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2">
-                  <input
-                    type="text"
-                    value={item.question}
-                    onChange={(e) => {
-                      const newFaq = [...faq];
-                      newFaq[index].question = e.target.value;
-                      setFaq(newFaq);
-                    }}
-                    placeholder={language === 'bn' ? 'প্রশ্ন' : 'Question'}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                  <textarea
-                    value={item.answer}
-                    onChange={(e) => {
-                      const newFaq = [...faq];
-                      newFaq[index].answer = e.target.value;
-                      setFaq(newFaq);
-                    }}
-                    placeholder={language === 'bn' ? 'উত্তর' : 'Answer'}
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFaq(faq.filter((_, i) => i !== index))}
-                    className="text-red-500 hover:text-red-600 text-xs flex items-center gap-1"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    {language === 'bn' ? 'মুছুন' : 'Remove'}
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setFaq([...faq, { question: '', answer: '' }])}
-                className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                {language === 'bn' ? 'FAQ যোগ করুন' : 'Add FAQ'}
-              </button>
-            </div>
-          </AccordionSection>
-
-          {/* Testimonials Section */}
-          <AccordionSection
-            title={language === 'bn' ? 'রিভিউ' : 'Reviews'}
-            icon={Star}
-            isOpen={openSection === 'testimonials'}
-            onToggle={() => setOpenSection(openSection === 'testimonials' ? '' : 'testimonials')}
-          >
-            <div className="space-y-3">
-              <p className="text-xs text-gray-500">
-                {language === 'bn' 
-                  ? 'স্ক্রিনশট আপলোড করুন (প্রস্তাবিত সাইজ: 400x300px, সর্বোচ্চ 5MB)'
-                  : 'Upload screenshots (Recommended: 400x300px, Max 5MB)'}
-              </p>
-              {testimonials.map((item, index) => (
-                <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2">
-                  {/* Image Upload/Preview Area */}
-                  {item.imageUrl ? (
-                    // Show uploaded image with remove button
-                    <div className="relative">
-                      <img 
-                        src={item.imageUrl} 
-                        alt="Review screenshot" 
-                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTestimonialImage(index)}
-                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-sm"
-                        title={language === 'bn' ? 'ছবি মুছুন' : 'Remove image'}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    // Upload zone
-                    <label className="block cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handleTestimonialImageUpload(file, index);
-                          }
-                          e.target.value = ''; // Reset for re-upload
-                        }}
-                        disabled={uploadingIndex === index}
-                      />
-                      <div className={`border-2 border-dashed rounded-lg p-4 text-center transition ${
-                        uploadingIndex === index 
-                          ? 'border-emerald-400 bg-emerald-50' 
-                          : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50/50'
-                      }`}>
-                        {uploadingIndex === index ? (
-                          <>
-                            <Loader2 className="w-6 h-6 text-emerald-500 mx-auto mb-2 animate-spin" />
-                            <p className="text-xs text-emerald-600">
-                              {language === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...'}
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                            <p className="text-xs text-gray-600">
-                              {language === 'bn' ? 'ক্লিক করে আপলোড করুন' : 'Click to upload'}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </label>
-                  )}
-                  
-                  {/* Error message */}
-                  {imageFetcher.data?.error && uploadingIndex === index && (
-                    <p className="text-xs text-red-500">{imageFetcher.data.error}</p>
-                  )}
-                  
-                  {/* Remove testimonial button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // If it has an uploaded image, clean it up
-                      const url = testimonials[index]?.imageUrl;
-                      if (url && pendingUploads.includes(url)) {
-                        deleteOrphanedImage(url);
-                        setPendingUploads(prev => prev.filter(u => u !== url));
-                      }
-                      // Remove the testimonial
-                      setTestimonials(testimonials.filter((_, i) => i !== index));
-                    }}
-                    className="text-red-500 hover:text-red-600 text-xs flex items-center gap-1"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    {language === 'bn' ? 'মুছুন' : 'Remove'}
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setTestimonials([...testimonials, { name: '', imageUrl: '' }])}
-                className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                {language === 'bn' ? 'রিভিউ যোগ করুন' : 'Add Review'}
-              </button>
-            </div>
-          </AccordionSection>
-
-
           {/* Mode Section */}
+
           <AccordionSection
             title={language === 'bn' ? 'মোড' : 'Mode'}
             icon={Settings}

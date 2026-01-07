@@ -157,6 +157,25 @@ export interface Testimonial {
   imageUrl?: string;
 }
 
+export interface Benefit {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface Comparison {
+  beforeImage?: string;
+  afterImage?: string;
+  beforeLabel?: string;
+  afterLabel?: string;
+  description?: string;
+}
+
+export interface SocialProof {
+  count: number;
+  text: string;
+}
+
 interface SectionManagerProps {
   sectionOrder: string[];
   hiddenSections: string[];
@@ -177,6 +196,15 @@ interface SectionManagerProps {
   onTestimonialImageUpload?: (file: File, index: number) => void;
   onTestimonialImageRemove?: (index: number) => void;
   uploadingIndex?: number | null;
+  // New sections
+  galleryImages?: string[];
+  onGalleryImagesChange?: (images: string[]) => void;
+  benefits?: Benefit[];
+  onBenefitsChange?: (benefits: Benefit[]) => void;
+  comparison?: Comparison;
+  onComparisonChange?: (comparison: Comparison) => void;
+  socialProof?: SocialProof;
+  onSocialProofChange?: (socialProof: SocialProof) => void;
 }
 
 export function SectionManager({
@@ -197,6 +225,15 @@ export function SectionManager({
   onTestimonialImageUpload,
   onTestimonialImageRemove,
   uploadingIndex,
+  // New sections
+  galleryImages = [],
+  onGalleryImagesChange,
+  benefits = [],
+  onBenefitsChange,
+  comparison = {},
+  onComparisonChange,
+  socialProof = { count: 0, text: '' },
+  onSocialProofChange,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -454,6 +491,206 @@ export function SectionManager({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               placeholder={language === 'bn' ? '১০০% গ্যারান্টি...' : '100% Guarantee...'}
             />
+          </div>
+        );
+
+      case 'gallery':
+        return (
+          <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            <p className="text-xs text-gray-500">
+              {language === 'bn' 
+                ? 'প্রোডাক্ট ফটো URL যোগ করুন' 
+                : 'Add product photo URLs'}
+            </p>
+            {galleryImages.map((url, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => {
+                    const newImages = [...galleryImages];
+                    newImages[index] = e.target.value;
+                    onGalleryImagesChange?.(newImages);
+                  }}
+                  placeholder="https://..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => onGalleryImagesChange?.(galleryImages.filter((_, i) => i !== index))}
+                  className="text-red-500 hover:text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => onGalleryImagesChange?.([...galleryImages, ''])}
+              className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              {language === 'bn' ? 'ফটো যোগ করুন' : 'Add Photo'}
+            </button>
+          </div>
+        );
+
+      case 'benefits':
+        return (
+          <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            {benefits.map((benefit, index) => (
+              <div key={index} className="p-3 bg-white rounded-lg border border-gray-200 space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={benefit.icon}
+                    onChange={(e) => {
+                      const newBenefits = [...benefits];
+                      newBenefits[index].icon = e.target.value;
+                      onBenefitsChange?.(newBenefits);
+                    }}
+                    placeholder="✅"
+                    className="w-14 px-2 py-2 border border-gray-300 rounded-lg text-sm text-center"
+                  />
+                  <input
+                    type="text"
+                    value={benefit.title}
+                    onChange={(e) => {
+                      const newBenefits = [...benefits];
+                      newBenefits[index].title = e.target.value;
+                      onBenefitsChange?.(newBenefits);
+                    }}
+                    placeholder={language === 'bn' ? 'টাইটেল' : 'Title'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+                <input
+                  type="text"
+                  value={benefit.description}
+                  onChange={(e) => {
+                    const newBenefits = [...benefits];
+                    newBenefits[index].description = e.target.value;
+                    onBenefitsChange?.(newBenefits);
+                  }}
+                  placeholder={language === 'bn' ? 'বর্ণনা' : 'Description'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => onBenefitsChange?.(benefits.filter((_, i) => i !== index))}
+                  className="text-red-500 hover:text-red-600 text-xs flex items-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  {language === 'bn' ? 'মুছুন' : 'Remove'}
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => onBenefitsChange?.([...benefits, { icon: '✅', title: '', description: '' }])}
+              className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              {language === 'bn' ? 'বেনিফিট যোগ করুন' : 'Add Benefit'}
+            </button>
+          </div>
+        );
+
+      case 'comparison':
+        return (
+          <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'আগের ছবি URL' : 'Before Image URL'}
+              </label>
+              <input
+                type="url"
+                value={comparison.beforeImage || ''}
+                onChange={(e) => onComparisonChange?.({ ...comparison, beforeImage: e.target.value })}
+                placeholder="https://..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'পরের ছবি URL' : 'After Image URL'}
+              </label>
+              <input
+                type="url"
+                value={comparison.afterImage || ''}
+                onChange={(e) => onComparisonChange?.({ ...comparison, afterImage: e.target.value })}
+                placeholder="https://..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'আগের লেবেল' : 'Before Label'}
+                </label>
+                <input
+                  type="text"
+                  value={comparison.beforeLabel || ''}
+                  onChange={(e) => onComparisonChange?.({ ...comparison, beforeLabel: e.target.value })}
+                  placeholder={language === 'bn' ? 'আগে' : 'Before'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'পরের লেবেল' : 'After Label'}
+                </label>
+                <input
+                  type="text"
+                  value={comparison.afterLabel || ''}
+                  onChange={(e) => onComparisonChange?.({ ...comparison, afterLabel: e.target.value })}
+                  placeholder={language === 'bn' ? 'পরে' : 'After'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'বর্ণনা' : 'Description'}
+              </label>
+              <textarea
+                value={comparison.description || ''}
+                onChange={(e) => onComparisonChange?.({ ...comparison, description: e.target.value })}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                placeholder={language === 'bn' ? 'তুলনা সম্পর্কে লিখুন...' : 'Write about the comparison...'}
+              />
+            </div>
+          </div>
+        );
+
+      case 'social':
+        return (
+          <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'সংখ্যা' : 'Count'}
+              </label>
+              <input
+                type="number"
+                value={socialProof.count || 0}
+                onChange={(e) => onSocialProofChange?.({ ...socialProof, count: parseInt(e.target.value) || 0 })}
+                placeholder="500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'টেক্সট' : 'Text'}
+              </label>
+              <input
+                type="text"
+                value={socialProof.text || ''}
+                onChange={(e) => onSocialProofChange?.({ ...socialProof, text: e.target.value })}
+                placeholder={language === 'bn' ? 'জন অর্ডার করেছেন' : 'orders placed'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
           </div>
         );
 
