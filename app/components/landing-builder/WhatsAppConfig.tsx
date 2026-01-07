@@ -53,6 +53,16 @@ export function WhatsAppConfig({
     return `https://wa.me/${phone.startsWith('880') ? phone : '880' + phone.substring(1)}?text=${message}`;
   };
 
+  // Validate Bangladesh phone number
+  const isValidBDPhone = (phone: string): boolean => {
+    const digits = phone.replace(/\D/g, '');
+    // Valid formats: 01XXXXXXXXX (11 digits) or 880XXXXXXXXXX (13 digits)
+    if (digits.startsWith('01') && digits.length === 11) return true;
+    if (digits.startsWith('880') && digits.length === 13) return true;
+    if (digits.length === 0) return true; // Empty is valid (not required)
+    return false;
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {/* Header */}
@@ -90,16 +100,34 @@ export function WhatsAppConfig({
           <input
             type="tel"
             value={phoneNumber}
-            onChange={(e) => onPhoneChange(e.target.value)}
+            onChange={(e) => {
+              // Only allow digits and common phone characters
+              const cleaned = e.target.value.replace(/[^\d+\-\s]/g, '');
+              onPhoneChange(cleaned);
+            }}
             placeholder="01712345678"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:border-transparent transition ${
+              phoneNumber && !isValidBDPhone(phoneNumber)
+                ? 'border-red-300 focus:ring-red-500 bg-red-50'
+                : 'border-gray-300 focus:ring-green-500'
+            }`}
           />
-          <p className="text-xs text-gray-500 mt-1">
-            {language === 'bn' 
-              ? 'বাংলাদেশি নম্বর (যেমন: 01712345678)' 
-              : 'Bangladesh number (e.g., 01712345678)'}
-          </p>
+          {phoneNumber && !isValidBDPhone(phoneNumber) ? (
+            <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+              <span>⚠️</span>
+              {language === 'bn' 
+                ? 'সঠিক বাংলাদেশি নম্বর দিন (01XXXXXXXXX বা +880XXXXXXXXXX)' 
+                : 'Enter valid Bangladesh number (01XXXXXXXXX or +880XXXXXXXXXX)'}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-1">
+              {language === 'bn' 
+                ? 'বাংলাদেশি নম্বর (যেমন: 01712345678)' 
+                : 'Bangladesh number (e.g., 01712345678)'}
+            </p>
+          )}
         </div>
+
 
         {/* Message Template */}
         <div>

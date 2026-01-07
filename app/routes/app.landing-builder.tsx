@@ -910,21 +910,69 @@ export default function LandingBuilderPage() {
                   </div>
                   
                   {countdownEnabled && (
-                    <div className="pt-4 border-t border-gray-100">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="pt-4 border-t border-gray-100 space-y-3">
+                      <label className="block text-sm font-medium text-gray-700">
                         {language === 'bn' ? 'অফার শেষ হওয়ার তারিখ ও সময়' : 'Offer End Date & Time'}
                       </label>
+                      
+                      {/* Quick Preset Buttons */}
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const date = new Date();
+                            date.setHours(date.getHours() + 24);
+                            setCountdownEndTime(date.toISOString().slice(0, 16));
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition"
+                        >
+                          {language === 'bn' ? '২৪ ঘণ্টা' : '24 Hours'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const date = new Date();
+                            date.setHours(date.getHours() + 48);
+                            setCountdownEndTime(date.toISOString().slice(0, 16));
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition"
+                        >
+                          {language === 'bn' ? '৪৮ ঘণ্টা' : '48 Hours'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const date = new Date();
+                            date.setDate(date.getDate() + 7);
+                            setCountdownEndTime(date.toISOString().slice(0, 16));
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition"
+                        >
+                          {language === 'bn' ? '৭ দিন' : '7 Days'}
+                        </button>
+                      </div>
+                      
                       <input
                         type="datetime-local"
                         value={countdownEndTime}
                         onChange={(e) => setCountdownEndTime(e.target.value)}
+                        min={new Date().toISOString().slice(0, 16)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       />
-                      <p className="text-xs text-gray-500 mt-2">
+                      
+                      {countdownEndTime && new Date(countdownEndTime) < new Date() && (
+                        <p className="text-xs text-orange-600 flex items-center gap-1">
+                          <span>⚠️</span>
+                          {language === 'bn' ? 'সতর্কতা: তারিখটি অতীতে আছে' : 'Warning: Date is in the past'}
+                        </p>
+                      )}
+                      
+                      <p className="text-xs text-gray-500">
                         {language === 'bn' ? 'এই সময়ের পর টাইমার "শেষ" দেখাবে' : 'Timer will show "Expired" after this time'}
                       </p>
                     </div>
                   )}
+
                 </div>
 
                 {/* Stock Counter */}
