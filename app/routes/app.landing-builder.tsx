@@ -72,6 +72,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(50);
 
   const landingConfig = parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;
+  
+  // Get SAAS_DOMAIN for preview URL
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
 
   return json({
     store: {
@@ -83,6 +86,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       landingConfig,
     },
     products: storeProducts,
+    saasDomain,
   });
 }
 
@@ -251,7 +255,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function LandingBuilderPage() {
-  const { store, products: storeProducts } = useLoaderData<typeof loader>();
+  const { store, products: storeProducts, saasDomain } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { t, lang: language } = useTranslation();
@@ -313,8 +317,8 @@ export default function LandingBuilderPage() {
     }
   };
 
-  // Preview URL
-  const previewUrl = `https://${store.subdomain}.${typeof window !== 'undefined' ? window.location.host.replace('app.', '') : 'example.com'}`;
+  // Preview URL - use saasDomain from loader
+  const previewUrl = `https://${store.subdomain}.${saasDomain}`;
 
   // Get selected template info
   const selectedTemplate = LANDING_TEMPLATES.find(t => t.id === templateId);
@@ -343,14 +347,14 @@ export default function LandingBuilderPage() {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Visual Editor Button */}
-              <Link
+              {/* Visual Editor Button - Hidden for MVP */}
+              {/* <Link
                 to="/app/landing-editor"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-medium rounded-lg hover:opacity-90 transition shadow-md"
               >
                 <Sparkles className="w-4 h-4" />
                 {language === 'bn' ? 'ভিজ্যুয়াল এডিটর' : 'Visual Editor'}
-              </Link>
+              </Link> */}
 
               {/* Preview Button */}
               <a
@@ -1151,8 +1155,8 @@ export default function LandingBuilderPage() {
 
           {/* Sidebar - Quick Stats & Preview */}
           <div className="space-y-6">
-            {/* AI Generate Button */}
-            <div className="bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl p-6 text-white">
+            {/* AI Generate Button - Hidden for MVP */}
+            {/* <div className="bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl p-6 text-white">
               <div className="flex items-center gap-3 mb-3">
                 <Sparkles className="w-6 h-6" />
                 <h3 className="font-semibold">
@@ -1171,7 +1175,7 @@ export default function LandingBuilderPage() {
                 <Sparkles className="w-4 h-4" />
                 {language === 'bn' ? 'AI দিয়ে শুরু করুন' : 'Start with AI'}
               </Link>
-            </div>
+            </div> */}
 
             {/* Selected Template Info */}
             {selectedTemplate && (

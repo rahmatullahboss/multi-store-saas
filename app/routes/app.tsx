@@ -42,6 +42,7 @@ import {
   MessageSquare,
   Info,
   AlertTriangle,
+  Rocket,
   AlertCircle
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
@@ -257,6 +258,7 @@ const navSections: NavSection[] = [
     title: 'Settings',
     items: [
       { to: '/app/store-setup', label: 'Store Setup', icon: Palette },
+      { to: '/app/landing-builder', label: 'Landing Builder', icon: Rocket },
       { to: '/app/store-design', label: 'Store Templates', icon: Sparkles },
       { to: '/app/settings/homepage', label: 'Homepage', icon: Home },
       { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
