@@ -1075,22 +1075,37 @@ export default function LiveEditorPage() {
           
           {/* Preview Container */}
           <div className="flex-1 flex items-start justify-center overflow-auto p-2 md:p-4">
+            {/* 
+              Mobile/Tablet Preview Technique:
+              - Render template at device width
+              - Use CSS width to force responsive breakpoints
+              - Container clips the overflow
+            */}
             <div 
-              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 w-full relative"
+              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
               style={{
-                maxWidth: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '1200px',
-                contain: 'layout paint',
+                width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
+                maxWidth: previewDevice === 'desktop' ? '1200px' : undefined,
               }}
             >
-              <div className="overflow-hidden relative" style={{ transform: 'translateZ(0)' }}>
-                <TemplateComponent 
-                  storeName={store.name}
-                  storeId={store.id}
-                  product={previewProduct as any}
-                  config={previewConfig}
-                  currency="৳"
-                  isPreview={true}
-                />
+              {/* Inner wrapper with fixed width forces CSS breakpoints */}
+              <div 
+                className="overflow-y-auto overflow-x-hidden"
+                style={{
+                  width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
+                  maxHeight: previewDevice === 'mobile' ? '667px' : previewDevice === 'tablet' ? '1024px' : '80vh',
+                }}
+              >
+                <div style={{ width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%' }}>
+                  <TemplateComponent 
+                    storeName={store.name}
+                    storeId={store.id}
+                    product={previewProduct as any}
+                    config={previewConfig}
+                    currency="৳"
+                    isPreview={true}
+                  />
+                </div>
               </div>
             </div>
           </div>
