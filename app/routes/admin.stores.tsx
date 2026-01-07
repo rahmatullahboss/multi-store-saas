@@ -317,10 +317,11 @@ export default function AdminStores() {
                             <input type="hidden" name="userId" value={store.ownerId} />
                             <button
                               type="submit"
-                              className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition"
+                              className="px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition flex items-center gap-2 text-xs font-medium"
                               title="Login as User (Impersonate)"
                             >
                               <UserRound className="w-4 h-4" />
+                              Impersonate
                             </button>
                           </fetcher.Form>
                         )}
