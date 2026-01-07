@@ -517,6 +517,90 @@ export default function Index() {
 
   // ========== LANDING MODE ==========
   if (data.mode === 'landing') {
+    // Check for template preview mode
+    const previewTemplateId = searchParams.get('preview_template');
+    
+    if (previewTemplateId) {
+      // Template Preview Mode - Show demo content with the selected template
+      const demoProduct = {
+        id: 0,
+        storeId: data.storeId,
+        title: 'ডেমো প্রোডাক্ট - Premium Quality Product',
+        description: 'এটি একটি ডেমো প্রোডাক্ট যা টেমপ্লেট প্রিভিউয়ের জন্য দেখানো হচ্ছে। আপনার আসল প্রোডাক্ট এখানে দেখাবে।',
+        price: 1999,
+        compareAtPrice: 2999,
+        imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
+        images: JSON.stringify(['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop']),
+        inventory: 50,
+        isPublished: true,
+      };
+      
+      const demoConfig = {
+        templateId: previewTemplateId,
+        headline: '🔥 আমাদের বেস্ট সেলিং প্রোডাক্ট পান সেরা দামে!',
+        subheadline: 'সীমিত সময়ের জন্য বিশেষ ছাড় - আজই অর্ডার করুন',
+        ctaText: 'এখনই অর্ডার করুন',
+        ctaSubtext: '৭ দিনের মানি ব্যাক গ্যারান্টি',
+        urgencyText: '⚡ মাত্র ২৪ ঘণ্টার জন্য ৫০% ছাড়!',
+        guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি। পছন্দ না হলে ৭ দিনের মধ্যে ফেরত।',
+        features: [
+          { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের উপাদান দিয়ে তৈরি' },
+          { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ কার্যদিবসের মধ্যে ডেলিভারি' },
+          { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'পছন্দ না হলে সম্পূর্ণ টাকা ফেরত' },
+          { icon: '🔒', title: 'নিরাপদ পেমেন্ট', description: 'আপনার পেমেন্ট ১০০% নিরাপদ' },
+        ],
+        testimonials: [
+          { name: 'Customer Review', imageUrl: '' }
+        ],
+        faq: [
+          { question: 'ডেলিভারি কতদিনে পাব?', answer: 'অর্ডার করার ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন।' },
+          { question: 'পেমেন্ট কিভাবে করব?', answer: 'ক্যাশ অন ডেলিভারি বা অনলাইন পেমেন্ট দুটোই গ্রহণযোগ্য।' },
+        ],
+        countdownEnabled: true,
+        countdownEndTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        showStockCounter: true,
+        lowStockThreshold: 10,
+        whatsappEnabled: true,
+        whatsappNumber: '01700000000',
+        whatsappMessage: 'হাই, আমি এই প্রোডাক্ট সম্পর্কে জানতে চাই',
+        sectionOrder: ['hero', 'features', 'video', 'testimonials', 'faq', 'guarantee', 'order'],
+        hiddenSections: [],
+      };
+      
+      // Dynamic template selection from registry
+      const { component: PreviewTemplateComponent } = getTemplate(previewTemplateId);
+      
+      return (
+        <div className="relative">
+          {/* Preview Banner */}
+          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-3 text-center shadow-lg">
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <span className="text-lg">👁️</span>
+              <span className="font-medium">টেমপ্লেট প্রিভিউ মোড</span>
+              <span className="hidden sm:inline text-white/80">|</span>
+              <span className="text-sm text-white/90">এটি ডেমো কন্টেন্ট সহ প্রিভিউ। আপনার আসল ডাটা দিয়ে আলাদা দেখাবে।</span>
+              <button
+                onClick={() => window.close()}
+                className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition"
+              >
+                বন্ধ করুন ✕
+              </button>
+            </div>
+          </div>
+          <div className="pt-12">
+            <PreviewTemplateComponent
+              storeName={data.storeName}
+              storeId={data.storeId}
+              product={demoProduct as any}
+              config={demoConfig as any}
+              currency={data.currency}
+              isPreview={true}
+            />
+          </div>
+        </div>
+      );
+    }
+    
     if (!data.featuredProduct) {
       return (
         <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">

@@ -767,24 +767,66 @@ export default function LandingBuilderPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Panel */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6">
+          {/* Main Panel - Full Width */}
+          <div className="space-y-6">
             {activeTab === 'template' && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  {language === 'bn' ? 'টেমপ্লেট সিলেক্ট করুন' : 'Select Template'}
-                </h2>
-                <LandingTemplateGallery
-                  selectedTemplateId={templateId}
-                  onSelect={setTemplateId}
-                  onPreview={(previewTemplateId) => {
-                    // Open the store preview in a new tab
-                    const previewUrl = `https://${store.subdomain}.${saasDomain}?preview=true&template=${previewTemplateId}`;
-                    window.open(previewUrl, '_blank');
-                  }}
-                />
-              </div>
+              <>
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    {language === 'bn' ? 'টেমপ্লেট সিলেক্ট করুন' : 'Select Template'}
+                  </h2>
+                  <LandingTemplateGallery
+                    selectedTemplateId={templateId}
+                    onSelect={setTemplateId}
+                    onPreview={(previewTemplateId) => {
+                      // Open the template preview with demo content
+                      const previewUrl = `https://${store.subdomain}.${saasDomain}?preview_template=${previewTemplateId}`;
+                      window.open(previewUrl, '_blank');
+                    }}
+                  />
+                </div>
+
+                {/* Selected Template & Tips - Below Gallery */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Selected Template Info */}
+                  {selectedTemplate && (
+                    <div className="bg-white rounded-xl border border-gray-200 p-4">
+                      <h3 className="font-semibold text-gray-900 mb-3">
+                        {language === 'bn' ? 'সিলেক্টেড টেমপ্লেট' : 'Selected Template'}
+                      </h3>
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: selectedTemplate.colors.bg }}
+                        >
+                          <span className="text-2xl">{selectedTemplate.emoji}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {language === 'bn' ? selectedTemplate.name : selectedTemplate.nameEn}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {language === 'bn' ? selectedTemplate.description : selectedTemplate.descriptionEn}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quick Tips */}
+                  <div className="bg-amber-50 rounded-xl border border-amber-200 p-4">
+                    <h3 className="font-semibold text-amber-800 mb-2">
+                      💡 {language === 'bn' ? 'টিপস' : 'Tips'}
+                    </h3>
+                    <ul className="text-sm text-amber-700 space-y-1">
+                      <li>• {language === 'bn' ? 'শর্ট হেডলাইন বেশি কনভার্ট করে' : 'Short headlines convert better'}</li>
+                      <li>• {language === 'bn' ? 'ভিডিও যোগ করলে ৮০% বেশি সেল হয়' : 'Adding video increases sales by 80%'}</li>
+                      <li>• {language === 'bn' ? 'WhatsApp বাটন ২০%+ লিড আনে' : 'WhatsApp button brings 20%+ leads'}</li>
+                    </ul>
+                  </div>
+                </div>
+              </>
             )}
 
             {activeTab === 'content' && (
@@ -1714,63 +1756,6 @@ export default function LandingBuilderPage() {
             )}
           </div>
 
-          {/* Sidebar - Quick Stats & Preview */}
-          <div className="space-y-6">
-            {/* AI Generate Button - Hidden for MVP */}
-            {/* <div className="bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl p-6 text-white">
-              <div className="flex items-center gap-3 mb-3">
-                <Sparkles className="w-6 h-6" />
-                <h3 className="font-semibold">
-                  {language === 'bn' ? 'AI দিয়ে জেনারেট করুন' : 'Generate with AI'}
-                </h3>
-              </div>
-              <p className="text-sm text-white/80 mb-4">
-                {language === 'bn' 
-                  ? 'আপনার প্রোডাক্ট বর্ণনা করুন, AI পুরো ল্যান্ডিং পেজ তৈরি করে দেবে।' 
-                  : 'Describe your product,  AI will generate the entire landing page.'}
-              </p>
-              <Link
-                to="/app/settings/landing"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-purple-600 font-medium rounded-lg hover:bg-purple-50 transition"
-              >
-                <Sparkles className="w-4 h-4" />
-                {language === 'bn' ? 'AI দিয়ে শুরু করুন' : 'Start with AI'}
-              </Link>
-            </div> */}
-
-            {/* Selected Template Info */}
-            {selectedTemplate && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  {language === 'bn' ? 'সিলেক্টেড টেমপ্লেট' : 'Selected Template'}
-                </h3>
-                <div
-                  className="h-24 rounded-lg mb-3 flex items-center justify-center"
-                  style={{ background: selectedTemplate.colors.bg }}
-                >
-                  <span className="text-4xl">{selectedTemplate.emoji}</span>
-                </div>
-                <p className="font-medium text-gray-900">
-                  {language === 'bn' ? selectedTemplate.name : selectedTemplate.nameEn}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {language === 'bn' ? selectedTemplate.description : selectedTemplate.descriptionEn}
-                </p>
-              </div>
-            )}
-
-            {/* Quick Tips */}
-            <div className="bg-amber-50 rounded-xl border border-amber-200 p-6">
-              <h3 className="font-semibold text-amber-800 mb-3">
-                💡 {language === 'bn' ? 'টিপস' : 'Tips'}
-              </h3>
-              <ul className="text-sm text-amber-700 space-y-2">
-                <li>• {language === 'bn' ? 'শর্ট হেডলাইন বেশি কনভার্ট করে' : 'Short headlines convert better'}</li>
-                <li>• {language === 'bn' ? 'ভিডিও যোগ করলে ৮০% বেশি সেল হয়' : 'Adding video increases sales by 80%'}</li>
-                <li>• {language === 'bn' ? 'WhatsApp বাটন ২০%+ লিড আনে' : 'WhatsApp button brings 20%+ leads'}</li>
-              </ul>
-            </div>
-            </div>
           </div>
         </div>
 
