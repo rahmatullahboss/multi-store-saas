@@ -507,27 +507,27 @@ export default function LandingBuilderPage() {
       {/* Main Content - Split View */}
       <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 64px - 56px)' }}>
         {/* Left Panel - Settings */}
-        <div className={`${showPreview ? 'w-full lg:w-1/2 xl:w-2/5' : 'w-full'} overflow-y-auto bg-gray-50 p-4 lg:p-6`}>
-          {/* Tabs */}
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-2 flex-wrap">
+        <div className={`${showPreview ? 'w-full lg:w-1/2 xl:w-2/5' : 'w-full'} overflow-y-auto bg-gray-50 p-4 lg:p-6 pb-24 lg:pb-6`}>
+          {/* Tabs - Compact on mobile */}
+          <div className="flex gap-1.5 sm:gap-2 mb-4 overflow-x-auto pb-2 -mx-2 px-2">
           {[
             { id: 'template', icon: Palette, label: 'টেমপ্লেট', labelEn: 'Template' },
             { id: 'content', icon: Settings, label: 'কন্টেন্ট', labelEn: 'Content' },
             { id: 'sections', icon: Layout, label: 'সেকশন', labelEn: 'Sections' },
             { id: 'conversion', icon: TrendingUp, label: 'কনভার্শন', labelEn: 'Conversion' },
-            { id: 'testimonials', icon: Star, label: 'টেস্টিমোনিয়াল', labelEn: 'Testimonials' },
+            { id: 'testimonials', icon: Star, label: 'টেস্টি', labelEn: 'Reviews' },
             { id: 'faq', icon: HelpCircle, label: 'FAQ', labelEn: 'FAQ' },
-            { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', labelEn: 'WhatsApp' },
-            { id: 'colors', icon: Paintbrush, label: 'রং', labelEn: 'Colors' },
-            { id: 'settings', icon: Settings, label: 'সেটিংস', labelEn: 'Settings' },
+            { id: 'whatsapp', icon: MessageCircle, label: 'WA', labelEn: 'WA' },
+            { id: 'colors', icon: Paintbrush, label: 'রং', labelEn: 'Color' },
+            { id: 'settings', icon: Settings, label: 'সেটিং', labelEn: 'Mode' },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
+              className={`flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg font-medium transition whitespace-nowrap text-xs sm:text-sm ${
                 activeTab === tab.id
                   ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-white text-gray-600 hover:bg-gray-100'
+                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -1426,6 +1426,57 @@ export default function LandingBuilderPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Mobile Floating Action Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between gap-3 z-50 shadow-lg">
+        {/* Preview Button */}
+        <a
+          href={previewUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg"
+        >
+          <Eye className="w-4 h-4" />
+          {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
+        </a>
+        
+        {/* Save Button */}
+        <Form method="post" className="flex-1">
+          <input type="hidden" name="intent" value="save-all" />
+          <input type="hidden" name="templateId" value={templateId} />
+          <input type="hidden" name="featuredProductId" value={featuredProductId} />
+          <input type="hidden" name="headline" value={headline} />
+          <input type="hidden" name="subheadline" value={subheadline} />
+          <input type="hidden" name="ctaText" value={ctaText} />
+          <input type="hidden" name="ctaSubtext" value={ctaSubtext} />
+          <input type="hidden" name="urgencyText" value={urgencyText} />
+          <input type="hidden" name="videoUrl" value={videoUrl} />
+          <input type="hidden" name="sectionOrder" value={JSON.stringify(sectionOrder)} />
+          <input type="hidden" name="hiddenSections" value={JSON.stringify(hiddenSections)} />
+          <input type="hidden" name="whatsappEnabled" value={whatsappEnabled.toString()} />
+          <input type="hidden" name="whatsappNumber" value={whatsappNumber} />
+          <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
+          <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
+          <input type="hidden" name="faq" value={JSON.stringify(faq)} />
+          <input type="hidden" name="countdownEnabled" value={countdownEnabled.toString()} />
+          <input type="hidden" name="countdownEndTime" value={countdownEndTime} />
+          <input type="hidden" name="showStockCounter" value={showStockCounter.toString()} />
+          <input type="hidden" name="lowStockThreshold" value={lowStockThreshold.toString()} />
+          <input type="hidden" name="showSocialProof" value={showSocialProof.toString()} />
+          <input type="hidden" name="socialProofInterval" value={socialProofInterval.toString()} />
+          <input type="hidden" name="primaryColor" value={primaryColor} />
+          <input type="hidden" name="accentColor" value={accentColor} />
+          <input type="hidden" name="storeMode" value={storeMode} />
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg disabled:opacity-50"
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {language === 'bn' ? 'সেভ করুন' : 'Save'}
+          </button>
+        </Form>
       </div>
     </div>
   );
