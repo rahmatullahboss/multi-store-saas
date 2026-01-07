@@ -2,6 +2,7 @@
  * Cart Page
  * 
  * Shopping cart with local state and checkout flow.
+ * Fires InitiateCheckout tracking event when proceeding to checkout.
  */
 
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
@@ -10,6 +11,7 @@ import { eq, and, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products } from '@db/schema';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { trackingEvents } from '~/utils/tracking';
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const { store } = context;
@@ -115,6 +117,12 @@ export default function Cart() {
               <Link 
                 to="/checkout"
                 className="btn btn-primary w-full mt-6"
+                onClick={() => {
+                  // Fire InitiateCheckout tracking event (FB Pixel + GA4)
+                  // Note: value and numItems computed client-side from localStorage
+                  trackingEvents.initiateCheckout(0, 0, currency);
+                  console.log('[Tracking] InitiateCheckout event fired');
+                }}
               >
                 {t('proceedToCheckout')}
               </Link>

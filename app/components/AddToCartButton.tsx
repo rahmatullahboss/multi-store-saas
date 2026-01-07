@@ -3,9 +3,11 @@
  * 
  * Implements client-side cart management using localStorage.
  * Provides optimistic UI feedback when adding items to cart.
+ * Fires AddToCart tracking events for FB Pixel + GA4.
  */
 
 import { useState, type ReactNode, type CSSProperties } from 'react';
+import { trackingEvents } from '~/utils/tracking';
 
 interface AddToCartButtonProps {
   productId: number;
@@ -16,6 +18,10 @@ interface AddToCartButtonProps {
   style?: CSSProperties;
   children?: ReactNode;
   isPreview?: boolean; // When true, shows preview feedback instead of updating cart
+  // For tracking events
+  productName?: string;
+  productPrice?: number;
+  currency?: string;
 }
 
 export function AddToCartButton({ 
@@ -27,6 +33,9 @@ export function AddToCartButton({
   style,
   children,
   isPreview = false,
+  productName,
+  productPrice,
+  currency = 'BDT',
 }: AddToCartButtonProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -39,6 +48,18 @@ export function AddToCartButton({
       setIsAdded(true);
       setTimeout(() => setIsAdded(false), 2000);
       return;
+    }
+    
+    // Fire AddToCart tracking event (FB Pixel + GA4)
+    if (productName && productPrice) {
+      trackingEvents.addToCart({
+        id: String(productId),
+        name: productName,
+        price: productPrice,
+        quantity: 1,
+        currency: currency,
+      });
+      console.log('[Tracking] AddToCart event fired:', productName, productPrice);
     }
     
     // Update local cart in localStorage

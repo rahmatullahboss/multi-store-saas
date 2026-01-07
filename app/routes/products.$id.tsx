@@ -483,6 +483,9 @@ export default function ProductDetail() {
                 productId={product.id} 
                 disabled={!product.inventory || product.inventory <= 0}
                 size="large"
+                productName={product.title}
+                productPrice={product.price}
+                currency={currency}
               />
             </div>
             
