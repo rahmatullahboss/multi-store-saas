@@ -35,15 +35,23 @@ import {
 } from '~/components/landing-builder';
 import { getTemplateComponent, type TemplateProps } from '~/templates/registry';
 
-// Default features for new stores
-const DEFAULT_FEATURES = [
+// Default features for new stores (English)
+const DEFAULT_FEATURES_EN = [
   { icon: '✅', title: 'Premium Quality', description: 'Made with the finest materials' },
   { icon: '🚚', title: 'Fast Delivery', description: 'Delivered within 2-3 business days' },
   { icon: '💯', title: 'Satisfaction Guaranteed', description: 'Full refund if not satisfied' },
   { icon: '🔒', title: 'Secure Payment', description: 'Your payment is 100% secure' },
 ];
 
-// Default guarantee text
+// Default features for new stores (Bengali)
+const DEFAULT_FEATURES_BN = [
+  { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের উপাদান দিয়ে তৈরি' },
+  { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ কার্যদিবসের মধ্যে ডেলিভারি' },
+  { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'পছন্দ না হলে সম্পূর্ণ টাকা ফেরত' },
+  { icon: '🔒', title: 'নিরাপদ পেমেন্ট', description: 'আপনার পেমেন্ট ১০০% নিরাপদ' },
+];
+
+// Default guarantee text (Bengali)
 const DEFAULT_GUARANTEE_TEXT = '১০০% সন্তুষ্টির গ্যারান্টি। পছন্দ না হলে ৭ দিনের মধ্যে ফেরত।';
 
 
@@ -323,10 +331,11 @@ export default function LandingBuilderPage() {
   const [testimonials, setTestimonials] = useState<Array<{name: string; text?: string; imageUrl?: string}>>(store.landingConfig.testimonials || []);
   const [faq, setFaq] = useState<Array<{question: string; answer: string}>>(store.landingConfig.faq || []);
   
-  // Guarantee and Features (use defaults for new stores)
+  // Guarantee and Features (use defaults for new stores, language-aware)
+  const defaultFeatures = language === 'bn' ? DEFAULT_FEATURES_BN : DEFAULT_FEATURES_EN;
   const [guaranteeText, setGuaranteeText] = useState(store.landingConfig.guaranteeText || DEFAULT_GUARANTEE_TEXT);
   const [features, setFeatures] = useState<Array<{icon: string; title: string; description: string}>>(
-    store.landingConfig.features?.length ? store.landingConfig.features : DEFAULT_FEATURES
+    store.landingConfig.features?.length ? store.landingConfig.features : defaultFeatures
   );
 
 
