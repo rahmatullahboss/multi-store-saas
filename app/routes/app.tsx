@@ -375,7 +375,7 @@ export default function AppLayout() {
               className="mt-3 flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium rounded-lg transition text-sm"
             >
               <ExternalLink className="w-4 h-4" />
-              Go to Store
+              {t('goToStore')}
             </a>
           </div>
 
@@ -424,7 +424,7 @@ export default function AppLayout() {
               <>
                 <div className="pt-4 pb-2">
                   <span className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Admin
+                    {t('sidebarAdmin')}
                   </span>
                 </div>
                 {adminNavItems.map((item) => {
@@ -444,7 +444,7 @@ export default function AppLayout() {
                       `}
                     >
                       <Icon className={`w-5 h-5 ${active ? 'text-purple-600' : ''}`} />
-                      {item.label}
+                      {t(item.labelKey)}
                     </Link>
                   );
                 })}
@@ -478,7 +478,7 @@ export default function AppLayout() {
                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
               >
                 <LogOut className="w-4 h-4" />
-                Logout
+                {t('logout')}
               </button>
             </Form>
           </div>

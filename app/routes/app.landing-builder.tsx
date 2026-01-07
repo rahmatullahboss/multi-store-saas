@@ -181,6 +181,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, message: 'WhatsApp settings saved!' });
   }
 
+  // Safe JSON parse helper
+  function safeJSONParse<T>(str: string | null, fallback: T): T {
+    if (!str) return fallback;
+    try {
+      return JSON.parse(str);
+    } catch {
+      return fallback;
+    }
+  }
+
+
   if (intent === 'save-all') {
     const templateId = formData.get('templateId') as string;
     const featuredProductId = formData.get('featuredProductId') as string;
@@ -190,13 +201,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const ctaSubtext = formData.get('ctaSubtext') as string;
     const urgencyText = formData.get('urgencyText') as string;
     const videoUrl = formData.get('videoUrl') as string;
-    const sectionOrder = JSON.parse(formData.get('sectionOrder') as string || '[]');
-    const hiddenSections = JSON.parse(formData.get('hiddenSections') as string || '[]');
+    const guaranteeText = formData.get('guaranteeText') as string || '';
+    
+    // Safe JSON parsing for arrays
+    const sectionOrder = safeJSONParse(formData.get('sectionOrder') as string, DEFAULT_SECTION_ORDER);
+    const hiddenSections = safeJSONParse(formData.get('hiddenSections') as string, []);
     const whatsappEnabled = formData.get('whatsappEnabled') === 'true';
     const whatsappNumber = formData.get('whatsappNumber') as string || '';
     const whatsappMessage = formData.get('whatsappMessage') as string || '';
-    const testimonials = JSON.parse(formData.get('testimonials') as string || '[]');
-    const faq = JSON.parse(formData.get('faq') as string || '[]');
+    const testimonials = safeJSONParse(formData.get('testimonials') as string, []);
+    const faq = safeJSONParse(formData.get('faq') as string, []);
+    const features = safeJSONParse(formData.get('features') as string, []);
     
     // Conversion features
     const countdownEnabled = formData.get('countdownEnabled') === 'true';
@@ -226,8 +241,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       whatsappEnabled,
       whatsappNumber,
       whatsappMessage,
-      testimonials: testimonials.filter((t: {name: string; imageUrl?: string}) => t.name && t.imageUrl),
+      guaranteeText: guaranteeText || '',
+      // Filter testimonials - keep if has image (image-only mode)
+      testimonials: testimonials.filter((t: {name?: string; imageUrl?: string}) => t.imageUrl),
       faq: faq.filter((f: {question: string; answer: string}) => f.question && f.answer),
+      // Features array
+      features: features.filter((f: {icon: string; title: string}) => f.icon && f.title),
       // Conversion features
       countdownEnabled,
       countdownEndTime,
@@ -288,6 +307,11 @@ export default function LandingBuilderPage() {
   // Testimonials state
   const [testimonials, setTestimonials] = useState<Array<{name: string; text?: string; imageUrl?: string}>>(store.landingConfig.testimonials || []);
   const [faq, setFaq] = useState<Array<{question: string; answer: string}>>(store.landingConfig.faq || []);
+  
+  // Guarantee and Features
+  const [guaranteeText, setGuaranteeText] = useState(store.landingConfig.guaranteeText || '');
+  const [features, setFeatures] = useState<Array<{icon: string; title: string; description: string}>>(store.landingConfig.features || []);
+
 
   // Conversion features state (MVP)
   const [countdownEnabled, setCountdownEnabled] = useState(store.landingConfig.countdownEnabled || false);
@@ -344,6 +368,8 @@ export default function LandingBuilderPage() {
     ctaSubtext: ctaSubtext || '',
     urgencyText: urgencyText || '',
     videoUrl: videoUrl || '',
+    guaranteeText: guaranteeText || '',
+    features,
     sectionOrder: sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER,
     hiddenSections,
     whatsappEnabled,
@@ -360,6 +386,7 @@ export default function LandingBuilderPage() {
     primaryColor: primaryColor || undefined,
     accentColor: accentColor || undefined,
   };
+
 
   // Mock product for preview (use selected product or demo)
   const selectedProduct = storeProducts.find(p => p.id === parseInt(featuredProductId));
@@ -463,6 +490,9 @@ export default function LandingBuilderPage() {
                 <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
                 <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
                 <input type="hidden" name="faq" value={JSON.stringify(faq)} />
+                <input type="hidden" name="guaranteeText" value={guaranteeText} />
+                <input type="hidden" name="features" value={JSON.stringify(features)} />
+
                 {/* Conversion features */}
                 <input type="hidden" name="countdownEnabled" value={countdownEnabled.toString()} />
                 <input type="hidden" name="countdownEndTime" value={countdownEndTime} />
