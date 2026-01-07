@@ -7,10 +7,11 @@
 
 import { useState } from 'react';
 import { 
-  Eye, EyeOff, ChevronUp, ChevronDown, 
+  Eye, EyeOff, ChevronUp, ChevronDown, Edit2,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck 
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+
 
 // Available landing page sections
 export const LANDING_SECTIONS = [
@@ -98,6 +99,7 @@ interface SectionManagerProps {
   hiddenSections: string[];
   onOrderChange: (newOrder: string[]) => void;
   onVisibilityChange: (sectionId: string, visible: boolean) => void;
+  onEditSection?: (sectionId: string) => void;
 }
 
 export function SectionManager({
@@ -105,7 +107,9 @@ export function SectionManager({
   hiddenSections,
   onOrderChange,
   onVisibilityChange,
+  onEditSection,
 }: SectionManagerProps) {
+
   const { lang: language } = useTranslation();
 
   // Get ordered sections
@@ -181,6 +185,17 @@ export function SectionManager({
                 </p>
               </div>
 
+              {/* Edit Section Button - only for sections with editable content */}
+              {onEditSection && ['features', 'video', 'testimonials', 'faq'].includes(section.id) && (
+                <button
+                  onClick={() => onEditSection(section.id)}
+                  className="p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
+                  title={language === 'bn' ? 'এডিট করুন' : 'Edit section'}
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              )}
+
               {/* Visibility Toggle */}
               <button
                 onClick={() => toggleVisibility(section.id)}
@@ -196,6 +211,7 @@ export function SectionManager({
               >
                 {isHidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
+
 
               {/* Move Up/Down Buttons */}
               <div className="flex flex-col">

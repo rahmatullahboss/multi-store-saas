@@ -664,7 +664,21 @@ export default function LiveEditorPage() {
                   setHiddenSections([...hiddenSections, sectionId]);
                 }
               }}
+              onEditSection={(sectionId) => {
+                // Map section IDs to their accordion section names
+                const accordionMap: Record<string, string> = {
+                  'features': 'features',
+                  'video': 'content', // Video URL is in content section
+                  'testimonials': 'testimonials',
+                  'faq': 'faq',
+                };
+                const accordionName = accordionMap[sectionId];
+                if (accordionName) {
+                  setOpenSection(accordionName);
+                }
+              }}
             />
+
           </AccordionSection>
 
           {/* Conversion Section */}
