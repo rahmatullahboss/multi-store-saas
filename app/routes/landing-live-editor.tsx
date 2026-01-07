@@ -526,8 +526,8 @@ export default function LiveEditorPage() {
 
       {/* Main Content - Split Layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Editing Controls */}
-        <aside className="w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+        {/* Left Sidebar - Editing Controls (Hidden on mobile) */}
+        <aside className="hidden md:block w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
           {/* Template Section */}
           <AccordionSection
             title={language === 'bn' ? 'টেমপ্লেট' : 'Template'}
@@ -730,6 +730,90 @@ export default function LiveEditorPage() {
                   />
                 </div>
               )}
+            </div>
+          </AccordionSection>
+
+          {/* Features Section */}
+          <AccordionSection
+            title={language === 'bn' ? 'ফিচার্স' : 'Features'}
+            icon={Star}
+            isOpen={openSection === 'features'}
+            onToggle={() => setOpenSection(openSection === 'features' ? '' : 'features')}
+          >
+            <div className="space-y-3">
+              {/* Guarantee Text */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'গ্যারান্টি টেক্সট' : 'Guarantee Text'}
+                </label>
+                <textarea
+                  value={guaranteeText}
+                  onChange={(e) => setGuaranteeText(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  placeholder={language === 'bn' ? '১০০% গ্যারান্টি...' : '100% Guarantee...'}
+                />
+              </div>
+              
+              {/* Feature Items */}
+              <p className="text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'ফিচার আইটেম' : 'Feature Items'}
+              </p>
+              {features.map((feature, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={feature.icon}
+                      onChange={(e) => {
+                        const newFeatures = [...features];
+                        newFeatures[index].icon = e.target.value;
+                        setFeatures(newFeatures);
+                      }}
+                      placeholder="✅"
+                      className="w-14 px-2 py-2 border border-gray-300 rounded-lg text-sm text-center"
+                    />
+                    <input
+                      type="text"
+                      value={feature.title}
+                      onChange={(e) => {
+                        const newFeatures = [...features];
+                        newFeatures[index].title = e.target.value;
+                        setFeatures(newFeatures);
+                      }}
+                      placeholder={language === 'bn' ? 'টাইটেল' : 'Title'}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={feature.description}
+                    onChange={(e) => {
+                      const newFeatures = [...features];
+                      newFeatures[index].description = e.target.value;
+                      setFeatures(newFeatures);
+                    }}
+                    placeholder={language === 'bn' ? 'বর্ণনা' : 'Description'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFeatures(features.filter((_, i) => i !== index))}
+                    className="text-red-500 hover:text-red-600 text-xs flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    {language === 'bn' ? 'মুছুন' : 'Remove'}
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setFeatures([...features, { icon: '✅', title: '', description: '' }])}
+                className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'ফিচার যোগ করুন' : 'Add Feature'}
+              </button>
             </div>
           </AccordionSection>
 
@@ -976,14 +1060,11 @@ export default function LiveEditorPage() {
           </div>
           
           {/* Preview Container */}
-          <div className="flex-1 flex items-start justify-center overflow-auto p-6">
+          <div className="flex-1 flex items-start justify-center overflow-auto p-2 md:p-4">
             <div 
-              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300"
+              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 w-full"
               style={{
-                width: `${deviceWidths[previewDevice]}px`,
-                maxWidth: '100%',
-                transform: previewDevice === 'desktop' ? 'scale(0.7)' : previewDevice === 'tablet' ? 'scale(0.85)' : 'scale(1)',
-                transformOrigin: 'top center',
+                maxWidth: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '1200px',
               }}
             >
               <div className="overflow-hidden">
