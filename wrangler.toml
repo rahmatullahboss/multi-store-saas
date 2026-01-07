@@ -19,6 +19,11 @@ pages_build_output_dir = "build/client"
 [observability]
 enabled = true
 
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
