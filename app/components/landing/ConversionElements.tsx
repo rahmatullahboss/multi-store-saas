@@ -5,7 +5,7 @@
  * Perfect for Bangladesh landing pages to create urgency.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 interface CountdownTimerProps {
   /** End date/time for the countdown */
@@ -51,12 +51,20 @@ export function CountdownTimer({
   bengali = true,
   className = '',
 }: CountdownTimerProps) {
-  const targetDate = typeof endDate === 'string' ? new Date(endDate) : endDate;
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft(targetDate));
+  // Memoize the targetDate to prevent recreating on every render
+  const targetDate = useMemo(() => {
+    if (!endDate) return new Date(Date.now() + 24 * 60 * 60 * 1000); // Default 24h from now
+    return typeof endDate === 'string' ? new Date(endDate) : endDate;
+  }, [endDate]);
+  
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calculateTimeLeft(targetDate));
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Calculate immediately on mount
+    setTimeLeft(calculateTimeLeft(targetDate));
+    
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(targetDate));
     }, 1000);

@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { 
   Eye, EyeOff, ChevronUp, ChevronDown, 
-  Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart 
+  Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck 
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -22,6 +22,14 @@ export const LANDING_SECTIONS = [
     descriptionEn: 'Headline & Product',
     icon: Type,
     required: true, // Cannot be hidden
+  },
+  {
+    id: 'trust',
+    name: 'ট্রাস্ট ব্যাজ',
+    nameEn: 'Trust Badges',
+    description: 'গ্যারান্টি ও বিশ্বাসযোগ্যতা',
+    descriptionEn: 'Guarantee & trust indicators',
+    icon: ShieldCheck,
   },
   {
     id: 'features',
@@ -48,12 +56,28 @@ export const LANDING_SECTIONS = [
     icon: MessageSquare,
   },
   {
+    id: 'delivery',
+    name: 'ডেলিভারি',
+    nameEn: 'Delivery Info',
+    description: 'শিপিং ও ডেলিভারি তথ্য',
+    descriptionEn: 'Shipping & delivery details',
+    icon: Truck,
+  },
+  {
     id: 'faq',
     name: 'FAQ',
     nameEn: 'FAQ',
     description: 'সচরাচর জিজ্ঞাসা',
     descriptionEn: 'Frequently asked questions',
     icon: HelpCircle,
+  },
+  {
+    id: 'guarantee',
+    name: 'গ্যারান্টি',
+    nameEn: 'Guarantee',
+    description: 'রিটার্ন ও রিফান্ড পলিসি',
+    descriptionEn: 'Return & refund policy',
+    icon: ShieldCheck,
   },
   {
     id: 'cta',
@@ -67,7 +91,7 @@ export const LANDING_SECTIONS = [
 ];
 
 // Default section order
-export const DEFAULT_SECTION_ORDER = ['hero', 'features', 'video', 'testimonials', 'faq', 'cta'];
+export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'video', 'testimonials', 'delivery', 'faq', 'guarantee', 'cta'];
 
 interface SectionManagerProps {
   sectionOrder: string[];

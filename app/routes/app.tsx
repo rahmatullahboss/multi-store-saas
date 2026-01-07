@@ -46,8 +46,10 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { ChatWidget } from '~/components/ai/ChatWidget';
 import { useState } from 'react';
+import type { TranslationKey } from '~/utils/i18n';
 
 
 export const meta: MetaFunction = () => {
@@ -208,71 +210,71 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 type NavItem = {
   to: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: typeof LayoutDashboard;
 };
 
 type NavSection = {
-  title: string;
+  titleKey: TranslationKey;
   items: NavItem[];
 };
 
 const navSections: NavSection[] = [
   {
-    title: 'Home',
+    titleKey: 'sidebarHome',
     items: [
-      { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { to: '/app/dashboard', labelKey: 'navDashboard', icon: LayoutDashboard },
     ],
   },
   {
-    title: 'Catalog',
+    titleKey: 'sidebarCatalog',
     items: [
-      { to: '/app/products', label: 'Products', icon: Package },
-      { to: '/app/inventory', label: 'Inventory', icon: Warehouse },
-      { to: '/app/discounts', label: 'Discounts', icon: Tag },
+      { to: '/app/products', labelKey: 'navProducts', icon: Package },
+      { to: '/app/inventory', labelKey: 'navInventory', icon: Warehouse },
+      { to: '/app/discounts', labelKey: 'navDiscounts', icon: Tag },
     ],
   },
   {
-    title: 'Orders',
+    titleKey: 'sidebarOrders',
     items: [
-      { to: '/app/orders', label: 'All Orders', icon: ShoppingCart },
-      { to: '/app/abandoned-carts', label: 'Abandoned Carts', icon: ShoppingBag },
+      { to: '/app/orders', labelKey: 'navAllOrders', icon: ShoppingCart },
+      { to: '/app/abandoned-carts', labelKey: 'navAbandonedCarts', icon: ShoppingBag },
     ],
   },
   {
-    title: 'Marketing',
+    titleKey: 'sidebarMarketing',
     items: [
-      { to: '/app/campaigns', label: 'Campaigns', icon: Mail },
-      { to: '/app/subscribers', label: 'Subscribers', icon: Mail },
-      { to: '/app/reviews', label: 'Reviews', icon: MessageSquare },
+      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
+      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
+      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
     ],
   },
   {
-    title: 'Analytics',
+    titleKey: 'sidebarAnalytics',
     items: [
-      { to: '/app/analytics', label: 'Overview', icon: BarChart3 },
-      { to: '/app/reports', label: 'Reports', icon: FileText },
+      { to: '/app/analytics', labelKey: 'navOverview', icon: BarChart3 },
+      { to: '/app/reports', labelKey: 'navReports', icon: FileText },
     ],
   },
   {
-    title: 'Settings',
+    titleKey: 'sidebarSettings',
     items: [
-      { to: '/app/landing-builder', label: 'Store Editor', icon: Rocket },
-      { to: '/app/store-design', label: 'Store Templates', icon: Sparkles },
-      { to: '/app/settings/homepage', label: 'Homepage', icon: Home },
-      { to: '/app/settings/shipping', label: 'Shipping', icon: Truck },
-      { to: '/app/settings/domain', label: 'Domain', icon: Globe },
-      { to: '/app/billing', label: 'Billing', icon: CreditCard },
-      { to: '/app/settings', label: 'All Settings', icon: Settings },
+      { to: '/app/landing-builder', labelKey: 'navStoreEditor', icon: Rocket },
+      { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Sparkles },
+      { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
+      { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
+      { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
+      { to: '/app/billing', labelKey: 'navBilling', icon: CreditCard },
+      { to: '/app/settings', labelKey: 'navAllSettings', icon: Settings },
     ],
   },
 ];
 
 // Admin-only navigation items
-const adminNavItems = [
-  { to: '/app/admin/plans', label: 'Plan Management', icon: Crown },
-  { to: '/app/admin/payouts', label: 'Payouts', icon: CreditCard },
-  { to: '/app/admin/domains', label: 'Domain Requests', icon: Globe },
+const adminNavItems: NavItem[] = [
+  { to: '/app/admin/plans', labelKey: 'navPlanManagement', icon: Crown },
+  { to: '/app/admin/payouts', labelKey: 'navPayouts', icon: CreditCard },
+  { to: '/app/admin/domains', labelKey: 'navDomainRequests', icon: Globe },
 ];
 
 
@@ -282,6 +284,7 @@ const adminNavItems = [
 export default function AppLayout() {
   const { store, user, saasDomain, systemNotifications: notifications } = useLoaderData<typeof loader>();
   const location = useLocation();
+  const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dismissedNotifications, setDismissedNotifications] = useState<number[]>(() => {
     // Load dismissed notifications from localStorage

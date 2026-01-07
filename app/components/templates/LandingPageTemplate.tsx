@@ -488,32 +488,34 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 2: Trust Badges */}
       {/* ============================================ */}
-      <section className={`py-12 ${theme.bgSecondary} border-y ${theme.cardBorder}`}>
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-            <div className={`text-center p-4 md:p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
-              <div className="text-4xl mb-3">🚚</div>
-              <h4 className={`font-bold ${theme.textPrimary}`}>{t('freeDelivery')}</h4>
-              <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('freeDeliveryInDhaka')}</p>
-            </div>
-            <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
-              <div className="text-4xl mb-3">💯</div>
-              <h4 className={`font-bold ${theme.textPrimary}`}>{t('originalProduct')}</h4>
-              <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('originalGuarantee')}</p>
-            </div>
-            <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
-              <div className="text-4xl mb-3">💵</div>
-              <h4 className={`font-bold ${theme.textPrimary}`}>{t('cashOnDelivery')}</h4>
-              <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('payOnReceive')}</p>
-            </div>
-            <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
-              <div className="text-4xl mb-3">🔄</div>
-              <h4 className={`font-bold ${theme.textPrimary}`}>{t('easyReturn')}</h4>
-              <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('returnPolicy')}</p>
+      {isSectionVisible('trust', editableConfig.hiddenSections) && (
+        <section className={`py-12 ${theme.bgSecondary} border-y ${theme.cardBorder}`}>
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+              <div className={`text-center p-4 md:p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
+                <div className="text-4xl mb-3">🚚</div>
+                <h4 className={`font-bold ${theme.textPrimary}`}>{t('freeDelivery')}</h4>
+                <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('freeDeliveryInDhaka')}</p>
+              </div>
+              <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
+                <div className="text-4xl mb-3">💯</div>
+                <h4 className={`font-bold ${theme.textPrimary}`}>{t('originalProduct')}</h4>
+                <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('originalGuarantee')}</p>
+              </div>
+              <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
+                <div className="text-4xl mb-3">💵</div>
+                <h4 className={`font-bold ${theme.textPrimary}`}>{t('cashOnDelivery')}</h4>
+                <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('payOnReceive')}</p>
+              </div>
+              <div className={`text-center p-6 ${theme.cardBg} ${theme.cardBorder} border rounded-2xl`}>
+                <div className="text-4xl mb-3">🔄</div>
+                <h4 className={`font-bold ${theme.textPrimary}`}>{t('easyReturn')}</h4>
+                <p className={`text-sm ${theme.textSecondary} mt-1`}>{t('returnPolicy')}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ============================================ */}
       {/* SECTION 3: Why Choose Us */}
@@ -768,63 +770,65 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 8: Delivery Information */}
       {/* ============================================ */}
-      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
-              {t('deliveryInfo')}
-            </h2>
-            <p className="text-xl text-gray-600">{t('whenWillYouGet')}</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <div className="bg-white rounded-3xl p-8 shadow-lg border border-green-200">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <span className="text-3xl">🏙️</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{t('insideDhaka')}</h3>
-                  <p className="text-green-600 font-semibold">{t('within24Hours')}</p>
-                </div>
-              </div>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> {t('deliveryCharge')}: ৳৬০
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> {t('onTimeDelivery')}
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> {t('cashOnDelivery')}
-                </li>
-              </ul>
+      {isSectionVisible('delivery', editableConfig.hiddenSections) && (
+        <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                {t('deliveryInfo')}
+              </h2>
+              <p className="text-xl text-gray-600">{t('whenWillYouGet')}</p>
             </div>
-            <div className="bg-white rounded-3xl p-8 shadow-lg border border-blue-200">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
-                  <span className="text-3xl">🌍</span>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="bg-white rounded-3xl p-8 shadow-lg border border-green-200">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
+                    <span className="text-3xl">🏙️</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">{t('insideDhaka')}</h3>
+                    <p className="text-green-600 font-semibold">{t('within24Hours')}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{t('outsideDhaka')}</h3>
-                  <p className="text-blue-600 font-semibold">{t('twoToThreeDays')}</p>
-                </div>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span> {t('deliveryCharge')}: ৳৬০
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span> {t('onTimeDelivery')}
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span> {t('cashOnDelivery')}
+                  </li>
+                </ul>
               </div>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> {t('deliveryCharge')}: ৳১২০
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> {t('nationwideDelivery')}
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> {t('courierService')}
-                </li>
-              </ul>
+              <div className="bg-white rounded-3xl p-8 shadow-lg border border-blue-200">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
+                    <span className="text-3xl">🌍</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">{t('outsideDhaka')}</h3>
+                    <p className="text-blue-600 font-semibold">{t('twoToThreeDays')}</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <span className="text-blue-500">✓</span> {t('deliveryCharge')}: ৳১২০
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-blue-500">✓</span> {t('nationwideDelivery')}
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-blue-500">✓</span> {t('courierService')}
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ============================================ */}
       {/* SECTION 9: FAQ (Custom or Default) */}
@@ -870,7 +874,7 @@ export function LandingPageTemplate({
       {/* ============================================ */}
       {/* SECTION 10: Guarantee */}
       {/* ============================================ */}
-      {editableConfig.guaranteeText && (
+      {isSectionVisible('guarantee', editableConfig.hiddenSections) && editableConfig.guaranteeText && (
         <MagicSectionWrapper
           sectionId="guarantee"
           sectionLabel="Guarantee Section"

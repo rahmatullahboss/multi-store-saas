@@ -676,6 +676,43 @@ export const translations = {
     verificationSuccess: 'Payment verified successfully!',
     rejectionSuccess: 'Payment rejected',
     downgradeSuccess: 'Store downgraded to Free plan',
+    
+    // Sidebar Navigation - Section Headers
+    sidebarHome: 'Home',
+    sidebarCatalog: 'Catalog',
+    sidebarOrders: 'Orders',
+    sidebarMarketing: 'Marketing',
+    sidebarAnalytics: 'Analytics',
+    sidebarSettings: 'Settings',
+    sidebarAdmin: 'Admin',
+    
+    // Sidebar Navigation - Item Labels
+    navDashboard: 'Dashboard',
+    navProducts: 'Products',
+    navInventory: 'Inventory',
+    navDiscounts: 'Discounts',
+    navAllOrders: 'All Orders',
+    navAbandonedCarts: 'Abandoned Carts',
+    navCampaigns: 'Campaigns',
+    navSubscribers: 'Subscribers',
+    navReviews: 'Reviews',
+    navOverview: 'Overview',
+    navReports: 'Reports',
+    navStoreEditor: 'Store Editor',
+    navStoreTemplates: 'Store Templates',
+    navHomepage: 'Homepage',
+    navShipping: 'Shipping',
+    navDomain: 'Domain',
+    navBilling: 'Billing',
+    navAllSettings: 'All Settings',
+    navPlanManagement: 'Plan Management',
+    navPayouts: 'Payouts',
+    navDomainRequests: 'Domain Requests',
+    goToStore: 'Go to Store',
+    
+    // Store Language Settings
+    storeLanguage: 'Store Language',
+    storeLanguageDesc: 'Default language for your storefront',
   },
   
   bn: {
@@ -1311,6 +1348,43 @@ export const translations = {
     verificationSuccess: 'পেমেন্ট সফলভাবে ভেরিফাই হয়েছে!',
     rejectionSuccess: 'পেমেন্ট রিজেক্ট হয়েছে',
     downgradeSuccess: 'স্টোর ফ্রি প্ল্যানে ডাউনগ্রেড হয়েছে',
+    
+    // Sidebar Navigation - Section Headers
+    sidebarHome: 'হোম',
+    sidebarCatalog: 'ক্যাটালগ',
+    sidebarOrders: 'অর্ডার',
+    sidebarMarketing: 'মার্কেটিং',
+    sidebarAnalytics: 'অ্যানালিটিক্স',
+    sidebarSettings: 'সেটিংস',
+    sidebarAdmin: 'অ্যাডমিন',
+    
+    // Sidebar Navigation - Item Labels
+    navDashboard: 'ড্যাশবোর্ড',
+    navProducts: 'পণ্য',
+    navInventory: 'ইনভেন্টরি',
+    navDiscounts: 'ছাড়',
+    navAllOrders: 'সব অর্ডার',
+    navAbandonedCarts: 'পরিত্যক্ত কার্ট',
+    navCampaigns: 'ক্যাম্পেইন',
+    navSubscribers: 'সাবস্ক্রাইবার',
+    navReviews: 'রিভিউ',
+    navOverview: 'সারসংক্ষেপ',
+    navReports: 'রিপোর্ট',
+    navStoreEditor: 'স্টোর এডিটর',
+    navStoreTemplates: 'স্টোর টেমপ্লেট',
+    navHomepage: 'হোমপেজ',
+    navShipping: 'শিপিং',
+    navDomain: 'ডোমেইন',
+    navBilling: 'বিলিং',
+    navAllSettings: 'সব সেটিংস',
+    navPlanManagement: 'প্ল্যান ম্যানেজমেন্ট',
+    navPayouts: 'পেআউট',
+    navDomainRequests: 'ডোমেইন রিকোয়েস্ট',
+    goToStore: 'স্টোরে যান',
+    
+    // Store Language Settings
+    storeLanguage: 'স্টোর ভাষা',
+    storeLanguageDesc: 'আপনার স্টোরফ্রন্টের ডিফল্ট ভাষা',
   },
 } as const;
 
