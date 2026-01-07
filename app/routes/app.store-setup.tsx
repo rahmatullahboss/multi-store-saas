@@ -50,9 +50,51 @@ const TEMPLATE_META: Record<string, {
   'video-focus': { gradient: 'from-purple-600 via-pink-600 to-red-500', icon: '🎬', tags: ['Video'] },
 };
 
-// Mock data for preview
-const PREVIEW_MOCK_PRODUCT = { id: 1, storeId: 1, title: 'Premium Product', description: 'High quality product.', price: 2999, compareAtPrice: 4999, imageUrl: null };
-const PREVIEW_MOCK_TESTIMONIALS = [{ name: 'রহিম', text: 'অসাধারণ!', rating: 5 }];
+// Complete mock data for realistic preview
+const PREVIEW_MOCK_PRODUCT = { 
+  id: 1, 
+  storeId: 1, 
+  title: 'Premium Wireless Headphones Pro', 
+  description: 'Experience crystal-clear audio with our flagship wireless headphones featuring active noise cancellation, 40-hour battery life, and premium comfort for music lovers.', 
+  price: 2999, 
+  compareAtPrice: 4999, 
+  imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
+  inventory: 25,
+};
+
+const PREVIEW_MOCK_TESTIMONIALS = [
+  { 
+    name: 'রহিম আহমেদ', 
+    text: 'অসাধারণ সাউন্ড কোয়ালিটি! দ্রুত ডেলিভারি পেয়েছি। অনেক ধন্যবাদ।', 
+    rating: 5,
+    imageUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
+  },
+  { 
+    name: 'সাদিয়া খান', 
+    text: 'প্রোডাক্টের মান অত্যন্ত ভালো। পাকেজিং চমৎকার ছিল। আবার অর্ডার করব।', 
+    rating: 5,
+    imageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
+  },
+  { 
+    name: 'করিম হোসেন', 
+    text: 'ক্যাশ অন ডেলিভারি সুবিধা ছিল বলে অর্ডার করেছিলাম। পণ্য পেয়ে সন্তুষ্ট।', 
+    rating: 5,
+    imageUrl: 'https://randomuser.me/api/portraits/men/67.jpg',
+  },
+];
+
+const PREVIEW_MOCK_FEATURES = [
+  { icon: '🎧', title: 'Active Noise Cancellation', description: 'বাইরের শব্দ থেকে মুক্তি' },
+  { icon: '🔋', title: '40 Hour Battery', description: 'একবার চার্জে দীর্ঘ সময়' },
+  { icon: '🎵', title: 'Premium Sound', description: 'ক্রিস্টাল ক্লিয়ার অডিও' },
+  { icon: '💎', title: 'Premium Build', description: 'উন্নত মানের উপকরণ' },
+];
+
+const PREVIEW_MOCK_FAQ = [
+  { question: 'ডেলিভারি কত দিনে হয়?', answer: 'ঢাকায় ১-২ দিন, ঢাকার বাইরে ৩-৫ দিনের মধ্যে ডেলিভারি করা হয়।' },
+  { question: 'পেমেন্ট কিভাবে করব?', answer: 'ক্যাশ অন ডেলিভারি, বিকাশ, নগদ এবং রকেটে পেমেন্ট করতে পারবেন।' },
+  { question: 'রিটার্ন পলিসি কি?', answer: '৭ দিনের মধ্যে প্রোডাক্টে সমস্যা থাকলে রিটার্ন করতে পারবেন।' },
+];
 
 export const meta: MetaFunction = () => [{ title: 'Store Setup - Multi-Store SaaS' }];
 
@@ -211,6 +253,7 @@ export default function StoreSetupPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
+  const [previewDeviceView, setPreviewDeviceView] = useState<'desktop' | 'mobile'>('desktop');
   const [testimonials, setTestimonials] = useState<LandingConfig['testimonials']>(landingConfig.testimonials || []);
   const [features, setFeatures] = useState<LandingConfig['features']>(landingConfig.features || []);
   const [faq, setFaq] = useState<LandingConfig['faq']>(landingConfig.faq || []);
@@ -1317,6 +1360,25 @@ export default function StoreSetupPage() {
                     <span className="text-sm text-gray-300 truncate">{storeSubdomain}.digitalcare.site</span>
                   </div>
                 </div>
+                {/* Device Toggle */}
+                <div className="flex items-center gap-1 bg-gray-700 rounded-lg p-1 mr-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDeviceView('desktop')}
+                    className={`p-2 rounded-md transition ${previewDeviceView === 'desktop' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    title="Desktop"
+                  >
+                    <Monitor className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDeviceView('mobile')}
+                    className={`p-2 rounded-md transition ${previewDeviceView === 'mobile' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    title="Mobile"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                  </button>
+                </div>
                 <button onClick={() => setPreviewTemplateId(null)} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition">
                   <X className="w-5 h-5" />
                 </button>
@@ -1324,31 +1386,51 @@ export default function StoreSetupPage() {
 
               {/* Preview Content */}
               <div className="flex-1 bg-gray-950 overflow-auto flex items-start justify-center py-6 px-4">
-                <div className="w-full max-w-4xl bg-white rounded-lg overflow-hidden shadow-2xl">
-                  <div className="overflow-auto max-h-[70vh]">
-                    {(() => {
-                      const TemplateComponent = getTemplateComponent(previewTemplateId);
-                      const previewConfig: LandingConfig = {
-                        templateId: previewTemplateId,
-                        headline: 'আপনার জীবন বদলে দিন',
-                        subheadline: 'সেরা পণ্য, সেরা দাম',
-                        urgencyText: '🔥 সীমিত সময়ের অফার!',
-                        ctaText: 'এখনই অর্ডার করুন',
-                        ctaSubtext: 'ক্যাশ অন ডেলিভারি',
-                        videoUrl: '',
-                        testimonials: PREVIEW_MOCK_TESTIMONIALS,
-                      };
-                      return (
-                        <TemplateComponent
-                          storeName={storeName}
-                          storeId={1}
-                          product={PREVIEW_MOCK_PRODUCT}
-                          config={previewConfig}
-                          currency={currency}
-                          isPreview={true}
-                        />
-                      );
-                    })()}
+                <div className={`transition-all duration-500 ease-out ${previewDeviceView === 'mobile' ? 'w-[375px]' : 'w-full max-w-4xl'}`}>
+                  {/* Phone Frame for Mobile */}
+                  {previewDeviceView === 'mobile' && (
+                    <div className="w-full h-7 bg-black rounded-t-[2rem] flex items-center justify-center">
+                      <div className="w-20 h-5 bg-gray-900 rounded-full" />
+                    </div>
+                  )}
+                  <div className={`bg-white overflow-hidden shadow-2xl ${
+                    previewDeviceView === 'mobile' ? 'rounded-b-[2rem] border-x-4 border-b-4 border-gray-800' : 'rounded-lg'
+                  }`}>
+                    <div className={`overflow-auto ${previewDeviceView === 'mobile' ? 'max-h-[65vh]' : 'max-h-[70vh]'}`}>
+                      {(() => {
+                        const TemplateComponent = getTemplateComponent(previewTemplateId);
+                        const previewConfig: LandingConfig = {
+                          templateId: previewTemplateId,
+                          headline: 'প্রিমিয়াম ওয়্যারলেস হেডফোন',
+                          subheadline: '৪০ ঘন্টা ব্যাটারি | নয়েজ ক্যান্সেলেশন | প্রিমিয়াম সাউন্ড',
+                          urgencyText: '🔥 সীমিত সময়ের অফার - ৪০% ছাড়!',
+                          ctaText: '🛒 এখনই অর্ডার করুন',
+                          ctaSubtext: 'ক্যাশ অন ডেলিভারি ✓ ফ্রি শিপিং',
+                          guaranteeText: '৭ দিনের মানি ব্যাক গ্যারান্টি',
+                          videoUrl: '',
+                          testimonials: PREVIEW_MOCK_TESTIMONIALS,
+                          features: PREVIEW_MOCK_FEATURES,
+                          faq: PREVIEW_MOCK_FAQ,
+                          whatsappEnabled: true,
+                          whatsappNumber: '01700000000',
+                          whatsappMessage: 'আমি এই প্রোডাক্টটি কিনতে চাই',
+                          countdownEnabled: true,
+                          countdownText: '🔥 অফার শেষ হতে বাকি',
+                          showStockCounter: true,
+                          showSocialProof: true,
+                        };
+                        return (
+                          <TemplateComponent
+                            storeName={storeName}
+                            storeId={1}
+                            product={PREVIEW_MOCK_PRODUCT}
+                            config={previewConfig}
+                            currency={currency}
+                            isPreview={true}
+                          />
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>
