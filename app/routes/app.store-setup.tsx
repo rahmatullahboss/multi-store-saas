@@ -22,13 +22,37 @@ import { getAllTemplates, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { 
   Loader2, CheckCircle, ExternalLink, Palette, Zap, 
   MessageSquare, Video, Users, Plus, Trash2, Eye,
-  ChevronDown, ChevronUp, Globe, EyeOff, Upload, X, Image as ImageIcon
+  ChevronDown, ChevronUp, Globe, EyeOff, Upload, X, Image as ImageIcon,
+  Monitor, Tablet, Smartphone, ArrowRight, Sparkles, Crown, Leaf
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getTemplateComponent } from '~/templates/registry';
 // AI features temporarily disabled for MVP
 // import { AIEnhanceButton } from '~/components/AIEnhanceButton';
+
+// Template metadata for beautiful cards
+const TEMPLATE_META: Record<string, { 
+  gradient: string; 
+  icon: string; 
+  tags: string[]; 
+  isNew?: boolean;
+}> = {
+  'premium-bd': { gradient: 'from-emerald-500 via-teal-500 to-cyan-500', icon: '⚡', tags: ['High Conversion'], isNew: true },
+  'flash-sale': { gradient: 'from-red-500 via-orange-500 to-yellow-500', icon: '🔥', tags: ['Urgency'], isNew: true },
+  'mobile-first': { gradient: 'from-blue-500 via-indigo-500 to-purple-500', icon: '📱', tags: ['Single Column'] },
+  'luxury': { gradient: 'from-amber-400 via-yellow-500 to-amber-600', icon: '👑', tags: ['Premium'] },
+  'organic': { gradient: 'from-green-400 via-emerald-500 to-teal-600', icon: '🌿', tags: ['Natural'] },
+  'modern-dark': { gradient: 'from-gray-700 via-gray-800 to-black', icon: '🌙', tags: ['Bold'] },
+  'minimal-light': { gradient: 'from-gray-100 via-white to-gray-200', icon: '☀️', tags: ['Clean'] },
+  'video-focus': { gradient: 'from-purple-600 via-pink-600 to-red-500', icon: '🎬', tags: ['Video'] },
+};
+
+// Mock data for preview
+const PREVIEW_MOCK_PRODUCT = { id: 1, storeId: 1, title: 'Premium Product', description: 'High quality product.', price: 2999, compareAtPrice: 4999, imageUrl: null };
+const PREVIEW_MOCK_TESTIMONIALS = [{ name: 'রহিম', text: 'অসাধারণ!', rating: 5 }];
 
 export const meta: MetaFunction = () => [{ title: 'Store Setup - Multi-Store SaaS' }];
 
@@ -186,6 +210,7 @@ export default function StoreSetupPage() {
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
+  const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
   const [testimonials, setTestimonials] = useState<LandingConfig['testimonials']>(landingConfig.testimonials || []);
   const [features, setFeatures] = useState<LandingConfig['features']>(landingConfig.features || []);
   const [faq, setFaq] = useState<LandingConfig['faq']>(landingConfig.faq || []);
@@ -451,31 +476,57 @@ export default function StoreSetupPage() {
           
           {expandedSections.templates && (
             <div className="p-4 pt-0 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {templates.map((template) => (
-                <button
-                  key={template.id}
-                  type="button"
-                  onClick={() => setSelectedTemplateId(template.id)}
-                  className={`p-4 rounded-xl border-2 transition text-left ${
-                    selectedTemplateId === template.id 
-                      ? 'border-emerald-500 bg-emerald-50' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">
-                      {template.id === 'modern-dark' && '🌙'}
-                      {template.id === 'minimal-light' && '☀️'}
-                      {template.id === 'video-focus' && '🎬'}
-                    </span>
-                    {selectedTemplateId === template.id && (
-                      <CheckCircle className="w-5 h-5 text-emerald-600" />
-                    )}
+              {templates.map((template) => {
+                const meta = TEMPLATE_META[template.id] || { gradient: 'from-gray-500 to-gray-700', icon: '✨', tags: [] };
+                return (
+                  <div
+                    key={template.id}
+                    className={`relative rounded-xl border-2 transition overflow-hidden ${
+                      selectedTemplateId === template.id 
+                        ? 'border-emerald-500 ring-2 ring-emerald-500/20' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {/* Gradient Header */}
+                    <div className={`h-20 bg-gradient-to-br ${meta.gradient} relative`}>
+                      <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/30">
+                        {meta.icon}
+                      </div>
+                      {meta.isNew && (
+                        <span className="absolute top-2 left-2 px-2 py-0.5 bg-rose-500 text-white text-xs font-bold rounded-full animate-pulse">NEW</span>
+                      )}
+                      {selectedTemplateId === template.id && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center">
+                          <CheckCircle className="w-4 h-4" />
+                        </div>
+                      )}
+                      {/* Preview Button on Hover */}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setPreviewTemplateId(template.id); }}
+                        className="absolute bottom-2 right-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-medium rounded-lg shadow-lg flex items-center gap-1 hover:bg-white transition"
+                      >
+                        <Eye className="w-3 h-3" />
+                        Preview
+                      </button>
+                    </div>
+                    {/* Info */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTemplateId(template.id)}
+                      className="w-full p-3 text-left bg-white"
+                    >
+                      <h3 className="font-semibold text-gray-900 text-sm">{template.name}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{template.description}</p>
+                      <div className="flex gap-1.5 mt-2">
+                        {meta.tags.map((tag, i) => (
+                          <span key={i} className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">{tag}</span>
+                        ))}
+                      </div>
+                    </button>
                   </div>
-                  <h3 className="font-medium text-gray-900">{template.name}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{template.description}</p>
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -1232,6 +1283,104 @@ export default function StoreSetupPage() {
           </div>
         </div>
       </Form>
+
+      {/* Template Preview Modal */}
+      <AnimatePresence>
+        {previewTemplateId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+            onClick={() => setPreviewTemplateId(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-6xl h-[90vh] bg-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-500 cursor-pointer" onClick={() => setPreviewTemplateId(null)} />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                    <div className="w-3 h-3 rounded-full bg-green-500" />
+                  </div>
+                </div>
+                <div className="flex-1 max-w-md mx-4">
+                  <div className="flex items-center gap-2 bg-gray-700 rounded-lg px-3 py-1.5">
+                    <span className="text-green-400">🔒</span>
+                    <span className="text-sm text-gray-300 truncate">{storeSubdomain}.digitalcare.site</span>
+                  </div>
+                </div>
+                <button onClick={() => setPreviewTemplateId(null)} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Preview Content */}
+              <div className="flex-1 bg-gray-950 overflow-auto flex items-start justify-center py-6 px-4">
+                <div className="w-full max-w-4xl bg-white rounded-lg overflow-hidden shadow-2xl">
+                  <div className="overflow-auto max-h-[70vh]">
+                    {(() => {
+                      const TemplateComponent = getTemplateComponent(previewTemplateId);
+                      const previewConfig: LandingConfig = {
+                        templateId: previewTemplateId,
+                        headline: 'আপনার জীবন বদলে দিন',
+                        subheadline: 'সেরা পণ্য, সেরা দাম',
+                        urgencyText: '🔥 সীমিত সময়ের অফার!',
+                        ctaText: 'এখনই অর্ডার করুন',
+                        ctaSubtext: 'ক্যাশ অন ডেলিভারি',
+                        videoUrl: '',
+                        testimonials: PREVIEW_MOCK_TESTIMONIALS,
+                      };
+                      return (
+                        <TemplateComponent
+                          storeName={storeName}
+                          storeId={1}
+                          product={PREVIEW_MOCK_PRODUCT}
+                          config={previewConfig}
+                          currency={currency}
+                          isPreview={true}
+                        />
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between px-6 py-4 bg-gray-800 border-t border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${TEMPLATE_META[previewTemplateId]?.gradient || 'from-gray-500 to-gray-700'} flex items-center justify-center text-white text-xl`}>
+                    {TEMPLATE_META[previewTemplateId]?.icon || '✨'}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">{templates.find(t => t.id === previewTemplateId)?.name}</h3>
+                    <p className="text-xs text-gray-400">{templates.find(t => t.id === previewTemplateId)?.description}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setPreviewTemplateId(null)} className="px-5 py-2.5 text-gray-300 hover:text-white font-medium rounded-lg hover:bg-gray-700 transition">
+                    Close
+                  </button>
+                  <button
+                    onClick={() => { setSelectedTemplateId(previewTemplateId); setPreviewTemplateId(null); }}
+                    className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-lg shadow-lg hover:from-emerald-400 hover:to-teal-400 transition-all flex items-center gap-2"
+                  >
+                    Use This Template
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
