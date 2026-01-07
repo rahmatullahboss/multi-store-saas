@@ -11,6 +11,7 @@ import {
   MapPin, Phone, User, Star, ArrowRight, Truck, ShieldCheck
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
+import { useCartTracking } from '~/hooks/useCartTracking';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -52,6 +53,9 @@ export function MobileFirstTemplate({
   const { t } = useTranslation();
   const formatPrice = useFormatPrice();
   
+  // Cart tracking for abandoned cart recovery
+  const { trackCart } = useCartTracking(storeId, product.id);
+  
   // Form State
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -60,6 +64,17 @@ export function MobileFirstTemplate({
     division: 'dhaka' as DivisionValue,
     quantity: 1,
   });
+
+  // Track cart when form data changes (for abandoned cart recovery)
+  useEffect(() => {
+    if (formData.phone || formData.customer_name) {
+      trackCart({
+        customer_name: formData.customer_name,
+        customer_phone: formData.phone,
+        quantity: formData.quantity,
+      });
+    }
+  }, [formData.customer_name, formData.phone, formData.quantity, trackCart]);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   

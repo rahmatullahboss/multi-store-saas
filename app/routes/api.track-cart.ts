@@ -81,7 +81,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         id: products.id, 
         title: products.title, 
         price: products.price,
-        image: products.image 
+        images: products.images 
       })
       .from(products)
       .where(
@@ -101,7 +101,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const unitPrice = product.price;
     const totalAmount = unitPrice * input.quantity;
 
-    // Build cart items JSON
+    // Build cart items JSON - extract first image from images JSON array
+    const productImages = product.images ? JSON.parse(product.images) : [];
+    const firstImage = Array.isArray(productImages) && productImages.length > 0 ? productImages[0] : null;
+    
     const cartItems = JSON.stringify([{
       productId: product.id,
       title: input.variant_info 
@@ -109,7 +112,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         : product.title,
       quantity: input.quantity,
       price: unitPrice,
-      image: product.image,
+      image: firstImage,
     }]);
 
     const now = new Date();

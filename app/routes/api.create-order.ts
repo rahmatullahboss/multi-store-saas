@@ -15,8 +15,8 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, products, productVariants, stores, users } from '@db/schema';
-import { eq, and } from 'drizzle-orm';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts } from '@db/schema';
+import { eq, and, or } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { checkUsageLimit } from '~/utils/plans.server';
 import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
@@ -281,6 +281,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
       }
     }
+
+    // ============================================================================
+    // MARK ABANDONED CART AS RECOVERED (non-blocking)
+    // ============================================================================
+    context.cloudflare.ctx.waitUntil(
+      (async () => {
+        try {
+          await db
+            .update(abandonedCarts)
+            .set({
+              status: 'recovered',
+              recoveredAt: now,
+            })
+            .where(
+              and(
+                eq(abandonedCarts.storeId, input.store_id),
+                eq(abandonedCarts.status, 'abandoned'),
+                or(
+                  eq(abandonedCarts.customerPhone, input.phone),
+                  input.customer_email ? eq(abandonedCarts.customerEmail, input.customer_email) : undefined
+                )
+              )
+            );
+        } catch (e) {
+          console.error('Failed to mark abandoned cart as recovered:', e);
+        }
+      })()
+    );
 
     return json({
       success: true,

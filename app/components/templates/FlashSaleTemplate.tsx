@@ -15,6 +15,7 @@ import type { LandingConfig, ManualPaymentConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { Clock, ShoppingCart, Truck, Shield, AlertTriangle, CheckCircle2, Phone, User, MapPin, Package, Flame, Star, Zap } from 'lucide-react';
 import { BD_DIVISIONS } from '~/utils/shipping';
+import { useCartTracking } from '~/hooks/useCartTracking';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -117,6 +118,9 @@ export function FlashSaleTemplate({
   const fetcher = useFetcher<{ success: boolean; orderNumber?: string; error?: string }>();
   const countdown = useCountdown(flashSaleEndTime ? new Date(flashSaleEndTime) : null);
   
+  // Cart tracking for abandoned cart recovery
+  const { trackCart } = useCartTracking(storeId || product.storeId, product.id);
+  
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -129,6 +133,17 @@ export function FlashSaleTemplate({
     senderNumber: '',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  
+  // Track cart when form data changes (for abandoned cart recovery)
+  useEffect(() => {
+    if (formData.phone || formData.name) {
+      trackCart({
+        customer_name: formData.name,
+        customer_phone: formData.phone,
+        quantity: formData.quantity,
+      });
+    }
+  }, [formData.name, formData.phone, formData.quantity, trackCart]);
   
   // Fetcher states
   const isSubmitting = fetcher.state === 'submitting';
