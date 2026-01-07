@@ -157,6 +157,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const accentColor = formData.get('accentColor') as string || '';
   const storeMode = formData.get('storeMode') as 'landing' | 'store' || 'landing';
 
+  // New sections
+  const galleryImages = JSON.parse(formData.get('galleryImages') as string || '[]');
+  const benefits = JSON.parse(formData.get('benefits') as string || '[]');
+  const comparison = JSON.parse(formData.get('comparison') as string || '{}');
+  const socialProofData = JSON.parse(formData.get('socialProof') as string || '{"count":0,"text":""}');
+
   const newConfig: LandingConfig = {
     templateId,
     headline: headline || 'Transform Your Life Today',
@@ -182,6 +188,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     socialProofInterval,
     primaryColor: primaryColor || undefined,
     accentColor: accentColor || undefined,
+    // New sections
+    galleryImages: galleryImages.filter((url: string) => url),
+    benefits: benefits.filter((b: {icon: string; title: string}) => b.icon && b.title),
+    comparison: comparison.beforeImage || comparison.afterImage ? comparison : undefined,
+    socialProof: socialProofData.count > 0 || socialProofData.text ? socialProofData : undefined,
   };
 
   await db
@@ -287,6 +298,22 @@ export default function LiveEditorPage() {
   const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '');
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
 
+  // New section states
+  const [galleryImages, setGalleryImages] = useState<string[]>(store.landingConfig.galleryImages || []);
+  const [benefits, setBenefits] = useState<Array<{icon: string; title: string; description: string}>>(
+    store.landingConfig.benefits || []
+  );
+  const [comparison, setComparison] = useState<{
+    beforeImage?: string;
+    afterImage?: string;
+    beforeLabel?: string;
+    afterLabel?: string;
+    description?: string;
+  }>(store.landingConfig.comparison || {});
+  const [socialProof, setSocialProof] = useState<{count: number; text: string}>(
+    store.landingConfig.socialProof || { count: 0, text: '' }
+  );
+
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
 
@@ -321,7 +348,7 @@ export default function LiveEditorPage() {
       return;
     }
     setHasChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, galleryImages, benefits, comparison, socialProof]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -500,6 +527,11 @@ export default function LiveEditorPage() {
     socialProofInterval,
     primaryColor: primaryColor || undefined,
     accentColor: accentColor || undefined,
+    // New sections
+    galleryImages,
+    benefits,
+    comparison,
+    socialProof,
   };
 
   // Mock product for preview
@@ -653,6 +685,11 @@ export default function LiveEditorPage() {
               <input type="hidden" name="primaryColor" value={primaryColor} />
               <input type="hidden" name="accentColor" value={accentColor} />
               <input type="hidden" name="storeMode" value={storeMode} />
+              {/* New sections */}
+              <input type="hidden" name="galleryImages" value={JSON.stringify(galleryImages)} />
+              <input type="hidden" name="benefits" value={JSON.stringify(benefits)} />
+              <input type="hidden" name="comparison" value={JSON.stringify(comparison)} />
+              <input type="hidden" name="socialProof" value={JSON.stringify(socialProof)} />
               
               <button
                 type="submit"
@@ -842,6 +879,15 @@ export default function LiveEditorPage() {
               onTestimonialImageUpload={handleTestimonialImageUpload}
               onTestimonialImageRemove={handleRemoveTestimonialImage}
               uploadingIndex={uploadingIndex}
+              // New section props
+              galleryImages={galleryImages}
+              onGalleryImagesChange={setGalleryImages}
+              benefits={benefits}
+              onBenefitsChange={setBenefits}
+              comparison={comparison}
+              onComparisonChange={setComparison}
+              socialProof={socialProof}
+              onSocialProofChange={setSocialProof}
             />
 
 
