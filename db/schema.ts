@@ -100,6 +100,7 @@ export const stores = sqliteTable('stores', {
   adminNote: text('admin_note'), // Super Admin notes for the subscription
   
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // Soft delete timestamp (null = not deleted)
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });

@@ -11,7 +11,7 @@
 
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, Form } from '@remix-run/react';
+import { useLoaderData, useFetcher, Form, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql, desc } from 'drizzle-orm';
 import { stores, users, activityLogs } from '@db/schema';
@@ -26,7 +26,9 @@ import {
   AlertTriangle,
   Crown,
   Zap,
-  Gift
+  Gift,
+  Trash2,
+  RotateCcw
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -41,6 +43,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
   await requireSuperAdmin(request, db);
   
+  const url = new URL(request.url);
+  const showDeleted = url.searchParams.get('showDeleted') === 'true';
+  
   const drizzleDb = drizzle(db);
   
   // Get all stores with owner email
@@ -51,6 +56,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       subdomain: stores.subdomain,
       planType: stores.planType,
       isActive: stores.isActive,
+      deletedAt: stores.deletedAt,
       createdAt: stores.createdAt,
       ownerId: users.id,
       ownerEmail: users.email,
@@ -60,7 +66,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .leftJoin(users, eq(users.storeId, stores.id))
     .orderBy(desc(stores.createdAt));
   
-  return json({ stores: storesWithOwners });
+  // Filter based on showDeleted flag
+  const filteredStores = showDeleted 
+    ? storesWithOwners.filter(s => s.deletedAt !== null)
+    : storesWithOwners.filter(s => s.deletedAt === null);
+  
+  return json({ stores: filteredStores, showDeleted });
 }
 
 // ============================================================================
@@ -107,6 +118,52 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, action: newStatus ? 'unsuspended' : 'suspended' });
   }
   
+  // ============ SOFT DELETE ============
+  if (intent === 'softDelete') {
+    await drizzleDb
+      .update(stores)
+      .set({ 
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+    
+    // Log the action
+    await drizzleDb.insert(activityLogs).values({
+      storeId: storeId,
+      userId: adminId,
+      action: 'store_soft_deleted',
+      entityType: 'store',
+      entityId: storeId,
+      details: JSON.stringify({ adminEmail }),
+    });
+    
+    return json({ success: true, action: 'deleted' });
+  }
+  
+  // ============ RESTORE ============
+  if (intent === 'restore') {
+    await drizzleDb
+      .update(stores)
+      .set({ 
+        deletedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+    
+    // Log the action
+    await drizzleDb.insert(activityLogs).values({
+      storeId: storeId,
+      userId: adminId,
+      action: 'store_restored',
+      entityType: 'store',
+      entityId: storeId,
+      details: JSON.stringify({ adminEmail }),
+    });
+    
+    return json({ success: true, action: 'restored' });
+  }
+  
   // ============ IMPERSONATE ============
   if (intent === 'impersonate') {
     // CRITICAL SECURITY: Only SUPER_ADMIN_EMAIL can impersonate
@@ -140,9 +197,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function AdminStores() {
-  const { stores: allStores } = useLoaderData<typeof loader>();
+  const { stores: allStores, showDeleted } = useLoaderData<typeof loader>();
   const [searchQuery, setSearchQuery] = useState('');
   const fetcher = useFetcher();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // Filter stores by search
   const filteredStores = allStores.filter(store => 
@@ -150,6 +208,15 @@ export default function AdminStores() {
     store.subdomain?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     store.ownerEmail?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const toggleShowDeleted = () => {
+    if (showDeleted) {
+      searchParams.delete('showDeleted');
+    } else {
+      searchParams.set('showDeleted', 'true');
+    }
+    setSearchParams(searchParams);
+  };
 
   const getPlanBadge = (planType: string | null) => {
     switch (planType) {
@@ -182,20 +249,37 @@ export default function AdminStores() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">All Stores</h1>
-          <p className="text-slate-400">{allStores.length} total stores</p>
+          <h1 className="text-2xl font-bold text-white">
+            {showDeleted ? 'Deleted Stores' : 'All Stores'}
+          </h1>
+          <p className="text-slate-400">{allStores.length} {showDeleted ? 'deleted' : 'active'} stores</p>
         </div>
         
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-          <input
-            type="text"
-            placeholder="Search stores..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-64 pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500"
-          />
+        <div className="flex items-center gap-3">
+          {/* Show Deleted Toggle */}
+          <button
+            onClick={toggleShowDeleted}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
+              showDeleted
+                ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+            }`}
+          >
+            <Trash2 className="w-4 h-4" />
+            {showDeleted ? 'Show Active' : 'Show Deleted'}
+          </button>
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search stores..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full sm:w-64 pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500"
+            />
+          </div>
         </div>
       </div>
 
@@ -326,6 +410,37 @@ export default function AdminStores() {
                             </button>
                           </Form>
                         )}
+                        
+                        {/* Delete or Restore */}
+                        {showDeleted ? (
+                          <fetcher.Form method="post">
+                            <input type="hidden" name="intent" value="restore" />
+                            <input type="hidden" name="storeId" value={store.id} />
+                            <button
+                              type="submit"
+                              className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition"
+                              title="Restore Store"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </button>
+                          </fetcher.Form>
+                        ) : (
+                          <fetcher.Form method="post" onSubmit={(e) => {
+                            if (!confirm(`Are you sure you want to delete "${store.name}"? This can be undone from the Deleted Stores view.`)) {
+                              e.preventDefault();
+                            }
+                          }}>
+                            <input type="hidden" name="intent" value="softDelete" />
+                            <input type="hidden" name="storeId" value={store.id} />
+                            <button
+                              type="submit"
+                              className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition"
+                              title="Delete Store"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </fetcher.Form>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -424,6 +539,36 @@ export default function AdminStores() {
                         Impersonate
                       </button>
                     </Form>
+                  )}
+                  
+                  {/* Delete or Restore */}
+                  {showDeleted ? (
+                    <fetcher.Form method="post">
+                      <input type="hidden" name="intent" value="restore" />
+                      <input type="hidden" name="storeId" value={store.id} />
+                      <button
+                        type="submit"
+                        className="py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition flex items-center justify-center gap-2 text-sm font-medium"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        Restore
+                      </button>
+                    </fetcher.Form>
+                  ) : (
+                    <fetcher.Form method="post" onSubmit={(e) => {
+                      if (!confirm(`Delete "${store.name}"?`)) {
+                        e.preventDefault();
+                      }
+                    }}>
+                      <input type="hidden" name="intent" value="softDelete" />
+                      <input type="hidden" name="storeId" value={store.id} />
+                      <button
+                        type="submit"
+                        className="py-2 px-3 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition flex items-center justify-center gap-2 text-sm font-medium"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </fetcher.Form>
                   )}
                 </div>
               </div>
