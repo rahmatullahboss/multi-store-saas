@@ -581,16 +581,14 @@ export default function LandingBuilderPage() {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Live Editor Button - Opens in New Tab */}
-              <a
-                href="/app/landing-live-editor"
-                target="_blank"
-                rel="noopener noreferrer"
+              {/* Live Preview Button - Opens in Same Tab */}
+              <Link
+                to="/landing-live-editor"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition font-medium"
               >
                 <Eye className="w-4 h-4" />
-                {language === 'bn' ? 'লাইভ এডিটর' : 'Live Editor'}
-              </a>
+                {language === 'bn' ? 'লাইভ প্রিভিউ' : 'Live Preview'}
+              </Link>
 
               {/* Open Store in New Tab */}
               <a
@@ -1738,7 +1736,7 @@ export default function LandingBuilderPage() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between gap-3 z-50 shadow-lg">
         {/* Preview Button - Navigate to Live Editor in New Tab */}
         <a
-          href="/app/landing-live-editor"
+          href="/landing-live-editor"
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg"

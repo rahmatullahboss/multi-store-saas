@@ -1,25 +1,25 @@
 /**
  * Landing Page Live Editor Route (Elementor-Style)
  * 
- * Route: /app/landing-live-editor
+ * Route: /landing-live-editor (standalone - no app sidebar)
  * 
  * Split-pane layout with:
- * - Left sidebar (25%): Compact editing controls in accordion style
- * - Right panel (75%): Full-size live preview
+ * - Left sidebar: Compact editing controls in accordion style
+ * - Right panel: Full-size live preview
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, Link, useFetcher } from '@remix-run/react';
+import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { 
-  Loader2, CheckCircle, ArrowLeft, Eye, Save, 
-  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, 
-  Timer, TrendingUp, Paintbrush, Smartphone, Monitor, Tablet, ChevronDown, ChevronRight, Rocket, X
+  Loader2, CheckCircle, ArrowLeft, Save, 
+  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
+  TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -30,9 +30,9 @@ import {
   DEFAULT_SECTION_ORDER,
   LANDING_TEMPLATES 
 } from '~/components/landing-builder';
-import { getTemplateComponent, type TemplateProps } from '~/templates/registry';
+import { getTemplateComponent } from '~/templates/registry';
 
-// Default features for new stores (English)
+// Default features
 const DEFAULT_FEATURES_EN = [
   { icon: '✅', title: 'Premium Quality', description: 'Made with the finest materials' },
   { icon: '🚚', title: 'Fast Delivery', description: 'Delivered within 2-3 business days' },
@@ -40,7 +40,6 @@ const DEFAULT_FEATURES_EN = [
   { icon: '🔒', title: 'Secure Payment', description: 'Your payment is 100% secure' },
 ];
 
-// Default features for new stores (Bengali)
 const DEFAULT_FEATURES_BN = [
   { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের উপাদান দিয়ে তৈরি' },
   { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ কার্যদিবসের মধ্যে ডেলিভারি' },
@@ -244,7 +243,7 @@ export default function LiveEditorPage() {
   const { store, products: storeProducts, saasDomain } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const { t, lang: language } = useTranslation();
+  const { lang: language } = useTranslation();
   
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
@@ -341,7 +340,7 @@ export default function LiveEditorPage() {
   }, [storeMode, featuredProductId, headline, language]);
 
   // Preview URL
-  const previewUrl = `https://${store.subdomain}.${saasDomain}`;
+  const storeUrl = `https://${store.subdomain}.${saasDomain}`;
 
   // Get selected template info
   const selectedTemplate = LANDING_TEMPLATES.find(t => t.id === templateId);
@@ -409,7 +408,7 @@ export default function LiveEditorPage() {
             </Link>
             <div>
               <h1 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                <Rocket className="w-4 h-4 text-emerald-600" />
+                <Sparkles className="w-4 h-4 text-emerald-600" />
                 {language === 'bn' ? 'লাইভ এডিটর' : 'Live Editor'}
               </h1>
               <p className="text-xs text-gray-500">{store.name}</p>
@@ -447,7 +446,7 @@ export default function LiveEditorPage() {
 
             {/* Open in New Tab */}
             <a
-              href={previewUrl}
+              href={storeUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
@@ -527,8 +526,8 @@ export default function LiveEditorPage() {
 
       {/* Main Content - Split Layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Editing Controls (25%) */}
-        <aside className="w-80 xl:w-96 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+        {/* Left Sidebar - Editing Controls */}
+        <aside className="w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
           {/* Template Section */}
           <AccordionSection
             title={language === 'bn' ? 'টেমপ্লেট' : 'Template'}
@@ -962,7 +961,7 @@ export default function LiveEditorPage() {
           </AccordionSection>
         </aside>
 
-        {/* Right Panel - Live Preview (75%) */}
+        {/* Right Panel - Live Preview */}
         <main className="flex-1 bg-gray-900 flex flex-col overflow-hidden">
           {/* Preview Header */}
           <div className="bg-gray-800 px-4 py-2 flex items-center justify-between flex-shrink-0">
