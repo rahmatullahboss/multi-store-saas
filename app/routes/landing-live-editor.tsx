@@ -1062,12 +1062,13 @@ export default function LiveEditorPage() {
           {/* Preview Container */}
           <div className="flex-1 flex items-start justify-center overflow-auto p-2 md:p-4">
             <div 
-              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 w-full"
+              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 w-full relative"
               style={{
                 maxWidth: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '1200px',
+                contain: 'layout paint',
               }}
             >
-              <div className="overflow-hidden">
+              <div className="overflow-hidden relative" style={{ transform: 'translateZ(0)' }}>
                 <TemplateComponent 
                   storeName={store.name}
                   storeId={store.id}

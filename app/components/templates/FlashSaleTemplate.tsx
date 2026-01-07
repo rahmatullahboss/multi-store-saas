@@ -210,7 +210,7 @@ export function FlashSaleTemplate({
       {/* ================================================================
           STICKY COUNTDOWN TIMER BAR
           ================================================================ */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 py-2 shadow-lg">
+      <div className={`${isPreview ? 'sticky' : 'fixed'} top-0 left-0 right-0 z-50 bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 py-2 shadow-lg`}>
         <div className="max-w-4xl mx-auto px-4">
           {countdown.expired ? (
             <div className="flex items-center justify-center gap-2 text-white font-bold text-lg">
@@ -568,21 +568,23 @@ export function FlashSaleTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky Footer */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-black border-t border-gray-800 p-3 shadow-2xl safe-area-pb">
-        <a
-          href="#order-form"
-          className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-lg rounded-xl flex items-center justify-center gap-2 shadow-lg animate-pulse"
-        >
-          <Zap size={20} /> অর্ডার করুন — ৳{price.toLocaleString()}
-        </a>
-      </div>
+      {/* Mobile Sticky Footer - Hidden in preview mode */}
+      {!isPreview && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-black border-t border-gray-800 p-3 shadow-2xl safe-area-pb">
+          <a
+            href="#order-form"
+            className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-lg rounded-xl flex items-center justify-center gap-2 shadow-lg animate-pulse"
+          >
+            <Zap size={20} /> অর্ডার করুন — ৳{price.toLocaleString()}
+          </a>
+        </div>
+      )}
 
       {/* Footer Spacer for Mobile */}
       <div className="md:hidden h-20" />
 
       {/* WhatsApp Floating Button */}
-      {config.whatsappEnabled && config.whatsappNumber && (
+      {config.whatsappEnabled && config.whatsappNumber && !isPreview && (
         <a
           href={`https://wa.me/${config.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(config.whatsappMessage || `Hi, I'm interested in this flash sale product!`)}`}
           target="_blank"
