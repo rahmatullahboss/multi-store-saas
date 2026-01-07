@@ -544,8 +544,8 @@ export async function createImpersonationSession(
   
   console.log('[createImpersonationSession] Super Admin', adminEmail, 'impersonating user', targetUser[0].email);
   
-  // Step 3: Create session for target user
-  const session = await getSession();
+  // Step 3: Create session for target user (get existing session and override it)
+  const session = await getSession(request.headers.get('Cookie'));
   session.set('userId', targetUser[0].id);
   session.set('storeId', targetUser[0].storeId);
   
