@@ -605,19 +605,14 @@ export default function LandingBuilderPage() {
                 </button>
               </div>
 
-              {/* Preview Toggle Button */}
-              <button
-                type="button"
-                onClick={() => setShowPreview(!showPreview)}
-                className={`hidden lg:inline-flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                  showPreview 
-                    ? 'bg-emerald-100 text-emerald-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+              {/* Preview Toggle Button - Navigate to Live Editor */}
+              <Link
+                to="/app/landing-live-editor"
+                className="hidden lg:inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition font-medium"
               >
                 <Eye className="w-4 h-4" />
                 {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
-              </button>
+              </Link>
 
               {/* Open in New Tab */}
               <a
@@ -1805,16 +1800,14 @@ export default function LandingBuilderPage() {
 
       {/* Mobile Floating Action Bar */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between gap-3 z-50 shadow-lg">
-        {/* Preview Button */}
-        <a
-          href={previewUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg"
+        {/* Preview Button - Navigate to Live Editor */}
+        <Link
+          to="/app/landing-live-editor"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg"
         >
           <Eye className="w-4 h-4" />
-          {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
-        </a>
+          {language === 'bn' ? 'লাইভ এডিটর' : 'Live Editor'}
+        </Link>
         
         {/* Save Button */}
         <Form 
