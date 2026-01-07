@@ -50,6 +50,22 @@ export interface LandingConfig {
   socialProofInterval?: number; // Seconds between popups
   // Product Gallery
   productImages?: string[];
+  // Photo Gallery Section (multiple images)
+  galleryImages?: string[];
+  // Benefits / Why Buy Us Section
+  benefits?: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
+  // Before/After Comparison Section
+  comparison?: {
+    beforeImage?: string;
+    afterImage?: string;
+    beforeLabel?: string;
+    afterLabel?: string;
+    description?: string;
+  };
   // Color Theme Customization
   primaryColor?: string; // Main brand color (buttons, accents)
   accentColor?: string;  // Secondary accent color // Additional product images

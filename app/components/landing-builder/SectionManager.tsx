@@ -8,7 +8,8 @@
 import { useState } from 'react';
 import { 
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2,
-  Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck 
+  Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
+  Image, CheckCircle, Layers, Users
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -41,6 +42,14 @@ export const LANDING_SECTIONS = [
     icon: Star,
   },
   {
+    id: 'gallery',
+    name: 'ফটো গ্যালারি',
+    nameEn: 'Photo Gallery',
+    description: 'প্রোডাক্ট ইমেজ গ্যালারি',
+    descriptionEn: 'Product image gallery',
+    icon: Image,
+  },
+  {
     id: 'video',
     name: 'ভিডিও',
     nameEn: 'Video',
@@ -49,12 +58,36 @@ export const LANDING_SECTIONS = [
     icon: Video,
   },
   {
+    id: 'benefits',
+    name: 'কেন কিনবেন',
+    nameEn: 'Why Buy Us',
+    description: 'কেন আমাদের থেকে কিনবেন',
+    descriptionEn: 'Why buy from us',
+    icon: CheckCircle,
+  },
+  {
+    id: 'comparison',
+    name: 'তুলনা',
+    nameEn: 'Comparison',
+    description: 'আগে/পরে বা প্রতিযোগী তুলনা',
+    descriptionEn: 'Before/After or competitor comparison',
+    icon: Layers,
+  },
+  {
     id: 'testimonials',
     name: 'টেস্টিমোনিয়াল',
     nameEn: 'Testimonials',
     description: 'কাস্টমার রিভিউ',
     descriptionEn: 'Customer reviews',
     icon: MessageSquare,
+  },
+  {
+    id: 'social',
+    name: 'সোশ্যাল প্রুফ',
+    nameEn: 'Social Proof',
+    description: 'অর্ডার/ভিজিটর সংখ্যা',
+    descriptionEn: 'Orders/visitors count',
+    icon: Users,
   },
   {
     id: 'delivery',
@@ -92,7 +125,7 @@ export const LANDING_SECTIONS = [
 ];
 
 // Default section order
-export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'video', 'testimonials', 'delivery', 'faq', 'guarantee', 'cta'];
+export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'];
 
 interface SectionManagerProps {
   sectionOrder: string[];
