@@ -7,15 +7,13 @@ CREATE TABLE `system_notifications` (
 	`created_at` integer,
 	FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
---> statement-breakpoint
-ALTER TABLE `customers` ADD `risk_score` integer;--> statement-breakpoint
-ALTER TABLE `customers` ADD `risk_checked_at` integer;--> statement-breakpoint
-ALTER TABLE `orders` ADD `payment_method` text DEFAULT 'cod';--> statement-breakpoint
-ALTER TABLE `orders` ADD `transaction_id` text;--> statement-breakpoint
-ALTER TABLE `orders` ADD `manual_payment_details` text;--> statement-breakpoint
-ALTER TABLE `stores` ADD `manual_payment_config` text;--> statement-breakpoint
-ALTER TABLE `stores` ADD `payment_transaction_id` text;--> statement-breakpoint
-ALTER TABLE `stores` ADD `payment_status` text DEFAULT 'none';--> statement-breakpoint
-ALTER TABLE `stores` ADD `payment_submitted_at` integer;--> statement-breakpoint
-ALTER TABLE `stores` ADD `payment_amount` real;--> statement-breakpoint
+-->statement-breakpoint
+ALTER TABLE `orders` ADD `payment_method` text DEFAULT 'cod';-->statement-breakpoint
+ALTER TABLE `orders` ADD `transaction_id` text;-->statement-breakpoint
+ALTER TABLE `orders` ADD `manual_payment_details` text;-->statement-breakpoint
+ALTER TABLE `stores` ADD `manual_payment_config` text;-->statement-breakpoint
+ALTER TABLE `stores` ADD `payment_transaction_id` text;-->statement-breakpoint
+ALTER TABLE `stores` ADD `payment_status` text DEFAULT 'none';-->statement-breakpoint
+ALTER TABLE `stores` ADD `payment_submitted_at` integer;-->statement-breakpoint
+ALTER TABLE `stores` ADD `payment_amount` real;-->statement-breakpoint
 ALTER TABLE `stores` ADD `payment_phone` text;

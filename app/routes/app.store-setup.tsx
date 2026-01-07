@@ -149,6 +149,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Handle publish/unpublish toggle
   if (intent === 'togglePublish') {
     const isPublished = formData.get('isPublished') === 'true';
+    
+    // If trying to publish, check if there's a featured product or any published product
+    if (isPublished) {
+      const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+      const featuredProductId = store[0]?.featuredProductId;
+      
+      // Check for featured product or any published product
+      const publishedProducts = await db.select({ id: products.id })
+        .from(products)
+        .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+        .limit(1);
+      
+      if (!featuredProductId && publishedProducts.length === 0) {
+        return json({ 
+          success: false, 
+          error: 'আপনার কোনো প্রোডাক্ট নেই। প্রথমে প্রোডাক্ট এড করুন।',
+          errorType: 'no_product'
+        }, { status: 400 });
+      }
+    }
+    
     await db.update(stores).set({ isActive: isPublished, updatedAt: new Date() }).where(eq(stores.id, storeId));
     return json({ success: true, published: isPublished });
   }
@@ -282,6 +303,24 @@ export default function StoreSetupPage() {
   // Social Proof Popup settings
   const [showSocialProof, setShowSocialProof] = useState(landingConfig.showSocialProof || false);
   const [socialProofInterval, setSocialProofInterval] = useState(landingConfig.socialProofInterval || 15);
+  
+  // Publish fetcher for error handling
+  const publishFetcher = useFetcher<{ success?: boolean; published?: boolean; error?: string; errorType?: string }>();
+  const [publishError, setPublishError] = useState<string | null>(null);
+  
+  // Handle publish response
+  useEffect(() => {
+    if (publishFetcher.data) {
+      if (publishFetcher.data.success && typeof publishFetcher.data.published === 'boolean') {
+        setStorePublished(publishFetcher.data.published);
+        setPublishError(null);
+      } else if (publishFetcher.data.error) {
+        setPublishError(publishFetcher.data.error);
+        // Revert the optimistic update
+        setStorePublished(isStorePublished);
+      }
+    }
+  }, [publishFetcher.data, isStorePublished]);
   
   // Collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -449,19 +488,22 @@ export default function StoreSetupPage() {
               </p>
             </div>
           </div>
-          <Form method="post">
+          <publishFetcher.Form method="post">
             <input type="hidden" name="intent" value="togglePublish" />
             <input type="hidden" name="isPublished" value={storePublished ? 'false' : 'true'} />
             <button
               type="submit"
               onClick={() => setStorePublished(!storePublished)}
+              disabled={publishFetcher.state === 'submitting'}
               className={`px-4 py-2 font-medium rounded-lg transition flex items-center gap-2 ${
                 storePublished 
                   ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50' 
                   : 'bg-emerald-600 text-white hover:bg-emerald-700'
-              }`}
+              } disabled:opacity-50`}
             >
-              {storePublished ? (
+              {publishFetcher.state === 'submitting' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : storePublished ? (
                 <>
                   <EyeOff className="w-4 h-4" />
                   Unpublish
@@ -473,9 +515,26 @@ export default function StoreSetupPage() {
                 </>
               )}
             </button>
-          </Form>
+          </publishFetcher.Form>
         </div>
-        {!storePublished && (
+        {/* Publish Error Message */}
+        {publishError && (
+          <div className="px-4 pb-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-800 font-medium mb-2">
+                ❌ {publishError}
+              </p>
+              <Link 
+                to="/app/products/new" 
+                className="inline-flex items-center gap-2 text-sm bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+              >
+                <Plus className="w-4 h-4" />
+                প্রোডাক্ট এড করুন
+              </Link>
+            </div>
+          </div>
+        )}
+        {!storePublished && !publishError && (
           <div className="px-4 pb-4">
             <div className="bg-yellow-100 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
               ⚠️ Your store is currently unpublished. Customers cannot see your products or place orders.

@@ -1,8 +1,4 @@
 -- Migration: Add payment tracking columns for subscription verification
--- This enables manual bKash payment verification during onboarding
-
-ALTER TABLE stores ADD COLUMN payment_transaction_id TEXT;
-ALTER TABLE stores ADD COLUMN payment_status TEXT DEFAULT 'none';
-ALTER TABLE stores ADD COLUMN payment_submitted_at INTEGER;
-ALTER TABLE stores ADD COLUMN payment_amount REAL;
-ALTER TABLE stores ADD COLUMN payment_phone TEXT;
+-- Note: These columns were already added in 0014_lovely_ender_wiggin.sql
+-- Keeping this file empty to maintain migration history
+SELECT 1;

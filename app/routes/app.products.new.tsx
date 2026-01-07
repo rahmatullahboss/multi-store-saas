@@ -14,7 +14,8 @@ import type { ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { products, productVariants } from '@db/schema';
+import { eq, and } from 'drizzle-orm';
+import { products, productVariants, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft } from 'lucide-react';
@@ -111,6 +112,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
     } catch (e) {
       console.error('Failed to parse variants', e);
     }
+  }
+
+  // ========================================================================
+  // AUTO-PUBLISH LOGIC: If this is the first product, auto-set as featured & publish store
+  // ========================================================================
+  const allProducts = await db.select({ id: products.id })
+    .from(products)
+    .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+    .limit(2);
+  
+  // If this is the only (first) product, set it as featured and publish the store
+  if (allProducts.length === 1) {
+    await db.update(stores).set({
+      featuredProductId: inserted.id,
+      isActive: true,
+      updatedAt: new Date(),
+    }).where(eq(stores.id, storeId));
+    console.log(`[AUTO-PUBLISH] First product created for store ${storeId}. Auto-set as featured and published.`);
   }
 
   return redirect('/app/products');
