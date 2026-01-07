@@ -472,7 +472,7 @@ export function FlashSaleTemplate({
                   hover:from-yellow-300 hover:via-yellow-400 hover:to-orange-400
                   disabled:opacity-50 disabled:cursor-not-allowed
                   transform transition-all
-                  ${!isSubmitting && !countdown.expired ? 'animate-[shake_0.5s_ease-in-out_infinite]' : ''}
+                  ${!isSubmitting && !countdown.expired ? 'animate-[shake_2s_ease-in-out_infinite]' : ''}
                 `}
               >
                 {isSubmitting ? (
@@ -603,9 +603,9 @@ export function FlashSaleTemplate({
           ================================================================ */}
       <style>{`
         @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-          20%, 40%, 60%, 80% { transform: translateX(2px); }
+          0%, 50%, 100% { transform: translateX(0); }
+          5%, 15%, 25%, 35%, 45% { transform: translateX(-2px); }
+          10%, 20%, 30%, 40% { transform: translateX(2px); }
         }
       `}</style>
     </div>
