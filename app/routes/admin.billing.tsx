@@ -298,6 +298,45 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, action: 'extended' });
   }
   
+  // ============ CHANGE PLAN (Manual Override) ============
+  if (intent === 'change_plan') {
+    const newPlan = formData.get('planType') as string;
+    const adminNote = formData.get('adminNote') as string;
+    
+    if (!newPlan || !['free', 'starter', 'premium'].includes(newPlan)) {
+      return json({ error: 'Invalid plan type' }, { status: 400 });
+    }
+    
+    // Get current plan for logging
+    const currentPlan = storeResult[0].planType;
+    
+    await drizzleDb
+      .update(stores)
+      .set({
+        planType: newPlan as 'free' | 'starter' | 'premium',
+        adminNote: adminNote || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+    
+    // Log the action
+    await drizzleDb.insert(activityLogs).values({
+      storeId: storeId,
+      userId: adminId,
+      action: 'plan_changed_by_admin',
+      entityType: 'subscription',
+      entityId: storeId,
+      details: JSON.stringify({ 
+        adminEmail, 
+        previousPlan: currentPlan,
+        newPlan,
+        adminNote,
+      }),
+    });
+    
+    return json({ success: true, action: 'plan_changed', newPlan });
+  }
+  
   return json({ error: 'Invalid action' }, { status: 400 });
 }
 
@@ -754,6 +793,8 @@ function SubscriptionTable({
   copyToClipboard: (text: string) => void;
   copiedId: string | null;
 }) {
+  const fetcher = useFetcher();
+  
   if (data.length === 0) {
     return (
       <div className="text-center py-12">
@@ -783,6 +824,7 @@ function SubscriptionTable({
             <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Payment Method</th>
             <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Subscription Period</th>
             <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase">Change Plan</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-800">
@@ -837,6 +879,28 @@ function SubscriptionTable({
                     Expired
                   </span>
                 )}
+              </td>
+              <td className="px-4 py-4">
+                <fetcher.Form method="post" className="flex items-center justify-end gap-2">
+                  <input type="hidden" name="intent" value="change_plan" />
+                  <input type="hidden" name="storeId" value={store.id} />
+                  <select
+                    name="planType"
+                    defaultValue={store.planType || 'free'}
+                    className="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:ring-1 focus:ring-red-500/50"
+                  >
+                    <option value="free">Free</option>
+                    <option value="starter">Starter</option>
+                    <option value="premium">Premium</option>
+                  </select>
+                  <button
+                    type="submit"
+                    disabled={fetcher.state === 'submitting'}
+                    className="px-2 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition disabled:opacity-50"
+                  >
+                    {fetcher.state === 'submitting' ? '...' : 'Update'}
+                  </button>
+                </fetcher.Form>
               </td>
             </tr>
           ))}
