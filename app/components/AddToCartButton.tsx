@@ -15,6 +15,7 @@ interface AddToCartButtonProps {
   className?: string;
   style?: CSSProperties;
   children?: ReactNode;
+  isPreview?: boolean; // When true, shows preview feedback instead of updating cart
 }
 
 export function AddToCartButton({ 
@@ -25,12 +26,20 @@ export function AddToCartButton({
   className,
   style,
   children,
+  isPreview = false,
 }: AddToCartButtonProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = () => {
     if (disabled) return;
+    
+    // In preview mode, just show visual feedback without updating cart
+    if (isPreview) {
+      setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 2000);
+      return;
+    }
     
     // Update local cart in localStorage
     updateLocalCart(productId, 1, storeId);

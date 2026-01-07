@@ -460,3 +460,98 @@ export async function logout(request: Request) {
     },
   });
 }
+
+// ============================================================================
+// SUPER ADMIN FUNCTIONS
+// ============================================================================
+
+/**
+ * Check if the current user is a Super Admin
+ */
+export async function isSuperAdmin(request: Request, db: D1Database): Promise<boolean> {
+  const userId = await getUserId(request);
+  if (!userId) return false;
+  
+  const drizzleDb = drizzle(db);
+  const userResult = await drizzleDb
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  
+  return userResult[0]?.role === 'super_admin';
+}
+
+/**
+ * Require Super Admin access
+ * Redirects to /auth/login if user is not a super_admin
+ */
+export async function requireSuperAdmin(request: Request, db: D1Database): Promise<{
+  userId: number;
+  userEmail: string;
+}> {
+  const userId = await getUserId(request);
+  if (!userId) {
+    throw redirect('/auth/login');
+  }
+  
+  const drizzleDb = drizzle(db);
+  const userResult = await drizzleDb
+    .select({ id: users.id, email: users.email, role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  
+  const user = userResult[0];
+  if (!user || user.role !== 'super_admin') {
+    console.warn('[requireSuperAdmin] Unauthorized access attempt by user:', userId);
+    throw redirect('/auth/login');
+  }
+  
+  return { userId: user.id, userEmail: user.email };
+}
+
+/**
+ * Create an impersonation session for a target user
+ * CRITICAL: Only allowed for the SUPER_ADMIN_EMAIL
+ */
+export async function createImpersonationSession(
+  request: Request, 
+  targetUserId: number, 
+  db: D1Database,
+  superAdminEmail: string // From env.SUPER_ADMIN_EMAIL
+): Promise<Response> {
+  // Step 1: Verify the current user is super_admin AND matches SUPER_ADMIN_EMAIL
+  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, db);
+  
+  // CRITICAL SECURITY CHECK: Only the configured super admin email can impersonate
+  if (adminEmail.toLowerCase() !== superAdminEmail.toLowerCase()) {
+    console.error('[createImpersonationSession] SECURITY VIOLATION: User', adminEmail, 'attempted impersonation but is not the configured SUPER_ADMIN_EMAIL');
+    throw new Response('Forbidden: You are not authorized to impersonate users.', { status: 403 });
+  }
+  
+  // Step 2: Get target user info
+  const drizzleDb = drizzle(db);
+  const targetUser = await drizzleDb
+    .select({ id: users.id, storeId: users.storeId, email: users.email })
+    .from(users)
+    .where(eq(users.id, targetUserId))
+    .limit(1);
+  
+  if (!targetUser[0] || !targetUser[0].storeId) {
+    throw new Response('Target user not found or has no store.', { status: 404 });
+  }
+  
+  console.log('[createImpersonationSession] Super Admin', adminEmail, 'impersonating user', targetUser[0].email);
+  
+  // Step 3: Create session for target user
+  const session = await getSession();
+  session.set('userId', targetUser[0].id);
+  session.set('storeId', targetUser[0].storeId);
+  
+  return redirect('/app/dashboard', {
+    headers: {
+      'Set-Cookie': await commitSession(session),
+    },
+  });
+}

@@ -16,8 +16,9 @@ declare global {
     SAAS_DOMAIN: string;
     RESEND_API_KEY?: string; // Email service
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
-    // OpenRouter AI API for AI Co-pilot
     OPENROUTER_API_KEY?: string;
+    // Super Admin Email (only this email can impersonate users)
+    SUPER_ADMIN_EMAIL?: string;
     // bKash Payment Gateway
     BKASH_BASE_URL?: string;
     BKASH_APP_KEY?: string;

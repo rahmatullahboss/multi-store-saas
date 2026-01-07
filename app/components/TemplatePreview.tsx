@@ -36,6 +36,51 @@ const MOCK_TESTIMONIALS = [
 
 // Template-specific landing configs (using existing LandingConfig type)
 const TEMPLATE_CONFIGS: Record<string, Partial<LandingConfig>> = {
+  'premium-bd': {
+    templateId: 'premium-bd',
+    headline: 'প্রিমিয়াম ওয়্যারলেস হেডফোন',
+    subheadline: 'বাংলাদেশের সেরা অডিও এক্সপেরিয়েন্স',
+    urgencyText: '🎧 আজই অর্ডার করলে ৫০% ছাড়! সীমিত স্টক!',
+    ctaText: '🛒 এখনই অর্ডার করুন',
+    ctaSubtext: '৭ দিনের মানি ব্যাক গ্যারান্টি',
+    videoUrl: '',
+  },
+  'flash-sale': {
+    templateId: 'flash-sale',
+    headline: '⚡ ফ্ল্যাশ সেল - Premium Headphones Pro',
+    subheadline: 'মাত্র ২৪ ঘন্টার জন্য!',
+    urgencyText: '🔥 শুধুমাত্র ১৫টি বাকি! দ্রুত অর্ডার করুন! 🔥',
+    ctaText: '⚡ এখনই কিনুন - ৫০% OFF',
+    ctaSubtext: 'অফার শেষ হতে বাকি সময়',
+    videoUrl: '',
+  },
+  'mobile-first': {
+    templateId: 'mobile-first',
+    headline: 'Premium Wireless Headphones',
+    subheadline: 'সহজে অর্ডার করুন মোবাইল থেকে',
+    urgencyText: '✅ ফ্রি ডেলিভারি ঢাকায়',
+    ctaText: 'এখনই অর্ডার করুন',
+    ctaSubtext: 'ক্যাশ অন ডেলিভারি',
+    videoUrl: '',
+  },
+  'luxury': {
+    templateId: 'luxury',
+    headline: 'Premium Wireless Headphones Pro',
+    subheadline: 'Luxury Audio Experience',
+    urgencyText: '✨ Exclusive Collection - Limited Edition',
+    ctaText: 'Order Now',
+    ctaSubtext: 'Premium Packaging Included',
+    videoUrl: '',
+  },
+  'organic': {
+    templateId: 'organic',
+    headline: 'Eco-Friendly Premium Headphones',
+    subheadline: 'Sustainable & Premium Quality',
+    urgencyText: '🌿 Made with Recycled Materials',
+    ctaText: 'Shop Sustainably',
+    ctaSubtext: 'Carbon Neutral Delivery',
+    videoUrl: '',
+  },
   'modern-dark': {
     templateId: 'modern-dark',
     headline: 'Premium Wireless Headphones Pro',

@@ -83,6 +83,13 @@ export const stores = sqliteTable('stores', {
   isCustomerAiEnabled: integer('is_customer_ai_enabled', { mode: 'boolean' }).default(false), // Paid add-on
   aiBotPersona: text('ai_bot_persona'), // Custom AI personality e.g., "You are a friendly fashion expert"
   
+  // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
+  paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
+  paymentStatus: text('payment_status').$type<'pending_verification' | 'verified' | 'rejected' | 'none'>().default('none'),
+  paymentSubmittedAt: integer('payment_submitted_at', { mode: 'timestamp' }),
+  paymentAmount: real('payment_amount'), // Amount paid in BDT
+  paymentPhone: text('payment_phone'), // Phone number used for payment
+  
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
@@ -97,7 +104,7 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   name: text('name'),
   storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
-  role: text('role').$type<'admin' | 'merchant' | 'staff'>().default('merchant'),
+  role: text('role').$type<'admin' | 'merchant' | 'staff' | 'super_admin'>().default('merchant'),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('users_email_idx').on(table.email),
@@ -628,6 +635,18 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
 }));
 
 // ============================================================================
+// SYSTEM NOTIFICATIONS TABLE - Global announcements from Super Admin
+// ============================================================================
+export const systemNotifications = sqliteTable('system_notifications', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  message: text('message').notNull(),
+  type: text('type').$type<'info' | 'warning' | 'critical'>().default('info'),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  createdBy: integer('created_by').references(() => users.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -666,3 +685,5 @@ export type SavedLandingConfig = typeof savedLandingConfigs.$inferSelect;
 export type NewSavedLandingConfig = typeof savedLandingConfigs.$inferInsert;
 export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
+export type SystemNotification = typeof systemNotifications.$inferSelect;
+export type NewSystemNotification = typeof systemNotifications.$inferInsert;

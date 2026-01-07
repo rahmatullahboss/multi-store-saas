@@ -1,26 +1,144 @@
 /**
  * Theme Preview Component
  * 
- * Shows a live preview of how the storefront will look with the selected theme.
+ * Shows a HIGH-FIDELITY live preview of how the storefront will look with the selected theme.
  * Features:
- * - Mini storefront mockup
- * - Real-time theme color application
- * - Product card preview
- * - Header/Footer preview
+ * - Renders ACTUAL store template components dynamically
+ * - Device toggle (Desktop 🖥️ / Mobile 📱)
+ * - Comprehensive Bangladeshi market mock data
+ * - Preview mode disables API calls
  */
 
-import { presetThemes, fontOptions, type ThemeColors } from '~/lib/theme';
-import { X, ShoppingBag, Heart, Star, Home, Search } from 'lucide-react';
+import { X, Monitor, Smartphone } from 'lucide-react';
+import { useState } from 'react';
+import { getStoreTemplate, type SerializedProduct } from '~/templates/store-registry';
+import { fontOptions } from '~/lib/theme';
+import type { ThemeConfig, FooterConfig, SocialLinks } from '@db/types';
 
+// ============================================================================
+// MOCK DATA - Optimized for Bangladeshi Market Context
+// ============================================================================
+const MOCK_PRODUCTS: SerializedProduct[] = [
+  {
+    id: 1,
+    storeId: 1,
+    title: 'Premium Wireless Headphones',
+    description: 'Experience crystal-clear audio with active noise cancellation.',
+    price: 2999,
+    compareAtPrice: 3999,
+    imageUrl: null,
+    category: 'Electronics',
+  },
+  {
+    id: 2,
+    storeId: 1,
+    title: 'Organic Green Tea (100g)',
+    description: 'Pure organic green tea sourced from the hills of Sylhet.',
+    price: 450,
+    compareAtPrice: null,
+    imageUrl: null,
+    category: 'Food & Beverages',
+  },
+  {
+    id: 3,
+    storeId: 1,
+    title: 'Smart Watch Pro X1',
+    description: 'Track your fitness, receive notifications, and more.',
+    price: 4599,
+    compareAtPrice: 5999,
+    imageUrl: null,
+    category: 'Electronics',
+  },
+  {
+    id: 4,
+    storeId: 1,
+    title: 'Handcrafted Leather Bag',
+    description: 'Genuine leather bag handmade by local artisans.',
+    price: 1899,
+    compareAtPrice: 2499,
+    imageUrl: null,
+    category: 'Fashion',
+  },
+  {
+    id: 5,
+    storeId: 1,
+    title: 'Traditional Pottery Set',
+    description: 'Beautiful handmade pottery from Comilla.',
+    price: 899,
+    compareAtPrice: null,
+    imageUrl: null,
+    category: 'Home & Living',
+  },
+  {
+    id: 6,
+    storeId: 1,
+    title: 'Bamboo Desk Organizer',
+    description: 'Eco-friendly desk organizer made from sustainable bamboo.',
+    price: 599,
+    compareAtPrice: 799,
+    imageUrl: null,
+    category: 'Home & Living',
+  },
+];
+
+const MOCK_CATEGORIES = ['Electronics', 'Fashion', 'Home & Living', 'Food & Beverages'];
+
+const MOCK_STORE_INFO = {
+  storeName: 'Digital Shop BD',
+  storeId: 1,
+  businessInfo: {
+    phone: '01712345678',
+    email: 'contact@digitalshopbd.com',
+    address: 'Dhanmondi, Dhaka',
+  },
+  socialLinks: {
+    facebook: 'https://facebook.com/digitalshopbd',
+    instagram: 'https://instagram.com/digitalshopbd',
+    whatsapp: '01712345678',
+  } as SocialLinks,
+  footerConfig: {
+    description: 'Your trusted destination for premium products in Bangladesh. Quality guaranteed, fast delivery across Dhaka.',
+    showPoweredBy: true,
+  } as FooterConfig,
+};
+
+// Theme configs for each store template
+const MOCK_THEME_CONFIGS: Record<string, ThemeConfig> = {
+  'luxe-boutique': {
+    primaryColor: '#1a1a1a',
+    accentColor: '#c9a961',
+    announcement: { text: '✨ Free Delivery on ৳1000+ Orders!' },
+    bannerText: 'Welcome to Digital Shop BD',
+  },
+  'tech-modern': {
+    primaryColor: '#0f172a',
+    accentColor: '#3b82f6',
+    announcement: { text: '⚡ Flash Sale - Up to 50% OFF!' },
+    bannerText: 'Next-Gen Tech from Digital Shop BD',
+  },
+  'artisan-market': {
+    primaryColor: '#3d2f2f',
+    accentColor: '#b45309',
+    announcement: { text: '🌿 Handcrafted with Love - Shop Local!' },
+    bannerText: 'Artisan Goods from Digital Shop BD',
+  },
+};
+
+// ============================================================================
+// COMPONENT PROPS
+// ============================================================================
 interface ThemePreviewProps {
   isOpen: boolean;
   onClose: () => void;
-  theme: string;
+  theme: string; // The store template ID (e.g., 'luxe-boutique', 'tech-modern')
   fontFamily: string;
   storeName: string;
   logo?: string | null;
 }
 
+// ============================================================================
+// THEME PREVIEW COMPONENT
+// ============================================================================
 export function ThemePreview({
   isOpen,
   onClose,
@@ -29,31 +147,66 @@ export function ThemePreview({
   storeName,
   logo,
 }: ThemePreviewProps) {
+  const [deviceView, setDeviceView] = useState<'desktop' | 'mobile'>('desktop');
+
   if (!isOpen) return null;
 
-  // Get theme colors
-  const colors: ThemeColors = presetThemes[theme] || presetThemes.default;
+  // Get the actual store template component
+  const templateDef = getStoreTemplate(theme);
+  const TemplateComponent = templateDef.component;
   const font = fontOptions.find(f => f.value === fontFamily) || fontOptions[0];
-  const isDark = theme === 'dark';
+  
+  // Get mock theme config for this template
+  const themeConfig = MOCK_THEME_CONFIGS[theme] || MOCK_THEME_CONFIGS['luxe-boutique'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       {/* Overlay click to close */}
       <div className="absolute inset-0" onClick={onClose} />
       
       {/* Preview Modal */}
-      <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-scale-up">
+      <div className="relative w-full max-w-6xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-scale-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Theme Preview</h3>
-            <p className="text-sm text-gray-500">
-              Previewing: <span className="font-medium capitalize">{theme}</span> theme with <span className="font-medium">{font.label}</span> font
-            </p>
+        <div className="flex items-center justify-between px-6 py-4 bg-gray-900 border-b border-gray-800">
+          <div className="flex items-center gap-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Store Template Preview</h3>
+              <p className="text-sm text-gray-400">
+                Previewing: <span className="font-medium text-emerald-400">{templateDef.name}</span>
+                {' '}with <span className="font-medium text-blue-400">{font.label}</span> font
+              </p>
+            </div>
           </div>
+          
+          {/* Device Toggle */}
+          <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setDeviceView('desktop')}
+              className={`p-2 rounded-md transition ${
+                deviceView === 'desktop' 
+                  ? 'bg-emerald-600 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              title="Desktop View"
+            >
+              <Monitor className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setDeviceView('mobile')}
+              className={`p-2 rounded-md transition ${
+                deviceView === 'mobile' 
+                  ? 'bg-emerald-600 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              title="Mobile View"
+            >
+              <Smartphone className="w-5 h-5" />
+            </button>
+          </div>
+          
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -64,268 +217,48 @@ export function ThemePreview({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href={font.url} rel="stylesheet" />
 
-        {/* Preview Content */}
-        <div 
-          className="overflow-hidden"
-          style={{ fontFamily: font.family }}
-        >
-          {/* Mini Storefront Preview */}
+        {/* Preview Content - Uses ACTUAL Store Templates */}
+        <div className="flex-1 bg-gray-100 overflow-auto flex items-start justify-center p-4">
           <div 
-            className="min-h-[500px]"
-            style={{ 
-              backgroundColor: colors.background,
-              color: colors.textPrimary,
-            }}
+            className={`bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-300 ${
+              deviceView === 'mobile' 
+                ? 'w-[375px] min-h-[667px]' 
+                : 'w-full max-w-5xl'
+            }`}
           >
-            {/* Preview Header */}
-            <header 
-              className="border-b shadow-sm"
-              style={{ 
-                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                backgroundColor: isDark ? '#1f2937' : '#ffffff',
-              }}
-            >
-              <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-                {/* Logo */}
-                <div className="flex items-center gap-3">
-                  {logo ? (
-                    <img 
-                      src={logo} 
-                      alt={storeName} 
-                      className="w-8 h-8 object-contain rounded"
-                    />
-                  ) : (
-                    <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                      style={{ backgroundColor: colors.primary }}
-                    >
-                      {storeName[0]}
-                    </div>
-                  )}
-                  <span 
-                    className="font-bold text-lg"
-                    style={{ color: colors.textPrimary }}
-                  >
-                    {storeName}
-                  </span>
-                </div>
-
-                {/* Nav */}
-                <nav className="hidden md:flex items-center gap-6">
-                  {['Home', 'Products', 'Categories', 'Contact'].map((item) => (
-                    <span 
-                      key={item}
-                      className="text-sm font-medium cursor-pointer transition hover:opacity-80"
-                      style={{ color: colors.textSecondary }}
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </nav>
-
-                {/* Cart */}
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="relative p-2 rounded-full cursor-pointer transition"
-                    style={{ color: colors.textSecondary }}
-                  >
-                    <Search className="w-5 h-5" />
-                  </div>
-                  <div 
-                    className="relative p-2 rounded-full cursor-pointer transition"
-                    style={{ color: colors.textSecondary }}
-                  >
-                    <ShoppingBag className="w-5 h-5" />
-                    <span 
-                      className="absolute -top-1 -right-1 w-4 h-4 text-xs text-white rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: colors.accent }}
-                    >
-                      3
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </header>
-
-            {/* Hero Section */}
-            <section 
-              className="py-12 px-4"
-              style={{ 
-                background: isDark 
-                  ? `linear-gradient(135deg, ${colors.primary}30, ${colors.accent}20)`
-                  : `linear-gradient(135deg, ${colors.primary}15, ${colors.accent}10)`,
-              }}
-            >
-              <div className="max-w-4xl mx-auto text-center">
-                <h1 
-                  className="text-3xl md:text-4xl font-bold mb-4"
-                  style={{ color: colors.textPrimary }}
-                >
-                  Welcome to {storeName}
-                </h1>
-                <p 
-                  className="text-lg mb-6 max-w-xl mx-auto"
-                  style={{ color: colors.textSecondary }}
-                >
-                  Discover our amazing collection of premium products
-                </p>
-                <button
-                  className="px-6 py-3 text-white font-semibold rounded-lg shadow-lg transition hover:opacity-90"
-                  style={{ backgroundColor: colors.primary }}
-                >
-                  Shop Now
-                </button>
-              </div>
-            </section>
-
-            {/* Products Section */}
-            <section className="py-8 px-4">
-              <div className="max-w-4xl mx-auto">
-                <h2 
-                  className="text-xl font-bold mb-6"
-                  style={{ color: colors.textPrimary }}
-                >
-                  Featured Products
-                </h2>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {/* Mock Product Cards */}
-                  {[
-                    { name: 'Premium Headphones', price: 2999, oldPrice: 3999 },
-                    { name: 'Smart Watch Pro', price: 4599, oldPrice: null },
-                    { name: 'Wireless Earbuds', price: 1299, oldPrice: 1999 },
-                    { name: 'Laptop Stand', price: 899, oldPrice: 1199 },
-                  ].map((product, i) => (
-                    <div 
-                      key={i}
-                      className="rounded-xl overflow-hidden border transition hover:shadow-lg"
-                      style={{ 
-                        backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                      }}
-                    >
-                      {/* Product Image Placeholder */}
-                      <div 
-                        className="aspect-square relative"
-                        style={{ 
-                          background: isDark 
-                            ? `linear-gradient(135deg, ${colors.primary}20, ${colors.accent}10)`
-                            : `linear-gradient(135deg, ${colors.primary}10, ${colors.accent}05)`,
-                        }}
-                      >
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div 
-                            className="w-16 h-16 rounded-full opacity-50 flex items-center justify-center"
-                            style={{ backgroundColor: colors.primary }}
-                          >
-                            <ShoppingBag className="w-8 h-8 text-white" />
-                          </div>
-                        </div>
-                        {product.oldPrice && (
-                          <span 
-                            className="absolute top-2 left-2 px-2 py-0.5 text-xs font-bold text-white rounded"
-                            style={{ backgroundColor: colors.accent }}
-                          >
-                            -{Math.round((1 - product.price / product.oldPrice) * 100)}%
-                          </span>
-                        )}
-                        <button 
-                          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white transition"
-                        >
-                          <Heart className="w-4 h-4 text-gray-400" />
-                        </button>
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="p-3">
-                        <h3 
-                          className="font-medium text-sm mb-1 line-clamp-2"
-                          style={{ color: colors.textPrimary }}
-                        >
-                          {product.name}
-                        </h3>
-                        
-                        {/* Rating */}
-                        <div className="flex items-center gap-1 mb-2">
-                          {[...Array(5)].map((_, j) => (
-                            <Star 
-                              key={j} 
-                              className="w-3 h-3" 
-                              fill={j < 4 ? '#facc15' : 'transparent'}
-                              stroke={j < 4 ? '#facc15' : colors.textSecondary}
-                            />
-                          ))}
-                          <span 
-                            className="text-xs ml-1"
-                            style={{ color: colors.textSecondary }}
-                          >
-                            (24)
-                          </span>
-                        </div>
-
-                        {/* Price */}
-                        <div className="flex items-center gap-2">
-                          <span 
-                            className="font-bold"
-                            style={{ color: colors.primary }}
-                          >
-                            ৳{product.price.toLocaleString()}
-                          </span>
-                          {product.oldPrice && (
-                            <span 
-                              className="text-xs line-through"
-                              style={{ color: colors.textSecondary }}
-                            >
-                              ৳{product.oldPrice.toLocaleString()}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Add to Cart */}
-                        <button
-                          className="w-full mt-3 py-2 text-xs font-medium text-white rounded-lg transition hover:opacity-90"
-                          style={{ backgroundColor: colors.primary }}
-                        >
-                          Add to Cart
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* Footer Preview */}
-            <footer 
-              className="py-6 px-4 border-t"
-              style={{ 
-                backgroundColor: isDark ? '#111827' : '#1f2937',
-                borderColor: 'rgba(255,255,255,0.1)',
-              }}
-            >
-              <div className="max-w-4xl mx-auto text-center">
-                <p className="text-sm text-gray-400">
-                  © 2026 {storeName}. All rights reserved.
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Powered by Multi-Store SaaS
-                </p>
-              </div>
-            </footer>
+            <div className="overflow-auto max-h-[calc(90vh-120px)]">
+              {/* Render the ACTUAL Store Template with mock data */}
+              <TemplateComponent
+                storeName={storeName || MOCK_STORE_INFO.storeName}
+                storeId={MOCK_STORE_INFO.storeId}
+                logo={logo}
+                products={MOCK_PRODUCTS}
+                categories={MOCK_CATEGORIES}
+                currentCategory={null}
+                config={themeConfig}
+                currency="BDT"
+                socialLinks={MOCK_STORE_INFO.socialLinks}
+                footerConfig={MOCK_STORE_INFO.footerConfig}
+                businessInfo={MOCK_STORE_INFO.businessInfo}
+                isPreview={true}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Action Bar */}
+        {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
-            👆 This is how your store will look with the <strong className="capitalize">{theme}</strong> theme
+          <p className="text-sm text-gray-600">
+            👆 This shows how the <strong>{templateDef.name}</strong> template will look on your store
           </p>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition"
-          >
-            Close Preview
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
 

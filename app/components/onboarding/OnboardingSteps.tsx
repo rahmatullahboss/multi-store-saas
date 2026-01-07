@@ -1,6 +1,6 @@
 /**
  * Onboarding Steps Indicator
- * Shows progress through the 5-step wizard
+ * Shows progress through the 4-step wizard
  */
 
 import { Check } from 'lucide-react';
@@ -11,16 +11,14 @@ interface OnboardingStepsProps {
   totalSteps?: number;
 }
 
-export function OnboardingSteps({ currentStep, totalSteps = 5 }: OnboardingStepsProps) {
+export function OnboardingSteps({ currentStep, totalSteps = 4 }: OnboardingStepsProps) {
   const { t } = useTranslation();
   
-  const STEP_LABELS = [
-    t('stepAccount'),
-    t('stepBusiness'),
-    t('stepPlan'),
-    t('stepSetup'),
-    t('stepDone'),
-  ];
+  // Dynamic step labels based on totalSteps
+  const STEP_LABELS = totalSteps === 4 
+    ? [t('stepAccount'), t('stepBusiness'), t('stepPlan'), t('stepDone')]
+    : [t('stepAccount'), t('stepBusiness'), t('stepPlan'), t('stepSetup'), t('stepDone')];
+
 
   return (
     <div className="flex items-center justify-center gap-2 mb-8">

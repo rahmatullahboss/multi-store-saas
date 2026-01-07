@@ -81,7 +81,7 @@ const marketingContent = {
     plans: [
       { name: 'Free', price: '0', description: 'Perfect for testing', features: ['1 Product', '50 Orders/month', 'Landing Page Mode', 'Cash on Delivery', 'Basic Analytics'], cta: 'Start Free', highlight: false },
       { name: 'Starter', price: '500', description: 'For growing sellers', features: ['50 Products', '500 Orders/month', 'Full Store Mode', 'bKash + Nagad + COD', 'Inventory Tracking', 'Email Notifications'], cta: 'Get Started', highlight: true },
-      { name: 'Premium', price: '1,500', description: 'For serious businesses', features: ['Unlimited Products', 'Unlimited Orders', 'Custom Domain', 'Priority Support', 'Team Members (3)', 'Courier Integration'], cta: 'Go Premium', highlight: false },
+      { name: 'Premium', price: '2,000', description: 'For serious businesses', features: ['Unlimited Products', 'Unlimited Orders', 'Custom Domain', 'Priority Support', 'Team Members (3)', 'Courier Integration'], cta: 'Go Premium', highlight: false },
     ],
     
     testimonials: [
@@ -153,7 +153,7 @@ const marketingContent = {
     plans: [
       { name: 'ফ্রি', price: '০', description: 'টেস্টের জন্য পারফেক্ট', features: ['১টি প্রোডাক্ট', '৫০ অর্ডার/মাস', 'ল্যান্ডিং পেজ মোড', 'ক্যাশ অন ডেলিভারি', 'বেসিক অ্যানালিটিক্স'], cta: 'ফ্রি শুরু', highlight: false },
       { name: 'স্টার্টার', price: '৫০০', description: 'বাড়তে থাকা সেলারদের জন্য', features: ['৫০টি প্রোডাক্ট', '৫০০ অর্ডার/মাস', 'ফুল স্টোর মোড', 'বিকাশ + নগদ + COD', 'ইনভেন্টরি ট্র্যাকিং', 'ইমেইল নোটিফিকেশন'], cta: 'শুরু করুন', highlight: true },
-      { name: 'প্রিমিয়াম', price: '১,৫০০', description: 'সিরিয়াস ব্যবসার জন্য', features: ['আনলিমিটেড প্রোডাক্ট', 'আনলিমিটেড অর্ডার', 'কাস্টম ডোমেইন', 'প্রায়োরিটি সাপোর্ট', 'টিম মেম্বার (৩)', 'কুরিয়ার ইন্টিগ্রেশন'], cta: 'প্রিমিয়াম নিন', highlight: false },
+      { name: 'প্রিমিয়াম', price: '২,০০০', description: 'সিরিয়াস ব্যবসার জন্য', features: ['আনলিমিটেড প্রোডাক্ট', 'আনলিমিটেড অর্ডার', 'কাস্টম ডোমেইন', 'প্রায়োরিটি সাপোর্ট', 'টিম মেম্বার (৩)', 'কুরিয়ার ইন্টিগ্রেশন'], cta: 'প্রিমিয়াম নিন', highlight: false },
     ],
     
     testimonials: [
@@ -611,11 +611,28 @@ export function MarketingLanding() {
             </div>
             
             <div>
-              <h4 className="font-bold text-white mb-4">Support</h4>
+              <h4 className="font-bold text-white mb-4">Contact</h4>
               <ul className="space-y-3 text-sm">
-                <li><Link to="#" className="hover:text-emerald-400 transition flex items-center gap-1"><ChevronRight className="w-4 h-4" />Help Center</Link></li>
-                <li><Link to="#" className="hover:text-emerald-400 transition flex items-center gap-1"><ChevronRight className="w-4 h-4" />Contact</Link></li>
-                <li><Link to="#" className="hover:text-emerald-400 transition flex items-center gap-1"><ChevronRight className="w-4 h-4" />Status</Link></li>
+                <li>
+                  <a href="tel:+8801570260118" className="hover:text-emerald-400 transition flex items-center gap-2">
+                    📞 01570260118
+                  </a>
+                </li>
+                <li>
+                  <a href="https://wa.me/8801739416661" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition flex items-center gap-2">
+                    💬 01739416661 (WhatsApp)
+                  </a>
+                </li>
+                <li>
+                  <a href="mailto:rahmatullahzisan@gmail.com" className="hover:text-emerald-400 transition flex items-center gap-2">
+                    ✉️ rahmatullahzisan@gmail.com
+                  </a>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-emerald-400 transition flex items-center gap-1">
+                    <ChevronRight className="w-4 h-4" />Contact Page
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

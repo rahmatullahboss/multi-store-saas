@@ -14,7 +14,7 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, Outlet, useLoaderData, useLocation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { stores, users } from '@db/schema';
+import { stores, users, systemNotifications } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { 
   LayoutDashboard, 
@@ -39,7 +39,10 @@ import {
   ExternalLink,
   Sparkles,
   Home,
-  MessageSquare
+  MessageSquare,
+  Info,
+  AlertTriangle,
+  AlertCircle
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { ChatWidget } from '~/components/ai/ChatWidget';
@@ -146,6 +149,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // Get SAAS_DOMAIN for store URL
     const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
     
+    // Fetch active system notifications
+    let activeNotifications: { id: number; message: string; type: string | null }[] = [];
+    try {
+      const notificationsResult = await db
+        .select({
+          id: systemNotifications.id,
+          message: systemNotifications.message,
+          type: systemNotifications.type,
+        })
+        .from(systemNotifications)
+        .where(eq(systemNotifications.isActive, true));
+      activeNotifications = notificationsResult;
+    } catch (e) {
+      // Table might not exist yet, ignore
+      console.log('[app.loader] Could not fetch system notifications');
+    }
+    
     return json({
       store: {
         id: store.id,
@@ -160,6 +180,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         role: user.role,
       },
       saasDomain,
+      systemNotifications: activeNotifications,
     });
     
   } catch (error) {
@@ -258,12 +279,44 @@ const adminNavItems = [
 // MAIN COMPONENT
 // ============================================================================
 export default function AppLayout() {
-  const { store, user, saasDomain } = useLoaderData<typeof loader>();
+  const { store, user, saasDomain, systemNotifications: notifications } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dismissedNotifications, setDismissedNotifications] = useState<number[]>(() => {
+    // Load dismissed notifications from localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dismissedNotifications');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
 
   // Build store URL
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
+  
+  // Filter out dismissed notifications
+  const visibleNotifications = (notifications || []).filter(
+    n => !dismissedNotifications.includes(n.id)
+  );
+  
+  const dismissNotification = (id: number) => {
+    const updated = [...dismissedNotifications, id];
+    setDismissedNotifications(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dismissedNotifications', JSON.stringify(updated));
+    }
+  };
+  
+  const getNotificationStyle = (type: string | null) => {
+    switch (type) {
+      case 'warning':
+        return { bg: 'bg-amber-500', icon: AlertTriangle };
+      case 'critical':
+        return { bg: 'bg-red-500', icon: AlertCircle };
+      default:
+        return { bg: 'bg-blue-500', icon: Info };
+    }
+  };
 
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -443,6 +496,34 @@ export default function AppLayout() {
             <div className="w-9" /> {/* Spacer for centering */}
           </div>
         </header>
+
+        {/* System Notifications */}
+        {visibleNotifications.length > 0 && (
+          <div className="px-4 lg:px-8 pt-4 space-y-2">
+            {visibleNotifications.map((notification) => {
+              const style = getNotificationStyle(notification.type);
+              const Icon = style.icon;
+              return (
+                <div
+                  key={notification.id}
+                  className={`${style.bg} text-white px-4 py-3 rounded-lg flex items-center justify-between gap-3`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <p className="text-sm font-medium">{notification.message}</p>
+                  </div>
+                  <button
+                    onClick={() => dismissNotification(notification.id)}
+                    className="text-white/80 hover:text-white p-1"
+                    aria-label="Dismiss"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Page Content */}
         <main className="p-4 lg:p-8">

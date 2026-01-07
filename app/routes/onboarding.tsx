@@ -1,10 +1,11 @@
 /**
- * Onboarding Wizard Route - Simplified 3-Step Flow
+ * Onboarding Wizard Route - 4-Step Flow with Plan Selection
  * 
- * Quick onboarding for fast store creation:
+ * Complete onboarding flow:
  * 1. Account (email, password, name)
  * 2. Store Setup (store name, subdomain, category)
- * 3. Auto-create with category-based landing page
+ * 3. Plan Selection (Free/Starter/Premium with bKash payment for paid plans)
+ * 4. Auto-create store with landing page
  * 
  * Users can customize everything later from Settings.
  */
@@ -13,7 +14,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher, Link } from '@remix-run/react';
-import { Store, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Store, ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
@@ -22,6 +23,85 @@ import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
+
+// ==============================================================================
+// CONFIGURATION - Update these values
+// ==============================================================================
+
+// Your bKash number for receiving payments (can also be set via environment variable)
+const BKASH_PAYMENT_NUMBER = '01739416661';
+
+const PLAN_PRICING = {
+  free: 0,
+  starter: 500,
+  premium: 2000,
+};
+
+// ==============================================================================
+// PLAN OPTIONS
+// ==============================================================================
+
+const PLAN_OPTIONS = [
+  { 
+    id: 'free' as const, 
+    name: 'Free',
+    nameKey: 'planFree' as const,
+    price: PLAN_PRICING.free,
+    icon: Gift,
+    color: 'gray',
+    features: [
+      '5 Products',
+      'Landing Page Only',
+      'Basic Support',
+    ],
+    featuresBn: [
+      '৫টি প্রোডাক্ট',
+      'শুধুমাত্র ল্যান্ডিং পেজ',
+      'বেসিক সাপোর্ট',
+    ],
+  },
+  { 
+    id: 'starter' as const, 
+    name: 'Starter',
+    nameKey: 'planStarter' as const,
+    price: PLAN_PRICING.starter,
+    icon: Zap,
+    color: 'emerald',
+    popular: true,
+    features: [
+      '50 Products',
+      'Full Store Mode',
+      'bKash/Nagad Payment',
+      'Priority Support',
+    ],
+    featuresBn: [
+      '৫০টি প্রোডাক্ট',
+      'ফুল স্টোর মোড',
+      'বিকাশ/নগদ পেমেন্ট',
+      'প্রায়োরিটি সাপোর্ট',
+    ],
+  },
+  { 
+    id: 'premium' as const, 
+    name: 'Premium',
+    nameKey: 'planPremium' as const,
+    price: PLAN_PRICING.premium,
+    icon: Crown,
+    color: 'purple',
+    features: [
+      'Unlimited Products',
+      'AI Features',
+      'Custom Domain',
+      '24/7 Support',
+    ],
+    featuresBn: [
+      'আনলিমিটেড প্রোডাক্ট',
+      'AI ফিচার',
+      'কাস্টম ডোমেইন',
+      '২৪/৭ সাপোর্ট',
+    ],
+  },
+];
 
 // Business categories with translation keys and emojis
 const BUSINESS_CATEGORIES = [
@@ -185,7 +265,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, emailAvailable: true });
   }
 
-  // Create store with category-based template
+  // Create store with category-based template and plan selection
   if (step === 'create_store') {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
@@ -193,8 +273,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const storeName = formData.get('storeName') as string;
     const subdomain = formData.get('subdomain') as string;
     const category = formData.get('category') as string || 'other';
+    const selectedPlan = formData.get('selectedPlan') as 'free' | 'starter' | 'premium' || 'free';
+    const transactionId = formData.get('transactionId') as string || '';
+    const paymentPhone = formData.get('paymentPhone') as string || '';
 
-    console.log('[Onboarding] Creating store:', { storeName, subdomain, category });
+    console.log('[Onboarding] Creating store:', { storeName, subdomain, category, selectedPlan });
 
     try {
       // 1. Register user and create store
@@ -232,20 +315,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
         guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি',
       };
 
-      // 4. Update store with landing config
+      // 4. Determine payment status based on plan
+      let paymentStatus: 'none' | 'pending_verification' = 'none';
+      let paymentAmount: number | undefined;
+      
+      if (selectedPlan !== 'free' && transactionId) {
+        paymentStatus = 'pending_verification';
+        paymentAmount = PLAN_PRICING[selectedPlan];
+      }
+
+      // 5. Update store with landing config and payment info
       await db
         .update(stores)
         .set({
           name: storeName,
-          planType: 'free', // Default to free plan
+          planType: selectedPlan,
           landingConfig: JSON.stringify(landingConfig),
           onboardingStatus: 'completed',
-          setupStep: 3,
+          setupStep: 4,
+          // Payment tracking
+          paymentTransactionId: transactionId || null,
+          paymentStatus,
+          paymentSubmittedAt: transactionId ? new Date() : null,
+          paymentAmount: paymentAmount || null,
+          paymentPhone: paymentPhone || null,
           updatedAt: new Date(),
         })
         .where(eq(stores.id, storeId));
 
-      // 5. Create sample product based on category
+      // 6. Create sample product based on category
       await db.insert(products).values({
         storeId,
         title: template.product.title,
@@ -254,9 +352,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         isPublished: true,
       });
 
-      console.log('[Onboarding] Store created successfully:', storeName);
+      console.log('[Onboarding] Store created successfully:', storeName, '| Plan:', selectedPlan, '| TRX:', transactionId || 'N/A');
 
-      // 6. Create session and redirect
+      // 7. Create session and redirect
       return await createUserSession(
         result.user!.id,
         storeId,
@@ -277,8 +375,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
   
-  // Simplified form state - no description, plan, or theme needed
+  // Form state including plan and payment
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -286,6 +385,9 @@ export default function OnboardingPage() {
     storeName: '',
     subdomain: '',
     category: 'fashion',
+    selectedPlan: 'free' as 'free' | 'starter' | 'premium',
+    transactionId: '',
+    paymentPhone: '',
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -293,7 +395,7 @@ export default function OnboardingPage() {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean }>();
   
-  const { t } = useTranslation();
+  const { t, lang: language } = useTranslation();
 
   // Handle fetcher response
   const lastFetcherData = useRef(fetcher.data);
@@ -345,6 +447,12 @@ export default function OnboardingPage() {
     setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
+  const copyBkashNumber = () => {
+    navigator.clipboard.writeText(BKASH_PAYMENT_NUMBER);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleNext = () => {
     // Step 1: Validate account info
     if (currentStep === 1) {
@@ -373,7 +481,7 @@ export default function OnboardingPage() {
       return;
     }
     
-    // Step 2: Validate store info and create store
+    // Step 2: Validate store info
     if (currentStep === 2) {
       const newErrors: Record<string, string> = {};
       if (!formData.storeName || formData.storeName.length < 2) {
@@ -387,9 +495,22 @@ export default function OnboardingPage() {
         return;
       }
       
-      // Go to step 3 (create store)
       setErrors({});
-      setCurrentStep(3);
+      setCurrentStep(3); // Go to plan selection
+      return;
+    }
+    
+    // Step 3: Validate plan selection and payment (if paid plan)
+    if (currentStep === 3) {
+      // For paid plans, validate TRX ID
+      if (formData.selectedPlan !== 'free' && !formData.transactionId) {
+        setErrors({ transactionId: language === 'bn' ? 'TRX ID দিন' : 'Please enter TRX ID' });
+        return;
+      }
+      
+      // Go to step 4 (create store)
+      setErrors({});
+      setCurrentStep(4);
       setIsGenerating(true);
       
       // Submit to create store
@@ -401,10 +522,35 @@ export default function OnboardingPage() {
       submitData.append('storeName', formData.storeName);
       submitData.append('subdomain', formData.subdomain);
       submitData.append('category', formData.category);
+      submitData.append('selectedPlan', formData.selectedPlan);
+      submitData.append('transactionId', formData.transactionId);
+      submitData.append('paymentPhone', formData.paymentPhone);
       
       fetcher.submit(submitData, { method: 'POST' });
       return;
     }
+  };
+
+  const handleContinueWithFree = () => {
+    setFormData(prev => ({ ...prev, selectedPlan: 'free', transactionId: '', paymentPhone: '' }));
+    
+    // Create store with free plan immediately
+    setCurrentStep(4);
+    setIsGenerating(true);
+    
+    const submitData = new FormData();
+    submitData.append('step', 'create_store');
+    submitData.append('email', formData.email);
+    submitData.append('password', formData.password);
+    submitData.append('name', formData.name);
+    submitData.append('storeName', formData.storeName);
+    submitData.append('subdomain', formData.subdomain);
+    submitData.append('category', formData.category);
+    submitData.append('selectedPlan', 'free');
+    submitData.append('transactionId', '');
+    submitData.append('paymentPhone', '');
+    
+    fetcher.submit(submitData, { method: 'POST' });
   };
 
   const handleBack = () => {
@@ -412,6 +558,8 @@ export default function OnboardingPage() {
   };
 
   const isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading';
+
+  const selectedPlanData = PLAN_OPTIONS.find(p => p.id === formData.selectedPlan);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
@@ -438,8 +586,8 @@ export default function OnboardingPage() {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Progress Steps - 3 steps now */}
-        {currentStep < 4 && <OnboardingSteps currentStep={currentStep} totalSteps={3} />}
+        {/* Progress Steps - 4 steps now */}
+        {currentStep < 5 && <OnboardingSteps currentStep={currentStep} totalSteps={4} />}
 
         {/* Step Content */}
         <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10 lg:p-12">
@@ -448,7 +596,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('createAccount')}</h1>
-                <p className="text-gray-500 mt-2">মাত্র ২ মিনিটে স্টোর তৈরি করুন</p>
+                <p className="text-gray-500 mt-2">{language === 'bn' ? 'মাত্র ২ মিনিটে স্টোর তৈরি করুন' : 'Create your store in just 2 minutes'}</p>
               </div>
 
               <div>
@@ -499,8 +647,8 @@ export default function OnboardingPage() {
           {currentStep === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">আপনার স্টোর সেটআপ করুন</h1>
-                <p className="text-gray-500 mt-2">পরে সব চেঞ্জ করতে পারবেন</p>
+                <h1 className="text-2xl font-bold text-gray-900">{language === 'bn' ? 'আপনার স্টোর সেটআপ করুন' : 'Set Up Your Store'}</h1>
+                <p className="text-gray-500 mt-2">{language === 'bn' ? 'পরে সব চেঞ্জ করতে পারবেন' : 'You can change everything later'}</p>
               </div>
 
               {/* Store Name */}
@@ -521,7 +669,7 @@ export default function OnboardingPage() {
               {/* Subdomain */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  স্টোর লিংক *
+                  {language === 'bn' ? 'স্টোর লিংক' : 'Store Link'} *
                 </label>
                 <div className="flex items-center">
                   <input
@@ -544,7 +692,7 @@ export default function OnboardingPage() {
               {/* Category - Visual Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  আপনি কী বিক্রি করেন?
+                  {language === 'bn' ? 'আপনি কী বিক্রি করেন?' : 'What do you sell?'}
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {BUSINESS_CATEGORIES.map((cat) => (
@@ -564,18 +712,192 @@ export default function OnboardingPage() {
                   ))}
                 </div>
               </div>
-
-              {/* Quick tip */}
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                <p className="text-sm text-emerald-700">
-                  ✨ আপনার category অনুযায়ী automatically একটা সুন্দর landing page তৈরি হবে। পরে সব customize করতে পারবেন!
-                </p>
-              </div>
             </div>
           )}
 
-          {/* Step 3: Store Creation Progress */}
+          {/* Step 3: Plan Selection with bKash Payment */}
           {currentStep === 3 && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-900">{t('choosePlan')}</h1>
+                <p className="text-gray-500 mt-2">{language === 'bn' ? 'আপনার প্রয়োজন অনুযায়ী প্ল্যান সিলেক্ট করুন' : 'Select a plan based on your needs'}</p>
+              </div>
+
+              {/* Plan Cards */}
+              <div className="grid md:grid-cols-3 gap-4">
+                {PLAN_OPTIONS.map((plan) => {
+                  const Icon = plan.icon;
+                  const isSelected = formData.selectedPlan === plan.id;
+                  const features = language === 'bn' ? plan.featuresBn : plan.features;
+                  
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => updateField('selectedPlan', plan.id)}
+                      className={`relative p-6 rounded-2xl border-2 text-left transition-all ${
+                        isSelected
+                          ? plan.color === 'gray' 
+                            ? 'border-gray-500 bg-gray-50 ring-2 ring-gray-200'
+                            : plan.color === 'emerald'
+                            ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
+                            : 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                    >
+                      {plan.popular && (
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded-full">
+                          {t('mostPopular')}
+                        </span>
+                      )}
+                      
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          plan.color === 'gray' ? 'bg-gray-100' :
+                          plan.color === 'emerald' ? 'bg-emerald-100' : 'bg-purple-100'
+                        }`}>
+                          <Icon className={`w-5 h-5 ${
+                            plan.color === 'gray' ? 'text-gray-600' :
+                            plan.color === 'emerald' ? 'text-emerald-600' : 'text-purple-600'
+                          }`} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900">{t(plan.nameKey)}</h3>
+                          <p className="text-lg font-bold">
+                            {plan.price === 0 ? (language === 'bn' ? 'ফ্রি' : 'Free') : `৳${plan.price}`}
+                            {plan.price > 0 && <span className="text-sm font-normal text-gray-500">{t('perMonth')}</span>}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <ul className="space-y-2">
+                        {features.map((feature, idx) => (
+                          <li key={idx} className="flex items-center gap-2 text-sm text-gray-600">
+                            <Check className="w-4 h-4 text-emerald-500" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      {isSelected && (
+                        <div className="absolute top-4 right-4">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            plan.color === 'gray' ? 'bg-gray-500' :
+                            plan.color === 'emerald' ? 'bg-emerald-500' : 'bg-purple-500'
+                          }`}>
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* bKash Payment Section (for paid plans) */}
+              {formData.selectedPlan !== 'free' && (
+                <div className="mt-8 p-6 bg-pink-50 border-2 border-pink-200 rounded-2xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center">
+                      <Smartphone className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900">{t('bkashPayment')}</h3>
+                      <p className="text-sm text-gray-600">
+                        {t('sendMoneyTo')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* bKash Number with Copy */}
+                  <div className="bg-white rounded-xl p-4 mb-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-500">{language === 'bn' ? 'বিকাশ নম্বর' : 'bKash Number'}</p>
+                      <p className="text-2xl font-bold text-pink-600">{BKASH_PAYMENT_NUMBER}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={copyBkashNumber}
+                      className="p-3 bg-pink-100 hover:bg-pink-200 rounded-xl transition-colors"
+                    >
+                      <Copy className={`w-5 h-5 ${copied ? 'text-green-600' : 'text-pink-600'}`} />
+                    </button>
+                  </div>
+                  {copied && (
+                    <p className="text-sm text-green-600 mb-4">{language === 'bn' ? 'কপি হয়েছে!' : 'Copied!'}</p>
+                  )}
+
+                  {/* Amount */}
+                  <div className="bg-white rounded-xl p-4 mb-4">
+                    <p className="text-sm text-gray-500">{language === 'bn' ? 'পরিমাণ' : 'Amount'}</p>
+                    <p className="text-2xl font-bold text-gray-900">৳{selectedPlanData?.price}</p>
+                  </div>
+
+                  {/* Instructions */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                    <p className="text-sm text-amber-800">
+                      ⚠️ {t('afterSendMoney')}
+                    </p>
+                  </div>
+
+                  {/* TRX ID Input */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('enterTrxId')} *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.transactionId}
+                        onChange={(e) => updateField('transactionId', e.target.value.toUpperCase())}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent uppercase"
+                        placeholder={t('trxIdPlaceholder')}
+                      />
+                      {errors.transactionId && <p className="text-red-500 text-sm mt-1">{errors.transactionId}</p>}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'bn' ? 'পেমেন্টে ব্যবহৃত ফোন নম্বর' : 'Phone number used for payment'}
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.paymentPhone}
+                        onChange={(e) => updateField('paymentPhone', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        placeholder="01XXXXXXXXX"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Or Continue Free */}
+                  <div className="mt-6 pt-4 border-t border-pink-200 text-center">
+                    <button
+                      type="button"
+                      onClick={handleContinueWithFree}
+                      className="text-gray-600 hover:text-gray-900 text-sm underline"
+                    >
+                      {t('orContinueFree')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Tip for Free Plan */}
+              {formData.selectedPlan === 'free' && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                  <p className="text-sm text-emerald-700">
+                    ✨ {language === 'bn' 
+                      ? 'ফ্রি প্ল্যানে শুরু করুন এবং পরে আপগ্রেড করুন!' 
+                      : 'Start with Free plan and upgrade later!'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 4: Store Creation Progress */}
+          {currentStep === 4 && (
             <div>
               <AISetupProgress 
                 isGenerating={isGenerating || isSubmitting}
@@ -583,6 +905,20 @@ export default function OnboardingPage() {
                 errorMessage={errors.form}
                 onComplete={() => {}}
               />
+              
+              {/* Payment Pending Notice (for paid plans) */}
+              {!storeCreationFailed && formData.selectedPlan !== 'free' && formData.transactionId && (
+                <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                  <p className="text-amber-800">
+                    ⏳ {t('paymentPending')}
+                  </p>
+                  <p className="text-sm text-amber-600 mt-1">
+                    {language === 'bn' 
+                      ? 'আপনার পেমেন্ট ভেরিফাই করা হবে। ২৪ ঘন্টার মধ্যে আপনার প্ল্যান একটিভ হয়ে যাবে।'
+                      : 'Your payment will be verified. Your plan will be activated within 24 hours.'}
+                  </p>
+                </div>
+              )}
               
               {/* Error Actions */}
               {storeCreationFailed && (
@@ -603,6 +939,9 @@ export default function OnboardingPage() {
                       submitData.append('storeName', formData.storeName);
                       submitData.append('subdomain', formData.subdomain);
                       submitData.append('category', formData.category);
+                      submitData.append('selectedPlan', formData.selectedPlan);
+                      submitData.append('transactionId', formData.transactionId);
+                      submitData.append('paymentPhone', formData.paymentPhone);
                       fetcher.submit(submitData, { method: 'POST' });
                     }}
                     className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
@@ -628,14 +967,14 @@ export default function OnboardingPage() {
           )}
 
           {/* Error Display */}
-          {errors.form && currentStep !== 3 && (
+          {errors.form && currentStep !== 4 && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
               {errors.form}
             </div>
           )}
 
           {/* Navigation Buttons */}
-          {currentStep < 3 && (
+          {currentStep < 4 && (
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
               {currentStep > 1 ? (
                 <button
@@ -656,7 +995,13 @@ export default function OnboardingPage() {
                 disabled={isCheckingEmail || isSubmitting}
                 className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {isCheckingEmail ? t('loading') : currentStep === 2 ? `🚀 ${t('createMyStore')}` : t('continueBtn')}
+                {isCheckingEmail 
+                  ? t('loading') 
+                  : currentStep === 3 
+                    ? (formData.selectedPlan === 'free' 
+                      ? `🚀 ${t('createMyStore')}` 
+                      : `💳 ${t('proceedWithPayment')}`)
+                    : t('continueBtn')}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

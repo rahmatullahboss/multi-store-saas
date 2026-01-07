@@ -646,6 +646,36 @@ export const translations = {
     errorMsg: 'Error',
     tryAgainBtn: 'Try Again',
     changesApplied: 'Changes applied successfully',
+    
+    // bKash Payment - Onboarding
+    bkashPayment: 'bKash Payment',
+    sendMoneyTo: 'Send Money to this number',
+    enterTrxId: 'Enter Transaction ID (TRX ID)',
+    trxIdPlaceholder: 'e.g., TRX123ABC456',
+    paymentPending: 'Payment Pending Verification',
+    paymentVerified: 'Payment Verified',
+    paymentRejected: 'Payment Rejected',
+    afterSendMoney: 'After sending money, enter the TRX ID below',
+    proceedWithFree: 'Continue with Free Plan',
+    proceedWithPayment: 'I have paid, proceed',
+    orContinueFree: 'Or continue with Free plan',
+    
+    // Admin - Pending Payments
+    pendingPayments: 'Pending Payments',
+    pendingPaymentsDesc: 'Stores with unverified bKash payments',
+    noPendingPayments: 'No pending payments to verify',
+    verifyPayment: 'Verify',
+    rejectPayment: 'Reject',
+    contactUser: 'Contact',
+    downgradeToFree: 'Downgrade to Free',
+    trxId: 'TRX ID',
+    paymentPhone: 'Payment Phone',
+    paymentAmount: 'Amount',
+    submittedAt: 'Submitted',
+    ownerEmail: 'Owner Email',
+    verificationSuccess: 'Payment verified successfully!',
+    rejectionSuccess: 'Payment rejected',
+    downgradeSuccess: 'Store downgraded to Free plan',
   },
   
   bn: {
@@ -1251,6 +1281,36 @@ export const translations = {
     errorMsg: 'ত্রুটি',
     tryAgainBtn: 'আবার চেষ্টা করুন',
     changesApplied: 'পরিবর্তন প্রয়োগ হয়েছে',
+    
+    // bKash Payment - Onboarding
+    bkashPayment: 'বিকাশ পেমেন্ট',
+    sendMoneyTo: 'এই নম্বরে Send Money করুন',
+    enterTrxId: 'ট্রানজেকশন আইডি (TRX ID) দিন',
+    trxIdPlaceholder: 'যেমন: TRX123ABC456',
+    paymentPending: 'পেমেন্ট ভেরিফিকেশন পেন্ডিং',
+    paymentVerified: 'পেমেন্ট ভেরিফাইড',
+    paymentRejected: 'পেমেন্ট রিজেক্টেড',
+    afterSendMoney: 'Send Money করার পর নিচে TRX ID দিন',
+    proceedWithFree: 'ফ্রি প্ল্যানে চালিয়ে যান',
+    proceedWithPayment: 'পেমেন্ট করেছি, চালিয়ে যান',
+    orContinueFree: 'অথবা ফ্রি প্ল্যানে চালিয়ে যান',
+    
+    // Admin - Pending Payments
+    pendingPayments: 'পেন্ডিং পেমেন্টস',
+    pendingPaymentsDesc: 'আনভেরিফাইড বিকাশ পেমেন্ট সহ স্টোর',
+    noPendingPayments: 'কোনো পেন্ডিং পেমেন্ট নেই',
+    verifyPayment: 'ভেরিফাই',
+    rejectPayment: 'রিজেক্ট',
+    contactUser: 'যোগাযোগ',
+    downgradeToFree: 'ফ্রিতে ডাউনগ্রেড',
+    trxId: 'TRX ID',
+    paymentPhone: 'পেমেন্ট ফোন',
+    paymentAmount: 'পরিমাণ',
+    submittedAt: 'সাবমিট সময়',
+    ownerEmail: 'মালিকের ইমেইল',
+    verificationSuccess: 'পেমেন্ট সফলভাবে ভেরিফাই হয়েছে!',
+    rejectionSuccess: 'পেমেন্ট রিজেক্ট হয়েছে',
+    downgradeSuccess: 'স্টোর ফ্রি প্ল্যানে ডাউনগ্রেড হয়েছে',
   },
 } as const;
 

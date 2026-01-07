@@ -44,6 +44,7 @@ export function LuxeBoutiqueTemplate({
   socialLinks,
   footerConfig,
   businessInfo,
+  isPreview,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -319,6 +320,7 @@ export function LuxeBoutiqueTemplate({
                   storeId={storeId}
                   currency={currency}
                   formatPrice={formatPrice}
+                  isPreview={isPreview}
                 />
               ))}
             </div>
@@ -458,9 +460,10 @@ interface ProductCardProps {
   storeId: number;
   currency: string;
   formatPrice: (price: number) => string;
+  isPreview?: boolean;
 }
 
-function ProductCard({ product, storeId, currency, formatPrice }: ProductCardProps) {
+function ProductCard({ product, storeId, currency, formatPrice, isPreview }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount 
@@ -510,6 +513,7 @@ function ProductCard({ product, storeId, currency, formatPrice }: ProductCardPro
             storeId={storeId}
             className="w-full py-3 text-sm font-medium uppercase tracking-wider transition-colors"
             style={{ backgroundColor: THEME.primary, color: 'white' }}
+            isPreview={isPreview}
           >
             Add to Bag
           </AddToCartButton>

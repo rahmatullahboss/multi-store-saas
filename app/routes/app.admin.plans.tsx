@@ -1,25 +1,25 @@
 /**
- * Admin Plan Management Page
+ * Admin Plan Management Page with Pending Payments
  * 
  * Route: /app/admin/plans
  * 
  * Allows platform admin to:
  * - View all stores and their current plans
+ * - View pending bKash payments and verify/reject them
  * - Manually upgrade/downgrade store plans
  * - Search stores by name or subdomain
  * 
- * MVP: Manual plan management
- * TODO: Auto-upgrade via payment integration (bKash, etc.)
+ * MVP: Manual plan management with bKash verification
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useNavigation, useSearchParams, useActionData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, like, or, desc } from 'drizzle-orm';
+import { eq, like, or, desc, isNotNull } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
-import { Crown, Zap, Gift, Search, Check, Store, Calendar, ArrowUpCircle } from 'lucide-react';
+import { requireUserId } from '~/services/auth.server';
+import { Crown, Zap, Gift, Search, Check, Calendar, ArrowUpCircle, AlertCircle, Mail, Phone, Copy, CheckCircle, XCircle, ArrowDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -33,7 +33,7 @@ const PLAN_OPTIONS = [
 ];
 
 // ============================================================================
-// LOADER - Fetch all stores (admin only)
+// LOADER - Fetch all stores and pending payments (admin only)
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
@@ -49,7 +49,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get('search') || '';
 
-  // Fetch stores
+  // Fetch all stores
   let storeQuery = db
     .select({
       id: stores.id,
@@ -74,6 +74,41 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const allStores = await storeQuery.limit(100);
 
+  // Fetch pending payments separately (stores with pending_verification status)
+  const pendingPayments = await db
+    .select({
+      id: stores.id,
+      name: stores.name,
+      subdomain: stores.subdomain,
+      planType: stores.planType,
+      paymentTransactionId: stores.paymentTransactionId,
+      paymentStatus: stores.paymentStatus,
+      paymentSubmittedAt: stores.paymentSubmittedAt,
+      paymentAmount: stores.paymentAmount,
+      paymentPhone: stores.paymentPhone,
+      createdAt: stores.createdAt,
+    })
+    .from(stores)
+    .where(eq(stores.paymentStatus, 'pending_verification'))
+    .orderBy(desc(stores.paymentSubmittedAt))
+    .limit(50);
+
+  // Get owner emails for pending payments
+  const pendingWithOwners = await Promise.all(
+    pendingPayments.map(async (store) => {
+      const owner = await db
+        .select({ email: users.email, name: users.name })
+        .from(users)
+        .where(eq(users.storeId, store.id))
+        .limit(1);
+      return {
+        ...store,
+        ownerEmail: owner[0]?.email || 'N/A',
+        ownerName: owner[0]?.name || 'N/A',
+      };
+    })
+  );
+
   // Count by plan
   const planCounts = {
     free: allStores.filter(s => !s.planType || s.planType === 'free').length,
@@ -83,13 +118,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({
     stores: allStores,
+    pendingPayments: pendingWithOwners,
     planCounts,
     search,
   });
 }
 
 // ============================================================================
-// ACTION - Update store plan (admin only)
+// ACTION - Update store plan or verify/reject payment (admin only)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const userId = await requireUserId(request);
@@ -102,48 +138,85 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const formData = await request.formData();
+  const actionType = formData.get('actionType') as string;
   const storeId = Number(formData.get('storeId'));
-  const newPlan = formData.get('planType') as string;
 
-  if (!storeId || !newPlan) {
-    return json({ error: 'Missing store ID or plan type' }, { status: 400 });
+  if (!storeId) {
+    return json({ error: 'Missing store ID' }, { status: 400 });
   }
 
-  // Valid plans
-  if (!['free', 'starter', 'premium', 'custom'].includes(newPlan)) {
-    return json({ error: 'Invalid plan type' }, { status: 400 });
+  // Handle different action types
+  switch (actionType) {
+    case 'update_plan': {
+      const newPlan = formData.get('planType') as string;
+      if (!newPlan || !['free', 'starter', 'premium', 'custom'].includes(newPlan)) {
+        return json({ error: 'Invalid plan type' }, { status: 400 });
+      }
+      await db.update(stores).set({ 
+        planType: newPlan as 'free' | 'starter' | 'premium' | 'custom',
+        updatedAt: new Date(),
+      }).where(eq(stores.id, storeId));
+      return json({ success: true, message: 'Plan updated', storeId, newPlan });
+    }
+
+    case 'verify_payment': {
+      await db.update(stores).set({ 
+        paymentStatus: 'verified',
+        updatedAt: new Date(),
+      }).where(eq(stores.id, storeId));
+      return json({ success: true, message: 'Payment verified', storeId });
+    }
+
+    case 'reject_payment': {
+      await db.update(stores).set({ 
+        paymentStatus: 'rejected',
+        updatedAt: new Date(),
+      }).where(eq(stores.id, storeId));
+      return json({ success: true, message: 'Payment rejected', storeId });
+    }
+
+    case 'downgrade_to_free': {
+      await db.update(stores).set({ 
+        planType: 'free',
+        paymentStatus: 'rejected',
+        updatedAt: new Date(),
+      }).where(eq(stores.id, storeId));
+      return json({ success: true, message: 'Store downgraded to Free', storeId });
+    }
+
+    default:
+      return json({ error: 'Invalid action type' }, { status: 400 });
   }
-
-  // Update store plan
-  await db.update(stores).set({ 
-    planType: newPlan as 'free' | 'starter' | 'premium' | 'custom',
-    updatedAt: new Date(),
-  }).where(eq(stores.id, storeId));
-
-  return json({ success: true, storeId, newPlan });
 }
 
 // ============================================================================
 // COMPONENT
 // ============================================================================
 export default function AdminPlansPage() {
-  const { stores: allStores, planCounts, search } = useLoaderData<typeof loader>();
+  const { stores: allStores, pendingPayments, planCounts, search } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const { t } = useTranslation();
+  const [copiedTrxId, setCopiedTrxId] = useState<string | null>(null);
+  const { t, lang: language } = useTranslation();
 
   const isSubmitting = navigation.state === 'submitting';
 
   // Handle successful update
   useEffect(() => {
     if (actionData && 'success' in actionData && actionData.success) {
-      setSuccessMessage(t('planUpdatedSuccess'));
+      setSuccessMessage(actionData.message || t('planUpdatedSuccess'));
       const timer = setTimeout(() => setSuccessMessage(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [actionData, t]);
+
+  const copyTrxId = (trxId: string) => {
+    navigator.clipboard.writeText(trxId);
+    setCopiedTrxId(trxId);
+    setTimeout(() => setCopiedTrxId(null), 2000);
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -161,6 +234,129 @@ export default function AdminPlansPage() {
         <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg flex items-center gap-2">
           <Check className="w-5 h-5" />
           {successMessage}
+        </div>
+      )}
+
+      {/* Pending Payments Section */}
+      {pendingPayments.length > 0 && (
+        <div className="mb-8 bg-amber-50 border-2 border-amber-200 rounded-xl overflow-hidden">
+          <div className="bg-amber-100 px-4 py-3 border-b border-amber-200">
+            <h2 className="font-bold text-amber-900 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              {t('pendingPayments')} ({pendingPayments.length})
+            </h2>
+            <p className="text-sm text-amber-700">{t('pendingPaymentsDesc')}</p>
+          </div>
+          <div className="p-4">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-sm text-amber-800">
+                    <th className="pb-3">{t('store')}</th>
+                    <th className="pb-3">{t('plan')}</th>
+                    <th className="pb-3">{t('trxId')}</th>
+                    <th className="pb-3">{t('paymentAmount')}</th>
+                    <th className="pb-3">{t('ownerEmail')}</th>
+                    <th className="pb-3">{t('submittedAt')}</th>
+                    <th className="pb-3">{t('actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-amber-200">
+                  {pendingPayments.map((store) => (
+                    <tr key={store.id} className="text-sm">
+                      <td className="py-3">
+                        <div>
+                          <p className="font-medium text-gray-900">{store.name}</p>
+                          <p className="text-xs text-gray-500">{store.subdomain}.digitalcare.site</p>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <PlanBadge plan={store.planType || 'free'} />
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          <code className="bg-white px-2 py-1 rounded border text-xs font-mono">
+                            {store.paymentTransactionId}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => copyTrxId(store.paymentTransactionId || '')}
+                            className="p-1 hover:bg-amber-200 rounded transition-colors"
+                            title="Copy"
+                          >
+                            {copiedTrxId === store.paymentTransactionId ? (
+                              <Check className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-amber-600" />
+                            )}
+                          </button>
+                        </div>
+                        {store.paymentPhone && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            <Phone className="w-3 h-3 inline mr-1" />
+                            {store.paymentPhone}
+                          </p>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        <span className="font-medium">৳{store.paymentAmount}</span>
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-1">
+                          <Mail className="w-3 h-3 text-gray-400" />
+                          <a 
+                            href={`mailto:${store.ownerEmail}`}
+                            className="text-blue-600 hover:underline text-xs"
+                          >
+                            {store.ownerEmail}
+                          </a>
+                        </div>
+                        <p className="text-xs text-gray-500">{store.ownerName}</p>
+                      </td>
+                      <td className="py-3 text-xs text-gray-500">
+                        {store.paymentSubmittedAt 
+                          ? new Date(store.paymentSubmittedAt).toLocaleString('en-BD')
+                          : 'N/A'}
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          {/* Verify Button */}
+                          <Form method="post">
+                            <input type="hidden" name="actionType" value="verify_payment" />
+                            <input type="hidden" name="storeId" value={store.id} />
+                            <button
+                              type="submit"
+                              disabled={isSubmitting}
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded transition disabled:opacity-50"
+                              title={t('verifyPayment')}
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                              {t('verifyPayment')}
+                            </button>
+                          </Form>
+                          
+                          {/* Downgrade Button */}
+                          <Form method="post">
+                            <input type="hidden" name="actionType" value="downgrade_to_free" />
+                            <input type="hidden" name="storeId" value={store.id} />
+                            <button
+                              type="submit"
+                              disabled={isSubmitting}
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition disabled:opacity-50"
+                              title={t('downgradeToFree')}
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                              {language === 'bn' ? 'ফ্রি' : 'Free'}
+                            </button>
+                          </Form>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
@@ -267,6 +463,7 @@ export default function AdminPlansPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Form method="post" className="flex items-center gap-2">
+                        <input type="hidden" name="actionType" value="update_plan" />
                         <input type="hidden" name="storeId" value={store.id} />
                         <select
                           name="planType"
@@ -325,4 +522,3 @@ function PlanBadge({ plan }: { plan: string }) {
     </span>
   );
 }
-

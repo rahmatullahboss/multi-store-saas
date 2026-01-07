@@ -15,7 +15,8 @@ import { Form, useActionData, useLoaderData, useNavigation, useFetcher, Link } f
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
+import { logActivity } from '~/lib/activity.server';
 import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
@@ -113,12 +114,23 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     return json({ errors }, { status: 400 });
   }
 
+  // Fetch current product to compare inventory change
+  const currentProduct = await db
+    .select({ inventory: products.inventory, title: products.title })
+    .from(products)
+    .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
+    .limit(1);
+
+  const previousInventory = currentProduct[0]?.inventory ?? 0;
+  const newInventory = parseInt(stock);
+  const productTitle = currentProduct[0]?.title || title.trim();
+
   await db
     .update(products)
     .set({
       title: title.trim(),
       price: parseFloat(price),
-      inventory: parseInt(stock),
+      inventory: newInventory,
       category: category?.trim() || null,
       description: description?.trim() || null,
       imageUrl: imageUrl || null,
@@ -126,6 +138,24 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       updatedAt: new Date(),
     })
     .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
+
+  // Log stock change if inventory changed
+  if (previousInventory !== newInventory) {
+    const userId = await getUserId(request);
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'stock_change',
+      entityType: 'product',
+      entityId: productId,
+      details: {
+        productTitle,
+        before: previousInventory,
+        after: newInventory,
+        change: newInventory - previousInventory,
+      },
+    });
+  }
 
   // Handle variants
   if (variantsJson) {

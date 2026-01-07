@@ -46,6 +46,7 @@ export function TechModernTemplate({
   socialLinks,
   footerConfig,
   businessInfo,
+  isPreview,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -364,6 +365,7 @@ export function TechModernTemplate({
                   product={product} 
                   storeId={storeId}
                   formatPrice={formatPrice}
+                  isPreview={isPreview}
                 />
               ))}
             </div>
@@ -480,9 +482,10 @@ interface TechProductCardProps {
   product: StoreTemplateProps['products'][0];
   storeId: number;
   formatPrice: (price: number) => string;
+  isPreview?: boolean;
 }
 
-function TechProductCard({ product, storeId, formatPrice }: TechProductCardProps) {
+function TechProductCard({ product, storeId, formatPrice, isPreview }: TechProductCardProps) {
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount 
     ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
@@ -559,6 +562,7 @@ function TechProductCard({ product, storeId, formatPrice }: TechProductCardProps
             storeId={storeId}
             className="p-3 rounded-xl transition-all hover:scale-110"
             style={{ backgroundColor: THEME.accent, color: 'white' }}
+            isPreview={isPreview}
           >
             <ShoppingCart className="w-5 h-5" />
           </AddToCartButton>

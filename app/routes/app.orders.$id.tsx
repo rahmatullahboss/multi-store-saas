@@ -15,14 +15,16 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, Link, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
-import { orders, orderItems, products, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { eq, and, desc } from 'drizzle-orm';
+import { orders, orderItems, products, stores, activityLogs, users } from '@db/schema';
+import { getStoreId, getUserId } from '~/services/auth.server';
 import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send } from 'lucide-react';
 import { useState } from 'react';
 import { RiskBadge } from '~/components/RiskBadge';
 import { TrackingTimeline } from '~/components/TrackingTimeline';
+import { OrderTimeline } from '~/components/OrderTimeline';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { logActivity } from '~/lib/activity.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.order ? `Order ${data.order.orderNumber}` : 'Order Details' }];
@@ -108,11 +110,45 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     }
   }
 
+  // Fetch activity logs for this order
+  const logsResult = await db
+    .select({
+      id: activityLogs.id,
+      userId: activityLogs.userId,
+      action: activityLogs.action,
+      entityType: activityLogs.entityType,
+      entityId: activityLogs.entityId,
+      details: activityLogs.details,
+      createdAt: activityLogs.createdAt,
+    })
+    .from(activityLogs)
+    .where(and(
+      eq(activityLogs.storeId, storeId),
+      eq(activityLogs.entityType, 'order'),
+      eq(activityLogs.entityId, orderId)
+    ))
+    .orderBy(desc(activityLogs.createdAt))
+    .limit(50);
+
+  // Fetch all team members for user lookup
+  const teamMembers = await db
+    .select({ id: users.id, name: users.name, email: users.email })
+    .from(users)
+    .where(eq(users.storeId, storeId));
+
+  // Enrich logs with user info
+  const userMap = new Map(teamMembers.map(u => [u.id, u]));
+  const orderActivityLogs = logsResult.map(log => ({
+    ...log,
+    user: log.userId ? userMap.get(log.userId) : null,
+  }));
+
   return json({ 
     order, 
     items: itemsWithImages, 
     store,
     connectedCourier,
+    activityLogs: orderActivityLogs,
   });
 }
 
@@ -252,6 +288,29 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     }
   }
 
+  // Get current user ID for activity logging
+  const userId = await getUserId(request);
+
+  // Handle addNote intent
+  if (intent === 'addNote') {
+    const note = formData.get('note') as string;
+    if (!note || !note.trim()) {
+      return json({ error: 'Note cannot be empty' }, { status: 400 });
+    }
+
+    // Log the note as an activity
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'order_note_added',
+      entityType: 'order',
+      entityId: orderId,
+      details: { note: note.trim() },
+    });
+
+    return json({ success: true });
+  }
+
   // Handle status update (default)
   const status = formData.get('status') as string;
 
@@ -280,6 +339,18 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       updatedAt: new Date() 
     })
     .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
+
+  // Log status change to activity log
+  if (previousStatus !== status) {
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'order_status_update',
+      entityType: 'order',
+      entityId: orderId,
+      details: { from: previousStatus, to: status, orderNumber: order.orderNumber },
+    });
+  }
 
   // ============================================================================
   // INVENTORY UPDATES - Auto-adjust stock based on status changes
@@ -403,7 +474,7 @@ function StatusBadge({ status }: { status: string }) {
 // MAIN COMPONENT
 // ============================================================================
 export default function OrderDetailPage() {
-  const { order, items, store, connectedCourier } = useLoaderData<typeof loader>();
+  const { order, items, store, connectedCourier, activityLogs } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isUpdating = navigation.state === 'submitting';
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
@@ -760,6 +831,15 @@ export default function OrderDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Order Timeline */}
+        <div className="no-print">
+          <OrderTimeline
+            logs={activityLogs}
+            orderId={order.id}
+            isSubmitting={isUpdating}
+          />
         </div>
 
         {/* Order Items - Screen only */}

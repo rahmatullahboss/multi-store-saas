@@ -46,6 +46,7 @@ export function ArtisanMarketTemplate({
   socialLinks,
   footerConfig,
   businessInfo,
+  isPreview,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const formatPrice = useFormatPrice();
@@ -358,6 +359,7 @@ export function ArtisanMarketTemplate({
                   product={product} 
                   storeId={storeId}
                   formatPrice={formatPrice}
+                  isPreview={isPreview}
                 />
               ))}
             </div>
@@ -500,9 +502,10 @@ interface ArtisanProductCardProps {
   product: StoreTemplateProps['products'][0];
   storeId: number;
   formatPrice: (price: number) => string;
+  isPreview?: boolean;
 }
 
-function ArtisanProductCard({ product, storeId, formatPrice }: ArtisanProductCardProps) {
+function ArtisanProductCard({ product, storeId, formatPrice, isPreview }: ArtisanProductCardProps) {
   const [isLiked, setIsLiked] = useState(false);
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount 
@@ -600,6 +603,7 @@ function ArtisanProductCard({ product, storeId, formatPrice }: ArtisanProductCar
           storeId={storeId}
           className="w-full py-3 rounded-full font-medium transition-all hover:scale-[1.02]"
           style={{ backgroundColor: THEME.accent, color: 'white' }}
+          isPreview={isPreview}
         >
           Add to Basket
         </AddToCartButton>

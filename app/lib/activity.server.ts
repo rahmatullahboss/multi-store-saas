@@ -18,9 +18,13 @@ export type ActivityAction =
   | 'order_created'
   | 'order_updated'
   | 'order_cancelled'
+  | 'order_status_update'
+  | 'order_note_added'
+  | 'payment_update'
   | 'product_created'
   | 'product_updated'
   | 'product_deleted'
+  | 'stock_change'
   | 'settings_updated'
   | 'discount_created'
   | 'discount_updated'
@@ -32,7 +36,8 @@ export type EntityType =
   | 'order'
   | 'product'
   | 'settings'
-  | 'discount';
+  | 'discount'
+  | 'note';
 
 interface LogActivityParams {
   storeId: number;
