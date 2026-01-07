@@ -383,12 +383,12 @@ export default function AppLayout() {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
             {navSections.map((section) => (
-              <div key={section.title}>
+              <div key={section.titleKey}>
                 {/* Section Header - hide for Home */}
-                {section.title !== 'Home' && (
+                {section.titleKey !== 'sidebarHome' && (
                   <div className="px-3 pb-2">
                     <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                      {section.title}
+                      {t(section.titleKey)}
                     </span>
                   </div>
                 )}
@@ -411,7 +411,7 @@ export default function AppLayout() {
                         `}
                       >
                         <Icon className={`w-5 h-5 ${active ? 'text-emerald-600' : ''}`} />
-                        {item.label}
+                        {t(item.labelKey)}
                       </Link>
                     );
                   })}

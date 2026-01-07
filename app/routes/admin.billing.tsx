@@ -462,25 +462,26 @@ export default function AdminBilling() {
       
       {/* Tabs */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-        <div className="border-b border-slate-800">
-          <nav className="flex">
+        <div className="border-b border-slate-800 overflow-x-auto">
+          <nav className="flex min-w-max">
             {[
-              { id: 'active', label: 'Active Subscribers', count: metrics.activeCount },
-              { id: 'pending', label: 'Pending Approvals', count: metrics.pendingCount },
-              { id: 'expired', label: 'Expired', count: metrics.expiredCount },
+              { id: 'active', label: 'Active', labelFull: 'Active Subscribers', count: metrics.activeCount },
+              { id: 'pending', label: 'Pending', labelFull: 'Pending Approvals', count: metrics.pendingCount },
+              { id: 'expired', label: 'Expired', labelFull: 'Expired', count: metrics.expiredCount },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`px-6 py-4 text-sm font-medium transition relative ${
+                className={`px-4 md:px-6 py-3 md:py-4 text-sm font-medium transition relative whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {tab.label}
+                <span className="hidden sm:inline">{tab.labelFull}</span>
+                <span className="sm:hidden">{tab.label}</span>
                 {tab.count > 0 && (
-                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                  <span className={`ml-1.5 md:ml-2 px-1.5 md:px-2 py-0.5 rounded-full text-xs ${
                     activeTab === tab.id
                       ? tab.id === 'pending' 
                         ? 'bg-amber-500/20 text-amber-400'
@@ -814,98 +815,180 @@ function SubscriptionTable({
   }
   
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-slate-800">
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Store</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Owner</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Plan</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Payment Method</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Subscription Period</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase">Change Plan</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800">
-          {data.map((store) => (
-            <tr key={store.id} className="hover:bg-slate-800/50 transition">
-              <td className="px-4 py-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    type === 'active' ? 'bg-emerald-500/20' : 'bg-slate-700'
+    <>
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-800">
+              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Store</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Owner</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Plan</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Payment</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Period</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase">Change Plan</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800">
+            {data.map((store) => (
+              <tr key={store.id} className="hover:bg-slate-800/50 transition">
+                <td className="px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      type === 'active' ? 'bg-emerald-500/20' : 'bg-slate-700'
+                    }`}>
+                      <Store className={`w-5 h-5 ${type === 'active' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-white">{store.name}</p>
+                      <p className="text-xs text-slate-500">{store.subdomain}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <p className="text-sm text-slate-300">{store.ownerEmail || 'N/A'}</p>
+                  <p className="text-xs text-slate-500">{store.ownerName || ''}</p>
+                </td>
+                <td className="px-4 py-4">
+                  <PlanBadge plan={store.planType || 'free'} />
+                </td>
+                <td className="px-4 py-4">
+                  <span className={`inline-flex items-center gap-1.5 text-sm ${
+                    store.subscriptionPaymentMethod === 'manual' ? 'text-blue-400' : 'text-slate-300'
                   }`}>
-                    <Store className={`w-5 h-5 ${type === 'active' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                    <CreditCard className="w-4 h-4" />
+                    {store.subscriptionPaymentMethod === 'manual' ? 'bKash' : store.subscriptionPaymentMethod || 'N/A'}
+                  </span>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="text-sm">
+                    <span className="text-slate-300">{formatDate(store.subscriptionStartDate)}</span>
+                    <span className="text-slate-500 mx-1">→</span>
+                    <span className={type === 'expired' ? 'text-red-400' : 'text-slate-300'}>
+                      {formatDate(store.subscriptionEndDate)}
+                    </span>
                   </div>
-                  <div>
-                    <p className="font-medium text-white">{store.name}</p>
-                    <p className="text-xs text-slate-500">{store.subdomain}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <p className="text-sm text-slate-300">{store.ownerEmail || 'N/A'}</p>
-                <p className="text-xs text-slate-500">{store.ownerName || ''}</p>
-              </td>
-              <td className="px-4 py-4">
-                <PlanBadge plan={store.planType || 'free'} />
-              </td>
-              <td className="px-4 py-4">
-                <span className={`inline-flex items-center gap-1.5 text-sm ${
-                  store.subscriptionPaymentMethod === 'manual' ? 'text-blue-400' : 'text-slate-300'
+                </td>
+                <td className="px-4 py-4">
+                  {type === 'active' ? (
+                    <span className="inline-flex items-center gap-1.5 text-sm text-emerald-400">
+                      <CheckCircle className="w-4 h-4" />
+                      Active
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-sm text-red-400">
+                      <XCircle className="w-4 h-4" />
+                      Expired
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-4">
+                  <fetcher.Form method="post" className="flex items-center justify-end gap-2">
+                    <input type="hidden" name="intent" value="change_plan" />
+                    <input type="hidden" name="storeId" value={store.id} />
+                    <select
+                      name="planType"
+                      defaultValue={store.planType || 'free'}
+                      className="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:ring-1 focus:ring-red-500/50"
+                    >
+                      <option value="free">Free</option>
+                      <option value="starter">Starter</option>
+                      <option value="premium">Premium</option>
+                    </select>
+                    <button
+                      type="submit"
+                      disabled={fetcher.state === 'submitting'}
+                      className="px-2 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition disabled:opacity-50"
+                    >
+                      {fetcher.state === 'submitting' ? '...' : 'Update'}
+                    </button>
+                  </fetcher.Form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Mobile Cards */}
+      <div className="md:hidden divide-y divide-slate-800">
+        {data.map((store) => (
+          <div key={store.id} className="p-4 space-y-3">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  type === 'active' ? 'bg-emerald-500/20' : 'bg-slate-700'
                 }`}>
-                  <CreditCard className="w-4 h-4" />
+                  <Store className={`w-5 h-5 ${type === 'active' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                </div>
+                <div>
+                  <p className="font-medium text-white">{store.name}</p>
+                  <p className="text-xs text-slate-500">{store.subdomain}</p>
+                </div>
+              </div>
+              {type === 'active' ? (
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400">
+                  <CheckCircle className="w-3 h-3" />
+                  Active
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400">
+                  <XCircle className="w-3 h-3" />
+                  Expired
+                </span>
+              )}
+            </div>
+            
+            {/* Info Grid */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-slate-500">Owner</p>
+                <p className="text-slate-300 truncate">{store.ownerEmail || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Plan</p>
+                <PlanBadge plan={store.planType || 'free'} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Payment</p>
+                <span className={`text-sm ${store.subscriptionPaymentMethod === 'manual' ? 'text-blue-400' : 'text-slate-300'}`}>
                   {store.subscriptionPaymentMethod === 'manual' ? 'bKash/Nagad' : store.subscriptionPaymentMethod || 'N/A'}
                 </span>
-              </td>
-              <td className="px-4 py-4">
-                <div className="text-sm">
-                  <span className="text-slate-300">{formatDate(store.subscriptionStartDate)}</span>
-                  <span className="text-slate-500 mx-2">→</span>
-                  <span className={type === 'expired' ? 'text-red-400' : 'text-slate-300'}>
-                    {formatDate(store.subscriptionEndDate)}
-                  </span>
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                {type === 'active' ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm text-emerald-400">
-                    <CheckCircle className="w-4 h-4" />
-                    Active
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 text-sm text-red-400">
-                    <XCircle className="w-4 h-4" />
-                    Expired
-                  </span>
-                )}
-              </td>
-              <td className="px-4 py-4">
-                <fetcher.Form method="post" className="flex items-center justify-end gap-2">
-                  <input type="hidden" name="intent" value="change_plan" />
-                  <input type="hidden" name="storeId" value={store.id} />
-                  <select
-                    name="planType"
-                    defaultValue={store.planType || 'free'}
-                    className="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:ring-1 focus:ring-red-500/50"
-                  >
-                    <option value="free">Free</option>
-                    <option value="starter">Starter</option>
-                    <option value="premium">Premium</option>
-                  </select>
-                  <button
-                    type="submit"
-                    disabled={fetcher.state === 'submitting'}
-                    className="px-2 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition disabled:opacity-50"
-                  >
-                    {fetcher.state === 'submitting' ? '...' : 'Update'}
-                  </button>
-                </fetcher.Form>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Period</p>
+                <p className="text-slate-300 text-xs">
+                  {formatDate(store.subscriptionStartDate)} → {formatDate(store.subscriptionEndDate)}
+                </p>
+              </div>
+            </div>
+            
+            {/* Change Plan */}
+            <fetcher.Form method="post" className="flex items-center gap-2 pt-2">
+              <input type="hidden" name="intent" value="change_plan" />
+              <input type="hidden" name="storeId" value={store.id} />
+              <select
+                name="planType"
+                defaultValue={store.planType || 'free'}
+                className="flex-1 text-sm bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-red-500/50"
+              >
+                <option value="free">Free</option>
+                <option value="starter">Starter</option>
+                <option value="premium">Premium</option>
+              </select>
+              <button
+                type="submit"
+                disabled={fetcher.state === 'submitting'}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
+              >
+                {fetcher.state === 'submitting' ? '...' : 'Update'}
+              </button>
+            </fetcher.Form>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }

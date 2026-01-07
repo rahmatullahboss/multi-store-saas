@@ -199,9 +199,10 @@ export default function AdminStores() {
         </div>
       </div>
 
-      {/* Stores Table */}
+      {/* Stores - Desktop Table / Mobile Cards */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table - Hidden on mobile */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-800">
@@ -332,6 +333,102 @@ export default function AdminStores() {
               )}
             </tbody>
           </table>
+        </div>
+        
+        {/* Mobile Cards - Visible only on mobile */}
+        <div className="md:hidden divide-y divide-slate-800">
+          {filteredStores.length === 0 ? (
+            <div className="px-4 py-8 text-center text-slate-500">
+              No stores found
+            </div>
+          ) : (
+            filteredStores.map((store) => (
+              <div key={store.id} className="p-4 space-y-3">
+                {/* Store Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      store.isActive ? 'bg-blue-500/20' : 'bg-slate-700'
+                    }`}>
+                      <Store className={`w-5 h-5 ${store.isActive ? 'text-blue-400' : 'text-slate-500'}`} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-white">{store.name}</p>
+                      <p className="text-xs text-slate-500">{store.subdomain}</p>
+                    </div>
+                  </div>
+                  {store.isActive ? (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400">
+                      <CheckCircle className="w-3 h-3" />
+                      Active
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400">
+                      <XCircle className="w-3 h-3" />
+                      Suspended
+                    </span>
+                  )}
+                </div>
+                
+                {/* Store Info Grid */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-slate-500">Owner</p>
+                    <p className="text-slate-300 truncate">{store.ownerName || 'N/A'}</p>
+                    <p className="text-xs text-slate-500 truncate">{store.ownerEmail || 'No owner'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Plan</p>
+                    {getPlanBadge(store.planType)}
+                  </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-2">
+                  <fetcher.Form method="post" className="flex-1">
+                    <input type="hidden" name="intent" value="toggleSuspend" />
+                    <input type="hidden" name="storeId" value={store.id} />
+                    <input type="hidden" name="currentStatus" value={String(store.isActive)} />
+                    <button
+                      type="submit"
+                      className={`w-full py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm font-medium ${
+                        store.isActive 
+                          ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400'
+                          : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400'
+                      }`}
+                    >
+                      {store.isActive ? (
+                        <>
+                          <Ban className="w-4 h-4" />
+                          Suspend
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          Unsuspend
+                        </>
+                      )}
+                    </button>
+                  </fetcher.Form>
+                  
+                  {store.ownerId && (
+                    <Form method="post" className="flex-1">
+                      <input type="hidden" name="intent" value="impersonate" />
+                      <input type="hidden" name="storeId" value={store.id} />
+                      <input type="hidden" name="userId" value={store.ownerId} />
+                      <button
+                        type="submit"
+                        className="w-full py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition flex items-center justify-center gap-2 text-sm font-medium"
+                      >
+                        <UserRound className="w-4 h-4" />
+                        Impersonate
+                      </button>
+                    </Form>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
