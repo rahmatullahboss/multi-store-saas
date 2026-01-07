@@ -21,7 +21,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Eye, Sparkles, Save, 
-  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp, Paintbrush
+  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp, Paintbrush, Smartphone, Monitor, Rocket
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -32,6 +32,8 @@ import {
   DEFAULT_SECTION_ORDER,
   LANDING_TEMPLATES 
 } from '~/components/landing-builder';
+import { getTemplateComponent, type TemplateProps } from '~/templates/registry';
+
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Landing Page Builder - Multi-Store SaaS' }];
@@ -302,6 +304,10 @@ export default function LandingBuilderPage() {
   // Store Mode state (landing or store)
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
 
+  // Preview panel state
+  const [showPreview, setShowPreview] = useState(true);
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('mobile');
+
   // Current tab
   const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp' | 'colors' | 'settings'>('template');
 
@@ -329,6 +335,47 @@ export default function LandingBuilderPage() {
   // Get selected template info
   const selectedTemplate = LANDING_TEMPLATES.find(t => t.id === templateId);
 
+  // Build live preview config from current editor state
+  const previewConfig: LandingConfig = {
+    templateId,
+    headline: headline || 'Your Amazing Headline',
+    subheadline: subheadline || '',
+    ctaText: ctaText || 'Order Now',
+    ctaSubtext: ctaSubtext || '',
+    urgencyText: urgencyText || '',
+    videoUrl: videoUrl || '',
+    sectionOrder: sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER,
+    hiddenSections,
+    whatsappEnabled,
+    whatsappNumber,
+    whatsappMessage,
+    testimonials,
+    faq,
+    countdownEnabled,
+    countdownEndTime,
+    showStockCounter,
+    lowStockThreshold,
+    showSocialProof,
+    socialProofInterval,
+    primaryColor: primaryColor || undefined,
+    accentColor: accentColor || undefined,
+  };
+
+  // Mock product for preview (use selected product or demo)
+  const selectedProduct = storeProducts.find(p => p.id === parseInt(featuredProductId));
+  const previewProduct = selectedProduct || {
+    id: 0,
+    storeId: store.id,
+    title: 'Demo Product',
+    description: 'This is a demo product for preview purposes.',
+    price: 1999,
+    compareAtPrice: 2999,
+    imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
+  };
+
+  // Get template component for live preview
+  const TemplateComponent = getTemplateComponent(templateId);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -353,25 +400,49 @@ export default function LandingBuilderPage() {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Visual Editor Button - Hidden for MVP */}
-              {/* <Link
-                to="/app/landing-editor"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-medium rounded-lg hover:opacity-90 transition shadow-md"
-              >
-                <Sparkles className="w-4 h-4" />
-                {language === 'bn' ? 'ভিজ্যুয়াল এডিটর' : 'Visual Editor'}
-              </Link> */}
+              {/* Device Toggle for Preview */}
+              <div className="hidden lg:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setPreviewDevice('mobile')}
+                  className={`p-2 rounded-md transition ${previewDevice === 'mobile' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  title="Mobile Preview"
+                >
+                  <Smartphone className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewDevice('desktop')}
+                  className={`p-2 rounded-md transition ${previewDevice === 'desktop' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  title="Desktop Preview"
+                >
+                  <Monitor className="w-4 h-4" />
+                </button>
+              </div>
 
-              {/* Preview Button */}
+              {/* Preview Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowPreview(!showPreview)}
+                className={`hidden lg:inline-flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                  showPreview 
+                    ? 'bg-emerald-100 text-emerald-700' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Eye className="w-4 h-4" />
+                {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
+              </button>
+
+              {/* Open in New Tab */}
               <a
                 href={previewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
               >
-                <Eye className="w-4 h-4" />
-                {language === 'bn' ? 'প্রিভিউ' : 'Preview'}
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink className="w-4 h-4" />
+                {language === 'bn' ? 'নতুন ট্যাব' : 'Open'}
               </a>
               
               {/* Save Button */}
@@ -433,10 +504,12 @@ export default function LandingBuilderPage() {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      {/* Main Content - Split View */}
+      <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 64px - 56px)' }}>
+        {/* Left Panel - Settings */}
+        <div className={`${showPreview ? 'w-full lg:w-1/2 xl:w-2/5' : 'w-full'} overflow-y-auto bg-gray-50 p-4 lg:p-6`}>
+          {/* Tabs */}
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2 flex-wrap">
           {[
             { id: 'template', icon: Palette, label: 'টেমপ্লেট', labelEn: 'Template' },
             { id: 'content', icon: Settings, label: 'কন্টেন্ট', labelEn: 'Content' },
@@ -475,6 +548,11 @@ export default function LandingBuilderPage() {
                 <LandingTemplateGallery
                   selectedTemplateId={templateId}
                   onSelect={setTemplateId}
+                  onPreview={(previewTemplateId) => {
+                    // Open the store preview in a new tab
+                    const previewUrl = `https://${store.subdomain}.${saasDomain}?preview=true&template=${previewTemplateId}`;
+                    window.open(previewUrl, '_blank');
+                  }}
                 />
               </div>
             )}
@@ -1302,8 +1380,52 @@ export default function LandingBuilderPage() {
                 <li>• {language === 'bn' ? 'WhatsApp বাটন ২০%+ লিড আনে' : 'WhatsApp button brings 20%+ leads'}</li>
               </ul>
             </div>
+            </div>
           </div>
         </div>
+
+        {/* Right Panel - Live Preview (Desktop only when showPreview is true) */}
+        {showPreview && (
+          <div className="hidden lg:flex lg:flex-1 bg-gray-900 flex-col">
+            {/* Preview Header */}
+            <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
+              <span className="text-gray-300 text-sm font-medium">
+                {language === 'bn' ? 'লাইভ প্রিভিউ' : 'Live Preview'}
+              </span>
+              <span className="text-gray-500 text-xs">
+                {previewDevice === 'mobile' ? '📱 375px' : '🖥️ Full'}
+              </span>
+            </div>
+            
+            {/* Preview Container */}
+            <div className="flex-1 flex items-start justify-center overflow-auto p-4">
+              <div 
+                className={`bg-white rounded-lg shadow-2xl overflow-hidden ${
+                  previewDevice === 'mobile' 
+                    ? 'w-[375px]' 
+                    : 'w-full max-w-4xl'
+                }`}
+                style={{
+                  transform: previewDevice === 'mobile' ? 'scale(0.85)' : 'scale(0.75)',
+                  transformOrigin: 'top center',
+                  maxHeight: previewDevice === 'mobile' ? '800px' : '1200px',
+                }}
+              >
+                {/* Render Template with Preview Props */}
+                <div className="overflow-hidden">
+                  <TemplateComponent 
+                    storeName={store.name}
+                    storeId={store.id}
+                    product={previewProduct as any}
+                    config={previewConfig}
+                    currency="৳"
+                    isPreview={true}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
