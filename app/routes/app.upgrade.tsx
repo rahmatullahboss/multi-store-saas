@@ -3,24 +3,29 @@
  * 
  * Route: /app/upgrade
  * 
- * MVP Version: Shows plans but payment coming soon
- * TODO: Re-enable bKash payment after MVP launch
+ * Allows users to upgrade their subscription plan with coupon code support.
+ * Currently uses WhatsApp for manual payment processing.
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { useLoaderData, Link, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import type { PlanType } from '~/utils/plans.server';
+import { validateSaasCoupon, applyCouponDiscount } from '~/utils/coupon.server';
+import { useState, useEffect } from 'react';
 import { 
   Zap, 
   Crown, 
   Check, 
   ArrowLeft,
-  MessageCircle
+  MessageCircle,
+  Ticket,
+  X,
+  Loader2
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -95,11 +100,114 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
+// ACTION - Validate Coupon
+// ============================================================================
+export async function action({ request, context }: ActionFunctionArgs) {
+  await requireUserId(request);
+  
+  const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+  
+  if (intent === 'validate_coupon') {
+    const couponCode = formData.get('couponCode') as string;
+    const planPrice = parseFloat(formData.get('planPrice') as string);
+    
+    if (!couponCode) {
+      return json({ error: 'Please enter a coupon code' }, { status: 400 });
+    }
+    
+    const result = await validateSaasCoupon(context.cloudflare.env.DB, couponCode);
+    
+    if (!result.valid) {
+      return json({ error: result.error }, { status: 400 });
+    }
+    
+    const discount = applyCouponDiscount(planPrice, result.coupon!);
+    
+    return json({
+      valid: true,
+      couponCode: result.coupon!.code,
+      discountLabel: discount.discountLabel,
+      originalPrice: discount.originalPrice,
+      discountAmount: discount.discountAmount,
+      finalPrice: discount.finalPrice,
+    });
+  }
+  
+  return json({ error: 'Invalid action' }, { status: 400 });
+}
+
+// ============================================================================
 // COMPONENT
 // ============================================================================
 export default function UpgradePage() {
   const { currentPlan } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
+  const couponFetcher = useFetcher<{
+    valid?: boolean;
+    error?: string;
+    couponCode?: string;
+    discountLabel?: string;
+    originalPrice?: number;
+    discountAmount?: number;
+    finalPrice?: number;
+  }>();
+  
+  const [couponCode, setCouponCode] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'premium' | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountLabel: string;
+    originalPrice: number;
+    discountAmount: number;
+    finalPrice: number;
+  } | null>(null);
+  
+  // Handle coupon validation response
+  useEffect(() => {
+    if (couponFetcher.data?.valid && couponFetcher.data.couponCode) {
+      setAppliedCoupon({
+        code: couponFetcher.data.couponCode,
+        discountLabel: couponFetcher.data.discountLabel!,
+        originalPrice: couponFetcher.data.originalPrice!,
+        discountAmount: couponFetcher.data.discountAmount!,
+        finalPrice: couponFetcher.data.finalPrice!,
+      });
+      setCouponCode('');
+    }
+  }, [couponFetcher.data]);
+  
+  const handleApplyCoupon = () => {
+    if (!selectedPlan || !couponCode) return;
+    
+    const planPrice = UPGRADE_PLANS[selectedPlan].price;
+    couponFetcher.submit(
+      { intent: 'validate_coupon', couponCode, planPrice: planPrice.toString() },
+      { method: 'POST' }
+    );
+  };
+  
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+  };
+  
+  const getWhatsAppLink = (planKey: 'starter' | 'premium') => {
+    const plan = UPGRADE_PLANS[planKey];
+    let message = `Hi! I want to upgrade to ${plan.name} plan`;
+    
+    if (appliedCoupon && selectedPlan === planKey) {
+      message += ` with coupon code: ${appliedCoupon.code}`;
+      message += `\n\nOriginal Price: ৳${appliedCoupon.originalPrice}`;
+      message += `\nDiscount: -৳${appliedCoupon.discountAmount} (${appliedCoupon.discountLabel})`;
+      message += `\nFinal Price: ৳${appliedCoupon.finalPrice}`;
+    } else {
+      message += ` (৳${plan.price}/month)`;
+    }
+    
+    return `https://wa.me/8801739416661?text=${encodeURIComponent(message)}`;
+  };
+  
+  const isValidating = couponFetcher.state === 'submitting';
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -134,6 +242,71 @@ export default function UpgradePage() {
         </a>
       </div>
 
+      {/* Coupon Code Section */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-xl">
+        <div className="flex items-center gap-2 mb-3">
+          <Ticket className="w-5 h-5 text-pink-600" />
+          <h3 className="font-semibold text-gray-900">
+            {lang === 'bn' ? 'কুপন কোড আছে?' : 'Have a Coupon Code?'}
+          </h3>
+        </div>
+        
+        {appliedCoupon ? (
+          <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-green-200">
+            <div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-600" />
+                <span className="font-mono font-bold text-green-700">{appliedCoupon.code}</span>
+                <span className="text-sm text-green-600">({appliedCoupon.discountLabel})</span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                {lang === 'bn' ? 'ডিসকাউন্ট প্রযোজ্য হয়েছে!' : 'Discount applied!'}
+              </p>
+            </div>
+            <button
+              onClick={removeCoupon}
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder={lang === 'bn' ? 'কুপন কোড লিখুন' : 'Enter coupon code'}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent font-mono uppercase"
+            />
+            <button
+              onClick={handleApplyCoupon}
+              disabled={!couponCode || !selectedPlan || isValidating}
+              className="px-4 py-2 bg-pink-600 hover:bg-pink-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition flex items-center gap-2"
+            >
+              {isValidating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {lang === 'bn' ? 'চেক হচ্ছে...' : 'Checking...'}
+                </>
+              ) : (
+                lang === 'bn' ? 'অ্যাপ্লাই' : 'Apply'
+              )}
+            </button>
+          </div>
+        )}
+        
+        {!selectedPlan && !appliedCoupon && (
+          <p className="text-sm text-gray-500 mt-2">
+            {lang === 'bn' ? 'প্রথমে একটি প্ল্যান সিলেক্ট করুন' : 'Select a plan first to apply coupon'}
+          </p>
+        )}
+        
+        {couponFetcher.data?.error && (
+          <p className="text-sm text-red-600 mt-2">{couponFetcher.data.error}</p>
+        )}
+      </div>
+
       {/* Plan Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {(Object.entries(UPGRADE_PLANS) as [keyof typeof UPGRADE_PLANS, typeof UPGRADE_PLANS['starter']][]).map(([key, plan]) => {
@@ -142,13 +315,26 @@ export default function UpgradePage() {
             (currentPlan === 'premium' && key === 'starter') ||
             (currentPlan === 'custom');
           const Icon = plan.icon;
+          const isSelected = selectedPlan === key;
+          
+          // Calculate price with coupon
+          const showDiscount = appliedCoupon && selectedPlan === key;
+          const displayPrice = showDiscount ? appliedCoupon.finalPrice : plan.price;
+          const originalPrice = showDiscount ? appliedCoupon.originalPrice : null;
           
           return (
             <div 
               key={key}
-              className={`relative bg-white rounded-2xl border-2 p-6 ${
-                key === 'starter' ? 'border-emerald-200' : 'border-purple-200'
-              }`}
+              onClick={() => !isCurrentPlan && !isDowngrade && setSelectedPlan(key)}
+              className={`relative bg-white rounded-2xl border-2 p-6 cursor-pointer transition-all ${
+                isSelected 
+                  ? key === 'starter' 
+                    ? 'border-emerald-500 ring-2 ring-emerald-200' 
+                    : 'border-purple-500 ring-2 ring-purple-200'
+                  : key === 'starter' 
+                    ? 'border-emerald-200 hover:border-emerald-300' 
+                    : 'border-purple-200 hover:border-purple-300'
+              } ${(isCurrentPlan || isDowngrade) ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {/* Popular Badge */}
               {key === 'starter' && (
@@ -156,6 +342,17 @@ export default function UpgradePage() {
                   <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                     Most Popular
                   </span>
+                </div>
+              )}
+              
+              {/* Selected Badge */}
+              {isSelected && !isCurrentPlan && (
+                <div className="absolute top-4 right-4">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    key === 'starter' ? 'bg-emerald-500' : 'bg-purple-500'
+                  }`}>
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
                 </div>
               )}
               
@@ -169,10 +366,22 @@ export default function UpgradePage() {
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">{plan.name}</h2>
                 <p className="text-gray-500 text-sm mt-1">{plan.description}</p>
-                <p className="text-4xl font-bold text-gray-900 mt-4">
-                  ৳{plan.price.toLocaleString()}
-                  <span className="text-base font-normal text-gray-500">/month</span>
-                </p>
+                
+                {/* Price with discount */}
+                <div className="mt-4">
+                  {originalPrice && (
+                    <p className="text-lg text-gray-400 line-through">৳{originalPrice.toLocaleString()}</p>
+                  )}
+                  <p className={`text-4xl font-bold ${showDiscount ? 'text-green-600' : 'text-gray-900'}`}>
+                    ৳{displayPrice.toLocaleString()}
+                    <span className="text-base font-normal text-gray-500">/month</span>
+                  </p>
+                  {showDiscount && (
+                    <p className="text-sm text-green-600 font-medium mt-1">
+                      🎉 {appliedCoupon.discountLabel} - Save ৳{appliedCoupon.discountAmount}!
+                    </p>
+                  )}
+                </div>
               </div>
               
               <ul className="space-y-3 mb-6">
@@ -196,7 +405,7 @@ export default function UpgradePage() {
                 </div>
               ) : (
                 <a
-                  href={`https://wa.me/8801739416661?text=Hi!%20I%20want%20to%20upgrade%20to%20${plan.name}%20plan%20(৳${plan.price}/month)`}
+                  href={getWhatsAppLink(key)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`w-full py-3 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition ${
@@ -207,6 +416,7 @@ export default function UpgradePage() {
                 >
                   <MessageCircle className="w-5 h-5" />
                   Contact to Upgrade
+                  {showDiscount && ` (৳${appliedCoupon.finalPrice})`}
                 </a>
               )}
             </div>
@@ -243,6 +453,16 @@ export default function UpgradePage() {
             <p className="mt-2 text-gray-600 text-sm">
               Your data is safe. However, if you exceed the new plan's limits, 
               you may need to remove some products or wait for the next billing cycle for orders.
+            </p>
+          </details>
+          <details className="bg-white rounded-lg border border-gray-200 p-4">
+            <summary className="font-medium text-gray-900 cursor-pointer">
+              How do coupon codes work?
+            </summary>
+            <p className="mt-2 text-gray-600 text-sm">
+              Coupon codes give you a discount on your subscription fee. Select a plan,
+              enter your coupon code, and click Apply. The discounted price will be shown
+              and included in your WhatsApp message when you contact us.
             </p>
           </details>
         </div>

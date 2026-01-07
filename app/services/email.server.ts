@@ -470,6 +470,83 @@ export function createEmailService(apiKey: string, fromEmail?: string) {
         return { success: false, error: String(err) };
       }
     },
+
+    /**
+     * Send subscription approval confirmation to store owner
+     */
+    async sendSubscriptionApprovalEmail(data: {
+      email: string;
+      storeName: string;
+      planName: string;
+      startDate: Date;
+      endDate: Date;
+    }): Promise<{ success: boolean; error?: string }> {
+      try {
+        const formatDate = (date: Date) => date.toLocaleDateString('en-BD', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+
+        const html = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">Payment Approved! 🎉</h1>
+            </div>
+            
+            <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+              <p style="font-size: 16px;">Great news!</p>
+              <p>Your payment for <strong>${data.storeName}</strong> has been approved. Your subscription is now active!</p>
+              
+              <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+                <p style="margin: 0 0 10px 0;"><strong>🎯 Plan:</strong> ${data.planName}</p>
+                <p style="margin: 0 0 10px 0;"><strong>📅 Start Date:</strong> ${formatDate(data.startDate)}</p>
+                <p style="margin: 0;"><strong>📅 End Date:</strong> ${formatDate(data.endDate)}</p>
+              </div>
+              
+              <p>You now have access to all ${data.planName} features. Start growing your business today!</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://digitalcare.site/app/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Go to Dashboard →</a>
+              </div>
+              
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+              
+              <p style="color: #6b7280; font-size: 14px;">
+                If you have any questions about your subscription, please contact our support team.
+              </p>
+            </div>
+            
+            <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px;">
+              You received this email because you purchased a subscription.
+            </p>
+          </body>
+          </html>
+        `;
+
+        const resend = await getResend();
+        const { error } = await resend.emails.send({
+          from: defaultFrom,
+          to: data.email,
+          subject: `✅ Payment Approved - ${data.planName} Plan Activated!`,
+          html,
+        });
+
+        if (error) {
+          return { success: false, error: error.message };
+        }
+
+        return { success: true };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    },
   };
 }
 

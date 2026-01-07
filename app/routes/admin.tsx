@@ -26,7 +26,10 @@ import {
   X,
   LayoutDashboard,
   Store,
-  Bell
+  Bell,
+  CreditCard,
+  Globe,
+  Ticket
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -65,6 +68,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/stores', label: 'All Stores', icon: Store },
+  { to: '/admin/domains', label: 'Domain Health', icon: Globe },
+  { to: '/admin/billing', label: 'Billing', icon: CreditCard },
+  { to: '/admin/marketing', label: 'Marketing', icon: Ticket },
   { to: '/admin/broadcasts', label: 'Broadcasts', icon: Radio },
 ];
 

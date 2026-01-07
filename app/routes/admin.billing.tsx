@@ -1,0 +1,847 @@
+/**
+ * Super Admin - Billing & Subscription Management
+ * 
+ * Route: /admin/billing
+ * 
+ * Features:
+ * - MRR metrics (Stripe + Manual combined)
+ * - Tabbed interface: Active, Pending Approvals, Expired
+ * - Payment approval with date picker modal
+ * - Confirmation emails on approval
+ */
+
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
+import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq, and, desc, ne, sql, isNotNull, lt, gte, or } from 'drizzle-orm';
+import { stores, users, activityLogs } from '@db/schema';
+import { requireSuperAdmin } from '~/services/auth.server';
+import { createEmailService } from '~/services/email.server';
+import { 
+  DollarSign, 
+  CreditCard,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Calendar,
+  Mail,
+  Phone,
+  Copy,
+  Check,
+  Store,
+  Crown,
+  Zap,
+  Gift,
+  Search,
+  X,
+  Loader2
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+export const meta: MetaFunction = () => {
+  return [{ title: 'Billing Management - Super Admin' }];
+};
+
+// Plan config for display
+const PLAN_CONFIG = {
+  free: { label: 'Free', price: 0, icon: Gift, color: 'gray' },
+  starter: { label: 'Starter', price: 500, icon: Zap, color: 'emerald' },
+  premium: { label: 'Premium', price: 2000, icon: Crown, color: 'purple' },
+} as const;
+
+// ============================================================================
+// LOADER - Fetch all subscription data
+// ============================================================================
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const db = context.cloudflare.env.DB;
+  await requireSuperAdmin(request, db);
+  
+  const drizzleDb = drizzle(db);
+  const now = new Date();
+  
+  // Fetch all paid stores with owner info
+  const allPaidStores = await drizzleDb
+    .select({
+      id: stores.id,
+      name: stores.name,
+      subdomain: stores.subdomain,
+      planType: stores.planType,
+      paymentStatus: stores.paymentStatus,
+      paymentTransactionId: stores.paymentTransactionId,
+      paymentAmount: stores.paymentAmount,
+      paymentPhone: stores.paymentPhone,
+      paymentSubmittedAt: stores.paymentSubmittedAt,
+      subscriptionPaymentMethod: stores.subscriptionPaymentMethod,
+      subscriptionStartDate: stores.subscriptionStartDate,
+      subscriptionEndDate: stores.subscriptionEndDate,
+      adminNote: stores.adminNote,
+      isActive: stores.isActive,
+      createdAt: stores.createdAt,
+      ownerId: users.id,
+      ownerEmail: users.email,
+      ownerName: users.name,
+    })
+    .from(stores)
+    .leftJoin(users, eq(users.storeId, stores.id))
+    .where(or(
+      ne(stores.planType, 'free'),
+      eq(stores.paymentStatus, 'pending_verification')
+    ))
+    .orderBy(desc(stores.createdAt));
+  
+  // Categorize subscriptions
+  const activeSubscribers = allPaidStores.filter(s => {
+    const hasValidPlan = s.planType && s.planType !== 'free';
+    const hasValidEndDate = s.subscriptionEndDate && new Date(s.subscriptionEndDate) >= now;
+    const isVerified = s.paymentStatus === 'verified' || s.paymentStatus === 'none';
+    return hasValidPlan && (hasValidEndDate || !s.subscriptionEndDate) && isVerified;
+  });
+  
+  const pendingApprovals = allPaidStores.filter(s => 
+    s.paymentStatus === 'pending_verification'
+  );
+  
+  const expiredSubscriptions = allPaidStores.filter(s => {
+    const hasValidPlan = s.planType && s.planType !== 'free';
+    const hasExpiredEndDate = s.subscriptionEndDate && new Date(s.subscriptionEndDate) < now;
+    return hasValidPlan && hasExpiredEndDate;
+  });
+  
+  // Calculate MRR
+  const calculateMRR = (subs: typeof activeSubscribers) => {
+    return subs.reduce((total, s) => {
+      const planPrice = PLAN_CONFIG[s.planType as keyof typeof PLAN_CONFIG]?.price || 0;
+      return total + planPrice;
+    }, 0);
+  };
+  
+  const manualMRR = calculateMRR(activeSubscribers.filter(s => s.subscriptionPaymentMethod === 'manual'));
+  const stripeMRR = calculateMRR(activeSubscribers.filter(s => s.subscriptionPaymentMethod === 'stripe'));
+  const totalMRR = manualMRR + stripeMRR;
+  
+  return json({
+    activeSubscribers,
+    pendingApprovals,
+    expiredSubscriptions,
+    metrics: {
+      totalMRR,
+      manualMRR,
+      stripeMRR,
+      activeCount: activeSubscribers.length,
+      pendingCount: pendingApprovals.length,
+      expiredCount: expiredSubscriptions.length,
+    },
+  });
+}
+
+// ============================================================================
+// ACTION - Handle payment approvals and rejections
+// ============================================================================
+export async function action({ request, context }: ActionFunctionArgs) {
+  const db = context.cloudflare.env.DB;
+  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, db);
+  
+  const formData = await request.formData();
+  const intent = formData.get('intent');
+  const storeId = Number(formData.get('storeId'));
+  
+  const drizzleDb = drizzle(db);
+  
+  // Get store and owner info
+  const storeResult = await drizzleDb
+    .select({
+      name: stores.name,
+      planType: stores.planType,
+      paymentAmount: stores.paymentAmount,
+    })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+  
+  if (!storeResult[0]) {
+    return json({ error: 'Store not found' }, { status: 404 });
+  }
+  
+  const ownerResult = await drizzleDb
+    .select({ email: users.email, name: users.name })
+    .from(users)
+    .where(eq(users.storeId, storeId))
+    .limit(1);
+  
+  // ============ APPROVE PAYMENT ============
+  if (intent === 'approve') {
+    const startDateStr = formData.get('startDate') as string;
+    const endDateStr = formData.get('endDate') as string;
+    const planType = formData.get('planType') as string;
+    const adminNote = formData.get('adminNote') as string;
+    
+    if (!startDateStr || !endDateStr) {
+      return json({ error: 'Start and end dates are required' }, { status: 400 });
+    }
+    
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    
+    if (endDate <= startDate) {
+      return json({ error: 'End date must be after start date' }, { status: 400 });
+    }
+    
+    // Update store
+    await drizzleDb
+      .update(stores)
+      .set({
+        planType: (planType as 'starter' | 'premium') || storeResult[0].planType,
+        paymentStatus: 'verified',
+        subscriptionPaymentMethod: 'manual',
+        subscriptionStartDate: startDate,
+        subscriptionEndDate: endDate,
+        adminNote: adminNote || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+    
+    // Log the action
+    await drizzleDb.insert(activityLogs).values({
+      storeId: storeId,
+      userId: adminId,
+      action: 'subscription_approved',
+      entityType: 'subscription',
+      entityId: storeId,
+      details: JSON.stringify({
+        adminEmail,
+        planType: planType || storeResult[0].planType,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        adminNote,
+      }),
+    });
+    
+    // Send confirmation email
+    if (ownerResult[0]?.email && context.cloudflare.env.RESEND_API_KEY) {
+      try {
+        const emailService = createEmailService(context.cloudflare.env.RESEND_API_KEY);
+        const planLabel = PLAN_CONFIG[(planType as keyof typeof PLAN_CONFIG) || storeResult[0].planType as keyof typeof PLAN_CONFIG]?.label || 'Paid';
+        
+        await emailService.sendSubscriptionApprovalEmail({
+          email: ownerResult[0].email,
+          storeName: storeResult[0].name,
+          planName: planLabel,
+          startDate,
+          endDate,
+        });
+      } catch (emailError) {
+        console.error('Failed to send approval email:', emailError);
+        // Don't fail the request if email fails
+      }
+    }
+    
+    return json({ success: true, action: 'approved' });
+  }
+  
+  // ============ REJECT PAYMENT ============
+  if (intent === 'reject') {
+    const adminNote = formData.get('adminNote') as string;
+    
+    await drizzleDb
+      .update(stores)
+      .set({
+        paymentStatus: 'rejected',
+        adminNote: adminNote || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+    
+    // Log the action
+    await drizzleDb.insert(activityLogs).values({
+      storeId: storeId,
+      userId: adminId,
+      action: 'subscription_rejected',
+      entityType: 'subscription',
+      entityId: storeId,
+      details: JSON.stringify({ adminEmail, adminNote }),
+    });
+    
+    return json({ success: true, action: 'rejected' });
+  }
+  
+  // ============ EXTEND SUBSCRIPTION ============
+  if (intent === 'extend') {
+    const endDateStr = formData.get('endDate') as string;
+    const adminNote = formData.get('adminNote') as string;
+    
+    if (!endDateStr) {
+      return json({ error: 'End date is required' }, { status: 400 });
+    }
+    
+    await drizzleDb
+      .update(stores)
+      .set({
+        subscriptionEndDate: new Date(endDateStr),
+        adminNote: adminNote || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+    
+    // Log the action
+    await drizzleDb.insert(activityLogs).values({
+      storeId: storeId,
+      userId: adminId,
+      action: 'subscription_extended',
+      entityType: 'subscription',
+      entityId: storeId,
+      details: JSON.stringify({ adminEmail, newEndDate: endDateStr, adminNote }),
+    });
+    
+    return json({ success: true, action: 'extended' });
+  }
+  
+  return json({ error: 'Invalid action' }, { status: 400 });
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+export default function AdminBilling() {
+  const { activeSubscribers, pendingApprovals, expiredSubscriptions, metrics } = useLoaderData<typeof loader>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<typeof pendingApprovals[0] | null>(null);
+  const fetcher = useFetcher();
+  
+  const activeTab = searchParams.get('tab') || 'active';
+  
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab });
+  };
+  
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(text);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+  
+  const openApprovalModal = (store: typeof pendingApprovals[0]) => {
+    setSelectedStore(store);
+    setApprovalModalOpen(true);
+  };
+  
+  // Close modal on successful action
+  useEffect(() => {
+    if (fetcher.data && typeof fetcher.data === 'object' && 'success' in fetcher.data && (fetcher.data as { success: boolean }).success) {
+      setApprovalModalOpen(false);
+      setSelectedStore(null);
+    }
+  }, [fetcher.data]);
+  
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('en-BD', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+  
+  const formatCurrency = (amount: number) => {
+    return `৳${amount.toLocaleString('en-BD')}`;
+  };
+  
+  // Get today's date in YYYY-MM-DD format for date inputs
+  const getTodayString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+  
+  const getNextMonthString = () => {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    return nextMonth.toISOString().split('T')[0];
+  };
+  
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">Billing Management</h1>
+        <p className="text-slate-400">Manage subscriptions and approve manual payments</p>
+      </div>
+      
+      {/* MRR Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total MRR */}
+        <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/30 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-emerald-400" />
+            </div>
+            <span className="text-sm font-medium text-emerald-400">Total MRR</span>
+          </div>
+          <p className="text-3xl font-bold text-white">{formatCurrency(metrics.totalMRR)}</p>
+          <p className="text-xs text-slate-400 mt-1">Monthly Recurring Revenue</p>
+        </div>
+        
+        {/* Manual Revenue */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-blue-400" />
+            </div>
+            <span className="text-sm font-medium text-slate-400">Manual (bKash/Nagad)</span>
+          </div>
+          <p className="text-2xl font-bold text-white">{formatCurrency(metrics.manualMRR)}</p>
+          <p className="text-xs text-slate-500 mt-1">{Math.round((metrics.manualMRR / (metrics.totalMRR || 1)) * 100)}% of total</p>
+        </div>
+        
+        {/* Active Subscribers */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-purple-400" />
+            </div>
+            <span className="text-sm font-medium text-slate-400">Active Subscribers</span>
+          </div>
+          <p className="text-2xl font-bold text-white">{metrics.activeCount}</p>
+          <p className="text-xs text-slate-500 mt-1">Paid stores</p>
+        </div>
+        
+        {/* Pending Approvals */}
+        <div className={`rounded-xl p-5 ${metrics.pendingCount > 0 ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-slate-900 border border-slate-800'}`}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${metrics.pendingCount > 0 ? 'bg-amber-500/20' : 'bg-slate-800'}`}>
+              <Clock className={`w-5 h-5 ${metrics.pendingCount > 0 ? 'text-amber-400' : 'text-slate-500'}`} />
+            </div>
+            <span className={`text-sm font-medium ${metrics.pendingCount > 0 ? 'text-amber-400' : 'text-slate-400'}`}>Pending Approvals</span>
+          </div>
+          <p className={`text-2xl font-bold ${metrics.pendingCount > 0 ? 'text-amber-400' : 'text-white'}`}>{metrics.pendingCount}</p>
+          <p className="text-xs text-slate-500 mt-1">Awaiting verification</p>
+        </div>
+      </div>
+      
+      {/* Tabs */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div className="border-b border-slate-800">
+          <nav className="flex">
+            {[
+              { id: 'active', label: 'Active Subscribers', count: metrics.activeCount },
+              { id: 'pending', label: 'Pending Approvals', count: metrics.pendingCount },
+              { id: 'expired', label: 'Expired', count: metrics.expiredCount },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`px-6 py-4 text-sm font-medium transition relative ${
+                  activeTab === tab.id
+                    ? 'text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    activeTab === tab.id
+                      ? tab.id === 'pending' 
+                        ? 'bg-amber-500/20 text-amber-400'
+                        : 'bg-red-500/20 text-red-400'
+                      : 'bg-slate-700 text-slate-300'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500" />
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+        
+        {/* Table Content */}
+        <div className="p-4">
+          {/* Active Subscribers Tab */}
+          {activeTab === 'active' && (
+            <SubscriptionTable
+              data={activeSubscribers}
+              type="active"
+              formatDate={formatDate}
+              formatCurrency={formatCurrency}
+              copyToClipboard={copyToClipboard}
+              copiedId={copiedId}
+            />
+          )}
+          
+          {/* Pending Approvals Tab */}
+          {activeTab === 'pending' && (
+            <div>
+              {pendingApprovals.length === 0 ? (
+                <div className="text-center py-12">
+                  <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+                  <p className="text-slate-400">No pending approvals</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-800">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Store</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Owner</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Plan</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Transaction</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Amount</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Submitted</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {pendingApprovals.map((store) => (
+                        <tr key={store.id} className="hover:bg-slate-800/50 transition">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                                <Store className="w-5 h-5 text-amber-400" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-white">{store.name}</p>
+                                <p className="text-xs text-slate-500">{store.subdomain}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-slate-500" />
+                              <span className="text-sm text-slate-300">{store.ownerEmail || 'N/A'}</span>
+                            </div>
+                            {store.paymentPhone && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <Phone className="w-3 h-3 text-slate-500" />
+                                <span className="text-xs text-slate-400">{store.paymentPhone}</span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-4">
+                            <PlanBadge plan={store.planType || 'starter'} />
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-2">
+                              <code className="text-xs bg-slate-800 px-2 py-1 rounded font-mono text-amber-400">
+                                {store.paymentTransactionId || 'N/A'}
+                              </code>
+                              <button
+                                onClick={() => copyToClipboard(store.paymentTransactionId || '')}
+                                className="p-1 hover:bg-slate-700 rounded transition"
+                              >
+                                {copiedId === store.paymentTransactionId ? (
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                ) : (
+                                  <Copy className="w-3 h-3 text-slate-400" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className="font-medium text-white">{formatCurrency(store.paymentAmount || 0)}</span>
+                          </td>
+                          <td className="px-4 py-4 text-sm text-slate-400">
+                            {formatDate(store.paymentSubmittedAt)}
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => openApprovalModal(store)}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1"
+                              >
+                                <CheckCircle className="w-3 h-3" />
+                                Approve
+                              </button>
+                              <fetcher.Form method="post">
+                                <input type="hidden" name="intent" value="reject" />
+                                <input type="hidden" name="storeId" value={store.id} />
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs font-medium rounded-lg transition flex items-center gap-1"
+                                >
+                                  <XCircle className="w-3 h-3" />
+                                  Reject
+                                </button>
+                              </fetcher.Form>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Expired Tab */}
+          {activeTab === 'expired' && (
+            <SubscriptionTable
+              data={expiredSubscriptions}
+              type="expired"
+              formatDate={formatDate}
+              formatCurrency={formatCurrency}
+              copyToClipboard={copyToClipboard}
+              copiedId={copiedId}
+            />
+          )}
+        </div>
+      </div>
+      
+      {/* Approval Modal */}
+      {approvalModalOpen && selectedStore && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl max-w-md w-full">
+            <div className="p-6 border-b border-slate-800">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-white">Approve Payment</h3>
+                <button
+                  onClick={() => setApprovalModalOpen(false)}
+                  className="p-1 hover:bg-slate-800 rounded transition"
+                >
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+            </div>
+            
+            <fetcher.Form method="post" className="p-6 space-y-4">
+              <input type="hidden" name="intent" value="approve" />
+              <input type="hidden" name="storeId" value={selectedStore.id} />
+              
+              {/* Store Info */}
+              <div className="bg-slate-800/50 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <Store className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">{selectedStore.name}</p>
+                    <p className="text-sm text-slate-400">{selectedStore.ownerEmail}</p>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-700 flex justify-between text-sm">
+                  <span className="text-slate-400">Transaction ID:</span>
+                  <code className="text-amber-400">{selectedStore.paymentTransactionId}</code>
+                </div>
+                <div className="mt-2 flex justify-between text-sm">
+                  <span className="text-slate-400">Amount:</span>
+                  <span className="text-white font-medium">{formatCurrency(selectedStore.paymentAmount || 0)}</span>
+                </div>
+              </div>
+              
+              {/* Plan Selection */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Plan</label>
+                <select
+                  name="planType"
+                  defaultValue={selectedStore.planType || 'starter'}
+                  className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                >
+                  <option value="starter">Starter (৳500/mo)</option>
+                  <option value="premium">Premium (৳2,000/mo)</option>
+                </select>
+              </div>
+              
+              {/* Date Inputs */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Start Date</label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    defaultValue={getTodayString()}
+                    required
+                    className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">End Date</label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    defaultValue={getNextMonthString()}
+                    required
+                    className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                  />
+                </div>
+              </div>
+              
+              {/* Admin Note */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Admin Note (optional)</label>
+                <textarea
+                  name="adminNote"
+                  rows={2}
+                  placeholder="Any internal notes about this subscription..."
+                  className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+                />
+              </div>
+              
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setApprovalModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={fetcher.state === 'submitting'}
+                  className="flex-1 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {fetcher.state === 'submitting' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Approving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      Approve & Activate
+                    </>
+                  )}
+                </button>
+              </div>
+            </fetcher.Form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// HELPER COMPONENTS
+// ============================================================================
+
+function PlanBadge({ plan }: { plan: string }) {
+  const config = PLAN_CONFIG[plan as keyof typeof PLAN_CONFIG];
+  if (!config) return <span className="text-slate-400">{plan}</span>;
+  
+  const Icon = config.icon;
+  const colorClasses = {
+    gray: 'bg-slate-700 text-slate-300',
+    emerald: 'bg-emerald-500/20 text-emerald-400',
+    purple: 'bg-purple-500/20 text-purple-400',
+  }[config.color];
+  
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${colorClasses}`}>
+      <Icon className="w-3 h-3" />
+      {config.label}
+    </span>
+  );
+}
+
+function SubscriptionTable({
+  data,
+  type,
+  formatDate,
+  formatCurrency,
+  copyToClipboard,
+  copiedId,
+}: {
+  data: Array<any>;
+  type: 'active' | 'expired';
+  formatDate: (date: Date | string | null) => string;
+  formatCurrency: (amount: number) => string;
+  copyToClipboard: (text: string) => void;
+  copiedId: string | null;
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="text-center py-12">
+        {type === 'active' ? (
+          <>
+            <TrendingUp className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+            <p className="text-slate-400">No active subscribers yet</p>
+          </>
+        ) : (
+          <>
+            <CheckCircle className="w-12 h-12 text-emerald-500/50 mx-auto mb-3" />
+            <p className="text-slate-400">No expired subscriptions</p>
+          </>
+        )}
+      </div>
+    );
+  }
+  
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-slate-800">
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Store</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Owner</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Plan</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Payment Method</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Subscription Period</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-800">
+          {data.map((store) => (
+            <tr key={store.id} className="hover:bg-slate-800/50 transition">
+              <td className="px-4 py-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    type === 'active' ? 'bg-emerald-500/20' : 'bg-slate-700'
+                  }`}>
+                    <Store className={`w-5 h-5 ${type === 'active' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">{store.name}</p>
+                    <p className="text-xs text-slate-500">{store.subdomain}</p>
+                  </div>
+                </div>
+              </td>
+              <td className="px-4 py-4">
+                <p className="text-sm text-slate-300">{store.ownerEmail || 'N/A'}</p>
+                <p className="text-xs text-slate-500">{store.ownerName || ''}</p>
+              </td>
+              <td className="px-4 py-4">
+                <PlanBadge plan={store.planType || 'free'} />
+              </td>
+              <td className="px-4 py-4">
+                <span className={`inline-flex items-center gap-1.5 text-sm ${
+                  store.subscriptionPaymentMethod === 'manual' ? 'text-blue-400' : 'text-slate-300'
+                }`}>
+                  <CreditCard className="w-4 h-4" />
+                  {store.subscriptionPaymentMethod === 'manual' ? 'bKash/Nagad' : store.subscriptionPaymentMethod || 'N/A'}
+                </span>
+              </td>
+              <td className="px-4 py-4">
+                <div className="text-sm">
+                  <span className="text-slate-300">{formatDate(store.subscriptionStartDate)}</span>
+                  <span className="text-slate-500 mx-2">→</span>
+                  <span className={type === 'expired' ? 'text-red-400' : 'text-slate-300'}>
+                    {formatDate(store.subscriptionEndDate)}
+                  </span>
+                </div>
+              </td>
+              <td className="px-4 py-4">
+                {type === 'active' ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-emerald-400">
+                    <CheckCircle className="w-4 h-4" />
+                    Active
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-red-400">
+                    <XCircle className="w-4 h-4" />
+                    Expired
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

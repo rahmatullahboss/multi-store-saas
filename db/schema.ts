@@ -90,6 +90,12 @@ export const stores = sqliteTable('stores', {
   paymentAmount: real('payment_amount'), // Amount paid in BDT
   paymentPhone: text('payment_phone'), // Phone number used for payment
   
+  // === SUBSCRIPTION BILLING (Super Admin Manual Approval) ===
+  subscriptionPaymentMethod: text('subscription_payment_method').$type<'stripe' | 'manual'>(),
+  subscriptionStartDate: integer('subscription_start_date', { mode: 'timestamp' }),
+  subscriptionEndDate: integer('subscription_end_date', { mode: 'timestamp' }),
+  adminNote: text('admin_note'), // Super Admin notes for the subscription
+  
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
@@ -647,6 +653,23 @@ export const systemNotifications = sqliteTable('system_notifications', {
 });
 
 // ============================================================================
+// SAAS COUPONS TABLE - Platform-level subscription coupons
+// ============================================================================
+export const saasCoupons = sqliteTable('saas_coupons', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  code: text('code').notNull().unique(), // e.g., "START50", "LAUNCH20"
+  discountType: text('discount_type').$type<'percentage' | 'fixed'>().notNull(),
+  discountAmount: real('discount_amount').notNull(), // 50 for 50% or 500 for ৳500 off
+  maxUses: integer('max_uses'), // null = unlimited
+  usedCount: integer('used_count').default(0),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('saas_coupons_code_idx').on(table.code),
+]);
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -687,3 +710,5 @@ export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
 export type SystemNotification = typeof systemNotifications.$inferSelect;
 export type NewSystemNotification = typeof systemNotifications.$inferInsert;
+export type SaasCoupon = typeof saasCoupons.$inferSelect;
+export type NewSaasCoupon = typeof saasCoupons.$inferInsert;
