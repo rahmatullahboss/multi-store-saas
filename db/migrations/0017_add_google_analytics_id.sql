@@ -1,0 +1,1 @@
+ALTER TABLE `stores` ADD `google_analytics_id` text;

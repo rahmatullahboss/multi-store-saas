@@ -26,7 +26,7 @@ import {
   Image,
   Upload,
   AlertCircle,
-  Facebook
+  BarChart3
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
@@ -62,7 +62,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       subdomain: stores.subdomain,
       customDomain: stores.customDomain,
       themeConfig: stores.themeConfig,
-      facebookPixelId: stores.facebookPixelId,
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -87,7 +86,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       name: store.name,
       subdomain: store.subdomain,
       customDomain: store.customDomain,
-      facebookPixelId: store.facebookPixelId || '',
     },
     seoConfig,
   });
@@ -107,7 +105,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const metaDescription = formData.get('metaDescription') as string;
   const ogImage = formData.get('ogImage') as string;
   const keywords = formData.get('keywords') as string;
-  const facebookPixelId = formData.get('facebookPixelId') as string;
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -139,7 +136,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .update(stores)
     .set({
       themeConfig: JSON.stringify(themeConfig),
-      facebookPixelId: facebookPixelId?.trim() || null,
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
@@ -406,34 +402,24 @@ export default function SeoSettingsPage() {
           </div>
         </div>
 
-        {/* Facebook Pixel Tracking */}
+        {/* Tracking & Analytics Link */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Facebook className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Facebook Pixel</h2>
-              <p className="text-sm text-gray-500">Track conversions and retarget visitors</p>
+              <h2 className="text-lg font-semibold text-gray-900">Tracking & Analytics</h2>
+              <p className="text-sm text-gray-500">Facebook Pixel & Google Analytics</p>
             </div>
           </div>
-
-          <div>
-            <label htmlFor="facebookPixelId" className="block text-sm font-medium text-gray-700 mb-1">
-              Pixel ID
-            </label>
-            <input
-              type="text"
-              id="facebookPixelId"
-              name="facebookPixelId"
-              defaultValue={store.facebookPixelId}
-              placeholder="e.g., 123456789012345"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              Find your Pixel ID in <a href="https://business.facebook.com/events_manager" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Facebook Events Manager</a> → Data Sources → Your Pixel
-            </p>
-          </div>
+          <Link
+            to="/app/settings/tracking"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+          >
+            Configure Tracking
+            <ArrowLeft className="w-4 h-4 rotate-180" />
+          </Link>
         </div>
 
         {/* SEO Tips */}

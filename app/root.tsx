@@ -13,7 +13,7 @@ import { json } from '@remix-run/cloudflare';
 import './styles/tailwind.css';
 import { GeneralError } from '~/components/GeneralError';
 import { LanguageProvider } from '~/contexts/LanguageContext';
-import { getPixelInitScript } from '~/utils/pixel';
+import { getFacebookPixelInitScript, getGA4InitScript, getGA4ScriptUrl } from '~/utils/tracking';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -30,6 +30,8 @@ export const links: LinksFunction = () => [
  * 
  * On main domain (digitalcare.site), store will be null.
  * This is expected for auth pages and marketing landing.
+ * 
+ * Tracking IDs are loaded per-store for data isolation.
  */
 export async function loader({ context }: LoaderFunctionArgs) {
   // The tenant middleware has already resolved the store
@@ -44,7 +46,9 @@ export async function loader({ context }: LoaderFunctionArgs) {
       logo: store?.logo || null,
       theme: store?.theme || 'default',
       currency: store?.currency || 'BDT',
+      // Tracking IDs - each store has their own (data isolation)
       facebookPixelId: store?.facebookPixelId || null,
+      googleAnalyticsId: store?.googleAnalyticsId || null,
     },
     isCustomDomain: isCustomDomain || false,
     isMainDomain: !store || storeId === 0,
@@ -62,11 +66,37 @@ export default function App() {
         <Meta />
         <Links />
         <title>{store.name}</title>
+        
+        {/* Google Analytics 4 - Load gtag.js library */}
+        {store.googleAnalyticsId && (
+          <script async src={getGA4ScriptUrl(store.googleAnalyticsId)} />
+        )}
+        
+        {/* Google Analytics 4 - Initialize */}
+        {store.googleAnalyticsId && (
+          <script
+            dangerouslySetInnerHTML={{ __html: getGA4InitScript(store.googleAnalyticsId) }}
+          />
+        )}
+        
         {/* Facebook Pixel - Conversion Tracking */}
         {store.facebookPixelId && (
           <script
-            dangerouslySetInnerHTML={{ __html: getPixelInitScript(store.facebookPixelId) }}
+            dangerouslySetInnerHTML={{ __html: getFacebookPixelInitScript(store.facebookPixelId) }}
           />
+        )}
+        
+        {/* Facebook Pixel - Noscript Fallback */}
+        {store.facebookPixelId && (
+          <noscript>
+            <img 
+              height="1" 
+              width="1" 
+              style={{ display: 'none' }}
+              src={`https://www.facebook.com/tr?id=${store.facebookPixelId}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          </noscript>
         )}
       </head>
       <body className="h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>

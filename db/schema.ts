@@ -73,6 +73,9 @@ export const stores = sqliteTable('stores', {
   // === FACEBOOK PIXEL TRACKING ===
   facebookPixelId: text('facebook_pixel_id'), // e.g., "123456789012345"
   
+  // === GOOGLE ANALYTICS TRACKING ===
+  googleAnalyticsId: text('google_analytics_id'), // GA4 Measurement ID (e.g., "G-XXXXXXXXXX")
+
   // === COURIER SETTINGS ===
   courierSettings: text('courier_settings'), // JSON: { provider, pathao?, redx?, steadfast?, isConnected }
   
