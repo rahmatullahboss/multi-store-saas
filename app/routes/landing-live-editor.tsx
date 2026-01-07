@@ -394,6 +394,40 @@ export default function LiveEditorPage() {
     desktop: 1200,
   };
 
+  // Device height mapping (for iframe)
+  const deviceHeights = {
+    mobile: 667,
+    tablet: 1024,
+    desktop: 800,
+  };
+
+  // Iframe ref for postMessage communication
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [iframeReady, setIframeReady] = useState(false);
+
+  // Listen for iframe ready signal
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'PREVIEW_FRAME_READY') {
+        setIframeReady(true);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Send config updates to iframe whenever config changes
+  useEffect(() => {
+    if (iframeReady && iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'PREVIEW_CONFIG_UPDATE',
+        config: previewConfig,
+        templateId,
+        featuredProductId,
+      }, '*');
+    }
+  }, [iframeReady, previewConfig, templateId, featuredProductId]);
+
   return (
     <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
       {/* Header */}
@@ -1073,40 +1107,36 @@ export default function LiveEditorPage() {
             </span>
           </div>
           
-          {/* Preview Container */}
+          {/* Preview Container - Using iframe for true responsive preview */}
           <div className="flex-1 flex items-start justify-center overflow-auto p-2 md:p-4">
             {/* 
-              Mobile/Tablet Preview Technique:
-              - Render template at device width
-              - Use CSS width to force responsive breakpoints
-              - Container clips the overflow
+              Iframe-based preview:
+              - Iframe has its own viewport, so CSS media queries work correctly
+              - postMessage API sends config updates for live editing
             */}
             <div 
               className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
               style={{
                 width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
                 maxWidth: previewDevice === 'desktop' ? '1200px' : undefined,
+                height: previewDevice === 'mobile' ? '667px' : previewDevice === 'tablet' ? '1024px' : 'calc(100vh - 180px)',
               }}
             >
-              {/* Inner wrapper with fixed width forces CSS breakpoints */}
-              <div 
-                className="overflow-y-auto overflow-x-hidden"
-                style={{
-                  width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
-                  maxHeight: previewDevice === 'mobile' ? '667px' : previewDevice === 'tablet' ? '1024px' : '80vh',
-                }}
-              >
-                <div style={{ width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%' }}>
-                  <TemplateComponent 
-                    storeName={store.name}
-                    storeId={store.id}
-                    product={previewProduct as any}
-                    config={previewConfig}
-                    currency="৳"
-                    isPreview={true}
-                  />
+              <iframe
+                ref={iframeRef}
+                src="/preview-frame"
+                className="w-full h-full border-0"
+                title="Live Preview"
+              />
+              {/* Loading overlay while iframe initializes */}
+              {!iframeReady && (
+                <div className="absolute inset-0 bg-white flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">Loading preview...</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </main>
