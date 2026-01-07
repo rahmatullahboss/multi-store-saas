@@ -10,7 +10,7 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
+import { Form, useLoaderData, useActionData, useNavigation, Link, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
@@ -19,8 +19,11 @@ import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
-  TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles
+  TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
+  Upload, X, Image as ImageIcon
 } from 'lucide-react';
+import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
+import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { 
@@ -290,6 +293,24 @@ export default function LiveEditorPage() {
   // Accordion state
   const [openSection, setOpenSection] = useState<string>('template');
 
+  // ============================================================================
+  // IMAGE UPLOAD STATE FOR TESTIMONIALS
+  // ============================================================================
+  // Track original testimonial images (from database) for cleanup comparison
+  const [originalTestimonialImages] = useState<string[]>(() => 
+    (store.landingConfig.testimonials || []).map((t: {imageUrl?: string}) => t.imageUrl).filter(Boolean) as string[]
+  );
+  
+  // Track newly uploaded images (for cleanup on abandon)
+  const [pendingUploads, setPendingUploads] = useState<string[]>([]);
+  
+  // Track which testimonial index is currently uploading
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  
+  // Image upload fetcher
+  const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
+
+
   // Track unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
   const initialLoadRef = useRef(true);
@@ -338,6 +359,114 @@ export default function LiveEditorPage() {
     setValidationErrors(errors);
     return errors.length === 0;
   }, [storeMode, featuredProductId, headline, language]);
+
+  // ============================================================================
+  // IMAGE UPLOAD HANDLERS FOR TESTIMONIALS
+  // ============================================================================
+  
+  // Handle testimonial image upload
+  const handleTestimonialImageUpload = useCallback(async (file: File, index: number) => {
+    setUploadingIndex(index);
+    
+    // Compress image before upload
+    let fileToUpload: File | Blob = file;
+    try {
+      const format = getOptimalFormat();
+      const compressedBlob = await compressImage(file, {
+        maxWidth: 800,
+        maxHeight: 600,
+        quality: 0.8,
+        format,
+      });
+      fileToUpload = new File([compressedBlob], `testimonial.${format}`, { type: `image/${format}` });
+      console.log(`Testimonial image compressed: ${file.size} -> ${compressedBlob.size} bytes`);
+    } catch (error) {
+      console.warn('Image compression failed, uploading original:', error);
+    }
+
+    // Upload to R2
+    const formData = new FormData();
+    formData.append('file', fileToUpload);
+    formData.append('folder', 'testimonials');
+
+    imageFetcher.submit(formData, {
+      method: 'post',
+      action: '/api/upload-image',
+      encType: 'multipart/form-data',
+    });
+  }, [imageFetcher]);
+
+  // Handle fetcher response for image upload
+  useEffect(() => {
+    if (imageFetcher.data?.success && imageFetcher.data?.url && uploadingIndex !== null) {
+      const url = imageFetcher.data.url;
+      
+      // Update testimonial with new image URL
+      const newTestimonials = [...testimonials];
+      if (newTestimonials[uploadingIndex]) {
+        // If replacing an existing uploaded image (not original), delete the old one
+        const oldUrl = newTestimonials[uploadingIndex].imageUrl;
+        if (oldUrl && pendingUploads.includes(oldUrl)) {
+          deleteOrphanedImage(oldUrl);
+          setPendingUploads(prev => prev.filter(u => u !== oldUrl));
+        }
+        
+        newTestimonials[uploadingIndex].imageUrl = url;
+        setTestimonials(newTestimonials);
+      }
+      
+      // Track this upload for potential cleanup
+      setPendingUploads(prev => [...prev, url]);
+      setUploadingIndex(null);
+    } else if (imageFetcher.data?.error) {
+      setUploadingIndex(null);
+    }
+  }, [imageFetcher.data, uploadingIndex, testimonials, pendingUploads]);
+
+  // Handle removing a testimonial image
+  const handleRemoveTestimonialImage = useCallback((index: number) => {
+    const url = testimonials[index]?.imageUrl;
+    if (url) {
+      // If it's a newly uploaded image (not from original), delete from R2
+      if (pendingUploads.includes(url)) {
+        deleteOrphanedImage(url);
+        setPendingUploads(prev => prev.filter(u => u !== url));
+      }
+      
+      // Clear the image URL
+      const newTestimonials = [...testimonials];
+      newTestimonials[index].imageUrl = '';
+      setTestimonials(newTestimonials);
+    }
+  }, [testimonials, pendingUploads]);
+
+  // Cleanup orphaned images when leaving without saving
+  const handleAbandonCleanup = useCallback(() => {
+    // Delete all pending uploads that are not in originalTestimonialImages
+    pendingUploads.forEach(url => {
+      if (!originalTestimonialImages.includes(url)) {
+        deleteOrphanedImage(url);
+      }
+    });
+  }, [pendingUploads, originalTestimonialImages]);
+
+  // Cleanup on page unload
+  useEffect(() => {
+    const handleUnload = () => {
+      if (hasChanges && pendingUploads.length > 0) {
+        handleAbandonCleanup();
+      }
+    };
+    window.addEventListener('unload', handleUnload);
+    return () => window.removeEventListener('unload', handleUnload);
+  }, [hasChanges, pendingUploads, handleAbandonCleanup]);
+
+  // Clear pending uploads on successful save
+  useEffect(() => {
+    if (actionData && 'success' in actionData && actionData.success) {
+      setPendingUploads([]);
+    }
+  }, [actionData]);
 
   // Preview URL
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
@@ -999,32 +1128,87 @@ export default function LiveEditorPage() {
             <div className="space-y-3">
               <p className="text-xs text-gray-500">
                 {language === 'bn' 
-                  ? 'স্ক্রিনশট আপলোড করুন (প্রস্তাবিত সাইজ: 400x300px)'
-                  : 'Upload screenshots (Recommended: 400x300px)'}
+                  ? 'স্ক্রিনশট আপলোড করুন (প্রস্তাবিত সাইজ: 400x300px, সর্বোচ্চ 5MB)'
+                  : 'Upload screenshots (Recommended: 400x300px, Max 5MB)'}
               </p>
               {testimonials.map((item, index) => (
                 <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2">
-                  <input
-                    type="text"
-                    value={item.imageUrl || ''}
-                    onChange={(e) => {
-                      const newTestimonials = [...testimonials];
-                      newTestimonials[index].imageUrl = e.target.value;
-                      setTestimonials(newTestimonials);
-                    }}
-                    placeholder="Image URL"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                  {item.imageUrl && (
-                    <img 
-                      src={item.imageUrl} 
-                      alt="Preview" 
-                      className="w-full h-20 object-cover rounded-lg"
-                    />
+                  {/* Image Upload/Preview Area */}
+                  {item.imageUrl ? (
+                    // Show uploaded image with remove button
+                    <div className="relative">
+                      <img 
+                        src={item.imageUrl} 
+                        alt="Review screenshot" 
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTestimonialImage(index)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-sm"
+                        title={language === 'bn' ? 'ছবি মুছুন' : 'Remove image'}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    // Upload zone
+                    <label className="block cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleTestimonialImageUpload(file, index);
+                          }
+                          e.target.value = ''; // Reset for re-upload
+                        }}
+                        disabled={uploadingIndex === index}
+                      />
+                      <div className={`border-2 border-dashed rounded-lg p-4 text-center transition ${
+                        uploadingIndex === index 
+                          ? 'border-emerald-400 bg-emerald-50' 
+                          : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50/50'
+                      }`}>
+                        {uploadingIndex === index ? (
+                          <>
+                            <Loader2 className="w-6 h-6 text-emerald-500 mx-auto mb-2 animate-spin" />
+                            <p className="text-xs text-emerald-600">
+                              {language === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...'}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                            <p className="text-xs text-gray-600">
+                              {language === 'bn' ? 'ক্লিক করে আপলোড করুন' : 'Click to upload'}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </label>
                   )}
+                  
+                  {/* Error message */}
+                  {imageFetcher.data?.error && uploadingIndex === index && (
+                    <p className="text-xs text-red-500">{imageFetcher.data.error}</p>
+                  )}
+                  
+                  {/* Remove testimonial button */}
                   <button
                     type="button"
-                    onClick={() => setTestimonials(testimonials.filter((_, i) => i !== index))}
+                    onClick={() => {
+                      // If it has an uploaded image, clean it up
+                      const url = testimonials[index]?.imageUrl;
+                      if (url && pendingUploads.includes(url)) {
+                        deleteOrphanedImage(url);
+                        setPendingUploads(prev => prev.filter(u => u !== url));
+                      }
+                      // Remove the testimonial
+                      setTestimonials(testimonials.filter((_, i) => i !== index));
+                    }}
                     className="text-red-500 hover:text-red-600 text-xs flex items-center gap-1"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -1042,6 +1226,7 @@ export default function LiveEditorPage() {
               </button>
             </div>
           </AccordionSection>
+
 
           {/* Mode Section */}
           <AccordionSection
