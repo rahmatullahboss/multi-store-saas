@@ -64,6 +64,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       subdomain: store.subdomain,
       customDomain: store.customDomain,
       currency: store.currency,
+      defaultLanguage: store.defaultLanguage || 'en',
       mode: store.mode || 'landing',
       planType,
       theme: store.theme,
@@ -99,6 +100,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const businessAddress = formData.get('businessAddress') as string;
   const customDomain = formData.get('customDomain') as string;
   const storeMode = formData.get('storeMode') as 'landing' | 'store' | null;
+  const defaultLanguage = formData.get('defaultLanguage') as 'en' | 'bn' | null;
   
   // Social links
   const facebook = formData.get('facebook') as string;
@@ -147,6 +149,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       email: businessEmail || '',
       address: businessAddress || '',
     }),
+    defaultLanguage: defaultLanguage || 'en',
     updatedAt: new Date(),
   };
 
@@ -544,6 +547,23 @@ export default function SettingsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Store Language */}
+            <div>
+              <label htmlFor="defaultLanguage" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('storeLanguage')}
+              </label>
+              <select
+                id="defaultLanguage"
+                name="defaultLanguage"
+                defaultValue={store.defaultLanguage || 'en'}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
+              >
+                <option value="en">🇬🇧 English</option>
+                <option value="bn">🇧🇩 বাংলা (Bengali)</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">{t('storeLanguageDesc')}</p>
             </div>
 
             {/* Read-only info */}

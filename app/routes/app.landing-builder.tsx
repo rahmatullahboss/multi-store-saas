@@ -722,8 +722,120 @@ export default function LandingBuilderPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Guarantee Text */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    {language === 'bn' ? 'গ্যারান্টি' : 'Guarantee'}
+                  </h2>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'bn' ? 'গ্যারান্টি টেক্সট' : 'Guarantee Text'}
+                    </label>
+                    <textarea
+                      value={guaranteeText}
+                      onChange={(e) => setGuaranteeText(e.target.value)}
+                      placeholder={language === 'bn' ? '১০০% সন্তুষ্টির গ্যারান্টি। পছন্দ না হলে ৭ দিনের মধ্যে ফেরত।' : '100% satisfaction guarantee. Full refund within 7 days if not satisfied.'}
+                      rows={3}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {language === 'bn' ? 'এই টেক্সট "গ্যারান্টি" সেকশনে দেখাবে' : 'This text will appear in the "Guarantee" section'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {language === 'bn' ? 'প্রোডাক্ট ফিচার্স' : 'Product Features'}
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => setFeatures([...features, { icon: '✨', title: '', description: '' }])}
+                      className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
+                    >
+                      <Plus className="w-4 h-4" />
+                      {language === 'bn' ? 'যোগ করুন' : 'Add Feature'}
+                    </button>
+                  </div>
+                  
+                  {features.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Star className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                      <p>{language === 'bn' ? 'কোনো ফিচার নেই' : 'No features added'}</p>
+                      <p className="text-xs mt-1">{language === 'bn' ? 'প্রোডাক্টের বৈশিষ্ট্য যোগ করুন' : 'Add product features to display'}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {features.map((feature, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-4 relative">
+                          <button
+                            type="button"
+                            onClick={() => setFeatures(features.filter((_, i) => i !== index))}
+                            className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <div className="grid grid-cols-[60px_1fr] gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">
+                                {language === 'bn' ? 'আইকন' : 'Icon'}
+                              </label>
+                              <input
+                                type="text"
+                                value={feature.icon}
+                                onChange={(e) => {
+                                  const newFeatures = [...features];
+                                  newFeatures[index].icon = e.target.value;
+                                  setFeatures(newFeatures);
+                                }}
+                                placeholder="✨"
+                                className="w-full px-2 py-2 text-center text-xl border border-gray-300 rounded-lg"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">
+                                {language === 'bn' ? 'শিরোনাম' : 'Title'}
+                              </label>
+                              <input
+                                type="text"
+                                value={feature.title}
+                                onChange={(e) => {
+                                  const newFeatures = [...features];
+                                  newFeatures[index].title = e.target.value;
+                                  setFeatures(newFeatures);
+                                }}
+                                placeholder={language === 'bn' ? 'প্রিমিয়াম কোয়ালিটি' : 'Premium Quality'}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                              />
+                            </div>
+                          </div>
+                          <div className="mt-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                              {language === 'bn' ? 'বিবরণ' : 'Description'}
+                            </label>
+                            <input
+                              type="text"
+                              value={feature.description}
+                              onChange={(e) => {
+                                const newFeatures = [...features];
+                                newFeatures[index].description = e.target.value;
+                                setFeatures(newFeatures);
+                              }}
+                              placeholder={language === 'bn' ? 'সেরা মানের উপাদান দিয়ে তৈরি' : 'Made with best quality materials'}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
+
 
             {activeTab === 'sections' && (
               <SectionManager
@@ -1489,6 +1601,9 @@ export default function LandingBuilderPage() {
           <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
           <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
           <input type="hidden" name="faq" value={JSON.stringify(faq)} />
+          <input type="hidden" name="guaranteeText" value={guaranteeText} />
+          <input type="hidden" name="features" value={JSON.stringify(features)} />
+
           <input type="hidden" name="countdownEnabled" value={countdownEnabled.toString()} />
           <input type="hidden" name="countdownEndTime" value={countdownEndTime} />
           <input type="hidden" name="showStockCounter" value={showStockCounter.toString()} />
