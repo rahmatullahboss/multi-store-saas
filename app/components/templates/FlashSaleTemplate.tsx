@@ -13,8 +13,14 @@ import { useFetcher } from '@remix-run/react';
 import { useState, useEffect, useCallback } from 'react';
 import type { LandingConfig, ManualPaymentConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
-import { Clock, ShoppingCart, Truck, Shield, AlertTriangle, CheckCircle2, Phone, User, MapPin, Package, Flame } from 'lucide-react';
+import { Clock, ShoppingCart, Truck, Shield, AlertTriangle, CheckCircle2, Phone, User, MapPin, Package, Flame, Star, Zap } from 'lucide-react';
 import { BD_DIVISIONS } from '~/utils/shipping';
+
+// Helper to check if section should be visible
+const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
+  if (!hiddenSections || hiddenSections.length === 0) return true;
+  return !hiddenSections.includes(sectionId);
+};
 
 // ============================================================================
 // COUNTDOWN TIMER HOOK
@@ -236,10 +242,10 @@ export function FlashSaleTemplate({
             ⚡ ফ্ল্যাশ সেল - {discount}% ছাড়!
           </div>
           
-          <h1 className="text-2xl md:text-4xl font-extrabold text-white mb-2">
+          <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-white mb-2 px-2">
             {config.headline || product.title}
           </h1>
-          <p className="text-yellow-400 text-lg md:text-xl font-semibold">
+          <p className="text-yellow-400 text-base sm:text-lg md:text-xl font-semibold px-2">
             {config.subheadline || 'সীমিত সময়ের জন্য বিশেষ অফার!'}
           </p>
         </div>
@@ -402,7 +408,7 @@ export function FlashSaleTemplate({
                   <button
                     type="button"
                     onClick={() => handleInputChange('quantity', Math.max(1, formData.quantity - 1))}
-                    className="w-10 h-10 bg-gray-700 rounded-lg text-white font-bold hover:bg-gray-600"
+                    className="w-12 h-12 sm:w-10 sm:h-10 bg-gray-700 rounded-lg text-white font-bold text-xl sm:text-base hover:bg-gray-600 active:scale-95 transition"
                   >
                     -
                   </button>
@@ -410,7 +416,7 @@ export function FlashSaleTemplate({
                   <button
                     type="button"
                     onClick={() => handleInputChange('quantity', Math.min(5, formData.quantity + 1))}
-                    className="w-10 h-10 bg-gray-700 rounded-lg text-white font-bold hover:bg-gray-600"
+                    className="w-12 h-12 sm:w-10 sm:h-10 bg-gray-700 rounded-lg text-white font-bold text-xl sm:text-base hover:bg-gray-600 active:scale-95 transition"
                   >
                     +
                   </button>
@@ -470,7 +476,7 @@ export function FlashSaleTemplate({
               </button>
 
               {/* Trust Badges */}
-              <div className="flex items-center justify-center gap-4 text-sm text-gray-400 pt-4">
+              <div className="flex items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-400 pt-4 flex-wrap">
                 <span className="flex items-center gap-1">
                   <Truck className="w-4 h-4 text-green-400" /> ফ্রি ডেলিভারি
                 </span>
@@ -483,6 +489,69 @@ export function FlashSaleTemplate({
         </div>
       </section>
 
+      {/* TESTIMONIALS - Urgency Style */}
+      {isSectionVisible('testimonials', config.hiddenSections) && config.testimonials && config.testimonials.length > 0 && (
+        <section className="bg-gray-950 py-8 px-4">
+          <h3 className="text-xl font-bold text-white text-center mb-6">
+            <span className="text-yellow-400">⭐</span> সন্তুষ্ট গ্রাহকরা <span className="text-yellow-400">⭐</span>
+          </h3>
+          <div className="max-w-md mx-auto space-y-4">
+            {config.testimonials.slice(0, 3).map((testimonial, idx) => (
+              <div key={idx} className="bg-gray-900 rounded-xl p-4 border border-gray-800">
+                <div className="flex items-center gap-1 mb-2">
+                  {[1,2,3,4,5].map((i) => (
+                    <Star key={i} size={14} className="text-yellow-400 fill-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-gray-300 text-sm mb-3">"{testimonial.text}"</p>
+                <div className="flex items-center gap-2">
+                  {(testimonial.avatar || testimonial.imageUrl) ? (
+                    <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-sm">
+                      {testimonial.name.charAt(0)}
+                    </div>
+                  )}
+                  <span className="font-semibold text-sm text-white">{testimonial.name}</span>
+                  <span className="text-xs text-green-400">✓ Verified</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FAQ - Flash Sale Style */}
+      {isSectionVisible('faq', config.hiddenSections) && config.faq && config.faq.length > 0 && (
+        <section className="bg-black py-8 px-4">
+          <h3 className="text-xl font-bold text-white text-center mb-6">❓ সচরাচর জিজ্ঞাসা</h3>
+          <div className="max-w-md mx-auto space-y-3">
+            {config.faq.map((item, idx) => (
+              <details key={idx} className="group bg-gray-950 border border-gray-800 rounded-xl overflow-hidden">
+                <summary className="p-4 cursor-pointer flex items-center justify-between text-white text-sm font-medium">
+                  <span className="pr-4">{item.question}</span>
+                  <span className="text-yellow-400 group-open:rotate-45 transition-transform">+</span>
+                </summary>
+                <div className="px-4 pb-4 text-gray-400 text-sm leading-relaxed">
+                  {item.answer}
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* GUARANTEE - Urgency Style */}
+      {isSectionVisible('guarantee', config.hiddenSections) && config.guaranteeText && (
+        <section className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 py-6 px-4 text-center border-y border-green-500/30">
+          <div className="flex items-center justify-center gap-2 text-green-400 font-bold mb-2">
+            <Shield size={20} />
+            <span>১০০% গ্যারান্টি</span>
+          </div>
+          <p className="text-green-300 text-sm">{config.guaranteeText}</p>
+        </section>
+      )}
+
       {/* ================================================================
           FOOTER - MINIMAL
           ================================================================ */}
@@ -491,6 +560,34 @@ export function FlashSaleTemplate({
           <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Mobile Sticky Footer */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-black border-t border-gray-800 p-3 shadow-2xl safe-area-pb">
+        <a
+          href="#order-form"
+          className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-lg rounded-xl flex items-center justify-center gap-2 shadow-lg animate-pulse"
+        >
+          <Zap size={20} /> অর্ডার করুন — ৳{price.toLocaleString()}
+        </a>
+      </div>
+
+      {/* Footer Spacer for Mobile */}
+      <div className="md:hidden h-20" />
+
+      {/* WhatsApp Floating Button */}
+      {config.whatsappEnabled && config.whatsappNumber && (
+        <a
+          href={`https://wa.me/${config.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(config.whatsappMessage || `Hi, I'm interested in this flash sale product!`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-24 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+          title="Chat on WhatsApp"
+        >
+          <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </a>
+      )}
 
       {/* ================================================================
           CSS KEYFRAMES FOR SHAKE ANIMATION

@@ -204,11 +204,29 @@ export function TemplatePreviewModal({
           <div 
             className={`bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-300 ${
               deviceView === 'mobile' 
-                ? 'w-[375px] min-h-[667px]' 
+                ? 'w-[375px]' 
                 : 'w-full max-w-5xl'
             }`}
+            style={deviceView === 'mobile' ? {
+              // Force mobile viewport simulation
+              maxWidth: '375px',
+              minHeight: '667px',
+            } : undefined}
           >
-            <div className="overflow-auto max-h-[calc(90vh-120px)]">
+            {/* 
+              For mobile view, we scale the content to simulate actual mobile viewport behavior.
+              The template is rendered at 375px width which triggers mobile-first CSS breakpoints.
+            */}
+            <div 
+              className="overflow-auto"
+              style={{ 
+                maxHeight: 'calc(90vh - 120px)',
+                // Mobile scroll simulation
+                ...(deviceView === 'mobile' ? {
+                  WebkitOverflowScrolling: 'touch',
+                } : {})
+              }}
+            >
               {/* Render the ACTUAL LandingPageTemplate with mock data */}
               <TemplateComponent
                 storeName={storeName}

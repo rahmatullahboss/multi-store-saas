@@ -11,6 +11,12 @@ import {
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 
+// Helper to check if section should be visible
+const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
+  if (!hiddenSections || hiddenSections.length === 0) return true;
+  return !hiddenSections.includes(sectionId);
+};
+
 export function LuxeTemplate({
   storeName,
   storeId,
@@ -126,7 +132,7 @@ export function LuxeTemplate({
         onUpdate={(data) => handleSectionUpdate('hero', data)}
         isEditable={isEditMode}
       >
-        <section className="relative h-[80vh] min-h-[600px] overflow-hidden flex items-center justify-center">
+        <section className="relative h-[70vh] md:h-[80vh] min-h-[500px] md:min-h-[600px] overflow-hidden flex items-center justify-center">
             {/* Background Image with Ken Burns Effect */}
             <div className="absolute inset-0 z-0">
                {product.imageUrl ? (
@@ -149,7 +155,7 @@ export function LuxeTemplate({
                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
             </div>
 
-            <div className="relative z-10 container mx-auto px-6 text-center">
+            <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
                <motion.div
                  initial={{ opacity: 0, y: 30 }}
                  animate={{ opacity: 1, y: 0 }}
@@ -158,16 +164,16 @@ export function LuxeTemplate({
                    <span className="inline-block text-amber-400 tracking-[0.3em] uppercase text-sm font-medium mb-6 border-b border-amber-400 pb-2">
                      Official Premium Collection
                    </span>
-                   <h1 className="font-serif-display text-5xl md:text-7xl lg:text-8xl leading-none mb-6 text-white drop-shadow-2xl">
+                   <h1 className="font-serif-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl leading-tight md:leading-none mb-4 md:mb-6 text-white drop-shadow-2xl">
                      {editableConfig.headline}
                    </h1>
-                   <p className="font-light text-zinc-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 tracking-wide leading-relaxed">
+                   <p className="font-light text-zinc-300 text-base md:text-lg lg:text-xl max-w-2xl mx-auto mb-6 md:mb-10 tracking-wide leading-relaxed px-2 md:px-0">
                      {editableConfig.subheadline}
                    </p>
                    
                    <a 
                      href="#order-form"
-                     className="group inline-flex items-center gap-4 px-10 py-4 border border-white text-white uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-all duration-300"
+                     className="group inline-flex items-center gap-3 md:gap-4 px-6 md:px-10 py-3 md:py-4 border border-white text-white uppercase tracking-wider md:tracking-widest text-xs md:text-sm hover:bg-white hover:text-black transition-all duration-300"
                    >
                      <span>Secure Your Order</span>
                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -179,10 +185,10 @@ export function LuxeTemplate({
 
       {/* 2. PRODUCT SHOWCASE (Minimal) */}
       <section className="py-24 bg-black text-center">
-         <div className="container mx-auto px-6 max-w-4xl">
-             <div className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-24">
+         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
+             <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-24">
                  <div className="flex-1 text-right">
-                     <h3 className="font-serif-display text-4xl text-amber-500 mb-2">{formatPrice(product.price)}</h3>
+                     <h3 className="font-serif-display text-3xl md:text-4xl text-amber-500 mb-2">{formatPrice(product.price)}</h3>
                      <p className="text-zinc-500 uppercase tracking-widest text-sm">Exclusive Price</p>
                  </div>
                  
@@ -205,6 +211,7 @@ export function LuxeTemplate({
       </section>
 
       {/* 3. TRUST FACTORS (Gold Bordered Cards) */}
+      {isSectionVisible('trust', editableConfig.hiddenSections) && (
       <section className="py-20 bg-zinc-950">
          <div className="container mx-auto px-6">
              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -224,8 +231,113 @@ export function LuxeTemplate({
              </div>
          </div>
       </section>
+      )}
 
-      {/* 4. ORDER FORM (Elegant) */}
+      {/* 4. TESTIMONIALS (Elegant Cards) */}
+      {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
+        <section className="py-20 bg-zinc-950">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-12">
+              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Client Reviews</span>
+              <h2 className="font-serif-display text-3xl md:text-4xl mt-4 text-white">What Our Customers Say</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {editableConfig.testimonials.map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-black border border-zinc-800 p-8 relative"
+                >
+                  <div className="flex items-center gap-1 mb-4">
+                    {[1,2,3,4,5].map((i) => (
+                      <Star key={i} size={16} className="text-amber-500 fill-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-zinc-300 italic mb-6 leading-relaxed">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-4">
+                    {(testimonial.avatar || testimonial.imageUrl) ? (
+                      <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold">
+                        {testimonial.name.charAt(0)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-white">{testimonial.name}</p>
+                      <p className="text-xs text-zinc-500 uppercase tracking-wider">Verified Buyer</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 5. DELIVERY INFO (Minimal) */}
+      {isSectionVisible('delivery', editableConfig.hiddenSections) && (
+      <section className="py-16 bg-black border-y border-zinc-900">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto text-center">
+            <div className="p-6">
+              <div className="text-3xl mb-3">🏙️</div>
+              <h4 className="font-serif-display text-xl text-white mb-2">Inside Dhaka</h4>
+              <p className="text-zinc-500 text-sm">24-48 হাওয়ার মধ্যে ডেলিভারি</p>
+              <p className="text-amber-500 font-bold mt-2">{formatPrice(DEFAULT_SHIPPING_CONFIG.insideDhaka)}</p>
+            </div>
+            <div className="p-6">
+              <div className="text-3xl mb-3">🌍</div>
+              <h4 className="font-serif-display text-xl text-white mb-2">Outside Dhaka</h4>
+              <p className="text-zinc-500 text-sm">২-৩ দিনের মধ্যে ডেলিভারি</p>
+              <p className="text-amber-500 font-bold mt-2">{formatPrice(DEFAULT_SHIPPING_CONFIG.outsideDhaka)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* 6. FAQ SECTION (Accordion Style) */}
+      {isSectionVisible('faq', editableConfig.hiddenSections) && editableConfig.faq && editableConfig.faq.length > 0 && (
+        <section className="py-20 bg-zinc-950">
+          <div className="container mx-auto px-6 max-w-2xl">
+            <div className="text-center mb-12">
+              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Questions</span>
+              <h2 className="font-serif-display text-3xl md:text-4xl mt-4 text-white">Frequently Asked</h2>
+            </div>
+            <div className="space-y-4">
+              {editableConfig.faq.map((item, idx) => (
+                <details key={idx} className="group border border-zinc-800 bg-black">
+                  <summary className="p-6 cursor-pointer flex items-center justify-between text-white hover:text-amber-500 transition-colors">
+                    <span className="font-medium">{item.question}</span>
+                    <span className="text-amber-500 group-open:rotate-45 transition-transform">+</span>
+                  </summary>
+                  <div className="px-6 pb-6 text-zinc-400 leading-relaxed">
+                    {item.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 7. GUARANTEE SECTION */}
+      {isSectionVisible('guarantee', editableConfig.hiddenSections) && editableConfig.guaranteeText && (
+        <section className="py-16 bg-black">
+          <div className="container mx-auto px-6 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-amber-500/10 border border-amber-500/30 rounded-full mb-6">
+              <ShieldCheck className="w-10 h-10 text-amber-500" />
+            </div>
+            <h3 className="font-serif-display text-2xl md:text-3xl text-white mb-4">Our Guarantee</h3>
+            <p className="text-amber-500 text-lg max-w-xl mx-auto">{editableConfig.guaranteeText}</p>
+          </div>
+        </section>
+      )}
+
+      {/* 8. ORDER FORM (Elegant) */}
       <section id="order-form" className="py-24 bg-black relative overflow-hidden">
           {/* Decorative Elements */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-transparent to-amber-500"></div>
@@ -233,7 +345,7 @@ export function LuxeTemplate({
           <div className="container mx-auto px-6 max-w-xl relative w-full">
               <div className="text-center mb-16">
                   <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Limited Availability</span>
-                  <h2 className="font-serif-display text-4xl md:text-5xl mt-4 mb-6 text-white">Complete Purchase</h2>
+                  <h2 className="font-serif-display text-3xl md:text-4xl lg:text-5xl mt-4 mb-4 md:mb-6 text-white">Complete Purchase</h2>
                   <p className="text-zinc-500 font-light">Please provide your details below for priority processing.</p>
               </div>
 
@@ -245,7 +357,7 @@ export function LuxeTemplate({
                        type="text" 
                        value={formData.customer_name}
                        onChange={e => setFormData({...formData, customer_name: e.target.value})}
-                       className="w-full bg-transparent border-b border-zinc-700 py-3 text-xl text-white focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-800"
+                       className="w-full bg-transparent border-b border-zinc-700 py-3 text-base md:text-xl text-white focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-800"
                        placeholder="Enter your name"
                      />
                      {validationErrors.customer_name && <span className="text-red-500 text-xs mt-1 block">{validationErrors.customer_name}</span>}
@@ -258,7 +370,7 @@ export function LuxeTemplate({
                        type="tel" 
                        value={formData.phone}
                        onChange={e => setFormData({...formData, phone: e.target.value})}
-                       className="w-full bg-transparent border-b border-zinc-700 py-3 text-xl text-white focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-800"
+                       className="w-full bg-transparent border-b border-zinc-700 py-3 text-base md:text-xl text-white focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-800"
                        placeholder="017XXXXXXXX"
                      />
                      {validationErrors.phone && <span className="text-red-500 text-xs mt-1 block">{validationErrors.phone}</span>}
@@ -271,7 +383,7 @@ export function LuxeTemplate({
                        value={formData.address}
                        onChange={e => setFormData({...formData, address: e.target.value})}
                        rows={2}
-                       className="w-full bg-transparent border-b border-zinc-700 py-3 text-xl text-white focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-800 resize-none"
+                       className="w-full bg-transparent border-b border-zinc-700 py-3 text-base md:text-xl text-white focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-800 resize-none"
                        placeholder="Full address details"
                      />
                      {validationErrors.address && <span className="text-red-500 text-xs mt-1 block">{validationErrors.address}</span>}
@@ -289,7 +401,7 @@ export function LuxeTemplate({
                              key={opt.id}
                              type="button"
                              onClick={() => setFormData({...formData, division: opt.id as DivisionValue})}
-                             className={`flex-1 pb-4 text-sm uppercase tracking-wider transition-colors relative ${
+                             className={`flex-1 pb-3 sm:pb-4 text-xs sm:text-sm uppercase tracking-wide sm:tracking-wider transition-colors relative ${
                                 formData.division === opt.id ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'
                              }`}
                            >
@@ -324,6 +436,34 @@ export function LuxeTemplate({
               </form>
           </div>
       </section>
+
+      {/* Mobile Sticky Footer */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black border-t border-zinc-800 p-4 shadow-2xl safe-area-pb">
+        <a
+          href="#order-form"
+          className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-wider rounded-none flex items-center justify-center gap-2 transition-colors"
+        >
+          Order Now — {formatPrice(product.price)}
+        </a>
+      </div>
+
+      {/* Footer Spacer for Mobile */}
+      <div className="md:hidden h-20" />
+
+      {/* WhatsApp Floating Button */}
+      {editableConfig.whatsappEnabled && editableConfig.whatsappNumber && (
+        <a
+          href={`https://wa.me/${editableConfig.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(editableConfig.whatsappMessage || `Hi, I'm interested in ${product.title}`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-24 md:bottom-8 right-4 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+          title="Chat on WhatsApp"
+        >
+          <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </a>
+      )}
     </div>
   );
 }

@@ -13,6 +13,12 @@ import {
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 
+// Helper to check if section should be visible
+const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
+  if (!hiddenSections || hiddenSections.length === 0) return true;
+  return !hiddenSections.includes(sectionId);
+};
+
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -171,12 +177,12 @@ export function PremiumBDTemplate({
             )}
 
             {/* Headline */}
-            <h1 className="text-3xl md:text-5xl font-black text-center mb-4 leading-tight text-gray-900">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-center mb-4 leading-tight text-gray-900 px-2">
               {editableConfig.headline}
             </h1>
             
             {editableConfig.subheadline && (
-              <p className="text-lg md:text-xl text-center text-gray-600 mb-8 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg md:text-xl text-center text-gray-600 mb-6 md:mb-8 max-w-2xl mx-auto px-2">
                 {editableConfig.subheadline}
               </p>
             )}
@@ -237,12 +243,12 @@ export function PremiumBDTemplate({
             { icon: <ShieldCheck size={24} />, title: "১০০% অরিজিনাল", sub: "গ্যারান্টিযুক্ত পণ্য" },
             { icon: <RefreshCw size={24} />, title: "৭ দিনের গ্যারান্টি", sub: "সহজ রিটার্ন পলিসি" }
           ].map((item, idx) => (
-            <div key={idx} className="bg-white/70 backdrop-blur-md border border-white/50 p-4 rounded-2xl shadow-sm text-center flex flex-col items-center justify-center gap-2 hover:bg-white transition duration-300">
-              <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-1">
+            <div key={idx} className="bg-white/70 backdrop-blur-md border border-white/50 p-3 sm:p-4 rounded-2xl shadow-sm text-center flex flex-col items-center justify-center gap-1 sm:gap-2 hover:bg-white transition duration-300">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-1">
                 {item.icon}
               </div>
-              <h3 className="font-bold text-gray-800 text-sm md:text-base">{item.title}</h3>
-              <p className="text-xs text-gray-500">{item.sub}</p>
+              <h3 className="font-bold text-gray-800 text-xs sm:text-sm md:text-base leading-tight">{item.title}</h3>
+              <p className="text-[10px] sm:text-xs text-gray-500 leading-tight">{item.sub}</p>
             </div>
           ))}
         </div>
@@ -282,7 +288,7 @@ export function PremiumBDTemplate({
           
           <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Pain Points */}
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-3xl border border-white/10">
+            <div className="bg-white/10 backdrop-blur-sm p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10">
               <h3 className="text-xl font-bold mb-6 text-red-300 flex items-center gap-2">
                 <X className="bg-red-500/20 p-1 rounded-full" />
                 সাধারণ সমস্যা
@@ -303,7 +309,7 @@ export function PremiumBDTemplate({
             </div>
 
             {/* Solution */}
-            <div className="bg-emerald-500/20 backdrop-blur-sm p-8 rounded-3xl border border-emerald-500/30 shadow-2xl relative">
+            <div className="bg-emerald-500/20 backdrop-blur-sm p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-emerald-500/30 shadow-2xl relative">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
                 আমাদের সমাধান
               </div>
@@ -476,9 +482,81 @@ export function PremiumBDTemplate({
         )}
       </AnimatePresence>
 
-      {/* Floating Social Proof Toast */}
-      {editableConfig.socialProof && (
-          <SocialProofToast storeName={storeName} />
+      {/* TESTIMONIALS */}
+      {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
+        <section className="py-12 bg-white">
+          <div className="container max-w-4xl mx-auto px-4">
+            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">গ্রাহকদের মন্তব্য</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {editableConfig.testimonials.map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-gray-50 rounded-2xl p-5 border border-gray-100"
+                >
+                  <div className="flex items-center gap-1 mb-3">
+                    {[1,2,3,4,5].map((i) => (
+                      <Star key={i} size={14} className="text-yellow-500 fill-yellow-500" />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 text-sm mb-4">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-3">
+                    {(testimonial.avatar || testimonial.imageUrl) ? (
+                      <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-10 h-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
+                        {testimonial.name.charAt(0)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">{testimonial.name}</p>
+                      <p className="text-xs text-emerald-600">✓ ভেরিফাইড ক্রেতা</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      {isSectionVisible('faq', editableConfig.hiddenSections) && editableConfig.faq && editableConfig.faq.length > 0 && (
+        <section className="py-12 bg-gray-50">
+          <div className="container max-w-2xl mx-auto px-4">
+            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">সচরাচর জিজ্ঞাসা</h2>
+            <div className="space-y-4">
+              {editableConfig.faq.map((item, idx) => (
+                <details key={idx} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                  <summary className="p-5 cursor-pointer flex items-center justify-between text-gray-800 font-medium">
+                    <span className="pr-4">{item.question}</span>
+                    <span className="text-emerald-600 group-open:rotate-45 transition-transform text-xl">+</span>
+                  </summary>
+                  <div className="px-5 pb-5 text-gray-600 leading-relaxed">
+                    {item.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+      {/* WhatsApp Floating Button */}
+      {editableConfig.whatsappEnabled && editableConfig.whatsappNumber && (
+        <a
+          href={`https://wa.me/${editableConfig.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(editableConfig.whatsappMessage || `Hi, I'm interested in ${product.title}`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-24 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+          title="Chat on WhatsApp"
+        >
+          <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </a>
       )}
 
       <style>{`
@@ -490,57 +568,5 @@ export function PremiumBDTemplate({
         }
       `}</style>
     </div>
-  );
-}
-
-// Separate component for Social Proof to manage its own state
-function SocialProofToast({ storeName }: { storeName: string }) {
-  const [visible, setVisible] = useState(false);
-  const [info, setInfo] = useState({ name: 'করিম সাহেব', location: 'ঢাকা' });
-
-  useEffect(() => {
-    // Show after 5 seconds
-    const timer = setTimeout(() => setVisible(true), 5000);
-    // Hide after showing for 4 seconds
-    const hideTimer = setTimeout(() => setVisible(false), 9000);
-    
-    // Loop every 15 seconds
-    const interval = setInterval(() => {
-       const names = ['করিম', 'রহিম', 'সাদিয়া', 'তানভীর', 'আরিফ'];
-       const locs = ['ঢাকা', 'চট্টগ্রাম', 'সিলেট', 'রাজশাহী', 'খুলনা'];
-       setInfo({
-         name: names[Math.floor(Math.random() * names.length)],
-         location: locs[Math.floor(Math.random() * locs.length)]
-       });
-       setVisible(true);
-       setTimeout(() => setVisible(false), 4000);
-    }, 15000);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(hideTimer);
-      clearInterval(interval);
-    };
-  }, []);
-
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div 
-          initial={{ opacity: 0, x: -50, y: 50 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-24 left-4 z-40 bg-white rounded-lg shadow-xl shadow-black/5 p-3 flex items-center gap-3 border border-gray-100 max-w-[280px]"
-        >
-          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-xl">
-            🛍️
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-800">{info.name} অর্ডার করেছেন</p>
-            <p className="text-xs text-gray-500">{info.location} থেকে • এইমাত্র</p>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 }

@@ -222,11 +222,24 @@ export function ThemePreview({
           <div 
             className={`bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-300 ${
               deviceView === 'mobile' 
-                ? 'w-[375px] min-h-[667px]' 
+                ? 'w-[375px]' 
                 : 'w-full max-w-5xl'
             }`}
+            style={deviceView === 'mobile' ? {
+              // Force mobile viewport simulation
+              maxWidth: '375px',
+              minHeight: '667px',
+            } : undefined}
           >
-            <div className="overflow-auto max-h-[calc(90vh-120px)]">
+            <div 
+              className="overflow-auto"
+              style={{ 
+                maxHeight: 'calc(90vh - 120px)',
+                ...(deviceView === 'mobile' ? {
+                  WebkitOverflowScrolling: 'touch',
+                } : {})
+              }}
+            >
               {/* Render the ACTUAL Store Template with mock data */}
               <TemplateComponent
                 storeName={storeName || MOCK_STORE_INFO.storeName}

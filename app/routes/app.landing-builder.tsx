@@ -856,12 +856,29 @@ export default function LandingBuilderPage() {
                   </div>
                 )}
 
+                {/* Important Warning */}
+                <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div className="flex gap-2">
+                    <span className="text-red-600 text-lg">⚠️</span>
+                    <div>
+                      <p className="text-sm font-medium text-red-800 mb-1">
+                        {language === 'bn' ? 'গুরুত্বপূর্ণ' : 'Important'}
+                      </p>
+                      <p className="text-sm text-red-700">
+                        {language === 'bn' 
+                          ? 'এখানে শুধু আসল গ্রাহকদের রিভিউ এর স্ক্রিনশট দিন। ভুয়া রিভিউ দিলে গ্রাহকরা বিশ্বাস করে না এবং ব্র্যান্ডের ক্ষতি হয়।' 
+                          : 'Only use real customer review screenshots. Fake reviews destroy customer trust and hurt your brand.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Tip */}
-                <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
                   <p className="text-sm text-amber-800">
                     💡 {language === 'bn' 
-                      ? 'টিপ: গ্রাহকের স্ক্রিনশট বা প্রোডাক্ট সাথে ছবি দিলে ৩০%+ বেশি কনভার্ট হয়!' 
-                      : 'Tip: Screenshots or photos with product convert 30%+ better!'}
+                      ? 'টিপ: Facebook, Messenger বা WhatsApp থেকে আসল গ্রাহকের রিভিউ স্ক্রিনশট নিয়ে আপলোড করুন - ৩০%+ বেশি কনভার্ট হয়!' 
+                      : 'Tip: Upload real customer review screenshots from Facebook, Messenger or WhatsApp - converts 30%+ better!'}
                   </p>
                 </div>
               </div>

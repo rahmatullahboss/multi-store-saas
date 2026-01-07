@@ -11,6 +11,12 @@ import {
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 
+// Helper to check if section should be visible
+const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
+  if (!hiddenSections || hiddenSections.length === 0) return true;
+  return !hiddenSections.includes(sectionId);
+};
+
 export function OrganicTemplate({
   storeName,
   storeId,
@@ -130,10 +136,10 @@ export function OrganicTemplate({
                         <Leaf size={14} />
                         100% Natural & Eco-friendly
                      </span>
-                     <h1 className="text-4xl md:text-6xl font-extrabold text-emerald-950 leading-tight mb-6">
+                     <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-emerald-950 leading-tight mb-4 md:mb-6">
                        {editableConfig.headline}
                      </h1>
-                     <p className="text-lg text-stone-600 mb-8 leading-relaxed">
+                     <p className="text-base md:text-lg text-stone-600 mb-6 md:mb-8 leading-relaxed">
                        {editableConfig.subheadline}
                      </p>
                      
@@ -148,7 +154,7 @@ export function OrganicTemplate({
                         )}
                         <a 
                           href="#order-form"
-                          className="bg-emerald-700 hover:bg-emerald-800 text-white px-8 py-3.5 rounded-full font-bold shadow-lg shadow-emerald-700/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                          className="bg-emerald-700 hover:bg-emerald-800 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-full font-bold text-sm md:text-base shadow-lg shadow-emerald-700/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
                         >
                           Shop Naturally <ArrowRight size={18} />
                         </a>
@@ -214,15 +220,97 @@ export function OrganicTemplate({
          </div>
       </section>
 
-      {/* 3. ORDER FORM (Soft & Rounded) */}
+      {/* 3. TESTIMONIALS */}
+      {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-emerald-950 mb-4">What Customers Say</h2>
+              <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {editableConfig.testimonials.map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-stone-50 rounded-3xl p-6 border border-stone-100"
+                >
+                  <div className="flex items-center gap-1 mb-4">
+                    {[1,2,3,4,5].map((i) => (
+                      <Star key={i} size={16} className="text-amber-500 fill-amber-500" />
+                    ))}
+                  </div>
+                  <p className="text-stone-600 mb-6 leading-relaxed">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-3">
+                    {(testimonial.avatar || testimonial.imageUrl) ? (
+                      <img src={testimonial.avatar || testimonial.imageUrl} alt={testimonial.name} className="w-10 h-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">
+                        {testimonial.name.charAt(0)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-stone-800">{testimonial.name}</p>
+                      <p className="text-xs text-emerald-600">Verified Buyer</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 4. FAQ SECTION */}
+      {isSectionVisible('faq', editableConfig.hiddenSections) && editableConfig.faq && editableConfig.faq.length > 0 && (
+        <section className="py-16 bg-emerald-50/50">
+          <div className="container mx-auto px-6 max-w-2xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-emerald-950 mb-4">Frequently Asked Questions</h2>
+              <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
+            </div>
+            <div className="space-y-4">
+              {editableConfig.faq.map((item, idx) => (
+                <details key={idx} className="group bg-white rounded-2xl overflow-hidden shadow-sm">
+                  <summary className="p-5 cursor-pointer flex items-center justify-between text-stone-800 hover:text-emerald-700 transition-colors">
+                    <span className="font-medium pr-4">{item.question}</span>
+                    <span className="text-emerald-600 group-open:rotate-45 transition-transform text-xl">+</span>
+                  </summary>
+                  <div className="px-5 pb-5 text-stone-600 leading-relaxed">
+                    {item.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 5. GUARANTEE */}
+      {isSectionVisible('guarantee', editableConfig.hiddenSections) && editableConfig.guaranteeText && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-6 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6">
+              <ShieldCheck className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-emerald-950 mb-4">Our Promise to You</h3>
+            <p className="text-emerald-700 text-lg max-w-xl mx-auto">{editableConfig.guaranteeText}</p>
+          </div>
+        </section>
+      )}
+
+      {/* 6. ORDER FORM (Soft & Rounded) */}
       <section id="order-form" className="py-20 px-4 bg-emerald-900/5">
         <div className="container mx-auto max-w-xl">
-           <div className="bg-white rounded-[2rem] shadow-xl p-8 md:p-12 border border-emerald-100/50 relative overflow-hidden">
+           <div className="bg-white rounded-2xl md:rounded-[2rem] shadow-xl p-5 sm:p-8 md:p-12 border border-emerald-100/50 relative overflow-hidden">
                {/* Decoration */}
                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100 rounded-bl-[100%] -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
 
                <div className="text-center mb-10 relative z-10">
-                   <h2 className="text-3xl font-bold text-emerald-950">Place Your Order</h2>
+                   <h2 className="text-2xl md:text-3xl font-bold text-emerald-950">Place Your Order</h2>
                    <p className="text-stone-500 mt-2">Experience nature's best, delivered to you.</p>
                </div>
 
@@ -269,7 +357,7 @@ export function OrganicTemplate({
                    {/* Shipping */}
                    <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
                       <p className="text-sm font-semibold text-emerald-900 mb-3">Shipping Area</p>
-                      <div className="flex gap-4">
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                          {[
                            { id: 'dhaka', label: 'Inside Dhaka', cost: DEFAULT_SHIPPING_CONFIG.insideDhaka },
                            { id: 'outside', label: 'Outside Dhaka', cost: DEFAULT_SHIPPING_CONFIG.outsideDhaka }
@@ -310,6 +398,34 @@ export function OrganicTemplate({
            </div>
         </div>
       </section>
+
+      {/* Mobile Sticky Footer */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-stone-200 p-4 shadow-2xl safe-area-pb">
+        <a
+          href="#order-form"
+          className="w-full py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-lg"
+        >
+          <Leaf size={18} /> Order Now — {formatPrice(product.price)}
+        </a>
+      </div>
+
+      {/* Footer Spacer for Mobile */}
+      <div className="md:hidden h-20" />
+
+      {/* WhatsApp Floating Button */}
+      {editableConfig.whatsappEnabled && editableConfig.whatsappNumber && (
+        <a
+          href={`https://wa.me/${editableConfig.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(editableConfig.whatsappMessage || `Hi, I'm interested in ${product.title}`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-24 md:bottom-8 right-4 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+          title="Chat on WhatsApp"
+        >
+          <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </a>
+      )}
 
       <style>{`
         @keyframes blob {
