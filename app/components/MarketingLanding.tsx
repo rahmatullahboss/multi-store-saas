@@ -259,6 +259,12 @@ export function MarketingLanding() {
               </Link>
               
               <div className="flex items-center gap-3">
+                <Link 
+                  to="/tutorials" 
+                  className="hidden md:block text-white/60 hover:text-[#00875F] font-medium text-sm px-3 py-2 transition"
+                >
+                  {lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorial'}
+                </Link>
                 <button
                   onClick={toggleLang}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 rounded-xl text-sm font-medium transition text-white/80 border border-[#006A4E]/30"
@@ -358,22 +364,34 @@ export function MarketingLanding() {
                 <p className="text-sm text-white/50">{content.footerAbout}</p>
               </div>
               
-              {[
-                { title: content.footerProduct, links: content.productLinks },
-                { title: content.footerCompany, links: content.companyLinks },
-                { title: content.footerLegal, links: content.legalLinks },
-              ].map((section, i) => (
-                <div key={i}>
-                  <h4 className="text-[#006A4E] font-semibold mb-4">{section.title}</h4>
-                  <ul className="space-y-2">
-                    {section.links.map((link: string, j: number) => (
-                      <li key={j}>
-                        <Link to="#" className="text-white/50 hover:text-[#00875F] transition text-sm">{link}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+              {/* Product Links */}
+              <div>
+                <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
+                <ul className="space-y-2">
+                  <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'ফিচার' : 'Features'}</Link></li>
+                  <li><Link to="/#pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'প্রাইসিং' : 'Pricing'}</Link></li>
+                  <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorials'}</Link></li>
+                </ul>
+              </div>
+              
+              {/* Company Links */}
+              <div>
+                <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
+                <ul className="space-y-2">
+                  <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'সম্পর্কে' : 'About'}</Link></li>
+                  <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'যোগাযোগ' : 'Contact'}</Link></li>
+                </ul>
+              </div>
+              
+              {/* Legal Links */}
+              <div>
+                <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
+                <ul className="space-y-2">
+                  <li><Link to="/policies/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'গোপনীয়তা' : 'Privacy'}</Link></li>
+                  <li><Link to="/policies/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'শর্তাবলী' : 'Terms'}</Link></li>
+                  <li><Link to="/policies/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'রিফান্ড নীতি' : 'Refund Policy'}</Link></li>
+                </ul>
+              </div>
             </div>
             
             <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -420,6 +438,12 @@ export function MarketingLanding() {
             </Link>
             
             <div className="flex items-center gap-3">
+              <Link 
+                to="/tutorials" 
+                className="hidden md:block text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 transition"
+              >
+                {lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorial'}
+              </Link>
               {/* Theme Toggle */}
               <button
                 onClick={() => setIsDarkMode(true)}
@@ -487,22 +511,34 @@ export function MarketingLanding() {
               <p className="text-sm text-white/50">{content.footerAbout}</p>
             </div>
             
-            {[
-              { title: content.footerProduct, links: content.productLinks },
-              { title: content.footerCompany, links: content.companyLinks },
-              { title: content.footerLegal, links: content.legalLinks },
-            ].map((section, i) => (
-              <div key={i}>
-                <h4 className="text-[#006A4E] font-semibold mb-4">{section.title}</h4>
-                <ul className="space-y-2">
-                  {section.links.map((link: string, j: number) => (
-                    <li key={j}>
-                      <Link to="#" className="text-white/50 hover:text-[#00875F] transition text-sm">{link}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            {/* Product Links */}
+            <div>
+              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
+              <ul className="space-y-2">
+                <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'ফিচার' : 'Features'}</Link></li>
+                <li><Link to="/#pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'প্রাইসিং' : 'Pricing'}</Link></li>
+                <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorials'}</Link></li>
+              </ul>
+            </div>
+            
+            {/* Company Links */}
+            <div>
+              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
+              <ul className="space-y-2">
+                <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'সম্পর্কে' : 'About'}</Link></li>
+                <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'যোগাযোগ' : 'Contact'}</Link></li>
+              </ul>
+            </div>
+            
+            {/* Legal Links */}
+            <div>
+              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
+              <ul className="space-y-2">
+                <li><Link to="/policies/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'গোপনীয়তা' : 'Privacy'}</Link></li>
+                <li><Link to="/policies/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'শর্তাবলী' : 'Terms'}</Link></li>
+                <li><Link to="/policies/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'রিফান্ড নীতি' : 'Refund Policy'}</Link></li>
+              </ul>
+            </div>
           </div>
           
           <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
