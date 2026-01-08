@@ -83,7 +83,7 @@ const TemplateLibraryCard = () => {
       </div>
 
       {/* Template Cards Showcase */}
-      <div className="relative h-52 md:h-64">
+      <div className="relative h-48 md:h-56">
         {templates.map((template, i) => {
           const Icon = template.icon;
           const isActive = i === activeIndex;
@@ -92,30 +92,30 @@ const TemplateLibraryCard = () => {
           return (
             <motion.div
               key={template.name}
-              className="absolute w-44 md:w-52 h-36 md:h-44 rounded-xl border"
+              className="absolute w-56 md:w-72 h-44 md:h-52 rounded-2xl border"
               style={{ 
                 backgroundColor: `${template.color}10`,
                 borderColor: `${template.color}30`,
               }}
               animate={{
-                x: offset * 50 - 25,
-                y: offset * 10,
-                scale: isActive ? 1 : 0.9 - offset * 0.05,
+                x: offset * 60 - 30,
+                y: offset * 12,
+                scale: isActive ? 1 : 0.88 - offset * 0.05,
                 zIndex: templates.length - offset,
                 opacity: offset > 2 ? 0 : 1,
               }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
-              <div className="p-5 h-full flex flex-col justify-between">
+              <div className="p-6 h-full flex flex-col justify-between">
                 <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  className="w-14 h-14 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: `${template.color}30` }}
                 >
-                  <Icon className="w-6 h-6" style={{ color: template.color }} />
+                  <Icon className="w-7 h-7" style={{ color: template.color }} />
                 </div>
                 <div>
-                  <div className="h-2.5 w-24 rounded bg-white/10 mb-2" />
-                  <div className="h-2.5 w-16 rounded bg-white/5" />
+                  <div className="h-3 w-32 rounded bg-white/10 mb-2.5" />
+                  <div className="h-3 w-20 rounded bg-white/5" />
                 </div>
               </div>
             </motion.div>
