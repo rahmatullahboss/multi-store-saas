@@ -247,14 +247,6 @@ export function MarketingLanding() {
               </Link>
               
               <div className="flex items-center gap-3">
-                {/* Theme Toggle */}
-                <button
-                  onClick={() => setIsDarkMode(false)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-medium transition text-white/70 border border-white/10"
-                  title="Switch to Light Mode"
-                >
-                  <Sun className="w-4 h-4" />
-                </button>
                 <button
                   onClick={toggleLang}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-medium transition text-white/70 border border-white/10"
