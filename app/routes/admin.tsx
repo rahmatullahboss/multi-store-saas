@@ -34,7 +34,8 @@ import {
   Bot,
   PanelLeftClose,
   PanelLeft,
-  BarChart3
+  BarChart3,
+  BookOpen
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -80,6 +81,7 @@ const navItems = [
   { to: '/admin/storage', label: 'Storage', icon: HardDrive },
   { to: '/admin/marketing', label: 'Marketing', icon: Ticket },
   { to: '/admin/broadcasts', label: 'Broadcasts', icon: Radio },
+  { to: '/admin/tutorials', label: 'Tutorials', icon: BookOpen },
 ];
 
 // ============================================================================

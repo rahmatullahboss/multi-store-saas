@@ -74,6 +74,8 @@ export interface LandingConfig {
   accentColor?: string;  // Secondary accent color // Additional product images
   // Order Form Layout Variant
   orderFormVariant?: 'full-width' | 'compact'; // Default: 'full-width'
+  // Custom CSS for advanced styling
+  customCSS?: string;
 }
 
 // Store template configuration for full store mode
