@@ -228,354 +228,604 @@ export function MarketingLanding() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-24 px-4">
+      {/* Hero Section - PREMIUM ANIMATED */}
+      <section className="relative pt-32 pb-24 px-4 min-h-[90vh] flex items-center">
         <DottedGridBg />
         
-        {/* Gradient Orbs */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-300/30 rounded-full blur-3xl" />
-        <div className="absolute top-40 right-10 w-96 h-96 bg-teal-300/20 rounded-full blur-3xl" />
+        {/* Animated Morphing Gradient Orbs */}
+        <FloatingOrbs />
         
         <div className="relative max-w-5xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/80 backdrop-blur-sm border border-emerald-200 text-emerald-700 rounded-full text-sm font-medium mb-8 shadow-sm">
-            <Sparkles className="w-4 h-4" />
+          {/* Animated Badge */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/80 backdrop-blur-sm border border-emerald-200 text-emerald-700 rounded-full text-sm font-medium mb-8 shadow-sm"
+          >
+            <motion.div
+              animate={{ rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <Sparkles className="w-4 h-4" />
+            </motion.div>
             {content.badge}
             <div className="flex -space-x-2 ml-2">
               {['👩‍💼', '👨‍💻', '👩‍🎨'].map((emoji, i) => (
-                <span key={i} className="w-6 h-6 bg-white rounded-full border-2 border-emerald-100 flex items-center justify-center text-xs">
+                <motion.span 
+                  key={i} 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.4 + i * 0.1 }}
+                  className="w-6 h-6 bg-white rounded-full border-2 border-emerald-100 flex items-center justify-center text-xs"
+                >
                   {emoji}
-                </span>
+                </motion.span>
               ))}
             </div>
-          </div>
+          </motion.div>
           
-          {/* Headline - Using Serif Font */}
-          <h1 
+          {/* Animated Headline with Shimmer Effect */}
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
             className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-[1.1] tracking-tight"
             style={{ fontFamily: 'Newsreader, Georgia, serif' }}
           >
             {content.heroTitle1}<br />
-            <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+            <ShimmerText className="text-5xl md:text-7xl font-bold">
               {content.heroTitle2}
-            </span>
-          </h1>
+            </ShimmerText>
+          </motion.h1>
           
-          <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed"
+          >
             {content.heroSubtitle}
-          </p>
+          </motion.p>
           
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              to="/auth/register"
-              className="group px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-2xl text-lg shadow-xl shadow-emerald-500/30 transition-all hover:shadow-2xl hover:shadow-emerald-500/40 flex items-center gap-2"
-            >
-              {content.getStarted}
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              to="#"
-              className="px-8 py-4 bg-white hover:bg-emerald-50 text-emerald-700 font-semibold rounded-2xl text-lg border-2 border-emerald-200 transition flex items-center gap-2"
-            >
-              <Play className="w-5 h-5" />
-              {content.talkExpert}
-            </Link>
-          </div>
+          {/* Premium Animated CTA Buttons */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <MagneticButton>
+              <Link
+                to="/auth/register"
+                className="group px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-2xl text-lg shadow-xl shadow-emerald-500/30 transition-all hover:shadow-2xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 flex items-center gap-2"
+              >
+                {content.getStarted}
+                <motion.span
+                  animate={{ x: [0, 3, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="w-5 h-5" />
+                </motion.span>
+              </Link>
+            </MagneticButton>
+            <MagneticButton>
+              <Link
+                to="#"
+                className="group px-8 py-4 bg-white hover:bg-emerald-50 text-emerald-700 font-semibold rounded-2xl text-lg border-2 border-emerald-200 transition-all hover:-translate-y-0.5 flex items-center gap-2"
+              >
+                <Play className="w-5 h-5" />
+                {content.talkExpert}
+              </Link>
+            </MagneticButton>
+          </motion.div>
           
-          <p className="mt-6 text-gray-500 text-sm">{content.noCreditCard}</p>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            className="mt-6 text-gray-500 text-sm"
+          >
+            {content.noCreditCard}
+          </motion.p>
+
+          {/* Scroll indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          >
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="text-emerald-400"
+            >
+              <ChevronDown className="w-8 h-8" />
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Stats Section - Dark */}
-      <section className="py-16 bg-gradient-to-r from-gray-900 via-emerald-950 to-gray-900">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="group">
-              <div className="w-16 h-16 mx-auto mb-4 bg-emerald-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Store className="w-8 h-8 text-emerald-400" />
-              </div>
-              <p className="text-4xl md:text-5xl font-black text-white mb-1">500+</p>
-              <p className="text-emerald-300">{content.statsStores}</p>
-            </div>
-            <div className="group">
-              <div className="w-16 h-16 mx-auto mb-4 bg-teal-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <ShoppingBag className="w-8 h-8 text-teal-400" />
-              </div>
-              <p className="text-4xl md:text-5xl font-black text-white mb-1">50K+</p>
-              <p className="text-teal-300">{content.statsOrders}</p>
-            </div>
-            <div className="group">
-              <div className="w-16 h-16 mx-auto mb-4 bg-cyan-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="w-8 h-8 text-cyan-400" />
-              </div>
-              <p className="text-4xl md:text-5xl font-black text-white mb-1">1K+</p>
-              <p className="text-cyan-300">{content.statsMerchants}</p>
-            </div>
-            <div className="group">
-              <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-8 h-8 text-green-400" />
-              </div>
-              <p className="text-4xl md:text-5xl font-black text-white mb-1">99.9%</p>
-              <p className="text-green-300">{content.statsUptime}</p>
-            </div>
-          </div>
+      {/* Stats Section - Dark with Animated Counters */}
+      <section className="py-20 bg-gradient-to-r from-gray-900 via-emerald-950 to-gray-900 relative overflow-hidden">
+        {/* Animated background glow */}
+        <motion.div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        
+        <div className="max-w-6xl mx-auto px-4 relative">
+          <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <StaggerItem>
+              <motion.div 
+                className="group"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.div 
+                  className="w-16 h-16 mx-auto mb-4 bg-emerald-500/20 rounded-2xl flex items-center justify-center"
+                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Store className="w-8 h-8 text-emerald-400" />
+                </motion.div>
+                <AnimatedCounter end={500} suffix="+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
+                <p className="text-emerald-300">{content.statsStores}</p>
+              </motion.div>
+            </StaggerItem>
+            <StaggerItem>
+              <motion.div 
+                className="group"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.div 
+                  className="w-16 h-16 mx-auto mb-4 bg-teal-500/20 rounded-2xl flex items-center justify-center"
+                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ShoppingBag className="w-8 h-8 text-teal-400" />
+                </motion.div>
+                <AnimatedCounter end={50} suffix="K+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
+                <p className="text-teal-300">{content.statsOrders}</p>
+              </motion.div>
+            </StaggerItem>
+            <StaggerItem>
+              <motion.div 
+                className="group"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.div 
+                  className="w-16 h-16 mx-auto mb-4 bg-cyan-500/20 rounded-2xl flex items-center justify-center"
+                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Users className="w-8 h-8 text-cyan-400" />
+                </motion.div>
+                <AnimatedCounter end={1} suffix="K+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
+                <p className="text-cyan-300">{content.statsMerchants}</p>
+              </motion.div>
+            </StaggerItem>
+            <StaggerItem>
+              <motion.div 
+                className="group"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.div 
+                  className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-2xl flex items-center justify-center"
+                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <TrendingUp className="w-8 h-8 text-green-400" />
+                </motion.div>
+                <span className="text-4xl md:text-5xl font-black text-white mb-1 block">99.9%</span>
+                <p className="text-green-300">{content.statsUptime}</p>
+              </motion.div>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-24 px-4 bg-white relative">
+      {/* How It Works - Premium Animated */}
+      <section className="py-24 px-4 bg-white relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 
-              className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-              style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-            >
-              {content.howTitle}
-            </h2>
-            <p className="text-xl text-gray-600">{content.howSubtitle}</p>
-          </div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <h2 
+                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
+              >
+                {content.howTitle}
+              </h2>
+              <p className="text-xl text-gray-600">{content.howSubtitle}</p>
+            </div>
+          </ScrollReveal>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { step: '1', title: content.step1, desc: content.step1Desc, icon: Users },
               { step: '2', title: content.step2, desc: content.step2Desc, icon: ShoppingBag },
               { step: '3', title: content.step3, desc: content.step3Desc, icon: Rocket },
             ].map((item, i) => (
-              <div key={i} className="relative group">
-                {/* Connector Line */}
-                {i < 2 && (
-                  <div className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-emerald-300 to-transparent z-0" />
-                )}
-                
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 border border-emerald-100 hover:border-emerald-300 transition-all hover:shadow-xl hover:shadow-emerald-500/10 group-hover:-translate-y-1">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30">
-                    <span className="text-2xl font-black text-white">{item.step}</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+              <StaggerItem key={i}>
+                <div className="relative group h-full">
+                  {/* Animated Connector Line */}
+                  {i < 2 && (
+                    <motion.div 
+                      className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-emerald-400 to-transparent z-0"
+                      initial={{ scaleX: 0, originX: 0 }}
+                      whileInView={{ scaleX: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.8, delay: 0.5 + i * 0.2 }}
+                    />
+                  )}
+                  
+                  <TiltCard className="h-full">
+                    <motion.div 
+                      className="relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 border border-emerald-100 h-full"
+                      whileHover={{ 
+                        borderColor: 'rgb(110, 231, 183)',
+                        boxShadow: '0 25px 50px -12px rgba(16, 185, 129, 0.15)',
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <motion.div 
+                        className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <span className="text-2xl font-black text-white">{item.step}</span>
+                      </motion.div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
+                      <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                    </motion.div>
+                  </TiltCard>
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
-      {/* Bento Features Grid */}
-      <section className="py-24 px-4 bg-gradient-to-b from-emerald-50 to-white relative">
+      {/* Bento Features Grid - Premium Animated */}
+      <section className="py-24 px-4 bg-gradient-to-b from-emerald-50 to-white relative overflow-hidden">
         <DottedGridBg />
         
         <div className="relative max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 
-              className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-              style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-            >
-              {content.featuresTitle}
-            </h2>
-            <p className="text-xl text-gray-600">{content.featuresSubtitle}</p>
-          </div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <h2 
+                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
+              >
+                {content.featuresTitle}
+              </h2>
+              <p className="text-xl text-gray-600">{content.featuresSubtitle}</p>
+            </div>
+          </ScrollReveal>
           
-          {/* Bento Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Animated Bento Grid */}
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {content.features.map((feature, i) => {
               const icons = { globe: Globe, zap: Zap, smartphone: Smartphone, chart: BarChart3, package: Package, truck: Truck };
               const Icon = icons[feature.icon as keyof typeof icons] || Globe;
               
               return (
-                <div 
-                  key={i} 
-                  className="group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-emerald-100 hover:border-emerald-300 transition-all hover:shadow-2xl hover:shadow-emerald-500/10"
-                >
-                  {/* Gradient overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                  
-                  <div className="relative">
-                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                      <Icon className="w-7 h-7 text-emerald-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-                  </div>
-                </div>
+                <StaggerItem key={i}>
+                  <TiltCard className="h-full" glowColor="rgba(16, 185, 129, 0.2)">
+                    <motion.div 
+                      className="group relative bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-emerald-100 h-full"
+                      whileHover={{ 
+                        borderColor: 'rgb(110, 231, 183)',
+                        boxShadow: '0 25px 50px -12px rgba(16, 185, 129, 0.2)',
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {/* Animated gradient overlay */}
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-3xl"
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                      
+                      <div className="relative">
+                        <motion.div 
+                          className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mb-6"
+                          whileHover={{ scale: 1.15, rotate: 5 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Icon className="w-7 h-7 text-emerald-600" />
+                        </motion.div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                        <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                      </div>
+                    </motion.div>
+                  </TiltCard>
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-4 bg-white">
+      {/* Pricing Section - Premium Animated */}
+      <section id="pricing" className="py-24 px-4 bg-white relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 
-              className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-              style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-            >
-              {content.pricingTitle}
-            </h2>
-            <p className="text-xl text-gray-600">{content.pricingSubtitle}</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {content.plans.map((plan, i) => (
-              <div
-                key={i}
-                className={`relative rounded-3xl p-8 transition-all ${
-                  plan.highlight 
-                    ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-2xl shadow-emerald-500/30 scale-105 border-2 border-emerald-400' 
-                    : 'bg-white border-2 border-gray-100 hover:border-emerald-200 hover:shadow-xl'
-                }`}
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <h2 
+                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
               >
-                {plan.highlight && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg">
-                    {content.mostPopular}
-                  </div>
-                )}
-                
-                <h3 className={`text-2xl font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
-                  {plan.name}
-                </h3>
-                <p className={`mb-6 ${plan.highlight ? 'text-emerald-200' : 'text-gray-500'}`}>
-                  {plan.description}
-                </p>
-                
-                <div className="mb-8">
-                  <span className={`text-5xl font-black ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
-                    ৳{plan.price}
-                  </span>
-                  <span className={plan.highlight ? 'text-emerald-200' : 'text-gray-500'}>
-                    {content.perMonth}
-                  </span>
-                </div>
-                
-                <ul className="space-y-4 mb-8">
-                  {plan.features.map((feature, j) => (
-                    <li key={j} className={`flex items-center gap-3 ${plan.highlight ? 'text-emerald-100' : 'text-gray-600'}`}>
-                      <Check className={`w-5 h-5 flex-shrink-0 ${plan.highlight ? 'text-emerald-300' : 'text-emerald-500'}`} />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                
-                <Link
-                  to="/auth/register"
-                  className={`block w-full py-4 text-center font-bold rounded-xl transition ${
-                    plan.highlight
-                      ? 'bg-white hover:bg-emerald-50 text-emerald-700'
-                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25'
+                {content.pricingTitle}
+              </h2>
+              <p className="text-xl text-gray-600">{content.pricingSubtitle}</p>
+            </div>
+          </ScrollReveal>
+          
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {content.plans.map((plan, i) => (
+              <StaggerItem key={i}>
+                <motion.div
+                  className={`relative rounded-3xl p-8 h-full ${
+                    plan.highlight 
+                      ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-2xl shadow-emerald-500/30 border-2 border-emerald-400' 
+                      : 'bg-white border-2 border-gray-100'
                   }`}
+                  initial={{ scale: plan.highlight ? 1.05 : 1 }}
+                  whileHover={{ 
+                    scale: plan.highlight ? 1.08 : 1.03,
+                    boxShadow: plan.highlight 
+                      ? '0 25px 50px -12px rgba(16, 185, 129, 0.5)' 
+                      : '0 25px 50px -12px rgba(16, 185, 129, 0.15)',
+                  }}
+                  transition={{ duration: 0.3 }}
                 >
-                  {plan.cta}
-                </Link>
-              </div>
+                  {plan.highlight && (
+                    <motion.div 
+                      className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg"
+                      animate={{ 
+                        boxShadow: ['0 4px 15px rgba(251, 191, 36, 0.4)', '0 4px 25px rgba(251, 191, 36, 0.7)', '0 4px 15px rgba(251, 191, 36, 0.4)']
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <span className="flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        {content.mostPopular}
+                      </span>
+                    </motion.div>
+                  )}
+                  
+                  <h3 className={`text-2xl font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
+                    {plan.name}
+                  </h3>
+                  <p className={`mb-6 ${plan.highlight ? 'text-emerald-200' : 'text-gray-500'}`}>
+                    {plan.description}
+                  </p>
+                  
+                  <div className="mb-8">
+                    <span className={`text-5xl font-black ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
+                      ৳{plan.price}
+                    </span>
+                    <span className={plan.highlight ? 'text-emerald-200' : 'text-gray-500'}>
+                      {content.perMonth}
+                    </span>
+                  </div>
+                  
+                  <ul className="space-y-4 mb-8">
+                    {plan.features.map((feature, j) => (
+                      <motion.li 
+                        key={j} 
+                        className={`flex items-center gap-3 ${plan.highlight ? 'text-emerald-100' : 'text-gray-600'}`}
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: j * 0.1 }}
+                      >
+                        <motion.div
+                          whileHover={{ scale: 1.2 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Check className={`w-5 h-5 flex-shrink-0 ${plan.highlight ? 'text-emerald-300' : 'text-emerald-500'}`} />
+                        </motion.div>
+                        {feature}
+                      </motion.li>
+                    ))}
+                  </ul>
+                  
+                  <MagneticButton className="w-full">
+                    <Link
+                      to="/auth/register"
+                      className={`block w-full py-4 text-center font-bold rounded-xl transition-all ${
+                        plan.highlight
+                          ? 'bg-white hover:bg-emerald-50 text-emerald-700 hover:shadow-lg'
+                          : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl'
+                      }`}
+                    >
+                      {plan.cta}
+                    </Link>
+                  </MagneticButton>
+                </motion.div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 px-4 bg-gradient-to-b from-emerald-50 to-white relative">
+      {/* Testimonials - Premium Animated */}
+      <section className="py-24 px-4 bg-gradient-to-b from-emerald-50 to-white relative overflow-hidden">
         <DottedGridBg />
         
         <div className="relative max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 
-              className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-              style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-            >
-              {content.testimonialsTitle}
-            </h2>
-            <p className="text-xl text-gray-600">{content.testimonialsSubtitle}</p>
-          </div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <h2 
+                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
+              >
+                {content.testimonialsTitle}
+              </h2>
+              <p className="text-xl text-gray-600">{content.testimonialsSubtitle}</p>
+            </div>
+          </ScrollReveal>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {content.testimonials.map((t, i) => (
-              <div 
-                key={i} 
-                className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-emerald-100 hover:border-emerald-300 transition-all hover:shadow-xl"
-              >
-                <div className="flex items-center gap-1 text-amber-400 mb-6">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-5 h-5 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-700 text-lg mb-8 leading-relaxed italic">"{t.text}"</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/30">
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900">{t.name}</p>
-                    <p className="text-sm text-gray-500">{t.role}</p>
-                  </div>
-                </div>
-              </div>
+              <StaggerItem key={i}>
+                <TiltCard className="h-full" glowColor="rgba(16, 185, 129, 0.15)">
+                  <motion.div 
+                    className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-emerald-100 h-full"
+                    whileHover={{ 
+                      borderColor: 'rgb(110, 231, 183)',
+                      boxShadow: '0 20px 40px -12px rgba(16, 185, 129, 0.15)',
+                    }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {/* Animated Stars */}
+                    <div className="flex items-center gap-1 text-amber-400 mb-6">
+                      {[...Array(5)].map((_, j) => (
+                        <motion.div
+                          key={j}
+                          initial={{ opacity: 0, scale: 0 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: j * 0.1 }}
+                        >
+                          <Star className="w-5 h-5 fill-current" />
+                        </motion.div>
+                      ))}
+                    </div>
+                    <p className="text-gray-700 text-lg mb-8 leading-relaxed italic">"{t.text}"</p>
+                    <div className="flex items-center gap-4">
+                      <motion.div 
+                        className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/30"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {t.avatar}
+                      </motion.div>
+                      <div>
+                        <p className="font-bold text-gray-900">{t.name}</p>
+                        <p className="text-sm text-gray-500">{t.role}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </TiltCard>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-24 px-4 bg-white">
+      {/* FAQ Section - Premium Animated */}
+      <section className="py-24 px-4 bg-white relative overflow-hidden">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 
-              className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-              style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-            >
-              {content.faqTitle}
-            </h2>
-            <p className="text-xl text-gray-600">{content.faqSubtitle}</p>
-          </div>
-          
-          <div className="space-y-4">
-            {content.faqs.map((faq, i) => (
-              <div 
-                key={i} 
-                className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100 hover:border-emerald-300 transition-all"
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <h2 
+                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
               >
-                <h4 className="text-lg font-bold text-gray-900 flex items-start gap-3">
-                  <span className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-lg shadow-emerald-500/30">
-                    ?
-                  </span>
-                  {faq.q}
-                </h4>
-                <p className="text-gray-600 mt-3 ml-11 leading-relaxed">{faq.a}</p>
-              </div>
+                {content.faqTitle}
+              </h2>
+              <p className="text-xl text-gray-600">{content.faqSubtitle}</p>
+            </div>
+          </ScrollReveal>
+          
+          <StaggerContainer className="space-y-4">
+            {content.faqs.map((faq, i) => (
+              <StaggerItem key={i}>
+                <motion.div 
+                  className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100"
+                  whileHover={{ 
+                    borderColor: 'rgb(110, 231, 183)',
+                    boxShadow: '0 10px 30px -10px rgba(16, 185, 129, 0.15)',
+                    x: 5,
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <h4 className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                    <motion.span 
+                      className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-lg shadow-emerald-500/30"
+                      whileHover={{ scale: 1.1, rotate: 10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      ?
+                    </motion.span>
+                    {faq.q}
+                  </h4>
+                  <p className="text-gray-600 mt-3 ml-11 leading-relaxed">{faq.a}</p>
+                </motion.div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
-      {/* Final CTA Section */}
+      {/* Final CTA Section - Premium Animated */}
       <section className="py-24 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div 
+        {/* Animated Background Pattern */}
+        <motion.div 
           className="absolute inset-0 opacity-20"
           style={{
             backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)`,
             backgroundSize: '32px 32px',
           }}
+          animate={{ 
+            backgroundPosition: ['0px 0px', '32px 32px'],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+        />
+        
+        {/* Floating glow orbs */}
+        <motion.div 
+          className="absolute top-1/2 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        <motion.div 
+          className="absolute top-1/2 right-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.5, 0.3, 0.5] }}
+          transition={{ duration: 4, repeat: Infinity }}
         />
         
         <div className="relative max-w-4xl mx-auto text-center">
-          <h2 
-            className="text-4xl md:text-5xl font-bold text-white mb-6"
-            style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-          >
-            {content.ctaTitle}
-          </h2>
-          <p className="text-emerald-200 text-xl mb-10 max-w-2xl mx-auto">
-            {content.ctaSubtitle}
-          </p>
-          <Link
-            to="/auth/register"
-            className="inline-flex items-center gap-3 px-10 py-5 bg-white hover:bg-emerald-50 text-emerald-700 font-bold rounded-2xl text-xl transition shadow-2xl hover:shadow-white/20"
-          >
-            {content.ctaButton}
-            <ArrowRight className="w-6 h-6" />
-          </Link>
+          <ScrollReveal>
+            <h2 
+              className="text-4xl md:text-5xl font-bold text-white mb-6"
+              style={{ fontFamily: 'Newsreader, Georgia, serif' }}
+            >
+              {content.ctaTitle}
+            </h2>
+            <p className="text-emerald-200 text-xl mb-10 max-w-2xl mx-auto">
+              {content.ctaSubtitle}
+            </p>
+          </ScrollReveal>
+          
+          <MagneticButton>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Link
+                to="/auth/register"
+                className="inline-flex items-center gap-3 px-10 py-5 bg-white hover:bg-emerald-50 text-emerald-700 font-bold rounded-2xl text-xl transition-all shadow-2xl hover:shadow-white/30"
+              >
+                {content.ctaButton}
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="w-6 h-6" />
+                </motion.span>
+              </Link>
+            </motion.div>
+          </MagneticButton>
         </div>
       </section>
 
