@@ -348,10 +348,15 @@ export function LandingPageTemplate({
     );
   };
 
-  // Redirect to thank-you page on success
+  // Redirect on Success - Check for upsell URL first
   useEffect(() => {
     if (fetcher.data?.success && fetcher.data?.orderId) {
-      window.location.href = `/thank-you/${fetcher.data.orderId}`;
+      // If there's an upsell offer, redirect there; otherwise go to thank-you
+      if (fetcher.data?.upsellUrl) {
+        window.location.href = fetcher.data.upsellUrl;
+      } else {
+        window.location.href = `/thank-you/${fetcher.data.orderId}`;
+      }
     }
   }, [fetcher.data]);
 

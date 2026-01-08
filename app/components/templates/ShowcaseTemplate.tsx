@@ -138,10 +138,14 @@ export function ShowcaseTemplate({
     );
   };
 
-  // Redirect on Success
+  // Redirect on Success - Check for upsell URL first
   useEffect(() => {
     if (fetcher.data?.success && fetcher.data?.orderId) {
-      window.location.href = `/thank-you/${fetcher.data.orderId}`;
+      if (fetcher.data?.upsellUrl) {
+        window.location.href = fetcher.data.upsellUrl;
+      } else {
+        window.location.href = `/thank-you/${fetcher.data.orderId}`;
+      }
     }
   }, [fetcher.data]);
 

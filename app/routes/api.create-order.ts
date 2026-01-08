@@ -15,7 +15,7 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps } from '@db/schema';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens } from '@db/schema';
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { checkUsageLimit } from '~/utils/plans.server';
@@ -414,11 +414,64 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })()
     );
 
+    // ============================================================================
+    // CHECK FOR UPSELL OFFERS & GENERATE TOKEN
+    // ============================================================================
+    let upsellUrl: string | undefined;
+    
+    try {
+      // Check if there are active upsell offers for this product
+      const upsellOffer = await db
+        .select({
+          id: upsellOffers.id,
+          offerProductId: upsellOffers.offerProductId,
+          headline: upsellOffers.headline,
+        })
+        .from(upsellOffers)
+        .where(
+          and(
+            eq(upsellOffers.storeId, input.store_id),
+            eq(upsellOffers.productId, input.product_id),
+            eq(upsellOffers.isActive, true)
+          )
+        )
+        .orderBy(upsellOffers.displayOrder)
+        .limit(1);
+      
+      if (upsellOffer.length > 0) {
+        // Generate unique token for upsell
+        const token = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        
+        await db.insert(upsellTokens).values({
+          orderId,
+          token,
+          offerId: upsellOffer[0].id,
+          expiresAt,
+        });
+        
+        upsellUrl = `/upsell/${token}`;
+        
+        // Increment upsell views (non-blocking)
+        context.cloudflare.ctx.waitUntil(
+          context.cloudflare.env.DB.prepare(
+            'UPDATE upsell_offers SET views = views + 1 WHERE id = ?'
+          ).bind(upsellOffer[0].id).run().catch(e => 
+            console.error('Failed to increment upsell views:', e)
+          )
+        );
+      }
+    } catch (e) {
+      console.error('Failed to check/create upsell offer:', e);
+      // Don't fail the order, just skip upsell
+    }
+
     return json({
       success: true,
       orderId,
       orderNumber,
       total,
+      upsellUrl, // If defined, client should redirect here instead of thank-you
       message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে! শীঘ্রই আমরা আপনার সাথে যোগাযোগ করবো।',
     });
 
