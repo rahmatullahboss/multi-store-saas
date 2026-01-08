@@ -12,8 +12,8 @@
  * - Magnetic buttons and hover states
  */
 
-import { useState } from 'react';
-import { Link } from '@remix-run/react';
+import { useState, useEffect } from 'react';
+import { Link, useFetcher } from '@remix-run/react';
 import { motion } from 'framer-motion';
 import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone, ChevronDown, Moon, Sun } from 'lucide-react';
 import { useLanguage } from '~/contexts/LanguageContext';
@@ -36,6 +36,7 @@ import { PricingSection } from '~/components/PricingSection';
 import { FinalCTA } from '~/components/FinalCTA';
 import { FAQSection } from '~/components/FAQSection';
 import { LightFloatingOrbs, LightHeroGradient, LightShimmerText } from '~/components/LightThemeEffects';
+import type { MarketingStats } from '~/routes/api.marketing-stats';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -228,6 +229,17 @@ export function MarketingLanding() {
   const { lang, toggleLang } = useLanguage();
   const content = marketingContent[lang];
   const [isDarkMode, setIsDarkMode] = useState(true); // Default to award-winning dark mode
+  
+  // Fetch real marketing stats from API
+  const statsFetcher = useFetcher<MarketingStats>();
+  
+  useEffect(() => {
+    if (statsFetcher.state === 'idle' && !statsFetcher.data) {
+      statsFetcher.load('/api/marketing-stats');
+    }
+  }, [statsFetcher]);
+  
+  const marketingStats = statsFetcher.data;
 
   // If dark mode, render the award-winning hero with rest of content in dark theme
   if (isDarkMode) {
@@ -315,7 +327,7 @@ export function MarketingLanding() {
         {/* =================================================================== */}
 
         {/* Trust Section - Transparency & Credibility */}
-        <TrustSection />
+        <TrustSection stats={marketingStats} />
 
         {/* Comparison Section - Why We're the Best Choice */}
         <ComparisonSection />
@@ -330,7 +342,7 @@ export function MarketingLanding() {
         <FAQSection />
 
         {/* Final CTA - Compelling Bengali Design */}
-        <FinalCTA />
+        <FinalCTA stats={marketingStats} />
 
         {/* Footer - Dark */}
         <footer className="py-16 px-4 bg-[#050508] text-white/40">

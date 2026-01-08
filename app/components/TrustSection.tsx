@@ -322,38 +322,36 @@ const FoundersMessage = () => {
 // SECTION 2: LIVE TRANSPARENCY DASHBOARD
 // ============================================================================
 interface LiveStats {
-  signups: number;
-  stores: number;
+  totalUsers: number;
+  totalStores: number;
   uptime: number;
 }
 
 const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
   const [liveStats, setLiveStats] = useState<LiveStats>({
-    signups: stats?.signups || 0,
-    stores: stats?.stores || 0,
+    totalUsers: stats?.totalUsers || 0,
+    totalStores: stats?.totalStores || 0,
     uptime: stats?.uptime || 99.9,
   });
 
   const [pulseSignup, setPulseSignup] = useState(false);
 
-  // Simulate live updates (in production, use WebSocket or polling)
+  // Update stats when props change (real data from API)
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        setLiveStats(prev => ({ ...prev, signups: prev.signups + 1 }));
-        setPulseSignup(true);
-        setTimeout(() => setPulseSignup(false), 1000);
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+    if (stats) {
+      setLiveStats({
+        totalUsers: stats.totalUsers,
+        totalStores: stats.totalStores,
+        uptime: stats.uptime || 99.9,
+      });
+    }
+  }, [stats]);
 
   const statItems = [
     {
       label: 'Signups',
       labelBn: 'সাইনআপ',
-      value: liveStats.signups,
+      value: liveStats.totalUsers,
       icon: TrendingUp,
       color: COLORS.primary,
       suffix: '',
@@ -362,7 +360,7 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
     {
       label: 'Stores Created',
       labelBn: 'স্টোর তৈরি',
-      value: liveStats.stores,
+      value: liveStats.totalStores,
       icon: Store,
       color: '#3B82F6',
       suffix: '',

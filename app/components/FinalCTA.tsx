@@ -30,24 +30,39 @@ const COLORS = {
 };
 
 // ============================================================================
-// SIMULATED RECENT SIGNUPS (Replace with real API data)
+// DEFAULT RECENT SIGNUPS (Fallback if no API data)
 // ============================================================================
-const recentSignups = [
-  { name: 'রফিক আহমেদ', city: 'ঢাকা', timeAgo: '২ মিনিট আগে' },
-  { name: 'সাবিনা আক্তার', city: 'চট্টগ্রাম', timeAgo: '৫ মিনিট আগে' },
-  { name: 'করিম হোসেন', city: 'সিলেট', timeAgo: '৮ মিনিট আগে' },
-  { name: 'ফাতেমা বেগম', city: 'রাজশাহী', timeAgo: '১২ মিনিট আগে' },
-  { name: 'আনিসুর রহমান', city: 'খুলনা', timeAgo: '১৫ মিনিট আগে' },
+const defaultRecentSignups = [
+  { name: 'র***ক', city: 'ঢাকা', timeAgo: '২ মিনিট আগে' },
+  { name: 'স***া', city: 'চট্টগ্রাম', timeAgo: '৫ মিনিট আগে' },
+  { name: 'ক***ম', city: 'সিলেট', timeAgo: '৮ মিনিট আগে' },
+  { name: 'ফ***া', city: 'রাজশাহী', timeAgo: '১২ মিনিট আগে' },
+  { name: 'আ***ন', city: 'খুলনা', timeAgo: '১৫ মিনিট আগে' },
 ];
+
+// Stats prop interface
+interface FinalCTAProps {
+  stats?: {
+    totalUsers?: number;
+    totalStores?: number;
+    recentSignups?: Array<{
+      name: string;
+      city: string;
+      timeAgo: string;
+    }>;
+  };
+}
 
 // ============================================================================
 // LIVE NOTIFICATION COMPONENT
 // ============================================================================
-const LiveNotification = () => {
+const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRecentSignups }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    if (recentSignups.length === 0) return;
+    
     const interval = setInterval(() => {
       setIsVisible(false);
       setTimeout(() => {
@@ -57,8 +72,9 @@ const LiveNotification = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [recentSignups.length]);
 
+  if (recentSignups.length === 0) return null;
   const current = recentSignups[currentIndex];
 
   return (
@@ -211,7 +227,11 @@ const DecorativeDiamonds = () => {
 // ============================================================================
 // MAIN FINAL CTA COMPONENT
 // ============================================================================
-export function FinalCTA() {
+export function FinalCTA({ stats }: FinalCTAProps) {
+  // Use real data or fallback to defaults
+  const recentSignups = stats?.recentSignups?.length ? stats.recentSignups : defaultRecentSignups;
+  const totalUsers = stats?.totalUsers || 0;
+  
   return (
     <section 
       className="py-16 relative overflow-hidden"
@@ -353,7 +373,7 @@ export function FinalCTA() {
           viewport={{ once: true }}
           transition={{ delay: 0.6 }}
         >
-          <LiveNotification />
+          <LiveNotification recentSignups={recentSignups} />
         </motion.div>
 
         {/* Early Adopter Count */}
@@ -379,7 +399,7 @@ export function FinalCTA() {
             ))}
           </div>
           <p className="text-white/50 text-sm">
-            <span className="text-white font-semibold">৫০০+</span> উদ্যোক্তা ইতিমধ্যে শুরু করেছেন
+            <span className="text-white font-semibold">{totalUsers > 0 ? `${totalUsers}+` : '৫০+'}</span> উদ্যোক্তা ইতিমধ্যে শুরু করেছেন
           </p>
         </motion.div>
       </div>
