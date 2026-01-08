@@ -443,7 +443,58 @@ export function PremiumBDTemplate({
         </div>
       </section>
 
-      {/* 5. ORDER FORM SECTION - Full Width 2-Column */}
+      {/* TESTIMONIALS - Screenshot Gallery Premium Style */}
+      {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
+        <section className="py-12 bg-white">
+          <div className="container max-w-4xl mx-auto px-4">
+            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">গ্রাহকদের রিভিউ</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {editableConfig.testimonials.slice(0, 3).map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-sm"
+                >
+                  {(testimonial.imageUrl || testimonial.avatar) && (
+                    <img 
+                      src={testimonial.imageUrl || testimonial.avatar} 
+                      alt={`Customer review ${idx + 1}`} 
+                      className="w-full aspect-[2/3] object-cover"
+                    />
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      {isSectionVisible('faq', editableConfig.hiddenSections) && editableConfig.faq && editableConfig.faq.length > 0 && (
+        <section className="py-12 bg-gray-50">
+          <div className="container max-w-2xl mx-auto px-4">
+            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">সচরাচর জিজ্ঞাসা</h2>
+            <div className="space-y-4">
+              {editableConfig.faq.map((item, idx) => (
+                <details key={idx} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                  <summary className="p-5 cursor-pointer flex items-center justify-between text-gray-800 font-medium">
+                    <span className="pr-4">{item.question}</span>
+                    <span className="text-emerald-600 group-open:rotate-45 transition-transform text-xl">+</span>
+                  </summary>
+                  <div className="px-5 pb-5 text-gray-600 leading-relaxed">
+                    {item.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ORDER FORM SECTION - Full Width 2-Column (Last Section) */}
       <section id="order-form" ref={orderFormRef} className="py-16 bg-emerald-50/50">
         <div className="container max-w-6xl mx-auto px-4">
           <div className="text-center mb-10">
@@ -677,56 +728,7 @@ export function PremiumBDTemplate({
         )}
       </AnimatePresence>
 
-      {/* TESTIMONIALS - Screenshot Gallery Premium Style */}
-      {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
-        <section className="py-12 bg-white">
-          <div className="container max-w-4xl mx-auto px-4">
-            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">গ্রাহকদের রিভিউ</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {editableConfig.testimonials.slice(0, 3).map((testimonial, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-sm"
-                >
-                  {(testimonial.imageUrl || testimonial.avatar) && (
-                    <img 
-                      src={testimonial.imageUrl || testimonial.avatar} 
-                      alt={`Customer review ${idx + 1}`} 
-                      className="w-full aspect-[2/3] object-cover"
-                    />
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
-      {/* FAQ */}
-      {isSectionVisible('faq', editableConfig.hiddenSections) && editableConfig.faq && editableConfig.faq.length > 0 && (
-        <section className="py-12 bg-gray-50">
-          <div className="container max-w-2xl mx-auto px-4">
-            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">সচরাচর জিজ্ঞাসা</h2>
-            <div className="space-y-4">
-              {editableConfig.faq.map((item, idx) => (
-                <details key={idx} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-                  <summary className="p-5 cursor-pointer flex items-center justify-between text-gray-800 font-medium">
-                    <span className="pr-4">{item.question}</span>
-                    <span className="text-emerald-600 group-open:rotate-45 transition-transform text-xl">+</span>
-                  </summary>
-                  <div className="px-5 pb-5 text-gray-600 leading-relaxed">
-                    {item.answer}
-                  </div>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
       {/* WhatsApp Floating Button */}
       {editableConfig.whatsappEnabled && editableConfig.whatsappNumber && (
         <a
