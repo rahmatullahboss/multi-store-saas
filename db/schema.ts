@@ -147,6 +147,10 @@ export const products = sqliteTable('products', {
   category: text('category'),
   tags: text('tags'), // JSON array of tags
   isPublished: integer('is_published', { mode: 'boolean' }).default(true),
+  // SEO Fields (auto-generated if empty, editable by merchant)
+  seoTitle: text('seo_title'), // Custom meta title (auto: "{title} | {storeName}")
+  seoDescription: text('seo_description'), // Custom meta description (auto: first 155 chars of description)
+  seoKeywords: text('seo_keywords'), // Comma-separated keywords
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [

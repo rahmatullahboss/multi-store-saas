@@ -13,7 +13,6 @@ import { drizzle } from 'drizzle-orm/d1';
 import { desc, eq, sql } from 'drizzle-orm';
 import { adminAuditLogs, users } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
-import { getActionDescription, getActionColor, type AuditAction } from '~/services/audit.server';
 import { 
   History, 
   User, 
@@ -30,6 +29,72 @@ import {
 export const meta: MetaFunction = () => {
   return [{ title: 'Audit Logs - Super Admin' }];
 };
+
+// Helper functions (inline to avoid server-client split)
+type AuditAction = 
+  | 'store_suspend' 
+  | 'store_unsuspend' 
+  | 'store_delete' 
+  | 'store_restore'
+  | 'store_impersonate'
+  | 'payment_approve'
+  | 'payment_reject'
+  | 'domain_approve'
+  | 'domain_reject'
+  | 'ai_approve'
+  | 'ai_reject'
+  | 'coupon_create'
+  | 'coupon_delete'
+  | 'broadcast_send'
+  | 'plan_change'
+  | 'bulk_action'
+  | 'other';
+
+function getActionDescription(action: AuditAction | string): string {
+  const descriptions: Record<string, string> = {
+    store_suspend: 'Store সাসপেন্ড করা হয়েছে',
+    store_unsuspend: 'Store আনসাসপেন্ড করা হয়েছে',
+    store_delete: 'Store ডিলিট করা হয়েছে',
+    store_restore: 'Store রিস্টোর করা হয়েছে',
+    store_impersonate: 'Store এ লগইন করা হয়েছে (Impersonate)',
+    payment_approve: 'পেমেন্ট এপ্রুভ করা হয়েছে',
+    payment_reject: 'পেমেন্ট রিজেক্ট করা হয়েছে',
+    domain_approve: 'Domain এপ্রুভ করা হয়েছে',
+    domain_reject: 'Domain রিজেক্ট করা হয়েছে',
+    ai_approve: 'AI Agent এপ্রুভ করা হয়েছে',
+    ai_reject: 'AI Agent রিজেক্ট করা হয়েছে',
+    coupon_create: 'Coupon তৈরি করা হয়েছে',
+    coupon_delete: 'Coupon ডিলিট করা হয়েছে',
+    broadcast_send: 'Broadcast পাঠানো হয়েছে',
+    plan_change: 'Plan পরিবর্তন করা হয়েছে',
+    bulk_action: 'Bulk action সম্পন্ন হয়েছে',
+    other: 'অন্যান্য action',
+  };
+  return descriptions[action] || action;
+}
+
+function getActionColor(action: string): 'red' | 'green' | 'blue' | 'yellow' | 'purple' | 'orange' {
+  const colors: Record<string, 'red' | 'green' | 'blue' | 'yellow' | 'purple' | 'orange'> = {
+    store_suspend: 'red',
+    store_unsuspend: 'green',
+    store_delete: 'red',
+    store_restore: 'green',
+    store_impersonate: 'yellow',
+    payment_approve: 'green',
+    payment_reject: 'red',
+    domain_approve: 'green',
+    domain_reject: 'red',
+    ai_approve: 'green',
+    ai_reject: 'red',
+    coupon_create: 'blue',
+    coupon_delete: 'orange',
+    broadcast_send: 'purple',
+    plan_change: 'blue',
+    bulk_action: 'purple',
+    other: 'blue',
+  };
+  return colors[action] || 'blue';
+}
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;

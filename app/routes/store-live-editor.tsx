@@ -31,14 +31,21 @@ import { StoreImageUpload } from '~/components/StoreImageUpload';
 
 export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Multi-Store SaaS' }];
 
-// Font Options
+// Font Options - includes English and Bengali fonts
 const FONT_OPTIONS = [
+  // English Fonts
   { id: 'inter', name: 'Inter', family: "'Inter', sans-serif", preview: 'Modern & clean' },
-  { id: 'poppins', name: 'Poppins', family: "'Poppins', sans-serif", preview: 'Friendly & rounded' },
-  { id: 'roboto', name: 'Roboto', family: "'Roboto', sans-serif", preview: 'Google\'s classic' },
-  { id: 'hind-siliguri', name: 'Hind Siliguri', family: "'Hind Siliguri', sans-serif", preview: 'বাংলা ফন্ট' },
-  { id: 'playfair', name: 'Playfair Display', family: "'Playfair Display', serif", preview: 'Elegant serif' },
-  { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", preview: 'Bold & modern' },
+  { id: 'poppins', name: 'Poppins', family: "'Poppins', sans-serif", preview: 'Friendly' },
+  { id: 'roboto', name: 'Roboto', family: "'Roboto', sans-serif", preview: 'Google classic' },
+  { id: 'playfair', name: 'Playfair Display', family: "'Playfair Display', serif", preview: 'Elegant' },
+  { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", preview: 'Bold' },
+  // Bengali Fonts
+  { id: 'hind-siliguri', name: 'Hind Siliguri', family: "'Hind Siliguri', sans-serif", preview: 'বাংলা UI' },
+  { id: 'noto-sans-bengali', name: 'Noto Sans Bengali', family: "'Noto Sans Bengali', sans-serif", preview: 'বাংলা Sans' },
+  { id: 'noto-serif-bengali', name: 'Noto Serif Bengali', family: "'Noto Serif Bengali', serif", preview: 'বাংলা Serif' },
+  { id: 'baloo-da', name: 'Baloo Da 2', family: "'Baloo Da 2', cursive", preview: 'বাংলা Display' },
+  { id: 'tiro-bangla', name: 'Tiro Bangla', family: "'Tiro Bangla', serif", preview: 'বাংলা Literary' },
+  { id: 'anek-bangla', name: 'Anek Bangla', family: "'Anek Bangla', sans-serif", preview: 'বাংলা Modern' },
 ];
 
 // Preset colors
