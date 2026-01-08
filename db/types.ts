@@ -38,6 +38,9 @@ export interface LandingConfig {
   whatsappEnabled?: boolean;
   whatsappNumber?: string; // e.g., '8801712345678'
   whatsappMessage?: string; // Pre-filled message template
+  // Call Button
+  callEnabled?: boolean;
+  callNumber?: string; // e.g., '01712345678'
   // Countdown Timer
   countdownEnabled?: boolean;
   countdownEndTime?: string; // ISO date string

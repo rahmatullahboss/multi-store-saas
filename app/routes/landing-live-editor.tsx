@@ -20,7 +20,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon
+  Upload, X, Image as ImageIcon, Phone
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
@@ -142,6 +142,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const whatsappEnabled = formData.get('whatsappEnabled') === 'true';
   const whatsappNumber = formData.get('whatsappNumber') as string || '';
   const whatsappMessage = formData.get('whatsappMessage') as string || '';
+  const callEnabled = formData.get('callEnabled') === 'true';
+  const callNumber = formData.get('callNumber') as string || '';
   const testimonials = safeJSONParse(formData.get('testimonials') as string, []);
   const faq = safeJSONParse(formData.get('faq') as string, []);
   const features = safeJSONParse(formData.get('features') as string, []);
@@ -179,6 +181,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     whatsappEnabled,
     whatsappNumber,
     whatsappMessage,
+    callEnabled,
+    callNumber,
     guaranteeText: guaranteeText || '',
     testimonials: testimonials.filter((t: {name?: string; imageUrl?: string}) => t.imageUrl),
     faq: faq.filter((f: {question: string; answer: string}) => f.question && f.answer),
@@ -275,6 +279,8 @@ export default function LiveEditorPage() {
   const [whatsappEnabled, setWhatsappEnabled] = useState(store.landingConfig.whatsappEnabled || false);
   const [whatsappNumber, setWhatsappNumber] = useState(store.landingConfig.whatsappNumber || '');
   const [whatsappMessage, setWhatsappMessage] = useState(store.landingConfig.whatsappMessage || '');
+  const [callEnabled, setCallEnabled] = useState(store.landingConfig.callEnabled || false);
+  const [callNumber, setCallNumber] = useState(store.landingConfig.callNumber || '');
   
   const [headline, setHeadline] = useState(store.landingConfig.headline);
   const [subheadline, setSubheadline] = useState(store.landingConfig.subheadline || '');
@@ -358,7 +364,7 @@ export default function LiveEditorPage() {
       return;
     }
     setHasChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -527,6 +533,8 @@ export default function LiveEditorPage() {
     whatsappEnabled,
     whatsappNumber,
     whatsappMessage,
+    callEnabled,
+    callNumber,
     testimonials,
     faq,
     countdownEnabled,
@@ -684,6 +692,8 @@ export default function LiveEditorPage() {
               <input type="hidden" name="whatsappEnabled" value={whatsappEnabled.toString()} />
               <input type="hidden" name="whatsappNumber" value={whatsappNumber} />
               <input type="hidden" name="whatsappMessage" value={whatsappMessage} />
+              <input type="hidden" name="callEnabled" value={callEnabled.toString()} />
+              <input type="hidden" name="callNumber" value={callNumber} />
               <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
               <input type="hidden" name="faq" value={JSON.stringify(faq)} />
               <input type="hidden" name="guaranteeText" value={guaranteeText} />
@@ -1046,6 +1056,60 @@ export default function LiveEditorPage() {
               onPhoneChange={setWhatsappNumber}
               onMessageChange={setWhatsappMessage}
             />
+          </AccordionSection>
+
+          {/* Call Button Section */}
+          <AccordionSection
+            title={language === 'bn' ? 'কল বাটন' : 'Call Button'}
+            icon={Phone}
+            isOpen={openSection === 'call'}
+            onToggle={() => setOpenSection(openSection === 'call' ? '' : 'call')}
+          >
+            <div className="space-y-4">
+              {/* Enable Toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900 text-sm">
+                    {language === 'bn' ? 'কল বাটন চালু করুন' : 'Enable Call Button'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {language === 'bn' ? 'ফ্লোটিং কল বাটন দেখান' : 'Show floating call button'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCallEnabled(!callEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    callEnabled ? 'bg-emerald-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      callEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+              
+              {/* Phone Number Input */}
+              {callEnabled && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'bn' ? 'ফোন নম্বর' : 'Phone Number'}
+                  </label>
+                  <input
+                    type="tel"
+                    value={callNumber}
+                    onChange={(e) => setCallNumber(e.target.value)}
+                    placeholder="01712345678"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {language === 'bn' ? 'গ্রাহকরা এই নম্বরে সরাসরি কল করতে পারবে' : 'Customers can directly call this number'}
+                  </p>
+                </div>
+              )}
+            </div>
           </AccordionSection>
 
           {/* Mode Section */}

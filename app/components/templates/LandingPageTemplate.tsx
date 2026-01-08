@@ -110,6 +110,7 @@ import { ChatWidget } from '~/components/ai/ChatWidget';
 import { BD_DIVISIONS, calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
 import { CountdownTimer, StockCounter, SocialProofPopup, WhatsAppOrderButton } from '~/components/landing';
 import { WhatsAppButton } from '~/components/WhatsAppButton';
+import { Phone } from 'lucide-react';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -1515,6 +1516,17 @@ export function LandingPageTemplate({
           message={editableConfig.whatsappMessage || `হ্যালো, আমি ${product.title} প্রোডাক্টটি সম্পর্কে জানতে চাই।`}
           storeName={storeName}
         />
+      )}
+
+      {/* Call Floating Button */}
+      {editableConfig.callEnabled && editableConfig.callNumber && (
+        <a
+          href={`tel:${editableConfig.callNumber}`}
+          className="fixed bottom-24 md:bottom-8 left-4 z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 animate-bounce"
+          title="Call us"
+        >
+          <Phone className="w-7 h-7 text-white" />
+        </a>
       )}
     </div>
   );

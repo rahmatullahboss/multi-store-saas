@@ -392,6 +392,177 @@ export function ShowcaseTemplate({
         </section>
       )}
 
+      {/* TRUST BADGES SECTION - Showcase Style */}
+      {isSectionVisible('trust', editableConfig.hiddenSections) && (
+        <section className="py-16 bg-[#0a0a0a] border-y border-zinc-800/50">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center p-6 bg-zinc-900/50 rounded-xl border border-zinc-800 hover:border-rose-500/30 transition-colors">
+                <div className="text-3xl mb-3">🚚</div>
+                <h4 className="text-white font-medium mb-1">Free Delivery</h4>
+                <p className="text-zinc-500 text-sm">Inside Dhaka City</p>
+              </div>
+              <div className="text-center p-6 bg-zinc-900/50 rounded-xl border border-zinc-800 hover:border-rose-500/30 transition-colors">
+                <div className="text-3xl mb-3">💯</div>
+                <h4 className="text-white font-medium mb-1">100% Original</h4>
+                <p className="text-zinc-500 text-sm">Quality Guaranteed</p>
+              </div>
+              <div className="text-center p-6 bg-zinc-900/50 rounded-xl border border-zinc-800 hover:border-rose-500/30 transition-colors">
+                <div className="text-3xl mb-3">💵</div>
+                <h4 className="text-white font-medium mb-1">Cash on Delivery</h4>
+                <p className="text-zinc-500 text-sm">Pay when received</p>
+              </div>
+              <div className="text-center p-6 bg-zinc-900/50 rounded-xl border border-zinc-800 hover:border-rose-500/30 transition-colors">
+                <div className="text-3xl mb-3">🔄</div>
+                <h4 className="text-white font-medium mb-1">Easy Returns</h4>
+                <p className="text-zinc-500 text-sm">7 Days Policy</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SOCIAL PROOF SECTION - Showcase Style */}
+      {isSectionVisible('social', editableConfig.hiddenSections) && editableConfig.socialProof && (editableConfig.socialProof.count > 0 || editableConfig.socialProof.text) && (
+        <section className="py-8 bg-gradient-to-r from-rose-900/30 via-rose-800/20 to-rose-900/30 border-y border-rose-500/20">
+          <div className="container mx-auto px-4 text-center">
+            <div className="flex items-center justify-center gap-4 text-white">
+              <Star size={20} className="text-rose-400 fill-rose-400" />
+              <span className="text-3xl md:text-4xl font-heading font-bold">{editableConfig.socialProof.count}+</span>
+              <span className="text-lg md:text-xl text-zinc-300">{editableConfig.socialProof.text}</span>
+              <Star size={20} className="text-rose-400 fill-rose-400" />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* TESTIMONIALS SECTION - Showcase Style */}
+      {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
+        <section className="py-20 bg-[#0f0f0f]">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center mb-12">
+              <span className="text-rose-500 tracking-[0.2em] uppercase text-xs font-bold">Reviews</span>
+              <h2 className="font-heading text-3xl md:text-4xl text-white mt-4">Customer Testimonials</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {editableConfig.testimonials.slice(0, 3).map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-zinc-900/50 rounded-xl overflow-hidden border border-zinc-800 hover:border-rose-500/30 transition-all duration-300"
+                >
+                  {(testimonial.imageUrl || testimonial.avatar) && (
+                    <div className="aspect-[2/3] overflow-hidden">
+                      <img 
+                        src={testimonial.imageUrl || testimonial.avatar} 
+                        alt={`Review from ${testimonial.name}`} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <div className="flex items-center gap-1 text-rose-400 mb-2">
+                      {'★'.repeat(5)}
+                    </div>
+                    {testimonial.text && (
+                      <p className="text-zinc-400 text-sm mb-3 line-clamp-2">"{testimonial.text}"</p>
+                    )}
+                    <p className="text-white font-medium text-sm">{testimonial.name}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* DELIVERY SECTION - Showcase Style */}
+      {isSectionVisible('delivery', editableConfig.hiddenSections) && (
+        <section className="py-20 bg-[#0a0a0a]">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center mb-12">
+              <span className="text-rose-500 tracking-[0.2em] uppercase text-xs font-bold">Shipping</span>
+              <h2 className="font-heading text-3xl md:text-4xl text-white mt-4">Delivery Information</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="bg-zinc-900/50 rounded-xl p-8 border border-zinc-800 hover:border-rose-500/30 transition-colors">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-rose-900/20 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">🏙️</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-heading text-white">Inside Dhaka</h3>
+                    <p className="text-rose-400 font-medium">24-48 Hours</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-zinc-400 text-sm">
+                  <li className="flex items-center gap-2"><Check size={14} className="text-rose-400" /> Delivery: ৳60</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-rose-400" /> Same-day Available</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-rose-400" /> Cash on Delivery</li>
+                </ul>
+              </div>
+              <div className="bg-zinc-900/50 rounded-xl p-8 border border-zinc-800 hover:border-rose-500/30 transition-colors">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-rose-900/20 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">🌍</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-heading text-white">Outside Dhaka</h3>
+                    <p className="text-rose-400 font-medium">2-3 Days</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-zinc-400 text-sm">
+                  <li className="flex items-center gap-2"><Check size={14} className="text-rose-400" /> Delivery: ৳120</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-rose-400" /> All Districts</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-rose-400" /> Courier Service</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FAQ SECTION - Showcase Style */}
+      {isSectionVisible('faq', editableConfig.hiddenSections) && editableConfig.faq && editableConfig.faq.length > 0 && (
+        <section className="py-20 bg-[#0f0f0f]">
+          <div className="container mx-auto px-4 md:px-6 max-w-3xl">
+            <div className="text-center mb-12">
+              <span className="text-rose-500 tracking-[0.2em] uppercase text-xs font-bold">Support</span>
+              <h2 className="font-heading text-3xl md:text-4xl text-white mt-4">Frequently Asked Questions</h2>
+            </div>
+            <div className="space-y-4">
+              {editableConfig.faq.map((item, idx) => (
+                <details key={idx} className="group bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden hover:border-rose-500/30 transition-colors">
+                  <summary className="p-5 cursor-pointer flex items-center justify-between text-white font-medium">
+                    <span className="pr-4">{item.question}</span>
+                    <span className="text-rose-400 group-open:rotate-45 transition-transform text-xl">+</span>
+                  </summary>
+                  <div className="px-5 pb-5 text-zinc-400 leading-relaxed">
+                    {item.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* GUARANTEE SECTION - Showcase Style */}
+      {isSectionVisible('guarantee', editableConfig.hiddenSections) && editableConfig.guaranteeText && (
+        <section className="py-16 bg-gradient-to-r from-rose-950/20 via-rose-900/10 to-rose-950/20 border-y border-rose-500/10">
+          <div className="container mx-auto px-4 md:px-6 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-rose-900/20 rounded-full mb-6 border border-rose-500/30">
+              <ShieldCheck className="w-10 h-10 text-rose-400" />
+            </div>
+            <h3 className="font-heading text-2xl text-white mb-4">Our Promise</h3>
+            <p className="text-zinc-400 text-lg max-w-xl mx-auto">{editableConfig.guaranteeText}</p>
+          </div>
+        </section>
+      )}
+
       {/* 5. ORDER FORM SECTION (Distinctive) */}
       <section id="order-form" className="py-24 relative overflow-hidden bg-zinc-950">
          {/* Side Accent */}
