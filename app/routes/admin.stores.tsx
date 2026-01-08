@@ -339,6 +339,36 @@ export default function AdminStores() {
     }
   };
 
+  // Bulk selection state
+  const [selectedStores, setSelectedStores] = useState<number[]>([]);
+  
+  const toggleSelectAll = () => {
+    if (selectedStores.length === filteredStores.length) {
+      setSelectedStores([]);
+    } else {
+      setSelectedStores(filteredStores.map(s => s.id));
+    }
+  };
+
+  const toggleSelectStore = (storeId: number) => {
+    setSelectedStores(prev => 
+      prev.includes(storeId) 
+        ? prev.filter(id => id !== storeId)
+        : [...prev, storeId]
+    );
+  };
+
+  const handleBulkSuspend = () => {
+    if (selectedStores.length === 0) return;
+    if (!confirm(`Suspend ${selectedStores.length} selected stores?`)) return;
+    
+    fetcher.submit(
+      { intent: 'bulkSuspend', storeIds: JSON.stringify(selectedStores) },
+      { method: 'post' }
+    );
+    setSelectedStores([]);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -350,7 +380,36 @@ export default function AdminStores() {
           <p className="text-slate-400">{allStores.length} {showDeleted ? 'deleted' : 'active'} stores</p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* CSV Export */}
+          <a
+            href="/api/admin/export-stores"
+            download
+            className="px-3 py-2 rounded-lg text-sm font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </a>
+          
+          {/* Bulk Actions (when stores selected) */}
+          {selectedStores.length > 0 && !showDeleted && (
+            <div className="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg">
+              <span className="text-sm text-slate-400">{selectedStores.length} selected</span>
+              <button
+                onClick={handleBulkSuspend}
+                className="px-2 py-1 text-xs bg-orange-500/20 text-orange-400 rounded hover:bg-orange-500/30"
+              >
+                Suspend All
+              </button>
+              <button
+                onClick={() => setSelectedStores([])}
+                className="px-2 py-1 text-xs bg-slate-700 text-slate-400 rounded hover:bg-slate-600"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+          
           {/* Show Deleted Toggle */}
           <button
             onClick={toggleShowDeleted}
@@ -385,6 +444,20 @@ export default function AdminStores() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-800">
+                {!showDeleted && (
+                  <th className="px-2 py-3 w-10">
+                    <button
+                      onClick={toggleSelectAll}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      {selectedStores.length === filteredStores.length && filteredStores.length > 0 ? (
+                        <CheckSquare className="w-5 h-5 text-blue-400" />
+                      ) : (
+                        <Square className="w-5 h-5" />
+                      )}
+                    </button>
+                  </th>
+                )}
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Store
                 </th>
@@ -411,13 +484,28 @@ export default function AdminStores() {
             <tbody className="divide-y divide-slate-800">
               {filteredStores.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={showDeleted ? 7 : 8} className="px-4 py-8 text-center text-slate-500">
                     No stores found
                   </td>
                 </tr>
               ) : (
                 filteredStores.map((store) => (
-                  <tr key={store.id} className="hover:bg-slate-800/50 transition">
+                  <tr key={store.id} className={`hover:bg-slate-800/50 transition ${selectedStores.includes(store.id) ? 'bg-blue-500/10' : ''}`}>
+                    {/* Checkbox */}
+                    {!showDeleted && (
+                      <td className="px-2 py-4">
+                        <button
+                          onClick={() => toggleSelectStore(store.id)}
+                          className="text-slate-400 hover:text-white"
+                        >
+                          {selectedStores.includes(store.id) ? (
+                            <CheckSquare className="w-5 h-5 text-blue-400" />
+                          ) : (
+                            <Square className="w-5 h-5" />
+                          )}
+                        </button>
+                      </td>
+                    )}
                     {/* Store */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
