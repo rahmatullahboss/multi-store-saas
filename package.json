@@ -19,6 +19,7 @@
     "@remix-run/cloudflare-pages": "^2.15.0",
     "@remix-run/react": "^2.15.0",
     "ai": "^5.0.118",
+    "cmdk": "^1.1.1",
     "drizzle-orm": "^0.38.0",
     "framer-motion": "^12.24.10",
     "hono": "^4.6.0",

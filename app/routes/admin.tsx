@@ -13,8 +13,9 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, Outlet, useLoaderData, useLocation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
-import { users } from '@db/schema';
+import { eq, desc, sql } from 'drizzle-orm';
+import { users, stores } from '@db/schema';
+import { CommandMenu } from '~/components/admin/CommandMenu';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { 
   Shield, 
@@ -59,6 +60,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
+
+  // Fetch stores for Command Menu
+  const storeList = await drizzleDb
+    .select({
+      id: stores.id,
+      name: stores.name,
+      subdomain: stores.subdomain,
+    })
+    .from(stores)
+    .where(sql`${stores.deletedAt} IS NULL`)
+    .orderBy(desc(stores.createdAt))
+    .limit(500);
   
   return json({
     user: {
@@ -66,6 +79,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       email: userEmail,
       name: userResult[0]?.name || 'Super Admin',
     },
+    storeList,
   });
 }
 
@@ -91,7 +105,7 @@ const navItems = [
 // MAIN COMPONENT
 // ============================================================================
 export default function AdminLayout() {
-  const { user } = useLoaderData<typeof loader>();
+  const { user, storeList } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -105,6 +119,8 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      <CommandMenu stores={storeList} />
+
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
