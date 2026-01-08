@@ -81,14 +81,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeIds = filteredStores.map(s => s.id);
   const usageMap = await getBulkUsageStats(db, storeIds);
   
-  // Attach usage stats to each store
+  // Fetch tags for these stores
+  const tagsResult = storeIds.length > 0 
+    ? await drizzleDb.select().from(storeTags).where(inArray(storeTags.storeId, storeIds))
+    : [];
+  
+  // Group tags by storeId
+  const tagsMap = new Map<number, typeof tagsResult>();
+  tagsResult.forEach(tag => {
+    const existing = tagsMap.get(tag.storeId) || [];
+    tagsMap.set(tag.storeId, [...existing, tag]);
+  });
+  
+  // Attach usage stats and tags to each store
   const storesWithUsage = filteredStores.map(store => {
     const usage = usageMap.get(store.id) || { orders: 0, products: 0 };
     const planType = (store.planType as PlanType) || 'free';
     // Safely get limits with fallback to 'free' if planType is invalid
     const limits = PLAN_LIMITS[planType] || PLAN_LIMITS['free'];
+    const storeTagsList = tagsMap.get(store.id) || [];
+    
     return {
       ...store,
+      tags: storeTagsList,
       usage: {
         orders: usage.orders,
         ordersLimit: limits.max_orders,
@@ -247,6 +262,52 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, action: 'bulk_suspended', count: storeIds.length });
   }
   
+  // ============ ADD TAG ============
+  if (intent === 'addTag') {
+    const tag = formData.get('tag')?.toString().trim();
+    if (!tag) return json({ error: 'Tag is required' }, { status: 400 });
+    
+    await drizzleDb.insert(storeTags).values({
+      storeId,
+      tag,
+      createdBy: adminId,
+    });
+    
+    await logAdminAction({
+      db,
+      adminId,
+      action: 'other',
+      targetType: 'store',
+      targetId: storeId,
+      targetName: storeName,
+      details: { action: 'add_tag', tag },
+      request,
+    });
+    
+    return json({ success: true, action: 'tag_added' });
+  }
+
+  // ============ REMOVE TAG ============
+  if (intent === 'removeTag') {
+    const tagId = Number(formData.get('tagId'));
+    const tagName = formData.get('tagName')?.toString();
+    
+    await drizzleDb.delete(storeTags).where(eq(storeTags.id, tagId));
+    
+    await logAdminAction({
+      db,
+      adminId,
+      action: 'other',
+      targetType: 'store',
+      targetId: storeId,
+      targetName: storeName,
+      details: { action: 'remove_tag', tag: tagName },
+      request,
+    });
+    
+    return json({ success: true, action: 'tag_removed' });
+  }
+
   // ============ IMPERSONATE ============
   if (intent === 'impersonate') {
     // CRITICAL SECURITY: Only SUPER_ADMIN_EMAIL can impersonate

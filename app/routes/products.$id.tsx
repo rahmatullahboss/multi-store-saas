@@ -23,10 +23,35 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
     return [{ title: 'Product Not Found' }];
   }
-  return [
-    { title: `${data.product.title} | ${data.storeName}` },
-    { name: 'description', content: data.product.description || `Shop ${data.product.title}` },
+  
+  // Use custom SEO title or fallback to standard format
+  const title = (data.product as any).seoTitle 
+    ? (data.product as any).seoTitle 
+    : `${data.product.title} | ${data.storeName}`;
+    
+  // Use custom SEO description or fallback to truncated product description
+  const description = (data.product as any).seoDescription 
+    ? (data.product as any).seoDescription 
+    : (data.product.description || `Shop ${data.product.title}`).slice(0, 160);
+
+  const metaTags: any[] = [
+    { title },
+    { name: 'description', content: description },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
   ];
+
+  // Add keywords if available
+  if ((data.product as any).seoKeywords) {
+    metaTags.push({ name: 'keywords', content: (data.product as any).seoKeywords });
+  }
+
+  // Add OG Image if available
+  if (data.product.imageUrl) {
+    metaTags.push({ property: 'og:image', content: data.product.imageUrl });
+  }
+
+  return metaTags;
 };
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
