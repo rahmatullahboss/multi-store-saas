@@ -34,6 +34,7 @@ import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
 import { PricingSection } from '~/components/PricingSection';
 import { FinalCTA } from '~/components/FinalCTA';
+import { FAQSection } from '~/components/FAQSection';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -332,41 +333,8 @@ export function MarketingLanding() {
         {/* Pricing Section - Premium Bangladeshi Design */}
         <PricingSection />
 
-        {/* FAQ - Dark */}
-        <section className="py-24 px-4 bg-[#0F0F18] relative overflow-hidden">
-          <div className="max-w-4xl mx-auto">
-            <ScrollReveal>
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                  {content.faqTitle}
-                </h2>
-                <p className="text-xl text-white/50">{content.faqSubtitle}</p>
-              </div>
-            </ScrollReveal>
-            
-            <StaggerContainer className="space-y-4">
-              {content.faqs.map((faq, i) => (
-                <StaggerItem key={i}>
-                  <motion.div 
-                    className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
-                    whileHover={{ borderColor: 'rgba(139, 92, 246, 0.3)', x: 5 }}
-                  >
-                    <h4 className="text-lg font-bold text-white flex items-start gap-3">
-                      <motion.span 
-                        className="w-8 h-8 bg-gradient-to-br from-violet-500 to-blue-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-lg"
-                        whileHover={{ scale: 1.1, rotate: 10 }}
-                      >
-                        ?
-                      </motion.span>
-                      {faq.q}
-                    </h4>
-                    <p className="text-white/50 mt-3 ml-11 leading-relaxed">{faq.a}</p>
-                  </motion.div>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          </div>
-        </section>
+        {/* FAQ Section - Bengali Design */}
+        <FAQSection />
 
         {/* Final CTA - Compelling Bengali Design */}
         <FinalCTA />
