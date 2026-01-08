@@ -542,11 +542,17 @@ export function CDNExplainer() {
           </div>
           
           <p 
-            className="text-lg text-white/80 mb-4 leading-relaxed"
+            className="text-lg text-white/80 mb-2 leading-relaxed"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
-            আপনার Customer এর <span className="text-cyan-400 font-semibold">কাছের Server</span> থেকেই 
-            Content Serve হয় — তাই <span className="text-green-400 font-semibold">Lightning Fast!</span> ⚡
+            🌍 <span className="text-cyan-400 font-semibold">ঢাকা থেকে দুবাই</span> — সব জায়গায় <span className="text-green-400 font-semibold">1 সেকেন্ডে Load!</span>
+          </p>
+          
+          <p 
+            className="text-base text-white/60 mb-4 leading-relaxed"
+            style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+          >
+            আপনার Customer এর কাছের Server থেকেই Content Serve হয় — তাই Lightning Fast! ⚡
           </p>
           
           <div className="flex flex-wrap justify-center gap-4 text-sm">

@@ -94,8 +94,8 @@ export function InfrastructureCTA() {
           >
             <Sparkles className="w-4 h-4" style={{ color: COLORS.accent }} />
           </motion.div>
-          <span className="text-sm font-medium" style={{ color: COLORS.accent }}>
-            Enterprise Technology, Startup Price
+          <span className="text-sm font-medium" style={{ color: COLORS.accent, fontFamily: "'Noto Sans Bengali', sans-serif" }}>
+            🔥 Shopify যে Infrastructure এ চলে, আপনার Store ও
           </span>
         </motion.div>
         

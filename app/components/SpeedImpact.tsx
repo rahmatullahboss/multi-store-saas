@@ -384,9 +384,9 @@ export function SpeedImpact() {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg max-w-2xl mx-auto"
-            style={{ color: COLORS.textMuted }}
+            style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
-            Research বলছে (Google/Amazon Data):
+            ⚡ <span className="text-white font-semibold">Facebook এর মতো Speed</span>, আপনার ছোট Business এও — Research বলছে:
           </motion.p>
         </div>
         
