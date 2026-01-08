@@ -22,6 +22,7 @@ import { AwardWinningHero } from '~/components/AwardWinningHero';
 import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
 import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
 import { TrustSection } from '~/components/TrustSection';
+import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -278,6 +279,9 @@ export function MarketingLanding() {
 
         {/* Trust Section - Transparency & Credibility */}
         <TrustSection />
+
+        {/* Interactive Store Demo - Try It Now */}
+        <InteractiveStoreDemo />
 
         {/* Stats Section - Dark */}
         <section className="py-20 bg-gradient-to-b from-[#0A0A0F] to-[#0F0F18] relative overflow-hidden">
