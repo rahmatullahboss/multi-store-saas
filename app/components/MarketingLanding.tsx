@@ -24,6 +24,7 @@ import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
 import { InfrastructureSection } from '~/components/InfrastructureSection';
 import { CloudflareBenefitsCards } from '~/components/CloudflareBenefitsCards';
 import { SpeedComparison } from '~/components/SpeedComparison';
+import { TechnicalSpecs } from '~/components/TechnicalSpecs';
 import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
@@ -289,6 +290,9 @@ export function MarketingLanding() {
 
         {/* Speed Comparison - Live Demo */}
         <SpeedComparison />
+
+        {/* Technical Specs - Under the Hood */}
+        <TechnicalSpecs />
 
         {/* Trust Section - Transparency & Credibility */}
         <TrustSection />
