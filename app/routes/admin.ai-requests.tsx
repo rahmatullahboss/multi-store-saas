@@ -34,7 +34,7 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch pending AI requests
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireSuperAdmin(request, context.cloudflare.env.DB);
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
   
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -62,7 +62,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Approve or Reject AI requests
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  await requireSuperAdmin(request, context.cloudflare.env.DB);
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
   
   const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();

@@ -17,7 +17,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql, desc, ne } from 'drizzle-orm';
 import { users, adminRoles, activityLogs, adminAuditLogs } from '@db/schema';
 import { requireSuperAdmin, requireAdminPermission } from '~/services/auth.server';
-import { logAdminAction } from '~/services/audit.server';
+import { logAuditAction } from '~/services/audit.server';
 import { hashPassword } from '~/services/auth.server';
 import { 
   Users, 
@@ -59,7 +59,7 @@ const DEFAULT_PERMISSIONS: Record<AdminRole, any> = {
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  const { userId: currentAdminId } = await requireSuperAdmin(request, db);
+  const { userId: currentAdminId } = await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   
@@ -85,10 +85,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, db);
+  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, context.cloudflare.env, db);
   
   // Enforce Team Management Permission
-  await requireAdminPermission(request, db, 'canManageTeam');
+  await requireAdminPermission(request, context.cloudflare.env, db, 'canManageTeam');
 
   const formData = await request.formData();
   const intent = formData.get('intent');
@@ -146,15 +146,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
     
     // Log action
-    await logAdminAction({
-      db,
-      adminId,
-      action: 'other',
-      targetType: 'user',
-      targetId: targetUserId,
-      targetName: name,
-      details: { action: 'add_team_member', role, email },
-      request,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0, // System action
+      actorId: adminId,
+      action: 'add_team_member',
+      resource: 'user',
+      resourceId: targetUserId,
+      diff: { action: 'add_team_member', role, email, name },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'added' });
@@ -176,15 +176,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Safer to leave as is or revert to empty string/standard?
     // Let's just remove from admin_roles for now.
     
-    await logAdminAction({
-      db,
-      adminId,
-      action: 'other',
-      targetType: 'user',
-      targetId: targetUserId,
-      targetName: memberName || 'Unknown',
-      details: { action: 'remove_team_member' },
-      request,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
+      action: 'remove_team_member',
+      resource: 'user',
+      resourceId: targetUserId,
+      diff: { action: 'remove_team_member', memberName },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'removed' });
@@ -207,14 +207,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .set({ role: newRole, permissions, updatedAt: new Date() })
       .where(eq(adminRoles.id, roleId));
       
-    await logAdminAction({
-      db,
-      adminId,
-      action: 'other',
-      targetType: 'user',
-      targetId: targetUserId,
-      details: { action: 'update_team_role', newRole },
-      request,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
+      action: 'update_team_role',
+      resource: 'user',
+      resourceId: targetUserId,
+      diff: { action: 'update_team_role', newRole },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'updated' });

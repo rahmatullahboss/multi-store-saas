@@ -46,7 +46,7 @@ interface SyncStatusResponse {
 // ACTION HANDLER
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -124,6 +124,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       const order = orderResult[0];
+
+      // Check if order is cancelled
+      if (['cancelled', 'returned'].includes(order.status || '')) {
+        return json(
+          { error: 'Cannot book courier for cancelled or returned orders. Please activate the order first.' },
+          { status: 400 }
+        );
+      }
 
       // Check if already shipped
       if (order.courierConsignmentId) {

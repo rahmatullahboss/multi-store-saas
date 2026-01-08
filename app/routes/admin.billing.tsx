@@ -17,7 +17,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, ne, sql, isNotNull, lt, gte, or } from 'drizzle-orm';
 import { stores, users, activityLogs, adminAuditLogs, payments } from '@db/schema';
 import { requireSuperAdmin, requireAdminPermission } from '~/services/auth.server';
-import { logAdminAction } from '~/services/audit.server';
+import { logAuditAction } from '~/services/audit.server';
 import { createEmailService } from '~/services/email.server';
 import { 
   DollarSign, 
@@ -296,21 +296,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
     
     // Log to admin audit logs (Super Admin)
-    await logAdminAction({
-      db,
-      adminId,
+    // Log to admin audit logs (Super Admin)
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
       action: 'payment_approve',
-      targetType: 'store',
-      targetId: storeId,
-      targetName: storeResult[0].name || 'Unknown Store',
-      details: {
+      resource: 'store',
+      resourceId: storeId,
+      diff: {
         planType: planType || storeResult[0].planType,
         paymentAmount: storeResult[0].paymentAmount,
         startDate: startDateStr,
         endDate: endDateStr,
         adminNote,
+        storeName: storeResult[0].name || 'Unknown Store',
       },
-      request,
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     // Send confirmation email
@@ -359,15 +361,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
 
     // Log to admin audit logs
-    await logAdminAction({
-      db,
-      adminId,
+    // Log to admin audit logs
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
       action: 'payment_reject',
-      targetType: 'store',
-      targetId: storeId,
-      targetName: storeResult[0].name || 'Unknown Store',
-      details: { adminNote },
-      request,
+      resource: 'store',
+      resourceId: storeId,
+      diff: { adminNote, storeName: storeResult[0].name || 'Unknown Store' },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'rejected' });

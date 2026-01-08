@@ -11,7 +11,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { desc, eq, sql } from 'drizzle-orm';
 import { stores, users, orders, products } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
-import { logAdminAction } from '~/services/audit.server';
+import { logAuditAction } from '~/services/audit.server';
 import { PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -115,13 +115,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const csv = [headers.join(','), ...rows].join('\n');
   
   // Log the export action
-  await logAdminAction({
-    db,
-    adminId,
-    action: 'other',
-    targetType: 'other',
-    details: { action: 'csv_export', storeCount: allStores.length },
-    request,
+  await logAuditAction(context.cloudflare.env, {
+    storeId: 0,
+    actorId: adminId,
+    action: 'csv_export',
+    resource: 'other',
+    resourceId: 'stores_export',
+    diff: { action: 'csv_export', storeCount: allStores.length },
+    ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+    userAgent: request.headers.get('User-Agent') || undefined,
   });
   
   // Return CSV as downloadable file

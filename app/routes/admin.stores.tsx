@@ -16,7 +16,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql, desc, inArray } from 'drizzle-orm';
 import { stores, users, activityLogs, adminAuditLogs, storeTags } from '@db/schema';
 import { requireSuperAdmin, createImpersonationSession, requireAdminPermission } from '~/services/auth.server';
-import { logAdminAction } from '~/services/audit.server';
+import { logAuditAction } from '~/services/audit.server';
 import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 import { 
   Store, 
@@ -47,7 +47,7 @@ export const meta: MetaFunction = () => {
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const url = new URL(request.url);
   const showDeleted = url.searchParams.get('showDeleted') === 'true';
@@ -121,7 +121,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, db);
+  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const formData = await request.formData();
   const intent = formData.get('intent');
@@ -133,7 +133,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // ============ SUSPEND/UNSUSPEND ============
   if (intent === 'toggleSuspend') {
-    await requireAdminPermission(request, db, 'canSuspend');
+    await requireAdminPermission(request, context.cloudflare.env, db, 'canSuspend');
 
     const currentStatus = formData.get('currentStatus') === 'true';
     const newStatus = !currentStatus;
@@ -161,15 +161,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
     
     // Log to admin audit logs (Super Admin level)
-    await logAdminAction({
-      db,
-      adminId,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
       action: newStatus ? 'store_unsuspend' : 'store_suspend',
-      targetType: 'store',
-      targetId: storeId,
-      targetName: storeName,
-      details: { previousStatus: currentStatus, newStatus },
-      request,
+      resource: 'store',
+      resourceId: storeId,
+      diff: { previousStatus: currentStatus, newStatus },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: newStatus ? 'unsuspended' : 'suspended' });
@@ -177,7 +177,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // ============ SOFT DELETE ============
   if (intent === 'softDelete') {
-    await requireAdminPermission(request, db, 'canDelete');
+    await requireAdminPermission(request, context.cloudflare.env, db, 'canDelete');
 
     await drizzleDb
       .update(stores)
@@ -198,14 +198,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
     
     // Log to admin audit logs
-    await logAdminAction({
-      db,
-      adminId,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
       action: 'store_delete',
-      targetType: 'store',
-      targetId: storeId,
-      targetName: storeName,
-      request,
+      resource: 'store',
+      resourceId: storeId,
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'deleted' });
@@ -213,7 +213,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // ============ RESTORE ============
   if (intent === 'restore') {
-    await requireAdminPermission(request, db, 'canDelete'); // Restore falls under delete permission
+    await requireAdminPermission(request, context.cloudflare.env, db, 'canDelete'); // Restore falls under delete permission
 
     await drizzleDb
       .update(stores)
@@ -234,14 +234,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
     
     // Log to admin audit logs
-    await logAdminAction({
-      db,
-      adminId,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
       action: 'store_restore',
-      targetType: 'store',
-      targetId: storeId,
-      targetName: storeName,
-      request,
+      resource: 'store',
+      resourceId: storeId,
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'restored' });
@@ -249,7 +249,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // ============ BULK SUSPEND ============
   if (intent === 'bulkSuspend') {
-    await requireAdminPermission(request, db, 'canSuspend');
+    await requireAdminPermission(request, context.cloudflare.env, db, 'canSuspend');
 
     const storeIds = JSON.parse(formData.get('storeIds')?.toString() || '[]') as number[];
     
@@ -258,13 +258,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .set({ isActive: false, updatedAt: new Date() })
       .where(inArray(stores.id, storeIds));
     
-    await logAdminAction({
-      db,
-      adminId,
-      action: 'bulk_action',
-      targetType: 'store',
-      details: { action: 'bulk_suspend', storeIds, count: storeIds.length },
-      request,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
+      action: 'bulk_suspend',
+      resource: 'store',
+      diff: { action: 'bulk_suspend', storeIds, count: storeIds.length },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'bulk_suspended', count: storeIds.length });
@@ -281,15 +282,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
       createdBy: adminId,
     });
     
-    await logAdminAction({
-      db,
-      adminId,
-      action: 'other',
-      targetType: 'store',
-      targetId: storeId,
-      targetName: storeName,
-      details: { action: 'add_tag', tag },
-      request,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
+      action: 'add_tag',
+      resource: 'store',
+      resourceId: storeId,
+      diff: { action: 'add_tag', tag },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'tag_added' });
@@ -302,15 +303,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     
     await drizzleDb.delete(storeTags).where(eq(storeTags.id, tagId));
     
-    await logAdminAction({
-      db,
-      adminId,
-      action: 'other',
-      targetType: 'store',
-      targetId: storeId,
-      targetName: storeName,
-      details: { action: 'remove_tag', tag: tagName },
-      request,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
+      action: 'remove_tag',
+      resource: 'store',
+      resourceId: storeId,
+      diff: { action: 'remove_tag', tag: tagName },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     return json({ success: true, action: 'tag_removed' });
@@ -318,7 +319,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // ============ IMPERSONATE ============
   if (intent === 'impersonate') {
-    await requireAdminPermission(request, db, 'canImpersonate');
+    await requireAdminPermission(request, context.cloudflare.env, db, 'canImpersonate');
 
     // CRITICAL SECURITY: Only SUPER_ADMIN_EMAIL can impersonate
     const superAdminEmail = context.cloudflare.env.SUPER_ADMIN_EMAIL;
@@ -341,19 +342,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
     
     // Log to admin audit logs
-    await logAdminAction({
-      db,
-      adminId,
+    await logAuditAction(context.cloudflare.env, {
+      storeId: 0,
+      actorId: adminId,
       action: 'store_impersonate',
-      targetType: 'store',
-      targetId: storeId,
-      targetName: storeName,
-      details: { targetUserId },
-      request,
+      resource: 'store',
+      resourceId: storeId,
+      diff: { targetUserId },
+      ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
     });
     
     // Create impersonation session (includes strict email check)
-    return createImpersonationSession(request, targetUserId, db, superAdminEmail);
+    return createImpersonationSession(request, targetUserId, db, context.cloudflare.env);
   }
   
   return json({ error: 'Invalid action' }, { status: 400 });

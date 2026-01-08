@@ -17,7 +17,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // Require authentication
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }

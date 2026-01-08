@@ -103,8 +103,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ========================================================================
     // AUTHENTICATED: Moderate a review (approve/reject)
     // ========================================================================
-    await requireUserId(request);
-    const storeId = await getStoreId(request);
+    await requireUserId(request, context.cloudflare.env);
+    const storeId = await getStoreId(request, context.cloudflare.env);
     
     if (!storeId) {
       return json({ error: 'Store not found' }, { status: 404 });

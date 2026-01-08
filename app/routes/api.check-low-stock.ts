@@ -18,7 +18,7 @@ import { createEmailService } from '~/services/email.server';
 const LOW_STOCK_THRESHOLD = 10;
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }

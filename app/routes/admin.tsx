@@ -17,6 +17,7 @@ import { eq, desc, sql } from 'drizzle-orm';
 import { users, stores } from '@db/schema';
 import { CommandMenu } from '~/components/admin/CommandMenu';
 import { requireSuperAdmin } from '~/services/auth.server';
+import { NotificationToggle } from '~/components/admin/NotificationToggle';
 import { 
   Shield, 
   Users, 
@@ -211,8 +212,12 @@ export default function AdminLayout() {
           </nav>
 
           {/* User Info & Logout */}
-          <div className="p-4 border-t border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="p-4 border-t border-slate-800 space-y-3">
+             {/* Push Notifications */}
+             <div className={sidebarCollapsed ? 'hidden' : 'block'}>
+                <NotificationToggle />
+             </div>
+            <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-red-500/20 rounded-full flex items-center justify-center">
                 <Shield className="w-4 h-4 text-red-400" />
               </div>

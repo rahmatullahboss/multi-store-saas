@@ -38,7 +38,7 @@ export const meta: MetaFunction = () => {
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   
@@ -62,7 +62,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  const { userId } = await requireSuperAdmin(request, db);
+  const { userId } = await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const formData = await request.formData();
   const intent = formData.get('intent');

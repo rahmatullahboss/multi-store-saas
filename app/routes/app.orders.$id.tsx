@@ -318,7 +318,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     return json({ error: 'Invalid status' }, { status: 400 });
   }
 
-  // Fetch order before update to check if we need to send email
+  // Fetch order before update to check if we need to send email or manage inventory
   const orderResult = await db
     .select()
     .from(orders)
@@ -331,6 +331,82 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   const order = orderResult[0];
   const previousStatus = order.status;
+  
+  const isCancelled = ['cancelled', 'returned'].includes(status);
+  const wasCancelled = ['cancelled', 'returned'].includes(previousStatus || '');
+  const isUncancel = !isCancelled && wasCancelled;
+
+  // ============================================================================
+  // PRE-UPDATE SECURITY CHECKS (Inventory Deduction)
+  // ============================================================================
+  
+  // If un-cancelling (Active -> Cancelled -> Active), we MUST re-deduct inventory FIRST.
+  // If this fails (out of stock), we MUST NOT update the status.
+  if (isUncancel) {
+    const items = await db
+      .select({ 
+        productId: orderItems.productId, 
+        variantId: orderItems.variantId, 
+        quantity: orderItems.quantity 
+      })
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId));
+
+    const successfulDeductions: { type: 'product' | 'variant', id: number, qty: number }[] = [];
+
+    for (const item of items) {
+       let result;
+       try {
+         if (item.variantId) {
+            result = await db
+             .update(productVariants)
+             .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
+             .where(and(
+               eq(productVariants.id, item.variantId),
+               sql`${productVariants.inventory} >= ${item.quantity}`
+             ))
+             .returning({ id: productVariants.id });
+             
+             if (result.length > 0) successfulDeductions.push({ type: 'variant', id: item.variantId, qty: item.quantity });
+         } else if (item.productId) {
+            result = await db
+             .update(products)
+             .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
+             .where(and(
+               eq(products.id, item.productId),
+               sql`${products.inventory} >= ${item.quantity}`
+             ))
+             .returning({ id: products.id });
+             
+             if (result.length > 0) successfulDeductions.push({ type: 'product', id: item.productId, qty: item.quantity });
+         }
+
+         if (!result || result.length === 0) {
+            throw new Error('Out of stock');
+         }
+       } catch (error) {
+          // ROLLBACK successful deductions
+          console.error("Un-cancel failed, rolling back inventory:", error);
+          for (const deduction of successfulDeductions) {
+            if (deduction.type === 'variant') {
+              await db.update(productVariants)
+                .set({ inventory: sql`${productVariants.inventory} + ${deduction.qty}` })
+                .where(eq(productVariants.id, deduction.id));
+            } else {
+              await db.update(products)
+                .set({ inventory: sql`${products.inventory} + ${deduction.qty}` })
+                .where(eq(products.id, deduction.id));
+            }
+          }
+          
+          return json({ error: `Cannot activate order: Item out of stock.` }, { status: 400 });
+       }
+    }
+  }
+
+  // ============================================================================
+  // STATUS UPDATE
+  // ============================================================================
 
   await db
     .update(orders)
@@ -353,15 +429,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 
   // ============================================================================
-  // INVENTORY UPDATES - Auto-adjust stock based on status changes
+  // POST-UPDATE ACTIONS (Inventory Restoration)
   // ============================================================================
-  
-  // When order is delivered: Decrease inventory for all order items
-  // When order is cancelled or returned: Restore inventory
-  // (Inventory is now deducted at creation, so we only need to restore it here)
-  const isCancelled = ['cancelled', 'returned'].includes(status);
-  const wasCancelled = ['cancelled', 'returned'].includes(previousStatus || '');
 
+  // When order is cancelled or returned: Restore inventory
   if (isCancelled && !wasCancelled) {
     const items = await db
       .select({ 

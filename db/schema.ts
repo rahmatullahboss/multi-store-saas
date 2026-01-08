@@ -799,6 +799,36 @@ export const abTests = sqliteTable('ab_tests', {
   index('ab_tests_status_idx').on(table.storeId, table.status),
 ]);
 
+// ============================================================================
+// PUSH SUBSCRIPTIONS TABLE - Web Push Notifications
+// ============================================================================
+export const pushSubscriptions = sqliteTable('push_subscriptions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id), // Optional: link to specific user (e.g. Admin)
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  userAgent: text('user_agent'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('push_subscriptions_store_id_idx').on(table.storeId),
+  index('push_subscriptions_user_id_idx').on(table.userId),
+]);
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  store: one(stores, {
+    fields: [pushSubscriptions.storeId],
+    references: [stores.id],
+  }),
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+
+
 export const abTestsRelations = relations(abTests, ({ one, many }) => ({
   store: one(stores, {
     fields: [abTests.storeId],
@@ -983,43 +1013,28 @@ export const pageViewsRelations = relations(pageViews, ({ one }) => ({
 // ============================================================================
 export const adminAuditLogs = sqliteTable('admin_audit_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  adminId: integer('admin_id').notNull().references(() => users.id),
-  action: text('action').notNull().$type<
-    | 'store_suspend' 
-    | 'store_unsuspend' 
-    | 'store_delete' 
-    | 'store_restore'
-    | 'store_impersonate'
-    | 'payment_approve'
-    | 'payment_reject'
-    | 'domain_approve'
-    | 'domain_reject'
-    | 'ai_approve'
-    | 'ai_reject'
-    | 'coupon_create'
-    | 'coupon_delete'
-    | 'broadcast_send'
-    | 'plan_change'
-    | 'bulk_action'
-    | 'other'
-  >(),
-  targetType: text('target_type').$type<'store' | 'user' | 'payment' | 'domain' | 'coupon' | 'broadcast' | 'other'>(),
-  targetId: integer('target_id'), // Store ID, User ID, etc.
-  targetName: text('target_name'), // Store name, user email, etc.
-  details: text('details'), // JSON with additional context
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  actorId: integer('actor_id').notNull().references(() => users.id), // Who performed the action
+  action: text('action').notNull(), // e.g., "update_settings", "delete_user"
+  resource: text('resource').notNull(), // e.g., "settings", "users"
+  resourceId: text('resource_id'), // ID of the affected resource
+  diff: text('diff'), // JSON object highlighting changes {before, after}
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
-  index('audit_logs_admin_idx').on(table.adminId),
-  index('audit_logs_action_idx').on(table.action),
-  index('audit_logs_target_idx').on(table.targetType, table.targetId),
-  index('audit_logs_date_idx').on(table.createdAt),
+  index('admin_audit_logs_store_idx').on(table.storeId),
+  index('admin_audit_logs_actor_idx').on(table.actorId),
+  index('admin_audit_logs_action_idx').on(table.storeId, table.action),
 ]);
 
 export const adminAuditLogsRelations = relations(adminAuditLogs, ({ one }) => ({
-  admin: one(users, {
-    fields: [adminAuditLogs.adminId],
+  store: one(stores, {
+    fields: [adminAuditLogs.storeId],
+    references: [stores.id],
+  }),
+  actor: one(users, {
+    fields: [adminAuditLogs.actorId],
     references: [users.id],
   }),
 }));

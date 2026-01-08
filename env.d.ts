@@ -14,7 +14,10 @@ declare global {
     R2: R2Bucket; // R2 bucket for image storage
     R2_PUBLIC_URL: string; // Public URL for R2 bucket
     SAAS_DOMAIN: string;
-    RESEND_API_KEY?: string; // Email service
+    RESEND_API_KEY: string; // Email service
+    VAPID_PUBLIC_KEY: string;
+    VAPID_PRIVATE_KEY: string;
+    VAPID_SUBJECT: string;
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
     OPENROUTER_API_KEY?: string;
     // Super Admin Email (only this email can impersonate users)
@@ -31,6 +34,9 @@ declare global {
     AI_RATE_LIMIT?: KVNamespace;
     // Session Secret for Cookie Encryption
     SESSION_SECRET: string;
+    // Google OAuth
+    GOOGLE_CLIENT_ID?: string;
+    GOOGLE_CLIENT_SECRET?: string;
   }
 }
 

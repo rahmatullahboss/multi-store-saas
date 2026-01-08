@@ -1,6 +1,6 @@
 # Development Roadmap
 
-## Current Stage: Phase 4 - Scaling & Super Admin Refinement
+## Current Stage: Phase 8 - Enterprise Features
 
 **Status**: Active Development
 **Goal**: Transform the platform into a "World Class" SaaS with premium admin tools, advanced billing, and robust developer features.
@@ -50,25 +50,24 @@
 
 - [ ] **Webhooks**: Merchant-configurable webhooks for order events.
 - [ ] **API Keys**: Public API for merchants to build custom integrations.
-- [ ] **System Health**: Error logging and performance monitoring UI for Admins.
+- [x] **System Health**: Error logging and performance monitoring UI for Admins.
 
 ### Phase 7: Mobile App & Notifications
 
-- [ ] **Push Notifications**: Mobile app or PWA notifications for new orders.
-- [ ] **Mobile Admin App**: React Native or Capacitor wrapper.
+- [x] **Push Notifications**: Mobile app or PWA notifications for new orders (VAPID Backed).
+- [x] **Mobile Admin App**: React Native or Capacitor wrapper (Initialized).
 
 ### Phase 8: Enterprise Features
 
-- [ ] **Audit Trails**: Detailed logs for all sensitive actions (Expanded).
-- [ ] **SSO**: Single Sign-On for enterprise merchants.
-- [ ] **Multi-Language Admin**: Full Bengali/English toggle for Admin panel.
+- [x] **Audit Trails**: Detailed logs for all sensitive actions (Expanded).
+- [x] **SSO**: Single Sign-On for enterprise merchants (Google OAuth).
+- [x] **Multi-Language Admin**: Full Bengali/English toggle for Admin panel.
 
 ---
 
 ## 🛠 Active Task List
 
-- [x] Upgrade Admin Analytics Charts
-- [x] Implement Global Command Palette
-- [x] Implement Shadow Mode UI
-- [x] **Refactor Billing Schema (Add `payments` table)**
-- [x] **Build Finance Dashboard (MRR/ARR)**
+- [x] Implement Audit Logging System
+- [x] Integrate Google SSO
+- [x] Setup i18n and Language Switcher
+- [ ] **Phase 9: Reliability Engineering** (Next)

@@ -38,7 +38,7 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch store data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
@@ -104,7 +104,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update store settings (with server-side validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -1069,6 +1069,15 @@ export default function SettingsPage() {
                 <Store className="w-4 h-4 text-purple-600" />
               </div>
               <span className="font-medium text-gray-700">Courier API</span>
+            </a>
+            <a
+              href="/app/settings/developer"
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                <FileText className="w-4 h-4 text-slate-600" />
+              </div>
+              <span className="font-medium text-gray-700">Developer API</span>
             </a>
           </div>
         </div>

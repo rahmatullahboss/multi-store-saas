@@ -43,6 +43,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   console.log('[auth.register] Registration action started');
+
+  // Rate Limiting
+  const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const { checkAuthRateLimit } = await import('~/lib/rateLimit.server');
+  
+  // Use context.cloudflare.env.KV directly if it's there
+  const kv = (context.cloudflare.env as any).KV; 
+  if (kv) {
+    const rateLimit = await checkAuthRateLimit(kv, clientIp, 'register');
+    if (!rateLimit.allowed) {
+      return json<ActionData>({ 
+        errors: { form: 'Too many registration attempts. Please try again in an hour.' },
+        errorCode: 'RATE_LIMITED'
+      }, { status: 429 });
+    }
+  }
   
   try {
     // Parse form data

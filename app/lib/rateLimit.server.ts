@@ -1,9 +1,10 @@
 /**
- * Rate Limiting Service for AI Features
+ * Rate Limiting Service for AI Features & Auth
  * 
- * Uses Cloudflare KV to track daily AI usage per store.
- * Free users: 5 requests/day
- * Paid users: Unlimited
+ * Uses Cloudflare KV to track usage.
+ * Features:
+ * - AI usage per store (Daily limit)
+ * - Auth attempts per IP (Hourly limit)
  */
 
 import type { PlanType } from '~/utils/plans.server';
@@ -13,7 +14,13 @@ const AI_RATE_LIMITS: Record<PlanType, number> = {
   free: 5,      // 5 AI requests per day
   starter: 100, // 100 per day (effectively unlimited for most)
   premium: -1,  // Unlimited
-  custom: -1,   // Unlimited
+  business: -1, // Unlimited
+};
+
+// Auth Limits (per hour)
+const AUTH_LIMITS = {
+  login: 10,     // 10 failed attempts per hour
+  register: 5,   // 5 registration attempts per hour
 };
 
 // KV key format: ai_usage:{storeId}:{date}
@@ -58,44 +65,56 @@ export async function checkAIRateLimit(
 /**
  * Increment AI usage count for store
  */
-export async function incrementAIUsage(
-  kv: KVNamespace | undefined,
-  storeId: number
-): Promise<void> {
-  if (!kv) {
-    console.warn('[Rate Limit] KV namespace not configured, skipping increment');
-    return;
-  }
-
+export async function incrementAIUsage(kv: KVNamespace | undefined, storeId: number) {
+  if (!kv) return;
+  
   const key = getUsageKey(storeId);
   const currentUsage = await kv.get(key);
-  const newCount = (currentUsage ? parseInt(currentUsage, 10) : 0) + 1;
+  const usageCount = currentUsage ? parseInt(currentUsage, 10) : 0;
+  
+  // Expire after 24 hours (86400 seconds)
+  await kv.put(key, (usageCount + 1).toString(), { expirationTtl: 86400 });
+}
 
-  // TTL: 24 hours (86400 seconds) to auto-expire at end of day
-  await kv.put(key, String(newCount), { expirationTtl: 86400 });
+
+// ============================================================================
+// AUTH RATE LIMITING (IP Based)
+// ============================================================================
+
+function getAuthKey(ip: string, type: 'login' | 'register'): string {
+  // Key format: auth:{type}:{ip}
+  // Sanitize IP to replace colons for KV safety if needed, though KV supports special chars generally.
+  return `auth:${type}:${ip.replace(/:/g, '_')}`;
 }
 
 /**
- * Get current AI usage for store (for display in UI)
+ * Check and Increment Auth Rate Limit
+ * Returns true if allowed, false if blocked.
+ * Automatically increments count.
  */
-export async function getAIUsageStats(
+export async function checkAuthRateLimit(
   kv: KVNamespace | undefined,
-  storeId: number,
-  planType: PlanType
-): Promise<{ used: number; limit: number; unlimited: boolean }> {
-  const limit = AI_RATE_LIMITS[planType];
+  ip: string,
+  type: 'login' | 'register'
+): Promise<{ allowed: boolean; remaining: number, resetInSeconds: number }> {
+    if (!kv) {
+      console.warn('[Rate Limit] KV namespace not configured, allowing auth request');
+      return { allowed: true, remaining: 999, resetInSeconds: 0 };
+    }
 
-  if (limit === -1) {
-    return { used: 0, limit: -1, unlimited: true };
-  }
+    const limit = AUTH_LIMITS[type];
+    const key = getAuthKey(ip, type);
+    const countStr = await kv.get(key);
+    const count = countStr ? parseInt(countStr, 10) : 0;
 
-  if (!kv) {
-    return { used: 0, limit, unlimited: false };
-  }
+    if (count >= limit) {
+        return { allowed: false, remaining: 0, resetInSeconds: 3600 };
+    }
 
-  const key = getUsageKey(storeId);
-  const currentUsage = await kv.get(key);
-  const used = currentUsage ? parseInt(currentUsage, 10) : 0;
+    // Increment
+    // Set strictly to 1 hour (3600) from first attempt or refresh? 
+    // Simple approach: refresh TTL on every write to keep window moving if attacks persist.
+    await kv.put(key, (count + 1).toString(), { expirationTtl: 3600 });
 
-  return { used, limit, unlimited: false };
+    return { allowed: true, remaining: limit - (count + 1), resetInSeconds: 3600 };
 }

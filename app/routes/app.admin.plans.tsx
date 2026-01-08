@@ -80,7 +80,7 @@ const PLAN_OPTIONS = [
 // LOADER - Fetch all stores and pending payments (admin only)
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
   const db = drizzle(context.cloudflare.env.DB);
 
   // Check if user is admin
@@ -193,7 +193,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update store plan or verify/reject payment (admin only)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
   const db = drizzle(context.cloudflare.env.DB);
 
   // Check if user is admin

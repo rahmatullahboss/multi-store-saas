@@ -11,9 +11,19 @@ import { createCookieSessionStorage, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { users, stores, adminRoles } from '@db/schema';
+import { Authenticator } from 'remix-auth';
+import { GoogleStrategy } from 'remix-auth-google';
 
 // Helper types for permissions
 export type AdminPermission = 'canSuspend' | 'canDelete' | 'canBilling' | 'canImpersonate' | 'canManageTeam';
+
+// Helper type for authenticated user
+export type AuthUser = {
+    id: number;
+    email: string;
+    role: string;
+    storeId?: number | null;
+};
 
 // ============================================================================
 // SESSION STORAGE
@@ -649,4 +659,38 @@ export async function requireAdminPermission(request: Request, env: Env, db: D1D
   if (!allowed) {
     throw new Response('Forbidden: You do not have permission to perform this action.', { status: 403 });
   }
+}
+
+/**
+ * Initialize Authenticator
+ */
+export function getAuthenticator(env: Env) {
+  const sessionStorage = getSessionStorage(env);
+  const authenticator = new Authenticator<AuthUser>(sessionStorage);
+
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+      console.warn('Google OAuth Environment Variables missing. SSO disabled.');
+  } else {
+      const googleStrategy = new GoogleStrategy(
+          {
+              clientID: env.GOOGLE_CLIENT_ID,
+              clientSecret: env.GOOGLE_CLIENT_SECRET,
+              callbackURL: `${env.SAAS_DOMAIN}/auth/google/callback`,
+          },
+          async ({ profile }) => {
+              // We return a minimal profile object here.
+              // The database lookup/creation logic will be handled
+              // in the callback route's loader function using this profile data.
+              return {
+                  id: 0, // Placeholder, will be resolved in callback
+                  email: profile.emails[0].value,
+                  role: 'merchant', // Default assumption, resolved in callback
+                  storeId: null
+              };
+          }
+      );
+      authenticator.use(googleStrategy);
+  }
+
+  return authenticator;
 }
