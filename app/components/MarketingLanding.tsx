@@ -21,6 +21,7 @@ import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingO
 import { AwardWinningHero } from '~/components/AwardWinningHero';
 import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
 import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
+import { InfrastructureSection } from '~/components/InfrastructureSection';
 import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
@@ -277,6 +278,9 @@ export function MarketingLanding() {
 
         {/* Bento Grid Features Section */}
         <BentoFeaturesSection />
+
+        {/* Infrastructure Section - Cloudflare CDN Power */}
+        <InfrastructureSection />
 
         {/* Trust Section - Transparency & Credibility */}
         <TrustSection />
