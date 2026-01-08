@@ -489,7 +489,7 @@ export function PricingSection() {
   return (
     <section 
       id="pricing" 
-      className="py-24 relative overflow-hidden"
+      className="py-16 relative overflow-hidden"
       style={{ backgroundColor: COLORS.background }}
     >
       {/* Custom CSS for animations */}

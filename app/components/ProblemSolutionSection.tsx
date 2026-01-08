@@ -252,7 +252,7 @@ export function ProblemSolutionSection() {
   return (
     <section 
       ref={sectionRef}
-      className="relative py-16 md:py-24 overflow-hidden"
+      className="relative py-12 md:py-16 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #0A0A12 0%, #0D0D18 100%)',
       }}

@@ -550,7 +550,7 @@ export function BentoFeaturesSection() {
   return (
     <section 
       ref={sectionRef}
-      className="relative py-16 md:py-24 overflow-hidden"
+      className="relative py-12 md:py-16 overflow-hidden"
       style={{ background: `linear-gradient(180deg, ${COLORS.bg} 0%, #0D0D18 100%)` }}
     >
       <div className="max-w-6xl mx-auto px-4 md:px-6">

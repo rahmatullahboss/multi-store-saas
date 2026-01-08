@@ -921,7 +921,7 @@ export function TrustSection({ stats }: TrustSectionProps) {
   return (
     <section
       id="trust"
-      className="relative py-24 md:py-32 overflow-hidden"
+      className="relative py-16 md:py-20 overflow-hidden"
       style={{ background: COLORS.background }}
     >
       {/* Background Elements */}

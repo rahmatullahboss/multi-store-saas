@@ -214,7 +214,7 @@ const DecorativeDiamonds = () => {
 export function FinalCTA() {
   return (
     <section 
-      className="py-24 relative overflow-hidden"
+      className="py-16 relative overflow-hidden"
       style={{ backgroundColor: COLORS.background }}
     >
       {/* Background Effects */}

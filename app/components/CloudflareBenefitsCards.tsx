@@ -313,7 +313,7 @@ export function CloudflareBenefitsCards() {
   return (
     <section
       ref={sectionRef}
-      className="relative py-20 md:py-28 overflow-hidden"
+      className="relative py-12 md:py-16 overflow-hidden"
       style={{ backgroundColor: COLORS.background }}
     >
       {/* Background Elements */}

@@ -422,7 +422,7 @@ export function InteractiveStoreDemo() {
   };
 
   return (
-    <section className="py-24 px-4 relative overflow-hidden" style={{ backgroundColor: COLORS.background }}>
+    <section className="py-16 px-4 relative overflow-hidden" style={{ backgroundColor: COLORS.background }}>
       {/* Background gradient orbs */}
       <motion.div 
         className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
