@@ -117,10 +117,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return total + planPrice;
     }, 0);
   };
-  
-  const manualMRR = calculateMRR(activeSubscribers.filter(s => s.subscriptionPaymentMethod === 'manual'));
+
+  // Total MRR = all active subscribers with paid plans
+  const totalMRR = calculateMRR(activeSubscribers);
+  // Manual MRR = all non-stripe (or no payment method set = assumed manual)
   const stripeMRR = calculateMRR(activeSubscribers.filter(s => s.subscriptionPaymentMethod === 'stripe'));
-  const totalMRR = manualMRR + stripeMRR;
+  const manualMRR = totalMRR - stripeMRR;
   
   return json({
     activeSubscribers,
