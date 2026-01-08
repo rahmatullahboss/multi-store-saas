@@ -30,7 +30,8 @@ import {
   ShoppingCart,
   ArrowRight,
   Bot,
-  Loader2
+  Loader2,
+  Users
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 

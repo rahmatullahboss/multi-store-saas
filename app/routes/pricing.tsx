@@ -168,7 +168,7 @@ const pricingPlans: PricingPlan[] = [
     description: 'সিরিয়াস ব্যবসার জন্য',
     features: [
       { text: '২০০টি Product' },
-      { text: '৫,০০০ Orders/মাস' },
+      { text: '৩,০০০ Orders/মাস' },
       { text: '৩ লাখ Visitors/মাস' },
       { text: 'Facebook CAPI', highlighted: true },
       { text: 'Priority Support', highlighted: true },
@@ -179,7 +179,7 @@ const pricingPlans: PricingPlan[] = [
     ],
     limits: {
       products: '২০০',
-      orders: '৫,০০০/মাস',
+      orders: '৩,০০০/মাস',
       visitors: '৩,০০,০০০/মাস',
       storage: '২ GB',
       staff: '৫ জন',
@@ -194,7 +194,7 @@ const pricingPlans: PricingPlan[] = [
 // ============================================================================
 const comparisonFeatures = [
   { name: 'Max Products', free: '১০', starter: '৫০', premium: '২০০', business: 'Unlimited' },
-  { name: 'Monthly Orders', free: '৫০', starter: '৫০০', premium: '৫,০০০', business: '২৫,০০০+' },
+  { name: 'Monthly Orders', free: '৫০', starter: '৫০০', premium: '৩,০০০', business: '২৫,০০০+' },
   { name: 'Monthly Visitors', free: '৫K', starter: '২৫K', premium: '৩০০K', business: '১.৫M+' },
   { name: 'Storage', free: '১০০ MB', starter: '৫০০ MB', premium: '২ GB', business: '১০ GB' },
   { name: 'Team Members', free: '১', starter: '২', premium: '৫', business: '১৫' },

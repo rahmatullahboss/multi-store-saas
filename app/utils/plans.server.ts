@@ -75,7 +75,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   },
   premium: {
     max_products: 200,
-    max_orders: 5000,
+    max_orders: 3000,
     max_visitors: 300000,
     max_storage_mb: 2048, // 2GB
     max_staff: 5,
