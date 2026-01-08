@@ -52,8 +52,9 @@ export function CountdownTimer({
   className = '',
 }: CountdownTimerProps) {
   // Memoize the targetDate to prevent recreating on every render
+  // If no endDate is provided, use a past date to show expired state
   const targetDate = useMemo(() => {
-    if (!endDate) return new Date(Date.now() + 24 * 60 * 60 * 1000); // Default 24h from now
+    if (!endDate) return new Date(0); // Past date = expired
     return typeof endDate === 'string' ? new Date(endDate) : endDate;
   }, [endDate]);
   

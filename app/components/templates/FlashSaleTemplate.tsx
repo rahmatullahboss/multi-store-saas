@@ -36,14 +36,15 @@ function useCountdown(endTime: Date | null) {
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: false });
 
   useEffect(() => {
+    // If no end time provided, show expired state (don't default to 24h)
     if (!endTime) {
-      // Default: 24 hours from now if no end time specified
-      endTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: true });
+      return;
     }
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
-      const end = endTime!.getTime();
+      const end = endTime.getTime();
       const difference = end - now;
 
       if (difference <= 0) {
@@ -110,13 +111,16 @@ export function FlashSaleTemplate({
   product,
   config,
   currency,
-  flashSaleEndTime = null,
+  flashSaleEndTime = null, // deprecated, use config.countdownEndTime
   initialStock = 15,
   isPreview = false,
   manualPaymentConfig,
 }: FlashSaleTemplateProps) {
   const fetcher = useFetcher<{ success: boolean; orderNumber?: string; error?: string }>();
-  const countdown = useCountdown(flashSaleEndTime ? new Date(flashSaleEndTime) : null);
+  
+  // Use countdownEndTime from config, fallback to flashSaleEndTime prop for backwards compatibility
+  const endTimeStr = config.countdownEndTime || flashSaleEndTime;
+  const countdown = useCountdown(endTimeStr ? new Date(endTimeStr) : null);
   
   // Cart tracking for abandoned cart recovery
   const { trackCart } = useCartTracking(storeId || product.storeId, product.id);
@@ -331,16 +335,16 @@ export function FlashSaleTemplate({
       </section>
 
       {/* ================================================================
-          ORDER FORM - COMPACT
+          ORDER FORM - FULL WIDTH 2-COLUMN
           ================================================================ */}
-      <section className="bg-gray-900 py-8">
-        <div className="max-w-lg mx-auto px-4">
-          <h2 className="text-2xl font-bold text-center text-white mb-6">
+      <section id="order-form" className="bg-gray-900 py-12">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-2xl md:text-4xl font-bold text-center text-white mb-8">
             🛒 এখনই অর্ডার করুন
           </h2>
 
           {isSuccess ? (
-            <div className="bg-green-900/50 border-2 border-green-500 rounded-2xl p-6 text-center">
+            <div className="max-w-lg mx-auto bg-green-900/50 border-2 border-green-500 rounded-2xl p-6 text-center">
               <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-green-400 mb-2">অর্ডার সফল হয়েছে! 🎉</h3>
               <p className="text-gray-300">
@@ -349,6 +353,82 @@ export function FlashSaleTemplate({
               <p className="text-sm text-gray-400 mt-2">শীঘ্রই কল করে কনফার্ম করা হবে।</p>
             </div>
           ) : (
+            <div className="bg-gray-800 rounded-2xl p-6 md:p-10 border border-gray-700">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                {/* Left Column - Product Info */}
+                <div className="space-y-6">
+                  {/* Product Summary */}
+                  <div className="bg-gradient-to-br from-red-900/30 to-yellow-900/30 rounded-2xl p-6 border border-red-500/30">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-24 h-24 bg-gray-700 rounded-xl overflow-hidden flex-shrink-0">
+                        {product.imageUrl && (
+                          <OptimizedImage
+                            src={product.imageUrl}
+                            alt={product.title}
+                            width={96}
+                            height={96}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-white text-xl">{product.title}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-yellow-400 font-black text-3xl">৳{product.price?.toLocaleString()}</span>
+                          {product.compareAtPrice && product.compareAtPrice > product.price && (
+                            <span className="text-gray-500 line-through text-lg">৳{product.compareAtPrice?.toLocaleString()}</span>
+                          )}
+                        </div>
+                        {product.compareAtPrice && product.compareAtPrice > product.price && (
+                          <span className="inline-block mt-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                            {Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)}% OFF
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Urgency Notice */}
+                  <div className="bg-red-900/50 border-2 border-red-500 rounded-xl p-4 text-center animate-pulse">
+                    <AlertTriangle className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+                    <p className="text-yellow-400 font-bold">⚠️ স্টক সীমিত! মাত্র {product.inventory || 10}টি বাকি</p>
+                  </div>
+
+                  {/* Trust Badges - Sale Style */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-700/50 rounded-xl p-4 flex items-center gap-3 border border-gray-600">
+                      <span className="text-2xl">🔥</span>
+                      <div>
+                        <p className="font-bold text-white text-sm">ফ্ল্যাশ সেল</p>
+                        <p className="text-xs text-gray-400">সীমিত সময়</p>
+                      </div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-xl p-4 flex items-center gap-3 border border-gray-600">
+                      <span className="text-2xl">🚚</span>
+                      <div>
+                        <p className="font-bold text-white text-sm">দ্রুত ডেলিভারি</p>
+                        <p className="text-xs text-gray-400">২৪-৪৮ ঘণ্টা</p>
+                      </div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-xl p-4 flex items-center gap-3 border border-gray-600">
+                      <span className="text-2xl">💰</span>
+                      <div>
+                        <p className="font-bold text-white text-sm">ক্যাশ অন ডেলিভারি</p>
+                        <p className="text-xs text-gray-400">হাতে পেয়ে পেমেন্ট</p>
+                      </div>
+                    </div>
+                    <div className="bg-gray-700/50 rounded-xl p-4 flex items-center gap-3 border border-gray-600">
+                      <span className="text-2xl">✅</span>
+                      <div>
+                        <p className="font-bold text-white text-sm">ওয়ারেন্টি</p>
+                        <p className="text-xs text-gray-400">১০০% অরিজিনাল</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Order Form */}
+                <div>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name */}
               <div>
@@ -512,6 +592,8 @@ export function FlashSaleTemplate({
                 </span>
               </div>
             </form>
+            </div>
+            </div>
           )}
         </div>
       </section>

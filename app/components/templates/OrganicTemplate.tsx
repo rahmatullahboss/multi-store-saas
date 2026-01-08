@@ -419,19 +419,106 @@ export function OrganicTemplate({
         </section>
       )}
 
-      {/* 6. ORDER FORM (Soft & Rounded) */}
+      {/* 6. ORDER FORM (Soft & Rounded - Full Width) */}
       <section id="order-form" className="py-20 px-4 bg-emerald-900/5">
-        <div className="container mx-auto max-w-xl">
-           <div className="bg-white rounded-2xl md:rounded-[2rem] shadow-xl p-5 sm:p-8 md:p-12 border border-emerald-100/50 relative overflow-hidden">
-               {/* Decoration */}
-               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100 rounded-bl-[100%] -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-emerald-950">📝 Place Your Order</h2>
+            <p className="text-stone-500 mt-2 text-lg">Experience nature's best, delivered to you.</p>
+          </div>
 
-               <div className="text-center mb-10 relative z-10">
-                   <h2 className="text-2xl md:text-3xl font-bold text-emerald-950">Place Your Order</h2>
-                   <p className="text-stone-500 mt-2">Experience nature's best, delivered to you.</p>
-               </div>
+          <div className="bg-white rounded-2xl md:rounded-[2rem] shadow-xl p-5 sm:p-8 md:p-12 border border-emerald-100/50 relative overflow-hidden">
+            {/* Decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100 rounded-bl-[100%] -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
 
-               <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 relative z-10">
+              {/* Left Column - Product Info */}
+              <div className="space-y-6">
+                {/* Product Summary */}
+                <div className="bg-gradient-to-br from-emerald-50 to-stone-50 rounded-2xl p-6 border border-emerald-100">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-24 h-24 bg-white rounded-2xl overflow-hidden flex-shrink-0 shadow-md">
+                      {product.imageUrl ? (
+                        <OptimizedImage
+                          src={product.imageUrl}
+                          alt={product.title}
+                          width={96}
+                          height={96}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl bg-emerald-100">🌿</div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-emerald-950 text-xl">{product.title}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-emerald-600 font-black text-3xl">{formatPrice(product.price)}</span>
+                        {product.compareAtPrice && product.compareAtPrice > product.price && (
+                          <span className="text-stone-400 line-through text-lg">{formatPrice(product.compareAtPrice)}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {product.description && (
+                    <p className="text-stone-600 text-sm">{product.description}</p>
+                  )}
+                </div>
+
+                {/* Quantity */}
+                <div className="bg-white rounded-2xl p-5 border border-stone-200">
+                  <label className="block text-sm font-semibold text-stone-700 mb-3">Quantity</label>
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                      className="w-12 h-12 rounded-2xl border border-stone-300 flex items-center justify-center text-xl font-bold text-stone-600 hover:bg-emerald-50 hover:border-emerald-300"
+                    >−</button>
+                    <span className="text-2xl font-bold text-emerald-950 w-12 text-center">{formData.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                      className="w-12 h-12 rounded-2xl border border-stone-300 flex items-center justify-center text-xl font-bold text-stone-600 hover:bg-emerald-50 hover:border-emerald-300"
+                    >+</button>
+                  </div>
+                </div>
+
+                {/* Trust Badges - Organic Style */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-emerald-50/50 rounded-2xl p-4 flex items-center gap-3 border border-emerald-100">
+                    <span className="text-2xl">🌿</span>
+                    <div>
+                      <p className="font-semibold text-emerald-900 text-sm">100% Natural</p>
+                      <p className="text-xs text-stone-500">Pure & Organic</p>
+                    </div>
+                  </div>
+                  <div className="bg-emerald-50/50 rounded-2xl p-4 flex items-center gap-3 border border-emerald-100">
+                    <span className="text-2xl">🚚</span>
+                    <div>
+                      <p className="font-semibold text-emerald-900 text-sm">Fast Delivery</p>
+                      <p className="text-xs text-stone-500">2-3 Days</p>
+                    </div>
+                  </div>
+                  <div className="bg-emerald-50/50 rounded-2xl p-4 flex items-center gap-3 border border-emerald-100">
+                    <span className="text-2xl">💚</span>
+                    <div>
+                      <p className="font-semibold text-emerald-900 text-sm">Cash on Delivery</p>
+                      <p className="text-xs text-stone-500">Pay when received</p>
+                    </div>
+                  </div>
+                  <div className="bg-emerald-50/50 rounded-2xl p-4 flex items-center gap-3 border border-emerald-100">
+                    <span className="text-2xl">🔄</span>
+                    <div>
+                      <p className="font-semibold text-emerald-900 text-sm">Easy Returns</p>
+                      <p className="text-xs text-stone-500">7 Days Policy</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Order Form */}
+              <div>
+               <form onSubmit={handleSubmit} className="space-y-6">
                    {/* Name */}
                    <div>
                       <label className="block text-sm font-semibold text-stone-700 mb-2">Full Name</label>
@@ -512,7 +599,9 @@ export function OrganicTemplate({
                      {fetcher.state === 'submitting' ? 'Processing...' : 'Confirm Order Now'}
                    </button>
                </form>
-           </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

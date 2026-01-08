@@ -451,18 +451,105 @@ export function LuxeTemplate({
         </section>
       )}
 
-      {/* 8. ORDER FORM (Elegant) */}
+      {/* 8. ORDER FORM (Elegant - Full Width) */}
       <section id="order-form" className="py-24 bg-black relative overflow-hidden">
           {/* Decorative Elements */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-transparent to-amber-500"></div>
 
-          <div className="container mx-auto px-6 max-w-xl relative w-full">
+          <div className="container mx-auto px-6 max-w-6xl relative w-full">
               <div className="text-center mb-16">
                   <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Limited Availability</span>
                   <h2 className="font-serif-display text-3xl md:text-4xl lg:text-5xl mt-4 mb-4 md:mb-6 text-white">Complete Purchase</h2>
                   <p className="text-zinc-500 font-light">Please provide your details below for priority processing.</p>
               </div>
 
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+                {/* Left Column - Product Info */}
+                <div className="space-y-6">
+                  {/* Product Summary */}
+                  <div className="border border-zinc-800 rounded-sm p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-28 h-28 bg-zinc-900 rounded-sm overflow-hidden flex-shrink-0">
+                        {product.imageUrl ? (
+                          <OptimizedImage
+                            src={product.imageUrl}
+                            alt={product.title}
+                            width={112}
+                            height={112}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl text-zinc-700">📦</div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-serif-display text-xl text-white">{product.title}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-amber-500 font-serif-display text-3xl">{formatPrice(product.price)}</span>
+                          {product.compareAtPrice && product.compareAtPrice > product.price && (
+                            <span className="text-zinc-600 line-through text-lg">{formatPrice(product.compareAtPrice)}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {product.description && (
+                      <p className="text-zinc-500 text-sm">{product.description}</p>
+                    )}
+                  </div>
+
+                  {/* Quantity */}
+                  <div className="border border-zinc-800 rounded-sm p-6">
+                    <label className="block text-xs uppercase tracking-widest text-zinc-500 mb-4">Quantity</label>
+                    <div className="flex items-center gap-6">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                        className="w-12 h-12 border border-zinc-700 text-zinc-400 hover:border-amber-500 hover:text-amber-500 transition-colors text-xl"
+                      >−</button>
+                      <span className="text-2xl font-serif-display text-white w-12 text-center">{formData.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                        className="w-12 h-12 border border-zinc-700 text-zinc-400 hover:border-amber-500 hover:text-amber-500 transition-colors text-xl"
+                      >+</button>
+                    </div>
+                  </div>
+
+                  {/* Trust Badges */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border border-zinc-800 rounded-sm p-4 flex items-center gap-3">
+                      <span className="text-2xl text-amber-500">🚚</span>
+                      <div>
+                        <p className="text-white text-sm font-medium">Express Delivery</p>
+                        <p className="text-xs text-zinc-600">2-3 Business Days</p>
+                      </div>
+                    </div>
+                    <div className="border border-zinc-800 rounded-sm p-4 flex items-center gap-3">
+                      <span className="text-2xl text-amber-500">💳</span>
+                      <div>
+                        <p className="text-white text-sm font-medium">Cash on Delivery</p>
+                        <p className="text-xs text-zinc-600">Pay when received</p>
+                      </div>
+                    </div>
+                    <div className="border border-zinc-800 rounded-sm p-4 flex items-center gap-3">
+                      <span className="text-2xl text-amber-500">🔄</span>
+                      <div>
+                        <p className="text-white text-sm font-medium">Easy Returns</p>
+                        <p className="text-xs text-zinc-600">7 Days Policy</p>
+                      </div>
+                    </div>
+                    <div className="border border-zinc-800 rounded-sm p-4 flex items-center gap-3">
+                      <span className="text-2xl text-amber-500">✅</span>
+                      <div>
+                        <p className="text-white text-sm font-medium">Authentic</p>
+                        <p className="text-xs text-zinc-600">100% Genuine</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Order Form */}
+                <div>
               <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Name */}
                   <div className="group">
@@ -548,6 +635,8 @@ export function LuxeTemplate({
                      Secure encrypted checkout. Pay cash on delivery.
                   </p>
               </form>
+              </div>
+            </div>
           </div>
       </section>
 
