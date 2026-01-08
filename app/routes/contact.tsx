@@ -86,6 +86,7 @@ export default function ContactPage() {
             </Link>
             
             <div className="flex items-center gap-3">
+              {/* Language toggle hidden for MVP - system preserved for future
               <button
                 onClick={toggleLang}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 rounded-xl text-sm font-medium transition text-white/80 border border-[#006A4E]/30"
@@ -93,6 +94,7 @@ export default function ContactPage() {
                 <Globe className="w-4 h-4" />
                 {lang === 'en' ? 'বাংলা' : 'EN'}
               </button>
+              */}
               <Link 
                 to="/" 
                 className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"

@@ -12,7 +12,7 @@
  */
 
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, Link } from '@remix-run/react';
+import { useLoaderData, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
@@ -20,7 +20,7 @@ import { getStoreId } from '~/services/auth.server';
 import { useState } from 'react';
 import { 
   Save, AlertCircle, CheckCircle, Facebook, ExternalLink, Copy, Eye, EyeOff,
-  BarChart3, AlertTriangle, Info, BookOpen
+  BarChart3, AlertTriangle, Info
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -265,11 +265,51 @@ export default function TrackingSettings() {
                   {showAccessToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="mt-2 text-sm text-gray-500">
-                {lang === 'bn'
-                  ? 'Server-side tracking এর জন্য Access Token। Events Manager → Settings → Generate Access Token থেকে পাবেন।'
-                  : 'For server-side tracking. Get from Events Manager → Settings → Generate Access Token.'}
-              </p>
+              
+              {/* Simple Setup Instructions */}
+              <div className="mt-3 bg-gray-50 rounded-lg p-4 text-sm text-gray-700 space-y-2">
+                <p className="font-medium text-gray-900">
+                  {lang === 'bn' ? 'কিভাবে পাবেন:' : 'How to get:'}
+                </p>
+                <div className="space-y-1.5">
+                  <p>
+                    {lang === 'bn' 
+                      ? '১. Facebook Business Manager → Events Manager এ যান'
+                      : '1. Go to Facebook Business Manager → Events Manager'}
+                  </p>
+                  <p>
+                    {lang === 'bn'
+                      ? '২. আপনার Pixel সিলেক্ট করুন'
+                      : '2. Select your Pixel'}
+                  </p>
+                  <p>
+                    {lang === 'bn'
+                      ? '৩. Settings ট্যাবে ক্লিক করুন'
+                      : '3. Click on Settings tab'}
+                  </p>
+                  <p>
+                    {lang === 'bn'
+                      ? '৪. "Conversions API" সেকশনে যান'
+                      : '4. Go to "Conversions API" section'}
+                  </p>
+                  <p>
+                    {lang === 'bn'
+                      ? '৫. "Generate Access Token" বাটনে ক্লিক করুন'
+                      : '5. Click "Generate Access Token" button'}
+                  </p>
+                  <p>
+                    {lang === 'bn'
+                      ? '৬. Token টি কপি করে এখানে পেস্ট করুন'
+                      : '6. Copy the token and paste it here'}
+                  </p>
+                </div>
+                <p className="text-amber-600 text-xs mt-2">
+                  {lang === 'bn'
+                    ? '⚠️ এই Token গোপন রাখুন, কাউকে শেয়ার করবেন না।'
+                    : '⚠️ Keep this token secret, do not share with anyone.'}
+                </p>
+              </div>
+
               {isFbConfigured && !isCapiConfigured && (
                 <div className="mt-3 flex items-start gap-2 text-amber-700 bg-amber-50 p-3 rounded-lg text-sm">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -280,13 +320,6 @@ export default function TrackingSettings() {
                   </p>
                 </div>
               )}
-              <Link
-                to="/app/settings/tracking/tutorial"
-                className="mt-3 inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 text-sm font-medium bg-blue-50 px-3 py-2 rounded-lg transition hover:bg-blue-100"
-              >
-                <BookOpen className="w-4 h-4" />
-                {lang === 'bn' ? 'সেটআপ গাইড দেখুন' : 'View Setup Guide'}
-              </Link>
             </div>
           </div>
         </div>

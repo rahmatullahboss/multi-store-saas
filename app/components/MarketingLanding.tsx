@@ -265,6 +265,7 @@ export function MarketingLanding() {
                 >
                   {lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorial'}
                 </Link>
+                {/* Language toggle hidden for MVP - system preserved for future
                 <button
                   onClick={toggleLang}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 rounded-xl text-sm font-medium transition text-white/80 border border-[#006A4E]/30"
@@ -272,6 +273,7 @@ export function MarketingLanding() {
                   <Globe className="w-4 h-4" />
                   {lang === 'en' ? 'বাংলা' : 'EN'}
                 </button>
+                */}
                 <Link 
                   to="/auth/login" 
                   className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
@@ -452,6 +454,7 @@ export function MarketingLanding() {
               >
                 <Moon className="w-4 h-4" />
               </button>
+              {/* Language toggle hidden for MVP - system preserved for future
               <button
                 onClick={toggleLang}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(0,106,78,0.06)] hover:bg-[rgba(0,106,78,0.1)] rounded-xl text-sm font-medium transition text-[#006A4E] border border-[rgba(0,106,78,0.12)]"
@@ -459,6 +462,7 @@ export function MarketingLanding() {
                 <Globe className="w-4 h-4" />
                 {lang === 'en' ? 'বাংলা' : 'EN'}
               </button>
+              */}
               <Link 
                 to="/auth/login" 
                 className="hidden sm:block text-[#475569] hover:text-[#0F172A] font-medium text-sm px-4 py-2 transition"

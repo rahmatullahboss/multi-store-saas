@@ -33,7 +33,7 @@ export const LANGUAGES: LanguageConfig[] = [
   // { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', direction: 'rtl' },
 ];
 
-export const DEFAULT_LANGUAGE: Language = 'en';
+export const DEFAULT_LANGUAGE: Language = 'bn';
 
 export const translations = {
   en: {
