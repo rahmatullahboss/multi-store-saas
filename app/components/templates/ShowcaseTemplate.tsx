@@ -6,7 +6,7 @@ import { MagicSectionWrapper } from '~/components/editor';
 import { DEFAULT_SHIPPING_CONFIG, calculateShipping, type DivisionValue } from '~/utils/shipping';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Check, Star, ArrowRight, ShieldCheck, ShoppingBag, Truck, BadgeCheck, Clock, Camera
+  Check, Star, ArrowRight, ShieldCheck, ShoppingBag, Truck, BadgeCheck, Clock, Camera, Phone
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 import { useCartTracking } from '~/hooks/useCartTracking';
@@ -733,6 +733,17 @@ export function ShowcaseTemplate({
         </a>
       </div>
       <div className="md:hidden h-20" />
+
+      {/* Call Floating Button */}
+      {editableConfig.callEnabled && editableConfig.callNumber && (
+        <a
+          href={`tel:${editableConfig.callNumber}`}
+          className="fixed bottom-24 md:bottom-8 left-4 z-50 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 animate-bounce"
+          title="Call us"
+        >
+          <Phone className="w-7 h-7 text-white" />
+        </a>
+      )}
     </div>
   );
 }
