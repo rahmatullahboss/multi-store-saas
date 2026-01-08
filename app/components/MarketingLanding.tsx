@@ -32,6 +32,7 @@ import { InfrastructureCTA } from '~/components/InfrastructureCTA';
 import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
+import { PricingSection } from '~/components/PricingSection';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -488,98 +489,8 @@ export function MarketingLanding() {
           </div>
         </section>
 
-        {/* Pricing - Dark */}
-        <section id="pricing" className="py-24 px-4 bg-[#0F0F18] relative overflow-hidden">
-          <div className="max-w-6xl mx-auto">
-            <ScrollReveal>
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                  {content.pricingTitle}
-                </h2>
-                <p className="text-xl text-white/50">{content.pricingSubtitle}</p>
-              </div>
-            </ScrollReveal>
-            
-            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {content.plans.map((plan, i) => (
-                <StaggerItem key={i}>
-                  <motion.div
-                    className={`relative rounded-3xl p-8 h-full ${
-                      plan.highlight 
-                        ? 'bg-gradient-to-br from-violet-600 to-blue-700 text-white shadow-2xl shadow-violet-500/30 border-2 border-violet-400' 
-                        : 'bg-white/5 backdrop-blur-sm border border-white/10'
-                    }`}
-                    initial={{ scale: plan.highlight ? 1.05 : 1 }}
-                    whileHover={{ 
-                      scale: plan.highlight ? 1.08 : 1.03,
-                      boxShadow: plan.highlight 
-                        ? '0 25px 50px -12px rgba(139, 92, 246, 0.5)' 
-                        : '0 25px 50px -12px rgba(139, 92, 246, 0.15)',
-                    }}
-                  >
-                    {plan.highlight && (
-                      <motion.div 
-                        className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg"
-                        animate={{ boxShadow: ['0 4px 15px rgba(251, 191, 36, 0.4)', '0 4px 25px rgba(251, 191, 36, 0.7)', '0 4px 15px rgba(251, 191, 36, 0.4)'] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        <span className="flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" />
-                          {content.mostPopular}
-                        </span>
-                      </motion.div>
-                    )}
-                    
-                    <h3 className={`text-2xl font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-white'}`}>
-                      {plan.name}
-                    </h3>
-                    <p className={`mb-6 ${plan.highlight ? 'text-violet-200' : 'text-white/50'}`}>
-                      {plan.description}
-                    </p>
-                    
-                    <div className="mb-8">
-                      <span className={`text-5xl font-black ${plan.highlight ? 'text-white' : 'text-white'}`}>
-                        ৳{plan.price}
-                      </span>
-                      <span className={plan.highlight ? 'text-violet-200' : 'text-white/50'}>
-                        {content.perMonth}
-                      </span>
-                    </div>
-                    
-                    <ul className="space-y-4 mb-8">
-                      {plan.features.map((feature, j) => (
-                        <motion.li 
-                          key={j} 
-                          className={`flex items-center gap-3 ${plan.highlight ? 'text-violet-100' : 'text-white/60'}`}
-                          initial={{ opacity: 0, x: -10 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: j * 0.1 }}
-                        >
-                          <Check className={`w-5 h-5 flex-shrink-0 ${plan.highlight ? 'text-violet-300' : 'text-violet-400'}`} />
-                          {feature}
-                        </motion.li>
-                      ))}
-                    </ul>
-                    
-                    <MagneticButton className="w-full">
-                      <Link
-                        to="/auth/register"
-                        className={`block w-full py-4 text-center font-bold rounded-xl transition-all ${
-                          plan.highlight
-                            ? 'bg-white hover:bg-violet-50 text-violet-700 hover:shadow-lg'
-                            : 'bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-lg shadow-violet-500/25'
-                        }`}
-                      >
-                        {plan.cta}
-                      </Link>
-                    </MagneticButton>
-                  </motion.div>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          </div>
-        </section>
+        {/* Pricing Section - Premium Bangladeshi Design */}
+        <PricingSection />
 
         {/* Testimonials - Dark */}
         <section className="py-24 px-4 bg-[#0A0A0F] relative overflow-hidden">
