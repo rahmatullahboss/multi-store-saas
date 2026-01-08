@@ -263,6 +263,13 @@ export default function StoreDesignPage() {
           <p className="text-gray-600 mt-1">Customize your store's appearance</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            to="/store-live-editor"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition"
+          >
+            <Sparkles className="w-4 h-4" />
+            Live Editor
+          </Link>
           {storeMode === 'store' && (
             <Link
               to={`https://${storeSubdomain}.digitalcare.site`}
