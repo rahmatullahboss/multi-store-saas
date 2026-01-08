@@ -27,6 +27,8 @@ import { SpeedComparison } from '~/components/SpeedComparison';
 import { TechnicalSpecs } from '~/components/TechnicalSpecs';
 import { CDNExplainer } from '~/components/CDNExplainer';
 import { SpeedImpact } from '~/components/SpeedImpact';
+import { LiveDashboard } from '~/components/LiveDashboard';
+import { InfrastructureCTA } from '~/components/InfrastructureCTA';
 import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
@@ -284,23 +286,37 @@ export function MarketingLanding() {
         {/* Bento Grid Features Section */}
         <BentoFeaturesSection />
 
-        {/* Infrastructure Section - Cloudflare CDN Power */}
+        {/* =================================================================== */}
+        {/* INFRASTRUCTURE SHOWCASE - Complete Flow                          */}
+        {/* =================================================================== */}
+
+        {/* 1. HOOK + WORLD MAP + METRICS + BRAND LOGOS */}
         <InfrastructureSection />
 
-        {/* Cloudflare Benefits Cards - Enterprise Features for Free */}
-        <CloudflareBenefitsCards />
-
-        {/* Speed Comparison - Live Demo */}
+        {/* 2. SPEED COMPARISON - Interactive Race Demo */}
         <SpeedComparison />
 
-        {/* Technical Specs - Under the Hood */}
-        <TechnicalSpecs />
-
-        {/* CDN Explainer - Simple Bengali Explanation */}
+        {/* 3. CDN EXPLAINER - Simple Bengali Visual */}
         <CDNExplainer />
 
-        {/* Speed Impact - Business Case for Speed */}
+        {/* 4. BUSINESS IMPACT - Speed = Sales ROI */}
         <SpeedImpact />
+
+        {/* 5. FEATURE CARDS - Benefits Carousel */}
+        <CloudflareBenefitsCards />
+
+        {/* 6. TECHNICAL SPECS - For Developers (Expandable) */}
+        <TechnicalSpecs />
+
+        {/* 7. LIVE DASHBOARD - Real-time Credibility */}
+        <LiveDashboard />
+
+        {/* 8. INFRASTRUCTURE CTA - Final Call to Action */}
+        <InfrastructureCTA />
+
+        {/* =================================================================== */}
+        {/* END INFRASTRUCTURE SHOWCASE                                       */}
+        {/* =================================================================== */}
 
         {/* Trust Section - Transparency & Credibility */}
         <TrustSection />
