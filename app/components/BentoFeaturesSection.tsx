@@ -51,7 +51,7 @@ const TemplateLibraryCard = () => {
 
   return (
     <motion.div
-      className="group relative h-full p-6 md:p-8 rounded-3xl border overflow-hidden cursor-pointer"
+      className="group relative h-full p-6 md:p-8 rounded-3xl border overflow-hidden cursor-pointer flex flex-col"
       style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
       whileHover={{ 
         scale: 1.02, 
@@ -83,7 +83,7 @@ const TemplateLibraryCard = () => {
       </div>
 
       {/* Template Cards Showcase */}
-      <div className="relative h-32 md:h-36">
+      <div className="relative flex-1 min-h-[200px]">
         {templates.map((template, i) => {
           const Icon = template.icon;
           const isActive = i === activeIndex;
@@ -584,26 +584,31 @@ export function BentoFeaturesSection() {
         <div className="space-y-4 md:space-y-6">
           {/* Row 1: Template (large) + Live Preview & Section Rearrange */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {/* Template Library - Large */}
+            {/* Template Library - Large - matches height of right column */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="lg:row-span-2"
+              className="h-full"
             >
-              <TemplateLibraryCard />
+              <div className="h-full min-h-[400px]">
+                <TemplateLibraryCard />
+              </div>
             </motion.div>
 
-            {/* Right Column: Live Preview + Section Rearrange */}
-            <div className="space-y-4 md:space-y-6">
+            {/* Right Column: Live Preview + Section Rearrange - stacked */}
+            <div className="flex flex-col gap-4 md:gap-6">
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
+                className="flex-1"
               >
-                <LivePreviewCard />
+                <div className="h-full min-h-[180px]">
+                  <LivePreviewCard />
+                </div>
               </motion.div>
               
               <motion.div
@@ -611,8 +616,11 @@ export function BentoFeaturesSection() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.2 }}
+                className="flex-1"
               >
-                <SectionRearrangeCard />
+                <div className="h-full min-h-[180px]">
+                  <SectionRearrangeCard />
+                </div>
               </motion.div>
             </div>
           </div>
