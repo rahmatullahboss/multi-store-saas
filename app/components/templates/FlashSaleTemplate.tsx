@@ -334,6 +334,160 @@ export function FlashSaleTemplate({
         </div>
       </section>
 
+      {/* GALLERY SECTION - Flash Sale Style */}
+      {isSectionVisible('gallery', config.hiddenSections) && config.galleryImages && config.galleryImages.length > 0 && (
+        <section className="bg-gray-900 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <h3 className="text-xl font-bold text-white text-center mb-6">
+              <span className="text-yellow-400">📸</span> পণ্যের ছবি <span className="text-yellow-400">📸</span>
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {config.galleryImages.slice(0, 8).map((url, idx) => (
+                <div key={idx} className="aspect-square rounded-lg overflow-hidden border-2 border-yellow-500/30">
+                  <OptimizedImage 
+                    src={url} 
+                    alt={`Photo ${idx + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BENEFITS SECTION - Flash Sale Style */}
+      {isSectionVisible('benefits', config.hiddenSections) && config.benefits && config.benefits.length > 0 && (
+        <section className="bg-gradient-to-b from-gray-900 to-gray-950 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <h3 className="text-xl font-bold text-white text-center mb-6">
+              <span className="text-green-400">✓</span> কেন কিনবেন? <span className="text-green-400">✓</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {config.benefits.map((benefit, idx) => (
+                <div key={idx} className="bg-gray-800 border border-gray-700 p-4 rounded-xl flex items-start gap-3">
+                  <span className="text-2xl">{benefit.icon}</span>
+                  <div>
+                    <h4 className="font-bold text-white">{benefit.title}</h4>
+                    <p className="text-gray-400 text-sm">{benefit.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* COMPARISON SECTION - Flash Sale Style */}
+      {isSectionVisible('comparison', config.hiddenSections) && config.comparison && (config.comparison.beforeImage || config.comparison.afterImage) && (
+        <section className="bg-gradient-to-b from-gray-950 to-gray-900 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <h3 className="text-xl font-bold text-white text-center mb-2">
+              <span className="text-red-500">🔄</span> দেখুন পার্থক্য <span className="text-red-500">🔄</span>
+            </h3>
+            {config.comparison.description && (
+              <p className="text-gray-400 text-center mb-6 text-sm">{config.comparison.description}</p>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              {config.comparison.beforeImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-red-500/50 mb-3">
+                    <img 
+                      src={config.comparison.beforeImage} 
+                      alt="Before" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="inline-block px-3 py-1 bg-red-600 text-white font-bold text-sm rounded-full">
+                    ❌ {config.comparison.beforeLabel || 'আগে'}
+                  </span>
+                </div>
+              )}
+              {config.comparison.afterImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-green-500/50 mb-3">
+                    <img 
+                      src={config.comparison.afterImage} 
+                      alt="After" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="inline-block px-3 py-1 bg-green-600 text-white font-bold text-sm rounded-full">
+                    ✅ {config.comparison.afterLabel || 'পরে'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SOCIAL PROOF SECTION - Flash Sale Style */}
+      {isSectionVisible('social', config.hiddenSections) && config.socialProof && (config.socialProof.count > 0 || config.socialProof.text) && (
+        <section className="bg-gradient-to-r from-red-600 to-orange-500 py-4">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <div className="flex items-center justify-center gap-3 text-white">
+              <span className="text-3xl md:text-4xl font-bold">{config.socialProof.count}+</span>
+              <span className="text-lg md:text-xl">{config.socialProof.text}</span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* TESTIMONIALS - Screenshot Gallery Flash Sale Style */}
+      {isSectionVisible('testimonials', config.hiddenSections) && config.testimonials && config.testimonials.length > 0 && (
+        <section className="bg-gray-950 py-8 px-4">
+          <h3 className="text-xl font-bold text-white text-center mb-6">
+            <span className="text-yellow-400">⭐</span> সন্তুষ্ট গ্রাহকদের রিভিউ <span className="text-yellow-400">⭐</span>
+          </h3>
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide md:justify-center">
+            {config.testimonials.slice(0, 3).map((testimonial, idx) => (
+              <div key={idx} className="flex-shrink-0 w-40 md:w-48 snap-center">
+                {(testimonial.imageUrl || testimonial.avatar) && (
+                  <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-800">
+                    <img 
+                      src={testimonial.imageUrl || testimonial.avatar} 
+                      alt={`Review ${idx + 1}`} 
+                      className="w-full aspect-[2/3] object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FAQ - Flash Sale Style */}
+      {isSectionVisible('faq', config.hiddenSections) && config.faq && config.faq.length > 0 && (
+        <section className="bg-black py-8 px-4">
+          <h3 className="text-xl font-bold text-white text-center mb-6">❓ সচরাচর জিজ্ঞাসা</h3>
+          <div className="max-w-md mx-auto space-y-3">
+            {config.faq.map((item, idx) => (
+              <details key={idx} className="group bg-gray-950 border border-gray-800 rounded-xl overflow-hidden">
+                <summary className="p-4 cursor-pointer flex items-center justify-between text-white text-sm font-medium">
+                  <span className="pr-4">{item.question}</span>
+                  <span className="text-yellow-400 group-open:rotate-45 transition-transform">+</span>
+                </summary>
+                <div className="px-4 pb-4 text-gray-400 text-sm leading-relaxed">
+                  {item.answer}
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* GUARANTEE - Urgency Style */}
+      {isSectionVisible('guarantee', config.hiddenSections) && config.guaranteeText && (
+        <section className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 py-6 px-4 text-center border-y border-green-500/30">
+          <div className="flex items-center justify-center gap-2 text-green-400 font-bold mb-2">
+            <Shield size={20} />
+            <span>১০০% গ্যারান্টি</span>
+          </div>
+          <p className="text-green-300 text-sm">{config.guaranteeText}</p>
+        </section>
+      )}
       {/* ================================================================
           ORDER FORM - FULL WIDTH 2-COLUMN
           ================================================================ */}
@@ -599,160 +753,6 @@ export function FlashSaleTemplate({
         </div>
       </section>
 
-      {/* GALLERY SECTION - Flash Sale Style */}
-      {isSectionVisible('gallery', config.hiddenSections) && config.galleryImages && config.galleryImages.length > 0 && (
-        <section className="bg-gray-900 py-8">
-          <div className="max-w-4xl mx-auto px-4">
-            <h3 className="text-xl font-bold text-white text-center mb-6">
-              <span className="text-yellow-400">📸</span> পণ্যের ছবি <span className="text-yellow-400">📸</span>
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {config.galleryImages.slice(0, 8).map((url, idx) => (
-                <div key={idx} className="aspect-square rounded-lg overflow-hidden border-2 border-yellow-500/30">
-                  <OptimizedImage 
-                    src={url} 
-                    alt={`Photo ${idx + 1}`} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* BENEFITS SECTION - Flash Sale Style */}
-      {isSectionVisible('benefits', config.hiddenSections) && config.benefits && config.benefits.length > 0 && (
-        <section className="bg-gradient-to-b from-gray-900 to-gray-950 py-8">
-          <div className="max-w-4xl mx-auto px-4">
-            <h3 className="text-xl font-bold text-white text-center mb-6">
-              <span className="text-green-400">✓</span> কেন কিনবেন? <span className="text-green-400">✓</span>
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {config.benefits.map((benefit, idx) => (
-                <div key={idx} className="bg-gray-800 border border-gray-700 p-4 rounded-xl flex items-start gap-3">
-                  <span className="text-2xl">{benefit.icon}</span>
-                  <div>
-                    <h4 className="font-bold text-white">{benefit.title}</h4>
-                    <p className="text-gray-400 text-sm">{benefit.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* COMPARISON SECTION - Flash Sale Style */}
-      {isSectionVisible('comparison', config.hiddenSections) && config.comparison && (config.comparison.beforeImage || config.comparison.afterImage) && (
-        <section className="bg-gradient-to-b from-gray-950 to-gray-900 py-8">
-          <div className="max-w-4xl mx-auto px-4">
-            <h3 className="text-xl font-bold text-white text-center mb-2">
-              <span className="text-red-500">🔄</span> দেখুন পার্থক্য <span className="text-red-500">🔄</span>
-            </h3>
-            {config.comparison.description && (
-              <p className="text-gray-400 text-center mb-6 text-sm">{config.comparison.description}</p>
-            )}
-            <div className="grid grid-cols-2 gap-4">
-              {config.comparison.beforeImage && (
-                <div className="text-center">
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-red-500/50 mb-3">
-                    <img 
-                      src={config.comparison.beforeImage} 
-                      alt="Before" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="inline-block px-3 py-1 bg-red-600 text-white font-bold text-sm rounded-full">
-                    ❌ {config.comparison.beforeLabel || 'আগে'}
-                  </span>
-                </div>
-              )}
-              {config.comparison.afterImage && (
-                <div className="text-center">
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-green-500/50 mb-3">
-                    <img 
-                      src={config.comparison.afterImage} 
-                      alt="After" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="inline-block px-3 py-1 bg-green-600 text-white font-bold text-sm rounded-full">
-                    ✅ {config.comparison.afterLabel || 'পরে'}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* SOCIAL PROOF SECTION - Flash Sale Style */}
-      {isSectionVisible('social', config.hiddenSections) && config.socialProof && (config.socialProof.count > 0 || config.socialProof.text) && (
-        <section className="bg-gradient-to-r from-red-600 to-orange-500 py-4">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <div className="flex items-center justify-center gap-3 text-white">
-              <span className="text-3xl md:text-4xl font-bold">{config.socialProof.count}+</span>
-              <span className="text-lg md:text-xl">{config.socialProof.text}</span>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* TESTIMONIALS - Screenshot Gallery Flash Sale Style */}
-      {isSectionVisible('testimonials', config.hiddenSections) && config.testimonials && config.testimonials.length > 0 && (
-        <section className="bg-gray-950 py-8 px-4">
-          <h3 className="text-xl font-bold text-white text-center mb-6">
-            <span className="text-yellow-400">⭐</span> সন্তুষ্ট গ্রাহকদের রিভিউ <span className="text-yellow-400">⭐</span>
-          </h3>
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide md:justify-center">
-            {config.testimonials.slice(0, 3).map((testimonial, idx) => (
-              <div key={idx} className="flex-shrink-0 w-40 md:w-48 snap-center">
-                {(testimonial.imageUrl || testimonial.avatar) && (
-                  <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-800">
-                    <img 
-                      src={testimonial.imageUrl || testimonial.avatar} 
-                      alt={`Review ${idx + 1}`} 
-                      className="w-full aspect-[2/3] object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* FAQ - Flash Sale Style */}
-      {isSectionVisible('faq', config.hiddenSections) && config.faq && config.faq.length > 0 && (
-        <section className="bg-black py-8 px-4">
-          <h3 className="text-xl font-bold text-white text-center mb-6">❓ সচরাচর জিজ্ঞাসা</h3>
-          <div className="max-w-md mx-auto space-y-3">
-            {config.faq.map((item, idx) => (
-              <details key={idx} className="group bg-gray-950 border border-gray-800 rounded-xl overflow-hidden">
-                <summary className="p-4 cursor-pointer flex items-center justify-between text-white text-sm font-medium">
-                  <span className="pr-4">{item.question}</span>
-                  <span className="text-yellow-400 group-open:rotate-45 transition-transform">+</span>
-                </summary>
-                <div className="px-4 pb-4 text-gray-400 text-sm leading-relaxed">
-                  {item.answer}
-                </div>
-              </details>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* GUARANTEE - Urgency Style */}
-      {isSectionVisible('guarantee', config.hiddenSections) && config.guaranteeText && (
-        <section className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 py-6 px-4 text-center border-y border-green-500/30">
-          <div className="flex items-center justify-center gap-2 text-green-400 font-bold mb-2">
-            <Shield size={20} />
-            <span>১০০% গ্যারান্টি</span>
-          </div>
-          <p className="text-green-300 text-sm">{config.guaranteeText}</p>
-        </section>
-      )}
 
       {/* ================================================================
           FOOTER - MINIMAL
