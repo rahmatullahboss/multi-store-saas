@@ -744,6 +744,17 @@ export function PremiumBDTemplate({
         </a>
       )}
 
+      {/* Call Floating Button */}
+      {editableConfig.callEnabled && editableConfig.callNumber && (
+        <a
+          href={`tel:${editableConfig.callNumber}`}
+          className="fixed bottom-24 md:bottom-8 left-4 z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 animate-bounce"
+          title="কল করুন"
+        >
+          <Phone className="w-7 h-7 text-white" />
+        </a>
+      )}
+
       <style>{`
         @keyframes shimmer {
           100% { left: 100% }

@@ -235,6 +235,160 @@ export function OrganicTemplate({
          </div>
       </section>
 
+      {/* TRUST BADGES SECTION - Organic Style */}
+      {isSectionVisible('trust', editableConfig.hiddenSections) && (
+        <section className="py-12 bg-emerald-50/30 border-y border-emerald-100/50">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              <div className="text-center p-4 md:p-6 bg-white rounded-2xl border border-emerald-100 hover:shadow-md transition-shadow">
+                <div className="text-3xl mb-3">🚚</div>
+                <h4 className="font-bold text-emerald-900 text-sm md:text-base">{t('freeDelivery')}</h4>
+                <p className="text-xs text-stone-500 mt-1">{t('freeDeliveryInDhaka')}</p>
+              </div>
+              <div className="text-center p-4 md:p-6 bg-white rounded-2xl border border-emerald-100 hover:shadow-md transition-shadow">
+                <div className="text-3xl mb-3">💯</div>
+                <h4 className="font-bold text-emerald-900 text-sm md:text-base">{t('originalProduct')}</h4>
+                <p className="text-xs text-stone-500 mt-1">{t('originalGuarantee')}</p>
+              </div>
+              <div className="text-center p-4 md:p-6 bg-white rounded-2xl border border-emerald-100 hover:shadow-md transition-shadow">
+                <div className="text-3xl mb-3">💵</div>
+                <h4 className="font-bold text-emerald-900 text-sm md:text-base">{t('cashOnDelivery')}</h4>
+                <p className="text-xs text-stone-500 mt-1">{t('payOnReceive')}</p>
+              </div>
+              <div className="text-center p-4 md:p-6 bg-white rounded-2xl border border-emerald-100 hover:shadow-md transition-shadow">
+                <div className="text-3xl mb-3">🔄</div>
+                <h4 className="font-bold text-emerald-900 text-sm md:text-base">{t('easyReturn')}</h4>
+                <p className="text-xs text-stone-500 mt-1">{t('returnPolicy')}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FEATURES SECTION - Organic Style */}
+      {isSectionVisible('features', editableConfig.hiddenSections) && editableConfig.features && editableConfig.features.length > 0 && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-emerald-950 mb-4">{t('productFeatures')}</h2>
+              <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {editableConfig.features.map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="flex items-start gap-4 p-6 bg-stone-50 rounded-2xl border border-stone-100 hover:shadow-md transition-shadow"
+                >
+                  <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm border border-emerald-100 flex-shrink-0">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-emerald-900 mb-1">{feature.title}</h4>
+                    {feature.description && (
+                      <p className="text-stone-600 text-sm">{feature.description}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* VIDEO SECTION - Organic Style */}
+      {isSectionVisible('video', editableConfig.hiddenSections) && editableConfig.videoUrl && (
+        <section className="py-16 bg-emerald-900">
+          <div className="container mx-auto px-6 max-w-4xl">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-white mb-4">🎬 {t('watchInVideo')}</h2>
+              <p className="text-emerald-200">{t('watchVideoDetails')}</p>
+            </div>
+            <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl border-4 border-emerald-700">
+              {editableConfig.videoUrl.includes('youtube.com') || editableConfig.videoUrl.includes('youtu.be') ? (
+                <iframe
+                  src={editableConfig.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  title="Product Video"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={editableConfig.videoUrl}
+                  controls
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SOCIAL PROOF SECTION - Organic Style */}
+      {isSectionVisible('social', editableConfig.hiddenSections) && editableConfig.socialProof && (editableConfig.socialProof.count > 0 || editableConfig.socialProof.text) && (
+        <section className="py-8 bg-gradient-to-r from-emerald-600 to-emerald-500">
+          <div className="container mx-auto px-6 text-center">
+            <div className="flex items-center justify-center gap-3 text-white">
+              <Star size={20} className="text-yellow-300 fill-yellow-300" />
+              <span className="text-3xl md:text-4xl font-bold">{editableConfig.socialProof.count}+</span>
+              <span className="text-lg md:text-xl">{editableConfig.socialProof.text}</span>
+              <Star size={20} className="text-yellow-300 fill-yellow-300" />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* DELIVERY SECTION - Organic Style */}
+      {isSectionVisible('delivery', editableConfig.hiddenSections) && (
+        <section className="py-16 bg-stone-50">
+          <div className="container mx-auto px-6 max-w-4xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-emerald-950 mb-4">{t('deliveryInfo')}</h2>
+              <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-2xl p-8 border border-emerald-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl">🏙️</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-emerald-900">{t('insideDhaka')}</h3>
+                    <p className="text-emerald-600 font-medium">{t('within24Hours')}</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-stone-600 text-sm">
+                  <li className="flex items-center gap-2"><Check size={14} className="text-emerald-500" /> {t('deliveryCharge')}: ৳60</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-emerald-500" /> {t('onTimeDelivery')}</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-emerald-500" /> {t('cashOnDelivery')}</li>
+                </ul>
+              </div>
+              <div className="bg-white rounded-2xl p-8 border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl">🌍</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-blue-900">{t('outsideDhaka')}</h3>
+                    <p className="text-blue-600 font-medium">{t('twoToThreeDays')}</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-stone-600 text-sm">
+                  <li className="flex items-center gap-2"><Check size={14} className="text-blue-500" /> {t('deliveryCharge')}: ৳120</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-blue-500" /> {t('nationwideDelivery')}</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-blue-500" /> {t('courierService')}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 3. TESTIMONIALS (Screenshot Gallery - Organic Style) */}
       {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
         <section className="py-16 bg-white">
