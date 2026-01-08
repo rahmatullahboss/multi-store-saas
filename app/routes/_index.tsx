@@ -631,22 +631,22 @@ export default function Index() {
       
       return (
         <div className="relative">
-          {/* Preview Banner */}
-          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-3 text-center shadow-lg">
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <span className="text-lg">👁️</span>
-              <span className="font-medium">টেমপ্লেট প্রিভিউ মোড</span>
+          {/* Preview Banner - Compact on mobile */}
+          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-2 sm:px-4 py-2 sm:py-3 text-center shadow-lg">
+            <div className="flex items-center justify-center gap-1.5 sm:gap-3 flex-wrap">
+              <span className="text-sm sm:text-lg">👁️</span>
+              <span className="font-medium text-xs sm:text-base">টেমপ্লেট প্রিভিউ মোড</span>
               <span className="hidden sm:inline text-white/80">|</span>
-              <span className="text-sm text-white/90">এটি ডেমো কন্টেন্ট সহ প্রিভিউ। আপনার আসল ডাটা দিয়ে আলাদা দেখাবে।</span>
+              <span className="hidden sm:inline text-sm text-white/90">এটি ডেমো কন্টেন্ট সহ প্রিভিউ। আপনার আসল ডাটা দিয়ে আলাদা দেখাবে।</span>
               <button
                 onClick={() => window.close()}
-                className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition"
+                className="ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 bg-white/20 hover:bg-white/30 rounded-md sm:rounded-lg text-xs sm:text-sm font-medium transition"
               >
                 বন্ধ করুন ✕
               </button>
             </div>
           </div>
-          <div className="pt-12">
+          <div className="pt-10 sm:pt-12">
             <PreviewTemplateComponent
               storeName={data.storeName}
               storeId={data.storeId}
