@@ -43,7 +43,8 @@ import {
   Info,
   AlertTriangle,
   Rocket,
-  AlertCircle
+  AlertCircle,
+  BookOpen
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -224,6 +225,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarHome',
     items: [
       { to: '/app/dashboard', labelKey: 'navDashboard', icon: LayoutDashboard },
+      { to: '/app/tutorials', labelKey: 'navTutorials', icon: BookOpen },
     ],
   },
   {
