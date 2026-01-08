@@ -50,8 +50,6 @@ CLOUDFLARE_ZONE_ID = "YOUR_ZONE_ID_HERE"  # Zone ID from Cloudflare Dashboard (d
 
 # PUSH NOTIFICATIONS (VAPID)
 VAPID_PUBLIC_KEY = "BDl0oSQqYgSjUMZxblMeN1nhfndIyhlAKDujKvNfQyo4gMGVlvKs2aInkK9-PiflVUSDxmPPyienIPQlHMZPwJU"
-# WARNING: Ideally set PRIVATE KEY in Cloudflare Dashboard > Settings > Environment Variables for better security
-VAPID_PRIVATE_KEY = "0lRtb9KYpwEWgeZGaZEyD-eIp7lwngMC1gYCGAq2XWg"
 
 # ============================================================================
 # DEVELOPMENT SETTINGS
