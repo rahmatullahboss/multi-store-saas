@@ -342,7 +342,7 @@ const pricingPlans: PricingPlan[] = [
     ],
     cta: 'যোগাযোগ',
     isUltimate: true,
-    bonus: '🎁 BONUS: আমরা আপনার Store Design করে দেব!',
+    bonus: '🎁 BONUS: আমরা আপনার Store Edit করে দেবো*',
   },
 ];
 
