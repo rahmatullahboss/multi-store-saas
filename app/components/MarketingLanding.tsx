@@ -263,7 +263,7 @@ export function MarketingLanding() {
                   to="/tutorials" 
                   className="hidden md:block text-white/60 hover:text-[#00875F] font-medium text-sm px-3 py-2 transition"
                 >
-                  {lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorial'}
+                  টিউটোরিয়াল
                 </Link>
                 {/* Language toggle hidden for MVP - system preserved for future
                 <button
@@ -369,10 +369,10 @@ export function MarketingLanding() {
               {/* Product Links */}
               <div>
                 <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
-                <ul className="space-y-2">
-                  <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'ফিচার' : 'Features'}</Link></li>
-                  <li><Link to="/#pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'প্রাইসিং' : 'Pricing'}</Link></li>
-                  <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorials'}</Link></li>
+              <ul className="space-y-2">
+                  <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
+                  <li><Link to="/#pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
+                  <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">টিউটোরিয়াল</Link></li>
                 </ul>
               </div>
               
@@ -380,8 +380,8 @@ export function MarketingLanding() {
               <div>
                 <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
                 <ul className="space-y-2">
-                  <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'সম্পর্কে' : 'About'}</Link></li>
-                  <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'যোগাযোগ' : 'Contact'}</Link></li>
+                  <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
+                  <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
                 </ul>
               </div>
               
@@ -389,9 +389,9 @@ export function MarketingLanding() {
               <div>
                 <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
                 <ul className="space-y-2">
-                  <li><Link to="/policies/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'গোপনীয়তা' : 'Privacy'}</Link></li>
-                  <li><Link to="/policies/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'শর্তাবলী' : 'Terms'}</Link></li>
-                  <li><Link to="/policies/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'রিফান্ড নীতি' : 'Refund Policy'}</Link></li>
+                  <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>
+                  <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">শর্তাবলী</Link></li>
+                  <li><Link to="/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">রিফান্ড নীতি</Link></li>
                 </ul>
               </div>
             </div>
@@ -444,7 +444,7 @@ export function MarketingLanding() {
                 to="/tutorials" 
                 className="hidden md:block text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 transition"
               >
-                {lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorial'}
+                টিউটোরিয়াল
               </Link>
               {/* Theme Toggle */}
               <button
@@ -519,9 +519,9 @@ export function MarketingLanding() {
             <div>
               <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
               <ul className="space-y-2">
-                <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'ফিচার' : 'Features'}</Link></li>
-                <li><Link to="/#pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'প্রাইসিং' : 'Pricing'}</Link></li>
-                <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'টিউটোরিয়াল' : 'Tutorials'}</Link></li>
+                <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
+                <li><Link to="/#pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
+                <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">টিউটোরিয়াল</Link></li>
               </ul>
             </div>
             
@@ -529,8 +529,8 @@ export function MarketingLanding() {
             <div>
               <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
               <ul className="space-y-2">
-                <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'সম্পর্কে' : 'About'}</Link></li>
-                <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'যোগাযোগ' : 'Contact'}</Link></li>
+                <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
+                <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
               </ul>
             </div>
             
@@ -538,9 +538,9 @@ export function MarketingLanding() {
             <div>
               <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
               <ul className="space-y-2">
-                <li><Link to="/policies/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'গোপনীয়তা' : 'Privacy'}</Link></li>
-                <li><Link to="/policies/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'শর্তাবলী' : 'Terms'}</Link></li>
-                <li><Link to="/policies/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">{lang === 'bn' ? 'রিফান্ড নীতি' : 'Refund Policy'}</Link></li>
+                <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>
+                <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">শর্তাবলী</Link></li>
+                <li><Link to="/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">রিফান্ড নীতি</Link></li>
               </ul>
             </div>
           </div>
