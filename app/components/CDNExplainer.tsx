@@ -329,8 +329,8 @@ export function CDNExplainer() {
   const [fastComplete, setFastComplete] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   
-  const SLOW_TIME = 3.2;
-  const FAST_TIME = 0.4;
+  const SLOW_TIME = 0.8; // Competitors from Singapore
+  const FAST_TIME = 0.05; // Our platform from Dhaka edge
   
   const startAnimation = useCallback(() => {
     setIsAnimating(true);
@@ -462,32 +462,32 @@ export function CDNExplainer() {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="grid md:grid-cols-2 gap-6 mb-8"
         >
-          {/* Without CDN */}
+          {/* Without CDN - Competitors use Singapore */}
           <ScenarioCard
-            title="WITHOUT CDN"
-            titleBn="সাধারণ Hosting"
+            title="COMPETITORS"
+            titleBn="অন্যান্য Platform"
             isGood={false}
             customerLocation="Dhaka, BD"
-            serverLocation="USA 🇺🇸"
+            serverLocation="Singapore 🇸🇬"
             serverEmoji="🖥️"
-            distance="12,000+ km"
-            time="3.2s"
+            distance="3,000+ km"
+            time="0.8s"
             currentTime={slowTime}
             isAnimating={isAnimating}
             progress={slowProgress}
             isComplete={slowComplete}
           />
           
-          {/* With CDN */}
+          {/* With CDN - We use Bangladesh edge server */}
           <ScenarioCard
-            title="WITH CDN"
-            titleBn="আমাদের Platform"
+            title="আমাদের PLATFORM"
+            titleBn="Cloudflare Bangladesh Edge"
             isGood={true}
             customerLocation="Dhaka, BD"
-            serverLocation="Singapore 🇸🇬"
+            serverLocation="Dhaka Edge 🇧🇩"
             serverEmoji="⚡"
-            distance="3,000 km"
-            time="0.4s"
+            distance="Same City!"
+            time="0.05s"
             currentTime={fastTime}
             isAnimating={isAnimating}
             progress={fastProgress}
@@ -553,13 +553,13 @@ export function CDNExplainer() {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5">
               <MapPin className="w-4 h-4 text-cyan-400" />
               <span style={{ color: COLORS.textMuted }}>
-                ঢাকা থেকে Singapore: <span className="text-white">38ms</span>
+                ঢাকায় Edge Server: <span className="text-white">~5ms</span>
               </span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5">
               <Globe className="w-4 h-4 text-green-400" />
               <span style={{ color: COLORS.textMuted }}>
-                310+ Edge Servers <span className="text-white">বিশ্বজুড়ে</span>
+                Competitors (Singapore): <span className="text-white">~80ms</span>
               </span>
             </div>
           </div>

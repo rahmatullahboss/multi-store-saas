@@ -381,12 +381,12 @@ const BrandTrustBar = () => {
 // LIVE LATENCY COUNTER
 // ============================================================================
 const LiveLatencyCounter = () => {
-  const [latency, setLatency] = useState(42);
+  const [latency, setLatency] = useState(5);
   
   useEffect(() => {
     const interval = setInterval(() => {
-      // Simulate latency fluctuation between 38-52ms
-      setLatency(38 + Math.floor(Math.random() * 15));
+      // Simulate latency fluctuation between 3-8ms for Dhaka edge
+      setLatency(3 + Math.floor(Math.random() * 6));
     }, 2000);
     
     return () => clearInterval(interval);
@@ -606,7 +606,7 @@ export function InfrastructureSection() {
               <div className="flex items-center gap-2 text-sm">
                 <Activity className="w-4 h-4" style={{ color: COLORS.primary }} />
                 <span style={{ color: COLORS.textMuted }}>
-                  Nearest: <span className="text-white font-medium">Singapore (38ms)</span>
+                  Nearest: <span className="text-white font-medium">Dhaka Edge (~5ms) 🇧🇩</span>
                 </span>
               </div>
             </motion.div>
@@ -625,9 +625,9 @@ export function InfrastructureSection() {
           />
           <StatCard
             icon={Clock}
-            value="<50ms"
+            value="<10ms"
             label="Loading Time"
-            sublabel="বাংলাদেশ থেকে"
+            sublabel="ঢাকা Edge Server থেকে"
             delay={0.5}
             color={COLORS.cyan}
           />
