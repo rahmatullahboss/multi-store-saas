@@ -24,13 +24,21 @@ export interface TriggerContext {
 
 /**
  * Trigger automation for an event
+ * 
+ * WORKAROUND (Free Plan): 
+ * - Immediate emails (delay=0) are sent DIRECTLY via Resend
+ * - Delayed emails are stored in DB for scheduled cron processing
+ * - No Workers Queue needed!
  */
 export async function triggerAutomation(
   d1: D1Database,
   trigger: EmailTrigger,
-  context: TriggerContext
-): Promise<void> {
+  context: TriggerContext,
+  resendApiKey?: string | null
+): Promise<{ sent: number; queued: number }> {
   const db = drizzle(d1);
+  let sent = 0;
+  let queued = 0;
 
   // Find active automations for this trigger
   const automations = await db
@@ -44,6 +52,15 @@ export async function triggerAutomation(
       )
     );
 
+  // Get store info for sender
+  const store = await db
+    .select({ name: stores.name })
+    .from(stores)
+    .where(eq(stores.id, context.storeId))
+    .limit(1);
+
+  const storeName = store[0]?.name || 'Store';
+
   for (const automation of automations) {
     // Get all steps for this automation
     const steps = await db
@@ -52,38 +69,84 @@ export async function triggerAutomation(
       .where(eq(emailAutomationSteps.automationId, automation.id))
       .orderBy(emailAutomationSteps.stepOrder);
 
-    // Queue each step
     for (const step of steps) {
-      const scheduledAt = new Date(Date.now() + (step.delayMinutes || 0) * 60 * 1000);
-      
-      await db.insert(emailQueue).values({
-        storeId: context.storeId,
-        stepId: step.id,
-        recipientEmail: context.customerEmail,
-        scheduledAt,
-        status: 'pending',
-        metadata: JSON.stringify({
-          ...context.metadata,
-          customerName: context.customerName,
-          automationId: automation.id,
-          automationName: automation.name,
-        }),
-      });
+      const metadata = {
+        ...context.metadata,
+        customerName: context.customerName,
+        automationId: automation.id,
+        automationName: automation.name,
+      };
+
+      // Replace template variables
+      const subject = replaceTemplateVars(step.subject, metadata);
+      const content = replaceTemplateVars(step.content, metadata);
+
+      if (step.delayMinutes === 0 && resendApiKey) {
+        // ============ IMMEDIATE EMAIL - SEND DIRECTLY ============
+        try {
+          const emailService = createEmailService(resendApiKey);
+          await emailService.sendCampaignEmail({
+            email: context.customerEmail,
+            subject,
+            content,
+            storeName,
+            unsubscribeUrl: '#', // Placeholder
+          });
+          
+          // Update stats
+          await d1.prepare(
+            'UPDATE email_automation_steps SET sent_count = sent_count + 1 WHERE id = ?'
+          ).bind(step.id).run();
+          
+          await d1.prepare(
+            'UPDATE email_automations SET total_sent = total_sent + 1 WHERE id = ?'
+          ).bind(automation.id).run();
+          
+          sent++;
+          console.log(`📧 [DIRECT] Sent email to ${context.customerEmail}: ${subject}`);
+        } catch (error) {
+          console.error('Failed to send immediate email:', error);
+        }
+      } else {
+        // ============ DELAYED EMAIL - QUEUE FOR CRON ============
+        const scheduledAt = new Date(Date.now() + (step.delayMinutes || 0) * 60 * 1000);
+        
+        await db.insert(emailQueue).values({
+          storeId: context.storeId,
+          stepId: step.id,
+          recipientEmail: context.customerEmail,
+          subject,
+          content,
+          scheduledAt,
+          status: 'pending',
+          metadata: JSON.stringify(metadata),
+        });
+        
+        queued++;
+        console.log(`📬 [QUEUED] Email for ${context.customerEmail} scheduled at ${scheduledAt.toISOString()}`);
+      }
     }
   }
+
+  return { sent, queued };
 }
 
 /**
  * Process email queue (called by scheduled worker or cron)
  * Returns number of emails sent
+ * 
+ * WORKAROUND: If no resendApiKey, logs emails to console (free plan mode)
  */
 export async function processEmailQueue(
   d1: D1Database,
-  resendApiKey: string,
+  resendApiKey?: string | null,
   batchSize = 50
-): Promise<{ sent: number; failed: number }> {
+): Promise<{ sent: number; failed: number; simulated: number }> {
   const db = drizzle(d1);
   const now = new Date();
+  
+  // Check if in simulation mode (no API key)
+  const isSimulationMode = !resendApiKey;
   
   // Fetch pending emails that are due
   const pendingEmails = await db
@@ -99,8 +162,7 @@ export async function processEmailQueue(
 
   let sent = 0;
   let failed = 0;
-
-  const emailService = createEmailService(resendApiKey);
+  let simulated = 0;
 
   for (const email of pendingEmails) {
     try {
@@ -112,7 +174,6 @@ export async function processEmailQueue(
         .limit(1);
 
       if (step.length === 0) {
-        // Mark as failed if step not found
         await db.update(emailQueue)
           .set({ status: 'failed' })
           .where(eq(emailQueue.id, email.id));
@@ -125,43 +186,71 @@ export async function processEmailQueue(
 
       // Get store for sender info
       const store = await db
-        .select({ name: stores.name, email: stores.contactEmail })
+        .select({ name: stores.name })
         .from(stores)
         .where(eq(stores.id, email.storeId))
         .limit(1);
 
-      // Replace template variables
-      const subject = replaceTemplateVars(stepData.subject, metadata);
-      const content = replaceTemplateVars(stepData.content, metadata);
+      // Use already-stored subject/content or generate from step
+      // Note: New queue entries have subject/content, old ones need replaceTemplateVars
+      const subject = email.subject || replaceTemplateVars(stepData.subject, metadata);
+      const content = email.content || replaceTemplateVars(stepData.content, metadata);
+      const storeName = store[0]?.name || 'Store';
 
-      // Send email
-      await emailService.sendEmail({
-        to: email.recipientEmail,
-        from: `${store[0]?.name || 'Store'} <noreply@${emailService.domain || 'example.com'}>`,
-        subject,
-        html: content,
-      });
+      if (isSimulationMode) {
+        // ========== SIMULATION MODE (NO API KEY) ==========
+        console.log('━'.repeat(60));
+        console.log('📧 [SIMULATED EMAIL] Would have sent:');
+        console.log(`   To: ${email.recipientEmail}`);
+        console.log(`   From: ${storeName}`);
+        console.log(`   Subject: ${subject}`);
+        console.log(`   Content Preview: ${content.substring(0, 200).replace(/<[^>]*>/g, '')}...`);
+        console.log('━'.repeat(60));
+        
+        // Mark as sent (simulated)
+        await db.update(emailQueue)
+          .set({ status: 'sent', sentAt: now })
+          .where(eq(emailQueue.id, email.id));
+        
+        // Update stats anyway
+        await d1.prepare(
+          'UPDATE email_automation_steps SET sent_count = sent_count + 1 WHERE id = ?'
+        ).bind(stepData.id).run();
+        
+        await d1.prepare(
+          'UPDATE email_automations SET total_sent = total_sent + 1 WHERE id = ?'
+        ).bind(metadata.automationId).run();
+        
+        simulated++;
+      } else {
+        // ========== REAL EMAIL MODE - USE RESEND ==========
+        const emailService = createEmailService(resendApiKey!);
+        
+        await emailService.sendCampaignEmail({
+          email: email.recipientEmail,
+          subject,
+          content,
+          storeName,
+          unsubscribeUrl: '#',
+        });
 
-      // Mark as sent
-      await db.update(emailQueue)
-        .set({ status: 'sent', sentAt: now })
-        .where(eq(emailQueue.id, email.id));
+        await db.update(emailQueue)
+          .set({ status: 'sent', sentAt: now })
+          .where(eq(emailQueue.id, email.id));
 
-      // Update step stats
-      await d1.prepare(
-        'UPDATE email_automation_steps SET sent_count = sent_count + 1 WHERE id = ?'
-      ).bind(stepData.id).run();
+        await d1.prepare(
+          'UPDATE email_automation_steps SET sent_count = sent_count + 1 WHERE id = ?'
+        ).bind(stepData.id).run();
 
-      // Update automation stats
-      await d1.prepare(
-        'UPDATE email_automations SET total_sent = total_sent + 1 WHERE id = ?'
-      ).bind(metadata.automationId).run();
+        await d1.prepare(
+          'UPDATE email_automations SET total_sent = total_sent + 1 WHERE id = ?'
+        ).bind(metadata.automationId).run();
 
-      sent++;
+        sent++;
+      }
     } catch (error) {
       console.error(`Failed to send email ${email.id}:`, error);
       
-      // Mark as failed
       await db.update(emailQueue)
         .set({ status: 'failed' })
         .where(eq(emailQueue.id, email.id));
@@ -170,7 +259,11 @@ export async function processEmailQueue(
     }
   }
 
-  return { sent, failed };
+  if (isSimulationMode && simulated > 0) {
+    console.log(`\n✅ [FREE PLAN MODE] Simulated ${simulated} emails (add RESEND_API_KEY to send real emails)\n`);
+  }
+
+  return { sent, failed, simulated };
 }
 
 /**
