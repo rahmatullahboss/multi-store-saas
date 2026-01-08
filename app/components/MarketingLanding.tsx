@@ -25,6 +25,7 @@ import { InfrastructureSection } from '~/components/InfrastructureSection';
 import { CloudflareBenefitsCards } from '~/components/CloudflareBenefitsCards';
 import { SpeedComparison } from '~/components/SpeedComparison';
 import { TechnicalSpecs } from '~/components/TechnicalSpecs';
+import { CDNExplainer } from '~/components/CDNExplainer';
 import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
@@ -293,6 +294,9 @@ export function MarketingLanding() {
 
         {/* Technical Specs - Under the Hood */}
         <TechnicalSpecs />
+
+        {/* CDN Explainer - Simple Bengali Explanation */}
+        <CDNExplainer />
 
         {/* Trust Section - Transparency & Credibility */}
         <TrustSection />
