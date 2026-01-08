@@ -623,6 +623,101 @@ export default function EditProductPage() {
           </div>
         </div>
 
+        {/* SEO Settings (Collapsible) */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setSeoExpanded(!seoExpanded)}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Search className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900">SEO Settings</h3>
+                <p className="text-xs text-gray-500">সার্চ ইঞ্জিন অপ্টিমাইজেশন (অটো-জেনারেটেড)</p>
+              </div>
+            </div>
+            {seoExpanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+          
+          {seoExpanded && (
+            <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
+              {/* Google Preview */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-xs text-gray-500 mb-2">Google Preview:</p>
+                <p className="text-sm text-emerald-700 truncate">yourstore.digitalcare.site/products/...</p>
+                <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
+                  {formSeoTitle || autoSeoTitle}
+                </h4>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {formSeoDescription || autoSeoDescription || 'এই প্রোডাক্টের বিবরণ এখানে দেখা যাবে...'}
+                </p>
+              </div>
+              
+              {/* Meta Title */}
+              <div>
+                <label htmlFor="seoTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                  Meta Title
+                  <span className="text-xs text-gray-400 ml-2">(খালি থাকলে অটো-জেনারেট হবে)</span>
+                </label>
+                <input
+                  type="text"
+                  id="seoTitle"
+                  name="seoTitle"
+                  value={formSeoTitle}
+                  onChange={(e) => setFormSeoTitle(e.target.value)}
+                  placeholder={autoSeoTitle}
+                  maxLength={60}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+                <p className="text-xs text-gray-500 mt-1">{(formSeoTitle || autoSeoTitle).length}/60 characters</p>
+              </div>
+              
+              {/* Meta Description */}
+              <div>
+                <label htmlFor="seoDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                  Meta Description
+                  <span className="text-xs text-gray-400 ml-2">(খালি থাকলে অটো-জেনারেট হবে)</span>
+                </label>
+                <textarea
+                  id="seoDescription"
+                  name="seoDescription"
+                  value={formSeoDescription}
+                  onChange={(e) => setFormSeoDescription(e.target.value)}
+                  placeholder={autoSeoDescription || 'প্রোডাক্ট ডেসক্রিপশন থেকে নেওয়া হবে...'}
+                  maxLength={160}
+                  rows={3}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">{(formSeoDescription || autoSeoDescription).length}/160 characters</p>
+              </div>
+              
+              {/* Keywords */}
+              <div>
+                <label htmlFor="seoKeywords" className="block text-sm font-medium text-gray-700 mb-1">
+                  Keywords
+                  <span className="text-xs text-gray-400 ml-2">(কমা দিয়ে আলাদা করুন)</span>
+                </label>
+                <input
+                  type="text"
+                  id="seoKeywords"
+                  name="seoKeywords"
+                  value={formSeoKeywords}
+                  onChange={(e) => setFormSeoKeywords(e.target.value)}
+                  placeholder="যেমন: t-shirt, cotton, casual wear"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Product Variants */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <VariantManager

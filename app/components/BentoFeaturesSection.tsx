@@ -477,10 +477,55 @@ const ComboPlatformCard = () => {
 };
 
 // ============================================================================
-// COMING SOON TEASER
+// COMING SOON TEASER - FUNCTIONAL EMAIL COLLECTOR
 // ============================================================================
 const ComingSoonTeaser = () => {
   const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes('@')) {
+      setStatus('error');
+      setMessage('সঠিক ইমেইল দিন');
+      return;
+    }
+
+    setStatus('loading');
+
+    try {
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('source', 'homepage');
+
+      const response = await fetch('/api/marketing-lead', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json() as { error?: string; success?: boolean };
+
+      if (response.ok) {
+        setStatus('success');
+        setMessage('ধন্যবাদ! আপনাকে জানানো হবে।');
+        setEmail('');
+      } else {
+        setStatus('error');
+        setMessage(data.error || 'কিছু সমস্যা হয়েছে');
+      }
+    } catch {
+      setStatus('error');
+      setMessage('কিছু সমস্যা হয়েছে');
+    }
+
+    // Reset status after 3 seconds
+    setTimeout(() => {
+      setStatus('idle');
+      setMessage('');
+    }, 3000);
+  };
 
   return (
     <motion.div
@@ -513,33 +558,60 @@ const ComingSoonTeaser = () => {
           </p>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
+        <form onSubmit={handleSubmit} className="flex gap-2 w-full md:w-auto">
           <input
             type="email"
             placeholder="your@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 md:w-56 px-4 py-2 rounded-xl bg-black/30 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-amber-400/40"
+            disabled={status === 'loading' || status === 'success'}
+            className="flex-1 md:w-56 px-4 py-2 rounded-xl bg-black/30 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-amber-400/40 disabled:opacity-50"
           />
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2"
+            type="submit"
+            whileHover={{ scale: status === 'loading' ? 1 : 1.05 }}
+            whileTap={{ scale: status === 'loading' ? 1 : 0.95 }}
+            disabled={status === 'loading' || status === 'success'}
+            className="px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 disabled:opacity-70"
             style={{ 
-              backgroundColor: COLORS.accent,
+              backgroundColor: status === 'success' ? '#10B981' : COLORS.accent,
               color: '#000',
             }}
           >
-            <Bell className="w-4 h-4" />
+            {status === 'loading' ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              >
+                <Bell className="w-4 h-4" />
+              </motion.div>
+            ) : status === 'success' ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Bell className="w-4 h-4" />
+            )}
             <span className="hidden sm:inline" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
-              Notify Me
+              {status === 'success' ? 'Done!' : 'Notify Me'}
             </span>
           </motion.button>
-        </div>
+        </form>
       </div>
+
+      {/* Message feedback */}
+      {message && (
+        <motion.p
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`text-sm mt-3 text-center md:text-right ${status === 'success' ? 'text-emerald-400' : 'text-red-400'}`}
+          style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+        >
+          {message}
+        </motion.p>
+      )}
     </motion.div>
   );
 };
+
 
 // ============================================================================
 // MAIN COMPONENT

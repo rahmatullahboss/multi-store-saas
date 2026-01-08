@@ -1066,6 +1066,20 @@ export const storeTags = sqliteTable('store_tags', {
 ]);
 
 // ============================================================================
+// MARKETING LEADS TABLE - Platform-level email collection (homepage)
+// ============================================================================
+export const marketingLeads = sqliteTable('marketing_leads', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull().unique(),
+  source: text('source').default('homepage'), // 'homepage', 'pricing', 'footer'
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('marketing_leads_email_idx').on(table.email),
+]);
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -1137,3 +1151,5 @@ export type AdminRole = typeof adminRoles.$inferSelect;
 export type NewAdminRole = typeof adminRoles.$inferInsert;
 export type StoreTag = typeof storeTags.$inferSelect;
 export type NewStoreTag = typeof storeTags.$inferInsert;
+export type MarketingLead = typeof marketingLeads.$inferSelect;
+export type NewMarketingLead = typeof marketingLeads.$inferInsert;

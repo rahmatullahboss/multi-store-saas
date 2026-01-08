@@ -13,9 +13,10 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, Form, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, sql, desc } from 'drizzle-orm';
-import { stores, users, activityLogs } from '@db/schema';
+import { eq, sql, desc, inArray } from 'drizzle-orm';
+import { stores, users, activityLogs, adminAuditLogs, storeTags } from '@db/schema';
 import { requireSuperAdmin, createImpersonationSession } from '~/services/auth.server';
+import { logAdminAction } from '~/services/audit.server';
 import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 import { 
   Store, 
@@ -29,7 +30,11 @@ import {
   Zap,
   Gift,
   Trash2,
-  RotateCcw
+  RotateCcw,
+  Download,
+  Tag,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -107,6 +112,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const intent = formData.get('intent');
   const storeId = Number(formData.get('storeId'));
   const targetUserId = Number(formData.get('userId'));
+  const storeName = formData.get('storeName')?.toString() || 'Unknown Store';
   
   const drizzleDb = drizzle(db);
   
@@ -123,7 +129,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
     
-    // Log the action
+    // Log to activity logs (store-level)
     await drizzleDb.insert(activityLogs).values({
       storeId: storeId,
       userId: adminId,
@@ -135,6 +141,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
         previousStatus: currentStatus,
         newStatus,
       }),
+    });
+    
+    // Log to admin audit logs (Super Admin level)
+    await logAdminAction({
+      db,
+      adminId,
+      action: newStatus ? 'store_unsuspend' : 'store_suspend',
+      targetType: 'store',
+      targetId: storeId,
+      targetName: storeName,
+      details: { previousStatus: currentStatus, newStatus },
+      request,
     });
     
     return json({ success: true, action: newStatus ? 'unsuspended' : 'suspended' });
@@ -150,7 +168,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
     
-    // Log the action
+    // Log to activity logs
     await drizzleDb.insert(activityLogs).values({
       storeId: storeId,
       userId: adminId,
@@ -158,6 +176,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
       entityType: 'store',
       entityId: storeId,
       details: JSON.stringify({ adminEmail }),
+    });
+    
+    // Log to admin audit logs
+    await logAdminAction({
+      db,
+      adminId,
+      action: 'store_delete',
+      targetType: 'store',
+      targetId: storeId,
+      targetName: storeName,
+      request,
     });
     
     return json({ success: true, action: 'deleted' });
@@ -173,7 +202,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
     
-    // Log the action
+    // Log to activity logs
     await drizzleDb.insert(activityLogs).values({
       storeId: storeId,
       userId: adminId,
@@ -183,7 +212,39 @@ export async function action({ request, context }: ActionFunctionArgs) {
       details: JSON.stringify({ adminEmail }),
     });
     
+    // Log to admin audit logs
+    await logAdminAction({
+      db,
+      adminId,
+      action: 'store_restore',
+      targetType: 'store',
+      targetId: storeId,
+      targetName: storeName,
+      request,
+    });
+    
     return json({ success: true, action: 'restored' });
+  }
+  
+  // ============ BULK SUSPEND ============
+  if (intent === 'bulkSuspend') {
+    const storeIds = JSON.parse(formData.get('storeIds')?.toString() || '[]') as number[];
+    
+    await drizzleDb
+      .update(stores)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(inArray(stores.id, storeIds));
+    
+    await logAdminAction({
+      db,
+      adminId,
+      action: 'bulk_action',
+      targetType: 'store',
+      details: { action: 'bulk_suspend', storeIds, count: storeIds.length },
+      request,
+    });
+    
+    return json({ success: true, action: 'bulk_suspended', count: storeIds.length });
   }
   
   // ============ IMPERSONATE ============
@@ -198,7 +259,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }, { status: 500 });
     }
     
-    // Log the impersonation attempt
+    // Log to activity logs (store-level)
     await drizzleDb.insert(activityLogs).values({
       storeId: storeId,
       userId: adminId,
@@ -206,6 +267,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       entityType: 'user',
       entityId: targetUserId,
       details: JSON.stringify({ adminEmail }),
+    });
+    
+    // Log to admin audit logs
+    await logAdminAction({
+      db,
+      adminId,
+      action: 'store_impersonate',
+      targetType: 'store',
+      targetId: storeId,
+      targetName: storeName,
+      details: { targetUserId },
+      request,
     });
     
     // Create impersonation session (includes strict email check)

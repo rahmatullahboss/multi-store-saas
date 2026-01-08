@@ -167,6 +167,33 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
     return title;
   };
 
+  // Quick Add Sizes - adds S, M, L, XL, XXL at once
+  const quickAddSizes = () => {
+    const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+    const existingSizes = variants
+      .filter(v => v.option1Name === 'Size')
+      .map(v => v.option1Value.toUpperCase());
+    
+    const newVariants = sizes
+      .filter(size => !existingSizes.includes(size))
+      .map(size => ({
+        option1Name: 'Size',
+        option1Value: size,
+        option2Name: newVariant.option2Name || '',
+        option2Value: '',
+        price: undefined,
+        sku: '',
+        inventory: 10, // Default stock per size
+      }));
+    
+    if (newVariants.length > 0) {
+      onChange([...variants, ...newVariants]);
+    }
+  };
+
+  // Calculate total inventory across all variants
+  const totalInventory = variants.reduce((sum, v) => sum + (v.inventory || 0), 0);
+
   // Get suggested and other options for rendering
   const suggestedPrimary = getSuggestedOptions(category, true);
   const suggestedSecondary = getSuggestedOptions(category, false);
@@ -177,18 +204,39 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-medium text-gray-700">Product Variants</h3>
-          <p className="text-xs text-gray-500">Add size, color, weight or other options</p>
+          <p className="text-xs text-gray-500">
+            সাইজ, কালার, ওজন ইত্যাদি ভ্যারিয়েন্ট যোগ করুন
+            {variants.length > 0 && (
+              <span className="ml-2 text-emerald-600 font-medium">
+                (মোট স্টক: {totalInventory})
+              </span>
+            )}
+          </p>
         </div>
-        {!showAddForm && (
-          <button
-            type="button"
-            onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700"
-          >
-            <Plus className="w-4 h-4" />
-            Add Variant
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Quick Add Sizes Button */}
+          {!showAddForm && (
+            <button
+              type="button"
+              onClick={quickAddSizes}
+              className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition"
+              title="S, M, L, XL, XXL সাইজ একসাথে যোগ করুন"
+            >
+              <Sparkles className="w-3 h-3" />
+              Quick Add Sizes
+            </button>
+          )}
+          {!showAddForm && (
+            <button
+              type="button"
+              onClick={() => setShowAddForm(true)}
+              className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700"
+            >
+              <Plus className="w-4 h-4" />
+              Add Variant
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Category Hint */}

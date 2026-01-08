@@ -28,7 +28,9 @@ import {
   Clock
 } from 'lucide-react';
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
+import { LimitWarningBanner } from '~/components/LimitWarningBanner';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { getUsageStats } from '~/utils/plans.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Multi-Store SaaS' }];
@@ -238,11 +240,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
 
+  // Get usage stats for limit warning banner
+  const usage = await getUsageStats(context.cloudflare.env.DB, storeId);
+
   return json({
     storeName: store.name,
     storeUrl,
     currency: store.currency || 'BDT',
     greeting,
+    planType: store.planType || 'free',
+    usage,
     stats: {
       products: productCount[0]?.count || 0,
       orders: orderCount[0]?.count || 0,
@@ -266,6 +273,8 @@ export default function DashboardPage() {
     storeUrl, 
     currency, 
     greeting,
+    planType,
+    usage,
     stats, 
     salesData, 
     actionItems,
@@ -290,6 +299,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Limit Warning Banner */}
+      <LimitWarningBanner usage={usage} planType={planType} />
+
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

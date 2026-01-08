@@ -18,7 +18,7 @@ import { eq, and } from 'drizzle-orm';
 import { products, productVariants, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
@@ -46,6 +46,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const description = formData.get('description') as string;
   const imageUrl = formData.get('imageUrl') as string;
   const variantsJson = formData.get('variants') as string;
+  // SEO fields
+  const seoTitle = formData.get('seoTitle') as string;
+  const seoDescription = formData.get('seoDescription') as string;
+  const seoKeywords = formData.get('seoKeywords') as string;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -90,6 +94,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     description: description?.trim() || null,
     imageUrl: imageUrl || null,
     isPublished: true,
+    seoTitle: seoTitle?.trim() || null,
+    seoDescription: seoDescription?.trim() || null,
+    seoKeywords: seoKeywords?.trim() || null,
   }).returning({ id: products.id });
 
   // Create variants if any
@@ -177,6 +184,16 @@ export default function NewProductPage() {
   const [formTitle, setFormTitle] = useState<string>('');
   const [formPrice, setFormPrice] = useState<string>('');
   const [formDescription, setFormDescription] = useState<string>('');
+  
+  // SEO state
+  const [seoExpanded, setSeoExpanded] = useState(false);
+  const [formSeoTitle, setFormSeoTitle] = useState<string>('');
+  const [formSeoDescription, setFormSeoDescription] = useState<string>('');
+  const [formSeoKeywords, setFormSeoKeywords] = useState<string>('');
+  
+  // Auto-generate SEO values
+  const autoSeoTitle = formTitle;
+  const autoSeoDescription = formDescription.slice(0, 155);
   
   // Check if form has unsaved changes
   const hasUnsavedChanges = !!(formTitle || formPrice || formDescription || imageUrl || variants.length > 0);
@@ -443,6 +460,101 @@ export default function NewProductPage() {
               placeholder={lang === 'bn' ? 'পণ্যের বিবরণ লিখুন...' : 'Describe your product...'}
             />
           </div>
+        </div>
+
+        {/* SEO Settings (Collapsible) */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setSeoExpanded(!seoExpanded)}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Search className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900">SEO Settings</h3>
+                <p className="text-xs text-gray-500">সার্চ ইঞ্জিন অপ্টিমাইজেশন (অটো-জেনারেটেড)</p>
+              </div>
+            </div>
+            {seoExpanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+          
+          {seoExpanded && (
+            <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
+              {/* Google Preview */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-xs text-gray-500 mb-2">Google Preview:</p>
+                <p className="text-sm text-emerald-700 truncate">yourstore.digitalcare.site/products/...</p>
+                <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
+                  {formSeoTitle || autoSeoTitle || 'প্রোডাক্ট টাইটেল'}
+                </h4>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {formSeoDescription || autoSeoDescription || 'প্রোডাক্ট ডেসক্রিপশন এখানে দেখা যাবে...'}
+                </p>
+              </div>
+              
+              {/* Meta Title */}
+              <div>
+                <label htmlFor="seoTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                  Meta Title
+                  <span className="text-xs text-gray-400 ml-2">(খালি থাকলে অটো-জেনারেট হবে)</span>
+                </label>
+                <input
+                  type="text"
+                  id="seoTitle"
+                  name="seoTitle"
+                  value={formSeoTitle}
+                  onChange={(e) => setFormSeoTitle(e.target.value)}
+                  placeholder={autoSeoTitle || 'প্রোডাক্ট টাইটেল থেকে নেওয়া হবে...'}
+                  maxLength={60}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+                <p className="text-xs text-gray-500 mt-1">{(formSeoTitle || autoSeoTitle).length}/60 characters</p>
+              </div>
+              
+              {/* Meta Description */}
+              <div>
+                <label htmlFor="seoDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                  Meta Description
+                  <span className="text-xs text-gray-400 ml-2">(খালি থাকলে অটো-জেনারেট হবে)</span>
+                </label>
+                <textarea
+                  id="seoDescription"
+                  name="seoDescription"
+                  value={formSeoDescription}
+                  onChange={(e) => setFormSeoDescription(e.target.value)}
+                  placeholder={autoSeoDescription || 'প্রোডাক্ট ডেসক্রিপশন থেকে নেওয়া হবে...'}
+                  maxLength={160}
+                  rows={3}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">{(formSeoDescription || autoSeoDescription).length}/160 characters</p>
+              </div>
+              
+              {/* Keywords */}
+              <div>
+                <label htmlFor="seoKeywords" className="block text-sm font-medium text-gray-700 mb-1">
+                  Keywords
+                  <span className="text-xs text-gray-400 ml-2">(কমা দিয়ে আলাদা করুন)</span>
+                </label>
+                <input
+                  type="text"
+                  id="seoKeywords"
+                  name="seoKeywords"
+                  value={formSeoKeywords}
+                  onChange={(e) => setFormSeoKeywords(e.target.value)}
+                  placeholder="যেমন: t-shirt, cotton, casual wear"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Product Variants */}
