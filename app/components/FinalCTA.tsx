@@ -228,8 +228,8 @@ const DecorativeDiamonds = () => {
 // MAIN FINAL CTA COMPONENT
 // ============================================================================
 export function FinalCTA({ stats }: FinalCTAProps) {
-  // Use real data or fallback to defaults
-  const recentSignups = stats?.recentSignups?.length ? stats.recentSignups : defaultRecentSignups;
+  // Only use real data - don't show fake signups
+  const recentSignups = stats?.recentSignups ?? [];
   const totalUsers = stats?.totalUsers || 0;
   
   return (
@@ -350,7 +350,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
           transition={{ delay: 0.4 }}
         >
           <Link
-            to="tel:+8801XXXXXXXXX"
+            to="tel:+8801570260118"
             className="group flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white/70 hover:text-white transition-all duration-300"
           >
             <Phone className="w-4 h-4" />
@@ -366,15 +366,17 @@ export function FinalCTA({ stats }: FinalCTAProps) {
           </Link>
         </motion.div>
 
-        {/* Live Notification */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
-        >
-          <LiveNotification recentSignups={recentSignups} />
-        </motion.div>
+        {/* Live Notification - Only show when real signups exist */}
+        {recentSignups.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 }}
+          >
+            <LiveNotification recentSignups={recentSignups} />
+          </motion.div>
+        )}
 
         {/* Early Adopter Count */}
         <motion.div
