@@ -1,8 +1,8 @@
 import { ActionFunctionArgs, redirect } from '@remix-run/cloudflare';
 import { getSession, commitSession } from '~/services/auth.server';
 
-export async function action({ request }: ActionFunctionArgs) {
-  const session = await getSession(request.headers.get('Cookie'));
+export async function action({ request, context }: ActionFunctionArgs) {
+  const session = await getSession(request, context.cloudflare.env);
   const originalAdminId = session.get('originalAdminId');
   
   if (!originalAdminId) {
@@ -19,7 +19,7 @@ export async function action({ request }: ActionFunctionArgs) {
   
   return redirect('/admin/stores', {
     headers: {
-      'Set-Cookie': await commitSession(session),
+      'Set-Cookie': await commitSession(session, context.cloudflare.env),
     },
   });
 }

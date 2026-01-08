@@ -34,7 +34,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // LOADER - Fetch order with items and store info
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw redirect('/auth/login');
   }
@@ -156,7 +156,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ACTION - Update order status or book courier
 // ============================================================================
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -289,7 +289,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 
   // Get current user ID for activity logging
-  const userId = await getUserId(request);
+  const userId = await getUserId(request, context.cloudflare.env);
 
   // Handle addNote intent
   if (intent === 'addNote') {

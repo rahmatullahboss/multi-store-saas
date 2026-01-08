@@ -32,8 +32,8 @@ export const meta: MetaFunction = () => {
 };
 
 // Redirect if already logged in, otherwise redirect to new onboarding wizard
-export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await getUserId(request);
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const userId = await getUserId(request, context.cloudflare.env);
   if (userId) {
     return redirect('/app/orders');
   }
@@ -165,7 +165,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return await createUserSession(
         result.user.id,
         result.storeId,
-        '/app/orders'
+        '/app/orders',
+        context.cloudflare.env
       );
     } catch (sessionError) {
       console.error('[auth.register] Failed to create session:', sessionError);

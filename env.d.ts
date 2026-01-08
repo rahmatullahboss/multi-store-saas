@@ -29,6 +29,8 @@ declare global {
     EMAIL_QUEUE?: Queue<unknown>;
     // KV Namespace for AI Rate Limiting
     AI_RATE_LIMIT?: KVNamespace;
+    // Session Secret for Cookie Encryption
+    SESSION_SECRET: string;
   }
 }
 

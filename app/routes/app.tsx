@@ -68,7 +68,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // Require authentication
     let userId;
     try {
-      userId = await requireUserId(request);
+      userId = await requireUserId(request, context.cloudflare.env);
       console.log('[app.loader] User authenticated - UserID:', userId);
     } catch (authError) {
       console.error('[app.loader] Authentication failed:', authError);
@@ -77,7 +77,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     
     let storeId;
     try {
-      storeId = await getStoreId(request);
+      storeId = await getStoreId(request, context.cloudflare.env);
       console.log('[app.loader] StoreID from session:', storeId);
     } catch (storeIdError) {
       console.error('[app.loader] Failed to get storeId from session:', storeIdError);
@@ -173,7 +173,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
     
     // Check for impersonation
-    const session = await getSession(request.headers.get('Cookie'));
+    const session = await getSession(request, context.cloudflare.env);
     const isImpersonating = session.has('originalAdminId');
     
     return json({

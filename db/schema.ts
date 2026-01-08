@@ -1153,3 +1153,31 @@ export type StoreTag = typeof storeTags.$inferSelect;
 export type NewStoreTag = typeof storeTags.$inferInsert;
 export type MarketingLead = typeof marketingLeads.$inferSelect;
 export type NewMarketingLead = typeof marketingLeads.$inferInsert;
+
+// ============================================================================
+// PAYMENTS TABLE - Historical Subscription Records
+// ============================================================================
+export const payments = sqliteTable('payments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  amount: integer('amount').notNull(),
+  currency: text('currency').default('BDT'),
+  status: text('status').$type<'pending' | 'paid' | 'failed' | 'refunded'>().default('pending'),
+  method: text('method').$type<'manual' | 'bkash' | 'nagad' | 'stripe'>().default('manual'),
+  transactionId: text('transaction_id'),
+  planType: text('plan_type'), // Snapshot of plan
+  periodStart: integer('period_start', { mode: 'timestamp' }),
+  periodEnd: integer('period_end', { mode: 'timestamp' }),
+  adminNote: text('admin_note'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  store: one(stores, {
+    fields: [payments.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;

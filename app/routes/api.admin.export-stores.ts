@@ -16,7 +16,7 @@ import { PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  const { userId: adminId } = await requireSuperAdmin(request, db);
+  const { userId: adminId } = await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   

@@ -9,20 +9,20 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudfla
 import { redirect } from '@remix-run/cloudflare';
 import { logout, getSession, destroySession } from '~/services/auth.server';
 
-export async function action({ request }: ActionFunctionArgs) {
-  return logout(request);
+export async function action({ request, context }: ActionFunctionArgs) {
+  return logout(request, context.cloudflare.env);
 }
 
 // Handle GET requests - clear session and redirect to login
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const redirectTo = url.searchParams.get('redirect') || '/auth/login';
   
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request, context.cloudflare.env);
   
   return redirect(redirectTo, {
     headers: {
-      'Set-Cookie': await destroySession(session),
+      'Set-Cookie': await destroySession(session, context.cloudflare.env),
     },
   });
 }

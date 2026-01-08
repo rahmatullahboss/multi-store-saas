@@ -15,7 +15,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, ne, sql, isNotNull, lt, gte, or } from 'drizzle-orm';
-import { stores, users, activityLogs, adminAuditLogs } from '@db/schema';
+import { stores, users, activityLogs, adminAuditLogs, payments } from '@db/schema';
 import { requireSuperAdmin, requireAdminPermission } from '~/services/auth.server';
 import { logAdminAction } from '~/services/audit.server';
 import { createEmailService } from '~/services/email.server';
@@ -38,7 +38,8 @@ import {
   Gift,
   Search,
   X,
-  Loader2
+  Loader2,
+  FileText
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -58,7 +59,7 @@ const PLAN_CONFIG = {
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   const now = new Date();
@@ -125,10 +126,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const stripeMRR = calculateMRR(activeSubscribers.filter(s => s.subscriptionPaymentMethod === 'stripe'));
   const manualMRR = totalMRR - stripeMRR;
   
+  // Fetch recent payments (History)
+  const recentPayments = await drizzleDb
+    .select({
+      id: payments.id,
+      storeName: stores.name,
+      amount: payments.amount,
+      currency: payments.currency,
+      status: payments.status,
+      method: payments.method,
+      planType: payments.planType,
+      createdAt: payments.createdAt,
+      adminNote: payments.adminNote,
+    })
+    .from(payments)
+    .leftJoin(stores, eq(payments.storeId, stores.id))
+    .orderBy(desc(payments.createdAt))
+    .limit(50);
+  
   return json({
     activeSubscribers,
     pendingApprovals,
     expiredSubscriptions,
+    recentPayments,
     metrics: {
       totalMRR,
       manualMRR,
@@ -145,10 +165,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, db);
+  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, context.cloudflare.env, db);
 
   // Enforce Billing Permission for all actions here
-  await requireAdminPermission(request, db, 'canBilling');
+  await requireAdminPermission(request, context.cloudflare.env, db, 'canBilling');
   
   const formData = await request.formData();
   const intent = formData.get('intent');
@@ -223,6 +243,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
         endDate: endDateStr,
         adminNote,
       }),
+    });
+    
+    // RECORD PAYMENT IN HISTORY
+    await drizzleDb.insert(payments).values({
+      storeId,
+      amount: storeResult[0].paymentAmount || 0,
+      currency: 'BDT',
+      status: 'paid',
+      method: 'bkash', // Assuming bkash for manual approvals as per current flow
+      planType: (planType as string) || storeResult[0].planType,
+      periodStart: startDate,
+      periodEnd: endDate,
+      adminNote: adminNote || null,
     });
     
     // Log to admin audit logs (Super Admin)
@@ -442,7 +475,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function AdminBilling() {
-  const { activeSubscribers, pendingApprovals, expiredSubscriptions, metrics } = useLoaderData<typeof loader>();
+  const { activeSubscribers, pendingApprovals, expiredSubscriptions, metrics, recentPayments } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
@@ -566,6 +599,7 @@ export default function AdminBilling() {
               { id: 'active', label: 'Active', labelFull: 'Active Subscribers', count: metrics.activeCount },
               { id: 'pending', label: 'Pending', labelFull: 'Pending Approvals', count: metrics.pendingCount },
               { id: 'expired', label: 'Expired', labelFull: 'Expired', count: metrics.expiredCount },
+              { id: 'history', label: 'History', labelFull: 'Recent Invoices', count: 0 },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -726,6 +760,62 @@ export default function AdminBilling() {
               copyToClipboard={copyToClipboard}
               copiedId={copiedId}
             />
+          )}
+
+          {/* History Tab (Recent Invoices) */}
+          {activeTab === 'history' && (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-800">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Store</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Plan</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Amount</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {recentPayments && recentPayments.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-12 text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center">
+                          <FileText className="w-10 h-10 text-slate-600 mb-3" />
+                          <p>No payment history found</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    recentPayments?.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-slate-800/50 transition">
+                        <td className="px-4 py-4">
+                          <span className="font-medium text-white block">{payment.storeName || 'Unknown Store'}</span>
+                          <span className="text-xs text-slate-500">TRX: {payment.id}</span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <PlanBadge plan={payment.planType || 'active'} />
+                        </td>
+                        <td className="px-4 py-4 font-medium text-white">
+                          ৳{payment.amount?.toLocaleString() || 0}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            payment.status === 'paid' ? 'bg-emerald-500/20 text-emerald-400' :
+                            payment.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                            {(payment.status || 'unknown').toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-slate-400">
+                          {formatDate(payment.createdAt)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

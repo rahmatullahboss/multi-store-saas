@@ -51,8 +51,8 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
   
-  // Require super admin access - will redirect if not authorized
-  const { userId, userEmail } = await requireSuperAdmin(request, db);
+  // 1. Ensure Super Admin
+  const { userId, userEmail } = await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   const userResult = await drizzleDb

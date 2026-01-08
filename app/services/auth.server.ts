@@ -30,20 +30,43 @@ type SessionFlashData = {
   success: string;
 };
 
-// Create session storage with secure defaults
-export const sessionStorage = createCookieSessionStorage<SessionData, SessionFlashData>({
-  cookie: {
-    name: '__session',
-    httpOnly: true,
-    path: '/',
-    sameSite: 'lax',
-    secrets: ['multi-store-saas-secret-key-change-in-production'],
-    secure: true,
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  },
-});
+// Create session storage dynamically using env secret
+export function getSessionStorage(env: Env) {
+  if (!env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET must be set in your environment variables.');
+  }
 
-export const { getSession, commitSession, destroySession } = sessionStorage;
+  return createCookieSessionStorage<SessionData, SessionFlashData>({
+    cookie: {
+      name: '__session',
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secrets: [env.SESSION_SECRET],
+      secure: true,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    },
+  });
+}
+
+/**
+ * Get the session from the request
+ */
+export async function getSession(request: Request, env: Env) {
+  const storage = getSessionStorage(env);
+  return storage.getSession(request.headers.get('Cookie'));
+}
+
+export async function commitSession(session: any, env: Env) {
+  const storage = getSessionStorage(env);
+  return storage.commitSession(session);
+}
+
+export async function destroySession(session: any, env: Env) {
+  const storage = getSessionStorage(env);
+  return storage.destroySession(session);
+}
+
 
 // ============================================================================
 // PASSWORD HASHING (Web Crypto API)
@@ -315,7 +338,7 @@ export async function register({ email, password, name, phone, storeName, subdom
       ? customSubdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30)
       : storeName
           .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
           .replace(/^-|-$/g, '')
           .slice(0, 30);
     
@@ -396,14 +419,14 @@ export async function register({ email, password, name, phone, storeName, subdom
 /**
  * Create a session for a user
  */
-export async function createUserSession(userId: number, storeId: number, redirectTo: string) {
-  const session = await getSession();
+export async function createUserSession(userId: number, storeId: number, redirectTo: string, env: Env) {
+  const session = await getSession(new Request('http://localhost'), env); // Create new session
   session.set('userId', userId);
   session.set('storeId', storeId);
   
   return redirect(redirectTo, {
     headers: {
-      'Set-Cookie': await commitSession(session),
+      'Set-Cookie': await commitSession(session, env),
     },
   });
 }
@@ -411,8 +434,8 @@ export async function createUserSession(userId: number, storeId: number, redirec
 /**
  * Get the user ID from the session
  */
-export async function getUserId(request: Request): Promise<number | null> {
-  const session = await getSession(request.headers.get('Cookie'));
+export async function getUserId(request: Request, env: Env): Promise<number | null> {
+  const session = await getSession(request, env);
   const userId = session.get('userId');
   return userId ?? null;
 }
@@ -420,8 +443,8 @@ export async function getUserId(request: Request): Promise<number | null> {
 /**
  * Require a user to be logged in
  */
-export async function requireUserId(request: Request, redirectTo: string = '/auth/login'): Promise<number> {
-  const userId = await getUserId(request);
+export async function requireUserId(request: Request, env: Env, redirectTo: string = '/auth/login'): Promise<number> {
+  const userId = await getUserId(request, env);
   if (!userId) {
     throw redirect(redirectTo);
   }
@@ -431,8 +454,8 @@ export async function requireUserId(request: Request, redirectTo: string = '/aut
 /**
  * Get the current user from the session
  */
-export async function getUser(request: Request, db: D1Database) {
-  const userId = await getUserId(request);
+export async function getUser(request: Request, env: Env, db: D1Database) {
+  const userId = await getUserId(request, env);
   if (!userId) return null;
   
   const drizzleDb = drizzle(db);
@@ -448,8 +471,8 @@ export async function getUser(request: Request, db: D1Database) {
 /**
  * Get the store ID from the session
  */
-export async function getStoreId(request: Request): Promise<number | null> {
-  const session = await getSession(request.headers.get('Cookie'));
+export async function getStoreId(request: Request, env: Env): Promise<number | null> {
+  const session = await getSession(request, env);
   const storeId = session.get('storeId');
   return storeId ?? null;
 }
@@ -457,12 +480,12 @@ export async function getStoreId(request: Request): Promise<number | null> {
 /**
  * Logout a user
  */
-export async function logout(request: Request) {
-  const session = await getSession(request.headers.get('Cookie'));
+export async function logout(request: Request, env: Env) {
+  const session = await getSession(request, env);
   
   return redirect('/auth/login', {
     headers: {
-      'Set-Cookie': await destroySession(session),
+      'Set-Cookie': await destroySession(session, env),
     },
   });
 }
@@ -474,8 +497,8 @@ export async function logout(request: Request) {
 /**
  * Check if the current user is a Super Admin
  */
-export async function isSuperAdmin(request: Request, db: D1Database): Promise<boolean> {
-  const userId = await getUserId(request);
+export async function isSuperAdmin(request: Request, env: Env, db: D1Database): Promise<boolean> {
+  const userId = await getUserId(request, env);
   if (!userId) return false;
   
   const drizzleDb = drizzle(db);
@@ -492,11 +515,11 @@ export async function isSuperAdmin(request: Request, db: D1Database): Promise<bo
  * Require Super Admin access
  * Redirects to /auth/login if user is not a super_admin
  */
-export async function requireSuperAdmin(request: Request, db: D1Database): Promise<{
+export async function requireSuperAdmin(request: Request, env: Env, db: D1Database): Promise<{
   userId: number;
   userEmail: string;
 }> {
-  const userId = await getUserId(request);
+  const userId = await getUserId(request, env);
   if (!userId) {
     throw redirect('/auth/login');
   }
@@ -525,13 +548,13 @@ export async function createImpersonationSession(
   request: Request, 
   targetUserId: number, 
   db: D1Database,
-  superAdminEmail: string // From env.SUPER_ADMIN_EMAIL
+  env: Env
 ): Promise<Response> {
   // Step 1: Verify the current user is super_admin AND matches SUPER_ADMIN_EMAIL
-  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, db);
+  const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, env, db);
   
   // CRITICAL SECURITY CHECK: Only the configured super admin email can impersonate
-  if (adminEmail.toLowerCase() !== superAdminEmail.toLowerCase()) {
+  if (!env.SUPER_ADMIN_EMAIL || adminEmail.toLowerCase() !== env.SUPER_ADMIN_EMAIL.toLowerCase()) {
     console.error('[createImpersonationSession] SECURITY VIOLATION: User', adminEmail, 'attempted impersonation but is not the configured SUPER_ADMIN_EMAIL');
     throw new Response('Forbidden: You are not authorized to impersonate users.', { status: 403 });
   }
@@ -552,22 +575,22 @@ export async function createImpersonationSession(
   
   // Step 3: Create session for target user (get existing session and override it)
   // Store original admin ID to allow "Exit Shadow Mode"
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request, env);
   session.set('userId', targetUser[0].id);
   session.set('storeId', targetUser[0].storeId);
   session.set('originalAdminId', adminId);
   
   return redirect('/app/dashboard', {
     headers: {
-      'Set-Cookie': await commitSession(session),
+      'Set-Cookie': await commitSession(session, env),
     },
   });
 }
 /**
  * Check if the current user has a specific admin permission
  */
-export async function hasAdminPermission(request: Request, db: D1Database, permission: AdminPermission): Promise<boolean> {
-  const userId = await getUserId(request);
+export async function hasAdminPermission(request: Request, env: Env, db: D1Database, permission: AdminPermission): Promise<boolean> {
+  const userId = await getUserId(request, env);
   if (!userId) return false;
 
   const drizzleDb = drizzle(db);
@@ -618,11 +641,11 @@ export async function hasAdminPermission(request: Request, db: D1Database, permi
  * Require a specific admin permission
  * Throws 403 response if unauthorized
  */
-export async function requireAdminPermission(request: Request, db: D1Database, permission: AdminPermission) {
+export async function requireAdminPermission(request: Request, env: Env, db: D1Database, permission: AdminPermission) {
   // First ensure they are at least logged in
-  await requireUserId(request);
+  await requireUserId(request, env);
   
-  const allowed = await hasAdminPermission(request, db, permission);
+  const allowed = await hasAdminPermission(request, env, db, permission);
   if (!allowed) {
     throw new Response('Forbidden: You do not have permission to perform this action.', { status: 403 });
   }
