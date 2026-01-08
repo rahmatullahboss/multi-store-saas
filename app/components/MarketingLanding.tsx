@@ -21,6 +21,7 @@ import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingO
 import { AwardWinningHero } from '~/components/AwardWinningHero';
 import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
 import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
+import { TrustSection } from '~/components/TrustSection';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -274,6 +275,9 @@ export function MarketingLanding() {
 
         {/* Bento Grid Features Section */}
         <BentoFeaturesSection />
+
+        {/* Trust Section - Transparency & Credibility */}
+        <TrustSection />
 
         {/* Stats Section - Dark */}
         <section className="py-20 bg-gradient-to-b from-[#0A0A0F] to-[#0F0F18] relative overflow-hidden">

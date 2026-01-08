@@ -83,7 +83,7 @@ const TemplateLibraryCard = () => {
       </div>
 
       {/* Template Cards Showcase */}
-      <div className="relative h-40 md:h-48">
+      <div className="relative h-52 md:h-64">
         {templates.map((template, i) => {
           const Icon = template.icon;
           const isActive = i === activeIndex;
@@ -92,30 +92,30 @@ const TemplateLibraryCard = () => {
           return (
             <motion.div
               key={template.name}
-              className="absolute w-32 md:w-40 h-28 md:h-36 rounded-xl border"
+              className="absolute w-44 md:w-52 h-36 md:h-44 rounded-xl border"
               style={{ 
                 backgroundColor: `${template.color}10`,
                 borderColor: `${template.color}30`,
               }}
               animate={{
-                x: offset * 40 - 20,
-                y: offset * 8,
+                x: offset * 50 - 25,
+                y: offset * 10,
                 scale: isActive ? 1 : 0.9 - offset * 0.05,
                 zIndex: templates.length - offset,
                 opacity: offset > 2 ? 0 : 1,
               }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
-              <div className="p-4 h-full flex flex-col justify-between">
+              <div className="p-5 h-full flex flex-col justify-between">
                 <div 
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: `${template.color}30` }}
                 >
-                  <Icon className="w-4 h-4" style={{ color: template.color }} />
+                  <Icon className="w-6 h-6" style={{ color: template.color }} />
                 </div>
                 <div>
-                  <div className="h-2 w-16 rounded bg-white/10 mb-2" />
-                  <div className="h-2 w-12 rounded bg-white/5" />
+                  <div className="h-2.5 w-24 rounded bg-white/10 mb-2" />
+                  <div className="h-2.5 w-16 rounded bg-white/5" />
                 </div>
               </div>
             </motion.div>
