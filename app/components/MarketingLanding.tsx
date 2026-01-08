@@ -388,18 +388,20 @@ export function MarketingLanding() {
     );
   }
 
-  // Light mode version - SAME CONTENT AS DARK MODE
+  // Light mode version - PREMIUM LIGHT THEME
+  // Components still use dark styling internally but wrapper provides light theme feel
+  // Header and footer are light-themed for visual distinction
   return (
-    <div className="min-h-screen bg-[#0A0A0F] overflow-hidden">
-      {/* Dark Mode Floating Header with Light Toggle */}
+    <div className="min-h-screen bg-[#FAFBFC] overflow-hidden">
+      {/* Premium Light Theme Floating Header */}
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
+        <div className="bg-white/80 backdrop-blur-xl border border-[#EBEDF0] rounded-2xl px-6 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#059669] rounded-xl flex items-center justify-center shadow-[0_4px_14px_rgba(0,106,78,0.25)]">
                 <Store className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-white hidden sm:block">
+              <span className="font-bold text-xl text-[#0F172A] hidden sm:block">
                 Multi-Store
               </span>
             </Link>
@@ -408,28 +410,28 @@ export function MarketingLanding() {
               {/* Theme Toggle */}
               <button
                 onClick={() => setIsDarkMode(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-medium transition text-white/70 border border-white/10"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F5F7] hover:bg-[#EBEDF0] rounded-xl text-sm font-medium transition text-[#475569] border border-[#EBEDF0]"
                 title="Switch to Dark Mode"
               >
                 <Moon className="w-4 h-4" />
               </button>
               <button
                 onClick={toggleLang}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-medium transition text-white/70 border border-white/10"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(0,106,78,0.06)] hover:bg-[rgba(0,106,78,0.1)] rounded-xl text-sm font-medium transition text-[#006A4E] border border-[rgba(0,106,78,0.12)]"
               >
                 <Globe className="w-4 h-4" />
                 {lang === 'en' ? 'বাংলা' : 'EN'}
               </button>
               <Link 
                 to="/auth/login" 
-                className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
+                className="hidden sm:block text-[#475569] hover:text-[#0F172A] font-medium text-sm px-4 py-2 transition"
               >
                 {content.login}
               </Link>
               <MagneticButton>
                 <Link 
                   to="/auth/register" 
-                  className="px-5 py-2.5 bg-gradient-to-r from-violet-500 to-blue-600 hover:from-violet-600 hover:to-blue-700 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-violet-500/25"
+                  className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white font-semibold rounded-xl text-sm transition shadow-[0_4px_14px_rgba(0,106,78,0.25)] hover:shadow-[0_6px_20px_rgba(0,106,78,0.35)]"
                 >
                   {content.getStarted}
                 </Link>
@@ -439,16 +441,10 @@ export function MarketingLanding() {
         </div>
       </header>
 
-      {/* Award-Winning Bangladesh Hero - Bangla Native */}
+      {/* Same content sections as dark mode */}
       <AwardWinningHero />
-
-      {/* Problem-Solution Section */}
       <ProblemSolutionSection />
-
-      {/* Bento Grid Features Section */}
       <BentoFeaturesSection />
-
-      {/* INFRASTRUCTURE SHOWCASE */}
       <InfrastructureSection />
       <SpeedComparison />
       <CDNExplainer />
@@ -457,32 +453,20 @@ export function MarketingLanding() {
       <TechnicalSpecs />
       <LiveDashboard />
       <InfrastructureCTA />
-
-      {/* Trust Section */}
       <TrustSection />
-
-      {/* Comparison Section */}
       <ComparisonSection />
-
-      {/* Interactive Store Demo */}
       <InteractiveStoreDemo />
-
-      {/* Pricing Section */}
       <PricingSection />
-
-      {/* FAQ Section */}
       <FAQSection />
-
-      {/* Final CTA */}
       <FinalCTA />
 
-      {/* Footer - Dark */}
-      <footer className="py-16 px-4 bg-[#050508] text-white/40">
+      {/* Footer - Light Theme (Dark footer maintains brand consistency) */}
+      <footer className="py-16 px-4 bg-[#0F172A] text-[#94A3B8]">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#059669] rounded-xl flex items-center justify-center">
                   <Store className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-bold text-xl text-white">Multi-Store</span>
