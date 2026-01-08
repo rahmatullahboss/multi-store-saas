@@ -31,7 +31,9 @@ import {
   Globe,
   Ticket,
   HardDrive,
-  Bot
+  Bot,
+  PanelLeftClose,
+  PanelLeft
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -85,6 +87,7 @@ export default function AdminLayout() {
   const { user } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const isActive = (path: string) => {
     if (path === '/admin') {
@@ -106,25 +109,46 @@ export default function AdminLayout() {
       {/* Sidebar - Dark Theme */}
       <aside
         className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-slate-900 border-r border-slate-800
-          transform transition-transform duration-200 ease-in-out
+          fixed top-0 left-0 z-50 h-full bg-slate-900 border-r border-slate-800
+          transform transition-all duration-200 ease-in-out
+          ${sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'}
           lg:translate-x-0
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full'}
         `}
       >
         <div className="flex flex-col h-full">
           {/* Logo/Header */}
           <div className="p-4 border-b border-slate-800">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center">
+              <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'lg:justify-center' : ''}`}>
+                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Shield className="w-5 h-5 text-white" />
                 </div>
-                <div>
+                {!sidebarCollapsed && (
+                  <div className="lg:block hidden">
+                    <h2 className="font-semibold text-white">Super Admin</h2>
+                    <p className="text-xs text-slate-400">Control Panel</p>
+                  </div>
+                )}
+                {/* Always show on mobile */}
+                <div className="lg:hidden block">
                   <h2 className="font-semibold text-white">Super Admin</h2>
                   <p className="text-xs text-slate-400">Control Panel</p>
                 </div>
               </div>
+              {/* Desktop Toggle Button */}
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="hidden lg:block p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {sidebarCollapsed ? (
+                  <PanelLeft className="w-5 h-5" />
+                ) : (
+                  <PanelLeftClose className="w-5 h-5" />
+                )}
+              </button>
+              {/* Mobile Close Button */}
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="lg:hidden p-1 text-slate-400 hover:text-white"
@@ -144,16 +168,19 @@ export default function AdminLayout() {
                   key={item.to}
                   to={item.to}
                   onClick={() => setSidebarOpen(false)}
+                  title={sidebarCollapsed ? item.label : undefined}
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition
+                    ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}
                     ${active 
                       ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
                       : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                     }
                   `}
                 >
-                  <Icon className={`w-5 h-5 ${active ? 'text-red-400' : ''}`} />
-                  {item.label}
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-red-400' : ''}`} />
+                  {!sidebarCollapsed && <span className="hidden lg:inline">{item.label}</span>}
+                  <span className="lg:hidden">{item.label}</span>
                 </Link>
               );
             })}
@@ -186,7 +213,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content */}
-      <div className="lg:pl-64">
+      <div className={`transition-all duration-200 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64'}`}>
         {/* Mobile Header */}
         <header className="lg:hidden sticky top-0 z-30 bg-slate-900 border-b border-slate-800 px-4 py-3">
           <div className="flex items-center justify-between">
