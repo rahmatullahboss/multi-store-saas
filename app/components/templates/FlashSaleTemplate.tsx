@@ -594,6 +594,7 @@ export function FlashSaleTemplate({
             </form>
             </div>
             </div>
+            </div>
           )}
         </div>
       </section>
