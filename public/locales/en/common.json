@@ -37,5 +37,17 @@
   "sidebarAdmin": "Admin",
   "navPlanManagement": "Plans",
   "navPayouts": "Payouts",
-  "navDomainRequests": "Domain Requests"
+  "navDomainRequests": "Domain Requests",
+  "actionItems": "Action Items",
+  "pendingOrdersTitle": "Pending Orders",
+  "pendingOrdersDesc": "{{count}} order needs processing",
+  "pendingOrdersDesc_plural": "{{count}} orders need processing",
+  "lowStockTitle": "Low Stock Alert",
+  "lowStockDesc": "{{count}} product running low on inventory",
+  "lowStockDesc_plural": "{{count}} products running low on inventory",
+  "abandonedCartsTitle": "Abandoned Carts",
+  "abandonedCartsDesc": "{{count}} cart waiting to be recovered",
+  "abandonedCartsDesc_plural": "{{count}} carts waiting to be recovered",
+  "allCaughtUp": "All caught up! 🎉",
+  "noPendingActions": "No pending actions at the moment"
 }

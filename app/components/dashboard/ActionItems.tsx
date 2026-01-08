@@ -13,12 +13,12 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
+import { useTranslation } from '~/contexts/LanguageContext';
+
 interface ActionItem {
   id: string;
   type: 'low_stock' | 'pending_order' | 'abandoned_cart' | 'domain_request';
-  title: string;
-  description: string;
-  count?: number;
+  count: number;
   link: string;
   priority: 'high' | 'medium' | 'low';
 }
@@ -41,14 +41,16 @@ const priorityColors = {
 };
 
 export function ActionItems({ items }: ActionItemsProps) {
+  const { t } = useTranslation();
+
   if (!items || items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
           <CheckCircle2 className="w-8 h-8 text-emerald-600" />
         </div>
-        <h3 className="font-semibold text-gray-900 mb-1">All caught up! 🎉</h3>
-        <p className="text-sm text-gray-500">No pending actions at the moment</p>
+        <h3 className="font-semibold text-gray-900 mb-1">{t('allCaughtUp')}</h3>
+        <p className="text-sm text-gray-500">{t('noPendingActions')}</p>
       </div>
     );
   }
@@ -58,6 +60,25 @@ export function ActionItems({ items }: ActionItemsProps) {
       {items.map((item) => {
         const Icon = iconMap[item.type] || AlertTriangle;
         const priorityClass = priorityColors[item.priority];
+        
+        // Resolve translations based on type
+        let titleKey = 'actionItems';
+        let descKey = 'actionItems';
+        
+        switch (item.type) {
+          case 'pending_order':
+            titleKey = 'pendingOrdersTitle';
+            descKey = 'pendingOrdersDesc';
+            break;
+          case 'low_stock':
+            titleKey = 'lowStockTitle';
+            descKey = 'lowStockDesc';
+            break;
+          case 'abandoned_cart':
+            titleKey = 'abandonedCartsTitle';
+            descKey = 'abandonedCartsDesc';
+            break;
+        }
 
         return (
           <Link
@@ -70,14 +91,16 @@ export function ActionItems({ items }: ActionItemsProps) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="font-medium text-gray-900">{item.title}</p>
+                <p className="font-medium text-gray-900">{t(titleKey)}</p>
                 {item.count && item.count > 0 && (
                   <span className="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-medium rounded-full">
                     {item.count}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-500 truncate">{item.description}</p>
+              <p className="text-sm text-gray-500 truncate">
+                {t(descKey, { count: item.count })}
+              </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition" />
           </Link>

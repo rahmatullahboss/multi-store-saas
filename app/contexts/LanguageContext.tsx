@@ -14,7 +14,7 @@ import { useTranslation as useI18NextTranslation } from 'react-i18next';
 interface LanguageContextValue {
   // Translation system
   lang: Language;
-  t: (key: string | TranslationKey) => string;
+  t: (key: string | TranslationKey, options?: any) => string;
   setLang: (lang: Language) => void;
   toggleLang: () => void;
   
@@ -84,10 +84,10 @@ export function LanguageProvider({
     setLang(lang === 'en' ? 'bn' : 'en');
   };
   
-  const t = (key: string | TranslationKey): string => {
+  const t = (key: string | TranslationKey, options?: any): string => {
       // Wrapper to ensure type compatibility if needed, 
       // i18next t function handles strings
-      return i18nT(key);
+      return i18nT(key, options) as string;
   };
   
   const currentLanguage = useMemo(() => {

@@ -37,5 +37,17 @@
   "sidebarAdmin": "অ্যাডমিন",
   "navPlanManagement": "প্ল্যান",
   "navPayouts": "পেআউট",
-  "navDomainRequests": "ডোমেইন অনুরোধ"
+  "navDomainRequests": "ডোমেইন অনুরোধ",
+  "actionItems": "করণীয়",
+  "pendingOrdersTitle": "পেন্ডিং অর্ডার",
+  "pendingOrdersDesc": "{{count}} টি অর্ডার প্রসেস করা প্রয়োজন",
+  "pendingOrdersDesc_plural": "{{count}} টি অর্ডার প্রসেস করা প্রয়োজন",
+  "lowStockTitle": "স্টক অ্যালার্ট",
+  "lowStockDesc": "{{count}} টি পণ্যের স্টক কম",
+  "lowStockDesc_plural": "{{count}} টি পণ্যের স্টক কম",
+  "abandonedCartsTitle": "পরিত্যক্ত কার্ট",
+  "abandonedCartsDesc": "{{count}} টি কার্ট রিকভার করা প্রয়োজন",
+  "abandonedCartsDesc_plural": "{{count}} টি কার্ট রিকভার করা প্রয়োজন",
+  "allCaughtUp": "সব কাজ শেষ! 🎉",
+  "noPendingActions": "এই মুহূর্তে কোনো পেন্ডিং কাজ নেই"
 }
