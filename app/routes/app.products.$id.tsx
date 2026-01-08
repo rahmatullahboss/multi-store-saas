@@ -115,16 +115,35 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     return json({ errors }, { status: 400 });
   }
 
-  // Fetch current product to compare inventory change
+  // Fetch current product to compare inventory change and isPublished status
   const currentProduct = await db
-    .select({ inventory: products.inventory, title: products.title })
+    .select({ inventory: products.inventory, title: products.title, isPublished: products.isPublished })
     .from(products)
     .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
     .limit(1);
 
   const previousInventory = currentProduct[0]?.inventory ?? 0;
+  const previouslyPublished = currentProduct[0]?.isPublished ?? false;
   const newInventory = parseInt(stock);
   const productTitle = currentProduct[0]?.title || title.trim();
+
+  // ========================================================================
+  // LIMIT CHECK: Prevent republishing if product limit reached
+  // Only check when going from unpublished -> published
+  // ========================================================================
+  if (!previouslyPublished && isPublished) {
+    const { checkUsageLimit } = await import('~/utils/plans.server');
+    const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
+    
+    if (!limitCheck.allowed) {
+      console.warn(`[SECURITY] Store ${storeId} attempted to republish product exceeding limit`);
+      return json({ 
+        errors: { 
+          form: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to publish more products.' 
+        } 
+      }, { status: 403 });
+    }
+  }
 
   await db
     .update(products)
