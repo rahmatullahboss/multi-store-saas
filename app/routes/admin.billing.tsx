@@ -15,8 +15,9 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, ne, sql, isNotNull, lt, gte, or } from 'drizzle-orm';
-import { stores, users, activityLogs } from '@db/schema';
+import { stores, users, activityLogs, adminAuditLogs } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
+import { logAdminAction } from '~/services/audit.server';
 import { createEmailService } from '~/services/email.server';
 import { 
   DollarSign, 
@@ -205,7 +206,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
     
-    // Log the action
+    // Log to activity logs
     await drizzleDb.insert(activityLogs).values({
       storeId: storeId,
       userId: adminId,
@@ -219,6 +220,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
         endDate: endDateStr,
         adminNote,
       }),
+    });
+    
+    // Log to admin audit logs (Super Admin)
+    await logAdminAction({
+      db,
+      adminId,
+      action: 'payment_approve',
+      targetType: 'store',
+      targetId: storeId,
+      targetName: storeResult[0].name || 'Unknown Store',
+      details: {
+        planType: planType || storeResult[0].planType,
+        paymentAmount: storeResult[0].paymentAmount,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        adminNote,
+      },
+      request,
     });
     
     // Send confirmation email
@@ -256,7 +275,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
     
-    // Log the action
+    // Log to activity logs
     await drizzleDb.insert(activityLogs).values({
       storeId: storeId,
       userId: adminId,
@@ -264,6 +283,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       entityType: 'subscription',
       entityId: storeId,
       details: JSON.stringify({ adminEmail, adminNote }),
+    });
+
+    // Log to admin audit logs
+    await logAdminAction({
+      db,
+      adminId,
+      action: 'payment_reject',
+      targetType: 'store',
+      targetId: storeId,
+      targetName: storeResult[0].name || 'Unknown Store',
+      details: { adminNote },
+      request,
     });
     
     return json({ success: true, action: 'rejected' });

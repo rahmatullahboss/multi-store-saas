@@ -569,15 +569,58 @@ export default function AdminStores() {
                     )}
                     {/* Store */}
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          store.isActive ? 'bg-blue-500/20' : 'bg-slate-700'
-                        }`}>
-                          <Store className={`w-5 h-5 ${store.isActive ? 'text-blue-400' : 'text-slate-500'}`} />
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            store.isActive ? 'bg-blue-500/20' : 'bg-slate-700'
+                          }`}>
+                            <Store className={`w-5 h-5 ${store.isActive ? 'text-blue-400' : 'text-slate-500'}`} />
+                          </div>
+                          <div>
+                            <p className="font-medium text-white">{store.name}</p>
+                            <p className="text-xs text-slate-500">{store.subdomain}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-white">{store.name}</p>
-                          <p className="text-xs text-slate-500">{store.subdomain}</p>
+
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-1 items-center">
+                          {store.tags?.map(tag => (
+                            <span key={tag.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-700 text-slate-300 border border-slate-600">
+                              {tag.tag}
+                              {!showDeleted && (
+                                <fetcher.Form method="post" className="inline-flex">
+                                  <input type="hidden" name="intent" value="removeTag" />
+                                  <input type="hidden" name="storeId" value={store.id} />
+                                  <input type="hidden" name="storeName" value={store.name || ''} />
+                                  <input type="hidden" name="tagId" value={tag.id} />
+                                  <input type="hidden" name="tagName" value={tag.tag} />
+                                  <button type="submit" className="hover:text-red-400 transition ml-0.5">
+                                    <XCircle className="w-2.5 h-2.5" />
+                                  </button>
+                                </fetcher.Form>
+                              )}
+                            </span>
+                          ))}
+                          
+                          {!showDeleted && (
+                            <fetcher.Form method="post" className="inline-flex items-center" onSubmit={(e) => {
+                              const input = e.currentTarget.querySelector('input[name="tag"]') as HTMLInputElement;
+                              if (!input.value.trim()) {
+                                e.preventDefault();
+                                return;
+                              }
+                            }}>
+                              <input type="hidden" name="intent" value="addTag" />
+                              <input type="hidden" name="storeId" value={store.id} />
+                              <input type="hidden" name="storeName" value={store.name || ''} />
+                              <input 
+                                type="text" 
+                                name="tag" 
+                                placeholder="+ Tag" 
+                                className="w-12 px-1 py-0.5 bg-transparent border border-slate-700 rounded text-[10px] text-slate-300 placeholder-slate-600 focus:w-20 focus:border-blue-500 focus:bg-slate-800 transition-all outline-none"
+                              />
+                            </fetcher.Form>
+                          )}
                         </div>
                       </div>
                     </td>
