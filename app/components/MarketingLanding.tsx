@@ -33,6 +33,7 @@ import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
 import { PricingSection } from '~/components/PricingSection';
+import { FinalCTA } from '~/components/FinalCTA';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -582,49 +583,8 @@ export function MarketingLanding() {
           </div>
         </section>
 
-        {/* CTA - Dark */}
-        <section className="py-24 px-4 bg-gradient-to-r from-violet-600 via-blue-600 to-violet-600 relative overflow-hidden">
-          <motion.div 
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)`,
-              backgroundSize: '32px 32px',
-            }}
-            animate={{ backgroundPosition: ['0px 0px', '32px 32px'] }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-          />
-          
-          <motion.div 
-            className="absolute top-1/2 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 4, repeat: Infinity }}
-          />
-          
-          <div className="relative max-w-4xl mx-auto text-center">
-            <ScrollReveal>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                {content.ctaTitle}
-              </h2>
-              <p className="text-violet-200 text-xl mb-10 max-w-2xl mx-auto">
-                {content.ctaSubtitle}
-              </p>
-            </ScrollReveal>
-            
-            <MagneticButton>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                <Link
-                  to="/auth/register"
-                  className="inline-flex items-center gap-3 px-10 py-5 bg-white hover:bg-violet-50 text-violet-700 font-bold rounded-2xl text-xl transition-all shadow-2xl"
-                >
-                  {content.ctaButton}
-                  <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
-                    <ArrowRight className="w-6 h-6" />
-                  </motion.span>
-                </Link>
-              </motion.div>
-            </MagneticButton>
-          </div>
-        </section>
+        {/* Final CTA - Compelling Bengali Design */}
+        <FinalCTA />
 
         {/* Footer - Dark */}
         <footer className="py-16 px-4 bg-[#050508] text-white/40">
