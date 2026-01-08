@@ -168,6 +168,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Order form layout
   const orderFormVariant = formData.get('orderFormVariant') as 'full-width' | 'compact' || 'full-width';
   const customCSS = formData.get('customCSS') as string || '';
+  const fontFamily = formData.get('fontFamily') as string || 'inter';
 
   const newConfig: LandingConfig = {
     templateId,
@@ -205,6 +206,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     orderFormVariant,
     // Custom CSS
     customCSS: customCSS || undefined,
+    // Font Family
+    fontFamily,
   };
 
   await db
@@ -312,6 +315,7 @@ export default function LiveEditorPage() {
   const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '');
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
   const [customCSS, setCustomCSS] = useState(store.landingConfig.customCSS || '');
+  const [fontFamily, setFontFamily] = useState(store.landingConfig.fontFamily || 'inter');
 
   // New section states
   const [galleryImages, setGalleryImages] = useState<string[]>(store.landingConfig.galleryImages || []);
@@ -720,6 +724,8 @@ export default function LiveEditorPage() {
               <input type="hidden" name="orderFormVariant" value={orderFormVariant} />
               {/* Custom CSS */}
               <input type="hidden" name="customCSS" value={customCSS} />
+              {/* Font Family */}
+              <input type="hidden" name="fontFamily" value={fontFamily} />
               
               <button
                 type="submit"

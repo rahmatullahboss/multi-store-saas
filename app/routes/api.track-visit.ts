@@ -10,7 +10,8 @@
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { pageViews } from '@db/schema';
+import { pageViews, stores } from '@db/schema';
+import { eq, sql } from 'drizzle-orm';
 
 // Parse device type from user agent
 function getDeviceType(userAgent: string): 'mobile' | 'desktop' | 'tablet' {
@@ -39,6 +40,18 @@ function getClientIP(request: Request): string | null {
   if (realIP) return realIP;
   
   return null;
+}
+
+// Check if we need to reset monthly visitor count
+function shouldResetVisitorCount(lastResetAt: Date | null): boolean {
+  if (!lastResetAt) return true;
+  
+  const now = new Date();
+  const lastReset = new Date(lastResetAt);
+  
+  // Reset if we're in a different month
+  return now.getMonth() !== lastReset.getMonth() || 
+         now.getFullYear() !== lastReset.getFullYear();
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -83,6 +96,40 @@ export async function action({ request, context }: ActionFunctionArgs) {
       city,
       deviceType,
     });
+
+    // Increment monthly visitor count for the store
+    // First check if we need to reset the counter (new month)
+    const store = await db
+      .select({ 
+        visitorCountResetAt: stores.visitorCountResetAt,
+        monthlyVisitorCount: stores.monthlyVisitorCount,
+      })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
+
+    if (store.length > 0) {
+      const needsReset = shouldResetVisitorCount(store[0].visitorCountResetAt);
+      
+      if (needsReset) {
+        // Reset counter to 1 and update reset timestamp
+        await db
+          .update(stores)
+          .set({
+            monthlyVisitorCount: 1,
+            visitorCountResetAt: new Date(),
+          })
+          .where(eq(stores.id, storeId));
+      } else {
+        // Just increment the counter
+        await db
+          .update(stores)
+          .set({
+            monthlyVisitorCount: sql`COALESCE(${stores.monthlyVisitorCount}, 0) + 1`,
+          })
+          .where(eq(stores.id, storeId));
+      }
+    }
 
     return json({ success: true });
   } catch (error) {

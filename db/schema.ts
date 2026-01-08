@@ -1126,3 +1126,10 @@ export type NewEmailQueueItem = typeof emailQueue.$inferInsert;
 // Visitor Analytics
 export type PageView = typeof pageViews.$inferSelect;
 export type NewPageView = typeof pageViews.$inferInsert;
+// Admin Audit & RBAC
+export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
+export type NewAdminAuditLog = typeof adminAuditLogs.$inferInsert;
+export type AdminRole = typeof adminRoles.$inferSelect;
+export type NewAdminRole = typeof adminRoles.$inferInsert;
+export type StoreTag = typeof storeTags.$inferSelect;
+export type NewStoreTag = typeof storeTags.$inferInsert;

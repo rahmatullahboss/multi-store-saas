@@ -76,6 +76,8 @@ export interface LandingConfig {
   orderFormVariant?: 'full-width' | 'compact'; // Default: 'full-width'
   // Custom CSS for advanced styling
   customCSS?: string;
+  // Font Family
+  fontFamily?: string;
 }
 
 // Store template configuration for full store mode
