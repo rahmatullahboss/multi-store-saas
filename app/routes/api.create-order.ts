@@ -322,57 +322,79 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Use D1 Batch/Transaction to insert order and order_items together
     // Step 1: Insert order
-    const orderResult = await db
-      .insert(orders)
-      .values({
-        storeId: input.store_id,
-        orderNumber,
-        status: 'pending',
-        paymentStatus: 'pending', // Pending verification for manual payments too
-        paymentMethod: input.payment_method,
-        transactionId: input.transaction_id || null,
-        manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
-        customerName: input.customer_name,
-        customerPhone: input.phone,
-        customerEmail: input.customer_email || '', // Empty string instead of null for NOT NULL constraint
-        shippingAddress: input.address,
-        billingAddress: null,
-        subtotal,
-        tax,
-        shipping,
-        total,
-        notes: input.notes || null,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .returning({ id: orders.id, orderNumber: orders.orderNumber });
+    let orderId: number;
 
-    const orderId = orderResult[0].id;
+    try {
+      const orderResult = await db
+        .insert(orders)
+        .values({
+          storeId: input.store_id,
+          orderNumber,
+          status: 'pending',
+          paymentStatus: 'pending', // Pending verification for manual payments too
+          paymentMethod: input.payment_method,
+          transactionId: input.transaction_id || null,
+          manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
+          customerName: input.customer_name,
+          customerPhone: input.phone,
+          customerEmail: input.customer_email || '', // Empty string instead of null for NOT NULL constraint
+          shippingAddress: input.address,
+          billingAddress: null,
+          subtotal,
+          tax,
+          shipping,
+          total,
+          notes: input.notes || null,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning({ id: orders.id, orderNumber: orders.orderNumber });
 
-    // Step 2: Insert order item (with variant info if applicable)
-    await db
-      .insert(orderItems)
-      .values({
-        orderId,
-        productId: productData.id,
-        title: variantInfo ? `${productData.title} (${variantInfo})` : productData.title,
-        quantity: input.quantity,
-        price: unitPrice,
-        total: itemTotal,
-      });
-    
-    // Step 3: Insert order items for bump products
-    if (bumpItems.length > 0) {
-      await db.insert(orderItems).values(
-        bumpItems.map(bump => ({
+      orderId = orderResult[0].id;
+
+      // Step 2: Insert order item (with variant info if applicable)
+      await db
+        .insert(orderItems)
+        .values({
           orderId,
-          productId: bump.productId,
-          title: `[Bump] ${bump.title}`,
-          quantity: 1,
-          price: bump.discountedPrice,
-          total: bump.discountedPrice,
-        }))
-      );
+          productId: productData.id,
+          variantId: variantIdToUpdate || null,
+          title: variantInfo ? `${productData.title} (${variantInfo})` : productData.title,
+          variantTitle: variantInfo || null,
+          quantity: input.quantity,
+          price: unitPrice,
+          total: itemTotal,
+        });
+      
+      // Step 3: Insert order items for bump products
+      if (bumpItems.length > 0) {
+        await db.insert(orderItems).values(
+          bumpItems.map(bump => ({
+            orderId,
+            productId: bump.productId,
+            title: `[Bump] ${bump.title}`,
+            quantity: 1,
+            price: bump.discountedPrice,
+            total: bump.discountedPrice,
+          }))
+        );
+      }
+    } catch (insertError) {
+      console.error('Order insertion failed, restoring inventory:', insertError);
+      
+      // RESTORE INVENTORY via Increment
+      if (isVariantStock && variantIdToUpdate) {
+        await db
+          .update(productVariants)
+          .set({ inventory: sql`${productVariants.inventory} + ${input.quantity}` })
+          .where(eq(productVariants.id, variantIdToUpdate));
+      } else {
+        await db
+          .update(products)
+          .set({ inventory: sql`${products.inventory} + ${input.quantity}` })
+          .where(eq(products.id, productData.id));
+      }
+      throw insertError;
     }
 
     // ============================================================================

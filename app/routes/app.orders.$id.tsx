@@ -15,8 +15,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, Link, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, desc } from 'drizzle-orm';
-import { orders, orderItems, products, stores, activityLogs, users } from '@db/schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { orders, orderItems, products, productVariants, stores, activityLogs, users } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send } from 'lucide-react';
 import { useState } from 'react';
@@ -357,54 +357,33 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // ============================================================================
   
   // When order is delivered: Decrease inventory for all order items
-  if (status === 'delivered' && previousStatus !== 'delivered') {
+  // When order is cancelled or returned: Restore inventory
+  // (Inventory is now deducted at creation, so we only need to restore it here)
+  const isCancelled = ['cancelled', 'returned'].includes(status);
+  const wasCancelled = ['cancelled', 'returned'].includes(previousStatus || '');
+
+  if (isCancelled && !wasCancelled) {
     const items = await db
-      .select({ productId: orderItems.productId, quantity: orderItems.quantity })
+      .select({ 
+        productId: orderItems.productId, 
+        variantId: orderItems.variantId,
+        quantity: orderItems.quantity 
+      })
       .from(orderItems)
       .where(eq(orderItems.orderId, orderId));
     
     for (const item of items) {
-      if (item.productId) {
-        // Get current inventory first
-        const productResult = await db
-          .select({ inventory: products.inventory })
-          .from(products)
-          .where(eq(products.id, item.productId))
-          .limit(1);
-        
-        const currentInventory = productResult[0]?.inventory ?? 0;
-        const newInventory = Math.max(0, currentInventory - item.quantity);
-        
+      if (item.variantId) {
+        // Restore variant stock
+        await db
+          .update(productVariants)
+          .set({ inventory: sql`${productVariants.inventory} + ${item.quantity}` })
+          .where(eq(productVariants.id, item.variantId));
+      } else if (item.productId) {
+        // Restore product stock
         await db
           .update(products)
-          .set({ inventory: newInventory })
-          .where(eq(products.id, item.productId));
-      }
-    }
-  }
-  
-  // When order is cancelled from delivered: Restore inventory
-  if (status === 'cancelled' && previousStatus === 'delivered') {
-    const items = await db
-      .select({ productId: orderItems.productId, quantity: orderItems.quantity })
-      .from(orderItems)
-      .where(eq(orderItems.orderId, orderId));
-    
-    for (const item of items) {
-      if (item.productId) {
-        // Get current inventory first
-        const productResult = await db
-          .select({ inventory: products.inventory })
-          .from(products)
-          .where(eq(products.id, item.productId))
-          .limit(1);
-        
-        const currentInventory = productResult[0]?.inventory ?? 0;
-        const newInventory = currentInventory + item.quantity;
-        
-        await db
-          .update(products)
-          .set({ inventory: newInventory })
+          .set({ inventory: sql`${products.inventory} + ${item.quantity}` })
           .where(eq(products.id, item.productId));
       }
     }
