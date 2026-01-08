@@ -39,7 +39,7 @@ export const meta: MetaFunction = () => {
 };
 
 // ============================================================================
-// PLAN DISPLAY CONFIG
+// PLAN DISPLAY CONFIG (matches marketing page)
 // ============================================================================
 const PLAN_DISPLAY = {
   free: {
@@ -62,7 +62,7 @@ const PLAN_DISPLAY = {
   starter: {
     name: 'Starter',
     description: 'For growing businesses',
-    price: '৳999',
+    price: '৳499',
     period: '/month',
     icon: Zap,
     color: 'emerald',
@@ -78,37 +78,20 @@ const PLAN_DISPLAY = {
     ],
   },
   premium: {
-    name: 'Premium',
-    description: 'For established stores',
-    price: '৳2,999',
+    name: 'Ultimate',
+    description: 'For enterprise needs',
+    price: '৳1,999',
     period: '/month',
     icon: Crown,
     color: 'purple',
     features: [
-      { text: '500 products', included: true },
-      { text: '5,000 orders/month', included: true },
+      { text: 'Unlimited products', included: true },
+      { text: 'Unlimited orders', included: true },
       { text: 'Full store mode', included: true },
       { text: 'Advanced analytics', included: true },
       { text: 'Custom domain', included: true },
       { text: 'Email campaigns', included: true },
       { text: 'Priority support', included: true },
-    ],
-  },
-  custom: {
-    name: 'Custom',
-    description: 'For enterprise needs',
-    price: 'Custom',
-    period: '',
-    icon: Building2,
-    color: 'blue',
-    features: [
-      { text: 'Unlimited products', included: true },
-      { text: 'Unlimited orders', included: true },
-      { text: 'Full store mode', included: true },
-      { text: 'Custom analytics', included: true },
-      { text: 'Custom domain', included: true },
-      { text: 'Dedicated support', included: true },
-      { text: 'Custom integrations', included: true },
     ],
   },
 } as const;
