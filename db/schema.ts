@@ -24,7 +24,7 @@ export const stores = sqliteTable('stores', {
   cloudflareHostnameId: text('cloudflare_hostname_id'), // Cloudflare custom hostname ID
   sslStatus: text('ssl_status').$type<'pending' | 'active' | 'failed'>().default('pending'), // SSL certificate status
   dnsVerified: integer('dns_verified', { mode: 'boolean' }).default(false), // DNS verification status
-  planType: text('plan_type').$type<'free' | 'starter' | 'premium' | 'custom'>().default('free'),
+  planType: text('plan_type').$type<'free' | 'starter' | 'premium' | 'business' | 'custom'>().default('free'),
   subscriptionStatus: text('subscription_status').$type<'active' | 'past_due' | 'canceled'>().default('active'),
   usageLimits: text('usage_limits'), // JSON: { max_products, max_orders, allow_store_mode, fee_rate }
   
@@ -973,6 +973,93 @@ export const pageViewsRelations = relations(pageViews, ({ one }) => ({
     references: [stores.id],
   }),
 }));
+
+// ============================================================================
+// ADMIN AUDIT LOGS TABLE - Track all Super Admin actions
+// ============================================================================
+export const adminAuditLogs = sqliteTable('admin_audit_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  adminId: integer('admin_id').notNull().references(() => users.id),
+  action: text('action').notNull().$type<
+    | 'store_suspend' 
+    | 'store_unsuspend' 
+    | 'store_delete' 
+    | 'store_restore'
+    | 'store_impersonate'
+    | 'payment_approve'
+    | 'payment_reject'
+    | 'domain_approve'
+    | 'domain_reject'
+    | 'ai_approve'
+    | 'ai_reject'
+    | 'coupon_create'
+    | 'coupon_delete'
+    | 'broadcast_send'
+    | 'plan_change'
+    | 'bulk_action'
+    | 'other'
+  >(),
+  targetType: text('target_type').$type<'store' | 'user' | 'payment' | 'domain' | 'coupon' | 'broadcast' | 'other'>(),
+  targetId: integer('target_id'), // Store ID, User ID, etc.
+  targetName: text('target_name'), // Store name, user email, etc.
+  details: text('details'), // JSON with additional context
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('audit_logs_admin_idx').on(table.adminId),
+  index('audit_logs_action_idx').on(table.action),
+  index('audit_logs_target_idx').on(table.targetType, table.targetId),
+  index('audit_logs_date_idx').on(table.createdAt),
+]);
+
+export const adminAuditLogsRelations = relations(adminAuditLogs, ({ one }) => ({
+  admin: one(users, {
+    fields: [adminAuditLogs.adminId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// ADMIN ROLES TABLE - Role-Based Access Control for Admin Team
+// ============================================================================
+export const adminRoles = sqliteTable('admin_roles', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: text('role').notNull().$type<'super_admin' | 'support' | 'finance' | 'developer'>(),
+  permissions: text('permissions'), // JSON: { canSuspend, canDelete, canBilling, canImpersonate }
+  createdBy: integer('created_by').references(() => users.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('admin_roles_user_idx').on(table.userId),
+]);
+
+export const adminRolesRelations = relations(adminRoles, ({ one }) => ({
+  user: one(users, {
+    fields: [adminRoles.userId],
+    references: [users.id],
+  }),
+  createdByUser: one(users, {
+    fields: [adminRoles.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// STORE TAGS TABLE - Tagging system for stores (VIP, Problematic, etc.)
+// ============================================================================
+export const storeTags = sqliteTable('store_tags', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  tag: text('tag').notNull(), // VIP, Problematic, HighValue, Churning, etc.
+  note: text('note'), // Admin note about this tag
+  createdBy: integer('created_by').references(() => users.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('store_tags_store_idx').on(table.storeId),
+  index('store_tags_tag_idx').on(table.tag),
+]);
 
 // ============================================================================
 // TYPE EXPORTS - For use throughout the application
