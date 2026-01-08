@@ -66,7 +66,7 @@ const TemplateLibraryCard = () => {
       </div>
 
       {/* Icon & Title */}
-      <div className="relative z-10 flex items-center gap-3 mb-6">
+      <div className="relative z-10 flex items-center gap-3 mb-4">
         <motion.div
           className="w-12 h-12 rounded-2xl flex items-center justify-center"
           style={{ backgroundColor: `${COLORS.primary}20` }}
@@ -83,7 +83,7 @@ const TemplateLibraryCard = () => {
       </div>
 
       {/* Template Cards Showcase */}
-      <div className="relative h-48 md:h-56">
+      <div className="relative h-40 md:h-44">
         {templates.map((template, i) => {
           const Icon = template.icon;
           const isActive = i === activeIndex;
@@ -92,7 +92,7 @@ const TemplateLibraryCard = () => {
           return (
             <motion.div
               key={template.name}
-              className="absolute w-56 md:w-72 h-44 md:h-52 rounded-2xl border"
+              className="absolute w-64 md:w-80 h-40 md:h-44 rounded-2xl border"
               style={{ 
                 backgroundColor: `${template.color}10`,
                 borderColor: `${template.color}30`,
