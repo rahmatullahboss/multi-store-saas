@@ -83,7 +83,7 @@ const TemplateLibraryCard = () => {
       </div>
 
       {/* Template Cards Showcase */}
-      <div className="relative flex-1 min-h-[280px]">
+      <div className="relative flex-1 min-h-[240px]">
         {templates.map((template, i) => {
           const Icon = template.icon;
           const isActive = i === activeIndex;
@@ -92,34 +92,34 @@ const TemplateLibraryCard = () => {
           return (
             <motion.div
               key={template.name}
-              className="absolute w-[90%] md:w-[95%] h-48 md:h-56 rounded-2xl border overflow-hidden"
+              className="absolute w-[92%] md:w-[96%] h-[220px] md:h-[240px] rounded-2xl border overflow-hidden"
               style={{ 
                 backgroundColor: `${template.color}10`,
                 borderColor: `${template.color}30`,
                 filter: isActive ? 'none' : `blur(${offset * 2}px)`,
               }}
               animate={{
-                x: offset * 20,
-                y: offset * 15,
-                scale: isActive ? 1 : 0.95 - offset * 0.02,
+                x: offset * 18,
+                y: offset * 12,
+                scale: isActive ? 1 : 0.96 - offset * 0.02,
                 zIndex: templates.length - offset,
-                opacity: offset > 2 ? 0 : isActive ? 1 : 0.6 - offset * 0.15,
+                opacity: offset > 2 ? 0 : isActive ? 1 : 0.5 - offset * 0.1,
               }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
               <div className="p-5 md:p-6 h-full flex flex-col justify-between">
                 <div 
-                  className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center"
+                  className="w-16 h-16 md:w-18 md:h-18 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: `${template.color}30` }}
                 >
-                  <Icon className="w-7 h-7 md:w-8 md:h-8" style={{ color: template.color }} />
+                  <Icon className="w-8 h-8 md:w-9 md:h-9" style={{ color: template.color }} />
                 </div>
                 {/* Only show text content on the active card */}
                 {isActive && (
                   <div>
-                    <p className="text-base md:text-lg font-semibold text-white/80 mb-2">{template.name}</p>
-                    <div className="h-2.5 w-32 md:w-44 rounded bg-white/10 mb-2" />
-                    <div className="h-2.5 w-20 md:w-28 rounded bg-white/5" />
+                    <p className="text-lg md:text-xl font-bold text-white mb-3">{template.name}</p>
+                    <div className="h-3 w-40 md:w-52 rounded bg-white/10 mb-2" />
+                    <div className="h-3 w-24 md:w-32 rounded bg-white/5" />
                   </div>
                 )}
               </div>
