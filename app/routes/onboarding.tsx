@@ -270,6 +270,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const name = formData.get('name') as string;
+    const phone = formData.get('phone') as string || ''; // Merchant phone
     const storeName = formData.get('storeName') as string;
     const subdomain = formData.get('subdomain') as string;
     const category = formData.get('category') as string || 'other';
@@ -277,7 +278,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const transactionId = formData.get('transactionId') as string || '';
     const paymentPhone = formData.get('paymentPhone') as string || '';
 
-    console.log('[Onboarding] Creating store:', { storeName, subdomain, category, selectedPlan });
+    console.log('[Onboarding] Creating store:', { storeName, subdomain, category, selectedPlan, phone });
 
     try {
       // 1. Register user and create store
@@ -285,6 +286,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         email,
         password,
         name,
+        phone, // Pass phone to register
         storeName: storeName || 'My Store',
         subdomain: subdomain || `store-${Date.now()}`,
         db: env.DB,
@@ -382,6 +384,7 @@ export default function OnboardingPage() {
     email: '',
     password: '',
     name: '',
+    phone: '', // Merchant mobile number
     storeName: '',
     subdomain: '',
     category: 'fashion',
@@ -466,6 +469,10 @@ export default function OnboardingPage() {
       if (!formData.name || formData.name.length < 2) {
         newErrors.name = 'Name required';
       }
+      // Phone validation: must start with 01 and be 11 digits
+      if (!formData.phone || formData.phone.length !== 11 || !formData.phone.startsWith('01')) {
+        newErrors.phone = language === 'bn' ? 'সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)' : 'Valid mobile number required (01XXXXXXXXX)';
+      }
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
         return;
@@ -519,6 +526,7 @@ export default function OnboardingPage() {
       submitData.append('email', formData.email);
       submitData.append('password', formData.password);
       submitData.append('name', formData.name);
+      submitData.append('phone', formData.phone); // Merchant phone
       submitData.append('storeName', formData.storeName);
       submitData.append('subdomain', formData.subdomain);
       submitData.append('category', formData.category);
@@ -543,6 +551,7 @@ export default function OnboardingPage() {
     submitData.append('email', formData.email);
     submitData.append('password', formData.password);
     submitData.append('name', formData.name);
+    submitData.append('phone', formData.phone); // Merchant phone
     submitData.append('storeName', formData.storeName);
     submitData.append('subdomain', formData.subdomain);
     submitData.append('category', formData.category);
@@ -639,6 +648,26 @@ export default function OnboardingPage() {
                   placeholder="••••••••"
                 />
                 {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'bn' ? 'মোবাইল নম্বর' : 'Mobile Number'} *
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    // Only allow numbers and max 11 digits
+                    const cleaned = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
+                    updateField('phone', cleaned);
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="01XXXXXXXXX"
+                />
+                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                <p className="text-xs text-gray-500 mt-1">{language === 'bn' ? 'বাংলাদেশী মোবাইল নম্বর (01 দিয়ে শুরু)' : 'Bangladesh mobile number (starts with 01)'}</p>
               </div>
             </div>
           )}

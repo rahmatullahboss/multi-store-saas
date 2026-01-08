@@ -139,6 +139,7 @@ interface RegisterParams {
   email: string;
   password: string;
   name: string;
+  phone?: string; // Merchant mobile number
   storeName: string;
   subdomain?: string; // Optional custom subdomain
   db: D1Database;
@@ -287,7 +288,7 @@ export async function login({ email, password, db }: LoginParams): Promise<{
 /**
  * Register a new merchant with their store
  */
-export async function register({ email, password, name, storeName, subdomain: customSubdomain, db }: RegisterParams) {
+export async function register({ email, password, name, phone, storeName, subdomain: customSubdomain, db }: RegisterParams) {
   try {
     const drizzleDb = drizzle(db);
     
@@ -345,6 +346,7 @@ export async function register({ email, password, name, storeName, subdomain: cu
       email: email.toLowerCase(),
       passwordHash,
       name,
+      phone: phone || null, // Merchant phone number
       storeId,
       role: 'merchant',
     }).returning();

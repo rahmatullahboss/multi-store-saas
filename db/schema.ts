@@ -116,6 +116,7 @@ export const users = sqliteTable('users', {
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   name: text('name'),
+  phone: text('phone'), // Merchant mobile number (BD format: 01XXXXXXXXX)
   storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
   role: text('role').$type<'admin' | 'merchant' | 'staff' | 'super_admin'>().default('merchant'),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),

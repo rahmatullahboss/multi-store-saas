@@ -80,7 +80,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storesWithUsage = filteredStores.map(store => {
     const usage = usageMap.get(store.id) || { orders: 0, products: 0 };
     const planType = (store.planType as PlanType) || 'free';
-    const limits = PLAN_LIMITS[planType];
+    // Safely get limits with fallback to 'free' if planType is invalid
+    const limits = PLAN_LIMITS[planType] || PLAN_LIMITS['free'];
     return {
       ...store,
       usage: {
