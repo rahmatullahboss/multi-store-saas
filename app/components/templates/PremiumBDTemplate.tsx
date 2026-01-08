@@ -334,6 +334,48 @@ export function PremiumBDTemplate({
         </section>
       )}
 
+      {/* COMPARISON SECTION */}
+      {isSectionVisible('comparison', editableConfig.hiddenSections) && editableConfig.comparison && (editableConfig.comparison.beforeImage || editableConfig.comparison.afterImage) && (
+        <section className="py-12 bg-gray-900">
+          <div className="container max-w-4xl mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">🔄 দেখুন পার্থক্য</h2>
+            {editableConfig.comparison.description && (
+              <p className="text-gray-400 text-center mb-8">{editableConfig.comparison.description}</p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {editableConfig.comparison.beforeImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden border-4 border-red-500/50 shadow-lg mb-4">
+                    <OptimizedImage 
+                      src={editableConfig.comparison.beforeImage} 
+                      alt="Before" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-red-500 text-white font-bold rounded-full shadow">
+                    ❌ {editableConfig.comparison.beforeLabel || 'আগে'}
+                  </span>
+                </div>
+              )}
+              {editableConfig.comparison.afterImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden border-4 border-emerald-500/50 shadow-lg mb-4">
+                    <OptimizedImage 
+                      src={editableConfig.comparison.afterImage} 
+                      alt="After" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-emerald-500 text-white font-bold rounded-full shadow">
+                    ✅ {editableConfig.comparison.afterLabel || 'পরে'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* SOCIAL PROOF SECTION */}
       {isSectionVisible('social', editableConfig.hiddenSections) && editableConfig.socialProof && (editableConfig.socialProof.count > 0 || editableConfig.socialProof.text) && (
         <section className="py-8 bg-emerald-600">

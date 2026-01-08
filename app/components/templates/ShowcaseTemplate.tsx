@@ -283,6 +283,115 @@ export function ShowcaseTemplate({
          </section>
       )}
 
+      {/* GALLERY SECTION - Showcase Style */}
+      {isSectionVisible('gallery', editableConfig.hiddenSections) && editableConfig.galleryImages && editableConfig.galleryImages.length > 0 && (
+        <section className="py-20 bg-[#0f0f0f]">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center mb-12">
+              <span className="text-rose-500 tracking-[0.2em] uppercase text-xs font-bold">Gallery</span>
+              <h2 className="font-heading text-3xl md:text-4xl text-white mt-4">More Views</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {editableConfig.galleryImages.slice(0, 8).map((url, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="aspect-square rounded-lg overflow-hidden border border-zinc-800 hover:border-rose-500/50 transition-all duration-300 group"
+                >
+                  <img 
+                    src={url} 
+                    alt={`Gallery ${idx + 1}`} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BENEFITS SECTION - Showcase Style */}
+      {isSectionVisible('benefits', editableConfig.hiddenSections) && editableConfig.benefits && editableConfig.benefits.length > 0 && (
+        <section className="py-20 bg-[#0a0a0a]">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center mb-12">
+              <span className="text-rose-500 tracking-[0.2em] uppercase text-xs font-bold">Benefits</span>
+              <h2 className="font-heading text-3xl md:text-4xl text-white mt-4">Why Choose This</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {editableConfig.benefits.map((benefit, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="flex items-start gap-4 p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-rose-500/50 transition-colors"
+                >
+                  <div className="w-14 h-14 bg-rose-900/20 rounded-full flex items-center justify-center text-3xl flex-shrink-0">
+                    {benefit.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-heading text-xl text-white mb-2">{benefit.title}</h4>
+                    {benefit.description && (
+                      <p className="text-zinc-400 font-light">{benefit.description}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* COMPARISON SECTION - Showcase Style */}
+      {isSectionVisible('comparison', editableConfig.hiddenSections) && editableConfig.comparison && (editableConfig.comparison.beforeImage || editableConfig.comparison.afterImage) && (
+        <section className="py-20 bg-zinc-950">
+          <div className="container mx-auto px-4 md:px-6 max-w-4xl">
+            <div className="text-center mb-12">
+              <span className="text-rose-500 tracking-[0.2em] uppercase text-xs font-bold">Transformation</span>
+              <h2 className="font-heading text-3xl md:text-4xl text-white mt-4">See The Difference</h2>
+              {editableConfig.comparison.description && (
+                <p className="text-zinc-400 mt-4">{editableConfig.comparison.description}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {editableConfig.comparison.beforeImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-red-500/50 mb-4 shadow-lg shadow-red-500/10">
+                    <img 
+                      src={editableConfig.comparison.beforeImage} 
+                      alt="Before" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-red-600 text-white font-bold uppercase tracking-wider text-sm rounded">
+                    ❌ {editableConfig.comparison.beforeLabel || 'Before'}
+                  </span>
+                </div>
+              )}
+              {editableConfig.comparison.afterImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-rose-500/50 mb-4 shadow-lg shadow-rose-500/10">
+                    <img 
+                      src={editableConfig.comparison.afterImage} 
+                      alt="After" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-rose-600 text-white font-bold uppercase tracking-wider text-sm rounded">
+                    ✅ {editableConfig.comparison.afterLabel || 'After'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 5. ORDER FORM SECTION (Distinctive) */}
       <section id="order-form" className="py-24 relative overflow-hidden bg-zinc-950">
          {/* Side Accent */}

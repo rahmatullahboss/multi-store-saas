@@ -560,6 +560,50 @@ export function FlashSaleTemplate({
         </section>
       )}
 
+      {/* COMPARISON SECTION - Flash Sale Style */}
+      {isSectionVisible('comparison', config.hiddenSections) && config.comparison && (config.comparison.beforeImage || config.comparison.afterImage) && (
+        <section className="bg-gradient-to-b from-gray-950 to-gray-900 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <h3 className="text-xl font-bold text-white text-center mb-2">
+              <span className="text-red-500">🔄</span> দেখুন পার্থক্য <span className="text-red-500">🔄</span>
+            </h3>
+            {config.comparison.description && (
+              <p className="text-gray-400 text-center mb-6 text-sm">{config.comparison.description}</p>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              {config.comparison.beforeImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-red-500/50 mb-3">
+                    <img 
+                      src={config.comparison.beforeImage} 
+                      alt="Before" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="inline-block px-3 py-1 bg-red-600 text-white font-bold text-sm rounded-full">
+                    ❌ {config.comparison.beforeLabel || 'আগে'}
+                  </span>
+                </div>
+              )}
+              {config.comparison.afterImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-green-500/50 mb-3">
+                    <img 
+                      src={config.comparison.afterImage} 
+                      alt="After" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="inline-block px-3 py-1 bg-green-600 text-white font-bold text-sm rounded-full">
+                    ✅ {config.comparison.afterLabel || 'পরে'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* SOCIAL PROOF SECTION - Flash Sale Style */}
       {isSectionVisible('social', config.hiddenSections) && config.socialProof && (config.socialProof.count > 0 || config.socialProof.text) && (
         <section className="bg-gradient-to-r from-red-600 to-orange-500 py-4">
