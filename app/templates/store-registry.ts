@@ -66,7 +66,7 @@ export interface StoreTemplateDefinition {
   name: string;
   description: string;
   thumbnail: string;
-  category: 'luxury' | 'tech' | 'artisan';
+  category: 'luxury' | 'tech' | 'artisan' | 'modern';
   theme: StoreTemplateTheme;
   fonts: {
     heading: string;
@@ -112,6 +112,17 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#3d2f2f',
     footerText: '#fefbf6',
   },
+  'modern-premium': {
+    primary: '#f59e0b',
+    accent: '#f59e0b',
+    background: '#f9fafb',
+    text: '#111827',
+    muted: '#6b7280',
+    cardBg: '#ffffff',
+    headerBg: '#ffffff',
+    footerBg: '#111827',
+    footerText: '#ffffff',
+  },
 };
 
 // ============================================================================
@@ -120,6 +131,7 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
 import { LuxeBoutiqueTemplate } from '~/components/store-templates/LuxeBoutique';
 import { TechModernTemplate } from '~/components/store-templates/TechModern';
 import { ArtisanMarketTemplate } from '~/components/store-templates/ArtisanMarket';
+import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTemplate';
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -163,6 +175,19 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Work Sans',
     },
     component: ArtisanMarketTemplate,
+  },
+  {
+    id: 'modern-premium',
+    name: 'Modern Premium',
+    description: 'Sleek modern design with dark mode support, animations, and premium feel. Perfect for any product.',
+    thumbnail: '/templates/modern-premium.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['modern-premium'],
+    fonts: {
+      heading: 'Inter',
+      body: 'Inter',
+    },
+    component: ModernPremiumTemplate,
   },
 ];
 

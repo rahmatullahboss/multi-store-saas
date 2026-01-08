@@ -8,35 +8,8 @@
 import { Link } from '@remix-run/react';
 import { useState, useRef } from 'react';
 import { Menu, X, Search, ShoppingCart, ChevronRight, ChevronLeft, Shirt, Watch, Laptop, ShoppingBag, Sparkles, LayoutGrid } from 'lucide-react';
-import type { ThemeConfig } from '@db/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
-
-// Serialized product type (JSON converts Date to string)
-interface SerializedProduct {
-  id: number;
-  storeId: number;
-  title: string;
-  description: string | null;
-  price: number;
-  compareAtPrice: number | null;
-  inventory: number | null;
-  sku: string | null;
-  imageUrl: string | null;
-  images: string | null;
-  category: string | null;
-  tags: string | null;
-  isPublished: boolean | null;
-}
-
-interface ModernPremiumTemplateProps {
-  storeName: string;
-  logo?: string | null;
-  products: SerializedProduct[];
-  categories: (string | null)[];
-  currentCategory?: string | null;
-  config: ThemeConfig | null;
-  currency: string;
-}
+import type { StoreTemplateProps } from '~/templates/store-registry';
 
 export function ModernPremiumTemplate({
   storeName,
@@ -46,7 +19,7 @@ export function ModernPremiumTemplate({
   currentCategory,
   config,
   currency,
-}: ModernPremiumTemplateProps) {
+}: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const trendingRef = useRef<HTMLDivElement>(null);
