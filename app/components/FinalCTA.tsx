@@ -378,32 +378,6 @@ export function FinalCTA({ stats }: FinalCTAProps) {
           </motion.div>
         )}
 
-        {/* Early Adopter Count */}
-        <motion.div
-          className="mt-10 flex items-center justify-center gap-3"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.8 }}
-        >
-          <div className="flex -space-x-2">
-            {['র', 'স', 'ক', 'ফ', 'আ'].map((letter, i) => (
-              <motion.div
-                key={i}
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006A4E] to-[#00875F] flex items-center justify-center text-white text-xs font-bold border-2 border-[#0A0A0F]"
-                initial={{ scale: 0 }}
-                whileInView={{ scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.8 + i * 0.1 }}
-              >
-                {letter}
-              </motion.div>
-            ))}
-          </div>
-          <p className="text-white/50 text-sm">
-            <span className="text-white font-semibold">{totalUsers > 0 ? `${totalUsers}+` : '৫০+'}</span> উদ্যোক্তা ইতিমধ্যে শুরু করেছেন
-          </p>
-        </motion.div>
       </div>
     </section>
   );

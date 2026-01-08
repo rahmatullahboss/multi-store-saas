@@ -344,18 +344,18 @@ export function MarketingLanding() {
         {/* Final CTA - Compelling Bengali Design */}
         <FinalCTA stats={marketingStats} />
 
-        {/* Footer - Dark */}
-        <footer className="py-16 px-4 bg-[#050508] text-white/40">
+        {/* Footer - Bangladesh Green Theme */}
+        <footer className="py-16 px-4 bg-[#0A0F0D] text-white/60">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
               <div className="col-span-2 md:col-span-1">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-blue-600 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
                     <Store className="w-5 h-5 text-white" />
                   </div>
                   <span className="font-bold text-xl text-white">Multi-Store</span>
                 </div>
-                <p className="text-sm">{content.footerAbout}</p>
+                <p className="text-sm text-white/50">{content.footerAbout}</p>
               </div>
               
               {[
@@ -364,11 +364,11 @@ export function MarketingLanding() {
                 { title: content.footerLegal, links: content.legalLinks },
               ].map((section, i) => (
                 <div key={i}>
-                  <h4 className="text-white font-semibold mb-4">{section.title}</h4>
+                  <h4 className="text-[#006A4E] font-semibold mb-4">{section.title}</h4>
                   <ul className="space-y-2">
                     {section.links.map((link: string, j: number) => (
                       <li key={j}>
-                        <Link to="#" className="hover:text-white transition text-sm">{link}</Link>
+                        <Link to="#" className="text-white/50 hover:text-[#00875F] transition text-sm">{link}</Link>
                       </li>
                     ))}
                   </ul>
@@ -376,12 +376,21 @@ export function MarketingLanding() {
               ))}
             </div>
             
-            <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-sm">{content.copyright}</p>
-              <div className="flex items-center gap-4">
-                {['💬', '📘', '📸', '🐦'].map((emoji, i) => (
-                  <Link key={i} to="#" className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center transition">
-                    {emoji}
+            <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-sm text-white/40">{content.copyright}</p>
+              <div className="flex items-center gap-3">
+                {[
+                  { icon: '💬', label: 'WhatsApp' },
+                  { icon: '📘', label: 'Facebook' },
+                  { icon: '📸', label: 'Instagram' },
+                ].map((social, i) => (
+                  <Link 
+                    key={i} 
+                    to="#" 
+                    className="w-10 h-10 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 border border-[#006A4E]/20 rounded-xl flex items-center justify-center transition"
+                    title={social.label}
+                  >
+                    {social.icon}
                   </Link>
                 ))}
               </div>
@@ -464,18 +473,18 @@ export function MarketingLanding() {
       <FAQSection />
       <FinalCTA />
 
-      {/* Footer - Light Theme (Dark footer maintains brand consistency) */}
-      <footer className="py-16 px-4 bg-[#0F172A] text-[#94A3B8]">
+      {/* Footer - Bangladesh Green Theme */}
+      <footer className="py-16 px-4 bg-[#0A0F0D] text-white/60">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#059669] rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
                   <Store className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-bold text-xl text-white">Multi-Store</span>
               </div>
-              <p className="text-sm">{content.footerAbout}</p>
+              <p className="text-sm text-white/50">{content.footerAbout}</p>
             </div>
             
             {[
@@ -484,11 +493,11 @@ export function MarketingLanding() {
               { title: content.footerLegal, links: content.legalLinks },
             ].map((section, i) => (
               <div key={i}>
-                <h4 className="text-white font-semibold mb-4">{section.title}</h4>
+                <h4 className="text-[#006A4E] font-semibold mb-4">{section.title}</h4>
                 <ul className="space-y-2">
                   {section.links.map((link: string, j: number) => (
                     <li key={j}>
-                      <Link to="#" className="hover:text-white transition text-sm">{link}</Link>
+                      <Link to="#" className="text-white/50 hover:text-[#00875F] transition text-sm">{link}</Link>
                     </li>
                   ))}
                 </ul>
@@ -496,12 +505,21 @@ export function MarketingLanding() {
             ))}
           </div>
           
-          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm">{content.copyright}</p>
-            <div className="flex items-center gap-4">
-              {['💬', '📘', '📸', '🐦'].map((emoji, i) => (
-                <Link key={i} to="#" className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center transition">
-                  {emoji}
+          <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-white/40">{content.copyright}</p>
+            <div className="flex items-center gap-3">
+              {[
+                { icon: '💬', label: 'WhatsApp' },
+                { icon: '📘', label: 'Facebook' },
+                { icon: '📸', label: 'Instagram' },
+              ].map((social, i) => (
+                <Link 
+                  key={i} 
+                  to="#" 
+                  className="w-10 h-10 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 border border-[#006A4E]/20 rounded-xl flex items-center justify-center transition"
+                  title={social.label}
+                >
+                  {social.icon}
                 </Link>
               ))}
             </div>

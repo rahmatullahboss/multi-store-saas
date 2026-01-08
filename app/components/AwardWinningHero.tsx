@@ -789,22 +789,6 @@ export function AwardWinningHero({ theme = 'dark' }: HeroProps) {
                   </motion.span>
                 </Link>
               </Magnetic>
-              
-              {/* Secondary CTA */}
-              <Magnetic>
-                <Link
-                  to="#demo"
-                  className={`group px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
-                    isLight 
-                      ? 'bg-white text-[#006A4E] border border-[#006A4E]/20 hover:bg-[#006A4E]/5 hover:border-[#006A4E]/40 shadow-sm hover:shadow-md' 
-                      : 'text-white border border-white/20 hover:bg-white/5 hover:border-white/30 backdrop-blur-sm'
-                  }`}
-                  style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-                >
-                  ডেমো দেখুন
-                  <Play className="w-4 h-4 fill-current" />
-                </Link>
-              </Magnetic>
             </motion.div>
             
             {/* Trust badges */}
