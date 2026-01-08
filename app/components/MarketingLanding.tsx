@@ -22,6 +22,7 @@ import { AwardWinningHero } from '~/components/AwardWinningHero';
 import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
 import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
 import { TrustSection } from '~/components/TrustSection';
+import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
 
 
@@ -279,6 +280,9 @@ export function MarketingLanding() {
 
         {/* Trust Section - Transparency & Credibility */}
         <TrustSection />
+
+        {/* Comparison Section - Why We're the Best Choice */}
+        <ComparisonSection />
 
         {/* Interactive Store Demo - Try It Now */}
         <InteractiveStoreDemo />
