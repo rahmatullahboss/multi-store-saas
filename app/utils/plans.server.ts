@@ -283,11 +283,7 @@ export async function getBulkUsageStats(
       count: count() 
     })
     .from(orders)
-    .where(
-      and(
-        gte(orders.createdAt, monthStart)
-      )
-    )
+    .where(gte(orders.createdAt, monthStart))
     .groupBy(orders.storeId);
   
   // Get active product counts for all stores in one query
