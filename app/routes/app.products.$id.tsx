@@ -18,7 +18,7 @@ import { products, productVariants } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { logActivity } from '~/lib/activity.server';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, X, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
+import { Upload, X, Loader2, ArrowLeft, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -98,6 +98,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const imageUrl = formData.get('imageUrl') as string;
   const isPublished = formData.get('isPublished') === 'true';
   const variantsJson = formData.get('variants') as string;
+  // SEO fields
+  const seoTitle = formData.get('seoTitle') as string;
+  const seoDescription = formData.get('seoDescription') as string;
+  const seoKeywords = formData.get('seoKeywords') as string;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -155,6 +159,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       description: description?.trim() || null,
       imageUrl: imageUrl || null,
       isPublished,
+      seoTitle: seoTitle?.trim() || null,
+      seoDescription: seoDescription?.trim() || null,
+      seoKeywords: seoKeywords?.trim() || null,
       updatedAt: new Date(),
     })
     .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
@@ -262,6 +269,16 @@ export default function EditProductPage() {
   const [formPrice, setFormPrice] = useState<string>(String(product.price || ''));
   const [formDescription, setFormDescription] = useState<string>(product.description || '');
   const [formStock, setFormStock] = useState<string>(String(product.inventory ?? 0));
+  
+  // SEO state
+  const [seoExpanded, setSeoExpanded] = useState(false);
+  const [formSeoTitle, setFormSeoTitle] = useState<string>((product as any).seoTitle || '');
+  const [formSeoDescription, setFormSeoDescription] = useState<string>((product as any).seoDescription || '');
+  const [formSeoKeywords, setFormSeoKeywords] = useState<string>((product as any).seoKeywords || '');
+  
+  // Auto-generate SEO values
+  const autoSeoTitle = formTitle || product.title;
+  const autoSeoDescription = (formDescription || product.description || '').slice(0, 155);
   
   // Track newly uploaded images (not the original)
   const [newlyUploadedImage, setNewlyUploadedImage] = useState<string>('');
