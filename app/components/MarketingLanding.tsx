@@ -2,7 +2,8 @@
  * SaaS Marketing Landing Page - AWARD-WINNING PREMIUM DESIGN
  * 
  * Features:
- * - EMERALD/TEAL GREEN color scheme (supercharged)
+ * - DARK MODE Option with Purple/Blue gradients (Stripe/Linear inspired)
+ * - EMERALD/TEAL GREEN light mode (supercharged)
  * - Morphing gradient blobs with parallax
  * - Framer Motion scroll animations
  * - 3D card effects and micro-interactions
@@ -11,11 +12,13 @@
  * - Magnetic buttons and hover states
  */
 
+import { useState } from 'react';
 import { Link } from '@remix-run/react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone, ChevronDown, Moon, Sun } from 'lucide-react';
 import { useLanguage } from '~/contexts/LanguageContext';
 import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingOrbs, TiltCard, MagneticButton, ShimmerText } from '~/components/animations';
+import { AwardWinningHero } from '~/components/AwardWinningHero';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -98,6 +101,16 @@ const marketingContent = {
       { q: 'Can I use my own domain?', a: 'Yes! Premium plan users can connect custom domains. Free/Starter get a yourstore.digitalcare.site subdomain.' },
       { q: 'How do I receive my payments?', a: 'bKash/Nagad payments go directly to your account. For COD, you collect from customers. We never hold your money.' },
     ],
+    
+    // Footer
+    footerAbout: 'The complete e-commerce platform for Bangladeshi merchants. Create, sell, and grow.',
+    footerProduct: 'Product',
+    productLinks: ['Features', 'Pricing', 'Templates', 'Integrations'],
+    footerCompany: 'Company',
+    companyLinks: ['About', 'Blog', 'Careers', 'Contact'],
+    footerLegal: 'Legal',
+    legalLinks: ['Privacy', 'Terms', 'Refund Policy'],
+    copyright: '© 2026 Multi-Store. Made with ❤️ in Bangladesh.',
   },
   bn: {
     badge: 'বাংলাদেশে ৫০০+ মার্চেন্টের বিশ্বাস',
@@ -170,6 +183,16 @@ const marketingContent = {
       { q: 'নিজের ডোমেইন ব্যবহার করতে পারব?', a: 'হ্যাঁ! প্রিমিয়াম ইউজাররা কাস্টম ডোমেইন কানেক্ট করতে পারেন। ফ্রি/স্টার্টার ইউজাররা yourstore.digitalcare.site সাবডোমেইন পান।' },
       { q: 'পেমেন্ট কিভাবে পাব?', a: 'বিকাশ/নগদ পেমেন্ট সরাসরি আপনার অ্যাকাউন্টে যায়। COD-এর জন্য আপনি কাস্টমারের কাছ থেকে নেন। আমরা কখনো আপনার টাকা ধরে রাখি না।' },
     ],
+    
+    // Footer
+    footerAbout: 'বাংলাদেশি মার্চেন্টদের জন্য সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। তৈরি করুন, বিক্রি করুন, বড় হন।',
+    footerProduct: 'প্রোডাক্ট',
+    productLinks: ['ফিচার', 'প্রাইসিং', 'টেমপ্লেট', 'ইন্টিগ্রেশন'],
+    footerCompany: 'কোম্পানি',
+    companyLinks: ['সম্পর্কে', 'ব্লগ', 'ক্যারিয়ার', 'যোগাযোগ'],
+    footerLegal: 'আইনি',
+    legalLinks: ['গোপনীয়তা', 'শর্তাবলী', 'রিফান্ড নীতি'],
+    copyright: '© ২০২৬ মাল্টি-স্টোর। বাংলাদেশে ❤️ দিয়ে তৈরি।',
   },
 };
 
@@ -187,7 +210,501 @@ const DottedGridBg = () => (
 export function MarketingLanding() {
   const { lang, toggleLang } = useLanguage();
   const content = marketingContent[lang];
+  const [isDarkMode, setIsDarkMode] = useState(true); // Default to award-winning dark mode
 
+  // If dark mode, render the award-winning hero with rest of content in dark theme
+  if (isDarkMode) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0F] overflow-hidden">
+        {/* Dark Mode Floating Header */}
+        <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
+            <div className="flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
+                  <Store className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-bold text-xl text-white hidden sm:block">
+                  Multi-Store
+                </span>
+              </Link>
+              
+              <div className="flex items-center gap-3">
+                {/* Theme Toggle */}
+                <button
+                  onClick={() => setIsDarkMode(false)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-medium transition text-white/70 border border-white/10"
+                  title="Switch to Light Mode"
+                >
+                  <Sun className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={toggleLang}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-medium transition text-white/70 border border-white/10"
+                >
+                  <Globe className="w-4 h-4" />
+                  {lang === 'en' ? 'বাংলা' : 'EN'}
+                </button>
+                <Link 
+                  to="/auth/login" 
+                  className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
+                >
+                  {content.login}
+                </Link>
+                <MagneticButton>
+                  <Link 
+                    to="/auth/register" 
+                    className="px-5 py-2.5 bg-gradient-to-r from-violet-500 to-blue-600 hover:from-violet-600 hover:to-blue-700 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-violet-500/25"
+                  >
+                    {content.getStarted}
+                  </Link>
+                </MagneticButton>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Award-Winning Dark Mode Hero */}
+        <AwardWinningHero content={content} />
+
+        {/* Rest of dark-themed sections will follow similar styling */}
+        {/* Stats Section - Dark */}
+        <section className="py-20 bg-gradient-to-b from-[#0A0A0F] to-[#0F0F18] relative overflow-hidden">
+          <motion.div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/5 rounded-full blur-3xl"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          
+          <div className="max-w-6xl mx-auto px-4 relative">
+            <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <StaggerItem>
+                <motion.div className="group" whileHover={{ scale: 1.05 }}>
+                  <motion.div 
+                    className="w-16 h-16 mx-auto mb-4 bg-violet-500/10 rounded-2xl flex items-center justify-center border border-violet-500/20"
+                    whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  >
+                    <Store className="w-8 h-8 text-violet-400" />
+                  </motion.div>
+                  <AnimatedCounter end={500} suffix="+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
+                  <p className="text-violet-300/60">{content.statsStores}</p>
+                </motion.div>
+              </StaggerItem>
+              <StaggerItem>
+                <motion.div className="group" whileHover={{ scale: 1.05 }}>
+                  <motion.div 
+                    className="w-16 h-16 mx-auto mb-4 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20"
+                    whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  >
+                    <ShoppingBag className="w-8 h-8 text-blue-400" />
+                  </motion.div>
+                  <AnimatedCounter end={50} suffix="K+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
+                  <p className="text-blue-300/60">{content.statsOrders}</p>
+                </motion.div>
+              </StaggerItem>
+              <StaggerItem>
+                <motion.div className="group" whileHover={{ scale: 1.05 }}>
+                  <motion.div 
+                    className="w-16 h-16 mx-auto mb-4 bg-cyan-500/10 rounded-2xl flex items-center justify-center border border-cyan-500/20"
+                    whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  >
+                    <Users className="w-8 h-8 text-cyan-400" />
+                  </motion.div>
+                  <AnimatedCounter end={1} suffix="K+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
+                  <p className="text-cyan-300/60">{content.statsMerchants}</p>
+                </motion.div>
+              </StaggerItem>
+              <StaggerItem>
+                <motion.div className="group" whileHover={{ scale: 1.05 }}>
+                  <motion.div 
+                    className="w-16 h-16 mx-auto mb-4 bg-green-500/10 rounded-2xl flex items-center justify-center border border-green-500/20"
+                    whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                  >
+                    <TrendingUp className="w-8 h-8 text-green-400" />
+                  </motion.div>
+                  <span className="text-4xl md:text-5xl font-black text-white mb-1 block">99.9%</span>
+                  <p className="text-green-300/60">{content.statsUptime}</p>
+                </motion.div>
+              </StaggerItem>
+            </StaggerContainer>
+          </div>
+        </section>
+
+        {/* How It Works - Dark */}
+        <section className="py-24 px-4 bg-[#0F0F18] relative overflow-hidden">
+          <div className="max-w-6xl mx-auto">
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                  {content.howTitle}
+                </h2>
+                <p className="text-xl text-white/50">{content.howSubtitle}</p>
+              </div>
+            </ScrollReveal>
+            
+            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { step: '1', title: content.step1, desc: content.step1Desc, color: 'violet' },
+                { step: '2', title: content.step2, desc: content.step2Desc, color: 'blue' },
+                { step: '3', title: content.step3, desc: content.step3Desc, color: 'cyan' },
+              ].map((item, i) => (
+                <StaggerItem key={i}>
+                  <div className="relative group h-full">
+                    {i < 2 && (
+                      <motion.div 
+                        className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-violet-400/30 to-transparent z-0"
+                        initial={{ scaleX: 0, originX: 0 }}
+                        whileInView={{ scaleX: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.5 + i * 0.2 }}
+                      />
+                    )}
+                    
+                    <TiltCard className="h-full">
+                      <motion.div 
+                        className="relative bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10 h-full"
+                        whileHover={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}
+                      >
+                        <motion.div 
+                          className={`w-16 h-16 bg-gradient-to-br from-${item.color}-500 to-${item.color}-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-${item.color}-500/30`}
+                          style={{ background: `linear-gradient(to bottom right, var(--tw-gradient-from), var(--tw-gradient-to))`, '--tw-gradient-from': i === 0 ? '#8B5CF6' : i === 1 ? '#3B82F6' : '#06B6D4', '--tw-gradient-to': i === 0 ? '#7C3AED' : i === 1 ? '#2563EB' : '#0891B2' } as React.CSSProperties}
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                        >
+                          <span className="text-2xl font-black text-white">{item.step}</span>
+                        </motion.div>
+                        <h3 className="text-2xl font-bold text-white mb-3">{item.title}</h3>
+                        <p className="text-white/50 leading-relaxed">{item.desc}</p>
+                      </motion.div>
+                    </TiltCard>
+                  </div>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
+        </section>
+
+        {/* Features - Dark */}
+        <section className="py-24 px-4 bg-[#0A0A0F] relative overflow-hidden">
+          <div className="relative max-w-6xl mx-auto">
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                  {content.featuresTitle}
+                </h2>
+                <p className="text-xl text-white/50">{content.featuresSubtitle}</p>
+              </div>
+            </ScrollReveal>
+            
+            <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {content.features.map((feature, i) => {
+                const icons = { globe: Globe, zap: Zap, smartphone: Smartphone, chart: BarChart3, package: Package, truck: Truck };
+                const Icon = icons[feature.icon as keyof typeof icons] || Globe;
+                const colors = ['#8B5CF6', '#3B82F6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'];
+                const color = colors[i % colors.length];
+                
+                return (
+                  <StaggerItem key={i}>
+                    <TiltCard className="h-full" glowColor={`${color}33`}>
+                      <motion.div 
+                        className="group relative bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10 h-full"
+                        whileHover={{ borderColor: `${color}50` }}
+                      >
+                        <div className="relative">
+                          <motion.div 
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                            style={{ background: `${color}20` }}
+                            whileHover={{ scale: 1.15, rotate: 5 }}
+                          >
+                            <Icon className="w-7 h-7" style={{ color }} />
+                          </motion.div>
+                          <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                          <p className="text-white/50 leading-relaxed">{feature.description}</p>
+                        </div>
+                      </motion.div>
+                    </TiltCard>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          </div>
+        </section>
+
+        {/* Pricing - Dark */}
+        <section id="pricing" className="py-24 px-4 bg-[#0F0F18] relative overflow-hidden">
+          <div className="max-w-6xl mx-auto">
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                  {content.pricingTitle}
+                </h2>
+                <p className="text-xl text-white/50">{content.pricingSubtitle}</p>
+              </div>
+            </ScrollReveal>
+            
+            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {content.plans.map((plan, i) => (
+                <StaggerItem key={i}>
+                  <motion.div
+                    className={`relative rounded-3xl p-8 h-full ${
+                      plan.highlight 
+                        ? 'bg-gradient-to-br from-violet-600 to-blue-700 text-white shadow-2xl shadow-violet-500/30 border-2 border-violet-400' 
+                        : 'bg-white/5 backdrop-blur-sm border border-white/10'
+                    }`}
+                    initial={{ scale: plan.highlight ? 1.05 : 1 }}
+                    whileHover={{ 
+                      scale: plan.highlight ? 1.08 : 1.03,
+                      boxShadow: plan.highlight 
+                        ? '0 25px 50px -12px rgba(139, 92, 246, 0.5)' 
+                        : '0 25px 50px -12px rgba(139, 92, 246, 0.15)',
+                    }}
+                  >
+                    {plan.highlight && (
+                      <motion.div 
+                        className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg"
+                        animate={{ boxShadow: ['0 4px 15px rgba(251, 191, 36, 0.4)', '0 4px 25px rgba(251, 191, 36, 0.7)', '0 4px 15px rgba(251, 191, 36, 0.4)'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <span className="flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          {content.mostPopular}
+                        </span>
+                      </motion.div>
+                    )}
+                    
+                    <h3 className={`text-2xl font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-white'}`}>
+                      {plan.name}
+                    </h3>
+                    <p className={`mb-6 ${plan.highlight ? 'text-violet-200' : 'text-white/50'}`}>
+                      {plan.description}
+                    </p>
+                    
+                    <div className="mb-8">
+                      <span className={`text-5xl font-black ${plan.highlight ? 'text-white' : 'text-white'}`}>
+                        ৳{plan.price}
+                      </span>
+                      <span className={plan.highlight ? 'text-violet-200' : 'text-white/50'}>
+                        {content.perMonth}
+                      </span>
+                    </div>
+                    
+                    <ul className="space-y-4 mb-8">
+                      {plan.features.map((feature, j) => (
+                        <motion.li 
+                          key={j} 
+                          className={`flex items-center gap-3 ${plan.highlight ? 'text-violet-100' : 'text-white/60'}`}
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: j * 0.1 }}
+                        >
+                          <Check className={`w-5 h-5 flex-shrink-0 ${plan.highlight ? 'text-violet-300' : 'text-violet-400'}`} />
+                          {feature}
+                        </motion.li>
+                      ))}
+                    </ul>
+                    
+                    <MagneticButton className="w-full">
+                      <Link
+                        to="/auth/register"
+                        className={`block w-full py-4 text-center font-bold rounded-xl transition-all ${
+                          plan.highlight
+                            ? 'bg-white hover:bg-violet-50 text-violet-700 hover:shadow-lg'
+                            : 'bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-lg shadow-violet-500/25'
+                        }`}
+                      >
+                        {plan.cta}
+                      </Link>
+                    </MagneticButton>
+                  </motion.div>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
+        </section>
+
+        {/* Testimonials - Dark */}
+        <section className="py-24 px-4 bg-[#0A0A0F] relative overflow-hidden">
+          <div className="relative max-w-6xl mx-auto">
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                  {content.testimonialsTitle}
+                </h2>
+                <p className="text-xl text-white/50">{content.testimonialsSubtitle}</p>
+              </div>
+            </ScrollReveal>
+            
+            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {content.testimonials.map((t, i) => (
+                <StaggerItem key={i}>
+                  <TiltCard className="h-full" glowColor="rgba(139, 92, 246, 0.15)">
+                    <motion.div 
+                      className="bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10 h-full"
+                      whileHover={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}
+                    >
+                      <div className="flex items-center gap-1 text-amber-400 mb-6">
+                        {[...Array(5)].map((_, j) => (
+                          <motion.div
+                            key={j}
+                            initial={{ opacity: 0, scale: 0 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: j * 0.1 }}
+                          >
+                            <Star className="w-5 h-5 fill-current" />
+                          </motion.div>
+                        ))}
+                      </div>
+                      <p className="text-white/70 text-lg mb-8 leading-relaxed italic">"{t.text}"</p>
+                      <div className="flex items-center gap-4">
+                        <motion.div 
+                          className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-violet-500/30"
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                        >
+                          {t.avatar}
+                        </motion.div>
+                        <div>
+                          <p className="font-bold text-white">{t.name}</p>
+                          <p className="text-sm text-white/50">{t.role}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </TiltCard>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
+        </section>
+
+        {/* FAQ - Dark */}
+        <section className="py-24 px-4 bg-[#0F0F18] relative overflow-hidden">
+          <div className="max-w-4xl mx-auto">
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                  {content.faqTitle}
+                </h2>
+                <p className="text-xl text-white/50">{content.faqSubtitle}</p>
+              </div>
+            </ScrollReveal>
+            
+            <StaggerContainer className="space-y-4">
+              {content.faqs.map((faq, i) => (
+                <StaggerItem key={i}>
+                  <motion.div 
+                    className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+                    whileHover={{ borderColor: 'rgba(139, 92, 246, 0.3)', x: 5 }}
+                  >
+                    <h4 className="text-lg font-bold text-white flex items-start gap-3">
+                      <motion.span 
+                        className="w-8 h-8 bg-gradient-to-br from-violet-500 to-blue-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-lg"
+                        whileHover={{ scale: 1.1, rotate: 10 }}
+                      >
+                        ?
+                      </motion.span>
+                      {faq.q}
+                    </h4>
+                    <p className="text-white/50 mt-3 ml-11 leading-relaxed">{faq.a}</p>
+                  </motion.div>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
+        </section>
+
+        {/* CTA - Dark */}
+        <section className="py-24 px-4 bg-gradient-to-r from-violet-600 via-blue-600 to-violet-600 relative overflow-hidden">
+          <motion.div 
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)`,
+              backgroundSize: '32px 32px',
+            }}
+            animate={{ backgroundPosition: ['0px 0px', '32px 32px'] }}
+            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+          />
+          
+          <motion.div 
+            className="absolute top-1/2 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          
+          <div className="relative max-w-4xl mx-auto text-center">
+            <ScrollReveal>
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                {content.ctaTitle}
+              </h2>
+              <p className="text-violet-200 text-xl mb-10 max-w-2xl mx-auto">
+                {content.ctaSubtitle}
+              </p>
+            </ScrollReveal>
+            
+            <MagneticButton>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/auth/register"
+                  className="inline-flex items-center gap-3 px-10 py-5 bg-white hover:bg-violet-50 text-violet-700 font-bold rounded-2xl text-xl transition-all shadow-2xl"
+                >
+                  {content.ctaButton}
+                  <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                    <ArrowRight className="w-6 h-6" />
+                  </motion.span>
+                </Link>
+              </motion.div>
+            </MagneticButton>
+          </div>
+        </section>
+
+        {/* Footer - Dark */}
+        <footer className="py-16 px-4 bg-[#050508] text-white/40">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+              <div className="col-span-2 md:col-span-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <Store className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="font-bold text-xl text-white">Multi-Store</span>
+                </div>
+                <p className="text-sm">{content.footerAbout}</p>
+              </div>
+              
+              {[
+                { title: content.footerProduct, links: content.productLinks },
+                { title: content.footerCompany, links: content.companyLinks },
+                { title: content.footerLegal, links: content.legalLinks },
+              ].map((section, i) => (
+                <div key={i}>
+                  <h4 className="text-white font-semibold mb-4">{section.title}</h4>
+                  <ul className="space-y-2">
+                    {section.links.map((link: string, j: number) => (
+                      <li key={j}>
+                        <Link to="#" className="hover:text-white transition text-sm">{link}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            
+            <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-sm">{content.copyright}</p>
+              <div className="flex items-center gap-4">
+                {['💬', '📘', '📸', '🐦'].map((emoji, i) => (
+                  <Link key={i} to="#" className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center transition">
+                    {emoji}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  // Light mode version (original emerald theme)
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white overflow-hidden">
       {/* Glassmorphism Floating Header */}
@@ -204,6 +721,14 @@ export function MarketingLanding() {
             </Link>
             
             <div className="flex items-center gap-3">
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setIsDarkMode(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium transition text-gray-700"
+                title="Switch to Dark Mode"
+              >
+                <Moon className="w-4 h-4" />
+              </button>
               <button
                 onClick={toggleLang}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 rounded-xl text-sm font-medium transition text-emerald-700"
@@ -227,6 +752,7 @@ export function MarketingLanding() {
           </div>
         </div>
       </header>
+
 
       {/* Hero Section - PREMIUM ANIMATED */}
       <section className="relative pt-32 pb-24 px-4 min-h-[90vh] flex items-center">
