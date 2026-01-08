@@ -494,6 +494,89 @@ export function PremiumBDTemplate({
         </section>
       )}
 
+      {/* FEATURES SECTION - Premium BD Style */}
+      {isSectionVisible('features', editableConfig.hiddenSections) && editableConfig.features && editableConfig.features.length > 0 && (
+        <section className="py-12 bg-white">
+          <div className="container max-w-5xl mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">পণ্যের বৈশিষ্ট্য</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {editableConfig.features.map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition"
+                >
+                  <div className="text-4xl mb-3">{feature.icon}</div>
+                  <h3 className="font-bold text-lg text-gray-800 mb-2">{feature.title}</h3>
+                  {feature.description && (
+                    <p className="text-gray-600 text-sm">{feature.description}</p>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* DELIVERY SECTION - Premium BD Style */}
+      {isSectionVisible('delivery', editableConfig.hiddenSections) && (
+        <section className="py-12 bg-gray-50">
+          <div className="container max-w-5xl mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">ডেলিভারি তথ্য</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-2xl p-8 border border-emerald-100 shadow-sm hover:shadow-lg transition">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center">
+                    <span className="text-3xl">🏙️</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800">ঢাকা সিটির ভিতরে</h3>
+                    <p className="text-emerald-600 font-medium">২৪-৪৮ ঘণ্টায় ডেলিভারি</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center gap-2"><Check size={16} className="text-emerald-500" /> ডেলিভারি চার্জ: ৳৬০</li>
+                  <li className="flex items-center gap-2"><Check size={16} className="text-emerald-500" /> সেম-ডে ডেলিভারি উপলব্ধ</li>
+                  <li className="flex items-center gap-2"><Check size={16} className="text-emerald-500" /> ক্যাশ অন ডেলিভারি</li>
+                </ul>
+              </div>
+              <div className="bg-white rounded-2xl p-8 border border-blue-100 shadow-sm hover:shadow-lg transition">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
+                    <span className="text-3xl">🌍</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800">ঢাকা সিটির বাইরে</h3>
+                    <p className="text-blue-600 font-medium">২-৩ দিনে ডেলিভারি</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center gap-2"><Check size={16} className="text-blue-500" /> ডেলিভারি চার্জ: ৳১২০</li>
+                  <li className="flex items-center gap-2"><Check size={16} className="text-blue-500" /> সারা বাংলাদেশে ডেলিভারি</li>
+                  <li className="flex items-center gap-2"><Check size={16} className="text-blue-500" /> কুরিয়ার সার্ভিস</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* GUARANTEE SECTION - Premium BD Style */}
+      {isSectionVisible('guarantee', editableConfig.hiddenSections) && editableConfig.guaranteeText && (
+        <section className="py-12 bg-gradient-to-r from-emerald-50 to-teal-50 border-y border-emerald-100">
+          <div className="container max-w-3xl mx-auto px-4 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-6 shadow-lg border border-emerald-200">
+              <ShieldCheck className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">আমাদের গ্যারান্টি</h3>
+            <p className="text-gray-600 text-lg">{editableConfig.guaranteeText}</p>
+          </div>
+        </section>
+      )}
+
       {/* ORDER FORM SECTION - Full Width 2-Column (Last Section) */}
       <section id="order-form" ref={orderFormRef} className="py-16 bg-emerald-50/50">
         <div className="container max-w-6xl mx-auto px-4">
