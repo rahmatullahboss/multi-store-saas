@@ -34,6 +34,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     name: stores.name,
     subdomain: stores.subdomain,
     facebookPixelId: stores.facebookPixelId,
+    facebookAccessToken: stores.facebookAccessToken,
     googleAnalyticsId: stores.googleAnalyticsId,
   }).from(stores).where(eq(stores.id, storeId)).get();
 
@@ -48,6 +49,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const pixelId = (formData.get('facebookPixelId') as string || '').trim();
+  const accessToken = (formData.get('facebookAccessToken') as string || '').trim();
   const gaId = (formData.get('googleAnalyticsId') as string || '').trim();
 
   // Validate Facebook Pixel ID format (15-16 digits)
@@ -71,6 +73,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .update(stores)
     .set({ 
       facebookPixelId: pixelId || null,
+      facebookAccessToken: accessToken || null,
       googleAnalyticsId: gaId || null,
       updatedAt: new Date(),
     })
@@ -85,11 +88,13 @@ export default function TrackingSettings() {
   const { t, lang } = useTranslation();
   
   const [showPixelId, setShowPixelId] = useState(false);
+  const [showAccessToken, setShowAccessToken] = useState(false);
   const [showGaId, setShowGaId] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const isSaving = fetcher.state === 'submitting';
   const isFbConfigured = !!store.facebookPixelId;
+  const isCapiConfigured = !!store.facebookPixelId && !!store.facebookAccessToken;
   const isGaConfigured = !!store.googleAnalyticsId;
   const isAnyConfigured = isFbConfigured || isGaConfigured;
 
@@ -232,6 +237,50 @@ export default function TrackingSettings() {
               {lang === 'bn' ? 'Events Manager খুলুন' : 'Open Events Manager'}
               <ExternalLink className="w-3 h-3" />
             </a>
+
+            {/* Conversion API Access Token */}
+            <div className="pt-4 border-t border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Conversion API Access Token
+                {isCapiConfigured && (
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                    {lang === 'bn' ? 'সক্রিয়' : 'CAPI Active'}
+                  </span>
+                )}
+              </label>
+              <div className="relative">
+                <input
+                  type={showAccessToken ? 'text' : 'password'}
+                  name="facebookAccessToken"
+                  defaultValue={store.facebookAccessToken || ''}
+                  placeholder="EAAG..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono pr-12 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAccessToken(!showAccessToken)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600"
+                  title={showAccessToken ? 'Hide' : 'Show'}
+                >
+                  {showAccessToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="mt-2 text-sm text-gray-500">
+                {lang === 'bn'
+                  ? 'Server-side tracking এর জন্য Access Token। Events Manager → Settings → Generate Access Token থেকে পাবেন।'
+                  : 'For server-side tracking. Get from Events Manager → Settings → Generate Access Token.'}
+              </p>
+              {isFbConfigured && !isCapiConfigured && (
+                <div className="mt-3 flex items-start gap-2 text-amber-700 bg-amber-50 p-3 rounded-lg text-sm">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <p>
+                    {lang === 'bn'
+                      ? 'Access Token যোগ করলে iOS 14+ ও Ad Blocker এর ক্ষেত্রেও ভালো tracking পাবেন।'
+                      : 'Add Access Token for better tracking with iOS 14+ and ad blockers.'}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

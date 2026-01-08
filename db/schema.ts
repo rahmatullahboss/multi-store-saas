@@ -72,6 +72,7 @@ export const stores = sqliteTable('stores', {
   
   // === FACEBOOK PIXEL TRACKING ===
   facebookPixelId: text('facebook_pixel_id'), // e.g., "123456789012345"
+  facebookAccessToken: text('facebook_access_token'), // CAPI Access Token from Events Manager
   
   // === GOOGLE ANALYTICS TRACKING ===
   googleAnalyticsId: text('google_analytics_id'), // GA4 Measurement ID (e.g., "G-XXXXXXXXXX")

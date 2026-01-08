@@ -20,6 +20,7 @@ import { eq, and, or, inArray } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { checkUsageLimit } from '~/utils/plans.server';
 import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
+import { sendPurchaseEvent } from '~/services/facebook-capi.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -464,6 +465,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
     } catch (e) {
       console.error('Failed to check/create upsell offer:', e);
       // Don't fail the order, just skip upsell
+    }
+
+    // ============================================================================
+    // FACEBOOK CONVERSION API - Server-side Purchase tracking (non-blocking)
+    // ============================================================================
+    if (storeData.facebookPixelId && storeData.facebookAccessToken) {
+      context.cloudflare.ctx.waitUntil(
+        sendPurchaseEvent({
+          pixelId: storeData.facebookPixelId,
+          accessToken: storeData.facebookAccessToken,
+          orderId,
+          orderNumber,
+          total,
+          currency: storeData.currency || 'BDT',
+          customerEmail: input.customer_email,
+          customerPhone: input.phone,
+          customerName: input.customer_name,
+          items: [{
+            productId: productData.id,
+            title: productData.title,
+            quantity: input.quantity,
+            price: unitPrice,
+          }],
+        }).catch(e => console.error('[FB CAPI] Purchase event failed:', e))
+      );
     }
 
     return json({
