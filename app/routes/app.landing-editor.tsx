@@ -248,16 +248,28 @@ export default function LandingEditorPage() {
               </div>
             </div>
 
-            {/* Right: Preview link */}
-            <a
-              href={previewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
-            >
-              <ExternalLink className="w-4 h-4" />
-              {lang === 'bn' ? 'প্রিভিউ' : 'Preview'}
-            </a>
+            {/* Right: Quick Links */}
+            <div className="flex items-center gap-2">
+              {/* Order Bumps Link */}
+              <Link
+                to="/app/settings/order-bumps"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition font-medium"
+              >
+                <span className="text-base">🔥</span>
+                {lang === 'bn' ? 'অর্ডার বাম্প' : 'Order Bumps'}
+              </Link>
+              
+              {/* Preview link */}
+              <a
+                href={previewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
+              >
+                <ExternalLink className="w-4 h-4" />
+                {lang === 'bn' ? 'প্রিভিউ' : 'Preview'}
+              </a>
+            </div>
           </div>
         </div>
       </header>

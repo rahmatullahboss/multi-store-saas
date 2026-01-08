@@ -25,7 +25,10 @@ import {
   MessageCircle,
   Ticket,
   X,
-  Loader2
+  Loader2,
+  CreditCard,
+  Copy,
+  Send
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -100,14 +103,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
-// ACTION - Validate Coupon
+// ACTION - Validate Coupon & Submit Payment
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   await requireUserId(request);
+  const storeId = await getStoreId(request);
+  
+  if (!storeId) {
+    return json({ error: 'Store not found' }, { status: 404 });
+  }
   
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
   
+  // ========== VALIDATE COUPON ==========
   if (intent === 'validate_coupon') {
     const couponCode = formData.get('couponCode') as string;
     const planPrice = parseFloat(formData.get('planPrice') as string);
@@ -131,6 +140,59 @@ export async function action({ request, context }: ActionFunctionArgs) {
       originalPrice: discount.originalPrice,
       discountAmount: discount.discountAmount,
       finalPrice: discount.finalPrice,
+    });
+  }
+  
+  // ========== SUBMIT PAYMENT REQUEST ==========
+  if (intent === 'submit_payment') {
+    const planType = formData.get('planType') as string;
+    const transactionId = formData.get('transactionId') as string;
+    const phoneNumber = formData.get('phoneNumber') as string;
+    const amount = parseFloat(formData.get('amount') as string);
+    
+    // Validation
+    if (!planType || !['starter', 'premium'].includes(planType)) {
+      return json({ error: 'Invalid plan selected' }, { status: 400 });
+    }
+    if (!transactionId || transactionId.length < 6) {
+      return json({ error: 'Please enter a valid Transaction ID (at least 6 characters)' }, { status: 400 });
+    }
+    if (!phoneNumber || phoneNumber.length < 11) {
+      return json({ error: 'Please enter your bKash/Nagad phone number' }, { status: 400 });
+    }
+    if (!amount || amount <= 0) {
+      return json({ error: 'Invalid amount' }, { status: 400 });
+    }
+    
+    const db = drizzle(context.cloudflare.env.DB);
+    
+    // Check if there's already a pending payment
+    const existingPending = await db
+      .select({ paymentStatus: stores.paymentStatus })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
+    
+    if (existingPending[0]?.paymentStatus === 'pending_verification') {
+      return json({ 
+        error: 'You already have a pending payment request. Please wait for admin approval or contact support.' 
+      }, { status: 400 });
+    }
+    
+    // Save payment request
+    await db.update(stores).set({
+      paymentTransactionId: transactionId.trim(),
+      paymentPhone: phoneNumber.trim(),
+      paymentAmount: amount,
+      paymentStatus: 'pending_verification',
+      paymentSubmittedAt: new Date(),
+      // Don't change planType yet - admin will approve and set it
+      updatedAt: new Date(),
+    }).where(eq(stores.id, storeId));
+    
+    return json({ 
+      success: true, 
+      message: 'Payment request submitted successfully! We will verify and activate your plan within 24 hours.' 
     });
   }
   
@@ -224,22 +286,76 @@ export default function UpgradePage() {
         <p className="text-gray-500 mt-1">{lang === 'bn' ? 'আরো ফিচার আনলক করতে প্ল্যান আপগ্রেড করুন' : 'Choose a plan to unlock more features'}</p>
       </div>
 
-      {/* Coming Soon Notice */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-blue-800 font-medium">🚀 Online Payment Coming Soon!</p>
-        <p className="text-blue-700 text-sm mt-1">
-          We're working on integrating bKash and other payment methods. 
-          For now, please contact us on WhatsApp to upgrade your plan manually.
-        </p>
-        <a 
-          href="https://wa.me/8801739416661?text=Hi!%20I%20want%20to%20upgrade%20my%20plan"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition"
-        >
-          <MessageCircle className="w-4 h-4" />
-          Contact on WhatsApp
-        </a>
+      {/* bKash/Nagad Payment Section */}
+      <div className="mb-6 p-5 bg-gradient-to-r from-pink-50 via-purple-50 to-emerald-50 border border-pink-200 rounded-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
+            <CreditCard className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900">
+              {lang === 'bn' ? 'bKash / Nagad পেমেন্ট' : 'bKash / Nagad Payment'}
+            </h3>
+            <p className="text-sm text-gray-600">
+              {lang === 'bn' ? 'Send Money করে TRX ID সাবমিট করুন' : 'Send Money and submit Transaction ID'}
+            </p>
+          </div>
+        </div>
+        
+        {/* Payment Number */}
+        <div className="bg-white rounded-lg p-4 mb-4 border border-pink-100">
+          <p className="text-sm text-gray-600 mb-2">
+            {lang === 'bn' ? 'এই নম্বরে Send Money করুন:' : 'Send Money to this number:'}
+          </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-bold text-pink-600 font-mono">01739416661</span>
+              <span className="px-2 py-1 bg-pink-100 text-pink-700 text-xs font-medium rounded">bKash / Nagad</span>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText('01739416661');
+                alert('Number copied!');
+              }}
+              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition flex items-center gap-1"
+            >
+              <Copy className="w-4 h-4" />
+              Copy
+            </button>
+          </div>
+        </div>
+        
+        {/* Submission Form - Only show if plan selected */}
+        {selectedPlan ? (
+          <PaymentSubmitForm 
+            selectedPlan={selectedPlan} 
+            appliedCoupon={appliedCoupon}
+            planPrice={UPGRADE_PLANS[selectedPlan].price}
+            lang={lang}
+          />
+        ) : (
+          <div className="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <p className="text-gray-500">
+              {lang === 'bn' ? '👇 প্রথমে নিচ থেকে একটি প্ল্যান সিলেক্ট করুন' : '👇 Select a plan below first'}
+            </p>
+          </div>
+        )}
+        
+        {/* WhatsApp Fallback */}
+        <div className="mt-4 pt-4 border-t border-pink-100 text-center">
+          <p className="text-sm text-gray-500 mb-2">
+            {lang === 'bn' ? 'সমস্যা হলে WhatsApp এ যোগাযোগ করুন' : 'Having issues? Contact us on WhatsApp'}
+          </p>
+          <a 
+            href="https://wa.me/8801739416661?text=Hi!%20I%20need%20help%20with%20plan%20upgrade"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-medium text-sm"
+          >
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp: 01739416661
+          </a>
+        </div>
       </div>
 
       {/* Coupon Code Section */}
