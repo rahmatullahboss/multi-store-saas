@@ -280,6 +280,117 @@ export function LuxeTemplate({
         </section>
       )}
 
+      {/* GALLERY SECTION (Elegant Grid) */}
+      {isSectionVisible('gallery', editableConfig.hiddenSections) && editableConfig.galleryImages && editableConfig.galleryImages.length > 0 && (
+        <section className="py-20 bg-black">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-12">
+              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Gallery</span>
+              <h2 className="font-serif-display text-3xl md:text-4xl mt-4 text-white">Product Showcase</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {editableConfig.galleryImages.slice(0, 8).map((url, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="aspect-square rounded-lg overflow-hidden border border-zinc-800 hover:border-amber-500/50 transition-colors"
+                >
+                  <OptimizedImage 
+                    src={url} 
+                    alt={`Product photo ${idx + 1}`} 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                    width={300}
+                    height={300}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BENEFITS SECTION (Elegant Cards) */}
+      {isSectionVisible('benefits', editableConfig.hiddenSections) && editableConfig.benefits && editableConfig.benefits.length > 0 && (
+        <section className="py-20 bg-zinc-950">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-12">
+              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Why Choose Us</span>
+              <h2 className="font-serif-display text-3xl md:text-4xl mt-4 text-white">Premium Benefits</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {editableConfig.benefits.map((benefit, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="p-6 border border-zinc-800 hover:border-amber-500/50 transition-colors group"
+                >
+                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{benefit.icon}</div>
+                  <h4 className="font-serif-display text-xl mb-2 text-white">{benefit.title}</h4>
+                  {benefit.description && (
+                    <p className="text-zinc-500 text-sm">{benefit.description}</p>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* COMPARISON SECTION (Elegant Before/After) */}
+      {isSectionVisible('comparison', editableConfig.hiddenSections) && editableConfig.comparison && (editableConfig.comparison.beforeImage || editableConfig.comparison.afterImage) && (
+        <section className="py-20 bg-black">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-12">
+              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Comparison</span>
+              <h2 className="font-serif-display text-3xl md:text-4xl mt-4 text-white">See The Difference</h2>
+              {editableConfig.comparison.description && (
+                <p className="text-zinc-500 mt-4">{editableConfig.comparison.description}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {editableConfig.comparison.beforeImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-red-500/30 mb-4">
+                    <OptimizedImage 
+                      src={editableConfig.comparison.beforeImage} 
+                      alt="Before" 
+                      className="w-full h-full object-cover"
+                      width={400}
+                      height={300}
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 font-medium uppercase tracking-wider text-sm rounded">
+                    {editableConfig.comparison.beforeLabel || 'Before'}
+                  </span>
+                </div>
+              )}
+              {editableConfig.comparison.afterImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-amber-500/50 mb-4">
+                    <OptimizedImage 
+                      src={editableConfig.comparison.afterImage} 
+                      alt="After" 
+                      className="w-full h-full object-cover"
+                      width={400}
+                      height={300}
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-amber-500/20 border border-amber-500/50 text-amber-400 font-medium uppercase tracking-wider text-sm rounded">
+                    {editableConfig.comparison.afterLabel || 'After'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 5. DELIVERY INFO (Minimal) */}
       {isSectionVisible('delivery', editableConfig.hiddenSections) && (
       <section className="py-16 bg-black border-y border-zinc-900">

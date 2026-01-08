@@ -402,6 +402,90 @@ export function MobileFirstTemplate({
         </section>
       )}
 
+      {/* GALLERY - Horizontal Scroll for Mobile */}
+      {isSectionVisible('gallery', editableConfig.hiddenSections) && editableConfig.galleryImages && editableConfig.galleryImages.length > 0 && (
+        <section className="py-8 px-4 bg-white">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">📸 পণ্যের ছবি</h3>
+          <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide">
+            {editableConfig.galleryImages.slice(0, 6).map((url, idx) => (
+              <div key={idx} className="flex-shrink-0 w-40 snap-center">
+                <div className="aspect-square rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                  <OptimizedImage 
+                    src={url} 
+                    alt={`Product photo ${idx + 1}`} 
+                    className="w-full h-full object-cover"
+                    width={200}
+                    height={200}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* BENEFITS - Cards for Mobile */}
+      {isSectionVisible('benefits', editableConfig.hiddenSections) && editableConfig.benefits && editableConfig.benefits.length > 0 && (
+        <section className="py-8 px-5 bg-emerald-50">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">✅ কেন কিনবেন?</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {editableConfig.benefits.map((benefit, idx) => (
+              <div key={idx} className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">
+                <div className="text-2xl mb-2">{benefit.icon}</div>
+                <h4 className="font-bold text-gray-900 text-sm">{benefit.title}</h4>
+                {benefit.description && (
+                  <p className="text-gray-500 text-xs mt-1">{benefit.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* COMPARISON - Before/After for Mobile */}
+      {isSectionVisible('comparison', editableConfig.hiddenSections) && editableConfig.comparison && (editableConfig.comparison.beforeImage || editableConfig.comparison.afterImage) && (
+        <section className="py-8 px-5 bg-gray-900">
+          <h3 className="text-lg font-bold text-white mb-2 text-center">🔄 দেখুন পার্থক্য</h3>
+          {editableConfig.comparison.description && (
+            <p className="text-gray-400 text-sm text-center mb-4">{editableConfig.comparison.description}</p>
+          )}
+          <div className="grid grid-cols-2 gap-4">
+            {editableConfig.comparison.beforeImage && (
+              <div className="text-center">
+                <div className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-red-500/50 mb-2">
+                  <OptimizedImage 
+                    src={editableConfig.comparison.beforeImage} 
+                    alt="Before" 
+                    className="w-full h-full object-cover"
+                    width={200}
+                    height={150}
+                  />
+                </div>
+                <span className="inline-block px-3 py-1 bg-red-500 text-white font-medium text-xs rounded-full">
+                  ❌ {editableConfig.comparison.beforeLabel || 'আগে'}
+                </span>
+              </div>
+            )}
+            {editableConfig.comparison.afterImage && (
+              <div className="text-center">
+                <div className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-emerald-500/50 mb-2">
+                  <OptimizedImage 
+                    src={editableConfig.comparison.afterImage} 
+                    alt="After" 
+                    className="w-full h-full object-cover"
+                    width={200}
+                    height={150}
+                  />
+                </div>
+                <span className="inline-block px-3 py-1 bg-emerald-500 text-white font-medium text-xs rounded-full">
+                  ✅ {editableConfig.comparison.afterLabel || 'পরে'}
+                </span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* FAQ - Accordion for Mobile */}
       {isSectionVisible('faq', editableConfig.hiddenSections) && editableConfig.faq && editableConfig.faq.length > 0 && (
         <section className="py-8 px-5 bg-white">

@@ -660,6 +660,124 @@ export function LandingPageTemplate({
       )}
 
       {/* ============================================ */}
+      {/* SECTION: Photo Gallery */}
+      {/* ============================================ */}
+      {editableConfig.galleryImages && editableConfig.galleryImages.length > 0 && 
+       isSectionVisible('gallery', editableConfig.hiddenSections) && (
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                📸 পণ্যের ছবি গ্যালারি
+              </h2>
+              <p className="text-xl text-gray-600">বিস্তারিত দেখুন প্রতিটি এঙ্গেল থেকে</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {editableConfig.galleryImages.slice(0, 8).map((url, idx) => (
+                <div key={idx} className="aspect-square rounded-2xl overflow-hidden shadow-lg border-2 border-white hover:scale-105 transition-transform duration-300">
+                  <OptimizedImage 
+                    src={url} 
+                    alt={`Product photo ${idx + 1}`} 
+                    className="w-full h-full object-cover"
+                    width={300}
+                    height={300}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================ */}
+      {/* SECTION: Benefits - Why Buy */}
+      {/* ============================================ */}
+      {editableConfig.benefits && editableConfig.benefits.length > 0 && 
+       isSectionVisible('benefits', editableConfig.hiddenSections) && (
+        <section className="py-16 bg-gradient-to-b from-emerald-50 to-white">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                ✅ কেন কিনবেন এই প্রোডাক্ট?
+              </h2>
+              <p className="text-xl text-gray-600">এখানে আছে আপনার জন্য বিশেষ সুবিধা</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {editableConfig.benefits.map((benefit, idx) => (
+                <div key={idx} className="flex items-start gap-4 bg-white rounded-2xl p-6 shadow-lg border border-emerald-100 hover:shadow-xl transition-shadow">
+                  <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center text-3xl flex-shrink-0">
+                    {benefit.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-1">{benefit.title}</h4>
+                    {benefit.description && (
+                      <p className="text-gray-600">{benefit.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================ */}
+      {/* SECTION: Before/After Comparison */}
+      {/* ============================================ */}
+      {editableConfig.comparison && (editableConfig.comparison.beforeImage || editableConfig.comparison.afterImage) && 
+       isSectionVisible('comparison', editableConfig.hiddenSections) && (
+        <section className="py-16 bg-gray-900">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+                🔄 দেখুন পার্থক্য
+              </h2>
+              {editableConfig.comparison.description && (
+                <p className="text-xl text-gray-400">{editableConfig.comparison.description}</p>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {editableConfig.comparison.beforeImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border-4 border-red-500/50 mb-4">
+                    <OptimizedImage 
+                      src={editableConfig.comparison.beforeImage} 
+                      alt="Before" 
+                      className="w-full h-full object-cover"
+                      width={400}
+                      height={300}
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-red-500 text-white font-bold rounded-full">
+                    ❌ {editableConfig.comparison.beforeLabel || 'আগে'}
+                  </span>
+                </div>
+              )}
+              {editableConfig.comparison.afterImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border-4 border-green-500/50 mb-4">
+                    <OptimizedImage 
+                      src={editableConfig.comparison.afterImage} 
+                      alt="After" 
+                      className="w-full h-full object-cover"
+                      width={400}
+                      height={300}
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-green-500 text-white font-bold rounded-full">
+                    ✅ {editableConfig.comparison.afterLabel || 'পরে'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================ */}
       {/* SECTION 6: How to Order */}
       {/* ============================================ */}
       <section className="py-16 bg-gradient-to-b from-white to-gray-50">

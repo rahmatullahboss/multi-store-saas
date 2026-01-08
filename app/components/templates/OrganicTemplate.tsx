@@ -267,6 +267,120 @@ export function OrganicTemplate({
         </section>
       )}
 
+      {/* GALLERY SECTION (Organic Style) */}
+      {isSectionVisible('gallery', editableConfig.hiddenSections) && editableConfig.galleryImages && editableConfig.galleryImages.length > 0 && (
+        <section className="py-16 bg-stone-50">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-emerald-950 mb-4">📸 Product Gallery</h2>
+              <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {editableConfig.galleryImages.slice(0, 8).map((url, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
+                >
+                  <OptimizedImage 
+                    src={url} 
+                    alt={`Product photo ${idx + 1}`} 
+                    className="w-full h-full object-cover"
+                    width={300}
+                    height={300}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BENEFITS SECTION (Organic Cards) */}
+      {isSectionVisible('benefits', editableConfig.hiddenSections) && editableConfig.benefits && editableConfig.benefits.length > 0 && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-emerald-950 mb-4">✅ Why Choose This?</h2>
+              <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {editableConfig.benefits.map((benefit, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="flex items-start gap-4 p-6 bg-emerald-50/50 rounded-2xl border border-emerald-100 hover:shadow-md transition-shadow"
+                >
+                  <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm text-3xl flex-shrink-0 border border-emerald-100">
+                    {benefit.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-emerald-900 mb-1">{benefit.title}</h4>
+                    {benefit.description && (
+                      <p className="text-stone-600 text-sm">{benefit.description}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* COMPARISON SECTION (Organic Before/After) */}
+      {isSectionVisible('comparison', editableConfig.hiddenSections) && editableConfig.comparison && (editableConfig.comparison.beforeImage || editableConfig.comparison.afterImage) && (
+        <section className="py-16 bg-emerald-900">
+          <div className="container mx-auto px-6 max-w-4xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">🔄 See The Difference</h2>
+              {editableConfig.comparison.description && (
+                <p className="text-emerald-200">{editableConfig.comparison.description}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {editableConfig.comparison.beforeImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden border-4 border-red-400/50 shadow-lg mb-4">
+                    <OptimizedImage 
+                      src={editableConfig.comparison.beforeImage} 
+                      alt="Before" 
+                      className="w-full h-full object-cover"
+                      width={400}
+                      height={300}
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-red-500 text-white font-bold rounded-full shadow-md">
+                    ❌ {editableConfig.comparison.beforeLabel || 'Before'}
+                  </span>
+                </div>
+              )}
+              {editableConfig.comparison.afterImage && (
+                <div className="text-center">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden border-4 border-emerald-400/50 shadow-lg mb-4">
+                    <OptimizedImage 
+                      src={editableConfig.comparison.afterImage} 
+                      alt="After" 
+                      className="w-full h-full object-cover"
+                      width={400}
+                      height={300}
+                    />
+                  </div>
+                  <span className="inline-block px-4 py-2 bg-emerald-500 text-white font-bold rounded-full shadow-md">
+                    ✅ {editableConfig.comparison.afterLabel || 'After'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 4. FAQ SECTION */}
       {isSectionVisible('faq', editableConfig.hiddenSections) && editableConfig.faq && editableConfig.faq.length > 0 && (
         <section className="py-16 bg-emerald-50/50">
