@@ -102,27 +102,68 @@ const WorldMapSVG = () => (
       </linearGradient>
     </defs>
     
-    {/* Simplified world map outline */}
+    {/* World Map Continental Outlines - More visible */}
+    {/* North America */}
     <path
-      d="M10,25 Q15,20 20,22 Q25,18 30,20 Q35,15 40,18 Q45,20 50,15 Q55,18 60,20 Q65,15 70,22 Q75,18 80,25 Q85,20 90,25"
-      fill="none"
-      stroke="rgba(255,255,255,0.05)"
+      d="M5,25 L8,22 L12,20 L18,18 L22,20 L25,22 L28,28 L26,32 L24,36 L20,38 L16,36 L12,34 L10,30 L8,28 Z"
+      fill="rgba(34, 211, 238, 0.08)"
+      stroke="rgba(34, 211, 238, 0.2)"
       strokeWidth="0.3"
     />
     
-    {/* Continents represented as subtle shapes */}
-    {/* North America */}
-    <ellipse cx="18" cy="32" rx="10" ry="8" fill="rgba(255,255,255,0.03)" />
     {/* South America */}
-    <ellipse cx="28" cy="65" rx="6" ry="12" fill="rgba(255,255,255,0.03)" />
+    <path
+      d="M24,42 L28,40 L32,44 L34,52 L32,62 L28,68 L24,66 L22,58 L24,50 Z"
+      fill="rgba(34, 211, 238, 0.08)"
+      stroke="rgba(34, 211, 238, 0.2)"
+      strokeWidth="0.3"
+    />
+    
     {/* Europe */}
-    <ellipse cx="47" cy="28" rx="6" ry="5" fill="rgba(255,255,255,0.03)" />
+    <path
+      d="M42,22 L48,20 L52,22 L54,26 L52,30 L48,32 L44,30 L42,26 Z"
+      fill="rgba(34, 211, 238, 0.08)"
+      stroke="rgba(34, 211, 238, 0.2)"
+      strokeWidth="0.3"
+    />
+    
     {/* Africa */}
-    <ellipse cx="50" cy="55" rx="8" ry="12" fill="rgba(255,255,255,0.03)" />
+    <path
+      d="M44,36 L48,34 L54,36 L58,44 L56,56 L52,64 L46,62 L44,54 L42,46 Z"
+      fill="rgba(34, 211, 238, 0.08)"
+      stroke="rgba(34, 211, 238, 0.2)"
+      strokeWidth="0.3"
+    />
+    
     {/* Asia */}
-    <ellipse cx="70" cy="38" rx="15" ry="12" fill="rgba(255,255,255,0.03)" />
+    <path
+      d="M56,18 L64,16 L72,18 L80,22 L84,28 L82,34 L78,40 L72,44 L64,42 L58,38 L54,32 L56,26 Z"
+      fill="rgba(0, 106, 78, 0.1)"
+      stroke="rgba(0, 106, 78, 0.25)"
+      strokeWidth="0.3"
+    />
+    
     {/* Australia */}
-    <ellipse cx="85" cy="68" rx="6" ry="4" fill="rgba(255,255,255,0.03)" />
+    <path
+      d="M78,58 L84,56 L90,58 L92,64 L88,70 L82,70 L78,66 L78,62 Z"
+      fill="rgba(34, 211, 238, 0.08)"
+      stroke="rgba(34, 211, 238, 0.2)"
+      strokeWidth="0.3"
+    />
+    
+    {/* Grid lines for visual effect */}
+    <g stroke="rgba(255,255,255,0.04)" strokeWidth="0.15">
+      {/* Horizontal lines */}
+      <line x1="0" y1="15" x2="100" y2="15" />
+      <line x1="0" y1="25" x2="100" y2="25" />
+      <line x1="0" y1="35" x2="100" y2="35" />
+      <line x1="0" y1="45" x2="100" y2="45" />
+      {/* Vertical lines */}
+      <line x1="20" y1="0" x2="20" y2="50" />
+      <line x1="40" y1="0" x2="40" y2="50" />
+      <line x1="60" y1="0" x2="60" y2="50" />
+      <line x1="80" y1="0" x2="80" y2="50" />
+    </g>
   </svg>
 );
 
