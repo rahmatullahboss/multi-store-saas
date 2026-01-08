@@ -39,10 +39,10 @@
 
 ## 🚀 Upcoming Phases
 
-### Phase 5: Advanced Billing & Finance (Next Priority)
+### Phase 5: Advanced Billing & Finance (Partial Complete)
 
-- [ ] **Data Architecture**: Create `payments` and `invoices` tables for historical tracking.
-- [ ] **Dashboard**: MRR, ARR, Churn, and LTV visualization.
+- [x] **Data Architecture**: Create `payments` and `invoices` tables for historical tracking.
+- [x] **Dashboard**: MRR, ARR, and Revenue Trends visualization.
 - [ ] **Invoicing**: PDF Invoice generation for merchants.
 - [ ] **Automated Billing**: Stripe/Paddle integration (optional upgrade from manual).
 
@@ -70,5 +70,5 @@
 - [x] Upgrade Admin Analytics Charts
 - [x] Implement Global Command Palette
 - [x] Implement Shadow Mode UI
-- [ ] **Refactor Billing Schema (Add `payments` table)**
-- [ ] **Build Finance Dashboard (MRR/ARR)**
+- [x] **Refactor Billing Schema (Add `payments` table)**
+- [x] **Build Finance Dashboard (MRR/ARR)**

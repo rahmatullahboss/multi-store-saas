@@ -1181,3 +1181,67 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
 
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
+
+// ============================================================================
+// PHASE 6: SYSTEM HEALTH (Logs)
+// ============================================================================
+export const systemLogs = sqliteTable('system_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  level: text('level').$type<'info' | 'warn' | 'error' | 'fatal'>().notNull(),
+  message: text('message').notNull(),
+  stack: text('stack'), // Optional stack trace
+  context: text('context'), // JSON context (path, user_id, etc)
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export type SystemLog = typeof systemLogs.$inferSelect;
+export type NewSystemLog = typeof systemLogs.$inferInsert;
+
+// ============================================================================
+// PHASE 6: DEVELOPER TOOLS (API Keys)
+// ============================================================================
+export const apiKeys = sqliteTable('api_keys', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  name: text('name').notNull(), // e.g. "Production Key"
+  keyPrefix: text('key_prefix').notNull(), // First 8 chars for display
+  keyHash: text('key_hash').notNull(), // SHA-256 hash of full key
+  scopes: text('scopes').default('["read_orders","write_orders"]'), // JSON array
+  lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+});
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  store: one(stores, {
+    fields: [apiKeys.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
+
+// ============================================================================
+// PHASE 6: WEBHOOKS
+// ============================================================================
+export const webhooks = sqliteTable('webhooks', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  url: text('url').notNull(),
+  topics: text('topics').notNull(), // JSON array ["order.created", "inventory.low"]
+  secret: text('secret').notNull(), // HMAC secret
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  failureCount: integer('failure_count').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const webhooksRelations = relations(webhooks, ({ one }) => ({
+  store: one(stores, {
+    fields: [webhooks.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type Webhook = typeof webhooks.$inferSelect;
+export type NewWebhook = typeof webhooks.$inferInsert;

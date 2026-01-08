@@ -31,9 +31,13 @@ import {
   ArrowRight,
   Bot,
   Loader2,
-  Users
+  Users,
+  Download,
+  History
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { payments } from '@db/schema';
+import { desc } from 'drizzle-orm';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Billing & Plans - Multi-Store SaaS' }];
@@ -130,6 +134,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Get usage stats
   const usage = await getUsageStats(context.cloudflare.env.DB, storeId);
 
+  // Get payment history
+  const paymentHistory = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.storeId, storeId))
+    .orderBy(desc(payments.createdAt))
+    .limit(10);
+
   return json({
     storeName: store?.name || 'Your Store',
     planType,
@@ -138,6 +150,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     limits: PLAN_LIMITS[planType],
     isCustomerAiEnabled: store?.isCustomerAiEnabled || false,
     aiAgentRequestStatus: store?.aiAgentRequestStatus || 'none',
+    paymentHistory,
   });
 }
 
@@ -192,7 +205,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function BillingPage() {
-  const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled, aiAgentRequestStatus } = useLoaderData<typeof loader>();
+  const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled, aiAgentRequestStatus, paymentHistory } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher<{ success?: boolean; aiAgentRequestStatus?: string; isCustomerAiEnabled?: boolean }>();
   const { t, lang } = useTranslation();

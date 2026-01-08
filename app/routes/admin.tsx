@@ -98,6 +98,7 @@ const navItems = [
   { to: '/admin/broadcasts', label: 'Broadcasts', icon: Radio },
   { to: '/admin/team', label: 'Team & Access', icon: Users },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: History },
+  { to: '/admin/health', label: 'System Health', icon: Activity },
   { to: '/admin/tutorials', label: 'Tutorials', icon: BookOpen },
 ];
 
