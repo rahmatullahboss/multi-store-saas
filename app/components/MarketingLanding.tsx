@@ -19,6 +19,7 @@ import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingB
 import { useLanguage } from '~/contexts/LanguageContext';
 import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingOrbs, TiltCard, MagneticButton, ShimmerText } from '~/components/animations';
 import { AwardWinningHero } from '~/components/AwardWinningHero';
+import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -267,7 +268,9 @@ export function MarketingLanding() {
         {/* Award-Winning Bangladesh Hero - Bangla Native */}
         <AwardWinningHero />
 
-        {/* Rest of dark-themed sections will follow similar styling */}
+        {/* Problem-Solution Section */}
+        <ProblemSolutionSection />
+
         {/* Stats Section - Dark */}
         <section className="py-20 bg-gradient-to-b from-[#0A0A0F] to-[#0F0F18] relative overflow-hidden">
           <motion.div 
