@@ -443,17 +443,103 @@ export function PremiumBDTemplate({
         </div>
       </section>
 
-      {/* 5. ORDER FORM SECTION (Focus) */}
+      {/* 5. ORDER FORM SECTION - Full Width 2-Column */}
       <section id="order-form" ref={orderFormRef} className="py-16 bg-emerald-50/50">
-        <div className="container max-w-lg mx-auto px-4">
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-center text-white">
-              <h2 className="text-2xl font-bold">অর্ডার কনফার্ম করতে<br/>নিচের ফর্মটি পূরণ করুন</h2>
-              <p className="text-emerald-100 text-sm mt-2">কোনো অগ্রিম পেমেন্ট ছাড়াই অর্ডার করুন</p>
-            </div>
+        <div className="container max-w-6xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">📝 অর্ডার কনফার্ম করুন</h2>
+            <p className="text-xl text-gray-600">নিচের ফর্মটি পূরণ করুন, আমরা আপনাকে কল করব</p>
+          </div>
 
-            <div className="p-6 md:p-8">
-              <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="bg-white rounded-3xl p-6 md:p-10 shadow-2xl border border-gray-100">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+              {/* Left Column - Product Info */}
+              <div className="space-y-6">
+                {/* Product Summary */}
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 shadow-md">
+                      {product.imageUrl ? (
+                        <OptimizedImage
+                          src={product.imageUrl}
+                          alt={product.title}
+                          width={96}
+                          height={96}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-100">📦</div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 text-xl">{product.title}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-emerald-600 font-black text-3xl">{formatPrice(product.price)}</span>
+                        {product.compareAtPrice && product.compareAtPrice > product.price && (
+                          <span className="text-gray-400 line-through text-lg">{formatPrice(product.compareAtPrice)}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {product.description && (
+                    <p className="text-gray-600 text-sm">{product.description}</p>
+                  )}
+                </div>
+
+                {/* Quantity Selector */}
+                <div className="bg-white rounded-2xl p-5 border border-gray-200">
+                  <label className="block text-sm font-bold text-gray-900 mb-3">পরিমাণ নির্বাচন করুন</label>
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                      className="w-12 h-12 rounded-xl border border-gray-300 flex items-center justify-center text-xl font-bold text-gray-600 hover:bg-gray-50"
+                    >-</button>
+                    <span className="text-2xl font-bold text-gray-900 w-12 text-center">{formData.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                      className="w-12 h-12 rounded-xl border border-gray-300 flex items-center justify-center text-xl font-bold text-gray-600 hover:bg-gray-50"
+                    >+</button>
+                  </div>
+                </div>
+
+                {/* Trust Badges */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2 border border-gray-100">
+                    <span className="text-2xl">🚚</span>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">দ্রুত ডেলিভারি</p>
+                      <p className="text-xs text-gray-500">২-৩ দিনে</p>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2 border border-gray-100">
+                    <span className="text-2xl">💰</span>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">ক্যাশ অন ডেলিভারি</p>
+                      <p className="text-xs text-gray-500">পণ্য হাতে পেয়ে পেমেন্ট</p>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2 border border-gray-100">
+                    <span className="text-2xl">🔄</span>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">সহজ রিটার্ন</p>
+                      <p className="text-xs text-gray-500">৭ দিনের মধ্যে</p>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2 border border-gray-100">
+                    <span className="text-2xl">✅</span>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">১০০% অরিজিনাল</p>
+                      <p className="text-xs text-gray-500">গ্যারান্টিযুক্ত</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Order Form */}
+              <div>
+                <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">আপনার নাম *</label>
@@ -560,6 +646,7 @@ export function PremiumBDTemplate({
                   <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-shimmer" />
                 </motion.button>
               </form>
+              </div>
             </div>
           </div>
         </div>
