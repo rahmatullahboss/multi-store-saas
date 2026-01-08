@@ -10,6 +10,7 @@ import { Link } from '@remix-run/react';
 import { Store, Play, BookOpen, Package, ShoppingCart, Truck, CreditCard, Settings, ArrowRight, ChevronRight, Globe } from 'lucide-react';
 import { useLanguage } from '~/contexts/LanguageContext';
 import { motion } from 'framer-motion';
+import { MarketingFooter } from '~/components/MarketingFooter';
 
 export const meta: MetaFunction = () => [
   { title: 'টিউটোরিয়াল - Multi-Store | নতুন মার্চেন্টদের জন্য গাইড' },
@@ -365,14 +366,7 @@ export default function TutorialsPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-4 bg-[#0A0F0D] border-t border-white/5">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-sm text-white/40">
-            © {new Date().getFullYear()} Multi-Store SaaS. {lang === 'bn' ? 'সর্বস্বত্ব সংরক্ষিত।' : 'All rights reserved.'}
-          </p>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }

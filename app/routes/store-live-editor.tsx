@@ -24,7 +24,7 @@ import {
   Palette, Settings, ExternalLink, Sparkles,
   Smartphone, Tablet, Monitor, ChevronDown, ChevronRight,
   Layout, Image as ImageIcon, User, Code, Type, Phone, Mail, MapPin, 
-  Facebook, Instagram, MessageCircle, Store
+  Facebook, Instagram, MessageCircle, Store, Menu, ShoppingCart, Search, Plus, Trash2, Rows
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
@@ -127,6 +127,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const instagram = formData.get('instagram') as string || '';
   const whatsapp = formData.get('whatsapp') as string || '';
 
+  // Header settings
+  const headerLayout = formData.get('headerLayout') as 'centered' | 'left-logo' | 'minimal' || 'centered';
+  const headerShowSearch = formData.get('headerShowSearch') === 'true';
+  const headerShowCart = formData.get('headerShowCart') === 'true';
+
+  // Footer settings
+  const footerDescription = formData.get('footerDescription') as string || '';
+  const copyrightText = formData.get('copyrightText') as string || '';
+  const footerColumnsJson = formData.get('footerColumns') as string || '[]';
+  let footerColumns: Array<{title: string; links: Array<{label: string; url: string}>}> = [];
+  try {
+    footerColumns = JSON.parse(footerColumnsJson);
+  } catch { /* ignore parse errors */ }
+
   const updatedConfig: ThemeConfig = {
     ...currentConfig,
     storeTemplateId,
@@ -136,6 +150,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     bannerText,
     customCSS,
     announcement: announcementText ? { text: announcementText, link: announcementLink } : undefined,
+    headerLayout,
+    headerShowSearch,
+    headerShowCart,
+    footerDescription,
+    copyrightText,
+    footerColumns,
   };
 
   await db.update(stores).set({ 
@@ -223,6 +243,19 @@ export default function StoreLiveEditor() {
   const [instagram, setInstagram] = useState(store.socialLinks?.instagram || '');
   const [whatsapp, setWhatsapp] = useState(store.socialLinks?.whatsapp || '');
 
+  // Header Layout state
+  const [headerLayout, setHeaderLayout] = useState<'centered' | 'left-logo' | 'minimal'>(themeConfig.headerLayout || 'centered');
+  const [headerShowSearch, setHeaderShowSearch] = useState(themeConfig.headerShowSearch !== false);
+  const [headerShowCart, setHeaderShowCart] = useState(themeConfig.headerShowCart !== false);
+
+  // Footer state
+  type FooterColumn = {title: string; links: {label: string; url: string}[]};
+  const [footerDescription, setFooterDescription] = useState(themeConfig.footerDescription || '');
+  const [copyrightText, setCopyrightText] = useState(themeConfig.copyrightText || '');
+  const [footerColumns, setFooterColumns] = useState<FooterColumn[]>(
+    (themeConfig.footerColumns || []) as FooterColumn[]
+  );
+
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   
@@ -243,7 +276,7 @@ export default function StoreLiveEditor() {
       return;
     }
     setHasChanges(true);
-  }, [selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp]);
+  }, [selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns]);
 
   // Show success message
   useEffect(() => {
@@ -375,6 +408,12 @@ export default function StoreLiveEditor() {
             <input type="hidden" name="facebook" value={facebook} />
             <input type="hidden" name="instagram" value={instagram} />
             <input type="hidden" name="whatsapp" value={whatsapp} />
+            <input type="hidden" name="headerLayout" value={headerLayout} />
+            <input type="hidden" name="headerShowSearch" value={headerShowSearch.toString()} />
+            <input type="hidden" name="headerShowCart" value={headerShowCart.toString()} />
+            <input type="hidden" name="footerDescription" value={footerDescription} />
+            <input type="hidden" name="copyrightText" value={copyrightText} />
+            <input type="hidden" name="footerColumns" value={JSON.stringify(footerColumns)} />
 
             {/* Template Section */}
             <AccordionSection
@@ -637,6 +676,138 @@ export default function StoreLiveEditor() {
                     placeholder="01XXXXXXXXX"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* Header Layout Section */}
+            <AccordionSection
+              title="Header Layout"
+              icon={Menu}
+              isOpen={openSection === 'header'}
+              onToggle={() => setOpenSection(openSection === 'header' ? '' : 'header')}
+            >
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-medium text-gray-700 mb-2">Layout Style</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'centered', label: 'Centered', desc: 'Logo in center' },
+                      { id: 'left-logo', label: 'Left Logo', desc: 'Classic layout' },
+                      { id: 'minimal', label: 'Minimal', desc: 'Clean & simple' },
+                    ].map((layout) => (
+                      <button
+                        key={layout.id}
+                        type="button"
+                        onClick={() => setHeaderLayout(layout.id as 'centered' | 'left-logo' | 'minimal')}
+                        className={`p-2 rounded-lg border text-center transition ${
+                          headerLayout === layout.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
+                        }`}
+                      >
+                        <span className="block text-xs font-medium text-gray-900">{layout.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={headerShowSearch}
+                      onChange={(e) => setHeaderShowSearch(e.target.checked)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <Search className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-700">Show Search</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={headerShowCart}
+                      onChange={(e) => setHeaderShowCart(e.target.checked)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <ShoppingCart className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-700">Show Cart</span>
+                  </label>
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* Footer Section */}
+            <AccordionSection
+              title="Footer"
+              icon={Rows}
+              isOpen={openSection === 'footer'}
+              onToggle={() => setOpenSection(openSection === 'footer' ? '' : 'footer')}
+            >
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Footer Description</label>
+                  <textarea
+                    value={footerDescription}
+                    onChange={(e) => setFooterDescription(e.target.value)}
+                    placeholder="Your trusted online store..."
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Copyright Text</label>
+                  <input
+                    type="text"
+                    value={copyrightText}
+                    onChange={(e) => setCopyrightText(e.target.value)}
+                    placeholder="© 2024 Your Store. All rights reserved."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Footer Columns */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium text-gray-700">Footer Columns</p>
+                    <button
+                      type="button"
+                      onClick={() => setFooterColumns([...footerColumns, { title: 'New Column', links: [] }])}
+                      className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" /> Add Column
+                    </button>
+                  </div>
+                  
+                  {footerColumns.length === 0 && (
+                    <p className="text-xs text-gray-400 text-center py-2">No footer columns yet</p>
+                  )}
+
+                  {footerColumns.map((column, idx) => (
+                    <div key={idx} className="border border-gray-200 rounded-lg p-3 mb-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <input
+                          type="text"
+                          value={column.title}
+                          onChange={(e) => {
+                            const newColumns = [...footerColumns];
+                            newColumns[idx].title = e.target.value;
+                            setFooterColumns(newColumns);
+                          }}
+                          placeholder="Column Title"
+                          className="flex-1 px-2 py-1 border border-gray-200 rounded text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setFooterColumns(footerColumns.filter((_, i) => i !== idx))}
+                          className="ml-2 p-1 text-red-500 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">{column.links.length} links</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </AccordionSection>

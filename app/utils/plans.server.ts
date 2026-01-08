@@ -17,45 +17,92 @@ import { stores, orders, products } from '@db/schema';
 // ============================================================================
 // PLAN CONFIGURATION
 // ============================================================================
-export type PlanType = 'free' | 'starter' | 'premium' | 'custom';
+export type PlanType = 'free' | 'starter' | 'premium' | 'business';
+
+// Plan display names (Bengali)
+export const PLAN_NAMES: Record<PlanType, { en: string; bn: string }> = {
+  free: { en: 'Free', bn: 'ফ্রি' },
+  starter: { en: 'Starter', bn: 'স্টার্টার' },
+  premium: { en: 'Premium', bn: 'প্রিমিয়াম' },
+  business: { en: 'Business', bn: 'বিজনেস' },
+};
+
+// Plan prices in BDT
+export const PLAN_PRICES: Record<PlanType, number> = {
+  free: 0,
+  starter: 499,
+  premium: 1999,
+  business: 4999, // Base price, can be customized
+};
 
 export interface PlanLimits {
   max_products: number;
   max_orders: number;
+  max_visitors: number;      // Monthly unique visitors
+  max_storage_mb: number;    // Image storage in MB
+  max_staff: number;         // Team members
   allow_store_mode: boolean;
   allow_custom_domain: boolean;
-  fee_rate: number; // Platform commission rate (0.02 = 2%)
+  allow_capi: boolean;       // Facebook Conversion API
+  allow_priority_support: boolean;
+  fee_rate: number;          // Platform commission rate (0.02 = 2%)
 }
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
-    max_products: 1,
+    max_products: 10,
     max_orders: 50,
+    max_visitors: 5000,
+    max_storage_mb: 100,
+    max_staff: 1,
     allow_store_mode: false,
     allow_custom_domain: false,
+    allow_capi: false,
+    allow_priority_support: false,
     fee_rate: 0.02, // 2% platform fee
   },
   starter: {
     max_products: 50,
     max_orders: 500,
+    max_visitors: 25000,
+    max_storage_mb: 500,
+    max_staff: 2,
     allow_store_mode: true,
-    allow_custom_domain: true, // Starter users can use custom domain
+    allow_custom_domain: true,
+    allow_capi: false,
+    allow_priority_support: false,
     fee_rate: 0.015, // 1.5% platform fee
   },
   premium: {
-    max_products: 500,
+    max_products: 200,
     max_orders: 5000,
+    max_visitors: 300000,
+    max_storage_mb: 2048, // 2GB
+    max_staff: 5,
     allow_store_mode: true,
     allow_custom_domain: true,
+    allow_capi: true,
+    allow_priority_support: true,
     fee_rate: 0.01, // 1% platform fee
   },
-  custom: {
-    max_products: Infinity,
-    max_orders: Infinity,
+  business: {
+    max_products: 1000,
+    max_orders: 25000,
+    max_visitors: 1500000,
+    max_storage_mb: 10240, // 10GB
+    max_staff: 15,
     allow_store_mode: true,
     allow_custom_domain: true,
-    fee_rate: 0, // Custom deal, no standard fee
+    allow_capi: true,
+    allow_priority_support: true,
+    fee_rate: 0.005, // 0.5% platform fee
   },
+};
+
+// Legacy alias for backward compatibility
+export const PLAN_LIMITS_LEGACY: Record<string, PlanLimits> = {
+  ...PLAN_LIMITS,
+  custom: PLAN_LIMITS.business, // Map old 'custom' to new 'business'
 };
 
 // ============================================================================
@@ -64,6 +111,8 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
 export const LIMIT_CODES = {
   ORDER: 'LIMIT_REACHED_ORDER',
   PRODUCT: 'LIMIT_REACHED_PRODUCT',
+  VISITOR: 'LIMIT_REACHED_VISITOR',
+  STORAGE: 'LIMIT_REACHED_STORAGE',
 } as const;
 
 export interface LimitError {
@@ -351,4 +400,85 @@ export function canUseCustomDomain(planType: PlanType): boolean {
 // ============================================================================
 export function canUseAI(planType: PlanType): boolean {
   return planType !== 'free';
+}
+
+// ============================================================================
+// UTILITY: Check if store can use CAPI (Conversion API)
+// ============================================================================
+export function canUseCAPI(planType: PlanType): boolean {
+  return PLAN_LIMITS[planType].allow_capi;
+}
+
+// ============================================================================
+// UTILITY: Check if store has priority support
+// ============================================================================
+export function hasPrioritySupport(planType: PlanType): boolean {
+  return PLAN_LIMITS[planType].allow_priority_support;
+}
+
+// ============================================================================
+// UTILITY: Get plan limits safely (with fallback to free for invalid plans)
+// ============================================================================
+export function getPlanLimitsSafe(planType: string): PlanLimits {
+  if (planType in PLAN_LIMITS) {
+    return PLAN_LIMITS[planType as PlanType];
+  }
+  // Check legacy alias
+  if (planType in PLAN_LIMITS_LEGACY) {
+    return PLAN_LIMITS_LEGACY[planType];
+  }
+  // Fallback to free
+  console.warn(`[PLANS] Unknown plan type "${planType}", falling back to free`);
+  return PLAN_LIMITS.free;
+}
+
+// ============================================================================
+// UTILITY: Check visitor limit (to be used with visitor tracking)
+// ============================================================================
+export function checkVisitorLimit(
+  planType: PlanType,
+  currentVisitors: number
+): LimitCheckResult {
+  const limits = PLAN_LIMITS[planType];
+  const maxVisitors = limits.max_visitors;
+  
+  const percentage = Math.round((currentVisitors / maxVisitors) * 100);
+  
+  if (currentVisitors >= maxVisitors) {
+    return {
+      allowed: false,
+      error: {
+        code: LIMIT_CODES.VISITOR,
+        message: `Visitor limit reached (${maxVisitors.toLocaleString()}). Upgrade for more traffic.`,
+        limit: maxVisitors,
+        current: currentVisitors,
+      },
+      usage: {
+        current: currentVisitors,
+        limit: maxVisitors,
+        percentage: 100,
+      },
+    };
+  }
+  
+  return {
+    allowed: true,
+    usage: {
+      current: currentVisitors,
+      limit: maxVisitors,
+      percentage,
+    },
+  };
+}
+
+// ============================================================================
+// UTILITY: Get warning level for usage percentage
+// ============================================================================
+export type WarningLevel = 'none' | 'warning' | 'critical' | 'exceeded';
+
+export function getWarningLevel(percentage: number): WarningLevel {
+  if (percentage >= 100) return 'exceeded';
+  if (percentage >= 90) return 'critical';
+  if (percentage >= 80) return 'warning';
+  return 'none';
 }

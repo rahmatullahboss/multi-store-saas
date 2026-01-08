@@ -77,6 +77,10 @@ export const stores = sqliteTable('stores', {
   // === GOOGLE ANALYTICS TRACKING ===
   googleAnalyticsId: text('google_analytics_id'), // GA4 Measurement ID (e.g., "G-XXXXXXXXXX")
 
+  // === USAGE TRACKING ===
+  monthlyVisitorCount: integer('monthly_visitor_count').default(0), // Unique visitors this month
+  visitorCountResetAt: integer('visitor_count_reset_at', { mode: 'timestamp' }), // Last reset timestamp
+
   // === COURIER SETTINGS ===
   courierSettings: text('courier_settings'), // JSON: { provider, pathao?, redx?, steadfast?, isConnected }
   

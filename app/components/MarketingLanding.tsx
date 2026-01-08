@@ -479,6 +479,17 @@ export function MarketingLanding() {
             </div>
           </div>
         </footer>
+
+        {/* Sticky Mobile CTA Button */}
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/95 to-transparent z-40">
+          <Link 
+            to="/auth/register" 
+            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-2xl text-lg shadow-xl shadow-[#006A4E]/40 active:scale-[0.98] transition-transform"
+          >
+            <Rocket className="w-5 h-5" />
+            ফ্রি তে শুরু করুন
+          </Link>
+        </div>
       </div>
     );
   }
@@ -687,6 +698,17 @@ export function MarketingLanding() {
           </div>
         </div>
       </footer>
+
+        {/* Sticky Mobile CTA Button */}
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0A0F0D] via-[#0A0F0D]/95 to-transparent z-40">
+          <Link 
+            to="/auth/register" 
+            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-2xl text-lg shadow-xl shadow-[#006A4E]/40 active:scale-[0.98] transition-transform"
+          >
+            <Rocket className="w-5 h-5" />
+            ফ্রি তে শুরু করুন
+          </Link>
+        </div>
     </div>
   );
 }
