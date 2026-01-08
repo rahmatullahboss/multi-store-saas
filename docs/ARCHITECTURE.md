@@ -13,7 +13,7 @@
 | **Backend**   | Hono.js                | Fast API routing         |
 | **Database**  | Cloudflare D1 (SQLite) | Edge SQL database        |
 | **ORM**       | Drizzle ORM            | Type-safe DB queries     |
-| **Storage**   | Cloudinary             | Image CDN & processing   |
+| **Storage**   | Cloudflare R2          | Image object storage     |
 | **Styling**   | Tailwind CSS           | Utility-first CSS        |
 | **Icons**     | Lucide React           | SVG icon library         |
 | **Build**     | Vite                   | Fast bundler             |
@@ -47,7 +47,7 @@
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────┐
-│   Cloudinary    │  ←── Image Upload & CDN
+│  Cloudflare R2  │  ←── Image Upload & Storage
 └─────────────────┘
 ```
 
@@ -111,13 +111,14 @@ All data is isolated by `storeId`. Every query filters by the merchant's store t
 
 ## Key Integrations
 
-### Cloudinary (Image Upload)
+### Cloudflare R2 (Image Upload)
 
 ```
 POST /api/upload-image
 ├── Accepts: multipart/form-data (file, folder)
-├── Signs request with API_KEY + API_SECRET
-├── Returns: { url, publicId, width, height }
+├── Images compressed on client via imageCompression.ts
+├── Uploads to R2 bucket (multi-store-saas-media)
+├── Returns: { url, key, size, type }
 ```
 
 ### Authentication Flow
@@ -134,12 +135,12 @@ POST /api/upload-image
 
 ## Environment Variables
 
-| Variable                | Description                |
-| ----------------------- | -------------------------- |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary account name    |
-| `CLOUDINARY_API_KEY`    | Cloudinary API key         |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret      |
-| `DB`                    | D1 database binding (auto) |
+| Variable         | Description                       |
+| ---------------- | --------------------------------- |
+| `R2`             | R2 bucket binding (wrangler.toml) |
+| `R2_PUBLIC_URL`  | R2 bucket public URL              |
+| `DB`             | D1 database binding (auto)        |
+| `RESEND_API_KEY` | Email service API key             |
 
 ---
 

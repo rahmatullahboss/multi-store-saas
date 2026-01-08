@@ -25,6 +25,7 @@ import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe 
 // ============================================================================
 interface HeroProps {
   theme?: 'dark' | 'light';
+  totalUsers?: number;
 }
 
 // ============================================================================
@@ -312,8 +313,8 @@ const StaggeredText = ({ text, className = '', delay = 0 }: { text: string; clas
 // ============================================================================
 // LIVE SIGNUP COUNTER
 // ============================================================================
-const LiveSignupCounter = () => {
-  const [count, setCount] = useState(2847);
+const LiveSignupCounter = ({ initialCount = 0 }: { initialCount?: number }) => {
+  const [count, setCount] = useState(initialCount);
   const [isAnimating, setIsAnimating] = useState(false);
   
   useEffect(() => {
@@ -653,7 +654,7 @@ const BuilderMockup = () => {
 // ============================================================================
 // MAIN HERO COMPONENT - THEME AWARE
 // ============================================================================
-export function AwardWinningHero({ theme = 'dark' }: HeroProps) {
+export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) {
   const colors = getColors(theme);
   const isLight = theme === 'light';
 
@@ -810,7 +811,7 @@ export function AwardWinningHero({ theme = 'dark' }: HeroProps) {
             </motion.div>
             
             {/* Live signup counter */}
-            <LiveSignupCounter />
+            <LiveSignupCounter initialCount={totalUsers} />
             
             {/* Beta notice */}
             <motion.div

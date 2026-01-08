@@ -50,13 +50,13 @@ Destroy the current session.
 
 ### POST `/api/upload-image`
 
-Upload an image to Cloudinary (signed upload).
+Upload an image to Cloudflare R2 (client-side compression recommended).
 
 **Request (multipart/form-data)**:
 
 ```
-file: File (required, max 10MB)
-folder: string (optional, default: "products")
+file: File (required, max 5MB after compression)
+folder: string (optional, default: "uploads")
 ```
 
 **Allowed Types**: JPEG, PNG, WebP, GIF
@@ -66,11 +66,10 @@ folder: string (optional, default: "products")
 ```json
 {
   "success": true,
-  "url": "https://res.cloudinary.com/...",
-  "publicId": "products/abc123",
-  "width": 800,
-  "height": 600,
-  "format": "jpg"
+  "url": "https://pub-xxx.r2.dev/products/123-abc.webp",
+  "key": "products/123-abc.webp",
+  "size": 45678,
+  "type": "image/webp"
 }
 ```
 
@@ -79,8 +78,8 @@ folder: string (optional, default: "products")
 ```json
 { "error": "No file provided" }           // 400
 { "error": "Invalid file type" }          // 400
-{ "error": "File too large. Maximum 10MB" } // 400
-{ "error": "Cloudinary not configured" }  // 500
+{ "error": "File too large. Maximum 5MB" } // 400
+{ "error": "Storage not configured" }     // 500
 ```
 
 ---

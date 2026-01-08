@@ -354,7 +354,7 @@ export function MarketingLanding() {
         </header>
 
         {/* Award-Winning Bangladesh Hero - Bangla Native */}
-        <AwardWinningHero />
+        <AwardWinningHero totalUsers={marketingStats?.totalUsers} />
 
         {/* Problem-Solution Section */}
         <ProblemSolutionSection />
@@ -612,7 +612,7 @@ export function MarketingLanding() {
       </header>
 
       {/* Light Theme Hero - Premium Light Styling */}
-      <AwardWinningHero theme="light" />
+      <AwardWinningHero theme="light" totalUsers={marketingStats?.totalUsers} />
       <ProblemSolutionSection />
       <BentoFeaturesSection />
       <InfrastructureSection />

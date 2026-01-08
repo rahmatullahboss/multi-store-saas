@@ -41,21 +41,8 @@ const CoreEnvSchema = z.object({
   }).min(1, 'SAAS_DOMAIN cannot be empty'),
 });
 
-/**
- * Cloudinary configuration for image uploads
- * Required for product image management
- */
-const CloudinaryEnvSchema = z.object({
-  CLOUDINARY_CLOUD_NAME: z.string({
-    required_error: 'Missing Environment Variable: CLOUDINARY_CLOUD_NAME',
-  }).min(1),
-  CLOUDINARY_API_KEY: z.string({
-    required_error: 'Missing Environment Variable: CLOUDINARY_API_KEY',
-  }).min(1),
-  CLOUDINARY_API_SECRET: z.string({
-    required_error: 'Missing Environment Variable: CLOUDINARY_API_SECRET',
-  }).min(1),
-});
+// Note: Image uploads now use Cloudflare R2 (configured in wrangler.toml)
+// with browser-side compression via app/lib/imageCompression.ts
 
 /**
  * Email service configuration (Resend)
@@ -149,7 +136,6 @@ export const MinimalEnvSchema = CoreEnvSchema;
  * Use this for routes that need full functionality
  */
 export const FullEnvSchema = CoreEnvSchema
-  .merge(CloudinaryEnvSchema)
   .merge(EmailEnvSchema);
 
 /**
@@ -253,7 +239,7 @@ export function getEnv(context: AppLoadContext): MinimalEnv {
 /**
  * getFullEnv - Get all required environment variables
  * 
- * Use this in routes that need Cloudinary, Resend, etc.
+ * Use this in routes that need Resend email, etc.
  * Throws a 503 Response if any required variables are missing.
  */
 export function getFullEnv(context: AppLoadContext): FullEnv {
@@ -398,7 +384,6 @@ export function requireEnv<K extends string>(
 export function validateAllEnv(context: AppLoadContext): {
   valid: boolean;
   core: boolean;
-  cloudinary: boolean;
   email: boolean;
   bkash: boolean;
   nagad: boolean;
@@ -413,7 +398,6 @@ export function validateAllEnv(context: AppLoadContext): {
     missing.push(...formatZodErrors(coreResult.error));
   }
   
-  const cloudinaryResult = CloudinaryEnvSchema.safeParse(raw);
   const emailResult = EmailEnvSchema.safeParse(raw);
   const bkashResult = BkashEnvSchema.safeParse(raw);
   const nagadResult = NagadEnvSchema.safeParse(raw);
@@ -422,7 +406,6 @@ export function validateAllEnv(context: AppLoadContext): {
   return {
     valid: coreResult.success,
     core: coreResult.success,
-    cloudinary: cloudinaryResult.success,
     email: emailResult.success,
     bkash: bkashResult.success,
     nagad: nagadResult.success,
