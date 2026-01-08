@@ -132,7 +132,7 @@ export const LANDING_SECTIONS = [
     descriptionEn: 'Order form',
     icon: ShoppingCart,
     required: true,
-    editable: false,
+    editable: true, // Enable variant selection
   },
 ];
 
@@ -205,6 +205,9 @@ interface SectionManagerProps {
   onComparisonChange?: (comparison: Comparison) => void;
   socialProof?: SocialProof;
   onSocialProofChange?: (socialProof: SocialProof) => void;
+  // Order Form Layout
+  orderFormVariant?: 'full-width' | 'compact';
+  onOrderFormVariantChange?: (variant: 'full-width' | 'compact') => void;
 }
 
 export function SectionManager({
@@ -234,6 +237,9 @@ export function SectionManager({
   onComparisonChange,
   socialProof = { count: 0, text: '' },
   onSocialProofChange,
+  // Order form layout
+  orderFormVariant = 'full-width',
+  onOrderFormVariantChange,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -690,6 +696,54 @@ export function SectionManager({
                 placeholder={language === 'bn' ? 'জন অর্ডার করেছেন' : 'orders placed'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
+            </div>
+          </div>
+        );
+
+      case 'cta':
+        return (
+          <div className="p-4 bg-gray-50 border-t border-gray-200">
+            <label className="block text-xs font-medium text-gray-700 mb-3">
+              {language === 'bn' ? 'অর্ডার ফর্ম লেআউট' : 'Order Form Layout'}
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => onOrderFormVariantChange?.('full-width')}
+                className={`p-3 rounded-lg border text-center transition ${
+                  orderFormVariant === 'full-width'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/20'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="w-8 h-6 mx-auto mb-2 border-2 border-current rounded flex">
+                  <div className="w-1/2 bg-current opacity-30"></div>
+                  <div className="w-1/2 bg-current opacity-60"></div>
+                </div>
+                <div className="font-medium text-sm">
+                  {language === 'bn' ? 'ফুল উইডথ' : 'Full Width'}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {language === 'bn' ? '২ কলাম' : '2 Columns'}
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => onOrderFormVariantChange?.('compact')}
+                className={`p-3 rounded-lg border text-center transition ${
+                  orderFormVariant === 'compact'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/20'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="w-5 h-6 mx-auto mb-2 border-2 border-current rounded bg-current opacity-40"></div>
+                <div className="font-medium text-sm">
+                  {language === 'bn' ? 'কম্প্যাক্ট' : 'Compact'}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {language === 'bn' ? '১ কলাম' : '1 Column'}
+                </div>
+              </button>
             </div>
           </div>
         );

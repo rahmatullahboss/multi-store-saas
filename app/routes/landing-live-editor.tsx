@@ -162,6 +162,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const benefits = JSON.parse(formData.get('benefits') as string || '[]');
   const comparison = JSON.parse(formData.get('comparison') as string || '{}');
   const socialProofData = JSON.parse(formData.get('socialProof') as string || '{"count":0,"text":""}');
+  
+  // Order form layout
+  const orderFormVariant = formData.get('orderFormVariant') as 'full-width' | 'compact' || 'full-width';
 
   const newConfig: LandingConfig = {
     templateId,
@@ -193,6 +196,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     benefits: benefits.filter((b: {icon: string; title: string}) => b.icon && b.title),
     comparison: comparison.beforeImage || comparison.afterImage ? comparison : undefined,
     socialProof: socialProofData.count > 0 || socialProofData.text ? socialProofData : undefined,
+    // Order form layout
+    orderFormVariant,
   };
 
   await db
@@ -313,6 +318,11 @@ export default function LiveEditorPage() {
   const [socialProof, setSocialProof] = useState<{count: number; text: string}>(
     store.landingConfig.socialProof || { count: 0, text: '' }
   );
+  
+  // Order Form Layout Variant
+  const [orderFormVariant, setOrderFormVariant] = useState<'full-width' | 'compact'>(
+    store.landingConfig.orderFormVariant || 'full-width'
+  );
 
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
@@ -348,7 +358,7 @@ export default function LiveEditorPage() {
       return;
     }
     setHasChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, galleryImages, benefits, comparison, socialProof]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -532,6 +542,8 @@ export default function LiveEditorPage() {
     benefits,
     comparison,
     socialProof,
+    // Order form layout
+    orderFormVariant,
   };
 
   // Mock product for preview
@@ -690,6 +702,8 @@ export default function LiveEditorPage() {
               <input type="hidden" name="benefits" value={JSON.stringify(benefits)} />
               <input type="hidden" name="comparison" value={JSON.stringify(comparison)} />
               <input type="hidden" name="socialProof" value={JSON.stringify(socialProof)} />
+              {/* Order form layout */}
+              <input type="hidden" name="orderFormVariant" value={orderFormVariant} />
               
               <button
                 type="submit"
@@ -888,6 +902,9 @@ export default function LiveEditorPage() {
               onComparisonChange={setComparison}
               socialProof={socialProof}
               onSocialProofChange={setSocialProof}
+              // Order form layout
+              orderFormVariant={orderFormVariant}
+              onOrderFormVariantChange={setOrderFormVariant}
             />
 
 

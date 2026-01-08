@@ -621,6 +621,9 @@ export default function Index() {
         // Colors
         primaryColor: '#10b981',
         accentColor: '#f59e0b',
+        
+        // Order Form Layout
+        orderFormVariant: 'full-width' as const,
       };
       
       // Dynamic template selection from registry

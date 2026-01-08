@@ -69,6 +69,8 @@ export interface LandingConfig {
   // Color Theme Customization
   primaryColor?: string; // Main brand color (buttons, accents)
   accentColor?: string;  // Secondary accent color // Additional product images
+  // Order Form Layout Variant
+  orderFormVariant?: 'full-width' | 'compact'; // Default: 'full-width'
 }
 
 // Store template configuration for full store mode
