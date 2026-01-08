@@ -510,6 +510,7 @@ export default function AdminStores() {
                         <fetcher.Form method="post">
                           <input type="hidden" name="intent" value="toggleSuspend" />
                           <input type="hidden" name="storeId" value={store.id} />
+                          <input type="hidden" name="storeName" value={store.name || ''} />
                           <input type="hidden" name="currentStatus" value={String(store.isActive)} />
                           <button
                             type="submit"
@@ -533,6 +534,7 @@ export default function AdminStores() {
                           <Form method="post">
                             <input type="hidden" name="intent" value="impersonate" />
                             <input type="hidden" name="storeId" value={store.id} />
+                            <input type="hidden" name="storeName" value={store.name || ''} />
                             <input type="hidden" name="userId" value={store.ownerId} />
                             <button
                               type="submit"
@@ -550,6 +552,7 @@ export default function AdminStores() {
                           <fetcher.Form method="post">
                             <input type="hidden" name="intent" value="restore" />
                             <input type="hidden" name="storeId" value={store.id} />
+                            <input type="hidden" name="storeName" value={store.name || ''} />
                             <button
                               type="submit"
                               className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition"
@@ -566,6 +569,7 @@ export default function AdminStores() {
                           }}>
                             <input type="hidden" name="intent" value="softDelete" />
                             <input type="hidden" name="storeId" value={store.id} />
+                            <input type="hidden" name="storeName" value={store.name || ''} />
                             <button
                               type="submit"
                               className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition"
