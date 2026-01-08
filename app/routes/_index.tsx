@@ -530,7 +530,11 @@ export default function Index() {
         price: 1999,
         compareAtPrice: 2999,
         imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
-        images: JSON.stringify(['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop']),
+        images: JSON.stringify([
+          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?w=600&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&h=600&fit=crop',
+        ]),
         inventory: 50,
         isPublished: true,
       };
@@ -543,28 +547,80 @@ export default function Index() {
         ctaSubtext: '৭ দিনের মানি ব্যাক গ্যারান্টি',
         urgencyText: '⚡ মাত্র ২৪ ঘণ্টার জন্য ৫০% ছাড়!',
         guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি। পছন্দ না হলে ৭ দিনের মধ্যে ফেরত।',
+        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        
+        // Features Section
         features: [
           { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের উপাদান দিয়ে তৈরি' },
           { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ কার্যদিবসের মধ্যে ডেলিভারি' },
           { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'পছন্দ না হলে সম্পূর্ণ টাকা ফেরত' },
           { icon: '🔒', title: 'নিরাপদ পেমেন্ট', description: 'আপনার পেমেন্ট ১০০% নিরাপদ' },
         ],
+        
+        // Gallery Section (NEW)
+        galleryImages: [
+          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop',
+        ],
+        
+        // Benefits Section (NEW)
+        benefits: [
+          { icon: '💪', title: 'দীর্ঘস্থায়ী', description: 'বছরের পর বছর ব্যবহার করতে পারবেন' },
+          { icon: '🎨', title: 'স্টাইলিশ ডিজাইন', description: 'আধুনিক ও আকর্ষণীয় ডিজাইন' },
+          { icon: '🛡️', title: '১ বছর ওয়ারেন্টি', description: 'কোন সমস্যা হলে বিনামূল্যে মেরামত' },
+          { icon: '📦', title: 'ফ্রি প্যাকেজিং', description: 'সুন্দর গিফট বক্সে প্যাক করা' },
+        ],
+        
+        // Comparison Section (NEW)
+        comparison: {
+          beforeImage: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=300&fit=crop',
+          afterImage: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=300&fit=crop',
+          beforeLabel: 'সাধারণ প্রোডাক্ট',
+          afterLabel: 'আমাদের প্রোডাক্ট',
+          description: 'দেখুন পার্থক্য - আমাদের প্রোডাক্ট কতটা ভালো!',
+        },
+        
+        // Testimonials Section
         testimonials: [
-          { name: 'Customer Review', imageUrl: '' }
+          { name: 'রহিম উদ্দিন', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop', text: 'অসাধারণ প্রোডাক্ট! ৫ স্টার রেটিং দিলাম।' },
+          { name: 'সাবিনা আক্তার', imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop', text: 'দারুণ কোয়ালিটি, দাম অনুযায়ী সেরা।' },
+          { name: 'করিম সাহেব', imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop', text: 'দ্রুত ডেলিভারি পেয়েছি, খুব খুশি।' },
         ],
+        
+        // Social Proof Section (NEW)
+        socialProof: {
+          count: 5000,
+          text: 'জন সন্তুষ্ট গ্রাহক',
+        },
+        
+        // FAQ Section
         faq: [
-          { question: 'ডেলিভারি কতদিনে পাব?', answer: 'অর্ডার করার ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন।' },
-          { question: 'পেমেন্ট কিভাবে করব?', answer: 'ক্যাশ অন ডেলিভারি বা অনলাইন পেমেন্ট দুটোই গ্রহণযোগ্য।' },
+          { question: 'ডেলিভারি কতদিনে পাব?', answer: 'অর্ডার করার ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন। ঢাকায় ২৪ ঘণ্টায় ডেলিভারি।' },
+          { question: 'পেমেন্ট কিভাবে করব?', answer: 'ক্যাশ অন ডেলিভারি বা অনলাইন পেমেন্ট (বিকাশ/নগদ) দুটোই গ্রহণযোগ্য।' },
+          { question: 'রিটার্ন পলিসি কি?', answer: 'পণ্য পছন্দ না হলে ৭ দিনের মধ্যে রিটার্ন করতে পারবেন। সম্পূর্ণ টাকা ফেরত।' },
+          { question: 'ওয়ারেন্টি আছে?', answer: 'হ্যাঁ, ১ বছরের ম্যানুফ্যাকচারিং ওয়ারেন্টি আছে।' },
         ],
+        
+        // Conversion Features
         countdownEnabled: true,
         countdownEndTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         showStockCounter: true,
         lowStockThreshold: 10,
+        
+        // WhatsApp
         whatsappEnabled: true,
         whatsappNumber: '01700000000',
         whatsappMessage: 'হাই, আমি এই প্রোডাক্ট সম্পর্কে জানতে চাই',
-        sectionOrder: ['hero', 'features', 'video', 'testimonials', 'faq', 'guarantee', 'order'],
+        
+        // Section Order (including new sections)
+        sectionOrder: ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'],
         hiddenSections: [],
+        
+        // Colors
+        primaryColor: '#10b981',
+        accentColor: '#f59e0b',
       };
       
       // Dynamic template selection from registry
