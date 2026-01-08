@@ -334,6 +334,130 @@ export function FlashSaleTemplate({
         </div>
       </section>
 
+      {/* TRUST BADGES SECTION - Flash Sale Style */}
+      {isSectionVisible('trust', config.hiddenSections) && (
+        <section className="bg-gray-950 py-8 border-y border-gray-800">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-gray-800/50 rounded-xl border border-gray-700 hover:border-yellow-500/30 transition-colors">
+                <div className="text-2xl mb-2">🚚</div>
+                <h4 className="text-white font-bold text-sm">ফ্রি ডেলিভারি</h4>
+                <p className="text-gray-500 text-xs mt-1">ঢাকার ভেতরে</p>
+              </div>
+              <div className="text-center p-4 bg-gray-800/50 rounded-xl border border-gray-700 hover:border-yellow-500/30 transition-colors">
+                <div className="text-2xl mb-2">💯</div>
+                <h4 className="text-white font-bold text-sm">অরিজিনাল পণ্য</h4>
+                <p className="text-gray-500 text-xs mt-1">১০০% গ্যারান্টি</p>
+              </div>
+              <div className="text-center p-4 bg-gray-800/50 rounded-xl border border-gray-700 hover:border-yellow-500/30 transition-colors">
+                <div className="text-2xl mb-2">💵</div>
+                <h4 className="text-white font-bold text-sm">ক্যাশ অন ডেলিভারি</h4>
+                <p className="text-gray-500 text-xs mt-1">হাতে পেয়ে পেমেন্ট</p>
+              </div>
+              <div className="text-center p-4 bg-gray-800/50 rounded-xl border border-gray-700 hover:border-yellow-500/30 transition-colors">
+                <div className="text-2xl mb-2">🔄</div>
+                <h4 className="text-white font-bold text-sm">সহজ রিটার্ন</h4>
+                <p className="text-gray-500 text-xs mt-1">৭ দিনের পলিসি</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FEATURES SECTION - Flash Sale Style */}
+      {isSectionVisible('features', config.hiddenSections) && config.features && config.features.length > 0 && (
+        <section className="bg-gray-900 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <h3 className="text-xl font-bold text-white text-center mb-6">
+              <span className="text-yellow-400">⚡</span> পণ্যের বৈশিষ্ট্য <span className="text-yellow-400">⚡</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {config.features.map((feature, idx) => (
+                <div key={idx} className="bg-gray-800 border border-gray-700 p-4 rounded-xl flex items-start gap-3 hover:border-yellow-500/30 transition-colors">
+                  <span className="text-2xl">{feature.icon}</span>
+                  <div>
+                    <h4 className="font-bold text-white">{feature.title}</h4>
+                    {feature.description && (
+                      <p className="text-gray-400 text-sm">{feature.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* VIDEO SECTION - Flash Sale Style */}
+      {isSectionVisible('video', config.hiddenSections) && config.videoUrl && (
+        <section className="bg-black py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <h3 className="text-xl font-bold text-white text-center mb-6">
+              🎬 ভিডিওতে দেখুন
+            </h3>
+            <div className="aspect-video rounded-xl overflow-hidden border-2 border-yellow-500/30 shadow-lg shadow-yellow-500/10">
+              {config.videoUrl.includes('youtube.com') || config.videoUrl.includes('youtu.be') ? (
+                <iframe
+                  src={config.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  title="Product Video"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={config.videoUrl}
+                  controls
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* DELIVERY SECTION - Flash Sale Style */}
+      {isSectionVisible('delivery', config.hiddenSections) && (
+        <section className="bg-gray-950 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <h3 className="text-xl font-bold text-white text-center mb-6">
+              🚚 ডেলিভারি তথ্য
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-800 border border-green-500/30 p-6 rounded-xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-2xl">🏙️</span>
+                  <div>
+                    <h4 className="font-bold text-white">ঢাকার ভেতরে</h4>
+                    <p className="text-green-400 text-sm font-medium">২৪-৪৮ ঘণ্টা</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-gray-400 text-sm">
+                  <li>✓ ডেলিভারি চার্জ: ৳৬০</li>
+                  <li>✓ সেম-ডে ডেলিভারি সম্ভব</li>
+                  <li>✓ ক্যাশ অন ডেলিভারি</li>
+                </ul>
+              </div>
+              <div className="bg-gray-800 border border-blue-500/30 p-6 rounded-xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-2xl">🌍</span>
+                  <div>
+                    <h4 className="font-bold text-white">ঢাকার বাইরে</h4>
+                    <p className="text-blue-400 text-sm font-medium">২-৩ দিন</p>
+                  </div>
+                </div>
+                <ul className="space-y-2 text-gray-400 text-sm">
+                  <li>✓ ডেলিভারি চার্জ: ৳১২০</li>
+                  <li>✓ সারাদেশে ডেলিভারি</li>
+                  <li>✓ কুরিয়ার সার্ভিস</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* GALLERY SECTION - Flash Sale Style */}
       {isSectionVisible('gallery', config.hiddenSections) && config.galleryImages && config.galleryImages.length > 0 && (
         <section className="bg-gray-900 py-8">
