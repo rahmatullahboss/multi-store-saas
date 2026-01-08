@@ -6,6 +6,7 @@ import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { MagicSectionWrapper } from '~/components/editor';
 import { BD_DIVISIONS, calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
 import { CountdownTimer } from '~/components/landing';
+import { OrderBumpsContainer } from '~/components/landing/OrderBumpCheckbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Check, X, Truck, ShieldCheck, RefreshCw, Banknote, 
@@ -90,10 +91,26 @@ export function PremiumBDTemplate({
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
+  // Selected order bump IDs
+  const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
+  
   // Checkout Logic
   const subtotal = product.price * formData.quantity;
   const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
-  const totalPrice = subtotal + shippingCost;
+  
+  // Calculate bump products total
+  const orderBumps = (config as any).orderBumps || [];
+  const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
+    const bump = orderBumps.find((b: any) => b.id === bumpId);
+    if (!bump) return total;
+    const originalPrice = bump.bumpProduct.price;
+    const discountedPrice = bump.discount > 0 
+      ? originalPrice * (1 - bump.discount / 100) 
+      : originalPrice;
+    return total + discountedPrice;
+  }, 0);
+  
+  const totalPrice = subtotal + bumpTotal + shippingCost;
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
@@ -130,6 +147,7 @@ export function PremiumBDTemplate({
         address: formData.address,
         division: formData.division,
         quantity: formData.quantity,
+        bump_ids: selectedBumpIds.length > 0 ? selectedBumpIds : undefined,
       },
       { method: 'POST', action: '/api/create-order', encType: 'application/json' }
     );
@@ -637,6 +655,16 @@ export function PremiumBDTemplate({
                     >+</button>
                   </div>
                 </div>
+
+                {/* Order Bumps - Add-on Offers */}
+                {orderBumps.length > 0 && (
+                  <OrderBumpsContainer
+                    bumps={orderBumps}
+                    currency={currency}
+                    selectedBumpIds={selectedBumpIds}
+                    onSelectionChange={setSelectedBumpIds}
+                  />
+                )}
 
                 {/* Trust Badges */}
                 <div className="grid grid-cols-2 gap-3">
