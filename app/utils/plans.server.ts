@@ -271,52 +271,56 @@ export async function getBulkUsageStats(
   dbBinding: D1Database,
   storeIds: number[]
 ): Promise<Map<number, { orders: number; products: number }>> {
+  // Return empty map for empty input
   if (storeIds.length === 0) return new Map();
   
-  const db = drizzle(dbBinding);
-  const monthStart = getMonthStart();
-  
-  // Get monthly order counts for all stores in one query
-  const orderCounts = await db
-    .select({ 
-      storeId: orders.storeId, 
-      count: count() 
-    })
-    .from(orders)
-    .where(gte(orders.createdAt, monthStart))
-    .groupBy(orders.storeId);
-  
-  // Get active product counts for all stores in one query
-  const productCounts = await db
-    .select({ 
-      storeId: products.storeId, 
-      count: count() 
-    })
-    .from(products)
-    .where(eq(products.isPublished, true))
-    .groupBy(products.storeId);
-  
-  // Build result map
+  // Initialize result map with zeros for all stores
   const result = new Map<number, { orders: number; products: number }>();
-  
-  // Initialize all stores with 0
   storeIds.forEach(id => result.set(id, { orders: 0, products: 0 }));
   
-  // Fill in order counts
-  orderCounts.forEach(row => {
-    const existing = result.get(row.storeId);
-    if (existing) {
-      existing.orders = row.count;
-    }
-  });
-  
-  // Fill in product counts
-  productCounts.forEach(row => {
-    const existing = result.get(row.storeId);
-    if (existing) {
-      existing.products = row.count;
-    }
-  });
+  try {
+    const db = drizzle(dbBinding);
+    const monthStart = getMonthStart();
+    
+    // Get monthly order counts for all stores in one query
+    const orderCounts = await db
+      .select({ 
+        storeId: orders.storeId, 
+        count: count() 
+      })
+      .from(orders)
+      .where(gte(orders.createdAt, monthStart))
+      .groupBy(orders.storeId);
+    
+    // Get active product counts for all stores in one query
+    const productCounts = await db
+      .select({ 
+        storeId: products.storeId, 
+        count: count() 
+      })
+      .from(products)
+      .where(eq(products.isPublished, true))
+      .groupBy(products.storeId);
+    
+    // Fill in order counts
+    orderCounts.forEach(row => {
+      const existing = result.get(row.storeId);
+      if (existing) {
+        existing.orders = row.count;
+      }
+    });
+    
+    // Fill in product counts
+    productCounts.forEach(row => {
+      const existing = result.get(row.storeId);
+      if (existing) {
+        existing.products = row.count;
+      }
+    });
+  } catch (error) {
+    console.error('[getBulkUsageStats] Error fetching usage stats:', error);
+    // Return zeros on error - don't crash the page
+  }
   
   return result;
 }
