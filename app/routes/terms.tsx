@@ -8,6 +8,7 @@ import type { MetaFunction } from '@remix-run/cloudflare';
 import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { MarketingFooter } from '~/components/MarketingFooter';
 
 export const meta: MetaFunction = () => [
   { title: 'শর্তাবলী - Multi-Store SaaS' },
@@ -147,14 +148,7 @@ export default function TermsPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-8 px-4 bg-[#0A0F0D] border-t border-white/5">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-sm text-white/40">
-            © {new Date().getFullYear()} Multi-Store SaaS. সর্বস্বত্ব সংরক্ষিত।
-          </p>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }
