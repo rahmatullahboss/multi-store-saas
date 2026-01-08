@@ -32,7 +32,7 @@ import { InfrastructureCTA } from '~/components/InfrastructureCTA';
 import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
-import { PricingSection } from '~/components/PricingSection';
+import { PricingSection } from '~/components/PricingSection'; // Keep for reference, not rendered
 import { FinalCTA } from '~/components/FinalCTA';
 import { FAQSection } from '~/components/FAQSection';
 import { LightFloatingOrbs, LightHeroGradient, LightShimmerText } from '~/components/LightThemeEffects';
@@ -403,8 +403,7 @@ export function MarketingLanding() {
         {/* Interactive Store Demo - Try It Now */}
         <InteractiveStoreDemo />
 
-        {/* Pricing Section - Premium Bangladeshi Design */}
-        <PricingSection />
+        {/* Pricing moved to dedicated /pricing page */}
 
         {/* FAQ Section - Bengali Design */}
         <FAQSection />
@@ -433,7 +432,7 @@ export function MarketingLanding() {
                 <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
               <ul className="space-y-2">
                   <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
-                  <li><Link to="/#pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
+                  <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
                   <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">টিউটোরিয়াল</Link></li>
                 </ul>
               </div>
@@ -480,14 +479,14 @@ export function MarketingLanding() {
           </div>
         </footer>
 
-        {/* Sticky Mobile CTA Button */}
-        <div className="sm:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/95 to-transparent z-40">
+        {/* Sticky Mobile CTA Button - FAB Style */}
+        <div className="sm:hidden fixed bottom-4 right-4 z-40">
           <Link 
             to="/auth/register" 
-            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-2xl text-lg shadow-xl shadow-[#006A4E]/40 active:scale-[0.98] transition-transform"
+            className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm shadow-xl shadow-[#006A4E]/40 active:scale-[0.95] transition-transform"
           >
-            <Rocket className="w-5 h-5" />
-            ফ্রি তে শুরু করুন
+            <Rocket className="w-4 h-4" />
+            ফ্রি শুরু
           </Link>
         </div>
       </div>
@@ -627,7 +626,7 @@ export function MarketingLanding() {
       <TrustSection />
       <ComparisonSection />
       <InteractiveStoreDemo />
-      <PricingSection />
+      {/* Pricing moved to dedicated /pricing page */}
       <FAQSection />
       <FinalCTA />
 
@@ -652,7 +651,7 @@ export function MarketingLanding() {
               <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
               <ul className="space-y-2">
                 <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
-                <li><Link to="/#pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
+                <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
                 <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">টিউটোরিয়াল</Link></li>
               </ul>
             </div>

@@ -167,6 +167,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // Order form layout
   const orderFormVariant = formData.get('orderFormVariant') as 'full-width' | 'compact' || 'full-width';
+  const customCSS = formData.get('customCSS') as string || '';
 
   const newConfig: LandingConfig = {
     templateId,
@@ -202,6 +203,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     socialProof: socialProofData.count > 0 || socialProofData.text ? socialProofData : undefined,
     // Order form layout
     orderFormVariant,
+    // Custom CSS
+    customCSS: customCSS || undefined,
   };
 
   await db
@@ -308,6 +311,7 @@ export default function LiveEditorPage() {
   const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '');
   const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '');
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
+  const [customCSS, setCustomCSS] = useState(store.landingConfig.customCSS || '');
 
   // New section states
   const [galleryImages, setGalleryImages] = useState<string[]>(store.landingConfig.galleryImages || []);
@@ -714,6 +718,8 @@ export default function LiveEditorPage() {
               <input type="hidden" name="socialProof" value={JSON.stringify(socialProof)} />
               {/* Order form layout */}
               <input type="hidden" name="orderFormVariant" value={orderFormVariant} />
+              {/* Custom CSS */}
+              <input type="hidden" name="customCSS" value={customCSS} />
               
               <button
                 type="submit"
@@ -1159,6 +1165,31 @@ export default function LiveEditorPage() {
                   {language === 'bn' ? 'প্রোডাক্ট ক্যাটালগ সহ' : 'With product catalog'}
                 </p>
               </button>
+            </div>
+          </AccordionSection>
+
+          {/* Custom CSS Section */}
+          <AccordionSection
+            title={language === 'bn' ? 'কাস্টম CSS' : 'Custom CSS'}
+            icon={Settings}
+            isOpen={openSection === 'css'}
+            onToggle={() => setOpenSection(openSection === 'css' ? '' : 'css')}
+          >
+            <div className="space-y-3">
+              <textarea
+                value={customCSS}
+                onChange={(e) => setCustomCSS(e.target.value)}
+                placeholder="/* Your custom CSS */
+.hero { background: red; }
+.cta-button { border-radius: 20px; }"
+                rows={10}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-y"
+              />
+              <p className="text-xs text-gray-500">
+                {language === 'bn' 
+                  ? '⚠️ ভুল CSS লেআউট ভেঙে দিতে পারে' 
+                  : '⚠️ Invalid CSS may break layout'}
+              </p>
             </div>
           </AccordionSection>
         </aside>
