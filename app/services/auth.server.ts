@@ -10,7 +10,10 @@
 import { createCookieSessionStorage, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { users, stores } from '@db/schema';
+import { users, stores, adminRoles } from '@db/schema';
+
+// Helper types for permissions
+export type AdminPermission = 'canSuspend' | 'canDelete' | 'canBilling' | 'canImpersonate' | 'canManageTeam';
 
 // ============================================================================
 // SESSION STORAGE
@@ -556,4 +559,68 @@ export async function createImpersonationSession(
       'Set-Cookie': await commitSession(session),
     },
   });
+}
+/**
+ * Check if the current user has a specific admin permission
+ */
+export async function hasAdminPermission(request: Request, db: D1Database, permission: AdminPermission): Promise<boolean> {
+  const userId = await getUserId(request);
+  if (!userId) return false;
+
+  const drizzleDb = drizzle(db);
+
+  // 1. Check users table
+  const userResult = await drizzleDb
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+    
+  const userRole = userResult[0]?.role;
+
+  // 2. Check admin_roles table
+  const roleEntry = await drizzleDb
+    .select()
+    .from(adminRoles)
+    .where(eq(adminRoles.userId, userId))
+    .limit(1);
+
+  // LOGIC:
+  // If user is 'super_admin' in users table AND no entry in admin_roles, likely Legacy Super Admin -> Allow EVERYTHING.
+  if (userRole === 'super_admin' && roleEntry.length === 0) {
+    return true; 
+  }
+
+  // If entry exists in admin_roles, strictly follow permissions
+  if (roleEntry.length > 0) {
+    const roleData = roleEntry[0];
+    
+    // 'super_admin' role in admin_roles also gets everything (double check permission JSON just in case, but usually yes)
+    if (roleData.role === 'super_admin') return true;
+    
+    try {
+      const perms = JSON.parse(roleData.permissions as string);
+      return !!perms[permission];
+    } catch (e) {
+      console.error('[hasAdminPermission] JSON parse error for user', userId, e);
+      return false;
+    }
+  }
+
+  // Default deny if not legacy super admin and no role entry
+  return false;
+}
+
+/**
+ * Require a specific admin permission
+ * Throws 403 response if unauthorized
+ */
+export async function requireAdminPermission(request: Request, db: D1Database, permission: AdminPermission) {
+  // First ensure they are at least logged in
+  await requireUserId(request);
+  
+  const allowed = await hasAdminPermission(request, db, permission);
+  if (!allowed) {
+    throw new Response('Forbidden: You do not have permission to perform this action.', { status: 403 });
+  }
 }

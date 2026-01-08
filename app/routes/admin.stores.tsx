@@ -15,7 +15,7 @@ import { useLoaderData, useFetcher, Form, useSearchParams } from '@remix-run/rea
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql, desc, inArray } from 'drizzle-orm';
 import { stores, users, activityLogs, adminAuditLogs, storeTags } from '@db/schema';
-import { requireSuperAdmin, createImpersonationSession } from '~/services/auth.server';
+import { requireSuperAdmin, createImpersonationSession, requireAdminPermission } from '~/services/auth.server';
 import { logAdminAction } from '~/services/audit.server';
 import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 import { 
@@ -133,6 +133,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // ============ SUSPEND/UNSUSPEND ============
   if (intent === 'toggleSuspend') {
+    await requireAdminPermission(request, db, 'canSuspend');
+
     const currentStatus = formData.get('currentStatus') === 'true';
     const newStatus = !currentStatus;
     
@@ -175,6 +177,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // ============ SOFT DELETE ============
   if (intent === 'softDelete') {
+    await requireAdminPermission(request, db, 'canDelete');
+
     await drizzleDb
       .update(stores)
       .set({ 
@@ -209,6 +213,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // ============ RESTORE ============
   if (intent === 'restore') {
+    await requireAdminPermission(request, db, 'canDelete'); // Restore falls under delete permission
+
     await drizzleDb
       .update(stores)
       .set({ 
@@ -243,6 +249,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // ============ BULK SUSPEND ============
   if (intent === 'bulkSuspend') {
+    await requireAdminPermission(request, db, 'canSuspend');
+
     const storeIds = JSON.parse(formData.get('storeIds')?.toString() || '[]') as number[];
     
     await drizzleDb
@@ -310,6 +318,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // ============ IMPERSONATE ============
   if (intent === 'impersonate') {
+    await requireAdminPermission(request, db, 'canImpersonate');
+
     // CRITICAL SECURITY: Only SUPER_ADMIN_EMAIL can impersonate
     const superAdminEmail = context.cloudflare.env.SUPER_ADMIN_EMAIL;
     

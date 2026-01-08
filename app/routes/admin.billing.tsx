@@ -16,7 +16,7 @@ import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, ne, sql, isNotNull, lt, gte, or } from 'drizzle-orm';
 import { stores, users, activityLogs, adminAuditLogs } from '@db/schema';
-import { requireSuperAdmin } from '~/services/auth.server';
+import { requireSuperAdmin, requireAdminPermission } from '~/services/auth.server';
 import { logAdminAction } from '~/services/audit.server';
 import { createEmailService } from '~/services/email.server';
 import { 
@@ -146,6 +146,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
   const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, db);
+
+  // Enforce Billing Permission for all actions here
+  await requireAdminPermission(request, db, 'canBilling');
   
   const formData = await request.formData();
   const intent = formData.get('intent');

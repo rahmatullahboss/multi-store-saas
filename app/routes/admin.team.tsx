@@ -16,7 +16,7 @@ import { useLoaderData, useFetcher, useSearchParams, Form } from '@remix-run/rea
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql, desc, ne } from 'drizzle-orm';
 import { users, adminRoles, activityLogs, adminAuditLogs } from '@db/schema';
-import { requireSuperAdmin } from '~/services/auth.server';
+import { requireSuperAdmin, requireAdminPermission } from '~/services/auth.server';
 import { logAdminAction } from '~/services/audit.server';
 import { hashPassword } from '~/services/auth.server';
 import { 
@@ -87,6 +87,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
   const { userId: adminId, userEmail: adminEmail } = await requireSuperAdmin(request, db);
   
+  // Enforce Team Management Permission
+  await requireAdminPermission(request, db, 'canManageTeam');
+
   const formData = await request.formData();
   const intent = formData.get('intent');
   
