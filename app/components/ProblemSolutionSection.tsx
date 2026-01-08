@@ -3,38 +3,35 @@
  * 
  * Concept: "The Struggle is Real" → "But Not Anymore"
  * 
- * Features:
- * - Two contrasting panels with dramatic scroll transition
- * - Problem side: Red/orange undertones, frustrated shake animation
- * - Solution side: Green/teal undertones, progress animation
- * - Card flip animations on scroll trigger
- * - Confetti burst on completion
- * - Smooth color transition
+ * LAYOUT: Side by side comparison for direct visual contrast
+ * - Left panel: Problem (Red/orange undertones)
+ * - Right panel: Solution (Green/teal undertones)
+ * - Centro arrow connecting both
  */
 
-import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
-import { X, Check, Sparkles, ArrowDown, Facebook, Code, FileSpreadsheet, DollarSign, HelpCircle, Palette, FileText, Rocket, PartyPopper } from 'lucide-react';
+import { X, Check, Sparkles, Facebook, Code, FileSpreadsheet, DollarSign, HelpCircle, Palette, Rocket, PartyPopper, ArrowRight, ChevronRight } from 'lucide-react';
 
 // ============================================================================
 // DESIGN TOKENS
 // ============================================================================
 const COLORS = {
   problem: {
-    bg: '#1A0F0F',
+    bg: 'rgba(239, 68, 68, 0.05)',
     accent: '#EF4444',
     accentMuted: '#DC2626',
     card: 'rgba(239, 68, 68, 0.08)',
-    cardBorder: 'rgba(239, 68, 68, 0.2)',
+    cardBorder: 'rgba(239, 68, 68, 0.25)',
     text: 'rgba(255, 255, 255, 0.9)',
     textMuted: 'rgba(255, 255, 255, 0.5)',
   },
   solution: {
-    bg: '#0A1A14',
+    bg: 'rgba(16, 185, 129, 0.05)',
     accent: '#10B981',
     accentLight: '#34D399',
     card: 'rgba(16, 185, 129, 0.08)',
-    cardBorder: 'rgba(16, 185, 129, 0.2)',
+    cardBorder: 'rgba(16, 185, 129, 0.25)',
     text: 'rgba(255, 255, 255, 0.95)',
     textMuted: 'rgba(255, 255, 255, 0.6)',
   },
@@ -46,13 +43,13 @@ const COLORS = {
 const Confetti = ({ isActive }: { isActive: boolean }) => {
   if (!isActive) return null;
   
-  const confettiPieces = Array.from({ length: 50 }, (_, i) => ({
+  const confettiPieces = Array.from({ length: 30 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     delay: Math.random() * 0.5,
     rotation: Math.random() * 360,
     color: ['#10B981', '#34D399', '#F9A825', '#FBBF24', '#006A4E'][Math.floor(Math.random() * 5)],
-    size: Math.random() * 8 + 4,
+    size: Math.random() * 6 + 3,
   }));
 
   return (
@@ -63,7 +60,7 @@ const Confetti = ({ isActive }: { isActive: boolean }) => {
           className="absolute"
           style={{
             left: `${piece.x}%`,
-            top: '50%',
+            top: '30%',
             width: piece.size,
             height: piece.size,
             backgroundColor: piece.color,
@@ -71,13 +68,13 @@ const Confetti = ({ isActive }: { isActive: boolean }) => {
           }}
           initial={{ y: 0, opacity: 1, rotate: 0, scale: 0 }}
           animate={{
-            y: [0, -200, 400],
+            y: [0, -100, 200],
             opacity: [0, 1, 0],
             rotate: [0, piece.rotation, piece.rotation * 2],
             scale: [0, 1, 0.5],
           }}
           transition={{
-            duration: 2.5,
+            duration: 2,
             delay: piece.delay,
             ease: 'easeOut',
           }}
@@ -88,9 +85,9 @@ const Confetti = ({ isActive }: { isActive: boolean }) => {
 };
 
 // ============================================================================
-// SHAKE ANIMATION FOR FRUSTRATION
+// PAIN POINT CARD (Compact for side-by-side)
 // ============================================================================
-const FrustrationCard = ({ 
+const PainPointCard = ({ 
   icon: Icon, 
   text, 
   delay = 0 
@@ -101,39 +98,41 @@ const FrustrationCard = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
-      className="relative group"
+      transition={{ duration: 0.4, delay }}
+      className="group"
     >
       <motion.div
-        className="relative p-4 md:p-5 rounded-2xl border backdrop-blur-sm"
+        className="relative p-3 rounded-xl border backdrop-blur-sm"
         style={{
           backgroundColor: COLORS.problem.card,
           borderColor: COLORS.problem.cardBorder,
         }}
         animate={{
-          x: [0, -2, 2, -2, 2, 0],
+          x: [0, -1, 1, -1, 1, 0],
         }}
         transition={{
-          duration: 0.5,
+          duration: 0.4,
           delay: delay + 2,
           repeat: Infinity,
-          repeatDelay: 4,
+          repeatDelay: 5,
         }}
-        whileHover={{ scale: 1.02 }}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-center gap-2">
           <div 
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: `${COLORS.problem.accent}20` }}
           >
-            <X className="w-5 h-5" style={{ color: COLORS.problem.accent }} />
+            <X className="w-3.5 h-3.5" style={{ color: COLORS.problem.accent }} />
           </div>
-          <div className="flex items-center gap-2 flex-1">
-            <Icon className="w-4 h-4 text-white/40" />
-            <p className="text-sm md:text-base text-white/80" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <Icon className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+            <p 
+              className="text-xs sm:text-sm text-white/75 truncate" 
+              style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+            >
               {text}
             </p>
           </div>
@@ -144,101 +143,87 @@ const FrustrationCard = ({
 };
 
 // ============================================================================
-// PROGRESS STEP COMPONENT
+// SOLUTION STEP (Compact for side-by-side)
 // ============================================================================
-const ProgressStep = ({ 
+const SolutionStep = ({ 
   number, 
   text, 
   isComplete, 
   delay = 0,
-  isLast = false,
 }: { 
   number: string;
   text: string; 
   isComplete: boolean;
   delay?: number;
-  isLast?: boolean;
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0, x: 20 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
-      className="flex items-center gap-4"
+      transition={{ duration: 0.4, delay }}
+      className="flex items-center gap-3"
     >
       {/* Step number */}
       <motion.div
-        className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0"
+        className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
         style={{
           backgroundColor: isComplete ? COLORS.solution.accent : 'rgba(255,255,255,0.1)',
-          color: isComplete ? '#000' : 'rgba(255,255,255,0.5)',
+          color: isComplete ? '#000' : 'rgba(255,255,255,0.4)',
         }}
-        animate={isComplete ? { scale: [1, 1.1, 1] } : {}}
+        animate={isComplete ? { scale: [1, 1.15, 1] } : {}}
         transition={{ duration: 0.3 }}
       >
-        {isComplete ? <Check className="w-5 h-5" /> : number}
+        {isComplete ? <Check className="w-4 h-4" /> : number}
       </motion.div>
       
       {/* Step text */}
       <p 
-        className="text-base md:text-lg font-medium"
+        className="text-sm font-medium flex-1"
         style={{ 
-          color: isComplete ? COLORS.solution.text : 'rgba(255,255,255,0.5)',
+          color: isComplete ? COLORS.solution.text : 'rgba(255,255,255,0.4)',
           fontFamily: "'Noto Sans Bengali', sans-serif",
         }}
       >
         {text}
       </p>
       
-      {/* Progress line */}
-      <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+      {/* Progress bar */}
+      <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
         <motion.div
           className="h-full rounded-full"
           style={{ backgroundColor: COLORS.solution.accent }}
           initial={{ width: '0%' }}
           animate={{ width: isComplete ? '100%' : '0%' }}
-          transition={{ duration: 0.8, delay: delay + 0.2, ease: 'easeOut' }}
+          transition={{ duration: 0.6, delay: delay + 0.2, ease: 'easeOut' }}
         />
       </div>
       
-      {/* Check mark */}
+      {/* Check */}
       <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ 
-          scale: isComplete ? 1 : 0, 
-          opacity: isComplete ? 1 : 0 
-        }}
-        transition={{ duration: 0.3, delay: delay + 0.8 }}
+        initial={{ scale: 0 }}
+        animate={{ scale: isComplete ? 1 : 0 }}
+        transition={{ duration: 0.2, delay: delay + 0.6 }}
       >
-        <Check className="w-5 h-5" style={{ color: COLORS.solution.accent }} />
+        <Check className="w-4 h-4" style={{ color: COLORS.solution.accent }} />
       </motion.div>
     </motion.div>
   );
 };
 
 // ============================================================================
-// MAIN COMPONENT
+// MAIN COMPONENT - SIDE BY SIDE LAYOUT
 // ============================================================================
 export function ProblemSolutionSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-20%' });
-  const [showSolution, setShowSolution] = useState(false);
+  const isInView = useInView(sectionRef, { once: true, margin: '-10%' });
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Trigger solution panel after scrolling into view
+  // Animate steps sequentially when in view
   useEffect(() => {
     if (isInView) {
-      const timer = setTimeout(() => setShowSolution(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [isInView]);
-
-  // Animate steps sequentially
-  useEffect(() => {
-    if (showSolution) {
-      const delays = [500, 1200, 1900];
+      const delays = [800, 1500, 2200];
       delays.forEach((delay, i) => {
         setTimeout(() => {
           setCompletedSteps(prev => [...prev, i]);
@@ -246,16 +231,16 @@ export function ProblemSolutionSection() {
       });
       
       // Show confetti after all steps
-      setTimeout(() => setShowConfetti(true), 2800);
+      setTimeout(() => setShowConfetti(true), 3000);
     }
-  }, [showSolution]);
+  }, [isInView]);
 
   const painPoints = [
     { icon: Facebook, text: 'Facebook এ Post করে করে ক্লান্ত' },
     { icon: Code, text: 'Developer এর পেছনে দৌড়ানো' },
     { icon: FileSpreadsheet, text: 'Excel এ Order Track করা' },
-    { icon: DollarSign, text: 'Shopify র মাসে ৫০০০+ টাকা দেওয়া' },
-    { icon: HelpCircle, text: 'ইংরেজি Platform এ বুঝে উঠতে না পারা', fullWidth: true },
+    { icon: DollarSign, text: 'Shopify র মাসে ৫০০০+ টাকা' },
+    { icon: HelpCircle, text: 'ইংরেজি Platform এ বুঝতে না পারা' },
   ];
 
   const steps = [
@@ -267,229 +252,226 @@ export function ProblemSolutionSection() {
   return (
     <section 
       ref={sectionRef}
-      className="relative py-20 md:py-32 overflow-hidden transition-colors duration-1000"
+      className="relative py-16 md:py-24 overflow-hidden"
       style={{
-        background: showSolution 
-          ? `linear-gradient(180deg, ${COLORS.solution.bg} 0%, #0D1512 100%)`
-          : `linear-gradient(180deg, ${COLORS.problem.bg} 0%, #150D0D 100%)`,
+        background: 'linear-gradient(180deg, #0A0A12 0%, #0D0D18 100%)',
       }}
     >
-      {/* Background transition overlay */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: showSolution ? 1 : 0 }}
-        transition={{ duration: 1 }}
-        style={{
-          background: `radial-gradient(ellipse at center, ${COLORS.solution.accent}10 0%, transparent 70%)`,
-        }}
-      />
+      {/* Section Header */}
+      <motion.div 
+        className="text-center mb-12 md:mb-16 px-4"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+      >
+        <h2 
+          className="text-2xl md:text-4xl font-bold text-white mb-3"
+          style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+        >
+          কেন <span className="text-red-400">কষ্ট</span> করবেন, যখন আছে{' '}
+          <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(135deg, #10B981, #34D399)' }}>
+            সহজ উপায়?
+          </span>
+        </h2>
+      </motion.div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6">
-        
-        {/* === PROBLEM PANEL === */}
-        <AnimatePresence mode="wait">
-          {!showSolution && (
-            <motion.div
-              key="problem"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, y: -50, scale: 0.95 }}
-              transition={{ duration: 0.6 }}
-              className="text-center"
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+        {/* SIDE BY SIDE LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+          
+          {/* ===== LEFT PANEL - PROBLEM ===== */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative"
+          >
+            <div 
+              className="h-full p-5 md:p-8 rounded-3xl border relative overflow-hidden"
+              style={{
+                backgroundColor: COLORS.problem.bg,
+                borderColor: COLORS.problem.cardBorder,
+              }}
             >
-              {/* Problem Header */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-12"
-              >
+              {/* Red gradient glow */}
+              <div 
+                className="absolute top-0 right-0 w-32 h-32 opacity-30 blur-3xl"
+                style={{ backgroundColor: COLORS.problem.accent }}
+              />
+              
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6">
                 <motion.span 
-                  className="text-5xl mb-4 block"
+                  className="text-3xl md:text-4xl"
                   animate={{ rotate: [-5, 5, -5] }}
-                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
                 >
                   😫
                 </motion.span>
-                <h2 
-                  className="text-3xl md:text-5xl font-bold text-white mb-4"
+                <h3 
+                  className="text-xl md:text-2xl font-bold text-white"
                   style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
                 >
                   এখনো এভাবে{' '}
                   <span style={{ color: COLORS.problem.accent }}>কষ্ট</span>{' '}
                   করছেন?
-                </h2>
-              </motion.div>
+                </h3>
+              </div>
 
-              {/* Pain Point Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-12">
-                {painPoints.slice(0, 4).map((point, i) => (
-                  <FrustrationCard
+              {/* Pain Points */}
+              <div className="space-y-3">
+                {painPoints.map((point, i) => (
+                  <PainPointCard
                     key={i}
                     icon={point.icon}
                     text={point.text}
-                    delay={i * 0.15}
+                    delay={i * 0.1}
                   />
                 ))}
               </div>
-              
-              {/* Full width pain point */}
-              <div className="max-w-xl mx-auto">
-                <FrustrationCard
-                  icon={painPoints[4].icon}
-                  text={painPoints[4].text}
-                  delay={0.6}
-                />
-              </div>
+            </div>
+          </motion.div>
 
-              {/* Scroll indicator */}
-              <motion.div
-                className="mt-12 flex flex-col items-center gap-2"
-                animate={{ y: [0, 8, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                <p className="text-white/40 text-sm">Scroll করুন</p>
-                <ArrowDown className="w-5 h-5 text-white/40" />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* ===== CENTER ARROW (Desktop Only) ===== */}
+          <motion.div
+            className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
+            initial={{ scale: 0, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            <div 
+              className="w-14 h-14 rounded-full flex items-center justify-center"
+              style={{ 
+                background: 'linear-gradient(135deg, #EF4444 0%, #10B981 100%)',
+                boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)',
+              }}
+            >
+              <ArrowRight className="w-6 h-6 text-white" />
+            </div>
+          </motion.div>
 
-        {/* === SOLUTION PANEL === */}
-        <AnimatePresence>
-          {showSolution && (
-            <motion.div
-              key="solution"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="text-center"
+          {/* Mobile Arrow */}
+          <motion.div
+            className="flex lg:hidden justify-center -my-2"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            <div 
+              className="w-10 h-10 rounded-full flex items-center justify-center rotate-90"
+              style={{ 
+                background: 'linear-gradient(135deg, #EF4444 0%, #10B981 100%)',
+              }}
+            >
+              <ArrowRight className="w-5 h-5 text-white" />
+            </div>
+          </motion.div>
+
+          {/* ===== RIGHT PANEL - SOLUTION ===== */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative"
+          >
+            <div 
+              className="h-full p-5 md:p-8 rounded-3xl border relative overflow-hidden"
+              style={{
+                backgroundColor: COLORS.solution.bg,
+                borderColor: COLORS.solution.cardBorder,
+              }}
             >
               {/* Confetti */}
               <Confetti isActive={showConfetti} />
-
-              {/* Solution Header */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-                className="mb-12"
-              >
+              
+              {/* Green gradient glow */}
+              <div 
+                className="absolute top-0 left-0 w-32 h-32 opacity-30 blur-3xl"
+                style={{ backgroundColor: COLORS.solution.accent }}
+              />
+              
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6">
                 <motion.span 
-                  className="text-5xl mb-4 block"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="text-3xl md:text-4xl"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
                 >
                   ✨
                 </motion.span>
-                <h2 
-                  className="text-3xl md:text-5xl font-bold text-white mb-4"
+                <h3 
+                  className="text-xl md:text-2xl font-bold text-white"
                   style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
                 >
                   এখন সব{' '}
                   <span 
                     className="bg-clip-text text-transparent"
-                    style={{ 
-                      backgroundImage: `linear-gradient(135deg, ${COLORS.solution.accent}, ${COLORS.solution.accentLight})` 
-                    }}
+                    style={{ backgroundImage: `linear-gradient(135deg, ${COLORS.solution.accent}, ${COLORS.solution.accentLight})` }}
                   >
                     সহজ
                   </span>
-                </h2>
-              </motion.div>
+                </h3>
+              </div>
 
-              {/* Solution Card with Steps */}
+              {/* Solution Steps */}
+              <div className="space-y-4 mb-6">
+                {steps.map((step, i) => (
+                  <SolutionStep
+                    key={i}
+                    number={step.number}
+                    text={step.text}
+                    isComplete={completedSteps.includes(i)}
+                    delay={i * 0.2}
+                  />
+                ))}
+              </div>
+
+              {/* Success Message */}
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="max-w-2xl mx-auto"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ 
+                  opacity: completedSteps.length === 3 ? 1 : 0, 
+                  y: completedSteps.length === 3 ? 0 : 10 
+                }}
+                transition={{ duration: 0.4 }}
+                className="pt-4 border-t border-white/10"
               >
-                <div 
-                  className="relative p-6 md:p-10 rounded-3xl border backdrop-blur-sm"
-                  style={{
-                    backgroundColor: COLORS.solution.card,
-                    borderColor: COLORS.solution.cardBorder,
-                  }}
-                >
-                  {/* Progress Steps */}
-                  <div className="space-y-6 mb-8">
-                    {steps.map((step, i) => (
-                      <ProgressStep
-                        key={i}
-                        number={step.number}
-                        text={step.text}
-                        isComplete={completedSteps.includes(i)}
-                        delay={i * 0.3}
-                        isLast={i === steps.length - 1}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Success Message */}
-                  <AnimatePresence>
-                    {completedSteps.length === 3 && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
-                        className="pt-6 border-t border-white/10"
-                      >
-                        <div className="flex items-center justify-center gap-3">
-                          <motion.div
-                            animate={{ rotate: [0, 10, -10, 0] }}
-                            transition={{ duration: 0.5, repeat: 3 }}
-                          >
-                            <PartyPopper className="w-8 h-8" style={{ color: COLORS.solution.accent }} />
-                          </motion.div>
-                          <span 
-                            className="text-2xl md:text-3xl font-bold"
-                            style={{ 
-                              color: COLORS.solution.text,
-                              fontFamily: "'Noto Sans Bengali', sans-serif",
-                            }}
-                          >
-                            আপনার Store Ready!
-                          </span>
-                          <motion.span
-                            className="text-3xl"
-                            animate={{ scale: [1, 1.3, 1] }}
-                            transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
-                          >
-                            🎉
-                          </motion.span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                <div className="flex items-center justify-center gap-2">
+                  <PartyPopper className="w-5 h-5" style={{ color: COLORS.solution.accent }} />
+                  <span 
+                    className="text-lg font-bold"
+                    style={{ 
+                      color: COLORS.solution.text,
+                      fontFamily: "'Noto Sans Bengali', sans-serif",
+                    }}
+                  >
+                    আপনার Store Ready!
+                  </span>
+                  <span className="text-xl">🎉</span>
                 </div>
               </motion.div>
 
-              {/* Bottom tagline */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 3.2 }}
-                className="mt-10"
-              >
-                <div className="flex flex-wrap items-center justify-center gap-4 text-sm md:text-base">
-                  <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                    <Sparkles className="w-4 h-4" style={{ color: COLORS.solution.accent }} />
-                    <span style={{ color: COLORS.solution.textMuted }}>সব কিছু বাংলায়</span>
-                  </span>
-                  <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                    <Palette className="w-4 h-4" style={{ color: COLORS.solution.accent }} />
-                    <span style={{ color: COLORS.solution.textMuted }}>Live Preview</span>
-                  </span>
-                  <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                    <Rocket className="w-4 h-4" style={{ color: COLORS.solution.accent }} />
-                    <span style={{ color: COLORS.solution.textMuted }}>ফ্রিতে শুরু</span>
-                  </span>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {/* Bottom tags */}
+              <div className="flex flex-wrap gap-2 mt-4">
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
+                  <Sparkles className="w-3 h-3" style={{ color: COLORS.solution.accent }} />
+                  <span className="text-white/60">সব কিছু বাংলায়</span>
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
+                  <Palette className="w-3 h-3" style={{ color: COLORS.solution.accent }} />
+                  <span className="text-white/60">Live Preview</span>
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
+                  <Rocket className="w-3 h-3" style={{ color: COLORS.solution.accent }} />
+                  <span className="text-white/60">ফ্রিতে শুরু</span>
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
