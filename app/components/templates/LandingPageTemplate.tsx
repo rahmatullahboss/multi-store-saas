@@ -109,6 +109,7 @@ import { MagicSectionWrapper } from '~/components/editor';
 import { ChatWidget } from '~/components/ai/ChatWidget';
 import { BD_DIVISIONS, calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
 import { CountdownTimer, StockCounter, SocialProofPopup, WhatsAppOrderButton } from '~/components/landing';
+import { OrderBumpsContainer } from '~/components/landing/OrderBumpCheckbox';
 import { WhatsAppButton } from '~/components/WhatsAppButton';
 import { Phone } from 'lucide-react';
 
@@ -150,6 +151,19 @@ interface LandingPageTemplateProps {
     inventory: number | null;
     isAvailable: boolean | null;
   }>;
+  // Order Bumps - add-on offers during checkout
+  orderBumps?: Array<{
+    id: number;
+    title: string;
+    description?: string | null;
+    discount: number;
+    bumpProduct: {
+      id: number;
+      title: string;
+      price: number;
+      imageUrl?: string | null;
+    };
+  }>;
 }
 
 export function LandingPageTemplate({
@@ -163,6 +177,7 @@ export function LandingPageTemplate({
   isCustomerAiEnabled = false,
   onConfigChange,
   productVariants = [],
+  orderBumps = [],
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -188,6 +203,9 @@ export function LandingPageTemplate({
 
   // Client-side validation errors
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  
+  // Selected order bump IDs
+  const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
 
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
@@ -248,7 +266,19 @@ export function LandingPageTemplate({
   const effectivePrice = selectedVariant?.price ?? product.price;
   const subtotal = effectivePrice * formData.quantity;
   const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
-  const totalPrice = subtotal + shippingCost;
+  
+  // Calculate bump products total
+  const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
+    const bump = orderBumps.find(b => b.id === bumpId);
+    if (!bump) return total;
+    const originalPrice = bump.bumpProduct.price;
+    const discountedPrice = bump.discount > 0 
+      ? originalPrice * (1 - bump.discount / 100) 
+      : originalPrice;
+    return total + discountedPrice;
+  }, 0);
+  
+  const totalPrice = subtotal + bumpTotal + shippingCost;
 
   // Validate form fields
   const validateForm = (): boolean => {
@@ -308,6 +338,7 @@ export function LandingPageTemplate({
         division: formData.division,
         quantity: formData.quantity,
         variant_id: selectedVariantId,
+        bump_ids: selectedBumpIds.length > 0 ? selectedBumpIds : undefined,
       },
       {
         method: 'POST',
@@ -1245,6 +1276,16 @@ export function LandingPageTemplate({
                       </div>
                     </div>
                   </div>
+
+                  {/* Order Bumps - Add-on Offers */}
+                  {orderBumps.length > 0 && (
+                    <OrderBumpsContainer
+                      bumps={orderBumps}
+                      currency={currency}
+                      selectedBumpIds={selectedBumpIds}
+                      onSelectionChange={setSelectedBumpIds}
+                    />
+                  )}
 
                   {/* Payment Method */}
                   <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-xl flex items-center gap-4">

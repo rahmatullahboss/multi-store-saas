@@ -47,6 +47,19 @@ export interface TemplateProps {
     inventory: number | null;
     isAvailable: boolean | null;
   }>;
+  // Order bumps - add-on offers during checkout
+  orderBumps?: Array<{
+    id: number;
+    title: string;
+    description?: string | null;
+    discount: number;
+    bumpProduct: {
+      id: number;
+      title: string;
+      price: number;
+      imageUrl?: string | null;
+    };
+  }>;
 }
 
 // ============================================================================

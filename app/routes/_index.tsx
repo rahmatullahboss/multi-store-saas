@@ -20,7 +20,7 @@ import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction 
 import { useLoaderData, useRouteError, isRouteErrorResponse, useSearchParams } from '@remix-run/react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores, products, productVariants, type Product, type Store } from '@db/schema';
+import { stores, products, productVariants, orderBumps, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
@@ -86,6 +86,18 @@ interface LandingModeData {
     price: number | null;
     inventory: number | null;
     isAvailable: boolean | null;
+  }>;
+  orderBumps: Array<{
+    id: number;
+    title: string;
+    description: string | null;
+    discount: number;
+    bumpProduct: {
+      id: number;
+      title: string;
+      price: number;
+      imageUrl: string | null;
+    };
   }>;
   landingConfig: LandingConfig;
   // Explicitly null for this mode
@@ -372,6 +384,85 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         );
       }
       
+      // Fetch active order bumps for the featured product
+      let activeBumps: Array<{
+        id: number;
+        title: string;
+        description: string | null;
+        discount: number;
+        bumpProduct: {
+          id: number;
+          title: string;
+          price: number;
+          imageUrl: string | null;
+        };
+      }> = [];
+      
+      if (featuredProduct) {
+        const bumpsQuery = db
+          .select({
+            id: orderBumps.id,
+            title: orderBumps.title,
+            description: orderBumps.description,
+            discount: orderBumps.discount,
+            bumpProductId: orderBumps.bumpProductId,
+          })
+          .from(orderBumps)
+          .where(
+            and(
+              eq(orderBumps.storeId, validatedStoreId),
+              eq(orderBumps.productId, featuredProduct.id),
+              eq(orderBumps.isActive, true)
+            )
+          );
+        
+        const bumpsData = await withTimeout(
+          bumpsQuery,
+          DB_TIMEOUT_MS,
+          'Database query timed out while fetching order bumps'
+        );
+        
+        // Fetch bump product details
+        if (bumpsData.length > 0) {
+          const bumpProductIds = bumpsData.map(b => b.bumpProductId);
+          const bumpProductsQuery = db
+            .select({
+              id: products.id,
+              title: products.title,
+              price: products.price,
+              imageUrl: products.imageUrl,
+            })
+            .from(products)
+            .where(
+              and(
+                eq(products.storeId, validatedStoreId),
+                eq(products.isPublished, true)
+              )
+            );
+          
+          const bumpProducts = await bumpProductsQuery;
+          
+          activeBumps = bumpsData
+            .map(bump => {
+              const bumpProduct = bumpProducts.find(p => p.id === bump.bumpProductId);
+              if (!bumpProduct) return null;
+              return {
+                id: bump.id,
+                title: bump.title,
+                description: bump.description,
+                discount: bump.discount ?? 0,
+                bumpProduct: {
+                  id: bumpProduct.id,
+                  title: bumpProduct.title,
+                  price: bumpProduct.price,
+                  imageUrl: bumpProduct.imageUrl,
+                },
+              };
+            })
+            .filter((b): b is NonNullable<typeof b> => b !== null);
+        }
+      }
+      
       // Parse landing config with safe fallback
       const landingConfigRaw = (validatedStore as Store & { landingConfig?: string }).landingConfig;
       const landingConfig = parseLandingConfig(landingConfigRaw) ?? defaultLandingConfig;
@@ -383,6 +474,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         currency: validatedStore.currency ?? 'USD',
         featuredProduct,
         productVariants: variants,
+        orderBumps: activeBumps,
         landingConfig,
         // Explicitly null for landing mode
         products: null,
@@ -684,6 +776,7 @@ export default function Index() {
         currency={data.currency}
         isEditMode={isEditMode}
         productVariants={data.productVariants}
+        orderBumps={data.orderBumps}
       />
     );
   }
