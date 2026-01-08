@@ -677,6 +677,270 @@ export const saasCoupons = sqliteTable('saas_coupons', {
 ]);
 
 // ============================================================================
+// ORDER BUMPS TABLE - Add-on offers during checkout
+// ============================================================================
+export const orderBumps = sqliteTable('order_bumps', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }), // Main product
+  bumpProductId: integer('bump_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }), // Bump offer
+  title: text('title').notNull(), // e.g., "Add Express Shipping"
+  description: text('description'), // e.g., "Get your order faster!"
+  discount: real('discount').default(0), // Percentage discount on bump product
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  displayOrder: integer('display_order').default(0),
+  // Stats
+  views: integer('views').default(0),
+  conversions: integer('conversions').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('order_bumps_store_product_idx').on(table.storeId, table.productId),
+]);
+
+export const orderBumpsRelations = relations(orderBumps, ({ one }) => ({
+  store: one(stores, {
+    fields: [orderBumps.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [orderBumps.productId],
+    references: [products.id],
+  }),
+}));
+
+// ============================================================================
+// UPSELL OFFERS TABLE - Post-purchase upsell/downsell offers
+// ============================================================================
+export const upsellOffers = sqliteTable('upsell_offers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }), // Trigger product
+  offerProductId: integer('offer_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }), // Upsell product
+  type: text('type').$type<'upsell' | 'downsell'>().default('upsell'),
+  headline: text('headline').notNull(), // "Wait! Special Offer!"
+  subheadline: text('subheadline'), // "Add this to your order for just ৳499"
+  description: text('description'),
+  discount: real('discount').default(0), // Percentage off original price
+  displayOrder: integer('display_order').default(0),
+  // Sequence: which offer to show if this is declined
+  nextOfferId: integer('next_offer_id'), // Next upsell/downsell in sequence
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  // Stats
+  views: integer('views').default(0),
+  conversions: integer('conversions').default(0),
+  revenue: real('revenue').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('upsell_offers_store_product_idx').on(table.storeId, table.productId),
+]);
+
+export const upsellOffersRelations = relations(upsellOffers, ({ one }) => ({
+  store: one(stores, {
+    fields: [upsellOffers.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [upsellOffers.productId],
+    references: [products.id],
+  }),
+}));
+
+// ============================================================================
+// UPSELL TOKENS TABLE - One-click purchase tokens (no re-enter payment)
+// ============================================================================
+export const upsellTokens = sqliteTable('upsell_tokens', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  offerId: integer('offer_id').references(() => upsellOffers.id),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('upsell_tokens_token_idx').on(table.token),
+]);
+
+export const upsellTokensRelations = relations(upsellTokens, ({ one }) => ({
+  order: one(orders, {
+    fields: [upsellTokens.orderId],
+    references: [orders.id],
+  }),
+  offer: one(upsellOffers, {
+    fields: [upsellTokens.offerId],
+    references: [upsellOffers.id],
+  }),
+}));
+
+// ============================================================================
+// A/B TESTS TABLE - Split testing for landing pages
+// ============================================================================
+export const abTests = sqliteTable('ab_tests', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }), // For landing page tests
+  name: text('name').notNull(),
+  status: text('status').$type<'draft' | 'running' | 'paused' | 'completed'>().default('draft'),
+  winningVariantId: integer('winning_variant_id'),
+  startedAt: integer('started_at', { mode: 'timestamp' }),
+  endedAt: integer('ended_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('ab_tests_store_idx').on(table.storeId),
+  index('ab_tests_status_idx').on(table.storeId, table.status),
+]);
+
+export const abTestsRelations = relations(abTests, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [abTests.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [abTests.productId],
+    references: [products.id],
+  }),
+  variants: many(abTestVariants),
+}));
+
+// ============================================================================
+// A/B TEST VARIANTS TABLE - Individual test variants
+// ============================================================================
+export const abTestVariants = sqliteTable('ab_test_variants', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  testId: integer('test_id').notNull().references(() => abTests.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(), // "Control", "Variant A", "Variant B"
+  landingConfig: text('landing_config'), // JSON config for this variant
+  trafficWeight: integer('traffic_weight').default(50), // Percentage of traffic (0-100)
+  // Stats
+  visitors: integer('visitors').default(0),
+  conversions: integer('conversions').default(0),
+  revenue: real('revenue').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('ab_test_variants_test_idx').on(table.testId),
+]);
+
+export const abTestVariantsRelations = relations(abTestVariants, ({ one, many }) => ({
+  test: one(abTests, {
+    fields: [abTestVariants.testId],
+    references: [abTests.id],
+  }),
+  assignments: many(abTestAssignments),
+}));
+
+// ============================================================================
+// A/B TEST ASSIGNMENTS TABLE - Visitor to variant assignments
+// ============================================================================
+export const abTestAssignments = sqliteTable('ab_test_assignments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  testId: integer('test_id').notNull().references(() => abTests.id, { onDelete: 'cascade' }),
+  variantId: integer('variant_id').notNull().references(() => abTestVariants.id, { onDelete: 'cascade' }),
+  visitorId: text('visitor_id').notNull(), // Cookie-based visitor ID
+  assignedAt: integer('assigned_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  convertedAt: integer('converted_at', { mode: 'timestamp' }),
+  orderAmount: real('order_amount'),
+}, (table) => [
+  index('ab_test_assignments_visitor_idx').on(table.testId, table.visitorId),
+]);
+
+export const abTestAssignmentsRelations = relations(abTestAssignments, ({ one }) => ({
+  test: one(abTests, {
+    fields: [abTestAssignments.testId],
+    references: [abTests.id],
+  }),
+  variant: one(abTestVariants, {
+    fields: [abTestAssignments.variantId],
+    references: [abTestVariants.id],
+  }),
+}));
+
+// ============================================================================
+// EMAIL AUTOMATIONS TABLE - Trigger-based email workflows
+// ============================================================================
+export const emailAutomations = sqliteTable('email_automations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  trigger: text('trigger').$type<'order_placed' | 'order_delivered' | 'cart_abandoned' | 'signup'>().notNull(),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  // Stats
+  totalSent: integer('total_sent').default(0),
+  totalOpened: integer('total_opened').default(0),
+  totalClicked: integer('total_clicked').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('email_automations_store_idx').on(table.storeId),
+]);
+
+export const emailAutomationsRelations = relations(emailAutomations, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [emailAutomations.storeId],
+    references: [stores.id],
+  }),
+  steps: many(emailAutomationSteps),
+}));
+
+// ============================================================================
+// EMAIL AUTOMATION STEPS TABLE - Individual steps in automation
+// ============================================================================
+export const emailAutomationSteps = sqliteTable('email_automation_steps', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  automationId: integer('automation_id').notNull().references(() => emailAutomations.id, { onDelete: 'cascade' }),
+  delayMinutes: integer('delay_minutes').default(0), // 0 = immediate, 60 = 1 hour, 1440 = 1 day
+  subject: text('subject').notNull(),
+  previewText: text('preview_text'),
+  content: text('content').notNull(), // HTML template with variables
+  stepOrder: integer('step_order').default(0),
+  // Stats per step
+  sentCount: integer('sent_count').default(0),
+  openCount: integer('open_count').default(0),
+  clickCount: integer('click_count').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('email_automation_steps_automation_idx').on(table.automationId),
+]);
+
+export const emailAutomationStepsRelations = relations(emailAutomationSteps, ({ one }) => ({
+  automation: one(emailAutomations, {
+    fields: [emailAutomationSteps.automationId],
+    references: [emailAutomations.id],
+  }),
+}));
+
+// ============================================================================
+// EMAIL QUEUE TABLE - Scheduled emails to be sent
+// ============================================================================
+export const emailQueue = sqliteTable('email_queue', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  stepId: integer('step_id').references(() => emailAutomationSteps.id, { onDelete: 'set null' }),
+  recipientEmail: text('recipient_email').notNull(),
+  recipientName: text('recipient_name'),
+  subject: text('subject').notNull(),
+  content: text('content').notNull(), // Rendered HTML
+  scheduledAt: integer('scheduled_at', { mode: 'timestamp' }).notNull(),
+  sentAt: integer('sent_at', { mode: 'timestamp' }),
+  status: text('status').$type<'pending' | 'sent' | 'failed'>().default('pending'),
+  errorMessage: text('error_message'),
+  metadata: text('metadata'), // JSON with order info, customer name, etc.
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('email_queue_scheduled_idx').on(table.scheduledAt, table.status),
+  index('email_queue_store_idx').on(table.storeId),
+]);
+
+export const emailQueueRelations = relations(emailQueue, ({ one }) => ({
+  store: one(stores, {
+    fields: [emailQueue.storeId],
+    references: [stores.id],
+  }),
+  step: one(emailAutomationSteps, {
+    fields: [emailQueue.stepId],
+    references: [emailAutomationSteps.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -719,3 +983,22 @@ export type SystemNotification = typeof systemNotifications.$inferSelect;
 export type NewSystemNotification = typeof systemNotifications.$inferInsert;
 export type SaasCoupon = typeof saasCoupons.$inferSelect;
 export type NewSaasCoupon = typeof saasCoupons.$inferInsert;
+// New ClickFunnels-like features
+export type OrderBump = typeof orderBumps.$inferSelect;
+export type NewOrderBump = typeof orderBumps.$inferInsert;
+export type UpsellOffer = typeof upsellOffers.$inferSelect;
+export type NewUpsellOffer = typeof upsellOffers.$inferInsert;
+export type UpsellToken = typeof upsellTokens.$inferSelect;
+export type NewUpsellToken = typeof upsellTokens.$inferInsert;
+export type AbTest = typeof abTests.$inferSelect;
+export type NewAbTest = typeof abTests.$inferInsert;
+export type AbTestVariant = typeof abTestVariants.$inferSelect;
+export type NewAbTestVariant = typeof abTestVariants.$inferInsert;
+export type AbTestAssignment = typeof abTestAssignments.$inferSelect;
+export type NewAbTestAssignment = typeof abTestAssignments.$inferInsert;
+export type EmailAutomation = typeof emailAutomations.$inferSelect;
+export type NewEmailAutomation = typeof emailAutomations.$inferInsert;
+export type EmailAutomationStep = typeof emailAutomationSteps.$inferSelect;
+export type NewEmailAutomationStep = typeof emailAutomationSteps.$inferInsert;
+export type EmailQueueItem = typeof emailQueue.$inferSelect;
+export type NewEmailQueueItem = typeof emailQueue.$inferInsert;

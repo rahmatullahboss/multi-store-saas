@@ -15,8 +15,8 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts } from '@db/schema';
-import { eq, and, or } from 'drizzle-orm';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps } from '@db/schema';
+import { eq, and, or, inArray } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { checkUsageLimit } from '~/utils/plans.server';
 import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
@@ -51,6 +51,7 @@ const OrderSchema = z.object({
     senderNumber: z.string().optional(),
     method: z.string().optional(),
   }).optional(),
+  bump_ids: z.array(z.number().int().positive()).optional(), // Order bump product IDs
 });
 
 type OrderInput = z.infer<typeof OrderSchema>;
@@ -177,8 +178,97 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
     
     const itemTotal = unitPrice * input.quantity;
-    const subtotal = itemTotal;
+    let subtotal = itemTotal;
     const tax = 0; // Can be calculated based on store settings
+    
+    // ========================================================================
+    // PROCESS ORDER BUMPS - Add bump products if selected
+    // ========================================================================
+    interface BumpItem {
+      bumpId: number;
+      productId: number;
+      title: string;
+      price: number;
+      discountedPrice: number;
+    }
+    const bumpItems: BumpItem[] = [];
+    
+    if (input.bump_ids && input.bump_ids.length > 0) {
+      // Fetch active bumps for this product
+      const activeBumps = await db
+        .select({
+          id: orderBumps.id,
+          bumpProductId: orderBumps.bumpProductId,
+          title: orderBumps.title,
+          discount: orderBumps.discount,
+        })
+        .from(orderBumps)
+        .where(
+          and(
+            eq(orderBumps.storeId, input.store_id),
+            eq(orderBumps.productId, input.product_id),
+            eq(orderBumps.isActive, true),
+            inArray(orderBumps.id, input.bump_ids)
+          )
+        );
+      
+      if (activeBumps.length > 0) {
+        // Fetch bump products prices
+        const bumpProductIds = activeBumps.map(b => b.bumpProductId);
+        const bumpProducts = await db
+          .select({
+            id: products.id,
+            title: products.title,
+            price: products.price,
+          })
+          .from(products)
+          .where(
+            and(
+              eq(products.storeId, input.store_id),
+              inArray(products.id, bumpProductIds)
+            )
+          );
+        
+        // Calculate discounted prices and add to subtotal
+        for (const bump of activeBumps) {
+          const bumpProduct = bumpProducts.find(p => p.id === bump.bumpProductId);
+          if (bumpProduct) {
+            const originalPrice = bumpProduct.price;
+            const discountValue = bump.discount ?? 0;
+            const discountedPrice = discountValue > 0 
+              ? originalPrice * (1 - discountValue / 100) 
+              : originalPrice;
+            
+            bumpItems.push({
+              bumpId: bump.id,
+              productId: bumpProduct.id,
+              title: bump.title || bumpProduct.title,
+              price: originalPrice,
+              discountedPrice,
+            });
+            
+            subtotal += discountedPrice;
+          }
+        }
+        
+        // Update bump conversion stats (non-blocking)
+        context.cloudflare.ctx.waitUntil(
+          db
+            .update(orderBumps)
+            .set({ conversions: orderBumps.conversions })
+            .where(inArray(orderBumps.id, input.bump_ids))
+            .then(() => {
+              // Raw SQL for increment since Drizzle doesn't support easy increment
+              return Promise.all(input.bump_ids!.map(bumpId => 
+                context.cloudflare.env.DB.prepare(
+                  'UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?'
+                ).bind(bumpId).run()
+              ));
+            })
+            .catch(e => console.error('Failed to update bump conversions:', e))
+        );
+      }
+    }
     
     // Calculate shipping based on store config and customer division
     const shippingConfig = parseShippingConfig(storeData.shippingConfig as string | null);
@@ -231,6 +321,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
         price: unitPrice,
         total: itemTotal,
       });
+    
+    // Step 3: Insert order items for bump products
+    if (bumpItems.length > 0) {
+      await db.insert(orderItems).values(
+        bumpItems.map(bump => ({
+          orderId,
+          productId: bump.productId,
+          title: `[Bump] ${bump.title}`,
+          quantity: 1,
+          price: bump.discountedPrice,
+          total: bump.discountedPrice,
+        }))
+      );
+    }
 
     // ============================================================================
     // SEND EMAIL NOTIFICATIONS (non-blocking)
