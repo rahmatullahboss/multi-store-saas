@@ -22,6 +22,7 @@ import { AwardWinningHero } from '~/components/AwardWinningHero';
 import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
 import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
 import { InfrastructureSection } from '~/components/InfrastructureSection';
+import { CloudflareBenefitsCards } from '~/components/CloudflareBenefitsCards';
 import { SpeedComparison } from '~/components/SpeedComparison';
 import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
@@ -282,6 +283,9 @@ export function MarketingLanding() {
 
         {/* Infrastructure Section - Cloudflare CDN Power */}
         <InfrastructureSection />
+
+        {/* Cloudflare Benefits Cards - Enterprise Features for Free */}
+        <CloudflareBenefitsCards />
 
         {/* Speed Comparison - Live Demo */}
         <SpeedComparison />
