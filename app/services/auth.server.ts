@@ -22,6 +22,7 @@ export type AdminPermission = 'canSuspend' | 'canDelete' | 'canBilling' | 'canIm
 type SessionData = {
   userId: number;
   storeId: number;
+  originalAdminId?: number; // For impersonation checking
 };
 
 type SessionFlashData = {
@@ -550,9 +551,11 @@ export async function createImpersonationSession(
   console.log('[createImpersonationSession] Super Admin', adminEmail, 'impersonating user', targetUser[0].email);
   
   // Step 3: Create session for target user (get existing session and override it)
+  // Store original admin ID to allow "Exit Shadow Mode"
   const session = await getSession(request.headers.get('Cookie'));
   session.set('userId', targetUser[0].id);
   session.set('storeId', targetUser[0].storeId);
+  session.set('originalAdminId', adminId);
   
   return redirect('/app/dashboard', {
     headers: {

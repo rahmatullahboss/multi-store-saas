@@ -15,7 +15,7 @@ import { Form, Link, Outlet, useLoaderData, useLocation } from '@remix-run/react
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, users, systemNotifications } from '@db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { requireUserId, getStoreId, getSession } from '~/services/auth.server';
 import { 
   LayoutDashboard, 
   Package, 
@@ -32,6 +32,7 @@ import {
   ShoppingBag,
   FileText,
   Mail,
+  Eye,
   CreditCard,
   Palette,
   Globe,
@@ -167,8 +168,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       activeNotifications = notificationsResult;
     } catch (e) {
       // Table might not exist yet, ignore
+      // Table might not exist yet, ignore
       console.log('[app.loader] Could not fetch system notifications');
     }
+    
+    // Check for impersonation
+    const session = await getSession(request.headers.get('Cookie'));
+    const isImpersonating = session.has('originalAdminId');
     
     return json({
       store: {
@@ -185,6 +191,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       },
       saasDomain,
       systemNotifications: activeNotifications,
+      isImpersonating,
     });
     
   } catch (error) {
@@ -284,7 +291,7 @@ const adminNavItems: NavItem[] = [
 // MAIN COMPONENT
 // ============================================================================
 export default function AppLayout() {
-  const { store, user, saasDomain, systemNotifications: notifications } = useLoaderData<typeof loader>();
+  const { store, user, saasDomain, systemNotifications: notifications, isImpersonating } = useLoaderData<typeof loader>();
   const location = useLocation();
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -330,6 +337,21 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* SHADOW MODE BANNER */}
+      {isImpersonating && (
+        <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between sticky top-0 z-[60]">
+          <div className="flex items-center gap-2">
+            <Eye className="w-5 h-5" />
+            <span className="font-bold">Shadow Mode Active: Viewing as {store.name}</span>
+          </div>
+          <Form method="post" action="/admin/stop-impersonation">
+            <button type="submit" className="bg-white text-red-600 px-3 py-1 rounded text-xs font-bold uppercase hover:bg-red-50 transition">
+              Exit
+            </button>
+          </Form>
+        </div>
+      )}
+      
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
