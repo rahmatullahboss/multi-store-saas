@@ -173,10 +173,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (!newPlan || !['free', 'starter', 'premium', 'custom'].includes(newPlan)) {
         return json({ error: 'Invalid plan type' }, { status: 400 });
       }
-      await db.update(stores).set({ 
+      
+      // Get current plan to check if upgrading from free
+      const currentStore = await db
+        .select({ planType: stores.planType, subscriptionStartDate: stores.subscriptionStartDate })
+        .from(stores)
+        .where(eq(stores.id, storeId))
+        .limit(1);
+
+      const currentPlan = currentStore[0]?.planType || 'free';
+      const isUpgradingFromFree = currentPlan === 'free' && newPlan !== 'free';
+      const hasNoStartDate = !currentStore[0]?.subscriptionStartDate;
+
+      // Calculate subscription dates (1 month from now)
+      const now = new Date();
+      const endDate = new Date(now);
+      endDate.setMonth(endDate.getMonth() + 1);
+
+      // Build update object
+      const updateData: Record<string, unknown> = {
         planType: newPlan as 'free' | 'starter' | 'premium' | 'custom',
         updatedAt: new Date(),
-      }).where(eq(stores.id, storeId));
+      };
+
+      // Auto-set subscription dates when upgrading to paid OR if no dates exist yet
+      if ((isUpgradingFromFree || hasNoStartDate) && newPlan !== 'free') {
+        updateData.subscriptionStartDate = now;
+        updateData.subscriptionEndDate = endDate;
+        updateData.subscriptionPaymentMethod = 'manual';
+      }
+
+      await db.update(stores).set(updateData).where(eq(stores.id, storeId));
       return json({ success: true, message: 'Plan updated', storeId, newPlan });
     }
 

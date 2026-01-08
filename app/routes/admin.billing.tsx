@@ -309,16 +309,41 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Invalid plan type' }, { status: 400 });
     }
     
-    // Get current plan for logging
+    // Get current plan and subscription dates
     const currentPlan = storeResult[0].planType;
+    
+    // Get subscription start date to check if it exists
+    const storeWithDates = await drizzleDb
+      .select({ subscriptionStartDate: stores.subscriptionStartDate })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
+    
+    const isUpgradingFromFree = currentPlan === 'free' && newPlan !== 'free';
+    const hasNoStartDate = !storeWithDates[0]?.subscriptionStartDate;
+    
+    // Calculate subscription dates (1 month from now)
+    const now = new Date();
+    const endDate = new Date(now);
+    endDate.setMonth(endDate.getMonth() + 1);
+    
+    // Build update object
+    const updateData: Record<string, unknown> = {
+      planType: newPlan as 'free' | 'starter' | 'premium',
+      adminNote: adminNote || null,
+      updatedAt: new Date(),
+    };
+    
+    // Auto-set subscription dates when upgrading to paid OR if no dates exist yet
+    if ((isUpgradingFromFree || hasNoStartDate) && newPlan !== 'free') {
+      updateData.subscriptionStartDate = now;
+      updateData.subscriptionEndDate = endDate;
+      updateData.subscriptionPaymentMethod = 'manual';
+    }
     
     await drizzleDb
       .update(stores)
-      .set({
-        planType: newPlan as 'free' | 'starter' | 'premium',
-        adminNote: adminNote || null,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(stores.id, storeId));
     
     // Log the action
@@ -333,6 +358,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         previousPlan: currentPlan,
         newPlan,
         adminNote,
+        datesAutoSet: (isUpgradingFromFree || hasNoStartDate) && newPlan !== 'free',
       }),
     });
     

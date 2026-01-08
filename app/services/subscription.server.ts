@@ -336,6 +336,7 @@ export async function cleanupExpiredPendingDomains(
 // ============================================================================
 /**
  * Handle store upgrade to a paid plan.
+ * Auto-sets subscription dates when upgrading from free to paid.
  * 
  * @param env - Environment bindings
  * @param storeId - Store ID to upgrade
@@ -349,10 +350,37 @@ export async function handleUpgrade(
   const db = drizzle(env.DB);
 
   try {
-    await db.update(stores).set({
+    // Get current plan to check if upgrading from free
+    const currentStore = await db
+      .select({ planType: stores.planType, subscriptionStartDate: stores.subscriptionStartDate })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
+
+    const currentPlan = currentStore[0]?.planType || 'free';
+    const isUpgradingFromFree = currentPlan === 'free' && newPlan !== 'free';
+    const hasNoStartDate = !currentStore[0]?.subscriptionStartDate;
+
+    // Calculate subscription dates (1 month from now)
+    const now = new Date();
+    const endDate = new Date(now);
+    endDate.setMonth(endDate.getMonth() + 1);
+
+    // Build update object
+    const updateData: Record<string, unknown> = {
       planType: newPlan,
       updatedAt: new Date(),
-    }).where(eq(stores.id, storeId));
+    };
+
+    // Auto-set subscription dates when upgrading to paid OR if no dates exist yet
+    if ((isUpgradingFromFree || hasNoStartDate) && newPlan !== 'free') {
+      updateData.subscriptionStartDate = now;
+      updateData.subscriptionEndDate = endDate;
+      updateData.subscriptionPaymentMethod = 'manual'; // Default to manual
+      console.log(`[UPGRADE] Auto-setting subscription dates for store ${storeId}: ${now.toISOString()} to ${endDate.toISOString()}`);
+    }
+
+    await db.update(stores).set(updateData).where(eq(stores.id, storeId));
 
     console.log(`[UPGRADE] Store ${storeId} upgraded to ${newPlan}`);
 
