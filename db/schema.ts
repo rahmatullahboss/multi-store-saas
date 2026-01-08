@@ -943,6 +943,34 @@ export const emailQueueRelations = relations(emailQueue, ({ one }) => ({
 }));
 
 // ============================================================================
+// PAGE VIEWS TABLE - Visitor analytics for Super Admin
+// ============================================================================
+export const pageViews = sqliteTable('page_views', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  path: text('path').notNull(), // Page path visited
+  visitorId: text('visitor_id').notNull(), // Cookie-based anonymous ID
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  referrer: text('referrer'), // Where visitor came from
+  country: text('country'), // From IP geolocation
+  city: text('city'),
+  deviceType: text('device_type').$type<'mobile' | 'desktop' | 'tablet'>(), // Parsed from user-agent
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('page_views_store_idx').on(table.storeId),
+  index('page_views_date_idx').on(table.storeId, table.createdAt),
+  index('page_views_visitor_idx').on(table.storeId, table.visitorId),
+]);
+
+export const pageViewsRelations = relations(pageViews, ({ one }) => ({
+  store: one(stores, {
+    fields: [pageViews.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS - For use throughout the application
 // ============================================================================
 export type Store = typeof stores.$inferSelect;
@@ -1004,3 +1032,6 @@ export type EmailAutomationStep = typeof emailAutomationSteps.$inferSelect;
 export type NewEmailAutomationStep = typeof emailAutomationSteps.$inferInsert;
 export type EmailQueueItem = typeof emailQueue.$inferSelect;
 export type NewEmailQueueItem = typeof emailQueue.$inferInsert;
+// Visitor Analytics
+export type PageView = typeof pageViews.$inferSelect;
+export type NewPageView = typeof pageViews.$inferInsert;

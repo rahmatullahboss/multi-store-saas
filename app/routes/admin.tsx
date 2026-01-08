@@ -33,7 +33,8 @@ import {
   HardDrive,
   Bot,
   PanelLeftClose,
-  PanelLeft
+  PanelLeft,
+  BarChart3
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -71,6 +72,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/admin/stores', label: 'All Stores', icon: Store },
   { to: '/admin/domains', label: 'Domain Health', icon: Globe },
   { to: '/admin/billing', label: 'Billing', icon: CreditCard },

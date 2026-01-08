@@ -15,7 +15,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useFetcher } from '@remix-run/react';
 import { motion } from 'framer-motion';
-import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone, ChevronDown, Moon, Sun } from 'lucide-react';
+import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone, ChevronDown, Moon, Sun, Menu, X } from 'lucide-react';
 import { useLanguage } from '~/contexts/LanguageContext';
 import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingOrbs, TiltCard, MagneticButton, ShimmerText } from '~/components/animations';
 import { AwardWinningHero } from '~/components/AwardWinningHero';
@@ -242,6 +242,9 @@ export function MarketingLanding() {
   const marketingStats = statsFetcher.data;
 
   // If dark mode, render the award-winning hero with rest of content in dark theme
+  // Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   if (isDarkMode) {
     return (
       <div className="min-h-screen bg-[#0A0A0F] overflow-hidden">
@@ -283,13 +286,70 @@ export function MarketingLanding() {
                 <MagneticButton>
                   <Link 
                     to="/auth/register" 
-                    className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
+                    className="hidden sm:inline-block px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
                   >
                     {content.getStarted}
                   </Link>
                 </MagneticButton>
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="sm:hidden flex items-center justify-center w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition"
+                  aria-label="Toggle menu"
+                >
+                  {isMobileMenuOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
+                </button>
               </div>
             </div>
+            
+            {/* Mobile Dropdown Menu */}
+            {isMobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="sm:hidden mt-4 pt-4 border-t border-white/10"
+              >
+                <div className="flex flex-col gap-2">
+                  <Link 
+                    to="/tutorials" 
+                    className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    টিউটোরিয়াল
+                  </Link>
+                  <Link 
+                    to="/about" 
+                    className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    আমাদের সম্পর্কে
+                  </Link>
+                  <Link 
+                    to="/contact" 
+                    className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    যোগাযোগ
+                  </Link>
+                  <div className="border-t border-white/10 my-2" />
+                  <Link 
+                    to="/auth/login" 
+                    className="text-white/70 hover:text-white font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {content.login}
+                  </Link>
+                  <Link 
+                    to="/auth/register" 
+                    className="px-4 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-semibold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {content.getStarted}
+                  </Link>
+                </div>
+              </motion.div>
+            )}
           </div>
         </header>
 
@@ -353,11 +413,13 @@ export function MarketingLanding() {
         <FinalCTA stats={marketingStats} />
 
         {/* Footer - Bangladesh Green Theme */}
-        <footer className="py-16 px-4 bg-[#0A0F0D] text-white/60">
+        <footer className="py-12 md:py-16 px-4 bg-[#0A0F0D] text-white/60">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-              <div className="col-span-2 md:col-span-1">
-                <div className="flex items-center gap-3 mb-4">
+            {/* Mobile: Single column, Desktop: 4 columns */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+              {/* Brand Section */}
+              <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
+                <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
                   <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
                     <Store className="w-5 h-5 text-white" />
                   </div>
@@ -367,7 +429,7 @@ export function MarketingLanding() {
               </div>
               
               {/* Product Links */}
-              <div>
+              <div className="text-center sm:text-left">
                 <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
               <ul className="space-y-2">
                   <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
@@ -377,7 +439,7 @@ export function MarketingLanding() {
               </div>
               
               {/* Company Links */}
-              <div>
+              <div className="text-center sm:text-left">
                 <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
                 <ul className="space-y-2">
                   <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
@@ -386,7 +448,7 @@ export function MarketingLanding() {
               </div>
               
               {/* Legal Links */}
-              <div>
+              <div className="text-center sm:text-left">
                 <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
                 <ul className="space-y-2">
                   <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>
@@ -449,7 +511,7 @@ export function MarketingLanding() {
               {/* Theme Toggle */}
               <button
                 onClick={() => setIsDarkMode(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F5F7] hover:bg-[#EBEDF0] rounded-xl text-sm font-medium transition text-[#475569] border border-[#EBEDF0]"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F5F7] hover:bg-[#EBEDF0] rounded-xl text-sm font-medium transition text-[#475569] border border-[#EBEDF0]"
                 title="Switch to Dark Mode"
               >
                 <Moon className="w-4 h-4" />
@@ -472,13 +534,70 @@ export function MarketingLanding() {
               <MagneticButton>
                 <Link 
                   to="/auth/register" 
-                  className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white font-semibold rounded-xl text-sm transition shadow-[0_4px_14px_rgba(0,106,78,0.25)] hover:shadow-[0_6px_20px_rgba(0,106,78,0.35)]"
+                  className="hidden sm:inline-block px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white font-semibold rounded-xl text-sm transition shadow-[0_4px_14px_rgba(0,106,78,0.25)] hover:shadow-[0_6px_20px_rgba(0,106,78,0.35)]"
                 >
                   {content.getStarted}
                 </Link>
               </MagneticButton>
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="sm:hidden flex items-center justify-center w-10 h-10 bg-[#F4F5F7] hover:bg-[#EBEDF0] border border-[#EBEDF0] rounded-xl transition"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5 text-[#475569]" /> : <Menu className="w-5 h-5 text-[#475569]" />}
+              </button>
             </div>
           </div>
+          
+          {/* Mobile Dropdown Menu */}
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="sm:hidden mt-4 pt-4 border-t border-[#EBEDF0]"
+            >
+              <div className="flex flex-col gap-2">
+                <Link 
+                  to="/tutorials" 
+                  className="text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 rounded-lg hover:bg-[#F4F5F7] transition"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  টিউটোরিয়াল
+                </Link>
+                <Link 
+                  to="/about" 
+                  className="text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 rounded-lg hover:bg-[#F4F5F7] transition"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  আমাদের সম্পর্কে
+                </Link>
+                <Link 
+                  to="/contact" 
+                  className="text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 rounded-lg hover:bg-[#F4F5F7] transition"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  যোগাযোগ
+                </Link>
+                <div className="border-t border-[#EBEDF0] my-2" />
+                <Link 
+                  to="/auth/login" 
+                  className="text-[#475569] hover:text-[#0F172A] font-medium text-sm px-3 py-2 rounded-lg hover:bg-[#F4F5F7] transition"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {content.login}
+                </Link>
+                <Link 
+                  to="/auth/register" 
+                  className="px-4 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#059669] text-white font-semibold rounded-xl text-sm text-center shadow-[0_4px_14px_rgba(0,106,78,0.25)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {content.getStarted}
+                </Link>
+              </div>
+            </motion.div>
+          )}
         </div>
       </header>
 
@@ -502,11 +621,13 @@ export function MarketingLanding() {
       <FinalCTA />
 
       {/* Footer - Bangladesh Green Theme */}
-      <footer className="py-16 px-4 bg-[#0A0F0D] text-white/60">
+      <footer className="py-12 md:py-16 px-4 bg-[#0A0F0D] text-white/60">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-3 mb-4">
+          {/* Mobile: Single column, Desktop: 4 columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            {/* Brand Section */}
+            <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
                   <Store className="w-5 h-5 text-white" />
                 </div>
@@ -516,7 +637,7 @@ export function MarketingLanding() {
             </div>
             
             {/* Product Links */}
-            <div>
+            <div className="text-center sm:text-left">
               <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
               <ul className="space-y-2">
                 <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
@@ -526,7 +647,7 @@ export function MarketingLanding() {
             </div>
             
             {/* Company Links */}
-            <div>
+            <div className="text-center sm:text-left">
               <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
               <ul className="space-y-2">
                 <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
@@ -535,7 +656,7 @@ export function MarketingLanding() {
             </div>
             
             {/* Legal Links */}
-            <div>
+            <div className="text-center sm:text-left">
               <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
               <ul className="space-y-2">
                 <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>

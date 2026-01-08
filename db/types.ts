@@ -113,6 +113,13 @@ export interface ThemeConfig {
   headerLayout?: 'centered' | 'left-logo' | 'minimal';
   headerShowSearch?: boolean;
   headerShowCart?: boolean;
+  // Footer customization
+  footerColumns?: Array<{
+    title: string;
+    links: Array<{ label: string; url: string }>;
+  }>;
+  footerDescription?: string;
+  copyrightText?: string;
 }
 
 // Social media links configuration
