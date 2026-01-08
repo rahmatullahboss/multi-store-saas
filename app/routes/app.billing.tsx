@@ -494,7 +494,7 @@ export default function BillingPage() {
       {/* Pricing Table */}
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-6">Compare Plans</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(Object.entries(PLAN_DISPLAY) as [PlanType, typeof PLAN_DISPLAY['free']][]).map(([key, plan]) => {
             const isCurrentPlan = key === planType;
             const Icon = plan.icon;
@@ -547,13 +547,6 @@ export default function BillingPage() {
                   <div className="w-full py-2.5 text-center text-emerald-600 font-medium border border-emerald-200 rounded-lg bg-emerald-50">
                     Current Plan
                   </div>
-                ) : key === 'custom' ? (
-                  <a 
-                    href="mailto:support@example.com?subject=Custom Plan Inquiry"
-                    className="block w-full py-2.5 text-center text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    Contact Sales
-                  </a>
                 ) : (
                   <Link 
                     to="/app/upgrade"
