@@ -330,18 +330,18 @@ const BuilderMockup = () => {
                   <Sparkles className="w-4 h-4 text-[#F9A825]" />
                   <span className="text-white/70 text-sm">টেমপ্লেট বাছুন</span>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-4">
                   {templates.map((tmpl, i) => (
                     <motion.div
                       key={i}
-                      className={`relative p-3 rounded-xl border ${i === 0 ? 'border-[#006A4E] bg-[#006A4E]/10' : 'border-white/10 bg-white/[0.02]'} cursor-pointer`}
+                      className={`relative p-4 rounded-xl border ${i === 0 ? 'border-[#006A4E] bg-[#006A4E]/10' : 'border-white/10 bg-white/[0.02]'} cursor-pointer`}
                       whileHover={{ scale: 1.02 }}
                     >
                       <div 
-                        className="w-full h-16 rounded-lg mb-2"
+                        className="w-full h-28 rounded-lg mb-3"
                         style={{ background: `linear-gradient(135deg, ${tmpl.color}40, ${tmpl.color}20)` }}
                       />
-                      <p className="text-xs text-white/70">{tmpl.name}</p>
+                      <p className="text-sm text-white/70 font-medium">{tmpl.name}</p>
                       {i === 0 && (
                         <motion.div
                           initial={{ scale: 0 }}
