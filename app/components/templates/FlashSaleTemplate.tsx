@@ -14,7 +14,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { LandingConfig, ManualPaymentConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { Clock, ShoppingCart, Truck, Shield, AlertTriangle, CheckCircle2, Phone, User, MapPin, Package, Flame, Star, Zap } from 'lucide-react';
-import { BD_DIVISIONS } from '~/utils/shipping';
+import { BD_DIVISIONS, DEFAULT_SHIPPING_CONFIG, calculateShipping } from '~/utils/shipping';
 import { useCartTracking } from '~/hooks/useCartTracking';
 
 // Helper to check if section should be visible
@@ -154,6 +154,11 @@ export function FlashSaleTemplate({
   const price = product.price;
   const comparePrice = product.compareAtPrice || price * 1.5;
   const discount = Math.round(((comparePrice - price) / comparePrice) * 100);
+
+  // Calculate shipping based on division
+  const subtotal = price * formData.quantity;
+  const shippingInfo = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal);
+  const grandTotal = subtotal + shippingInfo.cost;
 
   // Form validation
   const validateForm = useCallback(() => {
@@ -412,6 +417,13 @@ export function FlashSaleTemplate({
                     </option>
                   ))}
                 </select>
+                {/* Show shipping cost */}
+                <div className="mt-2 flex justify-between text-sm">
+                  <span className="text-gray-400">ডেলিভারি চার্জ ({shippingInfo.label}):</span>
+                  <span className={shippingInfo.isFree ? 'text-green-400' : 'text-yellow-400'}>
+                    {shippingInfo.isFree ? 'ফ্রি!' : `৳${shippingInfo.cost}`}
+                  </span>
+                </div>
               </div>
 
               {/* Quantity */}
@@ -485,7 +497,7 @@ export function FlashSaleTemplate({
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <ShoppingCart className="w-6 h-6" />
-                    এখনই অর্ডার করুন - ৳{(price * formData.quantity).toLocaleString()}
+                    এখনই অর্ডার করুন - ৳{grandTotal.toLocaleString()}
                   </span>
                 )}
               </button>
@@ -631,7 +643,7 @@ export function FlashSaleTemplate({
             href="#order-form"
             className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-lg rounded-xl flex items-center justify-center gap-2 shadow-lg animate-pulse"
           >
-            <Zap size={20} /> অর্ডার করুন — ৳{price.toLocaleString()}
+            <Zap size={20} /> অর্ডার করুন — ৳{grandTotal.toLocaleString()}
           </a>
         </div>
       )}
