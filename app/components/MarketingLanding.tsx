@@ -35,6 +35,7 @@ import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
 import { PricingSection } from '~/components/PricingSection';
 import { FinalCTA } from '~/components/FinalCTA';
 import { FAQSection } from '~/components/FAQSection';
+import { LightFloatingOrbs, LightHeroGradient, LightShimmerText } from '~/components/LightThemeEffects';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -212,12 +213,12 @@ const marketingContent = {
   },
 };
 
-// Dotted Grid Background CSS - Using Emerald color
-const DottedGridBg = () => (
+// Premium Light Theme Dotted Grid Background - Using Bangladesh Green
+const LightDottedGridBg = () => (
   <div 
-    className="absolute inset-0 opacity-40"
+    className="absolute inset-0 opacity-30 pointer-events-none"
     style={{
-      backgroundImage: `radial-gradient(circle, rgba(16, 185, 129, 0.3) 1px, transparent 1px)`,
+      backgroundImage: `radial-gradient(circle, rgba(0, 106, 78, 0.12) 1px, transparent 1px)`,
       backgroundSize: '24px 24px',
     }}
   />
@@ -387,18 +388,18 @@ export function MarketingLanding() {
     );
   }
 
-  // Light mode version (original emerald theme)
+  // Light mode version - PREMIUM AWARD-WINNING DESIGN
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white overflow-hidden">
-      {/* Glassmorphism Floating Header */}
+    <div className="min-h-screen bg-[#FAFBFC] overflow-hidden">
+      {/* Premium Glassmorphism Floating Header */}
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-        <div className="bg-white/80 backdrop-blur-xl border border-emerald-200/50 rounded-2xl px-6 py-3 shadow-lg shadow-emerald-500/5">
+        <div className="glass-frosted-light rounded-2xl px-6 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#059669] rounded-xl flex items-center justify-center shadow-[0_4px_14px_rgba(0,106,78,0.25)]">
                 <Store className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-gray-900 hidden sm:block" style={{ fontFamily: 'Newsreader, Georgia, serif' }}>
+              <span className="font-bold text-xl text-[#0F172A] hidden sm:block" style={{ fontFamily: 'Newsreader, Georgia, serif' }}>
                 Multi-Store
               </span>
             </Link>
@@ -407,27 +408,27 @@ export function MarketingLanding() {
               {/* Theme Toggle */}
               <button
                 onClick={() => setIsDarkMode(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium transition text-gray-700"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F5F7] hover:bg-[#EBEDF0] rounded-xl text-sm font-medium transition text-[#475569] border border-[#EBEDF0]"
                 title="Switch to Dark Mode"
               >
                 <Moon className="w-4 h-4" />
               </button>
               <button
                 onClick={toggleLang}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 rounded-xl text-sm font-medium transition text-emerald-700"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(0,106,78,0.06)] hover:bg-[rgba(0,106,78,0.1)] rounded-xl text-sm font-medium transition text-[#006A4E] border border-[rgba(0,106,78,0.12)]"
               >
                 <Globe className="w-4 h-4" />
                 {lang === 'en' ? 'বাংলা' : 'EN'}
               </button>
               <Link 
                 to="/auth/login" 
-                className="hidden sm:block text-gray-600 hover:text-gray-900 font-medium text-sm px-4 py-2"
+                className="hidden sm:block text-[#475569] hover:text-[#0F172A] font-medium text-sm px-4 py-2 transition"
               >
                 {content.login}
               </Link>
               <Link 
                 to="/auth/register" 
-                className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-emerald-500/25"
+                className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white font-semibold rounded-xl text-sm transition shadow-[0_4px_14px_rgba(0,106,78,0.25)] hover:shadow-[0_6px_20px_rgba(0,106,78,0.35)] hover:-translate-y-0.5"
               >
                 {content.getStarted}
               </Link>
@@ -437,20 +438,19 @@ export function MarketingLanding() {
       </header>
 
 
-      {/* Hero Section - PREMIUM ANIMATED */}
+      {/* Hero Section - PREMIUM LIGHT DESIGN */}
       <section className="relative pt-32 pb-24 px-4 min-h-[90vh] flex items-center">
-        <DottedGridBg />
-        
-        {/* Animated Morphing Gradient Orbs */}
-        <FloatingOrbs />
+        {/* Subtle Hero Background Gradient */}
+        <LightHeroGradient />
+        <LightDottedGridBg />
         
         <div className="relative max-w-5xl mx-auto text-center">
-          {/* Animated Badge */}
+          {/* Animated Badge - Premium Light Style */}
           <motion.div 
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/80 backdrop-blur-sm border border-emerald-200 text-emerald-700 rounded-full text-sm font-medium mb-8 shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(0,106,78,0.06)] backdrop-blur-sm border border-[rgba(0,106,78,0.12)] text-[#006A4E] rounded-full text-sm font-medium mb-8 shadow-[0_2px_8px_rgba(0,106,78,0.08)]"
           >
             <motion.div
               animate={{ rotate: [0, 15, -15, 0] }}
@@ -466,7 +466,7 @@ export function MarketingLanding() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.4 + i * 0.1 }}
-                  className="w-6 h-6 bg-white rounded-full border-2 border-emerald-100 flex items-center justify-center text-xs"
+                  className="w-6 h-6 bg-white rounded-full border-2 border-[rgba(0,106,78,0.1)] flex items-center justify-center text-xs shadow-sm"
                 >
                   {emoji}
                 </motion.span>
@@ -474,25 +474,25 @@ export function MarketingLanding() {
             </div>
           </motion.div>
           
-          {/* Animated Headline with Shimmer Effect */}
+          {/* Animated Headline with Premium Light Shimmer */}
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-[1.1] tracking-tight"
+            className="text-5xl md:text-7xl font-bold text-[#0F172A] mb-6 leading-[1.1] tracking-tight"
             style={{ fontFamily: 'Newsreader, Georgia, serif' }}
           >
             {content.heroTitle1}<br />
-            <ShimmerText className="text-5xl md:text-7xl font-bold">
+            <LightShimmerText className="text-5xl md:text-7xl font-bold">
               {content.heroTitle2}
-            </ShimmerText>
+            </LightShimmerText>
           </motion.h1>
           
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed"
+            className="text-xl md:text-2xl text-[#475569] mb-12 max-w-3xl mx-auto leading-relaxed"
           >
             {content.heroSubtitle}
           </motion.p>
@@ -507,7 +507,7 @@ export function MarketingLanding() {
             <MagneticButton>
               <Link
                 to="/auth/register"
-                className="group px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-2xl text-lg shadow-xl shadow-emerald-500/30 transition-all hover:shadow-2xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 flex items-center gap-2"
+                className="group px-8 py-4 bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white font-bold rounded-2xl text-lg shadow-[0_8px_30px_rgba(0,106,78,0.25)] transition-all hover:shadow-[0_12px_40px_rgba(0,106,78,0.35)] hover:-translate-y-1 flex items-center gap-2"
               >
                 {content.getStarted}
                 <motion.span
@@ -521,7 +521,7 @@ export function MarketingLanding() {
             <MagneticButton>
               <Link
                 to="#"
-                className="group px-8 py-4 bg-white hover:bg-emerald-50 text-emerald-700 font-semibold rounded-2xl text-lg border-2 border-emerald-200 transition-all hover:-translate-y-0.5 flex items-center gap-2"
+                className="group px-8 py-4 bg-white hover:bg-[#F4F5F7] text-[#006A4E] font-semibold rounded-2xl text-lg border border-[#EBEDF0] shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] flex items-center gap-2"
               >
                 <Play className="w-5 h-5" />
                 {content.talkExpert}
@@ -533,7 +533,7 @@ export function MarketingLanding() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.9 }}
-            className="mt-6 text-gray-500 text-sm"
+            className="mt-6 text-[#94A3B8] text-sm"
           >
             {content.noCreditCard}
           </motion.p>
@@ -548,7 +548,7 @@ export function MarketingLanding() {
             <motion.div
               animate={{ y: [0, 8, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              className="text-emerald-400"
+              className="text-[#006A4E]"
             >
               <ChevronDown className="w-8 h-8" />
             </motion.div>
@@ -639,18 +639,18 @@ export function MarketingLanding() {
         </div>
       </section>
 
-      {/* How It Works - Premium Animated */}
+      {/* How It Works - Premium Light Design */}
       <section className="py-24 px-4 bg-white relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
               <h2 
-                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
                 style={{ fontFamily: 'Newsreader, Georgia, serif' }}
               >
                 {content.howTitle}
               </h2>
-              <p className="text-xl text-gray-600">{content.howSubtitle}</p>
+              <p className="text-xl text-[#475569]">{content.howSubtitle}</p>
             </div>
           </ScrollReveal>
           
@@ -665,7 +665,7 @@ export function MarketingLanding() {
                   {/* Animated Connector Line */}
                   {i < 2 && (
                     <motion.div 
-                      className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-emerald-400 to-transparent z-0"
+                      className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-[#006A4E] to-transparent z-0 opacity-40"
                       initial={{ scaleX: 0, originX: 0 }}
                       whileInView={{ scaleX: 1 }}
                       viewport={{ once: true }}
@@ -675,22 +675,22 @@ export function MarketingLanding() {
                   
                   <TiltCard className="h-full">
                     <motion.div 
-                      className="relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 border border-emerald-100 h-full"
+                      className="relative bg-white rounded-3xl p-8 border border-[#EBEDF0] h-full shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
                       whileHover={{ 
-                        borderColor: 'rgb(110, 231, 183)',
-                        boxShadow: '0 25px 50px -12px rgba(16, 185, 129, 0.15)',
+                        borderColor: 'rgba(0,106,78,0.2)',
+                        boxShadow: '0 20px 50px -12px rgba(0,106,78,0.12)',
                       }}
                       transition={{ duration: 0.3 }}
                     >
                       <motion.div 
-                        className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30"
+                        className="w-16 h-16 bg-gradient-to-br from-[#006A4E] to-[#059669] rounded-2xl flex items-center justify-center mb-6 shadow-[0_4px_14px_rgba(0,106,78,0.25)]"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: 0.2 }}
                       >
                         <span className="text-2xl font-black text-white">{item.step}</span>
                       </motion.div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                      <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                      <h3 className="text-2xl font-bold text-[#0F172A] mb-3">{item.title}</h3>
+                      <p className="text-[#475569] leading-relaxed">{item.desc}</p>
                     </motion.div>
                   </TiltCard>
                 </div>
@@ -700,20 +700,20 @@ export function MarketingLanding() {
         </div>
       </section>
 
-      {/* Bento Features Grid - Premium Animated */}
-      <section className="py-24 px-4 bg-gradient-to-b from-emerald-50 to-white relative overflow-hidden">
-        <DottedGridBg />
+      {/* Bento Features Grid - Premium Light Design */}
+      <section className="py-24 px-4 bg-[#FAFBFC] relative overflow-hidden">
+        <LightDottedGridBg />
         
         <div className="relative max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
               <h2 
-                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
                 style={{ fontFamily: 'Newsreader, Georgia, serif' }}
               >
                 {content.featuresTitle}
               </h2>
-              <p className="text-xl text-gray-600">{content.featuresSubtitle}</p>
+              <p className="text-xl text-[#475569]">{content.featuresSubtitle}</p>
             </div>
           </ScrollReveal>
           
@@ -725,18 +725,18 @@ export function MarketingLanding() {
               
               return (
                 <StaggerItem key={i}>
-                  <TiltCard className="h-full" glowColor="rgba(16, 185, 129, 0.2)">
+                  <TiltCard className="h-full" glowColor="rgba(0, 106, 78, 0.12)">
                     <motion.div 
-                      className="group relative bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-emerald-100 h-full"
+                      className="group relative bg-white rounded-3xl p-8 border border-[#EBEDF0] h-full shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
                       whileHover={{ 
-                        borderColor: 'rgb(110, 231, 183)',
-                        boxShadow: '0 25px 50px -12px rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgba(0,106,78,0.2)',
+                        boxShadow: '0 20px 50px -12px rgba(0,106,78,0.12)',
                       }}
                       transition={{ duration: 0.3 }}
                     >
                       {/* Animated gradient overlay */}
                       <motion.div 
-                        className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-3xl"
+                        className="absolute inset-0 bg-gradient-to-br from-[rgba(0,106,78,0.03)] to-[rgba(5,150,105,0.03)] rounded-3xl"
                         initial={{ opacity: 0 }}
                         whileHover={{ opacity: 1 }}
                         transition={{ duration: 0.3 }}
@@ -744,14 +744,14 @@ export function MarketingLanding() {
                       
                       <div className="relative">
                         <motion.div 
-                          className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mb-6"
+                          className="w-14 h-14 bg-[rgba(0,106,78,0.08)] rounded-2xl flex items-center justify-center mb-6"
                           whileHover={{ scale: 1.15, rotate: 5 }}
                           transition={{ duration: 0.2 }}
                         >
-                          <Icon className="w-7 h-7 text-emerald-600" />
+                          <Icon className="w-7 h-7 text-[#006A4E]" />
                         </motion.div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                        <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                        <h3 className="text-xl font-bold text-[#0F172A] mb-3">{feature.title}</h3>
+                        <p className="text-[#475569] leading-relaxed">{feature.description}</p>
                       </div>
                     </motion.div>
                   </TiltCard>
@@ -762,18 +762,18 @@ export function MarketingLanding() {
         </div>
       </section>
 
-      {/* Pricing Section - Premium Animated */}
+      {/* Pricing Section - Premium Light Design */}
       <section id="pricing" className="py-24 px-4 bg-white relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
               <h2 
-                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
                 style={{ fontFamily: 'Newsreader, Georgia, serif' }}
               >
                 {content.pricingTitle}
               </h2>
-              <p className="text-xl text-gray-600">{content.pricingSubtitle}</p>
+              <p className="text-xl text-[#475569]">{content.pricingSubtitle}</p>
             </div>
           </ScrollReveal>
           
@@ -783,23 +783,23 @@ export function MarketingLanding() {
                 <motion.div
                   className={`relative rounded-3xl p-8 h-full ${
                     plan.highlight 
-                      ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-2xl shadow-emerald-500/30 border-2 border-emerald-400' 
-                      : 'bg-white border-2 border-gray-100'
+                      ? 'bg-gradient-to-br from-[#006A4E] to-[#059669] text-white shadow-[0_20px_50px_rgba(0,106,78,0.25)] border-2 border-[rgba(255,255,255,0.2)]' 
+                      : 'bg-white border border-[#EBEDF0] shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]'
                   }`}
                   initial={{ scale: plan.highlight ? 1.05 : 1 }}
                   whileHover={{ 
                     scale: plan.highlight ? 1.08 : 1.03,
                     boxShadow: plan.highlight 
-                      ? '0 25px 50px -12px rgba(16, 185, 129, 0.5)' 
-                      : '0 25px 50px -12px rgba(16, 185, 129, 0.15)',
+                      ? '0 30px 60px -12px rgba(0,106,78,0.35)' 
+                      : '0 20px 50px -12px rgba(0,106,78,0.12)',
                   }}
                   transition={{ duration: 0.3 }}
                 >
                   {plan.highlight && (
                     <motion.div 
-                      className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg"
+                      className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-[#D97706] to-[#B45309] text-white text-sm font-bold rounded-full shadow-[0_4px_14px_rgba(217,119,6,0.3)]"
                       animate={{ 
-                        boxShadow: ['0 4px 15px rgba(251, 191, 36, 0.4)', '0 4px 25px rgba(251, 191, 36, 0.7)', '0 4px 15px rgba(251, 191, 36, 0.4)']
+                        boxShadow: ['0 4px 15px rgba(217, 119, 6, 0.3)', '0 4px 25px rgba(217, 119, 6, 0.5)', '0 4px 15px rgba(217, 119, 6, 0.3)']
                       }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
@@ -810,18 +810,18 @@ export function MarketingLanding() {
                     </motion.div>
                   )}
                   
-                  <h3 className={`text-2xl font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-2xl font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-[#0F172A]'}`}>
                     {plan.name}
                   </h3>
-                  <p className={`mb-6 ${plan.highlight ? 'text-emerald-200' : 'text-gray-500'}`}>
+                  <p className={`mb-6 ${plan.highlight ? 'text-[rgba(255,255,255,0.8)]' : 'text-[#94A3B8]'}`}>
                     {plan.description}
                   </p>
                   
                   <div className="mb-8">
-                    <span className={`text-5xl font-black ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>
+                    <span className={`text-5xl font-black ${plan.highlight ? 'text-white' : 'text-[#0F172A]'}`}>
                       ৳{plan.price}
                     </span>
-                    <span className={plan.highlight ? 'text-emerald-200' : 'text-gray-500'}>
+                    <span className={plan.highlight ? 'text-[rgba(255,255,255,0.7)]' : 'text-[#94A3B8]'}>
                       {content.perMonth}
                     </span>
                   </div>
@@ -830,7 +830,7 @@ export function MarketingLanding() {
                     {plan.features.map((feature, j) => (
                       <motion.li 
                         key={j} 
-                        className={`flex items-center gap-3 ${plan.highlight ? 'text-emerald-100' : 'text-gray-600'}`}
+                        className={`flex items-center gap-3 ${plan.highlight ? 'text-[rgba(255,255,255,0.9)]' : 'text-[#475569]'}`}
                         initial={{ opacity: 0, x: -10 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
@@ -840,7 +840,7 @@ export function MarketingLanding() {
                           whileHover={{ scale: 1.2 }}
                           transition={{ duration: 0.2 }}
                         >
-                          <Check className={`w-5 h-5 flex-shrink-0 ${plan.highlight ? 'text-emerald-300' : 'text-emerald-500'}`} />
+                          <Check className={`w-5 h-5 flex-shrink-0 ${plan.highlight ? 'text-white' : 'text-[#006A4E]'}`} />
                         </motion.div>
                         {feature}
                       </motion.li>
@@ -852,8 +852,8 @@ export function MarketingLanding() {
                       to="/auth/register"
                       className={`block w-full py-4 text-center font-bold rounded-xl transition-all ${
                         plan.highlight
-                          ? 'bg-white hover:bg-emerald-50 text-emerald-700 hover:shadow-lg'
-                          : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl'
+                          ? 'bg-white hover:bg-[#F4F5F7] text-[#006A4E] shadow-[0_4px_14px_rgba(255,255,255,0.25)] hover:shadow-lg'
+                          : 'bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white shadow-[0_4px_14px_rgba(0,106,78,0.25)] hover:shadow-[0_6px_20px_rgba(0,106,78,0.35)]'
                       }`}
                     >
                       {plan.cta}
@@ -866,37 +866,37 @@ export function MarketingLanding() {
         </div>
       </section>
 
-      {/* Testimonials - Premium Animated */}
-      <section className="py-24 px-4 bg-gradient-to-b from-emerald-50 to-white relative overflow-hidden">
-        <DottedGridBg />
+      {/* Testimonials - Premium Light Design */}
+      <section className="py-24 px-4 bg-[#FAFBFC] relative overflow-hidden">
+        <LightDottedGridBg />
         
         <div className="relative max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
               <h2 
-                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
                 style={{ fontFamily: 'Newsreader, Georgia, serif' }}
               >
                 {content.testimonialsTitle}
               </h2>
-              <p className="text-xl text-gray-600">{content.testimonialsSubtitle}</p>
+              <p className="text-xl text-[#475569]">{content.testimonialsSubtitle}</p>
             </div>
           </ScrollReveal>
           
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {content.testimonials.map((t, i) => (
               <StaggerItem key={i}>
-                <TiltCard className="h-full" glowColor="rgba(16, 185, 129, 0.15)">
+                <TiltCard className="h-full" glowColor="rgba(0, 106, 78, 0.1)">
                   <motion.div 
-                    className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-emerald-100 h-full"
+                    className="bg-white rounded-3xl p-8 border border-[#EBEDF0] h-full shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
                     whileHover={{ 
-                      borderColor: 'rgb(110, 231, 183)',
-                      boxShadow: '0 20px 40px -12px rgba(16, 185, 129, 0.15)',
+                      borderColor: 'rgba(0,106,78,0.2)',
+                      boxShadow: '0 20px 40px -12px rgba(0,106,78,0.1)',
                     }}
                     transition={{ duration: 0.3 }}
                   >
                     {/* Animated Stars */}
-                    <div className="flex items-center gap-1 text-amber-400 mb-6">
+                    <div className="flex items-center gap-1 text-[#D97706] mb-6">
                       {[...Array(5)].map((_, j) => (
                         <motion.div
                           key={j}
@@ -909,18 +909,18 @@ export function MarketingLanding() {
                         </motion.div>
                       ))}
                     </div>
-                    <p className="text-gray-700 text-lg mb-8 leading-relaxed italic">"{t.text}"</p>
+                    <p className="text-[#475569] text-lg mb-8 leading-relaxed italic">"{t.text}"</p>
                     <div className="flex items-center gap-4">
                       <motion.div 
-                        className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/30"
+                        className="w-12 h-12 rounded-full bg-gradient-to-br from-[#006A4E] to-[#059669] flex items-center justify-center text-white font-bold shadow-[0_4px_14px_rgba(0,106,78,0.25)]"
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: 0.2 }}
                       >
                         {t.avatar}
                       </motion.div>
                       <div>
-                        <p className="font-bold text-gray-900">{t.name}</p>
-                        <p className="text-sm text-gray-500">{t.role}</p>
+                        <p className="font-bold text-[#0F172A]">{t.name}</p>
+                        <p className="text-sm text-[#94A3B8]">{t.role}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -931,18 +931,18 @@ export function MarketingLanding() {
         </div>
       </section>
 
-      {/* FAQ Section - Premium Animated */}
+      {/* FAQ Section - Premium Light Design */}
       <section className="py-24 px-4 bg-white relative overflow-hidden">
         <div className="max-w-4xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
               <h2 
-                className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
                 style={{ fontFamily: 'Newsreader, Georgia, serif' }}
               >
                 {content.faqTitle}
               </h2>
-              <p className="text-xl text-gray-600">{content.faqSubtitle}</p>
+              <p className="text-xl text-[#475569]">{content.faqSubtitle}</p>
             </div>
           </ScrollReveal>
           
@@ -950,17 +950,17 @@ export function MarketingLanding() {
             {content.faqs.map((faq, i) => (
               <StaggerItem key={i}>
                 <motion.div 
-                  className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100"
+                  className="bg-white rounded-2xl p-6 border border-[#EBEDF0] shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
                   whileHover={{ 
-                    borderColor: 'rgb(110, 231, 183)',
-                    boxShadow: '0 10px 30px -10px rgba(16, 185, 129, 0.15)',
+                    borderColor: 'rgba(0,106,78,0.2)',
+                    boxShadow: '0 10px 30px -10px rgba(0,106,78,0.1)',
                     x: 5,
                   }}
                   transition={{ duration: 0.2 }}
                 >
-                  <h4 className="text-lg font-bold text-gray-900 flex items-start gap-3">
+                  <h4 className="text-lg font-bold text-[#0F172A] flex items-start gap-3">
                     <motion.span 
-                      className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-lg shadow-emerald-500/30"
+                      className="w-8 h-8 bg-gradient-to-br from-[#006A4E] to-[#059669] text-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-[0_4px_14px_rgba(0,106,78,0.25)]"
                       whileHover={{ scale: 1.1, rotate: 10 }}
                       transition={{ duration: 0.2 }}
                     >
@@ -968,7 +968,7 @@ export function MarketingLanding() {
                     </motion.span>
                     {faq.q}
                   </h4>
-                  <p className="text-gray-600 mt-3 ml-11 leading-relaxed">{faq.a}</p>
+                  <p className="text-[#475569] mt-3 ml-11 leading-relaxed">{faq.a}</p>
                 </motion.div>
               </StaggerItem>
             ))}
@@ -976,13 +976,13 @@ export function MarketingLanding() {
         </div>
       </section>
 
-      {/* Final CTA Section - Premium Animated */}
-      <section className="py-24 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 relative overflow-hidden">
+      {/* Final CTA Section - Premium Light Design */}
+      <section className="py-24 px-4 bg-gradient-to-r from-[#006A4E] via-[#059669] to-[#006A4E] relative overflow-hidden">
         {/* Animated Background Pattern */}
         <motion.div 
-          className="absolute inset-0 opacity-20"
+          className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px)`,
             backgroundSize: '32px 32px',
           }}
           animate={{ 
