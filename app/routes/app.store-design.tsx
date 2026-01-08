@@ -20,9 +20,20 @@ import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { 
   Check, ExternalLink, Store, Eye, Sparkles, Crown, Palette, 
-  Layout, Image, Settings, Save, Loader2, Megaphone, User, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle
+  Layout, Image, Settings, Save, Loader2, Megaphone, User, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Type, Code
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { StoreImageUpload } from '~/components/StoreImageUpload';
+
+// Font Options
+const FONT_OPTIONS = [
+  { id: 'inter', name: 'Inter', family: "'Inter', sans-serif", preview: 'A modern, clean font' },
+  { id: 'poppins', name: 'Poppins', family: "'Poppins', sans-serif", preview: 'Friendly & rounded' },
+  { id: 'roboto', name: 'Roboto', family: "'Roboto', sans-serif", preview: 'Google\'s classic' },
+  { id: 'hind-siliguri', name: 'Hind Siliguri (Bengali)', family: "'Hind Siliguri', sans-serif", preview: 'বাংলা ফন্ট' },
+  { id: 'playfair', name: 'Playfair Display', family: "'Playfair Display', serif", preview: 'Elegant serif' },
+  { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", preview: 'Bold & modern' },
+];
 
 export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store SaaS' }];
 
@@ -61,6 +72,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeLogo: store[0].logo || '',
     businessInfo: store[0].businessInfo ? JSON.parse(store[0].businessInfo) : { phone: '', email: '', address: '' },
     socialLinks: parseSocialLinks(store[0].socialLinks as string | null) || { facebook: '', instagram: '', whatsapp: '' },
+    fontFamily: store[0].fontFamily || 'inter',
   });
 }
 
@@ -158,11 +170,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function StoreDesignPage() {
-  const { currentTemplateId, themeConfig, templates, storeSubdomain, storeName, storeMode, storeLogo, businessInfo, socialLinks } = useLoaderData<typeof loader>();
+  const { currentTemplateId, themeConfig, templates, storeSubdomain, storeName, storeMode, storeLogo, businessInfo, socialLinks, fontFamily: storedFontFamily } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   
-  const [activeTab, setActiveTab] = useState<'templates' | 'theme' | 'banner' | 'info'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'theme' | 'banner' | 'info' | 'advanced'>('templates');
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
@@ -170,6 +182,8 @@ export default function StoreDesignPage() {
   // Theme state
   const [primaryColor, setPrimaryColor] = useState(themeConfig.primaryColor || '#6366f1');
   const [accentColor, setAccentColor] = useState(themeConfig.accentColor || '#f59e0b');
+  const [fontFamily, setFontFamily] = useState(storedFontFamily || 'inter');
+  const [customCSS, setCustomCSS] = useState(themeConfig.customCSS || '');
   
   // Banner state
   const [bannerUrl, setBannerUrl] = useState(themeConfig.bannerUrl || '');
@@ -278,9 +292,10 @@ export default function StoreDesignPage() {
       <div className="flex gap-2 mb-6 border-b border-gray-200">
         {[
           { id: 'templates', label: 'Templates', icon: Layout },
-          { id: 'theme', label: 'Colors', icon: Palette },
+          { id: 'theme', label: 'Theme', icon: Palette },
           { id: 'banner', label: 'Banner', icon: Image },
           { id: 'info', label: 'Info', icon: User },
+          { id: 'advanced', label: 'Advanced', icon: Code },
         ].map((tab) => (
           <button
             key={tab.id}

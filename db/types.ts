@@ -108,6 +108,11 @@ export interface ThemeConfig {
     title: string;
     url: string;
   }[];
+  // Advanced customization
+  customCSS?: string; // Custom CSS injected into store
+  headerLayout?: 'centered' | 'left-logo' | 'minimal';
+  headerShowSearch?: boolean;
+  headerShowCart?: boolean;
 }
 
 // Social media links configuration

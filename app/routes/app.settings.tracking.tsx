@@ -12,7 +12,7 @@
  */
 
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher } from '@remix-run/react';
+import { useLoaderData, useFetcher, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
@@ -20,7 +20,7 @@ import { getStoreId } from '~/services/auth.server';
 import { useState } from 'react';
 import { 
   Save, AlertCircle, CheckCircle, Facebook, ExternalLink, Copy, Eye, EyeOff,
-  BarChart3, AlertTriangle, Info
+  BarChart3, AlertTriangle, Info, BookOpen
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -280,6 +280,13 @@ export default function TrackingSettings() {
                   </p>
                 </div>
               )}
+              <Link
+                to="/app/settings/tracking/tutorial"
+                className="mt-3 inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 text-sm font-medium bg-blue-50 px-3 py-2 rounded-lg transition hover:bg-blue-100"
+              >
+                <BookOpen className="w-4 h-4" />
+                {lang === 'bn' ? 'সেটআপ গাইড দেখুন' : 'View Setup Guide'}
+              </Link>
             </div>
           </div>
         </div>
