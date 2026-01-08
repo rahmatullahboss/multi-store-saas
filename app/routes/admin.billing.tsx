@@ -42,6 +42,7 @@ import {
   FileText
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Billing Management - Super Admin' }];
@@ -143,12 +144,48 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .leftJoin(stores, eq(payments.storeId, stores.id))
     .orderBy(desc(payments.createdAt))
     .limit(50);
+
+  // ===== CHART DATA (Last 12 Months) =====
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+  twelveMonthsAgo.setDate(1);
+  
+  const revenueDataRaw = await drizzleDb.all(sql`
+    SELECT 
+      strftime('%Y-%m', created_at / 1000, 'unixepoch') as month,
+      sum(amount) as revenue
+    FROM payments
+    WHERE status = 'paid' AND created_at >= ${twelveMonthsAgo.getTime()}
+    GROUP BY month
+    ORDER BY month ASC
+  `);
+  
+  const revenueData = revenueDataRaw as unknown as { month: string, revenue: number }[];
+  
+  // Fill gaps
+  const chartData = [];
+  const currentMonth = new Date(twelveMonthsAgo);
+  
+  // Loop through last 12 months
+  for (let i = 0; i < 12; i++) {
+    const mStr = currentMonth.toISOString().slice(0, 7); // YYYY-MM
+    const entry = revenueData.find(d => d.month === mStr);
+    
+    chartData.push({
+      name: currentMonth.toLocaleString('en-US', { month: 'short' }),
+      date: mStr,
+      revenue: entry ? entry.revenue : 0
+    });
+    
+    currentMonth.setMonth(currentMonth.getMonth() + 1);
+  }
   
   return json({
     activeSubscribers,
     pendingApprovals,
     expiredSubscriptions,
     recentPayments,
+    chartData,
     metrics: {
       totalMRR,
       manualMRR,
@@ -475,7 +512,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function AdminBilling() {
-  const { activeSubscribers, pendingApprovals, expiredSubscriptions, metrics, recentPayments } = useLoaderData<typeof loader>();
+  const { activeSubscribers, pendingApprovals, expiredSubscriptions, metrics, recentPayments, chartData } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
@@ -588,6 +625,51 @@ export default function AdminBilling() {
           </div>
           <p className={`text-2xl font-bold ${metrics.pendingCount > 0 ? 'text-amber-400' : 'text-white'}`}>{metrics.pendingCount}</p>
           <p className="text-xs text-slate-500 mt-1">Awaiting verification</p>
+        </div>
+      </div>
+
+      {/* Revenue Chart */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-6">Revenue Trend</h3>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <XAxis 
+                dataKey="name" 
+                stroke="#64748b" 
+                fontSize={12} 
+                tickLine={false} 
+                axisLine={false} 
+              />
+              <YAxis 
+                stroke="#64748b" 
+                fontSize={12} 
+                tickLine={false} 
+                axisLine={false}
+                tickFormatter={(value) => `৳${value}`}
+              />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
+                itemStyle={{ color: '#10b981' }}
+                formatter={(value: number | undefined) => [`৳${(value || 0).toLocaleString()}`, 'Revenue']}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="revenue" 
+                stroke="#10b981" 
+                strokeWidth={2} 
+                fillOpacity={1} 
+                fill="url(#colorRevenue)" 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
       
