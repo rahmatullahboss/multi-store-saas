@@ -708,6 +708,7 @@ export const translations = {
     navPlanManagement: 'Plan Management',
     navPayouts: 'Payouts',
     navDomainRequests: 'Domain Requests',
+    navTutorials: 'Tutorials',
     goToStore: 'Go to Store',
     
     // Store Language Settings
@@ -1380,6 +1381,7 @@ export const translations = {
     navPlanManagement: 'প্ল্যান ম্যানেজমেন্ট',
     navPayouts: 'পেআউট',
     navDomainRequests: 'ডোমেইন রিকোয়েস্ট',
+    navTutorials: 'টিউটোরিয়াল',
     goToStore: 'স্টোরে যান',
     
     // Store Language Settings

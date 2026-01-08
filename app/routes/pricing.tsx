@@ -14,8 +14,8 @@ import {
   BarChart3, Users, Package, ShoppingCart, MessageSquare,
   ArrowRight, Sparkles, HelpCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
-import { ScrollReveal } from '~/components/animations';
-import { MarketingHeader, MarketingFooter } from '~/components/MarketingLanding';
+import { ScrollReveal, MagneticButton } from '~/components/animations';
+import { Store, Menu, X } from 'lucide-react';
 
 // ============================================================================
 // META
@@ -696,6 +696,8 @@ const SavingsHighlight = () => {
 // MAIN PRICING PAGE
 // ============================================================================
 export default function PricingPage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.background }}>
       {/* Custom CSS */}
@@ -710,7 +712,86 @@ export default function PricingPage() {
         }
       `}</style>
 
-      <MarketingHeader />
+      {/* Header */}
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
+                <Store className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-xl text-white hidden sm:block">
+                Multi-Store
+              </span>
+            </Link>
+            
+            <div className="flex items-center gap-3">
+              <Link 
+                to="/tutorials" 
+                className="hidden md:block text-white/60 hover:text-[#00875F] font-medium text-sm px-3 py-2 transition"
+              >
+                টিউটোরিয়াল
+              </Link>
+              <Link 
+                to="/auth/login" 
+                className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
+              >
+                লগইন
+              </Link>
+              <MagneticButton>
+                <Link 
+                  to="/auth/register" 
+                  className="hidden sm:inline-block px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
+                >
+                  ফ্রি শুরু করুন
+                </Link>
+              </MagneticButton>
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="sm:hidden flex items-center justify-center w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
+              </button>
+            </div>
+          </div>
+          
+          {/* Mobile Dropdown Menu */}
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="sm:hidden mt-4 pt-4 border-t border-white/10"
+            >
+              <div className="flex flex-col gap-2">
+                <Link 
+                  to="/tutorials" 
+                  className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  টিউটোরিয়াল
+                </Link>
+                <Link 
+                  to="/auth/login" 
+                  className="text-white/70 hover:text-white font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  লগইন
+                </Link>
+                <Link 
+                  to="/auth/register" 
+                  className="px-4 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-semibold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  ফ্রি শুরু করুন
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </header>
 
       <main className="pt-24 pb-16">
         {/* Hero Section */}
@@ -803,7 +884,56 @@ export default function PricingPage() {
         </section>
       </main>
 
-      <MarketingFooter />
+      {/* Footer */}
+      <footer className="py-12 md:py-16 px-4 bg-[#0A0F0D] text-white/60">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            {/* Brand Section */}
+            <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
+                  <Store className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-bold text-xl text-white">Multi-Store</span>
+              </div>
+              <p className="text-sm text-white/50">বাংলাদেশি মার্চেন্টদের জন্য সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম।</p>
+            </div>
+            
+            {/* Product Links */}
+            <div className="text-center sm:text-left">
+              <h4 className="text-[#006A4E] font-semibold mb-4">প্রোডাক্ট</h4>
+              <ul className="space-y-2">
+                <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
+                <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
+                <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">টিউটোরিয়াল</Link></li>
+              </ul>
+            </div>
+            
+            {/* Company Links */}
+            <div className="text-center sm:text-left">
+              <h4 className="text-[#006A4E] font-semibold mb-4">কোম্পানি</h4>
+              <ul className="space-y-2">
+                <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
+                <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
+              </ul>
+            </div>
+            
+            {/* Legal Links */}
+            <div className="text-center sm:text-left">
+              <h4 className="text-[#006A4E] font-semibold mb-4">আইনি</h4>
+              <ul className="space-y-2">
+                <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>
+                <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">শর্তাবলী</Link></li>
+                <li><Link to="/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">রিফান্ড নীতি</Link></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-white/40">© ২০২৬ মাল্টি-স্টোর। বাংলাদেশে ❤️ দিয়ে তৈরি।</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
