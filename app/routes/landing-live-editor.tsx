@@ -1174,6 +1174,39 @@ export default function LiveEditorPage() {
             </div>
           </AccordionSection>
 
+          {/* Font Picker Section */}
+          <AccordionSection
+            title={language === 'bn' ? 'ফন্ট' : 'Typography'}
+            icon={Settings}
+            isOpen={openSection === 'font'}
+            onToggle={() => setOpenSection(openSection === 'font' ? '' : 'font')}
+          >
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'inter', name: 'Inter', family: "'Inter', sans-serif", preview: 'Modern' },
+                { id: 'poppins', name: 'Poppins', family: "'Poppins', sans-serif", preview: 'Friendly' },
+                { id: 'roboto', name: 'Roboto', family: "'Roboto', sans-serif", preview: 'Classic' },
+                { id: 'hind-siliguri', name: 'Hind Siliguri', family: "'Hind Siliguri', sans-serif", preview: 'বাংলা' },
+                { id: 'playfair', name: 'Playfair', family: "'Playfair Display', serif", preview: 'Elegant' },
+                { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", preview: 'Bold' },
+              ].map((font) => (
+                <button
+                  key={font.id}
+                  type="button"
+                  onClick={() => setFontFamily(font.id)}
+                  className={`p-2 rounded-lg border text-left transition ${
+                    fontFamily === font.id ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'
+                  }`}
+                >
+                  <span className="block text-sm font-medium text-gray-900" style={{ fontFamily: font.family }}>
+                    {font.name}
+                  </span>
+                  <span className="text-xs text-gray-500">{font.preview}</span>
+                </button>
+              ))}
+            </div>
+          </AccordionSection>
+
           {/* Custom CSS Section */}
           <AccordionSection
             title={language === 'bn' ? 'কাস্টম CSS' : 'Custom CSS'}

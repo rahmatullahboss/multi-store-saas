@@ -274,7 +274,7 @@ export default function BillingPage() {
       </div>
 
       {/* Usage Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Orders Usage */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-4">
@@ -341,7 +341,43 @@ export default function BillingPage() {
             </div>
             {planType === 'free' && usage.products.current >= 1 && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ Free plan is limited to 1 product. Upgrade to add more.
+                ⚠️ Free plan is limited to 10 products. Upgrade to add more.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Visitors Usage */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <Users className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Monthly Visitors</h3>
+              <p className="text-sm text-gray-500">Unique visitors this month</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Usage</span>
+              <span className="font-medium text-gray-900">
+                {usage.visitors.current.toLocaleString()} / {usage.visitors.limit === Infinity ? '∞' : usage.visitors.limit.toLocaleString()}
+              </span>
+            </div>
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all ${
+                  usage.visitors.percentage >= 90 ? 'bg-red-500' : 
+                  usage.visitors.percentage >= 70 ? 'bg-yellow-500' : 
+                  'bg-emerald-500'
+                }`}
+                style={{ width: `${Math.min(usage.visitors.percentage, 100)}%` }}
+              />
+            </div>
+            {usage.visitors.percentage >= 80 && (
+              <p className="text-xs text-yellow-600 mt-2">
+                ⚠️ High traffic! Upgrade to handle more visitors.
               </p>
             )}
           </div>

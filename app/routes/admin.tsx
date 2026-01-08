@@ -35,7 +35,8 @@ import {
   PanelLeftClose,
   PanelLeft,
   BarChart3,
-  BookOpen
+  BookOpen,
+  History
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -81,6 +82,7 @@ const navItems = [
   { to: '/admin/storage', label: 'Storage', icon: HardDrive },
   { to: '/admin/marketing', label: 'Marketing', icon: Ticket },
   { to: '/admin/broadcasts', label: 'Broadcasts', icon: Radio },
+  { to: '/admin/audit-logs', label: 'Audit Logs', icon: History },
   { to: '/admin/tutorials', label: 'Tutorials', icon: BookOpen },
 ];
 

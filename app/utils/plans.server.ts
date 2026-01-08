@@ -290,6 +290,7 @@ export async function getUsageStats(
   planType: PlanType;
   orders: { current: number; limit: number; percentage: number };
   products: { current: number; limit: number; percentage: number };
+  visitors: { current: number; limit: number; percentage: number };
 }> {
   const db = drizzle(dbBinding);
   const planType = await getStorePlan(db, storeId);
@@ -297,6 +298,15 @@ export async function getUsageStats(
   
   const orderCount = await getMonthlyOrderCount(db, storeId);
   const productCount = await getActiveProductCount(db, storeId);
+  
+  // Get visitor count from stores table
+  const storeResult = await db
+    .select({ monthlyVisitorCount: stores.monthlyVisitorCount })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+  
+  const visitorCount = storeResult[0]?.monthlyVisitorCount ?? 0;
   
   return {
     planType,
@@ -309,6 +319,11 @@ export async function getUsageStats(
       current: productCount,
       limit: limits.max_products,
       percentage: limits.max_products === Infinity ? 0 : Math.round((productCount / limits.max_products) * 100),
+    },
+    visitors: {
+      current: visitorCount,
+      limit: limits.max_visitors,
+      percentage: limits.max_visitors === Infinity ? 0 : Math.round((visitorCount / limits.max_visitors) * 100),
     },
   };
 }
