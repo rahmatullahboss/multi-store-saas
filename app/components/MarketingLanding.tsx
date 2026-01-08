@@ -388,18 +388,18 @@ export function MarketingLanding() {
     );
   }
 
-  // Light mode version - PREMIUM AWARD-WINNING DESIGN
+  // Light mode version - SAME CONTENT AS DARK MODE
   return (
-    <div className="min-h-screen bg-[#FAFBFC] overflow-hidden">
-      {/* Premium Glassmorphism Floating Header */}
+    <div className="min-h-screen bg-[#0A0A0F] overflow-hidden">
+      {/* Dark Mode Floating Header with Light Toggle */}
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-        <div className="glass-frosted-light rounded-2xl px-6 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#059669] rounded-xl flex items-center justify-center shadow-[0_4px_14px_rgba(0,106,78,0.25)]">
+              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
                 <Store className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-[#0F172A] hidden sm:block" style={{ fontFamily: 'Newsreader, Georgia, serif' }}>
+              <span className="font-bold text-xl text-white hidden sm:block">
                 Multi-Store
               </span>
             </Link>
@@ -408,716 +408,118 @@ export function MarketingLanding() {
               {/* Theme Toggle */}
               <button
                 onClick={() => setIsDarkMode(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F5F7] hover:bg-[#EBEDF0] rounded-xl text-sm font-medium transition text-[#475569] border border-[#EBEDF0]"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-medium transition text-white/70 border border-white/10"
                 title="Switch to Dark Mode"
               >
                 <Moon className="w-4 h-4" />
               </button>
               <button
                 onClick={toggleLang}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(0,106,78,0.06)] hover:bg-[rgba(0,106,78,0.1)] rounded-xl text-sm font-medium transition text-[#006A4E] border border-[rgba(0,106,78,0.12)]"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-medium transition text-white/70 border border-white/10"
               >
                 <Globe className="w-4 h-4" />
                 {lang === 'en' ? 'বাংলা' : 'EN'}
               </button>
               <Link 
                 to="/auth/login" 
-                className="hidden sm:block text-[#475569] hover:text-[#0F172A] font-medium text-sm px-4 py-2 transition"
+                className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
               >
                 {content.login}
               </Link>
-              <Link 
-                to="/auth/register" 
-                className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white font-semibold rounded-xl text-sm transition shadow-[0_4px_14px_rgba(0,106,78,0.25)] hover:shadow-[0_6px_20px_rgba(0,106,78,0.35)] hover:-translate-y-0.5"
-              >
-                {content.getStarted}
-              </Link>
+              <MagneticButton>
+                <Link 
+                  to="/auth/register" 
+                  className="px-5 py-2.5 bg-gradient-to-r from-violet-500 to-blue-600 hover:from-violet-600 hover:to-blue-700 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-violet-500/25"
+                >
+                  {content.getStarted}
+                </Link>
+              </MagneticButton>
             </div>
           </div>
         </div>
       </header>
 
+      {/* Award-Winning Bangladesh Hero - Bangla Native */}
+      <AwardWinningHero />
 
-      {/* Hero Section - PREMIUM LIGHT DESIGN */}
-      <section className="relative pt-32 pb-24 px-4 min-h-[90vh] flex items-center">
-        {/* Subtle Hero Background Gradient */}
-        <LightHeroGradient />
-        <LightDottedGridBg />
-        
-        <div className="relative max-w-5xl mx-auto text-center">
-          {/* Animated Badge - Premium Light Style */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(0,106,78,0.06)] backdrop-blur-sm border border-[rgba(0,106,78,0.12)] text-[#006A4E] rounded-full text-sm font-medium mb-8 shadow-[0_2px_8px_rgba(0,106,78,0.08)]"
-          >
-            <motion.div
-              animate={{ rotate: [0, 15, -15, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
-              <Sparkles className="w-4 h-4" />
-            </motion.div>
-            {content.badge}
-            <div className="flex -space-x-2 ml-2">
-              {['👩‍💼', '👨‍💻', '👩‍🎨'].map((emoji, i) => (
-                <motion.span 
-                  key={i} 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  className="w-6 h-6 bg-white rounded-full border-2 border-[rgba(0,106,78,0.1)] flex items-center justify-center text-xs shadow-sm"
-                >
-                  {emoji}
-                </motion.span>
-              ))}
-            </div>
-          </motion.div>
-          
-          {/* Animated Headline with Premium Light Shimmer */}
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-5xl md:text-7xl font-bold text-[#0F172A] mb-6 leading-[1.1] tracking-tight"
-            style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-          >
-            {content.heroTitle1}<br />
-            <LightShimmerText className="text-5xl md:text-7xl font-bold">
-              {content.heroTitle2}
-            </LightShimmerText>
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-xl md:text-2xl text-[#475569] mb-12 max-w-3xl mx-auto leading-relaxed"
-          >
-            {content.heroSubtitle}
-          </motion.p>
-          
-          {/* Premium Animated CTA Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <MagneticButton>
-              <Link
-                to="/auth/register"
-                className="group px-8 py-4 bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white font-bold rounded-2xl text-lg shadow-[0_8px_30px_rgba(0,106,78,0.25)] transition-all hover:shadow-[0_12px_40px_rgba(0,106,78,0.35)] hover:-translate-y-1 flex items-center gap-2"
-              >
-                {content.getStarted}
-                <motion.span
-                  animate={{ x: [0, 3, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <ArrowRight className="w-5 h-5" />
-                </motion.span>
-              </Link>
-            </MagneticButton>
-            <MagneticButton>
-              <Link
-                to="#"
-                className="group px-8 py-4 bg-white hover:bg-[#F4F5F7] text-[#006A4E] font-semibold rounded-2xl text-lg border border-[#EBEDF0] shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] flex items-center gap-2"
-              >
-                <Play className="w-5 h-5" />
-                {content.talkExpert}
-              </Link>
-            </MagneticButton>
-          </motion.div>
-          
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="mt-6 text-[#94A3B8] text-sm"
-          >
-            {content.noCreditCard}
-          </motion.p>
+      {/* Problem-Solution Section */}
+      <ProblemSolutionSection />
 
-          {/* Scroll indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          >
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="text-[#006A4E]"
-            >
-              <ChevronDown className="w-8 h-8" />
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Bento Grid Features Section */}
+      <BentoFeaturesSection />
 
-      {/* Stats Section - Dark with Animated Counters */}
-      <section className="py-20 bg-gradient-to-r from-gray-900 via-emerald-950 to-gray-900 relative overflow-hidden">
-        {/* Animated background glow */}
-        <motion.div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-3xl"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
-        
-        <div className="max-w-6xl mx-auto px-4 relative">
-          <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <StaggerItem>
-              <motion.div 
-                className="group"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                <motion.div 
-                  className="w-16 h-16 mx-auto mb-4 bg-emerald-500/20 rounded-2xl flex items-center justify-center"
-                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Store className="w-8 h-8 text-emerald-400" />
-                </motion.div>
-                <AnimatedCounter end={500} suffix="+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
-                <p className="text-emerald-300">{content.statsStores}</p>
-              </motion.div>
-            </StaggerItem>
-            <StaggerItem>
-              <motion.div 
-                className="group"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                <motion.div 
-                  className="w-16 h-16 mx-auto mb-4 bg-teal-500/20 rounded-2xl flex items-center justify-center"
-                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <ShoppingBag className="w-8 h-8 text-teal-400" />
-                </motion.div>
-                <AnimatedCounter end={50} suffix="K+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
-                <p className="text-teal-300">{content.statsOrders}</p>
-              </motion.div>
-            </StaggerItem>
-            <StaggerItem>
-              <motion.div 
-                className="group"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                <motion.div 
-                  className="w-16 h-16 mx-auto mb-4 bg-cyan-500/20 rounded-2xl flex items-center justify-center"
-                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Users className="w-8 h-8 text-cyan-400" />
-                </motion.div>
-                <AnimatedCounter end={1} suffix="K+" className="text-4xl md:text-5xl font-black text-white mb-1 block" />
-                <p className="text-cyan-300">{content.statsMerchants}</p>
-              </motion.div>
-            </StaggerItem>
-            <StaggerItem>
-              <motion.div 
-                className="group"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                <motion.div 
-                  className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-2xl flex items-center justify-center"
-                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <TrendingUp className="w-8 h-8 text-green-400" />
-                </motion.div>
-                <span className="text-4xl md:text-5xl font-black text-white mb-1 block">99.9%</span>
-                <p className="text-green-300">{content.statsUptime}</p>
-              </motion.div>
-            </StaggerItem>
-          </StaggerContainer>
-        </div>
-      </section>
+      {/* INFRASTRUCTURE SHOWCASE */}
+      <InfrastructureSection />
+      <SpeedComparison />
+      <CDNExplainer />
+      <SpeedImpact />
+      <CloudflareBenefitsCards />
+      <TechnicalSpecs />
+      <LiveDashboard />
+      <InfrastructureCTA />
 
-      {/* How It Works - Premium Light Design */}
-      <section className="py-24 px-4 bg-white relative overflow-hidden">
+      {/* Trust Section */}
+      <TrustSection />
+
+      {/* Comparison Section */}
+      <ComparisonSection />
+
+      {/* Interactive Store Demo */}
+      <InteractiveStoreDemo />
+
+      {/* Pricing Section */}
+      <PricingSection />
+
+      {/* FAQ Section */}
+      <FAQSection />
+
+      {/* Final CTA */}
+      <FinalCTA />
+
+      {/* Footer - Dark */}
+      <footer className="py-16 px-4 bg-[#050508] text-white/40">
         <div className="max-w-6xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 
-                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
-                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-              >
-                {content.howTitle}
-              </h2>
-              <p className="text-xl text-[#475569]">{content.howSubtitle}</p>
-            </div>
-          </ScrollReveal>
-          
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { step: '1', title: content.step1, desc: content.step1Desc, icon: Users },
-              { step: '2', title: content.step2, desc: content.step2Desc, icon: ShoppingBag },
-              { step: '3', title: content.step3, desc: content.step3Desc, icon: Rocket },
-            ].map((item, i) => (
-              <StaggerItem key={i}>
-                <div className="relative group h-full">
-                  {/* Animated Connector Line */}
-                  {i < 2 && (
-                    <motion.div 
-                      className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-[#006A4E] to-transparent z-0 opacity-40"
-                      initial={{ scaleX: 0, originX: 0 }}
-                      whileInView={{ scaleX: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.8, delay: 0.5 + i * 0.2 }}
-                    />
-                  )}
-                  
-                  <TiltCard className="h-full">
-                    <motion.div 
-                      className="relative bg-white rounded-3xl p-8 border border-[#EBEDF0] h-full shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
-                      whileHover={{ 
-                        borderColor: 'rgba(0,106,78,0.2)',
-                        boxShadow: '0 20px 50px -12px rgba(0,106,78,0.12)',
-                      }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <motion.div 
-                        className="w-16 h-16 bg-gradient-to-br from-[#006A4E] to-[#059669] rounded-2xl flex items-center justify-center mb-6 shadow-[0_4px_14px_rgba(0,106,78,0.25)]"
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <span className="text-2xl font-black text-white">{item.step}</span>
-                      </motion.div>
-                      <h3 className="text-2xl font-bold text-[#0F172A] mb-3">{item.title}</h3>
-                      <p className="text-[#475569] leading-relaxed">{item.desc}</p>
-                    </motion.div>
-                  </TiltCard>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      {/* Bento Features Grid - Premium Light Design */}
-      <section className="py-24 px-4 bg-[#FAFBFC] relative overflow-hidden">
-        <LightDottedGridBg />
-        
-        <div className="relative max-w-6xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 
-                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
-                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-              >
-                {content.featuresTitle}
-              </h2>
-              <p className="text-xl text-[#475569]">{content.featuresSubtitle}</p>
-            </div>
-          </ScrollReveal>
-          
-          {/* Animated Bento Grid */}
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {content.features.map((feature, i) => {
-              const icons = { globe: Globe, zap: Zap, smartphone: Smartphone, chart: BarChart3, package: Package, truck: Truck };
-              const Icon = icons[feature.icon as keyof typeof icons] || Globe;
-              
-              return (
-                <StaggerItem key={i}>
-                  <TiltCard className="h-full" glowColor="rgba(0, 106, 78, 0.12)">
-                    <motion.div 
-                      className="group relative bg-white rounded-3xl p-8 border border-[#EBEDF0] h-full shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
-                      whileHover={{ 
-                        borderColor: 'rgba(0,106,78,0.2)',
-                        boxShadow: '0 20px 50px -12px rgba(0,106,78,0.12)',
-                      }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {/* Animated gradient overlay */}
-                      <motion.div 
-                        className="absolute inset-0 bg-gradient-to-br from-[rgba(0,106,78,0.03)] to-[rgba(5,150,105,0.03)] rounded-3xl"
-                        initial={{ opacity: 0 }}
-                        whileHover={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      />
-                      
-                      <div className="relative">
-                        <motion.div 
-                          className="w-14 h-14 bg-[rgba(0,106,78,0.08)] rounded-2xl flex items-center justify-center mb-6"
-                          whileHover={{ scale: 1.15, rotate: 5 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Icon className="w-7 h-7 text-[#006A4E]" />
-                        </motion.div>
-                        <h3 className="text-xl font-bold text-[#0F172A] mb-3">{feature.title}</h3>
-                        <p className="text-[#475569] leading-relaxed">{feature.description}</p>
-                      </div>
-                    </motion.div>
-                  </TiltCard>
-                </StaggerItem>
-              );
-            })}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      {/* Pricing Section - Premium Light Design */}
-      <section id="pricing" className="py-24 px-4 bg-white relative overflow-hidden">
-        <div className="max-w-6xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 
-                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
-                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-              >
-                {content.pricingTitle}
-              </h2>
-              <p className="text-xl text-[#475569]">{content.pricingSubtitle}</p>
-            </div>
-          </ScrollReveal>
-          
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {content.plans.map((plan, i) => (
-              <StaggerItem key={i}>
-                <motion.div
-                  className={`relative rounded-3xl p-8 h-full ${
-                    plan.highlight 
-                      ? 'bg-gradient-to-br from-[#006A4E] to-[#059669] text-white shadow-[0_20px_50px_rgba(0,106,78,0.25)] border-2 border-[rgba(255,255,255,0.2)]' 
-                      : 'bg-white border border-[#EBEDF0] shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]'
-                  }`}
-                  initial={{ scale: plan.highlight ? 1.05 : 1 }}
-                  whileHover={{ 
-                    scale: plan.highlight ? 1.08 : 1.03,
-                    boxShadow: plan.highlight 
-                      ? '0 30px 60px -12px rgba(0,106,78,0.35)' 
-                      : '0 20px 50px -12px rgba(0,106,78,0.12)',
-                  }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {plan.highlight && (
-                    <motion.div 
-                      className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-[#D97706] to-[#B45309] text-white text-sm font-bold rounded-full shadow-[0_4px_14px_rgba(217,119,6,0.3)]"
-                      animate={{ 
-                        boxShadow: ['0 4px 15px rgba(217, 119, 6, 0.3)', '0 4px 25px rgba(217, 119, 6, 0.5)', '0 4px 15px rgba(217, 119, 6, 0.3)']
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <span className="flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        {content.mostPopular}
-                      </span>
-                    </motion.div>
-                  )}
-                  
-                  <h3 className={`text-2xl font-bold mb-2 ${plan.highlight ? 'text-white' : 'text-[#0F172A]'}`}>
-                    {plan.name}
-                  </h3>
-                  <p className={`mb-6 ${plan.highlight ? 'text-[rgba(255,255,255,0.8)]' : 'text-[#94A3B8]'}`}>
-                    {plan.description}
-                  </p>
-                  
-                  <div className="mb-8">
-                    <span className={`text-5xl font-black ${plan.highlight ? 'text-white' : 'text-[#0F172A]'}`}>
-                      ৳{plan.price}
-                    </span>
-                    <span className={plan.highlight ? 'text-[rgba(255,255,255,0.7)]' : 'text-[#94A3B8]'}>
-                      {content.perMonth}
-                    </span>
-                  </div>
-                  
-                  <ul className="space-y-4 mb-8">
-                    {plan.features.map((feature, j) => (
-                      <motion.li 
-                        key={j} 
-                        className={`flex items-center gap-3 ${plan.highlight ? 'text-[rgba(255,255,255,0.9)]' : 'text-[#475569]'}`}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: j * 0.1 }}
-                      >
-                        <motion.div
-                          whileHover={{ scale: 1.2 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Check className={`w-5 h-5 flex-shrink-0 ${plan.highlight ? 'text-white' : 'text-[#006A4E]'}`} />
-                        </motion.div>
-                        {feature}
-                      </motion.li>
-                    ))}
-                  </ul>
-                  
-                  <MagneticButton className="w-full">
-                    <Link
-                      to="/auth/register"
-                      className={`block w-full py-4 text-center font-bold rounded-xl transition-all ${
-                        plan.highlight
-                          ? 'bg-white hover:bg-[#F4F5F7] text-[#006A4E] shadow-[0_4px_14px_rgba(255,255,255,0.25)] hover:shadow-lg'
-                          : 'bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white shadow-[0_4px_14px_rgba(0,106,78,0.25)] hover:shadow-[0_6px_20px_rgba(0,106,78,0.35)]'
-                      }`}
-                    >
-                      {plan.cta}
-                    </Link>
-                  </MagneticButton>
-                </motion.div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      {/* Testimonials - Premium Light Design */}
-      <section className="py-24 px-4 bg-[#FAFBFC] relative overflow-hidden">
-        <LightDottedGridBg />
-        
-        <div className="relative max-w-6xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 
-                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
-                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-              >
-                {content.testimonialsTitle}
-              </h2>
-              <p className="text-xl text-[#475569]">{content.testimonialsSubtitle}</p>
-            </div>
-          </ScrollReveal>
-          
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {content.testimonials.map((t, i) => (
-              <StaggerItem key={i}>
-                <TiltCard className="h-full" glowColor="rgba(0, 106, 78, 0.1)">
-                  <motion.div 
-                    className="bg-white rounded-3xl p-8 border border-[#EBEDF0] h-full shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
-                    whileHover={{ 
-                      borderColor: 'rgba(0,106,78,0.2)',
-                      boxShadow: '0 20px 40px -12px rgba(0,106,78,0.1)',
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {/* Animated Stars */}
-                    <div className="flex items-center gap-1 text-[#D97706] mb-6">
-                      {[...Array(5)].map((_, j) => (
-                        <motion.div
-                          key={j}
-                          initial={{ opacity: 0, scale: 0 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: j * 0.1 }}
-                        >
-                          <Star className="w-5 h-5 fill-current" />
-                        </motion.div>
-                      ))}
-                    </div>
-                    <p className="text-[#475569] text-lg mb-8 leading-relaxed italic">"{t.text}"</p>
-                    <div className="flex items-center gap-4">
-                      <motion.div 
-                        className="w-12 h-12 rounded-full bg-gradient-to-br from-[#006A4E] to-[#059669] flex items-center justify-center text-white font-bold shadow-[0_4px_14px_rgba(0,106,78,0.25)]"
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {t.avatar}
-                      </motion.div>
-                      <div>
-                        <p className="font-bold text-[#0F172A]">{t.name}</p>
-                        <p className="text-sm text-[#94A3B8]">{t.role}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </TiltCard>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      {/* FAQ Section - Premium Light Design */}
-      <section className="py-24 px-4 bg-white relative overflow-hidden">
-        <div className="max-w-4xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 
-                className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4"
-                style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-              >
-                {content.faqTitle}
-              </h2>
-              <p className="text-xl text-[#475569]">{content.faqSubtitle}</p>
-            </div>
-          </ScrollReveal>
-          
-          <StaggerContainer className="space-y-4">
-            {content.faqs.map((faq, i) => (
-              <StaggerItem key={i}>
-                <motion.div 
-                  className="bg-white rounded-2xl p-6 border border-[#EBEDF0] shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]"
-                  whileHover={{ 
-                    borderColor: 'rgba(0,106,78,0.2)',
-                    boxShadow: '0 10px 30px -10px rgba(0,106,78,0.1)',
-                    x: 5,
-                  }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <h4 className="text-lg font-bold text-[#0F172A] flex items-start gap-3">
-                    <motion.span 
-                      className="w-8 h-8 bg-gradient-to-br from-[#006A4E] to-[#059669] text-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-[0_4px_14px_rgba(0,106,78,0.25)]"
-                      whileHover={{ scale: 1.1, rotate: 10 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      ?
-                    </motion.span>
-                    {faq.q}
-                  </h4>
-                  <p className="text-[#475569] mt-3 ml-11 leading-relaxed">{faq.a}</p>
-                </motion.div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      {/* Final CTA Section - Premium Light Design */}
-      <section className="py-24 px-4 bg-gradient-to-r from-[#006A4E] via-[#059669] to-[#006A4E] relative overflow-hidden">
-        {/* Animated Background Pattern */}
-        <motion.div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px)`,
-            backgroundSize: '32px 32px',
-          }}
-          animate={{ 
-            backgroundPosition: ['0px 0px', '32px 32px'],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-        />
-        
-        {/* Floating glow orbs */}
-        <motion.div 
-          className="absolute top-1/2 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
-        <motion.div 
-          className="absolute top-1/2 right-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"
-          animate={{ scale: [1.2, 1, 1.2], opacity: [0.5, 0.3, 0.5] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
-        
-        <div className="relative max-w-4xl mx-auto text-center">
-          <ScrollReveal>
-            <h2 
-              className="text-4xl md:text-5xl font-bold text-white mb-6"
-              style={{ fontFamily: 'Newsreader, Georgia, serif' }}
-            >
-              {content.ctaTitle}
-            </h2>
-            <p className="text-emerald-200 text-xl mb-10 max-w-2xl mx-auto">
-              {content.ctaSubtitle}
-            </p>
-          </ScrollReveal>
-          
-          <MagneticButton>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Link
-                to="/auth/register"
-                className="inline-flex items-center gap-3 px-10 py-5 bg-white hover:bg-emerald-50 text-emerald-700 font-bold rounded-2xl text-xl transition-all shadow-2xl hover:shadow-white/30"
-              >
-                {content.ctaButton}
-                <motion.span
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <ArrowRight className="w-6 h-6" />
-                </motion.span>
-              </Link>
-            </motion.div>
-          </MagneticButton>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-16 px-4 bg-gray-900 text-gray-400">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-blue-600 rounded-xl flex items-center justify-center">
                   <Store className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-xl text-white" style={{ fontFamily: 'Newsreader, Georgia, serif' }}>
-                  Multi-Store SaaS
-                </span>
+                <span className="font-bold text-xl text-white">Multi-Store</span>
               </div>
-              <p className="text-gray-500 mb-6 leading-relaxed">
-                The easiest way to start and grow your online business in Bangladesh. 
-                Built with ❤️ for Bangladeshi entrepreneurs.
-              </p>
-              <div className="flex items-center gap-4">
-                <a href="#" className="w-10 h-10 bg-gray-800 hover:bg-emerald-600 rounded-xl flex items-center justify-center transition">
-                  <MessageCircle className="w-5 h-5" />
-                </a>
-              </div>
+              <p className="text-sm">{content.footerAbout}</p>
             </div>
             
-            <div>
-              <h4 className="font-bold text-white mb-4">Product</h4>
-              <ul className="space-y-3 text-sm">
-                <li><Link to="#" className="hover:text-emerald-400 transition flex items-center gap-1"><ChevronRight className="w-4 h-4" />Features</Link></li>
-                <li><Link to="#pricing" className="hover:text-emerald-400 transition flex items-center gap-1"><ChevronRight className="w-4 h-4" />Pricing</Link></li>
-                <li><Link to="#" className="hover:text-emerald-400 transition flex items-center gap-1"><ChevronRight className="w-4 h-4" />Templates</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-bold text-white mb-4">Contact</h4>
-              <ul className="space-y-3 text-sm">
-                <li>
-                  <a href="tel:+8801570260118" className="hover:text-emerald-400 transition flex items-center gap-2">
-                    📞 01570260118
-                  </a>
-                </li>
-                <li>
-                  <a href="https://wa.me/8801739416661" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition flex items-center gap-2">
-                    💬 01739416661 (WhatsApp)
-                  </a>
-                </li>
-                <li>
-                  <a href="mailto:rahmatullahzisan@gmail.com" className="hover:text-emerald-400 transition flex items-center gap-2">
-                    ✉️ rahmatullahzisan@gmail.com
-                  </a>
-                </li>
-                <li>
-                  <Link to="/contact" className="hover:text-emerald-400 transition flex items-center gap-1">
-                    <ChevronRight className="w-4 h-4" />Contact Page
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            {[
+              { title: content.footerProduct, links: content.productLinks },
+              { title: content.footerCompany, links: content.companyLinks },
+              { title: content.footerLegal, links: content.legalLinks },
+            ].map((section, i) => (
+              <div key={i}>
+                <h4 className="text-white font-semibold mb-4">{section.title}</h4>
+                <ul className="space-y-2">
+                  {section.links.map((link: string, j: number) => (
+                    <li key={j}>
+                      <Link to="#" className="hover:text-white transition text-sm">{link}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
           
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm">© {new Date().getFullYear()} Multi-Store SaaS. All rights reserved.</p>
-            <div className="flex items-center gap-6 text-sm">
-              <Link to="/auth/login" className="hover:text-emerald-400 transition">{content.login}</Link>
-              <Link to="/auth/register" className="hover:text-emerald-400 transition">{content.register}</Link>
+          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm">{content.copyright}</p>
+            <div className="flex items-center gap-4">
+              {['💬', '📘', '📸', '🐦'].map((emoji, i) => (
+                <Link key={i} to="#" className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center transition">
+                  {emoji}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
       </footer>
-
-      {/* AI Support Chat Bot for Visitors - Temporarily disabled */}
-      {/* <ChatWidget
-        mode="customer"
-        storeId={0}
-        welcomeMessage={lang === 'bn' 
-          ? 'আসসালামু আলাইকুম! 👋 Multi-Store সম্পর্কে কোন প্রশ্ন আছে?' 
-          : 'Hello! 👋 Have any questions about Multi-Store?'
-        }
-        accentColor="#10B981"
-      /> */}
     </div>
   );
 }
