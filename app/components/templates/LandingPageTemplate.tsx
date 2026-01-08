@@ -1129,9 +1129,13 @@ export function LandingPageTemplate({
                 </button>
               </div>
             ) : (
-              // Order Form - 2 Column Layout
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                {/* Left Column - Product Info & Quantity */}
+              // Order Form - Layout based on variant
+              <div className={editableConfig.orderFormVariant === 'compact' 
+                ? "max-w-lg mx-auto" 
+                : "grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12"
+              }>
+                {/* Left Column - Product Info & Quantity (only show in full-width mode) */}
+                {editableConfig.orderFormVariant !== 'compact' && (
                 <div className="space-y-6">
                   {/* Product Summary */}
                   <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
@@ -1271,8 +1275,9 @@ export function LandingPageTemplate({
                     </div>
                   </div>
                 </div>
+                )}
 
-                {/* Right Column - Customer Info Form */}
+                {/* Customer Info Form (Right Column in full-width, Single column in compact) */}
                 <div>
                   {/* Error Display */}
                   {hasError && (
