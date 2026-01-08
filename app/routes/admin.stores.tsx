@@ -16,6 +16,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql, desc } from 'drizzle-orm';
 import { stores, users, activityLogs } from '@db/schema';
 import { requireSuperAdmin, createImpersonationSession } from '~/services/auth.server';
+import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 import { 
   Store, 
   Search,
@@ -71,7 +72,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ? storesWithOwners.filter(s => s.deletedAt !== null)
     : storesWithOwners.filter(s => s.deletedAt === null);
   
-  return json({ stores: filteredStores, showDeleted });
+  // Fetch bulk usage stats for all stores
+  const storeIds = filteredStores.map(s => s.id);
+  const usageMap = await getBulkUsageStats(db, storeIds);
+  
+  // Attach usage stats to each store
+  const storesWithUsage = filteredStores.map(store => {
+    const usage = usageMap.get(store.id) || { orders: 0, products: 0 };
+    const planType = (store.planType as PlanType) || 'free';
+    const limits = PLAN_LIMITS[planType];
+    return {
+      ...store,
+      usage: {
+        orders: usage.orders,
+        ordersLimit: limits.max_orders,
+        products: usage.products,
+        productsLimit: limits.max_products,
+      },
+    };
+  });
+  
+  return json({ stores: storesWithUsage, showDeleted });
 }
 
 // ============================================================================
@@ -300,6 +321,9 @@ export default function AdminStores() {
                   Plan
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Usage
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
@@ -313,7 +337,7 @@ export default function AdminStores() {
             <tbody className="divide-y divide-slate-800">
               {filteredStores.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
                     No stores found
                   </td>
                 </tr>
@@ -344,6 +368,42 @@ export default function AdminStores() {
                     {/* Plan */}
                     <td className="px-4 py-4">
                       {getPlanBadge(store.planType)}
+                    </td>
+                    
+                    {/* Usage */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        {/* Orders */}
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-slate-500 w-10">Orders:</span>
+                          <span className={`font-medium ${
+                            store.usage.ordersLimit !== Infinity && 
+                            (store.usage.orders / store.usage.ordersLimit) >= 0.8 
+                              ? 'text-amber-400' 
+                              : store.usage.ordersLimit !== Infinity && 
+                                (store.usage.orders / store.usage.ordersLimit) >= 1 
+                                ? 'text-red-400' 
+                                : 'text-slate-300'
+                          }`}>
+                            {store.usage.orders}/{store.usage.ordersLimit === Infinity ? '∞' : store.usage.ordersLimit}
+                          </span>
+                        </div>
+                        {/* Products */}
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-slate-500 w-10">Prods:</span>
+                          <span className={`font-medium ${
+                            store.usage.productsLimit !== Infinity && 
+                            (store.usage.products / store.usage.productsLimit) >= 0.8 
+                              ? 'text-amber-400' 
+                              : store.usage.productsLimit !== Infinity && 
+                                (store.usage.products / store.usage.productsLimit) >= 1 
+                                ? 'text-red-400' 
+                                : 'text-slate-300'
+                          }`}>
+                            {store.usage.products}/{store.usage.productsLimit === Infinity ? '∞' : store.usage.productsLimit}
+                          </span>
+                        </div>
+                      </div>
                     </td>
                     
                     {/* Status */}
@@ -486,7 +546,7 @@ export default function AdminStores() {
                 </div>
                 
                 {/* Store Info Grid */}
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-3 gap-3 text-sm">
                   <div>
                     <p className="text-xs text-slate-500">Owner</p>
                     <p className="text-slate-300 truncate">{store.ownerName || 'N/A'}</p>
@@ -495,6 +555,15 @@ export default function AdminStores() {
                   <div>
                     <p className="text-xs text-slate-500">Plan</p>
                     {getPlanBadge(store.planType)}
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Usage</p>
+                    <p className="text-xs text-slate-300">
+                      O: {store.usage.orders}/{store.usage.ordersLimit === Infinity ? '∞' : store.usage.ordersLimit}
+                    </p>
+                    <p className="text-xs text-slate-300">
+                      P: {store.usage.products}/{store.usage.productsLimit === Infinity ? '∞' : store.usage.productsLimit}
+                    </p>
                   </div>
                 </div>
                 

@@ -19,6 +19,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, like, or, desc, isNotNull } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
 import { requireUserId } from '~/services/auth.server';
+import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 import { Crown, Zap, Gift, Search, Check, Calendar, ArrowUpCircle, AlertCircle, Mail, Phone, Copy, CheckCircle, XCircle, ArrowDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -116,8 +117,28 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     premium: allStores.filter(s => s.planType === 'premium').length,
   };
 
+  // Fetch bulk usage stats for all stores
+  const storeIds = allStores.map(s => s.id);
+  const usageMap = await getBulkUsageStats(context.cloudflare.env.DB, storeIds);
+  
+  // Attach usage stats to each store
+  const storesWithUsage = allStores.map(store => {
+    const usage = usageMap.get(store.id) || { orders: 0, products: 0 };
+    const planType = (store.planType as PlanType) || 'free';
+    const limits = PLAN_LIMITS[planType];
+    return {
+      ...store,
+      usage: {
+        orders: usage.orders,
+        ordersLimit: limits.max_orders,
+        products: usage.products,
+        productsLimit: limits.max_products,
+      },
+    };
+  });
+
   return json({
-    stores: allStores,
+    stores: storesWithUsage,
     pendingPayments: pendingWithOwners,
     planCounts,
     search,
@@ -420,6 +441,7 @@ export default function AdminPlansPage() {
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('store')}</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('subdomain')}</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('currentPlan')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Usage</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('created')}</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('action')}</th>
               </tr>
@@ -427,7 +449,7 @@ export default function AdminPlansPage() {
             <tbody className="divide-y divide-gray-100">
               {allStores.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                     {t('noResults')}
                   </td>
                 </tr>
@@ -457,6 +479,26 @@ export default function AdminPlansPage() {
                     </td>
                     <td className="px-4 py-3">
                     <PlanBadge plan={store.planType || 'free'} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs space-y-0.5">
+                        <div className={`${
+                          store.usage.ordersLimit !== Infinity && 
+                          (store.usage.orders / store.usage.ordersLimit) >= 0.8 
+                            ? 'text-amber-600' 
+                            : 'text-gray-600'
+                        }`}>
+                          O: {store.usage.orders}/{store.usage.ordersLimit === Infinity ? '∞' : store.usage.ordersLimit}
+                        </div>
+                        <div className={`${
+                          store.usage.productsLimit !== Infinity && 
+                          (store.usage.products / store.usage.productsLimit) >= 0.8 
+                            ? 'text-amber-600' 
+                            : 'text-gray-600'
+                        }`}>
+                          P: {store.usage.products}/{store.usage.productsLimit === Infinity ? '∞' : store.usage.productsLimit}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {store.createdAt ? new Date(store.createdAt).toLocaleDateString() : 'N/A'}
