@@ -11,9 +11,40 @@ import { drizzle } from 'drizzle-orm/d1';
 import { emailAutomations, emailAutomationSteps } from '@db/schema';
 import { eq } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
-import { getDefaultTemplate, type EmailTrigger } from '~/services/automation.server';
 import { useState } from 'react';
 import { ArrowLeft, Plus, Trash2, Clock, Mail, ShoppingCart, UserPlus, Package, Wand2 } from 'lucide-react';
+
+// Trigger types (shared between server and client)
+type EmailTrigger = 'order_placed' | 'cart_abandoned' | 'signup' | 'order_delivered';
+
+// Default email templates (client-side for template button)
+const EMAIL_TEMPLATES: Record<EmailTrigger, { subject: string; content: string }> = {
+  order_placed: {
+    subject: '🎉 আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে!',
+    content: `<h2>ধন্যবাদ {{customer_name}}!</h2>
+<p>আপনার অর্ডার #{{order_number}} সফলভাবে গ্রহণ করা হয়েছে।</p>
+<p>মোট: {{total}}</p>
+<p>আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।</p>`,
+  },
+  cart_abandoned: {
+    subject: '🛒 আপনার কার্টে পণ্য অপেক্ষা করছে!',
+    content: `<h2>হ্যালো {{customer_name}}!</h2>
+<p>আপনি কিছু দারুণ পণ্য বাছাই করেছিলেন কিন্তু অর্ডার সম্পন্ন করেননি।</p>
+<p>এখনই ফিরে এসে অর্ডার দিন!</p>`,
+  },
+  signup: {
+    subject: '🙏 স্বাগতম! আমাদের সাথে যুক্ত হওয়ার জন্য ধন্যবাদ',
+    content: `<h2>স্বাগতম {{customer_name}}!</h2>
+<p>আমাদের সাথে যুক্ত হওয়ার জন্য আপনাকে ধন্যবাদ।</p>
+<p>আমাদের স্টোরে দারুণ সব পণ্য দেখুন!</p>`,
+  },
+  order_delivered: {
+    subject: '📦 আপনার অর্ডার ডেলিভারি হয়েছে!',
+    content: `<h2>শুভ সংবাদ {{customer_name}}!</h2>
+<p>আপনার অর্ডার #{{order_number}} সফলভাবে ডেলিভারি হয়েছে।</p>
+<p>আশা করি পণ্যটি আপনার পছন্দ হয়েছে!</p>`,
+  },
+};
 
 const TRIGGERS: { value: EmailTrigger; label: string; icon: React.ReactNode; description: string }[] = [
   { value: 'order_placed', label: 'অর্ডার সম্পন্ন', icon: <ShoppingCart size={20} />, description: 'যখন কাস্টমার অর্ডার প্লেস করে' },
@@ -101,7 +132,7 @@ export default function NewAutomationPage() {
   };
 
   const applyTemplate = (index: number) => {
-    const template = getDefaultTemplate(selectedTrigger);
+    const template = EMAIL_TEMPLATES[selectedTrigger];
     updateStep(index, 'subject', template.subject);
     updateStep(index, 'content', template.content);
   };
