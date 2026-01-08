@@ -21,9 +21,16 @@ import { Link } from '@remix-run/react';
 import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe } from 'lucide-react';
 
 // ============================================================================
-// DESIGN TOKENS - Bangladesh Theme
+// TYPES
 // ============================================================================
-const COLORS = {
+interface HeroProps {
+  theme?: 'dark' | 'light';
+}
+
+// ============================================================================
+// DESIGN TOKENS - Theme-Aware Bangladesh Theme
+// ============================================================================
+const DARK_COLORS = {
   primary: '#006A4E',      // Bangladesh Green
   primaryLight: '#00875F',
   primaryDark: '#004D38',
@@ -34,14 +41,38 @@ const COLORS = {
   text: '#FFFFFF',
   textMuted: 'rgba(255, 255, 255, 0.6)',
   textSubtle: 'rgba(255, 255, 255, 0.4)',
+  cardBg: 'rgba(255, 255, 255, 0.05)',
+  cardBorder: 'rgba(255, 255, 255, 0.1)',
+  cardShadow: 'none',
 };
+
+const LIGHT_COLORS = {
+  primary: '#006A4E',      // Bangladesh Green (same)
+  primaryLight: '#00875F',
+  primaryDark: '#005740',
+  accent: '#D97706',       // Deeper amber for light bg
+  accentLight: '#F59E0B',
+  background: '#FAFBFC',   // Warm off-white
+  backgroundAlt: '#F4F5F7',
+  text: '#0F172A',         // Deep blue-black
+  textMuted: '#475569',    // Gray-blue
+  textSubtle: '#94A3B8',   // Light gray
+  cardBg: '#FFFFFF',
+  cardBorder: '#EBEDF0',
+  cardShadow: '0 4px 6px rgba(0,0,0,0.04), 0 10px 25px rgba(0,0,0,0.06)',
+};
+
+const getColors = (theme: 'dark' | 'light') => theme === 'light' ? LIGHT_COLORS : DARK_COLORS;
+
+// Keep COLORS for backward compatibility in child components
+const COLORS = DARK_COLORS;
 
 // ============================================================================
 // GRAIN TEXTURE OVERLAY
 // ============================================================================
-const GrainOverlay = () => (
+const GrainOverlay = ({ isLight = false }: { isLight?: boolean }) => (
   <div 
-    className="pointer-events-none fixed inset-0 z-50 opacity-[0.03]"
+    className={`pointer-events-none fixed inset-0 z-50 ${isLight ? 'opacity-[0.02]' : 'opacity-[0.03]'}`}
     style={{
       backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
     }}
@@ -87,7 +118,7 @@ const FloatingBengaliText = () => {
 };
 
 // ============================================================================
-// GRADIENT MESH BACKGROUND
+// GRADIENT MESH BACKGROUND (Dark Theme)
 // ============================================================================
 const GradientMeshBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
@@ -141,6 +172,71 @@ const GradientMeshBackground = () => (
     />
   </div>
 );
+
+// ============================================================================
+// LIGHT GRADIENT BACKGROUND (Light Theme)
+// ============================================================================
+const LightGradientBackground = () => (
+  <div className="absolute inset-0 overflow-hidden" style={{ backgroundColor: LIGHT_COLORS.background }}>
+    {/* Subtle green gradient at top */}
+    <motion.div
+      className="absolute -top-1/4 left-1/4 w-[900px] h-[900px] rounded-full"
+      style={{
+        background: 'radial-gradient(ellipse at center, rgba(0,106,78,0.06) 0%, transparent 60%)',
+      }}
+      animate={{
+        scale: [1, 1.1, 1],
+        x: [0, 30, 0],
+      }}
+      transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+    />
+    
+    {/* Soft purple accent - subtle */}
+    <motion.div
+      className="absolute top-1/3 -right-1/4 w-[700px] h-[700px] rounded-full"
+      style={{
+        background: 'radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 60%)',
+      }}
+      animate={{
+        scale: [1.05, 1, 1.05],
+        opacity: [0.4, 0.6, 0.4],
+      }}
+      transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+    />
+    
+    {/* Warm amber accent bottom */}
+    <motion.div
+      className="absolute bottom-0 left-1/3 w-[500px] h-[500px] rounded-full"
+      style={{
+        background: 'radial-gradient(circle, rgba(217,119,6,0.04) 0%, transparent 60%)',
+      }}
+      animate={{
+        scale: [1, 1.15, 1],
+        y: [0, -20, 0],
+      }}
+      transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+    />
+    
+    {/* Subtle dot grid pattern */}
+    <div 
+      className="absolute inset-0 opacity-[0.03]"
+      style={{
+        backgroundImage: 'radial-gradient(circle, rgba(0,106,78,0.4) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }}
+    />
+    
+    {/* Soft glow behind mockup area */}
+    <div 
+      className="absolute top-1/4 right-1/4 w-[500px] h-[400px] rounded-full"
+      style={{
+        background: 'radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, transparent 70%)',
+        filter: 'blur(60px)',
+      }}
+    />
+  </div>
+);
+
 
 // ============================================================================
 // MAGNETIC BUTTON COMPONENT
@@ -555,25 +651,31 @@ const BuilderMockup = () => {
 };
 
 // ============================================================================
-// MAIN HERO COMPONENT
+// MAIN HERO COMPONENT - THEME AWARE
 // ============================================================================
-export function AwardWinningHero() {
+export function AwardWinningHero({ theme = 'dark' }: HeroProps) {
+  const colors = getColors(theme);
+  const isLight = theme === 'light';
+
   return (
     <section 
       className="relative min-h-screen overflow-hidden flex items-center"
-      style={{ backgroundColor: COLORS.background }}
+      style={{ backgroundColor: colors.background }}
     >
-      {/* Background layers */}
-      <GrainOverlay />
-      <GradientMeshBackground />
-      <FloatingBengaliText />
+      {/* Background layers - conditional on theme */}
+      <GrainOverlay isLight={isLight} />
+      {isLight ? <LightGradientBackground /> : <GradientMeshBackground />}
+      {!isLight && <FloatingBengaliText />}
       
       {/* Subtle grid pattern */}
       <div 
-        className="absolute inset-0 opacity-[0.02]"
+        className={`absolute inset-0 ${isLight ? 'opacity-[0.015]' : 'opacity-[0.02]'}`}
         style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundImage: isLight 
+            ? `linear-gradient(${colors.text}10 1px, transparent 1px),
+               linear-gradient(90deg, ${colors.text}10 1px, transparent 1px)`
+            : `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+               linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
           backgroundSize: '48px 48px',
         }}
       />
@@ -588,10 +690,11 @@ export function AwardWinningHero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-8"
               style={{ 
-                backgroundColor: `${COLORS.primary}10`,
-                borderColor: `${COLORS.primary}30`,
+                backgroundColor: isLight ? 'rgba(0,106,78,0.08)' : `${colors.primary}10`,
+                borderColor: isLight ? 'rgba(0,106,78,0.15)' : `${colors.primary}30`,
+                boxShadow: isLight ? '0 2px 8px rgba(0,106,78,0.1)' : 'none',
               }}
             >
               <motion.span
@@ -600,7 +703,7 @@ export function AwardWinningHero() {
               >
                 🇧🇩
               </motion.span>
-              <span style={{ color: COLORS.textMuted }} className="text-sm">
+              <span style={{ color: colors.textMuted }} className="text-sm">
                 বাংলাদেশের প্রথম বাংলা-ভিত্তিক বিল্ডার
               </span>
             </motion.div>
@@ -612,7 +715,7 @@ export function AwardWinningHero() {
             >
               <StaggeredText 
                 text="বাংলায় বিজনেস," 
-                className="block text-white"
+                className={`block ${isLight ? 'text-[#0F172A]' : 'text-white'}`}
               />
               <StaggeredText 
                 text="বাংলাতেই বানান।" 
@@ -621,10 +724,10 @@ export function AwardWinningHero() {
               />
             </h1>
             
-            {/* Gradient text effect via style */}
+            {/* Gradient text effect via style - works for both themes */}
             <style>{`
               h1 .block:nth-child(2) {
-                background-image: linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%);
+                background-image: linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 50%, ${isLight ? '#8B5CF6' : colors.accent} 100%);
                 background-size: 200% 100%;
                 animation: gradientShift 4s ease infinite;
               }
@@ -640,11 +743,11 @@ export function AwardWinningHero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
               className="text-lg md:text-xl mb-10 max-w-xl leading-relaxed"
-              style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
+              style={{ color: colors.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
               কোনো কোডিং নেই, কোনো ঝামেলা নেই।
               <br />
-              টেমপ্লেট বাছুন, কন্টেন্ট দিন — <span className="text-white font-semibold">৫ মিনিটে Online।</span>
+              টেমপ্লেট বাছুন, কন্টেন্ট দিন — <span style={{ color: colors.text, fontWeight: 600 }}>৫ মিনিটে Online।</span>
             </motion.p>
             
             {/* CTA Buttons */}
@@ -654,24 +757,28 @@ export function AwardWinningHero() {
               transition={{ duration: 0.6, delay: 0.8 }}
               className="flex flex-wrap gap-4 mb-6"
             >
-              {/* Primary CTA - Glowing */}
+              {/* Primary CTA */}
               <Magnetic>
                 <Link
                   to="/auth/register"
-                  className="group relative px-8 py-4 rounded-xl font-semibold text-black overflow-hidden flex items-center gap-2 transition-transform hover:scale-[1.02]"
+                  className="group relative px-8 py-4 rounded-xl font-semibold text-white overflow-hidden flex items-center gap-2 transition-all hover:scale-[1.02] hover:-translate-y-0.5"
                   style={{ 
-                    background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
-                    boxShadow: `0 0 30px ${COLORS.primary}60, 0 0 60px ${COLORS.primary}30`,
+                    background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
+                    boxShadow: isLight 
+                      ? '0 4px 14px rgba(0,106,78,0.3), 0 1px 3px rgba(0,0,0,0.1)' 
+                      : `0 0 30px ${colors.primary}60, 0 0 60px ${colors.primary}30`,
                     fontFamily: "'Noto Sans Bengali', sans-serif",
                   }}
                 >
-                  {/* Glow pulse effect */}
-                  <motion.div
-                    className="absolute inset-0 rounded-xl"
-                    style={{ background: `linear-gradient(135deg, ${COLORS.primaryLight} 0%, ${COLORS.accent} 100%)` }}
-                    animate={{ opacity: [0, 0.3, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
+                  {/* Glow pulse effect - only on dark theme */}
+                  {!isLight && (
+                    <motion.div
+                      className="absolute inset-0 rounded-xl"
+                      style={{ background: `linear-gradient(135deg, ${colors.primaryLight} 0%, ${colors.accent} 100%)` }}
+                      animate={{ opacity: [0, 0.3, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                  )}
                   <span className="relative z-10">ফ্রিতে শুরু করুন</span>
                   <motion.span
                     className="relative z-10"
@@ -683,11 +790,15 @@ export function AwardWinningHero() {
                 </Link>
               </Magnetic>
               
-              {/* Ghost CTA */}
+              {/* Secondary CTA */}
               <Magnetic>
                 <Link
                   to="#demo"
-                  className="group px-8 py-4 rounded-xl font-semibold text-white border border-white/20 hover:bg-white/5 hover:border-white/30 transition-all duration-300 backdrop-blur-sm flex items-center gap-2"
+                  className={`group px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
+                    isLight 
+                      ? 'bg-white text-[#006A4E] border border-[#006A4E]/20 hover:bg-[#006A4E]/5 hover:border-[#006A4E]/40 shadow-sm hover:shadow-md' 
+                      : 'text-white border border-white/20 hover:bg-white/5 hover:border-white/30 backdrop-blur-sm'
+                  }`}
                   style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
                 >
                   ডেমো দেখুন
@@ -702,14 +813,14 @@ export function AwardWinningHero() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
               className="flex flex-wrap items-center gap-4 text-sm mb-8"
-              style={{ color: COLORS.textSubtle }}
+              style={{ color: colors.textSubtle }}
             >
               <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4" style={{ color: COLORS.primary }} />
+                <Check className="w-4 h-4" style={{ color: colors.primary }} />
                 ক্রেডিট কার্ড লাগবে না
               </span>
               <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4" style={{ color: COLORS.primary }} />
+                <Check className="w-4 h-4" style={{ color: colors.primary }} />
                 ১ মিনিটে সাইনআপ
               </span>
             </motion.div>
@@ -724,12 +835,13 @@ export function AwardWinningHero() {
               transition={{ delay: 1.8 }}
               className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-lg border"
               style={{ 
-                backgroundColor: `${COLORS.accent}10`,
-                borderColor: `${COLORS.accent}30`,
+                backgroundColor: isLight ? 'rgba(217,119,6,0.08)' : `${colors.accent}10`,
+                borderColor: isLight ? 'rgba(217,119,6,0.2)' : `${colors.accent}30`,
+                boxShadow: isLight ? '0 2px 8px rgba(217,119,6,0.1)' : 'none',
               }}
             >
-              <Sparkles className="w-4 h-4" style={{ color: COLORS.accent }} />
-              <span className="text-sm" style={{ color: COLORS.accent }}>
+              <Sparkles className="w-4 h-4" style={{ color: colors.accent }} />
+              <span className="text-sm" style={{ color: colors.accent }}>
                 Beta User হিসেবে Join করুন — Early Adopter Benefits পাবেন
               </span>
             </motion.div>
@@ -737,7 +849,19 @@ export function AwardWinningHero() {
           
           {/* RIGHT: Builder Demo Mockup */}
           <div className="hidden lg:block">
-            <BuilderMockup />
+            {/* Light theme: white card with shadow wrapping the mockup */}
+            {isLight ? (
+              <div 
+                className="rounded-2xl p-1 bg-white"
+                style={{
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)',
+                }}
+              >
+                <BuilderMockup />
+              </div>
+            ) : (
+              <BuilderMockup />
+            )}
           </div>
         </div>
         
@@ -748,7 +872,7 @@ export function AwardWinningHero() {
           transition={{ delay: 2 }}
           className="text-center mt-20"
         >
-          <p className="text-sm" style={{ color: COLORS.textSubtle }}>
+          <p className="text-sm" style={{ color: colors.textSubtle }}>
             বাংলাদেশ থেকে, বাংলাদেশের জন্য 🇧🇩
           </p>
         </motion.div>
@@ -758,3 +882,4 @@ export function AwardWinningHero() {
 }
 
 export default AwardWinningHero;
+

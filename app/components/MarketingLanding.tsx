@@ -441,8 +441,8 @@ export function MarketingLanding() {
         </div>
       </header>
 
-      {/* Same content sections as dark mode */}
-      <AwardWinningHero />
+      {/* Light Theme Hero - Premium Light Styling */}
+      <AwardWinningHero theme="light" />
       <ProblemSolutionSection />
       <BentoFeaturesSection />
       <InfrastructureSection />
