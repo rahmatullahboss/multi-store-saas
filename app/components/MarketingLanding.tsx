@@ -20,6 +20,7 @@ import { useLanguage } from '~/contexts/LanguageContext';
 import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingOrbs, TiltCard, MagneticButton, ShimmerText } from '~/components/animations';
 import { AwardWinningHero } from '~/components/AwardWinningHero';
 import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
+import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
 
 
 // Marketing page specific translations - Multi-Store SaaS specific content
@@ -270,6 +271,9 @@ export function MarketingLanding() {
 
         {/* Problem-Solution Section */}
         <ProblemSolutionSection />
+
+        {/* Bento Grid Features Section */}
+        <BentoFeaturesSection />
 
         {/* Stats Section - Dark */}
         <section className="py-20 bg-gradient-to-b from-[#0A0A0F] to-[#0F0F18] relative overflow-hidden">
