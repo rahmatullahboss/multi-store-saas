@@ -264,8 +264,8 @@ export function MarketingLanding() {
           </div>
         </header>
 
-        {/* Award-Winning Dark Mode Hero */}
-        <AwardWinningHero content={content} />
+        {/* Award-Winning Bangladesh Hero - Bangla Native */}
+        <AwardWinningHero />
 
         {/* Rest of dark-themed sections will follow similar styling */}
         {/* Stats Section - Dark */}
