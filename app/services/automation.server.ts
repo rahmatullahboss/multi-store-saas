@@ -25,20 +25,23 @@ export interface TriggerContext {
 /**
  * Trigger automation for an event
  * 
- * WORKAROUND (Free Plan): 
- * - Immediate emails (delay=0) are sent DIRECTLY via Resend
- * - Delayed emails are stored in DB for scheduled cron processing
- * - No Workers Queue needed!
+ * SIMPLIFIED: ALL emails sent immediately via Resend
+ * No queue needed, no cron needed!
  */
 export async function triggerAutomation(
   d1: D1Database,
   trigger: EmailTrigger,
   context: TriggerContext,
   resendApiKey?: string | null
-): Promise<{ sent: number; queued: number }> {
+): Promise<{ sent: number; failed: number }> {
+  if (!resendApiKey) {
+    console.log('⚠️ [EMAIL] No RESEND_API_KEY - skipping automation emails');
+    return { sent: 0, failed: 0 };
+  }
+
   const db = drizzle(d1);
   let sent = 0;
-  let queued = 0;
+  let failed = 0;
 
   // Find active automations for this trigger
   const automations = await db
@@ -60,6 +63,7 @@ export async function triggerAutomation(
     .limit(1);
 
   const storeName = store[0]?.name || 'Store';
+  const emailService = createEmailService(resendApiKey);
 
   for (const automation of automations) {
     // Get all steps for this automation
@@ -81,54 +85,35 @@ export async function triggerAutomation(
       const subject = replaceTemplateVars(step.subject, metadata);
       const content = replaceTemplateVars(step.content, metadata);
 
-      if (step.delayMinutes === 0 && resendApiKey) {
-        // ============ IMMEDIATE EMAIL - SEND DIRECTLY ============
-        try {
-          const emailService = createEmailService(resendApiKey);
-          await emailService.sendCampaignEmail({
-            email: context.customerEmail,
-            subject,
-            content,
-            storeName,
-            unsubscribeUrl: '#', // Placeholder
-          });
-          
-          // Update stats
-          await d1.prepare(
-            'UPDATE email_automation_steps SET sent_count = sent_count + 1 WHERE id = ?'
-          ).bind(step.id).run();
-          
-          await d1.prepare(
-            'UPDATE email_automations SET total_sent = total_sent + 1 WHERE id = ?'
-          ).bind(automation.id).run();
-          
-          sent++;
-          console.log(`📧 [DIRECT] Sent email to ${context.customerEmail}: ${subject}`);
-        } catch (error) {
-          console.error('Failed to send immediate email:', error);
-        }
-      } else {
-        // ============ DELAYED EMAIL - QUEUE FOR CRON ============
-        const scheduledAt = new Date(Date.now() + (step.delayMinutes || 0) * 60 * 1000);
-        
-        await db.insert(emailQueue).values({
-          storeId: context.storeId,
-          stepId: step.id,
-          recipientEmail: context.customerEmail,
+      try {
+        // ============ SEND IMMEDIATELY VIA RESEND ============
+        await emailService.sendCampaignEmail({
+          email: context.customerEmail,
           subject,
           content,
-          scheduledAt,
-          status: 'pending',
-          metadata: JSON.stringify(metadata),
+          storeName,
+          unsubscribeUrl: '#',
         });
         
-        queued++;
-        console.log(`📬 [QUEUED] Email for ${context.customerEmail} scheduled at ${scheduledAt.toISOString()}`);
+        // Update stats
+        await d1.prepare(
+          'UPDATE email_automation_steps SET sent_count = sent_count + 1 WHERE id = ?'
+        ).bind(step.id).run();
+        
+        await d1.prepare(
+          'UPDATE email_automations SET total_sent = total_sent + 1 WHERE id = ?'
+        ).bind(automation.id).run();
+        
+        sent++;
+        console.log(`📧 [SENT] ${context.customerEmail}: ${subject}`);
+      } catch (error) {
+        console.error(`❌ [FAILED] ${context.customerEmail}:`, error);
+        failed++;
       }
     }
   }
 
-  return { sent, queued };
+  return { sent, failed };
 }
 
 /**
