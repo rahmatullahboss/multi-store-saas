@@ -5,6 +5,7 @@ import { OptimizedImage } from '~/components/OptimizedImage';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { MagicSectionWrapper } from '~/components/editor';
 import { DEFAULT_SHIPPING_CONFIG, calculateShipping, type DivisionValue } from '~/utils/shipping';
+import { OrderBumpsContainer } from '~/components/landing/OrderBumpCheckbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Check, ChevronDown, ChevronUp, ShoppingCart, 
@@ -78,10 +79,26 @@ export function MobileFirstTemplate({
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
-  // Checkout Logic
+  // Selected order bump IDs
+  const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
+  
+  // Checkout Logic - With Order Bumps
   const subtotal = product.price * formData.quantity;
   const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
-  const totalPrice = subtotal + shippingCost;
+  
+  // Calculate bump products total
+  const orderBumps = (config as any).orderBumps || [];
+  const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
+    const bump = orderBumps.find((b: any) => b.id === bumpId);
+    if (!bump) return total;
+    const originalPrice = bump.bumpProduct.price;
+    const discountedPrice = bump.discount > 0 
+      ? originalPrice * (1 - bump.discount / 100) 
+      : originalPrice;
+    return total + discountedPrice;
+  }, 0);
+  
+  const totalPrice = subtotal + bumpTotal + shippingCost;
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
@@ -118,6 +135,7 @@ export function MobileFirstTemplate({
         address: formData.address,
         division: formData.division,
         quantity: formData.quantity,
+        bump_ids: selectedBumpIds.length > 0 ? selectedBumpIds : undefined,
       },
       { method: 'POST', action: '/api/create-order', encType: 'application/json' }
     );
@@ -344,6 +362,18 @@ export function MobileFirstTemplate({
                         ))}
                      </div>
                   </div>
+
+                  {/* Order Bumps - Add-on Offers */}
+                  {orderBumps.length > 0 && (
+                    <div className="mt-4">
+                      <OrderBumpsContainer
+                        bumps={orderBumps}
+                        currency={currency}
+                        selectedBumpIds={selectedBumpIds}
+                        onSelectionChange={setSelectedBumpIds}
+                      />
+                    </div>
+                  )}
 
                   {/* Summary */}
                   <div className="bg-white p-4 rounded-xl border border-dashed border-emerald-200 space-y-2 mt-4">

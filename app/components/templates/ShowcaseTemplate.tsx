@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { MagicSectionWrapper } from '~/components/editor';
 import { DEFAULT_SHIPPING_CONFIG, calculateShipping, type DivisionValue } from '~/utils/shipping';
+import { OrderBumpsContainer } from '~/components/landing/OrderBumpCheckbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Check, Star, ArrowRight, ShieldCheck, ShoppingBag, Truck, BadgeCheck, Clock, Camera, Phone
@@ -78,10 +79,26 @@ export function ShowcaseTemplate({
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
-  // Checkout Logic
+  // Selected order bump IDs
+  const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
+  
+  // Checkout Logic - With Order Bumps
   const subtotal = product.price * formData.quantity;
   const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
-  const totalPrice = subtotal + shippingCost;
+  
+  // Calculate bump products total
+  const orderBumps = (config as any).orderBumps || [];
+  const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
+    const bump = orderBumps.find((b: any) => b.id === bumpId);
+    if (!bump) return total;
+    const originalPrice = bump.bumpProduct.price;
+    const discountedPrice = bump.discount > 0 
+      ? originalPrice * (1 - bump.discount / 100) 
+      : originalPrice;
+    return total + discountedPrice;
+  }, 0);
+  
+  const totalPrice = subtotal + bumpTotal + shippingCost;
   
   // Validation
   const validateForm = (): boolean => {
@@ -115,6 +132,7 @@ export function ShowcaseTemplate({
         address: formData.address,
         division: formData.division,
         quantity: formData.quantity,
+        bump_ids: selectedBumpIds.length > 0 ? selectedBumpIds : undefined,
       },
       { method: 'POST', action: '/api/create-order', encType: 'application/json' }
     );

@@ -16,6 +16,7 @@ import { OptimizedImage } from '~/components/OptimizedImage';
 import { Clock, ShoppingCart, Truck, Shield, AlertTriangle, CheckCircle2, Phone, User, MapPin, Package, Flame, Star, Zap } from 'lucide-react';
 import { BD_DIVISIONS, DEFAULT_SHIPPING_CONFIG, calculateShipping } from '~/utils/shipping';
 import { useCartTracking } from '~/hooks/useCartTracking';
+import { OrderBumpsContainer } from '~/components/landing/OrderBumpCheckbox';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -149,10 +150,12 @@ export function FlashSaleTemplate({
     }
   }, [formData.name, formData.phone, formData.quantity, trackCart]);
   
-  // Fetcher states
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
   const hasError = fetcher.data?.error;
+  
+  // Selected order bump IDs
+  const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
 
   // Calculate price
   const price = product.price;
@@ -162,7 +165,20 @@ export function FlashSaleTemplate({
   // Calculate shipping based on division
   const subtotal = price * formData.quantity;
   const shippingInfo = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal);
-  const grandTotal = subtotal + shippingInfo.cost;
+  
+  // Calculate bump products total
+  const orderBumps = (config as any).orderBumps || [];
+  const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
+    const bump = orderBumps.find((b: any) => b.id === bumpId);
+    if (!bump) return total;
+    const originalPrice = bump.bumpProduct.price;
+    const discountedPrice = bump.discount > 0 
+      ? originalPrice * (1 - bump.discount / 100) 
+      : originalPrice;
+    return total + discountedPrice;
+  }, 0);
+  
+  const grandTotal = subtotal + bumpTotal + shippingInfo.cost;
 
   // Form validation
   const validateForm = useCallback(() => {
@@ -197,6 +213,7 @@ export function FlashSaleTemplate({
         quantity: String(formData.quantity),
         payment_method: formData.paymentMethod,
         transaction_id: formData.transactionId,
+        bump_ids: selectedBumpIds.length > 0 ? selectedBumpIds : undefined,
         manual_payment_details: JSON.stringify({
           senderNumber: formData.senderNumber,
           method: formData.paymentMethod,
@@ -204,7 +221,7 @@ export function FlashSaleTemplate({
       },
       { method: 'POST', action: '/api/create-order', encType: 'application/json' }
     );
-  }, [isPreview, countdown.expired, formData, validateForm, fetcher, storeId, product]);
+  }, [isPreview, countdown.expired, formData, selectedBumpIds, validateForm, fetcher, storeId, product]);
 
   // Handle input change
   const handleInputChange = (field: string, value: string | number) => {
