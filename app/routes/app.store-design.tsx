@@ -111,14 +111,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (intent === 'save-theme') {
     const primaryColor = formData.get('primaryColor') as string || currentConfig.primaryColor;
     const accentColor = formData.get('accentColor') as string || currentConfig.accentColor;
+    const fontFamily = formData.get('fontFamily') as string || 'inter';
     
     const updatedConfig: ThemeConfig = { ...currentConfig, primaryColor, accentColor };
     await db.update(stores).set({ 
-      themeConfig: JSON.stringify(updatedConfig), 
+      themeConfig: JSON.stringify(updatedConfig),
+      fontFamily,
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
     
-    return json({ success: true, message: 'Colors saved!' });
+    return json({ success: true, message: 'Theme saved!' });
   }
 
   if (intent === 'save-banner') {
@@ -161,6 +163,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }).where(eq(stores.id, storeId));
     
     return json({ success: true, message: 'Store info saved!' });
+  }
+
+  if (intent === 'save-advanced') {
+    const customCSS = formData.get('customCSS') as string || '';
+    
+    const updatedConfig: ThemeConfig = { ...currentConfig, customCSS };
+    await db.update(stores).set({ 
+      themeConfig: JSON.stringify(updatedConfig),
+      updatedAt: new Date() 
+    }).where(eq(stores.id, storeId));
+    
+    return json({ success: true, message: 'Advanced settings saved!' });
   }
 
   return json({ error: 'Unknown action' }, { status: 400 });
@@ -526,6 +540,34 @@ export default function StoreDesignPage() {
                 </div>
               </div>
 
+              {/* Font Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  <Type className="w-4 h-4" />
+                  Font Family
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {FONT_OPTIONS.map((font) => (
+                    <button
+                      key={font.id}
+                      type="button"
+                      onClick={() => setFontFamily(font.id)}
+                      className={`p-3 rounded-lg border-2 text-left transition ${
+                        fontFamily === font.id
+                          ? 'border-purple-500 bg-purple-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="block font-medium text-gray-900" style={{ fontFamily: font.family }}>
+                        {font.name}
+                      </span>
+                      <span className="text-xs text-gray-500">{font.preview}</span>
+                    </button>
+                  ))}
+                </div>
+                <input type="hidden" name="fontFamily" value={fontFamily} />
+              </div>
+
               {/* Preview */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Preview</label>
@@ -582,32 +624,17 @@ export default function StoreDesignPage() {
                 </h3>
 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image URL</label>
-                    <input
-                      type="url"
-                      name="bannerUrl"
-                      value={bannerUrl}
-                      onChange={(e) => setBannerUrl(e.target.value)}
-                      placeholder="https://example.com/banner.jpg"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Recommended size: 1920x600px</p>
-                  </div>
-
-                  {bannerUrl && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
-                      <div className="aspect-[3/1] rounded-lg overflow-hidden bg-gray-100">
-                        <img 
-                          src={bannerUrl} 
-                          alt="Banner preview" 
-                          className="w-full h-full object-cover"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  <StoreImageUpload
+                    value={bannerUrl}
+                    onChange={setBannerUrl}
+                    folder="banners"
+                    label="Banner Image"
+                    hint="Recommended size: 1920x600px"
+                    aspectRatio="banner"
+                    maxWidth={1920}
+                    maxHeight={600}
+                  />
+                  <input type="hidden" name="bannerUrl" value={bannerUrl} />
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Banner Headline</label>
@@ -701,32 +728,17 @@ export default function StoreDesignPage() {
                 </h3>
 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
-                    <input
-                      type="url"
-                      name="logo"
-                      value={logo}
-                      onChange={(e) => setLogo(e.target.value)}
-                      placeholder="https://example.com/logo.png"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Recommended: Square image, 200x200px or larger</p>
-                  </div>
-
-                  {logo && (
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
-                        <img 
-                          src={logo} 
-                          alt="Logo preview" 
-                          className="w-full h-full object-contain"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-500">Logo preview</span>
-                    </div>
-                  )}
+                  <StoreImageUpload
+                    value={logo}
+                    onChange={setLogo}
+                    folder="logos"
+                    label="Store Logo"
+                    hint="Recommended: Square image, 200x200px or larger"
+                    aspectRatio="logo"
+                    maxWidth={400}
+                    maxHeight={400}
+                  />
+                  <input type="hidden" name="logo" value={logo} />
                 </div>
               </div>
 
@@ -847,6 +859,60 @@ export default function StoreDesignPage() {
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save Info
+                </button>
+              </div>
+            </div>
+          </Form>
+        )}
+
+        {/* Advanced Tab */}
+        {activeTab === 'advanced' && (
+          <Form method="post" className="max-w-2xl">
+            <input type="hidden" name="intent" value="save-advanced" />
+            
+            <div className="space-y-6">
+              {/* Custom CSS */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Code className="w-5 h-5 text-purple-600" />
+                  Custom CSS
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Add custom CSS to style your store. Use this for advanced customizations.
+                </p>
+
+                <div>
+                  <textarea
+                    name="customCSS"
+                    value={customCSS}
+                    onChange={(e) => setCustomCSS(e.target.value)}
+                    placeholder={`/* Example: Change header background */
+.header {
+  background: linear-gradient(to right, #6366f1, #8b5cf6);
+}
+
+/* Example: Custom button styles */
+.btn-primary {
+  border-radius: 9999px;
+}`}
+                    rows={12}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    ⚠️ Be careful with CSS - invalid styles may break your store layout.
+                  </p>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50"
+                >
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save Advanced Settings
                 </button>
               </div>
             </div>
