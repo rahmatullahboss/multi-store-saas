@@ -26,6 +26,7 @@ import { CloudflareBenefitsCards } from '~/components/CloudflareBenefitsCards';
 import { SpeedComparison } from '~/components/SpeedComparison';
 import { TechnicalSpecs } from '~/components/TechnicalSpecs';
 import { CDNExplainer } from '~/components/CDNExplainer';
+import { SpeedImpact } from '~/components/SpeedImpact';
 import { TrustSection } from '~/components/TrustSection';
 import { ComparisonSection } from '~/components/ComparisonSection';
 import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
@@ -297,6 +298,9 @@ export function MarketingLanding() {
 
         {/* CDN Explainer - Simple Bengali Explanation */}
         <CDNExplainer />
+
+        {/* Speed Impact - Business Case for Speed */}
+        <SpeedImpact />
 
         {/* Trust Section - Transparency & Credibility */}
         <TrustSection />
