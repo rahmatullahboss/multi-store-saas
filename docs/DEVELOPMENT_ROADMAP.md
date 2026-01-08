@@ -25,7 +25,7 @@
 
 - [x] Product list
 - [x] Add product form
-- [x] Image upload (Cloudinary)
+- [x] Image upload (R2 Storage)
 - [x] Product detail page
 
 ### 1.4 Customer Storefront

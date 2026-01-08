@@ -37,7 +37,7 @@ A Shopify-like multi-tenant e-commerce platform where merchants can create store
 | Add New Product              | ✅ Complete | `/app/products/new` |
 | Edit Product                 | ✅ Complete | `/app/products/:id` |
 | Delete Product               | ✅ Complete | via edit page       |
-| Image Upload (Cloudinary)    | ✅ Complete | `/api/upload-image` |
+| Image Upload (R2)            | ✅ Complete | `/api/upload-image` |
 | Product Detail Page          | ✅ Complete | `/products/:id`     |
 
 ### 🛒 Customer-Facing Storefront
@@ -52,12 +52,12 @@ A Shopify-like multi-tenant e-commerce platform where merchants can create store
 
 ### 🗄️ Database & Infrastructure
 
-| Feature                | Status      | Details         |
-| ---------------------- | ----------- | --------------- |
-| SQLite Database (D1)   | ✅ Complete | Cloudflare D1   |
-| Drizzle ORM Schema     | ✅ Complete | 12+ tables      |
-| Cloudinary Integration | ✅ Complete | Signed uploads  |
-| Cloudflare Pages       | ✅ Complete | Edge deployment |
+| Feature               | Status      | Details         |
+| --------------------- | ----------- | --------------- |
+| SQLite Database (D1)  | ✅ Complete | Cloudflare D1   |
+| Drizzle ORM Schema    | ✅ Complete | 12+ tables      |
+| Cloudflare R2 Storage | ✅ Complete | Image uploads   |
+| Cloudflare Pages      | ✅ Complete | Edge deployment |
 
 ### 💳 Payment Integration
 
