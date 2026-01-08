@@ -76,96 +76,105 @@ const TRUSTED_BRANDS = [
 ];
 
 // ============================================================================
-// ANIMATED WORLD MAP SVG
+// DOTTED WORLD MAP - CDN Style Visualization
 // ============================================================================
-const WorldMapSVG = () => (
-  <svg
-    viewBox="0 0 100 50"
-    className="w-full h-full"
-    preserveAspectRatio="xMidYMid slice"
-  >
-    <defs>
-      {/* Glow filter for dots */}
-      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="0.3" result="coloredBlur" />
-        <feMerge>
-          <feMergeNode in="coloredBlur" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
+// Each 1 represents a dot, 0 is empty space
+// This creates a recognizable world map silhouette
+const WORLD_MAP_DOTS = [
+  // Row 0-4: Top (Arctic/Northern regions)
+  '00000000000000001111110000001111111100000011111100000000000',
+  '00000000000000111111111000111111111110000111111110000000000',
+  '00000000000001111111111101111111111111001111111111000000000',
+  '00000000000011111111111111111111111111111111111111100000000',
+  '00000000000111111111111111111111111111111111111111110000000',
+  // Row 5-9: North America and Eurasia
+  '00000000001111111111111111111111111111111111111111111000000',
+  '00000000011111111111111111111111111111111111111111111100000',
+  '00000000111111111111111001111111111111111111111111111110000',
+  '00000001111111111111100001111111111111111111111111111111000',
+  '00000011111111111111000011111111111111111111111111111111100',
+  // Row 10-14: Central regions
+  '00000111111111111100000111111111111111111111111111111111110',
+  '00001111111111111000000011111111111111111111111111111111111',
+  '00011111111111110000000001111111111111111111111111111111110',
+  '00011111111111100000000000111111111111111111111111111111100',
+  '00001111111111000000000000011111111100111111111111111110000',
+  // Row 15-19: Central/Tropical regions  
+  '00001111111100000000000000111111100000011111111111111000000',
+  '00000111111000000000000001111110000000011111111111110000000',
+  '00000011110000000000000011111100000000001111111111100000000',
+  '00000001100000000000000111111000000000000111111111000000000',
+  '00000000100000000000001111110000000000000011111110000000000',
+  // Row 20-24: South America and Africa  
+  '00000000000000000000011111100000000000000001111100000000000',
+  '00000000000000000000111111000000000000000000111000000011100',
+  '00000000000000000001111110000000000000000000110000000111110',
+  '00000000000000000001111100000000000000000000000000001111110',
+  '00000000000000000000111100000000000000000000000000011111110',
+  // Row 25-29: Southern regions
+  '00000000000000000000011000000000000000000000000000111111100',
+  '00000000000000000000001000000000000000000000000001111111000',
+  '00000000000000000000000000000000000000000000000011111110000',
+  '00000000000000000000000000000000000000000000000011111100000',
+  '00000000000000000000000000000000000000000000000001111000000',
+];
+
+const WorldMapSVG = () => {
+  const dotSize = 0.8;
+  const spacing = 1.7;
+  
+  return (
+    <svg
+      viewBox="0 0 100 55"
+      className="w-full h-full"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        {/* Glow filter for dots */}
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="0.3" result="coloredBlur" />
+          <feMerge>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        
+        {/* Gradient for connection lines */}
+        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor={COLORS.cyan} stopOpacity="0" />
+          <stop offset="50%" stopColor={COLORS.cyan} stopOpacity="0.8" />
+          <stop offset="100%" stopColor={COLORS.cyan} stopOpacity="0" />
+        </linearGradient>
+      </defs>
       
-      {/* Gradient for connection lines */}
-      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor={COLORS.cyan} stopOpacity="0" />
-        <stop offset="50%" stopColor={COLORS.cyan} stopOpacity="0.8" />
-        <stop offset="100%" stopColor={COLORS.cyan} stopOpacity="0" />
-      </linearGradient>
-    </defs>
-    
-    {/* World Map Continental Outlines - More visible */}
-    {/* North America */}
-    <path
-      d="M5,25 L8,22 L12,20 L18,18 L22,20 L25,22 L28,28 L26,32 L24,36 L20,38 L16,36 L12,34 L10,30 L8,28 Z"
-      fill="rgba(34, 211, 238, 0.08)"
-      stroke="rgba(34, 211, 238, 0.2)"
-      strokeWidth="0.3"
-    />
-    
-    {/* South America */}
-    <path
-      d="M24,42 L28,40 L32,44 L34,52 L32,62 L28,68 L24,66 L22,58 L24,50 Z"
-      fill="rgba(34, 211, 238, 0.08)"
-      stroke="rgba(34, 211, 238, 0.2)"
-      strokeWidth="0.3"
-    />
-    
-    {/* Europe */}
-    <path
-      d="M42,22 L48,20 L52,22 L54,26 L52,30 L48,32 L44,30 L42,26 Z"
-      fill="rgba(34, 211, 238, 0.08)"
-      stroke="rgba(34, 211, 238, 0.2)"
-      strokeWidth="0.3"
-    />
-    
-    {/* Africa */}
-    <path
-      d="M44,36 L48,34 L54,36 L58,44 L56,56 L52,64 L46,62 L44,54 L42,46 Z"
-      fill="rgba(34, 211, 238, 0.08)"
-      stroke="rgba(34, 211, 238, 0.2)"
-      strokeWidth="0.3"
-    />
-    
-    {/* Asia */}
-    <path
-      d="M56,18 L64,16 L72,18 L80,22 L84,28 L82,34 L78,40 L72,44 L64,42 L58,38 L54,32 L56,26 Z"
-      fill="rgba(0, 106, 78, 0.1)"
-      stroke="rgba(0, 106, 78, 0.25)"
-      strokeWidth="0.3"
-    />
-    
-    {/* Australia */}
-    <path
-      d="M78,58 L84,56 L90,58 L92,64 L88,70 L82,70 L78,66 L78,62 Z"
-      fill="rgba(34, 211, 238, 0.08)"
-      stroke="rgba(34, 211, 238, 0.2)"
-      strokeWidth="0.3"
-    />
-    
-    {/* Grid lines for visual effect */}
-    <g stroke="rgba(255,255,255,0.04)" strokeWidth="0.15">
-      {/* Horizontal lines */}
-      <line x1="0" y1="15" x2="100" y2="15" />
-      <line x1="0" y1="25" x2="100" y2="25" />
-      <line x1="0" y1="35" x2="100" y2="35" />
-      <line x1="0" y1="45" x2="100" y2="45" />
-      {/* Vertical lines */}
-      <line x1="20" y1="0" x2="20" y2="50" />
-      <line x1="40" y1="0" x2="40" y2="50" />
-      <line x1="60" y1="0" x2="60" y2="50" />
-      <line x1="80" y1="0" x2="80" y2="50" />
-    </g>
-  </svg>
-);
+      {/* Render dotted world map */}
+      {WORLD_MAP_DOTS.map((row, rowIndex) => (
+        <g key={rowIndex}>
+          {row.split('').map((cell, colIndex) => {
+            if (cell === '1') {
+              // Bangladesh region highlight (around x:65-72, y:8-14)
+              const x = colIndex * spacing + 2;
+              const y = rowIndex * spacing + 2;
+              const isBangladeshRegion = x >= 63 && x <= 75 && y >= 15 && y <= 30;
+              
+              return (
+                <circle
+                  key={`${rowIndex}-${colIndex}`}
+                  cx={x}
+                  cy={y}
+                  r={dotSize}
+                  fill={isBangladeshRegion ? COLORS.primary : `rgba(34, 211, 238, 0.4)`}
+                  opacity={isBangladeshRegion ? 0.8 : 0.5}
+                />
+              );
+            }
+            return null;
+          })}
+        </g>
+      ))}
+    </svg>
+  );
+};
 
 // ============================================================================
 // PULSING SERVER DOT
