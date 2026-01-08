@@ -365,6 +365,42 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, action: 'plan_changed', newPlan });
   }
   
+  // ============ SET DATES (For stores missing subscription dates) ============
+  if (intent === 'set_dates') {
+    const durationMonths = parseInt(formData.get('duration') as string) || 1;
+    
+    const now = new Date();
+    const endDate = new Date(now);
+    endDate.setMonth(endDate.getMonth() + durationMonths);
+    
+    await drizzleDb
+      .update(stores)
+      .set({
+        subscriptionStartDate: now,
+        subscriptionEndDate: endDate,
+        subscriptionPaymentMethod: 'manual',
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+    
+    // Log the action
+    await drizzleDb.insert(activityLogs).values({
+      storeId: storeId,
+      userId: adminId,
+      action: 'subscription_dates_set',
+      entityType: 'subscription',
+      entityId: storeId,
+      details: JSON.stringify({ 
+        adminEmail, 
+        durationMonths,
+        startDate: now.toISOString(),
+        endDate: endDate.toISOString(),
+      }),
+    });
+    
+    return json({ success: true, action: 'dates_set', durationMonths });
+  }
+  
   return json({ error: 'Invalid action' }, { status: 400 });
 }
 
@@ -890,13 +926,37 @@ function SubscriptionTable({
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <div className="text-sm">
-                    <span className="text-slate-300">{formatDate(store.subscriptionStartDate)}</span>
-                    <span className="text-slate-500 mx-1">→</span>
-                    <span className={type === 'expired' ? 'text-red-400' : 'text-slate-300'}>
-                      {formatDate(store.subscriptionEndDate)}
-                    </span>
-                  </div>
+                  {store.subscriptionStartDate ? (
+                    <div className="text-sm">
+                      <span className="text-slate-300">{formatDate(store.subscriptionStartDate)}</span>
+                      <span className="text-slate-500 mx-1">→</span>
+                      <span className={type === 'expired' ? 'text-red-400' : 'text-slate-300'}>
+                        {formatDate(store.subscriptionEndDate)}
+                      </span>
+                    </div>
+                  ) : (
+                    <fetcher.Form method="post" className="flex items-center gap-2">
+                      <input type="hidden" name="intent" value="set_dates" />
+                      <input type="hidden" name="storeId" value={store.id} />
+                      <select
+                        name="duration"
+                        defaultValue="1"
+                        className="text-xs bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white"
+                      >
+                        <option value="1">1 মাস</option>
+                        <option value="3">3 মাস</option>
+                        <option value="6">6 মাস</option>
+                        <option value="12">12 মাস</option>
+                      </select>
+                      <button
+                        type="submit"
+                        disabled={fetcher.state === 'submitting'}
+                        className="px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded transition disabled:opacity-50"
+                      >
+                        Set
+                      </button>
+                    </fetcher.Form>
+                  )}
                 </td>
                 <td className="px-4 py-4">
                   {type === 'active' ? (
