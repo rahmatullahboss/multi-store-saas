@@ -15,12 +15,12 @@ import { Form, Link, useLoaderData, useNavigation, useActionData } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { parseThemeConfig, defaultThemeConfig, type ThemeConfig } from '@db/types';
+import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, parseSocialLinks, type SocialLinks } from '@db/types';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { 
   Check, ExternalLink, Store, Eye, Sparkles, Crown, Palette, 
-  Layout, Image, Settings, Save, Loader2, Megaphone
+  Layout, Image, Settings, Save, Loader2, Megaphone, User, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -58,6 +58,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeSubdomain: store[0].subdomain,
     storeName: store[0].name,
     storeMode: store[0].mode || 'store',
+    storeLogo: store[0].logo || '',
+    businessInfo: store[0].businessInfo ? JSON.parse(store[0].businessInfo) : { phone: '', email: '', address: '' },
+    socialLinks: parseSocialLinks(store[0].socialLinks as string | null) || { facebook: '', instagram: '', whatsapp: '' },
   });
 }
 
@@ -126,6 +129,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, message: 'Banner saved!' });
   }
 
+  if (intent === 'save-info') {
+    const logo = formData.get('logo') as string || '';
+    const phone = formData.get('phone') as string || '';
+    const email = formData.get('email') as string || '';
+    const address = formData.get('address') as string || '';
+    const facebook = formData.get('facebook') as string || '';
+    const instagram = formData.get('instagram') as string || '';
+    const whatsapp = formData.get('whatsapp') as string || '';
+    
+    const businessInfo = JSON.stringify({ phone, email, address });
+    const socialLinks = JSON.stringify({ facebook, instagram, whatsapp });
+    
+    await db.update(stores).set({ 
+      logo: logo || null,
+      businessInfo,
+      socialLinks,
+      updatedAt: new Date() 
+    }).where(eq(stores.id, storeId));
+    
+    return json({ success: true, message: 'Store info saved!' });
+  }
+
   return json({ error: 'Unknown action' }, { status: 400 });
 }
 
@@ -133,11 +158,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function StoreDesignPage() {
-  const { currentTemplateId, themeConfig, templates, storeSubdomain, storeName, storeMode } = useLoaderData<typeof loader>();
+  const { currentTemplateId, themeConfig, templates, storeSubdomain, storeName, storeMode, storeLogo, businessInfo, socialLinks } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   
-  const [activeTab, setActiveTab] = useState<'templates' | 'theme' | 'banner'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'theme' | 'banner' | 'info'>('templates');
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
@@ -151,6 +176,15 @@ export default function StoreDesignPage() {
   const [bannerText, setBannerText] = useState(themeConfig.bannerText || '');
   const [announcementText, setAnnouncementText] = useState(themeConfig.announcement?.text || '');
   const [announcementLink, setAnnouncementLink] = useState(themeConfig.announcement?.link || '');
+  
+  // Info state
+  const [logo, setLogo] = useState(storeLogo);
+  const [phone, setPhone] = useState(businessInfo.phone || '');
+  const [email, setEmail] = useState(businessInfo.email || '');
+  const [address, setAddress] = useState(businessInfo.address || '');
+  const [facebook, setFacebook] = useState(socialLinks.facebook || '');
+  const [instagram, setInstagram] = useState(socialLinks.instagram || '');
+  const [whatsapp, setWhatsapp] = useState(socialLinks.whatsapp || '');
   
   const isSubmitting = navigation.state === 'submitting';
 
@@ -246,6 +280,7 @@ export default function StoreDesignPage() {
           { id: 'templates', label: 'Templates', icon: Layout },
           { id: 'theme', label: 'Colors', icon: Palette },
           { id: 'banner', label: 'Banner', icon: Image },
+          { id: 'info', label: 'Info', icon: User },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -631,6 +666,172 @@ export default function StoreDesignPage() {
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save Banner
+                </button>
+              </div>
+            </div>
+          </Form>
+        )}
+
+        {/* Info Tab */}
+        {activeTab === 'info' && (
+          <Form method="post" className="max-w-2xl">
+            <input type="hidden" name="intent" value="save-info" />
+            
+            <div className="space-y-6">
+              {/* Logo */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Store className="w-5 h-5 text-purple-600" />
+                  Store Logo
+                </h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
+                    <input
+                      type="url"
+                      name="logo"
+                      value={logo}
+                      onChange={(e) => setLogo(e.target.value)}
+                      placeholder="https://example.com/logo.png"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Recommended: Square image, 200x200px or larger</p>
+                  </div>
+
+                  {logo && (
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+                        <img 
+                          src={logo} 
+                          alt="Logo preview" 
+                          className="w-full h-full object-contain"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-500">Logo preview</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Business Info */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Phone className="w-5 h-5 text-purple-600" />
+                  Contact Information
+                </h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Phone className="w-4 h-4" /> Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+880 1XXX-XXXXXX"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Mail className="w-4 h-4" /> Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="support@yourstore.com"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <MapPin className="w-4 h-4" /> Address
+                    </label>
+                    <textarea
+                      name="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="123 Main Street, Dhaka, Bangladesh"
+                      rows={2}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Facebook className="w-5 h-5 text-purple-600" />
+                  Social Media Links
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Add your social media profiles to display in the footer.
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Facebook className="w-4 h-4 text-blue-600" /> Facebook
+                    </label>
+                    <input
+                      type="url"
+                      name="facebook"
+                      value={facebook}
+                      onChange={(e) => setFacebook(e.target.value)}
+                      placeholder="https://facebook.com/yourpage"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Instagram className="w-4 h-4 text-pink-600" /> Instagram
+                    </label>
+                    <input
+                      type="url"
+                      name="instagram"
+                      value={instagram}
+                      onChange={(e) => setInstagram(e.target.value)}
+                      placeholder="https://instagram.com/yourprofile"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4 text-green-600" /> WhatsApp
+                    </label>
+                    <input
+                      type="text"
+                      name="whatsapp"
+                      value={whatsapp}
+                      onChange={(e) => setWhatsapp(e.target.value)}
+                      placeholder="01XXXXXXXXX"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter your WhatsApp number without country code</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50"
+                >
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save Info
                 </button>
               </div>
             </div>
