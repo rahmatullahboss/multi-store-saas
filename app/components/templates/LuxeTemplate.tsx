@@ -248,6 +248,80 @@ export function LuxeTemplate({
       </section>
       )}
 
+      {/* FEATURES SECTION - Luxe Style */}
+      {isSectionVisible('features', editableConfig.hiddenSections) && editableConfig.features && editableConfig.features.length > 0 && (
+        <section className="py-20 bg-black">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-12">
+              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Features</span>
+              <h2 className="font-serif-display text-3xl md:text-4xl mt-4 text-white">Premium Qualities</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {editableConfig.features.map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="p-6 border border-zinc-800 hover:border-amber-500/50 transition-colors group text-center"
+                >
+                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{feature.icon}</div>
+                  <h4 className="font-serif-display text-xl mb-2 text-white">{feature.title}</h4>
+                  {feature.description && (
+                    <p className="text-zinc-500 text-sm">{feature.description}</p>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* VIDEO SECTION - Luxe Style */}
+      {isSectionVisible('video', editableConfig.hiddenSections) && editableConfig.videoUrl && (
+        <section className="py-20 bg-zinc-950">
+          <div className="container mx-auto px-6 max-w-4xl">
+            <div className="text-center mb-12">
+              <span className="text-amber-500 tracking-[0.2em] uppercase text-xs font-bold">Preview</span>
+              <h2 className="font-serif-display text-3xl md:text-4xl mt-4 text-white">Watch In Detail</h2>
+            </div>
+            <div className="aspect-video rounded-sm overflow-hidden border border-zinc-800 shadow-2xl">
+              {editableConfig.videoUrl.includes('youtube.com') || editableConfig.videoUrl.includes('youtu.be') ? (
+                <iframe
+                  src={editableConfig.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  title="Product Video"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={editableConfig.videoUrl}
+                  controls
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SOCIAL PROOF SECTION - Luxe Style */}
+      {isSectionVisible('social', editableConfig.hiddenSections) && editableConfig.socialProof && (editableConfig.socialProof.count > 0 || editableConfig.socialProof.text) && (
+        <section className="py-12 bg-black border-y border-zinc-800">
+          <div className="container mx-auto px-6 text-center">
+            <div className="flex items-center justify-center gap-4 text-white">
+              <Star size={20} className="text-amber-500 fill-amber-500" />
+              <span className="text-4xl md:text-5xl font-serif-display">{editableConfig.socialProof.count}+</span>
+              <span className="text-lg md:text-xl text-zinc-400 uppercase tracking-widest">{editableConfig.socialProof.text}</span>
+              <Star size={20} className="text-amber-500 fill-amber-500" />
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 4. TESTIMONIALS (Screenshot Gallery - Elegant) */}
       {isSectionVisible('testimonials', editableConfig.hiddenSections) && editableConfig.testimonials && editableConfig.testimonials.length > 0 && (
         <section className="py-20 bg-zinc-950">

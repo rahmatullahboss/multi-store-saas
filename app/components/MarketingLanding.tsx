@@ -1,20 +1,22 @@
 /**
- * SaaS Marketing Landing Page - Procloudify Inspired Design
+ * SaaS Marketing Landing Page - AWARD-WINNING PREMIUM DESIGN
  * 
  * Features:
- * - EMERALD/TEAL GREEN color scheme (original theme)
- * - Dotted grid background pattern
- * - Glassmorphism header and cards
- * - Serif font for headings (premium feel)
- * - Bento-box style feature layouts
- * - Modern animations and hover effects
- * - Multi-Store SaaS specific content
+ * - EMERALD/TEAL GREEN color scheme (supercharged)
+ * - Morphing gradient blobs with parallax
+ * - Framer Motion scroll animations
+ * - 3D card effects and micro-interactions
+ * - Animated counters and text reveals
+ * - Premium glassmorphism effects
+ * - Magnetic buttons and hover states
  */
 
 import { Link } from '@remix-run/react';
-import { Store, Zap, Shield, BarChart3, Globe, Headphones, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, CreditCard, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone, ChevronDown } from 'lucide-react';
 import { useLanguage } from '~/contexts/LanguageContext';
-import { ChatWidget } from '~/components/ai/ChatWidget';
+import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingOrbs, TiltCard, MagneticButton, ShimmerText } from '~/components/animations';
+
 
 // Marketing page specific translations - Multi-Store SaaS specific content
 const marketingContent = {
