@@ -82,6 +82,7 @@ const navItems = [
   { to: '/admin/storage', label: 'Storage', icon: HardDrive },
   { to: '/admin/marketing', label: 'Marketing', icon: Ticket },
   { to: '/admin/broadcasts', label: 'Broadcasts', icon: Radio },
+  { to: '/admin/team', label: 'Team & Access', icon: Users },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: History },
   { to: '/admin/tutorials', label: 'Tutorials', icon: BookOpen },
 ];
