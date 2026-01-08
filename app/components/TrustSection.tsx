@@ -679,11 +679,15 @@ interface RoadmapItem {
 
 const PublicRoadmap = () => {
   const roadmapItems: RoadmapItem[] = [
-    // Done
+    // Done - Full E-commerce Store Features
     { name: 'Template System', status: 'done' },
     { name: 'Live Editor', status: 'done' },
     { name: 'Bangla Support', status: 'done' },
     { name: 'Section Rearrange', status: 'done' },
+    { name: 'Analytics Dashboard', status: 'done' },
+    { name: 'Inventory Management', status: 'done' },
+    { name: 'Order Management', status: 'done' },
+    { name: 'Customer Management', status: 'done' },
     // Building Now
     { name: 'Payment Gateway Integration', status: 'building' },
     { name: 'More Templates', status: 'building' },
@@ -691,8 +695,8 @@ const PublicRoadmap = () => {
     // Planned
     { name: 'Drag & Drop Builder', status: 'planned' },
     { name: 'AI Content Writer', status: 'planned' },
-    { name: 'Analytics Dashboard', status: 'planned' },
-    { name: 'Inventory Management', status: 'planned' },
+    { name: 'Multi-channel Selling', status: 'planned' },
+    { name: 'Advanced Reports', status: 'planned' },
   ];
 
   const doneItems = roadmapItems.filter(item => item.status === 'done');
