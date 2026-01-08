@@ -586,3 +586,118 @@ export default function UpgradePage() {
     </div>
   );
 }
+
+// ============================================================================
+// PAYMENT SUBMIT FORM COMPONENT
+// ============================================================================
+function PaymentSubmitForm({
+  selectedPlan,
+  appliedCoupon,
+  planPrice,
+  lang,
+}: {
+  selectedPlan: 'starter' | 'premium';
+  appliedCoupon: { finalPrice: number } | null;
+  planPrice: number;
+  lang: string;
+}) {
+  const fetcher = useFetcher<{ success?: boolean; error?: string; message?: string }>();
+  const [transactionId, setTransactionId] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  
+  const finalAmount = appliedCoupon?.finalPrice ?? planPrice;
+  const isSubmitting = fetcher.state === 'submitting';
+  const isSuccess = fetcher.data?.success;
+  
+  if (isSuccess) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <Check className="w-6 h-6 text-green-600" />
+        </div>
+        <h4 className="font-semibold text-green-800">
+          {lang === 'bn' ? 'সফলভাবে সাবমিট হয়েছে!' : 'Successfully Submitted!'}
+        </h4>
+        <p className="text-sm text-green-700 mt-1">
+          {lang === 'bn' 
+            ? 'আমরা আপনার পেমেন্ট ভেরিফাই করে ২৪ ঘন্টার মধ্যে প্ল্যান অ্যাক্টিভ করব।'
+            : 'We will verify your payment and activate your plan within 24 hours.'}
+        </p>
+      </div>
+    );
+  }
+  
+  return (
+    <fetcher.Form method="post" className="space-y-4">
+      <input type="hidden" name="intent" value="submit_payment" />
+      <input type="hidden" name="planType" value={selectedPlan} />
+      <input type="hidden" name="amount" value={finalAmount} />
+      
+      {/* Amount Display */}
+      <div className="flex items-center justify-between bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+        <span className="text-sm font-medium text-emerald-800">
+          {lang === 'bn' ? 'পেমেন্ট করতে হবে:' : 'Amount to Send:'}
+        </span>
+        <span className="text-xl font-bold text-emerald-600">৳{finalAmount.toLocaleString()}</span>
+      </div>
+      
+      {/* Transaction ID */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Transaction ID (TRX ID) *
+        </label>
+        <input
+          type="text"
+          name="transactionId"
+          value={transactionId}
+          onChange={(e) => setTransactionId(e.target.value.toUpperCase())}
+          placeholder="e.g. TXN123456789"
+          required
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent font-mono uppercase"
+        />
+      </div>
+      
+      {/* Phone Number */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {lang === 'bn' ? 'আপনার bKash/Nagad নম্বর *' : 'Your bKash/Nagad Number *'}
+        </label>
+        <input
+          type="tel"
+          name="phoneNumber"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          placeholder="01XXXXXXXXX"
+          required
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+        />
+      </div>
+      
+      {/* Error */}
+      {fetcher.data?.error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+          {fetcher.data.error}
+        </div>
+      )}
+      
+      {/* Submit Button */}
+      <button
+        type="submit"
+        disabled={isSubmitting || !transactionId || !phoneNumber}
+        className="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            {lang === 'bn' ? 'সাবমিট হচ্ছে...' : 'Submitting...'}
+          </>
+        ) : (
+          <>
+            <Send className="w-5 h-5" />
+            {lang === 'bn' ? 'পেমেন্ট সাবমিট করুন' : 'Submit Payment'}
+          </>
+        )}
+      </button>
+    </fetcher.Form>
+  );
+}
