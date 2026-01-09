@@ -518,7 +518,7 @@ export default function StoreLiveEditor() {
                 type="button"
                 onClick={() => setPreviewDevice('mobile')}
                 className={`p-2 rounded-md transition ${previewDevice === 'mobile' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="Mobile (375px)"
+                title="Mobile (430px)"
               >
                 <Smartphone className="w-4 h-4" />
               </button>
@@ -1157,7 +1157,7 @@ export default function StoreLiveEditor() {
           <div className="bg-gray-800 px-4 py-2 flex items-center justify-between flex-shrink-0">
             <span className="text-gray-300 text-sm font-medium">Live Preview</span>
             <span className="text-gray-500 text-xs">
-              {previewDevice === 'mobile' && '📱 375px'}
+              {previewDevice === 'mobile' && '📱 430px'}
               {previewDevice === 'tablet' && '📱 768px'}
               {previewDevice === 'desktop' && '🖥️ 1200px'}
             </span>
@@ -1168,7 +1168,7 @@ export default function StoreLiveEditor() {
             <div 
               className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
               style={{
-                width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
+                width: previewDevice === 'mobile' ? '430px' : previewDevice === 'tablet' ? '768px' : '100%',
                 maxWidth: previewDevice === 'desktop' ? '1200px' : undefined,
                 height: previewDevice === 'mobile' ? '667px' : previewDevice === 'tablet' ? '1024px' : 'calc(100vh - 140px)',
               }}
