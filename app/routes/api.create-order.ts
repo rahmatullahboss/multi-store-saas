@@ -299,19 +299,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
         
         // Update bump conversion stats (non-blocking)
         context.cloudflare.ctx.waitUntil(
-          db
-            .update(orderBumps)
-            .set({ conversions: orderBumps.conversions })
-            .where(inArray(orderBumps.id, input.bump_ids))
-            .then(() => {
-              // Raw SQL for increment since Drizzle doesn't support easy increment
-              return Promise.all(input.bump_ids!.map(bumpId => 
-                context.cloudflare.env.DB.prepare(
-                  'UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?'
-                ).bind(bumpId).run()
-              ));
-            })
-            .catch(e => console.error('Failed to update bump conversions:', e))
+          Promise.all(input.bump_ids!.map(bumpId => 
+            context.cloudflare.env.DB.prepare(
+              'UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?'
+            ).bind(bumpId).run()
+          )).catch(e => console.error('Failed to update bump conversions:', e))
         );
       }
     }

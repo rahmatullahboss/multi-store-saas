@@ -314,7 +314,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // Handle status update (default)
   const status = formData.get('status') as string;
 
-  if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
+  if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'].includes(status)) {
     return json({ error: 'Invalid status' }, { status: 400 });
   }
 
@@ -509,6 +509,7 @@ const statusOptions = [
   { value: 'shipped', label: 'শিপড (Shipped)', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
   { value: 'delivered', label: 'ডেলিভার্ড (Delivered)', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
   { value: 'cancelled', label: 'বাতিল (Cancelled)', color: 'bg-red-100 text-red-800 border-red-300' },
+  { value: 'returned', label: 'রিটার্ন (Returned)', color: 'bg-orange-100 text-orange-800 border-orange-300' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
