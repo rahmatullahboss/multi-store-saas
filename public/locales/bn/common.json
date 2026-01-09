@@ -199,5 +199,56 @@
   "regularPrice": "আসল দাম",
   "salePrice": "অফার মূল্য",
   "discount": "ছাড়",
-  "save": "সেভ করুন"
+  "save": "সেভ করুন",
+  
+  "howToOrder": "কিভাবে অর্ডার করবেন",
+  "justThreeSteps": "মাত্র ৩টি সহজ ধাপ",
+  "stepOne": "প্রোডাক্ট সিলেক্ট",
+  "stepOneDesc": "পছন্দের আইটেম বাছুন",
+  "stepTwo": "তথ্য দিন",
+  "stepTwoDesc": "আপনার তথ্য দিন",
+  "stepThree": "অর্ডার কনফার্ম",
+  "stepThreeDesc": "অর্ডার প্লেস করুন",
+  
+  "whyDelay": "দেরি কেন?",
+  "specialPrice": "বিশেষ মূল্য",
+  "orderNowBtn": "অর্ডার করুন",
+  "grabOffer": "অফারটি নিন",
+  "hurryUp": "তাড়াতাড়ি করুন!",
+  "offerEnds": "অফার শীঘ্রই শেষ",
+  
+  "satisfiedCustomers": "সন্তুষ্ট গ্রাহক",
+  "ordersDelivered": "অর্ডার ডেলিভারি",
+  "starRating": "স্টার রেটিং",
+  "yearsExperience": "বছরের অভিজ্ঞতা",
+  
+  "callUs": "কল করুন",
+  "callHours": "সকাল ১০টা - রাত ১০টা",
+  "emailUs": "ইমেইল করুন",
+  "replyIn24Hours": "২৪ ঘণ্টার মধ্যে উত্তর",
+  "viaMessenger": "মেসেঞ্জারে",
+  
+  "orderFormTitle": "অর্ডার ফর্ম",
+  "fillFormWeContact": "ফর্ম পূরণ করুন, আমরা যোগাযোগ করব",
+  "deliveryInfoTitle": "ডেলিভারি তথ্য",
+  "yourNameLabel": "আপনার নাম",
+  "enterFullName": "পুরো নাম লিখুন",
+  "mobileNumberLabel": "মোবাইল নম্বর",
+  "selectQuantity": "পরিমাণ নির্বাচন",
+  
+  "shippingAddressLabel": "ডেলিভারি ঠিকানা",
+  "requiredField": "আবশ্যক",
+  "addressPlaceholder": "বাসা, রোড, এলাকা, শহর",
+  "addressHelp": "ডেলিভারির জন্য পূর্ণ ঠিকানা",
+  "confirmOrderBtn": "অর্ডার কনফার্ম করুন",
+  "infoSecure": "আপনার তথ্য সুরক্ষিত",
+  "allRightsReserved": "সর্বস্বত্ব সংরক্ষিত",
+  
+  "productDetails": "প্রোডাক্ট বিবরণ",
+  "specifications": "স্পেসিফিকেশন",
+  "reviews": "রিভিউ",
+  "relatedProducts": "সম্পর্কিত প্রোডাক্ট",
+  "viewDetails": "বিস্তারিত দেখুন",
+  "seeMore": "আরো দেখুন",
+  "showLess": "কম দেখুন"
 }

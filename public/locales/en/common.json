@@ -199,5 +199,56 @@
   "regularPrice": "Regular Price",
   "salePrice": "Sale Price",
   "discount": "Discount",
-  "save": "Save"
+  "save": "Save",
+  
+  "howToOrder": "How to Order",
+  "justThreeSteps": "Just 3 simple steps",
+  "stepOne": "Select Product",
+  "stepOneDesc": "Choose your item",
+  "stepTwo": "Fill Details",
+  "stepTwoDesc": "Enter your information",
+  "stepThree": "Confirm Order",
+  "stepThreeDesc": "Place your order",
+  
+  "whyDelay": "Why Delay?",
+  "specialPrice": "Special Price",
+  "orderNowBtn": "Order Now",
+  "grabOffer": "Grab This Offer",
+  "hurryUp": "Hurry Up!",
+  "offerEnds": "Offer ends soon",
+  
+  "satisfiedCustomers": "Satisfied Customers",
+  "ordersDelivered": "Orders Delivered",
+  "starRating": "Star Rating",
+  "yearsExperience": "Years Experience",
+  
+  "callUs": "Call Us",
+  "callHours": "10 AM - 10 PM",
+  "emailUs": "Email Us",
+  "replyIn24Hours": "Reply within 24 hours",
+  "viaMessenger": "Via Messenger",
+  
+  "orderFormTitle": "Order Form",
+  "fillFormWeContact": "Fill the form and we will contact you",
+  "deliveryInfoTitle": "Delivery Info",
+  "yourNameLabel": "Your Name",
+  "enterFullName": "Enter your full name",
+  "mobileNumberLabel": "Mobile Number",
+  "selectQuantity": "Select Quantity",
+  
+  "shippingAddressLabel": "Shipping Address",
+  "requiredField": "Required",
+  "addressPlaceholder": "House, Road, Area, City",
+  "addressHelp": "Full address for delivery",
+  "confirmOrderBtn": "Confirm Order",
+  "infoSecure": "Your information is secure",
+  "allRightsReserved": "All Rights Reserved",
+  
+  "productDetails": "Product Details",
+  "specifications": "Specifications",
+  "reviews": "Reviews",
+  "relatedProducts": "Related Products",
+  "viewDetails": "View Details",
+  "seeMore": "See More",
+  "showLess": "Show Less"
 }
