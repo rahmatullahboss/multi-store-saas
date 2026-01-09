@@ -134,5 +134,29 @@
   "validMobileRequired": "Valid mobile number required (01XXXXXXXXX)",
   "storeNameRequired": "Store name is required",
   "subdomainMinChars": "Subdomain must be at least 3 characters",
-  "trxIdRequired": "Please enter TRX ID"
+  "trxIdRequired": "Please enter TRX ID",
+  
+  "freeDelivery": "Free Delivery",
+  "freeDeliveryInDhaka": "Free delivery inside Dhaka",
+  "originalProduct": "100% Original",
+  "originalGuarantee": "Authenticity guaranteed",
+  "cashOnDelivery": "Cash on Delivery",
+  "payOnReceive": "Pay when you receive",
+  "easyReturn": "Easy Return",
+  "returnPolicy": "7 days return policy",
+  
+  "whyChooseUs": "Why Choose Us",
+  "weEnsureSatisfaction": "We ensure your satisfaction",
+  "premiumQuality": "Premium Quality",
+  "premiumQualityDesc": "Best quality products guaranteed",
+  "fastDelivery": "Fast Delivery",
+  "fastDeliveryDesc": "Quick and safe delivery",
+  "support247": "24/7 Support",
+  "support247Desc": "Always here to help you",
+  
+  "orderNow": "Order Now",
+  "buyNow": "Buy Now",
+  "addToCart": "Add to Cart",
+  "callNow": "Call Now",
+  "messageUs": "Message Us"
 }

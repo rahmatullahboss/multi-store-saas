@@ -134,5 +134,29 @@
   "validMobileRequired": "সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)",
   "storeNameRequired": "স্টোরের নাম দিন",
   "subdomainMinChars": "সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে",
-  "trxIdRequired": "TRX ID দিন"
+  "trxIdRequired": "TRX ID দিন",
+  
+  "freeDelivery": "ফ্রি ডেলিভারি",
+  "freeDeliveryInDhaka": "ঢাকায় ফ্রি ডেলিভারি",
+  "originalProduct": "১০০% অরিজিনাল",
+  "originalGuarantee": "অরিজিনালের নিশ্চয়তা",
+  "cashOnDelivery": "ক্যাশ অন ডেলিভারি",
+  "payOnReceive": "প্রোডাক্ট হাতে পেয়ে পেমেন্ট",
+  "easyReturn": "সহজ রিটার্ন",
+  "returnPolicy": "৭ দিনের রিটার্ন পলিসি",
+  
+  "whyChooseUs": "কেন আমাদের বেছে নিবেন",
+  "weEnsureSatisfaction": "আমরা আপনার সন্তুষ্টি নিশ্চিত করি",
+  "premiumQuality": "প্রিমিয়াম কোয়ালিটি",
+  "premiumQualityDesc": "সেরা মানের পণ্যের নিশ্চয়তা",
+  "fastDelivery": "দ্রুত ডেলিভারি",
+  "fastDeliveryDesc": "দ্রুত ও নিরাপদ ডেলিভারি",
+  "support247": "২৪/৭ সাপোর্ট",
+  "support247Desc": "সবসময় আপনার পাশে",
+  
+  "orderNow": "এখনই অর্ডার করুন",
+  "buyNow": "এখনই কিনুন",
+  "addToCart": "কার্টে যোগ করুন",
+  "callNow": "কল করুন",
+  "messageUs": "মেসেজ করুন"
 }
