@@ -34,28 +34,28 @@ export default function SidebarPanel() {
         <div className="flex border-b border-gray-100 bg-gray-50/50 p-1 gap-1">
            <button 
              onClick={() => setActiveTab('elements')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-[9px] font-black transition-all ${activeTab === 'elements' ? 'bg-white text-emerald-600 shadow-sm border border-emerald-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'elements' ? 'bg-white text-emerald-600 shadow-sm border border-emerald-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Box size={14} strokeWidth={2.5} />
               ELEMENTS
            </button>
            <button 
              onClick={() => setActiveTab('styles')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-[9px] font-black transition-all ${activeTab === 'styles' ? 'bg-white text-blue-600 shadow-sm border border-blue-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'styles' ? 'bg-white text-blue-600 shadow-sm border border-blue-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Palette size={14} strokeWidth={2.5} />
               STYLE
            </button>
            <button 
              onClick={() => setActiveTab('layers')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-[9px] font-black transition-all ${activeTab === 'layers' ? 'bg-white text-purple-600 shadow-sm border border-purple-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'layers' ? 'bg-white text-purple-600 shadow-sm border border-purple-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Layers size={14} strokeWidth={2.5} />
               LAYERS
            </button>
         </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0 max-h-full">
           {activeTab === 'elements' ? (
             <BlocksProvider>
               {({ blocks, dragStart, dragStop }) => {
@@ -67,13 +67,13 @@ export default function SidebarPanel() {
                 });
 
                 return (
-                  <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar animate-in fade-in duration-300">
+                  <div className="h-full overflow-y-auto p-4 space-y-6 custom-scrollbar animate-in fade-in duration-300">
                     <div className="mb-2">
-                       <h3 className="text-[10px] font-black text-gray-300 uppercase tracking-[2px]">Layout & Components</h3>
+                       <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">Components</h3>
                     </div>
                     {Object.entries(categories).map(([catLabel, catBlocks]) => (
                       <div key={catLabel}>
-                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <h4 className="text-xs font-black text-gray-600 uppercase tracking-wide mb-3 flex items-center gap-2">
                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                            {catLabel}
                         </h4>
@@ -92,7 +92,7 @@ export default function SidebarPanel() {
                                   <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
                                 ` }}
                               />
-                              <span className="text-[9px] font-bold text-gray-500 group-hover:text-emerald-700 text-center line-clamp-1 uppercase tracking-tighter">
+                              <span className="text-[10px] font-extrabold text-gray-600 group-hover:text-emerald-700 text-center line-clamp-1 uppercase">
                                 {block.getLabel()}
                               </span>
                             </div>
