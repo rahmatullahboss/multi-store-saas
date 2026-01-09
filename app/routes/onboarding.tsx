@@ -326,7 +326,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         paymentAmount = PLAN_PRICING[selectedPlan];
       }
 
-      // 5. Update store with landing config and payment info
+      // 5. Update store with landing config
+      // NOTE: Payment columns removed temporarily as they may not exist in production DB
       await db
         .update(stores)
         .set({
@@ -335,12 +336,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
           landingConfig: JSON.stringify(landingConfig),
           onboardingStatus: 'completed',
           setupStep: 4,
-          // Payment tracking
-          paymentTransactionId: transactionId || null,
-          paymentStatus,
-          paymentSubmittedAt: transactionId ? new Date() : null,
-          paymentAmount: paymentAmount || null,
-          paymentPhone: paymentPhone || null,
           updatedAt: new Date(),
         })
         .where(eq(stores.id, storeId));
