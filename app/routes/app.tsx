@@ -47,7 +47,7 @@ import {
   AlertCircle,
   BookOpen
 } from 'lucide-react';
-import { LanguageSelector } from '~/components/LanguageSelector';
+// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ChatWidget } from '~/components/ai/ChatWidget';
 import { useState } from 'react';
@@ -478,10 +478,10 @@ export default function AppLayout() {
 
           {/* User Info & Logout */}
           <div className="p-4 border-t border-gray-200">
-            {/* Language Selector */}
-            <div className="mb-3">
+            {/* Language Selector - Temporarily disabled - Bengali is default */}
+            {/* <div className="mb-3">
               <LanguageSelector variant="pills" size="sm" className="w-full" />
-            </div>
+            </div> */}
             
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center">

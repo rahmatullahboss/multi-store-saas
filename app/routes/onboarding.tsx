@@ -21,7 +21,7 @@ import { stores, products, users } from '@db/schema';
 import { getUserId, register, createUserSession } from '~/services/auth.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
-import { LanguageSelector } from '~/components/LanguageSelector';
+// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { useTranslation } from '~/contexts/LanguageContext';
 
 // ==============================================================================
@@ -636,7 +636,7 @@ export default function OnboardingPage() {
             <span className="font-bold text-xl text-gray-900">Multi-Store</span>
           </Link>
           <div className="flex items-center gap-4">
-            <LanguageSelector variant="toggle" size="sm" />
+            {/* <LanguageSelector variant="toggle" size="sm" /> */} {/* Temporarily disabled - Bengali is default */}
             <a 
               href="/auth/logout?redirect=/auth/login" 
               className="text-sm text-gray-600 hover:text-emerald-600"
