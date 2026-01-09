@@ -202,25 +202,27 @@ export function FlashSaleTemplate({
     if (isPreview || countdown.expired) return;
     if (!validateForm()) return;
 
-    fetcher.submit(
-      {
-        store_id: String(storeId || product.storeId),
-        product_id: String(product.id),
-        customer_name: formData.name,
-        phone: formData.phone,
-        address: formData.address,
-        division: formData.division,
-        quantity: String(formData.quantity),
-        payment_method: formData.paymentMethod,
-        transaction_id: formData.transactionId,
-        bump_ids: selectedBumpIds.length > 0 ? selectedBumpIds : undefined,
-        manual_payment_details: JSON.stringify({
-          senderNumber: formData.senderNumber,
-          method: formData.paymentMethod,
-        }),
-      },
-      { method: 'POST', action: '/api/create-order', encType: 'application/json' }
-    );
+    const submitData: Record<string, string> = {
+      store_id: String(storeId || product.storeId),
+      product_id: String(product.id),
+      customer_name: formData.name,
+      phone: formData.phone,
+      address: formData.address,
+      division: formData.division,
+      quantity: String(formData.quantity),
+      payment_method: formData.paymentMethod,
+      transaction_id: formData.transactionId,
+      manual_payment_details: JSON.stringify({
+        senderNumber: formData.senderNumber,
+        method: formData.paymentMethod,
+      }),
+    };
+    
+    if (selectedBumpIds.length > 0) {
+      submitData.bump_ids = JSON.stringify(selectedBumpIds);
+    }
+
+    fetcher.submit(submitData, { method: 'POST', action: '/api/create-order', encType: 'application/json' });
   }, [isPreview, countdown.expired, formData, selectedBumpIds, validateForm, fetcher, storeId, product]);
 
   // Handle input change
