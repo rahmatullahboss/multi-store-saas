@@ -288,7 +288,7 @@ export default function SettingsPage() {
 
   // Show success message
   useEffect(() => {
-    if (actionData && 'success' in actionData && actionData.success) {
+    if (actionData && typeof actionData === 'object' && 'success' in actionData && (actionData as { success?: boolean }).success) {
       setShowSuccess(true);
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
@@ -423,9 +423,9 @@ export default function SettingsPage() {
       )}
 
       {/* Error Message */}
-      {actionData && 'error' in actionData && actionData.error && (
+      {actionData && typeof actionData === 'object' && 'error' in actionData && (actionData as { error?: string }).error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {actionData.error}
+          {(actionData as { error: string }).error}
         </div>
       )}
 

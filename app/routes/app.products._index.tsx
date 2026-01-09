@@ -279,7 +279,7 @@ export default function ProductsIndexPage() {
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <SearchInput
-          placeholder="Search by name, SKU, or category..."
+          placeholder={lang === 'bn' ? 'নাম, SKU অথবা ক্যাটাগরি দিয়ে খুঁজুন...' : 'Search by name, SKU, or category...'}
           value={searchQuery}
           onChange={setSearchQuery}
           className="w-full md:w-80"
@@ -299,7 +299,10 @@ export default function ProductsIndexPage() {
       {selectedIds.size > 0 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <span className="text-emerald-800 font-medium">
-            {selectedIds.size} product{selectedIds.size > 1 ? 's' : ''} selected
+            {lang === 'bn' 
+              ? `${selectedIds.size}টি প্রোডাক্ট নির্বাচিত`
+              : `${selectedIds.size} product${selectedIds.size > 1 ? 's' : ''} selected`
+            }
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <Form method="post" className="inline">
@@ -313,7 +316,7 @@ export default function ProductsIndexPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
-                <Eye className="w-4 h-4" /> Publish
+                <Eye className="w-4 h-4" /> {lang === 'bn' ? 'পাবলিশ' : 'Publish'}
               </button>
             </Form>
             <Form method="post" className="inline">
@@ -327,7 +330,7 @@ export default function ProductsIndexPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
-                <EyeOff className="w-4 h-4" /> Unpublish
+                <EyeOff className="w-4 h-4" /> {lang === 'bn' ? 'আনপাবলিশ' : 'Unpublish'}
               </button>
             </Form>
             <Form method="post" className="inline" onSubmit={(e) => {
@@ -345,14 +348,14 @@ export default function ProductsIndexPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
               >
-                <Trash2 className="w-4 h-4" /> Delete
+                <Trash2 className="w-4 h-4" /> {lang === 'bn' ? 'ডিলিট' : 'Delete'}
               </button>
             </Form>
             <button
               onClick={clearSelection}
               className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
             >
-              Cancel
+              {lang === 'bn' ? 'বাতিল' : 'Cancel'}
             </button>
           </div>
         </div>
@@ -363,10 +366,10 @@ export default function ProductsIndexPage() {
         <div className="bg-white rounded-xl border border-gray-200">
           <EmptyState
             icon={<Package className="w-10 h-10" />}
-            title="No products yet"
-            description="Get started by adding your first product to your store."
+            title={lang === 'bn' ? 'কোনো প্রোডাক্ট নেই' : 'No products yet'}
+            description={lang === 'bn' ? 'আপনার প্রথম প্রোডাক্ট যোগ করে শুরু করুন।' : 'Get started by adding your first product to your store.'}
             action={{
-              label: 'Add Your First Product',
+              label: lang === 'bn' ? 'প্রথম প্রোডাক্ট যোগ করুন' : 'Add Your First Product',
               href: '/app/products/new',
               icon: <Plus className="w-4 h-4" />,
             }}
@@ -374,7 +377,7 @@ export default function ProductsIndexPage() {
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No products match your filters.</p>
+          <p className="text-gray-500">{lang === 'bn' ? 'কোনো প্রোডাক্ট আপনার ফিল্টারের সাথে মিলছে না।' : 'No products match your filters.'}</p>
           <button
             onClick={() => {
               setSearchQuery('');
@@ -382,7 +385,7 @@ export default function ProductsIndexPage() {
             }}
             className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            Clear filters
+            {lang === 'bn' ? 'ফিল্টার সাফ করুন' : 'Clear filters'}
           </button>
         </div>
       ) : (
@@ -401,22 +404,22 @@ export default function ProductsIndexPage() {
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Product
+                    {lang === 'bn' ? 'প্রোডাক্ট' : 'Product'}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Price
+                    {lang === 'bn' ? 'মূল্য' : 'Price'}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Stock
+                    {lang === 'bn' ? 'স্টক' : 'Stock'}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Category
+                    {lang === 'bn' ? 'ক্যাটাগরি' : 'Category'}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
+                    {lang === 'bn' ? 'স্ট্যাটাস' : 'Status'}
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
+                    {lang === 'bn' ? 'অ্যাকশন' : 'Actions'}
                   </th>
                 </tr>
               </thead>
