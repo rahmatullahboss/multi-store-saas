@@ -220,6 +220,7 @@ type NavItem = {
   to: string;
   labelKey: TranslationKey;
   icon: typeof LayoutDashboard;
+  isPaidOnly?: boolean; // Feature requires paid plan
 };
 
 type NavSection = {
@@ -255,7 +256,7 @@ const navSections: NavSection[] = [
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
-      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
+      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, isPaidOnly: true },
     ],
   },
   {
@@ -421,6 +422,26 @@ export default function AppLayout() {
                   {section.items.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.to);
+                    const isLocked = item.isPaidOnly && store.planType === 'free';
+                    
+                    // Locked items - show disabled state with upgrade prompt
+                    if (isLocked) {
+                      return (
+                        <Link
+                          key={item.to}
+                          to="/app/upgrade?feature=reviews"
+                          onClick={() => setSidebarOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group"
+                        >
+                          <Icon className="w-5 h-5" />
+                          <span className="flex-1">{t(item.labelKey)}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium group-hover:bg-amber-200">
+                            আপগ্রেড
+                          </span>
+                        </Link>
+                      );
+                    }
+                    
                     return (
                       <Link
                         key={item.to}
