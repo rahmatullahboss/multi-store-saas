@@ -302,7 +302,9 @@ export default function DomainSettings() {
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">{t('domainSettings')}</h1>
-        <p className="text-gray-600 mt-1">{lang === 'bn' ? 'আপনার স্টোরের ডোমেইন ও URL পরিচালনা করুন' : "Manage your store's domain and URL"}</p>
+        <p className="text-gray-600 mt-1">
+          {t('domainSettingsDesc')}
+        </p>
       </div>
       
       {/* Success/Error Messages */}
@@ -322,7 +324,7 @@ export default function DomainSettings() {
       
       {/* Current Domains */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Your Store URLs</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">{t('yourStoreUrls')}</h2>
         
         {/* Subdomain (Always Active) */}
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-3">
@@ -332,7 +334,7 @@ export default function DomainSettings() {
               <div className="font-mono font-medium text-gray-900">
                 {subdomain}.digitalcare.site
               </div>
-              <p className="text-sm text-gray-500">Free subdomain (always active)</p>
+              <p className="text-sm text-gray-500">{t('freeSubdomainActive')}</p>
             </div>
           </div>
           <a
@@ -341,7 +343,7 @@ export default function DomainSettings() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:underline"
           >
-            Visit <ExternalLink className="w-4 h-4" />
+            {t('visit')} <ExternalLink className="w-4 h-4" />
           </a>
         </div>
         
@@ -372,7 +374,7 @@ export default function DomainSettings() {
               {autoRefresh && (
                 <div className="text-xs text-gray-500 flex items-center gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" />
-                  Auto-checking...
+                  {t('autoChecking')}
                 </div>
               )}
               {sslStatus === 'active' && dnsVerified && (
@@ -382,7 +384,7 @@ export default function DomainSettings() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:underline"
                 >
-                  Visit <ExternalLink className="w-4 h-4" />
+                  {t('visit')} <ExternalLink className="w-4 h-4" />
                 </a>
               )}
             </div>
@@ -395,18 +397,18 @@ export default function DomainSettings() {
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Zap className="w-5 h-5" />
-            Complete DNS Setup
+            {t('completeDnsSetup')}
           </h3>
           <p className="text-blue-800 mb-4">
-            Add this CNAME record to your domain's DNS settings:
+            {t('addCnameRecord')}
           </p>
           <div className="bg-white rounded-lg p-4 font-mono text-sm mb-4">
             <table className="w-full">
               <thead>
                 <tr className="text-gray-500 text-left">
-                  <th className="pb-2">Type</th>
-                  <th className="pb-2">Name/Host</th>
-                  <th className="pb-2">Value/Target</th>
+                  <th className="pb-2">{t('type')}</th>
+                  <th className="pb-2">{t('nameHost')}</th>
+                  <th className="pb-2">{t('valueTarget')}</th>
                 </tr>
               </thead>
               <tbody className="font-semibold">
@@ -419,7 +421,7 @@ export default function DomainSettings() {
             </table>
           </div>
           <p className="text-sm text-blue-700 mb-4">
-            After adding the DNS record, SSL certificate will be automatically issued (usually 5-15 minutes).
+            {t('dnsSetupWaitMsg')}
           </p>
           <div className="flex gap-3">
             <Form method="post">
@@ -430,7 +432,7 @@ export default function DomainSettings() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 ${isSubmitting ? 'animate-spin' : ''}`} />
-                Refresh Status
+                {t('refreshStatus')}
               </button>
             </Form>
             <Form method="post">
@@ -441,7 +443,7 @@ export default function DomainSettings() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
-                Remove Domain
+                {t('removeDomainBtn')}
               </button>
             </Form>
           </div>
@@ -453,10 +455,10 @@ export default function DomainSettings() {
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Check className="w-6 h-6 text-emerald-600" />
-            <h2 className="font-semibold text-gray-900">Domain Connected!</h2>
+            <h2 className="font-semibold text-gray-900">{t('domainConnected')}</h2>
           </div>
           <p className="text-gray-600 mb-4">
-            Your custom domain is active and serving your store with HTTPS.
+            {t('domainConnectedDesc')}
           </p>
           <Form method="post">
             <input type="hidden" name="actionType" value="remove" />
@@ -466,7 +468,7 @@ export default function DomainSettings() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
             >
               <Trash2 className="w-4 h-4" />
-              Disconnect Domain
+              {t('removeDomainBtn')}
             </button>
           </Form>
         </div>
@@ -478,12 +480,12 @@ export default function DomainSettings() {
           <div className="flex items-start gap-4">
             <Clock className="w-6 h-6 text-yellow-600 flex-shrink-0" />
             <div className="flex-1">
-              <h3 className="font-semibold text-yellow-900">Domain Request Pending</h3>
+              <h3 className="font-semibold text-yellow-900">{t('domainRequestPending')}</h3>
               <p className="text-yellow-800 mt-1">
-                Your request for <span className="font-mono font-semibold">{customDomainRequest}</span> is being reviewed.
+                {t('domainRequestReviewing').replace('{{domain}}', customDomainRequest)}
               </p>
               <p className="text-sm text-yellow-700 mt-2">
-                We'll notify you once it's approved. This usually takes 24 hours.
+                {t('willNotifyOnceApproved')}
               </p>
               <Form method="post" className="mt-4">
                 <input type="hidden" name="actionType" value="cancel" />
@@ -492,7 +494,7 @@ export default function DomainSettings() {
                   disabled={isSubmitting}
                   className="text-sm text-yellow-700 hover:text-yellow-900 underline disabled:opacity-50"
                 >
-                  Cancel request
+                  {t('cancelRequest')}
                 </button>
               </Form>
             </div>
@@ -503,9 +505,9 @@ export default function DomainSettings() {
       {/* Add Custom Domain Form */}
       {!customDomain && customDomainStatus !== 'pending' && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-2">Add Custom Domain</h2>
+          <h2 className="font-semibold text-gray-900 mb-2">{t('addCustomDomain')}</h2>
           <p className="text-gray-600 text-sm mb-6">
-            Connect your own domain to your store. {cloudflareConfigured ? 'SSL certificate will be issued automatically.' : 'Our team will set it up within 24 hours.'}
+            {t('addCustomDomainDesc')}
           </p>
           
           {!isPaid && (
@@ -517,20 +519,20 @@ export default function DomainSettings() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <Lock className="w-4 h-4 text-amber-600" />
-                    <p className="text-amber-900 font-bold text-lg">Premium Feature</p>
+                    <p className="text-amber-900 font-bold text-lg">{t('premiumFeature')}</p>
                   </div>
                   <p className="text-amber-800 mt-2 leading-relaxed">
-                    <strong>Upgrade to Starter</strong> to connect your own domain (e.g., <span className="font-mono bg-white/50 px-1 rounded">myshop.com</span>).
+                    <strong>{t('upgradeToStarter')}</strong> {t('upgradeToConnectDomain').replace('myshop.com', 'myshop.com')}
                   </p>
                   <p className="text-sm text-amber-700 mt-1">
-                    Free plans use subdomains only. Custom domains require a paid subscription.
+                    {t('freePlanSubdomainOnly')}
                   </p>
                   <a 
                     href="/app/upgrade" 
                     className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-md hover:shadow-lg"
                   >
                     <Crown className="w-5 h-5" />
-                    Upgrade to Starter Plan
+                    {t('upgradeToStarterPlan')}
                   </a>
                 </div>
               </div>
@@ -542,7 +544,7 @@ export default function DomainSettings() {
             
             <div>
               <label htmlFor="domain" className="block text-sm font-medium text-gray-700 mb-1">
-                Your Domain
+                {t('yourDomain')}
               </label>
               <input
                 type="text"
@@ -553,7 +555,7 @@ export default function DomainSettings() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
               <p className="text-sm text-gray-500 mt-2">
-                Enter the domain you want to use for your store. You must own this domain.
+                {t('enterDomainYouOwn')}
               </p>
             </div>
             
@@ -565,12 +567,12 @@ export default function DomainSettings() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Adding Domain...
+                  {t('addingDomain')}
                 </>
               ) : (
                 <>
                   <Zap className="w-5 h-5" />
-                  Add Domain
+                  {t('addCustomDomain')}
                 </>
               )}
             </button>
@@ -579,7 +581,7 @@ export default function DomainSettings() {
           {/* DNS Instructions Preview */}
           {isPaid && (
             <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">After adding, you'll need to add this DNS record:</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">{t('dnsInstructionsPreview')}</h3>
               <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm">
                 <div className="grid grid-cols-3 gap-2">
                   <span className="text-gray-500">Type</span>

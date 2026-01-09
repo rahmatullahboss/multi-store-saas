@@ -174,7 +174,7 @@ export default function DiscountCodesPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('discounts')}</h1>
-            <p className="text-gray-600">{lang === 'bn' ? 'আপনার কাস্টমারদের জন্য প্রোমো কোড তৈরি করুন' : 'Create promo codes for your customers'}</p>
+            <p className="text-gray-600">{t('discountsDesc')}</p>
           </div>
         </div>
         {!showForm && (
@@ -183,7 +183,7 @@ export default function DiscountCodesPage() {
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
           >
             <Plus className="w-4 h-4" />
-            Add Code
+            {t('addCode')}
           </button>
         )}
       </div>
@@ -192,7 +192,7 @@ export default function DiscountCodesPage() {
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {editingCode ? 'Edit Discount Code' : 'New Discount Code'}
+            {editingCode ? t('editDiscountCode') : t('newDiscountCode')}
           </h2>
           <Form method="post" className="space-y-4">
             <input type="hidden" name="intent" value={editingCode ? 'update' : 'create'} />
@@ -201,7 +201,7 @@ export default function DiscountCodesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Code *
+                  {t('codeLabel')} *
                 </label>
                 <input
                   type="text"
@@ -215,21 +215,21 @@ export default function DiscountCodesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type
+                  {t('type')}
                 </label>
                 <select
                   name="type"
                   defaultValue={editingCode?.type || 'percentage'}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 >
-                  <option value="percentage">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount ({currency})</option>
+                  <option value="percentage">{t('percentage')} (%)</option>
+                  <option value="fixed">{t('fixedAmount')} ({currency})</option>
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Value *
+                  {t('discountValue')} *
                 </label>
                 <input
                   type="number"
@@ -244,7 +244,7 @@ export default function DiscountCodesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Minimum Order ({currency})
+                  {t('minOrder')} ({currency})
                 </label>
                 <input
                   type="number"
@@ -258,7 +258,7 @@ export default function DiscountCodesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Discount ({currency})
+                  {t('maxDiscount')} ({currency})
                 </label>
                 <input
                   type="number"
@@ -272,7 +272,7 @@ export default function DiscountCodesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Uses
+                  {t('maxUses')}
                 </label>
                 <input
                   type="number"
@@ -285,7 +285,7 @@ export default function DiscountCodesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expires At
+                  {t('expiresAt')}
                 </label>
                 <input
                   type="date"
@@ -303,14 +303,14 @@ export default function DiscountCodesPage() {
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 flex items-center gap-2"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {editingCode ? 'Update Code' : 'Create Code'}
+                {editingCode ? t('updateCode') : t('createCode')}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </Form>
@@ -335,15 +335,17 @@ export default function DiscountCodesPage() {
                     <div className="flex items-center gap-2">
                       <p className="font-mono font-bold text-gray-900">{code.code}</p>
                       {!code.isActive && (
-                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">Disabled</span>
+                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{t('disabled')}</span>
                       )}
                       {isExpired(code.expiresAt) && (
-                        <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">Expired</span>
+                        <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">{t('expired')}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-sm text-gray-500">
                       <span className="font-medium text-emerald-600">
-                        {code.type === 'percentage' ? `${code.value}% off` : formatPrice(code.value) + ' off'}
+                        {code.type === 'percentage' 
+                          ? t('percentageOff').replace('{{value}}', String(code.value)) 
+                          : t('fixedOff').replace('{{value}}', formatPrice(code.value))}
                       </span>
                       {code.minOrderAmount && (
                         <span>Min: {formatPrice(code.minOrderAmount)}</span>
@@ -363,7 +365,7 @@ export default function DiscountCodesPage() {
                       type="submit"
                       className={`px-3 py-1 text-xs rounded-lg ${code.isActive ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-600'}`}
                     >
-                      {code.isActive ? 'Disable' : 'Enable'}
+                      {code.isActive ? t('disable') : t('enable')}
                     </button>
                   </Form>
                   <button
@@ -379,7 +381,7 @@ export default function DiscountCodesPage() {
                       type="submit"
                       className="p-2 hover:bg-red-50 rounded-lg transition"
                       onClick={(e) => {
-                        if (!confirm('Delete this code?')) e.preventDefault();
+                        if (!confirm(t('deleteCodeConfirm'))) e.preventDefault();
                       }}
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
@@ -392,12 +394,12 @@ export default function DiscountCodesPage() {
         ) : (
           <div className="p-12 text-center">
             <Tag className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">No discount codes yet</p>
+            <p className="text-gray-500 mb-4">{t('noDiscountCodes')}</p>
             <button
               onClick={() => setShowForm(true)}
               className="text-emerald-600 hover:underline"
             >
-              Create your first code
+              {t('createFirstCode')}
             </button>
           </div>
         )}

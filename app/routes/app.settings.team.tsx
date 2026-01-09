@@ -151,7 +151,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const role = formData.get('role') as 'admin' | 'staff' | 'viewer';
 
       if (!email || !email.includes('@')) {
-        return json({ error: 'Please enter a valid email address' }, { status: 400 });
+        return json({ error: 'invalidEmail' }, { status: 400 });
       }
 
       // Check if user already exists with this email
@@ -162,7 +162,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .limit(1);
 
       if (existingUser[0] && existingUser[0].storeId === storeId) {
-        return json({ error: 'This user is already a team member' }, { status: 400 });
+        return json({ error: 'userAlreadyMember' }, { status: 400 });
       }
 
       // Check if invite already pending
@@ -179,7 +179,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .limit(1);
 
       if (existingInvite[0]) {
-        return json({ error: 'An invitation is already pending for this email' }, { status: 400 });
+        return json({ error: 'invitePending' }, { status: 400 });
       }
 
       // Generate token
@@ -219,14 +219,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
         details: { email, role },
       });
 
-      return json({ success: true, message: 'Invitation sent successfully!' });
+      return json({ success: true, message: 'inviteSent' });
     }
 
     case 'revoke': {
       const inviteId = parseInt(formData.get('inviteId') as string, 10);
 
       if (!inviteId) {
-        return json({ error: 'Invalid invite ID' }, { status: 400 });
+        return json({ error: 'invalidInviteId' }, { status: 400 });
       }
 
       // Get invite details for logging
@@ -237,7 +237,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .limit(1);
 
       if (!invite[0]) {
-        return json({ error: 'Invitation not found' }, { status: 404 });
+        return json({ error: 'inviteNotFound' }, { status: 404 });
       }
 
       await db.delete(staffInvites).where(
@@ -253,19 +253,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
         details: { email: invite[0].email },
       });
 
-      return json({ success: true, message: 'Invitation revoked' });
+      return json({ success: true, message: 'inviteRevoked' });
     }
 
     case 'remove': {
       const memberId = parseInt(formData.get('memberId') as string, 10);
 
       if (!memberId) {
-        return json({ error: 'Invalid member ID' }, { status: 400 });
+        return json({ error: 'invalidMemberId' }, { status: 400 });
       }
 
       // Can't remove yourself
       if (memberId === userId) {
-        return json({ error: 'You cannot remove yourself from the team' }, { status: 400 });
+        return json({ error: 'cannotRemoveSelf' }, { status: 400 });
       }
 
       // Get member details for logging
@@ -276,12 +276,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .limit(1);
 
       if (!member[0]) {
-        return json({ error: 'Team member not found' }, { status: 404 });
+        return json({ error: 'memberNotFound' }, { status: 404 });
       }
 
       // Can't remove the store owner (merchant)
       if (member[0].role === 'merchant') {
-        return json({ error: 'Cannot remove the store owner' }, { status: 400 });
+        return json({ error: 'cannotRemoveOwner' }, { status: 400 });
       }
 
       await db.delete(users).where(
@@ -298,11 +298,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
         details: { email: member[0].email, name: member[0].name },
       });
 
-      return json({ success: true, message: 'Team member removed' });
+      return json({ success: true, message: 'memberRemoved' });
     }
 
     default:
-      return json({ error: 'Invalid action' }, { status: 400 });
+      return json({ error: 'invalidAction' }, { status: 400 });
   }
 }
 
@@ -310,9 +310,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // ROLE CONFIGURATION
 // ============================================================================
 const roles = [
-  { value: 'admin', label: 'Admin', description: 'Full access to all features' },
-  { value: 'staff', label: 'Staff', description: 'Manage products and orders' },
-  { value: 'viewer', label: 'Viewer', description: 'View-only access' },
+  { value: 'admin', label: 'adminRole', description: 'adminRoleDesc' },
+  { value: 'staff', label: 'staffRole', description: 'staffRoleDesc' },
+  { value: 'viewer', label: 'viewerRole', description: 'viewerRoleDesc' },
 ];
 
 function getRoleBadgeColor(role: string): string {
@@ -358,14 +358,14 @@ export default function TeamManagementPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('teamSettings')}</h1>
-        <p className="text-gray-600">{lang === 'bn' ? 'আপনার টিম মেম্বারদের ইনভাইট এবং ম্যানেজ করুন' : 'Invite and manage your team members'}</p>
+        <p className="text-gray-600">{t('teamSettingsDesc')}</p>
       </div>
 
       {/* Success Message */}
       {showSuccess && actionData && 'message' in actionData && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {actionData.message}
+          {t(actionData.message as any)}
         </div>
       )}
 
@@ -373,7 +373,7 @@ export default function TeamManagementPage() {
       {actionData && 'error' in actionData && actionData.error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
-          {actionData.error}
+          {t(actionData.error as any)}
         </div>
       )}
 
@@ -384,8 +384,8 @@ export default function TeamManagementPage() {
             <UserPlus className="w-5 h-5 text-purple-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Invite Team Member</h2>
-            <p className="text-sm text-gray-500">Send an invitation to join {store.name}</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('inviteTeamMember')}</h2>
+            <p className="text-sm text-gray-500">{t('sendInviteToJoin')} {store.name}</p>
           </div>
         </div>
 
@@ -396,7 +396,7 @@ export default function TeamManagementPage() {
             {/* Email */}
             <div className="md:col-span-2">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                {t('emailAddress')}
               </label>
               <input
                 type="email"
@@ -411,7 +411,7 @@ export default function TeamManagementPage() {
             {/* Role */}
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                Role
+                {t('role')}
               </label>
               <select
                 id="role"
@@ -420,7 +420,7 @@ export default function TeamManagementPage() {
               >
                 {roles.map((role) => (
                   <option key={role.value} value={role.value}>
-                    {role.label}
+                    {t(role.label as any)}
                   </option>
                 ))}
               </select>
@@ -436,12 +436,12 @@ export default function TeamManagementPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Sending...
+                  {t('sending')}
                 </>
               ) : (
                 <>
                   <Mail className="w-4 h-4" />
-                  Send Invitation
+                  {t('sendInvitation')}
                 </>
               )}
             </button>
@@ -457,8 +457,8 @@ export default function TeamManagementPage() {
               <Clock className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Pending Invitations</h2>
-              <p className="text-sm text-gray-500">{pendingInvites.length} invitation(s) waiting</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('pendingInvitations')}</h2>
+              <p className="text-sm text-gray-500">{pendingInvites.length} {t('invitationsWaiting')}</p>
             </div>
           </div>
 
@@ -479,7 +479,7 @@ export default function TeamManagementPage() {
                         {invite.role || 'staff'}
                       </span>
                       {invite.expiresAt && (
-                        <span>Expires {new Date(invite.expiresAt).toLocaleDateString()}</span>
+                        <span>{t('expires')} {new Date(invite.expiresAt).toLocaleDateString()}</span>
                       )}
                     </div>
                   </div>
@@ -489,7 +489,7 @@ export default function TeamManagementPage() {
                   <button
                     onClick={() => copyInviteLink(invite.token)}
                     className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition"
-                    title="Copy invite link"
+                    title={String(t('copyInviteLink'))}
                   >
                     {copiedToken === invite.token ? (
                       <CheckCircle className="w-4 h-4 text-emerald-600" />
@@ -503,7 +503,7 @@ export default function TeamManagementPage() {
                     <button
                       type="submit"
                       className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-                      title="Revoke invitation"
+                      title={String(t('revokeInvitation'))}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -522,8 +522,8 @@ export default function TeamManagementPage() {
             <Users className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Team Members</h2>
-            <p className="text-sm text-gray-500">{teamMembers.length} member(s)</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('teamMembers')}</h2>
+            <p className="text-sm text-gray-500">{teamMembers.length} {t('membersCount')}</p>
           </div>
         </div>
 
@@ -549,7 +549,7 @@ export default function TeamManagementPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">{member.email}</span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(member.role || 'staff')}`}>
-                      {member.role === 'merchant' ? 'Owner' : member.role}
+                      {member.role === 'merchant' ? t('ownerRole') : member.role}
                     </span>
                   </div>
                 </div>
@@ -558,7 +558,7 @@ export default function TeamManagementPage() {
               {/* Remove button - only show for non-owners and non-self */}
               {member.id !== currentUserId && member.role !== 'merchant' && (
                 <Form method="post" onSubmit={(e) => {
-                  if (!confirm(`Remove ${member.name || member.email} from the team?`)) {
+                  if (!confirm(`${t('removeTeamMember')} ${member.name || member.email}?`)) {
                     e.preventDefault();
                   }
                 }}>
@@ -567,7 +567,7 @@ export default function TeamManagementPage() {
                   <button
                     type="submit"
                     className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-                    title="Remove team member"
+                    title={String(t('removeTeamMember'))}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -585,37 +585,37 @@ export default function TeamManagementPage() {
             <Shield className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Role Permissions</h2>
-            <p className="text-sm text-gray-500">Understanding what each role can do</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('rolePermissions')}</h2>
+            <p className="text-sm text-gray-500">{t('rolePermissionsDesc')}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
-            <h3 className="font-semibold text-purple-900 mb-2">Admin</h3>
+            <h3 className="font-semibold text-purple-900 mb-2">{t('ownerRole')} / Admin</h3>
             <ul className="text-sm text-purple-700 space-y-1">
-              <li>• Manage products & orders</li>
-              <li>• Invite team members</li>
-              <li>• Change settings</li>
-              <li>• View analytics</li>
+              <li>• {t('manageProductsOrders')}</li>
+              <li>• {t('inviteTeamMembers')}</li>
+              <li>• {t('changeSettings')}</li>
+              <li>• {t('viewAnalytics')}</li>
             </ul>
           </div>
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
             <h3 className="font-semibold text-blue-900 mb-2">Staff</h3>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Manage products & orders</li>
-              <li>• View analytics</li>
-              <li>• Cannot change settings</li>
-              <li>• Cannot invite others</li>
+              <li>• {t('manageProductsOrders')}</li>
+              <li>• {t('viewAnalytics')}</li>
+              <li>• {t('cannotChangeSettings')}</li>
+              <li>• {t('cannotInviteOthers')}</li>
             </ul>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h3 className="font-semibold text-gray-900 mb-2">Viewer</h3>
             <ul className="text-sm text-gray-700 space-y-1">
-              <li>• View products & orders</li>
-              <li>• View analytics</li>
-              <li>• Cannot make changes</li>
-              <li>• Read-only access</li>
+              <li>• {t('viewProductsOrders')}</li>
+              <li>• {t('viewAnalytics')}</li>
+              <li>• {t('cannotMakeChanges')}</li>
+              <li>• {t('readOnlyAccess')}</li>
             </ul>
           </div>
         </div>

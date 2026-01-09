@@ -97,7 +97,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
+    return json({ error: 'unauthorized' }, { status: 401 });
   }
 
   const formData = await request.formData();
@@ -231,7 +231,7 @@ export default function SeoSettingsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('seoSettings')}</h1>
-          <p className="text-gray-600">{lang === 'bn' ? 'সার্চ ইঞ্জিনের জন্য আপনার স্টোর অপ্টিমাইজ করুন' : 'Optimize your store for search engines'}</p>
+          <p className="text-gray-600">{t('seoOptimizeDesc')}</p>
         </div>
       </div>
 
@@ -239,7 +239,7 @@ export default function SeoSettingsPage() {
       {showSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          SEO settings saved successfully!
+          {t('seoSettingsSaved')}
         </div>
       )}
 
@@ -261,8 +261,8 @@ export default function SeoSettingsPage() {
               <Search className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Search Engine Preview</h2>
-              <p className="text-sm text-gray-500">How your store appears in Google</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('seoSearchPreview')}</h2>
+              <p className="text-sm text-gray-500">{t('seoGoogleAppear')}</p>
             </div>
           </div>
 
@@ -273,7 +273,7 @@ export default function SeoSettingsPage() {
               {metaTitle || store.name}
             </h3>
             <p className="text-sm text-gray-600 line-clamp-2">
-              {metaDescription || 'Add a description to help customers find your store in search results.'}
+              {metaDescription || t('seoAddDescription')}
             </p>
           </div>
 
@@ -281,7 +281,7 @@ export default function SeoSettingsPage() {
             {/* Meta Title */}
             <div>
               <label htmlFor="metaTitle" className="block text-sm font-medium text-gray-700 mb-1">
-                Meta Title
+                {t('metaTitle')}
               </label>
               <input
                 type="text"
@@ -293,13 +293,13 @@ export default function SeoSettingsPage() {
                 placeholder={store.name}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <p className="text-xs text-gray-500 mt-1">{metaTitle.length}/60 characters</p>
+              <p className="text-xs text-gray-500 mt-1">{metaTitle.length}/60 {t('characters')}</p>
             </div>
 
             {/* Meta Description */}
             <div>
               <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-1">
-                Meta Description
+                {t('metaDescription')}
               </label>
               <textarea
                 id="metaDescription"
@@ -308,23 +308,23 @@ export default function SeoSettingsPage() {
                 onChange={(e) => setMetaDescription(e.target.value)}
                 rows={3}
                 maxLength={160}
-                placeholder="Describe your store in 1-2 sentences..."
+                placeholder={String(t('seoDescPlaceholder'))}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               />
-              <p className="text-xs text-gray-500 mt-1">{metaDescription.length}/160 characters</p>
+              <p className="text-xs text-gray-500 mt-1">{metaDescription.length}/160 {t('characters')}</p>
             </div>
 
             {/* Keywords */}
             <div>
               <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 mb-1">
-                Keywords (comma separated)
+                {t('keywordsLabel')}
               </label>
               <input
                 type="text"
                 id="keywords"
                 name="keywords"
                 defaultValue={seoConfig.keywords?.join(', ') || ''}
-                placeholder="e.g., online store, fashion, electronics"
+                placeholder={String(t('keywordsPlaceholder'))}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -338,8 +338,8 @@ export default function SeoSettingsPage() {
               <Image className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Social Media Image</h2>
-              <p className="text-sm text-gray-500">Shown when sharing on Facebook, Twitter, etc.</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('socialMediaImage')}</h2>
+              <p className="text-sm text-gray-500">{t('socialMediaImageDesc')}</p>
             </div>
           </div>
 
@@ -377,16 +377,16 @@ export default function SeoSettingsPage() {
                 {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Uploading...
+                    {t('uploading')}
                   </>
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    Upload Image
+                    {t('uploadImage')}
                   </>
                 )}
               </button>
-              <p className="text-xs text-gray-500 mt-2">Recommended: 1200×630 pixels (1.91:1 ratio)</p>
+              <p className="text-xs text-gray-500 mt-2">{t('ogImageRecommend')}</p>
               {imageFetcher.data?.error && (
                 <p className="text-red-500 text-sm mt-1">{imageFetcher.data.error}</p>
               )}
@@ -409,15 +409,15 @@ export default function SeoSettingsPage() {
               <BarChart3 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Tracking & Analytics</h2>
-              <p className="text-sm text-gray-500">Facebook Pixel & Google Analytics</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('trackingAnalytics')}</h2>
+              <p className="text-sm text-gray-500">{t('ffPixelDesc')}</p>
             </div>
           </div>
           <Link
             to="/app/settings/tracking"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
           >
-            Configure Tracking
+            {t('configureTracking')}
             <ArrowLeft className="w-4 h-4 rotate-180" />
           </Link>
         </div>
@@ -426,13 +426,13 @@ export default function SeoSettingsPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <h4 className="font-medium text-amber-900 flex items-center gap-2 mb-2">
             <AlertCircle className="w-4 h-4" />
-            SEO Tips
+            {t('seoTips')}
           </h4>
           <ul className="text-sm text-amber-800 space-y-1">
-            <li>• Keep meta title under 60 characters for best display</li>
-            <li>• Meta description should be 150-160 characters</li>
-            <li>• Include your main product or service in the title</li>
-            <li>• Use action words in description (Shop, Discover, Buy)</li>
+            <li>• {t('seoTip1')}</li>
+            <li>• {t('seoTip2')}</li>
+            <li>• {t('seoTip3')}</li>
+            <li>• {t('seoTip4')}</li>
           </ul>
         </div>
 
@@ -446,10 +446,10 @@ export default function SeoSettingsPage() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
+                {t('savingSettings')}
               </>
             ) : (
-              'Save SEO Settings'
+              t('saveSeoSettings')
             )}
           </button>
         </div>

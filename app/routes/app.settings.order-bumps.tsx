@@ -186,12 +186,10 @@ export default function OrderBumpsSettings() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Gift className="w-6 h-6 text-amber-500" />
-              {lang === 'bn' ? 'অর্ডার বাম্প' : 'Order Bumps'}
+              {t('orderBumps')}
             </h1>
             <p className="text-gray-600 mt-1">
-              {lang === 'bn' 
-                ? 'চেকআউটে অতিরিক্ত পণ্য অফার করে আপনার AOV বাড়ান'
-                : 'Increase your AOV by offering add-ons during checkout'}
+              {t('orderBumpsDesc')}
             </p>
           </div>
         </div>
@@ -201,7 +199,7 @@ export default function OrderBumpsSettings() {
           className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-md"
         >
           <Plus className="w-5 h-5" />
-          {lang === 'bn' ? 'নতুন বাম্প' : 'New Bump'}
+          {t('newBump')}
         </button>
       </div>
       
@@ -211,12 +209,10 @@ export default function OrderBumpsSettings() {
           <Sparkles className="w-6 h-6 text-amber-600 flex-shrink-0" />
           <div>
             <h3 className="font-semibold text-amber-800">
-              {lang === 'bn' ? 'অর্ডার বাম্প কি?' : 'What are Order Bumps?'}
+              {t('whatAreOrderBumps')}
             </h3>
             <p className="text-sm text-amber-700 mt-1">
-              {lang === 'bn'
-                ? 'অর্ডার বাম্প হল চেকআউট ফর্মে দেখানো অতিরিক্ত পণ্য অফার। কাস্টমাররা এক ক্লিকে এগুলো তাদের অর্ডারে যোগ করতে পারে। এটি গড় অর্ডার মূল্য ২০-৬০% বাড়াতে পারে!'
-                : 'Order bumps are add-on product offers shown in the checkout form. Customers can add them to their order with one click. This can increase Average Order Value by 20-60%!'}
+              {t('orderBumpExplainer')}
             </p>
           </div>
         </div>
@@ -228,21 +224,21 @@ export default function OrderBumpsSettings() {
           <input type="hidden" name="intent" value="create" />
           
           <h3 className="font-semibold text-gray-900">
-            {lang === 'bn' ? 'নতুন অর্ডার বাম্প তৈরি করুন' : 'Create New Order Bump'}
+            {t('createNewOrderBump')}
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Main Product */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {lang === 'bn' ? 'মূল প্রোডাক্ট' : 'Main Product'} *
+                {t('mainProduct')} *
               </label>
               <select
                 name="productId"
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
               >
-                <option value="">{lang === 'bn' ? 'সিলেক্ট করুন...' : 'Select...'}</option>
+                <option value="">{t('select')}...</option>
                 {products.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.title} - {formatPrice(p.price)}
@@ -250,21 +246,21 @@ export default function OrderBumpsSettings() {
                 ))}
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                {lang === 'bn' ? 'যে প্রোডাক্ট কিনলে বাম্প দেখাবে' : 'Bump will show when this product is purchased'}
+                {t('whenMainPurchased')}
               </p>
             </div>
             
             {/* Bump Product */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {lang === 'bn' ? 'বাম্প প্রোডাক্ট' : 'Bump Product'} *
+                {t('bumpProduct')} *
               </label>
               <select
                 name="bumpProductId"
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
               >
-                <option value="">{lang === 'bn' ? 'সিলেক্ট করুন...' : 'Select...'}</option>
+                <option value="">{t('select')}...</option>
                 {products.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.title} - {formatPrice(p.price)}
@@ -272,32 +268,32 @@ export default function OrderBumpsSettings() {
                 ))}
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                {lang === 'bn' ? 'অফার করা হবে যে প্রোডাক্ট' : 'Product to offer as bump'}
+                {t('productToOfferAsBump')}
               </p>
             </div>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {lang === 'bn' ? 'অফার শিরোনাম' : 'Offer Title'} *
+              {t('offerTitle')} *
             </label>
             <input
               type="text"
               name="title"
               required
-              placeholder={lang === 'bn' ? 'যেমন: এক্সপ্রেস শিপিং যোগ করুন' : 'e.g., Add Express Shipping'}
+              placeholder={t('offerTitlePlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {lang === 'bn' ? 'বিবরণ (ঐচ্ছিক)' : 'Description (Optional)'}
+              {t('description')} ({t('optional')})
             </label>
             <textarea
               name="description"
               rows={2}
-              placeholder={lang === 'bn' ? 'কেন তারা এটা নেবে...' : 'Why they should add this...'}
+              placeholder={t('descriptionPlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
@@ -305,7 +301,7 @@ export default function OrderBumpsSettings() {
           <div className="w-32">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               <Percent className="w-4 h-4 inline mr-1" />
-              {lang === 'bn' ? 'ছাড় %' : 'Discount %'}
+              {t('discountPercentage')}
             </label>
             <input
               type="number"
@@ -323,14 +319,14 @@ export default function OrderBumpsSettings() {
               disabled={isSubmitting}
               className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition disabled:opacity-50"
             >
-              {isSubmitting ? 'Creating...' : (lang === 'bn' ? 'তৈরি করুন' : 'Create')}
+              {isSubmitting ? t('creating') : t('create')}
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
               className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
             >
-              {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+              {t('cancel')}
             </button>
           </div>
         </Form>
@@ -340,7 +336,7 @@ export default function OrderBumpsSettings() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h3 className="font-semibold text-gray-900">
-            {lang === 'bn' ? 'আপনার অর্ডার বাম্পস' : 'Your Order Bumps'}
+            {t('yourOrderBumps')}
             <span className="ml-2 text-sm font-normal text-gray-500">
               ({bumps.length})
             </span>
@@ -351,19 +347,17 @@ export default function OrderBumpsSettings() {
           <div className="p-12 text-center">
             <Gift className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h4 className="text-lg font-medium text-gray-900 mb-2">
-              {lang === 'bn' ? 'কোন অর্ডার বাম্প নেই' : 'No Order Bumps Yet'}
+              {t('noOrderBumpsYet')}
             </h4>
             <p className="text-gray-500 mb-4">
-              {lang === 'bn' 
-                ? 'আপনার AOV বাড়াতে প্রথম অর্ডার বাম্প তৈরি করুন'
-                : 'Create your first order bump to increase your AOV'}
+              {t('createFirstOrderBump')}
             </p>
             <button
               onClick={() => setShowForm(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition"
             >
               <Plus className="w-4 h-4" />
-              {lang === 'bn' ? 'বাম্প তৈরি করুন' : 'Create Bump'}
+              {t('createBump')}
             </button>
           </div>
         ) : (
@@ -393,24 +387,24 @@ export default function OrderBumpsSettings() {
                         </span>
                         {(bump.discount ?? 0) > 0 && (
                           <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs font-medium rounded-full">
-                            {bump.discount}% off
+                            {bump.discount}% {t('offLabel')}
                           </span>
                         )}
                       </div>
                       <p className="text-sm text-gray-500">
-                        {lang === 'bn' ? 'দেখাবে যখন: ' : 'Shows when: '}
+                        {t('showsWhen')}
                         <span className="text-gray-700">{bump.mainProductTitle}</span>
                         {' → '}
-                        {lang === 'bn' ? 'অফার: ' : 'Offers: '}
+                        {t('offersLabel')}
                         <span className="text-amber-600">{bump.bumpProductTitle}</span>
                       </p>
                       {/* Stats */}
                       <div className="flex items-center gap-4 mt-1 text-xs text-gray-400">
-                        <span>{bump.views ?? 0} views</span>
-                        <span>{bump.conversions ?? 0} conversions</span>
+                        <span>{bump.views ?? 0} {t('views')}</span>
+                        <span>{bump.conversions ?? 0} {t('conversions')}</span>
                         {(bump.views ?? 0) > 0 && (
                           <span className="text-emerald-600">
-                            {(((bump.conversions ?? 0) / (bump.views ?? 1)) * 100).toFixed(1)}% rate
+                            {(((bump.conversions ?? 0) / (bump.views ?? 1)) * 100).toFixed(1)}% {t('bumpConversionRate')}
                           </span>
                         )}
                       </div>
@@ -443,7 +437,7 @@ export default function OrderBumpsSettings() {
                     
                     {/* Delete */}
                     <Form method="post" onSubmit={(e) => {
-                      if (!confirm(lang === 'bn' ? 'মুছে ফেলতে চান?' : 'Delete this bump?')) {
+                      if (!confirm(t('deleteBumpConfirm'))) {
                         e.preventDefault();
                       }
                     }}>
