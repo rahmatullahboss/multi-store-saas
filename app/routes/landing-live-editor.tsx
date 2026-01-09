@@ -467,6 +467,60 @@ export default function LiveEditorPage() {
     }
   }, [createStateSnapshot, setHistoryState]);
 
+  // Restore states from historyState when undo/redo happens
+  const isRestoringRef = useRef(false);
+  useEffect(() => {
+    if (isRestoringRef.current) {
+      isRestoringRef.current = false;
+      return;
+    }
+    // Sync historyState to individual states
+    if (historyState) {
+      setTemplateId(historyState.templateId ?? templateId);
+      setFeaturedProductId(historyState.featuredProductId ?? featuredProductId);
+      setHeadline(historyState.headline ?? headline);
+      setSubheadline(historyState.subheadline ?? subheadline);
+      setCtaText(historyState.ctaText ?? ctaText);
+      setCtaSubtext(historyState.ctaSubtext ?? ctaSubtext);
+      setUrgencyText(historyState.urgencyText ?? urgencyText);
+      setVideoUrl(historyState.videoUrl ?? videoUrl);
+      setGuaranteeText(historyState.guaranteeText ?? guaranteeText);
+      setFeatures(historyState.features ?? features);
+      setSectionOrder(historyState.sectionOrder ?? sectionOrder);
+      setHiddenSections(historyState.hiddenSections ?? hiddenSections);
+      setWhatsappEnabled(historyState.whatsappEnabled ?? whatsappEnabled);
+      setWhatsappNumber(historyState.whatsappNumber ?? whatsappNumber);
+      setWhatsappMessage(historyState.whatsappMessage ?? whatsappMessage);
+      setCallEnabled(historyState.callEnabled ?? callEnabled);
+      setCallNumber(historyState.callNumber ?? callNumber);
+      setTestimonials(historyState.testimonials ?? testimonials);
+      setFaq(historyState.faq ?? faq);
+      setCountdownEnabled(historyState.countdownEnabled ?? countdownEnabled);
+      setCountdownEndTime(historyState.countdownEndTime ?? countdownEndTime);
+      setShowStockCounter(historyState.showStockCounter ?? showStockCounter);
+      setLowStockThreshold(historyState.lowStockThreshold ?? lowStockThreshold);
+      setShowSocialProof(historyState.showSocialProof ?? showSocialProof);
+      setSocialProofInterval(historyState.socialProofInterval ?? socialProofInterval);
+      setPrimaryColor(historyState.primaryColor ?? primaryColor);
+      setAccentColor(historyState.accentColor ?? accentColor);
+      setBackgroundColor(historyState.backgroundColor ?? backgroundColor);
+      setTextColor(historyState.textColor ?? textColor);
+      setBorderColor(historyState.borderColor ?? borderColor);
+      setTypography(historyState.typography ?? typography);
+      setStoreMode(historyState.storeMode ?? storeMode);
+      setCustomCSS(historyState.customCSS ?? customCSS);
+      setFontFamily(historyState.fontFamily ?? fontFamily);
+      setGalleryImages(historyState.galleryImages ?? galleryImages);
+      setBenefits(historyState.benefits ?? benefits);
+      setComparison(historyState.comparison ?? comparison);
+      setSocialProof(historyState.socialProof ?? socialProof);
+      setOrderFormVariant(historyState.orderFormVariant ?? orderFormVariant);
+      setLandingLanguage(historyState.landingLanguage ?? landingLanguage);
+    }
+  // Only run when historyState reference changes (undo/redo)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historyState]);
+
   // Handle undo/redo
   const handleUndo = useCallback(() => {
     undo();
