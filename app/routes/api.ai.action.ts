@@ -21,7 +21,7 @@ import { createAIService } from '~/services/ai.server';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 
 // Action types
-type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'GENERATE_FULL_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT' | 'GENERATE_ELEMENTOR_PAGE';
+type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'GENERATE_FULL_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT' | 'GENERATE_ELEMENTOR_PAGE' | 'EDIT_ELEMENTOR_SECTION';
 
 interface ActionPayload {
   action: ActionType;
@@ -42,6 +42,7 @@ interface ActionPayload {
   keywords?: string;
   // ELEMENTOR
   prompt?: string;
+  currentHtml?: string;
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -221,6 +222,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.generateElementorPage(payload.prompt);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        return json({ success: true, data: result });
+      }
+
+      case 'EDIT_ELEMENTOR_SECTION': {
+        if (!payload.prompt || !payload.currentHtml) {
+          return json({ error: 'Prompt and HTML content required' }, { status: 400 });
+        }
+
+        const result = await ai.editElementorSection(payload.currentHtml, payload.prompt);
         await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }

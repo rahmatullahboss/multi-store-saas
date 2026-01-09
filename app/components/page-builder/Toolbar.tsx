@@ -30,6 +30,18 @@ export default function EditorToolbar() {
     );
   }
 
+  const [selectedComponent, setSelectedComponent] = useState<any>(null);
+
+  // Bind editor events
+  if (editor) {
+    editor.on('component:selected', () => {
+      setSelectedComponent(editor.getSelected());
+    });
+    editor.on('component:deselected', () => {
+      setSelectedComponent(null);
+    });
+  }
+
   const handleDeviceChange = (device: string) => {
     editor.setDevice(device);
   };
@@ -48,36 +60,70 @@ export default function EditorToolbar() {
     if (!aiPrompt.trim()) return;
     
     setIsGenerating(true);
-    const toastId = toast.loading('AI is crafting your page...', { id: 'ai-gen' });
+    const isEditing = !!selectedComponent;
+    const toastId = toast.loading(isEditing ? 'AI is improving your section...' : 'AI is crafting your page...', { id: 'ai-gen' });
     
     try {
-      const response = await fetch('/api/ai/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'GENERATE_ELEMENTOR_PAGE',
-          prompt: aiPrompt
-        })
-      });
-      
-      const result = await response.json() as any;
-      
-      if (result.success && result.data) {
-        const { html, css } = result.data;
+      if (isEditing) {
+        // EDIT MODE
+        const currentHtml = selectedComponent.toHTML();
         
-        // Load into GrapesJS
-        editor.setComponents(html);
-        if (css) editor.setStyle(css);
-        
-        toast.success('Magic! Page generated.', { id: 'ai-gen' });
-        setIsAIModalOpen(false);
-        setAiPrompt('');
+        const response = await fetch('/api/ai/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'EDIT_ELEMENTOR_SECTION',
+            prompt: aiPrompt,
+            currentHtml
+          })
+        });
+
+        const result = await response.json() as any;
+        if (result.success && result.data) {
+          const { html, css } = result.data;
+          
+          // Replace selected component content
+          selectedComponent.replaceWith(html);
+          if (css) editor.setStyle(css); // Append new CSS
+          
+          toast.success('Magic! Section updated.', { id: 'ai-gen' });
+        } else {
+          throw new Error(result.error || 'AI Edit failed');
+        }
+
       } else {
-        throw new Error(result.error || 'AI Generation failed');
+        // GENERATE PAGE MODE
+        const response = await fetch('/api/ai/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'GENERATE_ELEMENTOR_PAGE',
+            prompt: aiPrompt
+          })
+        });
+        
+        const result = await response.json() as any;
+        
+        if (result.success && result.data) {
+          const { html, css } = result.data;
+          
+          // Load into GrapesJS
+          editor.setComponents(html);
+          if (css) editor.setStyle(css);
+          
+          toast.success('Magic! Page generated.', { id: 'ai-gen' });
+        } else {
+          throw new Error(result.error || 'AI Generation failed');
+        }
       }
+
+      setIsAIModalOpen(false);
+      setAiPrompt('');
+      setSelectedComponent(null); // Reset selection
+      
     } catch (error) {
       console.error('AI Gen Error:', error);
-      toast.error('AI failed to generate page. Try a different prompt.', { id: 'ai-gen' });
+      toast.error('AI failed. Try a different prompt.', { id: 'ai-gen' });
     } finally {
       setIsGenerating(false);
     }
@@ -147,14 +193,25 @@ export default function EditorToolbar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button 
-          onClick={() => setIsAIModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition border border-emerald-100 shadow-sm shadow-emerald-50"
-          title="Generate Page with AI"
-        >
-          <Wand2 size={14} />
-          MAGIC AI
-        </button>
+        {selectedComponent ? (
+          <button 
+            onClick={() => setIsAIModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl transition shadow-md shadow-purple-100 animate-in fade-in zoom-in"
+            title="Edit Selected Element with AI"
+          >
+            <Sparkles size={14} />
+            MAGIC EDIT
+          </button>
+        ) : (
+          <button 
+            onClick={() => setIsAIModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition border border-emerald-100 shadow-sm shadow-emerald-50"
+            title="Generate Page with AI"
+          >
+            <Wand2 size={14} />
+            MAGIC AI
+          </button>
+        )}
 
         <div className="w-[1px] h-6 bg-gray-200 mx-1" />
 
@@ -190,8 +247,12 @@ export default function EditorToolbar() {
                        <Sparkles size={20} className="text-emerald-600" />
                     </div>
                     <div>
-                       <h3 className="text-lg font-bold text-gray-900 leading-tight">Magic AI Generator</h3>
-                       <p className="text-xs text-gray-500 font-medium">Describe your page and watch the magic happen.</p>
+                       <h3 className="text-lg font-bold text-gray-900 leading-tight">
+                         {selectedComponent ? 'Magic Editor' : 'Magic AI Generator'}
+                       </h3>
+                       <p className="text-xs text-gray-500 font-medium">
+                         {selectedComponent ? 'Describe how to change this element.' : 'Describe your page and watch the magic happen.'}
+                       </p>
                     </div>
                  </div>
                  <button 
@@ -203,12 +264,14 @@ export default function EditorToolbar() {
               </div>
 
               <div className="p-8">
-                 <label className="block text-sm font-bold text-gray-700 mb-3">What kind of page should I build?</label>
+                 <label className="block text-sm font-bold text-gray-700 mb-3">
+                   {selectedComponent ? 'What changes do you want?' : 'What kind of page should I build?'}
+                 </label>
                  <textarea 
                     autoFocus
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
-                    placeholder="e.g., Create a high-converting landing page for a Premium Honey from Sundarbans with benefits and testimonials..."
+                    placeholder={selectedComponent ? "e.g., Make the background red, change text to 'Buy Now', add a shadow..." : "e.g., Create a high-converting landing page for a Premium Honey..."}
                     className="w-full h-32 px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition text-gray-600 font-medium text-sm resize-none"
                  />
                  
@@ -221,12 +284,12 @@ export default function EditorToolbar() {
                        {isGenerating ? (
                           <>
                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                             CRAFTING PAGE...
+                             {selectedComponent ? 'UPDATING...' : 'CRAFTING PAGE...'}
                           </>
                        ) : (
                           <>
                              <Wand2 size={18} />
-                             GENERATE MAGIC PAGE
+                             {selectedComponent ? 'UPDATE ELEMENT' : 'GENERATE MAGIC PAGE'}
                           </>
                        )}
                     </button>

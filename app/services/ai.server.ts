@@ -614,6 +614,54 @@ Language: Bengali (if applicable).`;
 }
 
 // ============================================================================
+// ELEMENTOR SECTION EDITING
+// ============================================================================
+export const ElementorEditSchema = z.object({
+  html: z.string(),
+  css: z.string().optional(),
+});
+
+export type ElementorEditResult = z.infer<typeof ElementorEditSchema>;
+
+export async function editElementorSection(
+  apiKey: string,
+  currentHtml: string,
+  prompt: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<ElementorEditResult> {
+  const systemPrompt = `You are an elite web developer and designer specialized in Tailwind CSS.
+Your task is to EDIT the provided HTML component based on the user's request.
+
+### Rules:
+1. Maintain the overall structure unless asked to change it significantly.
+2. Use Tailwind CSS utility classes for styling.
+3. Preserve responsiveness and mobile-first design.
+4. If the user asks for text changes, ensure the tone matches the context.
+5. If the user asks for design changes, use modern, premium aesthetics.
+6. Use 'Hind Siliguri' for Bengali text.
+
+### Output Format:
+Your response MUST be valid JSON:
+{
+  "html": "<div class='updated-html'>...</div>",
+  "css": ".optional-custom-css { ... }"
+}`;
+
+  const userPrompt = `Current HTML:
+${currentHtml}
+
+User Instruction:
+${prompt}
+
+Generate the updated JSON:`;
+
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
+  const parsed = extractJSON(response);
+  return ElementorEditSchema.parse(parsed);
+}
+
+// ============================================================================
 // EXPORT: AI Service Factory
 // ============================================================================
 export function createAIService(apiKey: string, options?: { model?: string, baseUrl?: string }) {
@@ -645,5 +693,7 @@ export function createAIService(apiKey: string, options?: { model?: string, base
     
     generateElementorPage: (prompt: string) =>
       generateElementorPage(apiKey, prompt, model, baseUrl),
+    editElementorSection: (currentHtml: string, prompt: string) => 
+      editElementorSection(apiKey, currentHtml, prompt, options?.model, options?.baseUrl),
   };
 }
