@@ -111,10 +111,14 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string): any =>
     },
     canvas: {
       styles: [
-        'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
+        // Using Tailwind v3 Play CDN for full color palette including emerald-*
+        'https://cdn.tailwindcss.com',
         'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap'
       ],
-      scripts: [],
+      scripts: [
+        // Tailwind Play CDN script for JIT compilation
+        'https://cdn.tailwindcss.com'
+      ],
     },
     deviceManager: {
       devices: [
