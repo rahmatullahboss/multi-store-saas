@@ -16,7 +16,7 @@ import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, parseSocialLinks } from '@db/types';
+import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, type TypographySettings, parseSocialLinks } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { 
@@ -24,10 +24,12 @@ import {
   Palette, Settings, ExternalLink, Sparkles,
   Smartphone, Tablet, Monitor, ChevronDown, ChevronRight,
   Layout, Image as ImageIcon, User, Code, Type, Phone, Mail, MapPin, 
-  Facebook, Instagram, MessageCircle, Store, Menu, ShoppingCart, Search, Plus, Trash2, Rows
+  Facebook, Instagram, MessageCircle, Store, Menu, ShoppingCart, Search, Plus, Trash2, Rows,
+  Undo2, Redo2
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
+import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 
 export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Multi-Store SaaS' }];
 
@@ -48,14 +50,17 @@ const FONT_OPTIONS = [
   { id: 'anek-bangla', name: 'Anek Bangla', family: "'Anek Bangla', sans-serif", preview: 'বাংলা Modern' },
 ];
 
-// Preset colors
+// Extended color presets with background and text colors
 const COLOR_PRESETS = [
-  { name: 'Indigo', primary: '#6366f1', accent: '#f59e0b' },
-  { name: 'Emerald', primary: '#10b981', accent: '#f472b6' },
-  { name: 'Rose', primary: '#f43f5e', accent: '#8b5cf6' },
-  { name: 'Amber', primary: '#f59e0b', accent: '#3b82f6' },
-  { name: 'Sky', primary: '#0ea5e9', accent: '#f97316' },
-  { name: 'Slate', primary: '#475569', accent: '#f43f5e' },
+  { name: 'Indigo', primary: '#6366f1', accent: '#f59e0b', bg: '#f9fafb', text: '#111827' },
+  { name: 'Emerald', primary: '#10b981', accent: '#f472b6', bg: '#ecfdf5', text: '#064e3b' },
+  { name: 'Rose', primary: '#f43f5e', accent: '#8b5cf6', bg: '#fff1f2', text: '#4c1d1d' },
+  { name: 'Amber', primary: '#f59e0b', accent: '#3b82f6', bg: '#fffbeb', text: '#78350f' },
+  { name: 'Sky', primary: '#0ea5e9', accent: '#f97316', bg: '#f0f9ff', text: '#0c4a6e' },
+  { name: 'Dark', primary: '#8b5cf6', accent: '#f59e0b', bg: '#1f2937', text: '#f9fafb' },
+  // Bengali-friendly presets
+  { name: 'ঘরের বাজার', primary: '#F28C38', accent: '#FF6B35', bg: '#FFF8F0', text: '#2D2D2D' },
+  { name: 'দারাজ', primary: '#F85606', accent: '#FFB400', bg: '#FAFAFA', text: '#212121' },
 ];
 
 // ============================================================================
@@ -118,6 +123,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const storeTemplateId = formData.get('storeTemplateId') as string || currentConfig.storeTemplateId;
   const primaryColor = formData.get('primaryColor') as string || currentConfig.primaryColor;
   const accentColor = formData.get('accentColor') as string || currentConfig.accentColor;
+  // Extended colors (Phase 1)
+  const backgroundColor = formData.get('backgroundColor') as string || '';
+  const textColor = formData.get('textColor') as string || '';
+  const borderColor = formData.get('borderColor') as string || '';
+  // Typography (Phase 1)
+  const typographyJson = formData.get('typography') as string || '{}';
+  let typography: TypographySettings = {};
+  try {
+    typography = JSON.parse(typographyJson);
+  } catch { /* ignore */ }
+  
   const fontFamily = formData.get('fontFamily') as string || 'inter';
   const bannerUrl = formData.get('bannerUrl') as string || '';
   const bannerText = formData.get('bannerText') as string || '';
@@ -153,6 +169,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     storeTemplateId,
     primaryColor,
     accentColor,
+    // Extended colors (Phase 1)
+    backgroundColor: backgroundColor || undefined,
+    textColor: textColor || undefined,
+    borderColor: borderColor || undefined,
+    // Typography (Phase 1)
+    typography: Object.keys(typography).length > 0 ? typography : undefined,
     bannerUrl,
     bannerText,
     customCSS,
@@ -234,6 +256,18 @@ export default function StoreLiveEditor() {
   const [selectedTemplateId, setSelectedTemplateId] = useState(themeConfig.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID);
   const [primaryColor, setPrimaryColor] = useState(themeConfig.primaryColor || '#6366f1');
   const [accentColor, setAccentColor] = useState(themeConfig.accentColor || '#f59e0b');
+  // Extended colors (Phase 1)
+  const [backgroundColor, setBackgroundColor] = useState(themeConfig.backgroundColor || '#f9fafb');
+  const [textColor, setTextColor] = useState(themeConfig.textColor || '#111827');
+  const [borderColor, setBorderColor] = useState(themeConfig.borderColor || '#e5e7eb');
+  // Typography settings (Phase 1)
+  const [typography, setTypography] = useState<TypographySettings>(themeConfig.typography || {
+    headingSize: 'medium',
+    bodySize: 'medium',
+    lineHeight: 'normal',
+    letterSpacing: 'normal',
+  });
+  
   const [fontFamily, setFontFamily] = useState(store.fontFamily);
   const [bannerUrl, setBannerUrl] = useState(themeConfig.bannerUrl || '');
   const [bannerText, setBannerText] = useState(themeConfig.bannerText || '');
@@ -273,6 +307,111 @@ export default function StoreLiveEditor() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeReady, setIframeReady] = useState(false);
 
+  // ============================================================================
+  // UNDO/REDO FUNCTIONALITY (Phase 1)
+  // ============================================================================
+  // Create a snapshot of all editable state for history tracking
+  const createStateSnapshot = useCallback(() => ({
+    selectedTemplateId,
+    primaryColor,
+    accentColor,
+    backgroundColor,
+    textColor,
+    borderColor,
+    typography,
+    fontFamily,
+    bannerUrl,
+    bannerText,
+    announcementText,
+    announcementLink,
+    customCSS,
+    logo,
+    phone,
+    email,
+    address,
+    facebook,
+    instagram,
+    whatsapp,
+    headerLayout,
+    headerShowSearch,
+    headerShowCart,
+    footerDescription,
+    copyrightText,
+    footerColumns,
+  }), [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns]);
+
+  const initialSnapshot = useRef(createStateSnapshot());
+  
+  const {
+    state: historyState,
+    setState: setHistoryState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    saveCheckpoint,
+  } = useEditorHistory(initialSnapshot.current, { maxHistory: 20, debounceMs: 500 });
+
+  // Apply state from history
+  const applyHistoryState = useCallback((snapshot: typeof historyState) => {
+    setSelectedTemplateId(snapshot.selectedTemplateId);
+    setPrimaryColor(snapshot.primaryColor);
+    setAccentColor(snapshot.accentColor);
+    setBackgroundColor(snapshot.backgroundColor);
+    setTextColor(snapshot.textColor);
+    setBorderColor(snapshot.borderColor);
+    setTypography(snapshot.typography);
+    setFontFamily(snapshot.fontFamily);
+    setBannerUrl(snapshot.bannerUrl);
+    setBannerText(snapshot.bannerText);
+    setAnnouncementText(snapshot.announcementText);
+    setAnnouncementLink(snapshot.announcementLink);
+    setCustomCSS(snapshot.customCSS);
+    setLogo(snapshot.logo);
+    setPhone(snapshot.phone);
+    setEmail(snapshot.email);
+    setAddress(snapshot.address);
+    setFacebook(snapshot.facebook);
+    setInstagram(snapshot.instagram);
+    setWhatsapp(snapshot.whatsapp);
+    setHeaderLayout(snapshot.headerLayout);
+    setHeaderShowSearch(snapshot.headerShowSearch);
+    setHeaderShowCart(snapshot.headerShowCart);
+    setFooterDescription(snapshot.footerDescription);
+    setCopyrightText(snapshot.copyrightText);
+    setFooterColumns(snapshot.footerColumns);
+  }, []);
+
+  // Track state changes for history
+  const prevSnapshotRef = useRef<string>(JSON.stringify(initialSnapshot.current));
+  useEffect(() => {
+    const currentSnapshot = createStateSnapshot();
+    const currentSnapshotStr = JSON.stringify(currentSnapshot);
+    if (currentSnapshotStr !== prevSnapshotRef.current) {
+      prevSnapshotRef.current = currentSnapshotStr;
+      setHistoryState(currentSnapshot);
+    }
+  }, [createStateSnapshot, setHistoryState]);
+
+  // Handle undo/redo by applying history state
+  const handleUndo = useCallback(() => {
+    undo();
+    // Apply after state update
+    setTimeout(() => {
+      applyHistoryState(historyState);
+    }, 0);
+  }, [undo, applyHistoryState, historyState]);
+
+  const handleRedo = useCallback(() => {
+    redo();
+    setTimeout(() => {
+      applyHistoryState(historyState);
+    }, 0);
+  }, [redo, applyHistoryState, historyState]);
+
+  // Keyboard shortcuts for undo/redo
+  useEditorKeyboardShortcuts(handleUndo, handleRedo, canUndo, canRedo);
+
   // Track unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
   const initialLoadRef = useRef(true);
@@ -283,7 +422,7 @@ export default function StoreLiveEditor() {
       return;
     }
     setHasChanges(true);
-  }, [selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns]);
+  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns]);
 
   // Show success message
   useEffect(() => {
@@ -349,6 +488,28 @@ export default function StoreLiveEditor() {
           </div>
           
           <div className="flex items-center gap-3">
+            {/* Undo/Redo Buttons (Phase 1) */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                className={`p-2 rounded-md transition ${canUndo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo2 className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleRedo}
+                disabled={!canRedo}
+                className={`p-2 rounded-md transition ${canRedo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
+                title="Redo (Ctrl+Shift+Z)"
+              >
+                <Redo2 className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Device Toggle */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
@@ -402,6 +563,12 @@ export default function StoreLiveEditor() {
             <input type="hidden" name="storeTemplateId" value={selectedTemplateId} />
             <input type="hidden" name="primaryColor" value={primaryColor} />
             <input type="hidden" name="accentColor" value={accentColor} />
+            {/* Extended colors (Phase 1) */}
+            <input type="hidden" name="backgroundColor" value={backgroundColor} />
+            <input type="hidden" name="textColor" value={textColor} />
+            <input type="hidden" name="borderColor" value={borderColor} />
+            {/* Typography (Phase 1) */}
+            <input type="hidden" name="typography" value={JSON.stringify(typography)} />
             <input type="hidden" name="fontFamily" value={fontFamily} />
             <input type="hidden" name="bannerUrl" value={bannerUrl} />
             <input type="hidden" name="bannerText" value={bannerText} />
@@ -466,7 +633,7 @@ export default function StoreLiveEditor() {
                 {/* Color Presets */}
                 <div>
                   <p className="text-xs font-medium text-gray-700 mb-2">Quick Presets</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     {COLOR_PRESETS.map((preset) => (
                       <button
                         key={preset.name}
@@ -474,22 +641,24 @@ export default function StoreLiveEditor() {
                         onClick={() => {
                           setPrimaryColor(preset.primary);
                           setAccentColor(preset.accent);
+                          setBackgroundColor(preset.bg);
+                          setTextColor(preset.text);
                         }}
                         className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition ${
-                          primaryColor === preset.primary ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
+                          primaryColor === preset.primary && backgroundColor === preset.bg ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
                         }`}
                       >
-                        <div className="flex gap-1">
-                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.primary }} />
-                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.accent }} />
+                        <div className="flex gap-0.5">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: preset.primary }} />
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: preset.accent }} />
                         </div>
-                        <span className="text-xs text-gray-600">{preset.name}</span>
+                        <span className="text-[10px] text-gray-600 truncate max-w-full">{preset.name}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Custom Colors */}
+                {/* Primary Colors */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Primary</label>
@@ -511,8 +680,125 @@ export default function StoreLiveEditor() {
                   </div>
                 </div>
 
-                {/* Font Family */}
+                {/* Extended Colors (Phase 1) */}
                 <div>
+                  <p className="text-xs font-medium text-gray-700 mb-2">Extended Colors</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-1">Background</label>
+                      <input
+                        type="color"
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        className="w-full h-7 rounded border cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-1">Text</label>
+                      <input
+                        type="color"
+                        value={textColor}
+                        onChange={(e) => setTextColor(e.target.value)}
+                        className="w-full h-7 rounded border cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-1">Border</label>
+                      <input
+                        type="color"
+                        value={borderColor}
+                        onChange={(e) => setBorderColor(e.target.value)}
+                        className="w-full h-7 rounded border cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Typography Settings (Phase 1) */}
+                <div className="border-t border-gray-200 pt-4">
+                  <p className="text-xs font-medium text-gray-700 mb-3 flex items-center gap-1">
+                    <Type className="w-3 h-3" /> Typography
+                  </p>
+                  
+                  {/* Heading Size */}
+                  <div className="mb-3">
+                    <label className="block text-[10px] text-gray-500 mb-1">Heading Size</label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {(['small', 'medium', 'large'] as const).map((size) => (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => setTypography({ ...typography, headingSize: size })}
+                          className={`px-2 py-1.5 text-xs rounded border transition ${
+                            typography.headingSize === size ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Body Size */}
+                  <div className="mb-3">
+                    <label className="block text-[10px] text-gray-500 mb-1">Body Size</label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {(['small', 'medium', 'large'] as const).map((size) => (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => setTypography({ ...typography, bodySize: size })}
+                          className={`px-2 py-1.5 text-xs rounded border transition ${
+                            typography.bodySize === size ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Line Height */}
+                  <div className="mb-3">
+                    <label className="block text-[10px] text-gray-500 mb-1">Line Height</label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {(['compact', 'normal', 'relaxed'] as const).map((height) => (
+                        <button
+                          key={height}
+                          type="button"
+                          onClick={() => setTypography({ ...typography, lineHeight: height })}
+                          className={`px-2 py-1.5 text-[10px] rounded border transition ${
+                            typography.lineHeight === height ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {height.charAt(0).toUpperCase() + height.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Letter Spacing */}
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-1">Letter Spacing</label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {(['tight', 'normal', 'wide'] as const).map((spacing) => (
+                        <button
+                          key={spacing}
+                          type="button"
+                          onClick={() => setTypography({ ...typography, letterSpacing: spacing })}
+                          className={`px-2 py-1.5 text-[10px] rounded border transition ${
+                            typography.letterSpacing === spacing ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {spacing.charAt(0).toUpperCase() + spacing.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Font Family */}
+                <div className="border-t border-gray-200 pt-4">
                   <p className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
                     <Type className="w-3 h-3" /> Font Family
                   </p>

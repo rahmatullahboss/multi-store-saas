@@ -14,18 +14,19 @@ import { Form, useLoaderData, useActionData, useNavigation, Link, useFetcher } f
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
-import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
+import { parseLandingConfig, defaultLandingConfig, type LandingConfig, type TypographySettings } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 import { 
   LandingTemplateGallery, 
   SectionManager, 
@@ -157,6 +158,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const primaryColor = formData.get('primaryColor') as string || '';
   const accentColor = formData.get('accentColor') as string || '';
+  // Extended colors (Phase 1)
+  const backgroundColor = formData.get('backgroundColor') as string || '';
+  const textColor = formData.get('textColor') as string || '';
+  const borderColor = formData.get('borderColor') as string || '';
+  // Typography (Phase 1)
+  const typographyJson = formData.get('typography') as string || '{}';
+  let typography: TypographySettings = {};
+  try {
+    typography = JSON.parse(typographyJson);
+  } catch { /* ignore */ }
+  
   const storeMode = formData.get('storeMode') as 'landing' | 'store' || 'landing';
 
   // New sections
@@ -197,6 +209,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     socialProofInterval,
     primaryColor: primaryColor || undefined,
     accentColor: accentColor || undefined,
+    // Extended colors (Phase 1)
+    backgroundColor: backgroundColor || undefined,
+    textColor: textColor || undefined,
+    borderColor: borderColor || undefined,
+    // Typography (Phase 1)
+    typography: Object.keys(typography).length > 0 ? typography : undefined,
     // New sections
     galleryImages: galleryImages.filter((url: string) => url),
     benefits: benefits.filter((b: {icon: string; title: string}) => b.icon && b.title),
@@ -311,8 +329,20 @@ export default function LiveEditorPage() {
   const [showSocialProof, setShowSocialProof] = useState(store.landingConfig.showSocialProof || false);
   const [socialProofInterval, setSocialProofInterval] = useState(store.landingConfig.socialProofInterval || 15);
 
-  const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '');
-  const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '');
+  const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '#6366f1');
+  const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '#f59e0b');
+  // Extended colors (Phase 1)
+  const [backgroundColor, setBackgroundColor] = useState(store.landingConfig.backgroundColor || '#ffffff');
+  const [textColor, setTextColor] = useState(store.landingConfig.textColor || '#111827');
+  const [borderColor, setBorderColor] = useState(store.landingConfig.borderColor || '#e5e7eb');
+  // Typography settings (Phase 1)
+  const [typography, setTypography] = useState<TypographySettings>(store.landingConfig.typography || {
+    headingSize: 'medium',
+    bodySize: 'medium',
+    lineHeight: 'normal',
+    letterSpacing: 'normal',
+  });
+  
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
   const [customCSS, setCustomCSS] = useState(store.landingConfig.customCSS || '');
   const [fontFamily, setFontFamily] = useState(store.landingConfig.fontFamily || 'inter');
@@ -361,6 +391,84 @@ export default function LiveEditorPage() {
   // Image upload fetcher
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
 
+  // ============================================================================
+  // UNDO/REDO FUNCTIONALITY (Phase 1)
+  // ============================================================================
+  const createStateSnapshot = useCallback(() => ({
+    templateId,
+    featuredProductId,
+    headline,
+    subheadline,
+    ctaText,
+    ctaSubtext,
+    urgencyText,
+    videoUrl,
+    guaranteeText,
+    features,
+    sectionOrder,
+    hiddenSections,
+    whatsappEnabled,
+    whatsappNumber,
+    whatsappMessage,
+    callEnabled,
+    callNumber,
+    testimonials,
+    faq,
+    countdownEnabled,
+    countdownEndTime,
+    showStockCounter,
+    lowStockThreshold,
+    showSocialProof,
+    socialProofInterval,
+    primaryColor,
+    accentColor,
+    backgroundColor,
+    textColor,
+    borderColor,
+    typography,
+    storeMode,
+    customCSS,
+    fontFamily,
+    galleryImages,
+    benefits,
+    comparison,
+    socialProof,
+    orderFormVariant,
+  }), [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, customCSS, fontFamily, galleryImages, benefits, comparison, socialProof, orderFormVariant]);
+
+  const initialSnapshot = useRef(createStateSnapshot());
+  
+  const {
+    state: historyState,
+    setState: setHistoryState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useEditorHistory(initialSnapshot.current, { maxHistory: 20, debounceMs: 500 });
+
+  // Track state changes for history
+  const prevSnapshotRef = useRef<string>(JSON.stringify(initialSnapshot.current));
+  useEffect(() => {
+    const currentSnapshot = createStateSnapshot();
+    const currentSnapshotStr = JSON.stringify(currentSnapshot);
+    if (currentSnapshotStr !== prevSnapshotRef.current) {
+      prevSnapshotRef.current = currentSnapshotStr;
+      setHistoryState(currentSnapshot);
+    }
+  }, [createStateSnapshot, setHistoryState]);
+
+  // Handle undo/redo
+  const handleUndo = useCallback(() => {
+    undo();
+  }, [undo]);
+
+  const handleRedo = useCallback(() => {
+    redo();
+  }, [redo]);
+
+  // Keyboard shortcuts for undo/redo
+  useEditorKeyboardShortcuts(handleUndo, handleRedo, canUndo, canRedo);
 
   // Track unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
@@ -372,7 +480,7 @@ export default function LiveEditorPage() {
       return;
     }
     setHasChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -639,6 +747,28 @@ export default function LiveEditorPage() {
           </div>
           
           <div className="flex items-center gap-3">
+            {/* Undo/Redo Buttons (Phase 1) */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                className={`p-2 rounded-md transition ${canUndo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
+                title={language === 'bn' ? 'আনডু (Ctrl+Z)' : 'Undo (Ctrl+Z)'}
+              >
+                <Undo2 className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleRedo}
+                disabled={!canRedo}
+                className={`p-2 rounded-md transition ${canRedo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
+                title={language === 'bn' ? 'রিডু (Ctrl+Shift+Z)' : 'Redo (Ctrl+Shift+Z)'}
+              >
+                <Redo2 className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Device Toggle */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
@@ -714,6 +844,12 @@ export default function LiveEditorPage() {
               <input type="hidden" name="socialProofInterval" value={socialProofInterval.toString()} />
               <input type="hidden" name="primaryColor" value={primaryColor} />
               <input type="hidden" name="accentColor" value={accentColor} />
+              {/* Extended colors (Phase 1) */}
+              <input type="hidden" name="backgroundColor" value={backgroundColor} />
+              <input type="hidden" name="textColor" value={textColor} />
+              <input type="hidden" name="borderColor" value={borderColor} />
+              {/* Typography (Phase 1) */}
+              <input type="hidden" name="typography" value={JSON.stringify(typography)} />
               <input type="hidden" name="storeMode" value={storeMode} />
               {/* New sections */}
               <input type="hidden" name="galleryImages" value={JSON.stringify(galleryImages)} />
@@ -998,56 +1134,170 @@ export default function LiveEditorPage() {
             </div>
           </AccordionSection>
 
-          {/* Colors Section */}
-
+          {/* Theme & Typography Section (Phase 1 Enhanced) */}
           <AccordionSection
-            title={language === 'bn' ? 'রং' : 'Colors'}
+            title={language === 'bn' ? 'থিম ও টাইপোগ্রাফি' : 'Theme & Typography'}
             icon={Paintbrush}
             isOpen={openSection === 'colors'}
             onToggle={() => setOpenSection(openSection === 'colors' ? '' : 'colors')}
           >
             <div className="space-y-4">
-              {/* Primary Color */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'প্রাইমারি কালার' : 'Primary Color'}
-                </label>
-                <div className="flex gap-2">
+              {/* Primary Colors */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {language === 'bn' ? 'প্রাইমারি' : 'Primary'}
+                  </label>
                   <input
                     type="color"
                     value={primaryColor || '#f97316'}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    placeholder="#f97316"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                    className="w-full h-8 rounded border cursor-pointer"
                   />
                 </div>
-              </div>
-
-              {/* Accent Color */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'অ্যাকসেন্ট কালার' : 'Accent Color'}
-                </label>
-                <div className="flex gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {language === 'bn' ? 'অ্যাকসেন্ট' : 'Accent'}
+                  </label>
                   <input
                     type="color"
                     value={accentColor || '#d4af37'}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                    className="w-full h-8 rounded border cursor-pointer"
                   />
-                  <input
-                    type="text"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    placeholder="#d4af37"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
-                  />
+                </div>
+              </div>
+
+              {/* Extended Colors (Phase 1) */}
+              <div>
+                <p className="text-xs font-medium text-gray-700 mb-2">
+                  {language === 'bn' ? 'অতিরিক্ত রং' : 'Extended Colors'}
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-1">
+                      {language === 'bn' ? 'ব্যাকগ্রাউন্ড' : 'Background'}
+                    </label>
+                    <input
+                      type="color"
+                      value={backgroundColor}
+                      onChange={(e) => setBackgroundColor(e.target.value)}
+                      className="w-full h-7 rounded border cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-1">
+                      {language === 'bn' ? 'টেক্সট' : 'Text'}
+                    </label>
+                    <input
+                      type="color"
+                      value={textColor}
+                      onChange={(e) => setTextColor(e.target.value)}
+                      className="w-full h-7 rounded border cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-1">
+                      {language === 'bn' ? 'বর্ডার' : 'Border'}
+                    </label>
+                    <input
+                      type="color"
+                      value={borderColor}
+                      onChange={(e) => setBorderColor(e.target.value)}
+                      className="w-full h-7 rounded border cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Typography Settings (Phase 1) */}
+              <div className="border-t border-gray-200 pt-4">
+                <p className="text-xs font-medium text-gray-700 mb-3 flex items-center gap-1">
+                  <Type className="w-3 h-3" /> {language === 'bn' ? 'টাইপোগ্রাফি' : 'Typography'}
+                </p>
+                
+                {/* Heading Size */}
+                <div className="mb-3">
+                  <label className="block text-[10px] text-gray-500 mb-1">
+                    {language === 'bn' ? 'হেডিং সাইজ' : 'Heading Size'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['small', 'medium', 'large'] as const).map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setTypography({ ...typography, headingSize: size })}
+                        className={`px-2 py-1.5 text-xs rounded border transition ${
+                          typography.headingSize === size ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Body Size */}
+                <div className="mb-3">
+                  <label className="block text-[10px] text-gray-500 mb-1">
+                    {language === 'bn' ? 'বডি সাইজ' : 'Body Size'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['small', 'medium', 'large'] as const).map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setTypography({ ...typography, bodySize: size })}
+                        className={`px-2 py-1.5 text-xs rounded border transition ${
+                          typography.bodySize === size ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Line Height */}
+                <div className="mb-3">
+                  <label className="block text-[10px] text-gray-500 mb-1">
+                    {language === 'bn' ? 'লাইন হাইট' : 'Line Height'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['compact', 'normal', 'relaxed'] as const).map((height) => (
+                      <button
+                        key={height}
+                        type="button"
+                        onClick={() => setTypography({ ...typography, lineHeight: height })}
+                        className={`px-2 py-1.5 text-[10px] rounded border transition ${
+                          typography.lineHeight === height ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {height.charAt(0).toUpperCase() + height.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Letter Spacing */}
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-1">
+                    {language === 'bn' ? 'লেটার স্পেসিং' : 'Letter Spacing'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['tight', 'normal', 'wide'] as const).map((spacing) => (
+                      <button
+                        key={spacing}
+                        type="button"
+                        onClick={() => setTypography({ ...typography, letterSpacing: spacing })}
+                        className={`px-2 py-1.5 text-[10px] rounded border transition ${
+                          typography.letterSpacing === spacing ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {spacing.charAt(0).toUpperCase() + spacing.slice(1)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
