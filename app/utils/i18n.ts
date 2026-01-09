@@ -45,7 +45,7 @@ export const translations = {
     login: 'Login',
     register: 'Register',
     logout: 'Logout',
-    
+
     // Store
     addToCart: 'Add to Cart',
     buyNow: 'Buy Now',
@@ -58,7 +58,7 @@ export const translations = {
     shipping: 'Shipping',
     tax: 'Tax',
     grandTotal: 'Grand Total',
-    
+
     // Product
     description: 'Description',
     reviews: 'Reviews',
@@ -73,7 +73,7 @@ export const translations = {
     checkBackSoon: 'Check back soon for new products',
     browseAllProducts: 'Browse All Products',
     shopByCategory: 'Shop by Category',
-    
+
     // Cart
     yourCart: 'Your Cart',
     cartEmpty: 'Your cart is empty',
@@ -81,7 +81,7 @@ export const translations = {
     proceedToCheckout: 'Proceed to Checkout',
     removeFromCart: 'Remove',
     updateCart: 'Update Cart',
-    
+
     // Checkout
     orderSummary: 'Order Summary',
     shippingAddress: 'Shipping Address',
@@ -90,7 +90,7 @@ export const translations = {
     placeOrder: 'Place Order',
     orderPlaced: 'Order Placed Successfully!',
     orderNumber: 'Order Number',
-    
+
     // Form
     name: 'Name',
     email: 'Email',
@@ -101,7 +101,7 @@ export const translations = {
     postalCode: 'Postal Code',
     notes: 'Order Notes',
     required: 'Required',
-    
+
     // Onboarding
     createAccount: 'Create Account',
     yourName: 'Your Name',
@@ -125,7 +125,7 @@ export const translations = {
     stepPlan: 'Plan',
     stepSetup: 'Setup',
     stepDone: 'Done',
-    
+
     // Marketing Landing
     tagline: '#1 E-commerce Platform in Bangladesh',
     heroTitle1: 'Launch Your Online Store',
@@ -144,7 +144,7 @@ export const translations = {
     ctaButton: 'Create Your Free Store',
     perMonth: '/month',
     mostPopular: 'Most Popular',
-    
+
     // Features
     feature1Title: 'Your Own Store',
     feature1Desc: 'Get a professional online store with your custom subdomain in minutes.',
@@ -158,7 +158,7 @@ export const translations = {
     feature5Desc: 'Full bilingual support for your Bangladeshi customers.',
     feature6Title: '24/7 Support',
     feature6Desc: 'We are here to help you succeed, anytime.',
-    
+
     // Plans
     planFree: 'Free',
     planStarter: 'Starter',
@@ -168,16 +168,16 @@ export const translations = {
     planPremiumDesc: 'For established stores',
     selected: 'Selected',
     selectPlan: 'Select Plan',
-    
+
     // Checkout
     paymentSuccessful: 'Payment Successful!',
     thankYouOrder: 'Thank you for your order. Your payment has been confirmed.',
     orderDetails: 'Order Details',
-    
+
     // Language
     language: 'Language',
     selectLanguage: 'Select Language',
-    
+
     // Common
     loading: 'Loading...',
     error: 'Error',
@@ -196,7 +196,7 @@ export const translations = {
     none: 'None',
     yes: 'Yes',
     no: 'No',
-    
+
     // Landing Page - Trust Badges
     freeDelivery: 'Free Delivery',
     freeDeliveryInDhaka: 'Free delivery in Dhaka',
@@ -205,7 +205,7 @@ export const translations = {
     payOnReceive: 'Pay when you receive the product',
     easyReturn: 'Easy Return',
     returnPolicy: '7 Days Return Policy',
-    
+
     // Landing Page - Why Choose Us
     whyChooseUs: 'Why Buy From Us?',
     weEnsureSatisfaction: 'We ensure satisfaction for every customer',
@@ -215,15 +215,15 @@ export const translations = {
     fastDeliveryDesc: '24 hours in Dhaka and 2-3 business days outside Dhaka, right to your doorstep.',
     support247: '24/7 Support',
     support247Desc: 'Our customer service team is always here to help you with any issues.',
-    
+
     // Landing Page - Product Features
     productFeatures: 'Product Features',
     whyThisProductSpecial: 'Why this product is special',
-    
+
     // Landing Page - Video Section
     watchInVideo: 'Watch in Video',
     watchVideoDetails: 'Watch the video for details',
-    
+
     // Landing Page - How to Order
     howToOrder: 'How to Order?',
     justThreeSteps: 'Just 3 easy steps',
@@ -233,12 +233,12 @@ export const translations = {
     stepTwoDesc: 'Enter your name, mobile number and full address.',
     stepThree: 'Receive Delivery',
     stepThreeDesc: 'Receive the product and pay cash on delivery.',
-    
+
     // Landing Page - Testimonials
     customerReviews: 'Customer Reviews',
     seeWhatTheySay: 'See what they say',
     satisfiedCustomer: 'Satisfied Customer',
-    
+
     // Landing Page - Delivery Info
     deliveryInfo: 'Delivery Information',
     whenWillYouGet: 'When will you get your product',
@@ -250,7 +250,7 @@ export const translations = {
     twoToThreeDays: '2-3 business days',
     courierService: 'Courier service',
     nationwideDelivery: 'Nationwide delivery',
-    
+
     // Landing Page - FAQ
     faq: 'FAQ',
     yourQuestionAnswers: 'Answers to your questions',
@@ -266,17 +266,17 @@ export const translations = {
     faqChargeA: '60 BDT in Dhaka and 120 BDT outside Dhaka. Free delivery on special offers.',
     faqConfirmQ: 'How will I get order confirmation?',
     faqConfirmA: "After ordering, our team will call you to confirm the order.",
-    
+
     // Landing Page - Guarantee
     ourGuarantee: 'Our Guarantee',
     guaranteeDesc: 'We are committed to ensuring your satisfaction. If there is any problem with the product, we will refund the full amount or send a new product.',
-    
+
     // Landing Page - Final CTA
     whyDelay: 'Why Delay?',
     limitedTimeOffer: 'This special offer is for a limited time!',
     specialPrice: 'Special price:',
     orderNowBtn: 'Order Now',
-    
+
     // Landing Page - Contact
     callUs: 'Call Us',
     callHours: '10 AM - 10 PM',
@@ -284,7 +284,7 @@ export const translations = {
     viaMessenger: 'Facebook/WhatsApp',
     emailUs: 'Email Us',
     replyIn24Hours: 'Reply within 24 hours',
-    
+
     // Landing Page - Order Form
     orderFormTitle: 'Order Now',
     fillFormWeContact: 'Fill out the form, we will contact you soon',
@@ -308,10 +308,10 @@ export const translations = {
     discount: 'discount',
     youSave: 'You save',
     getting: 'Getting',
-    
+
     // Footer
     allRightsReserved: 'All rights reserved',
-    
+
     // Onboarding Setup Progress
     creatingYourStore: 'Creating your store...',
     aiNamingStore: 'AI is naming your store...',
@@ -321,7 +321,7 @@ export const translations = {
     almostDone: 'Almost done!',
     somethingWentWrong: 'Something went wrong!',
     goToDashboard: 'Go to Dashboard',
-    
+
     // Business Categories
     categoryFashion: 'Fashion & Clothing',
     categoryElectronics: 'Electronics',
@@ -330,7 +330,7 @@ export const translations = {
     categoryHome: 'Home & Living',
     categoryServices: 'Services',
     categoryOther: 'Other',
-    
+
     // Form Labels
     storeName: 'Store Name',
     subdomain: 'Subdomain',
@@ -339,7 +339,7 @@ export const translations = {
     upgradeAnytime: 'You can upgrade anytime from your dashboard',
     createMyStore: 'Create My Store',
     termsAgree: 'By continuing, you agree to our Terms of Service and Privacy Policy',
-    
+
     // Admin Panel - Common
     adminPanel: 'Admin Panel',
     store: 'Store',
@@ -350,7 +350,7 @@ export const translations = {
     update: 'Update',
     created: 'Created',
     noResults: 'No results found',
-    
+
     // Admin - Plan Management
     planManagement: 'Plan Management',
     planManagementDesc: 'Manually upgrade or downgrade store plans',
@@ -365,7 +365,7 @@ export const translations = {
     planStarterNote: 'Starter (৳999/mo): 50 products, full store mode, custom domain',
     planPremiumNote: 'Premium (৳2999/mo): 500 products, priority support, all features',
     plansEffectImmediate: 'Plans take effect immediately after update',
-    
+
     // Admin - Payouts
     merchantPayouts: 'Merchant Payouts',
     exportCsv: 'Export CSV',
@@ -382,7 +382,7 @@ export const translations = {
     noMerchantsFound: 'No merchants found',
     orders: 'Orders',
     discounts: 'Discount Codes',
-    
+
     // Admin - Domain Management  
     domainManagement: 'Domain Management',
     domainManagementDesc: 'Manage custom domains across all stores',
@@ -402,7 +402,7 @@ export const translations = {
     domainRemoved: 'Domain removed',
     domainApproved: 'Domain approved!',
     requestRejected: 'Request rejected',
-    
+
     // Dashboard
     dashboard: 'Dashboard',
     goodMorning: 'Good morning',
@@ -420,6 +420,16 @@ export const translations = {
     last7Days: 'Last 7 days',
     actionItems: 'Action Items',
     noActionItems: 'All caught up! No pending actions.',
+    allCaughtUp: 'All caught up! 🎉',
+    noPendingActions: 'No pending actions at the moment',
+    searchProductsPlaceholder: 'Search by name, SKU, or category...',
+    searchOrdersPlaceholder: 'Search by order #, customer, or phone...',
+    clearFilters: 'Clear filters',
+    noOrdersMatch: 'No orders match your filters.',
+    manageOrders: 'View and manage customer orders',
+    processing: 'Processing...',
+    adLink: 'Ad Link',
+    primary: 'Primary',
     lowStockAlert: 'Low Stock Alert',
     productsRunningLow: 'products running low on inventory',
     ordersNeedProcessing: 'orders need processing',
@@ -433,7 +443,7 @@ export const translations = {
     analytics: 'Analytics',
     settings: 'Settings',
     today: 'Today',
-    
+
     // Billing
     billing: 'Billing',
     billingHistory: 'Billing History',
@@ -445,7 +455,7 @@ export const translations = {
     invoices: 'Invoices',
     downloadInvoice: 'Download Invoice',
     noBillingHistory: 'No billing history yet',
-    
+
     // Products
     // Products
     productName: 'Product Name',
@@ -455,7 +465,7 @@ export const translations = {
     productCategory: 'Category',
     productDetail: 'Product Detail',
     productImages: 'Product Images',
-    
+
     // Actions & Labels
     addNewProduct: 'Add New Product',
     createProduct: 'Create Product',
@@ -464,14 +474,14 @@ export const translations = {
     deleteProduct: 'Delete Product',
     productSaved: 'Product saved successfully!',
     productDeleted: 'Product deleted',
-    
+
     // Status
     noProducts: 'No products yet',
     addYourFirstProduct: 'Add your first product to get started',
     lowStock: 'Low Stock',
     outOfStockLabel: 'Out of Stock',
     inStockLabel: 'In Stock',
-    
+
     // New Additions
     backToProducts: 'Back to Products',
     productImage: 'Product Image',
@@ -479,14 +489,14 @@ export const translations = {
     stock: 'Stock',
     productTitle: 'Product Title',
     category: 'Category',
-    
+
     // Orders
     orderId: 'Order Number',
     orderDate: 'Order Date',
     orderStatus: 'Order Status',
     orderTotal: 'Order Total',
     backToOrders: 'Back to Orders',
-    
+
     // Campaigns
     createCampaign: 'Create Campaign',
     campaignName: 'Campaign Name',
@@ -496,7 +506,7 @@ export const translations = {
     emailContent: 'Email Content',
 
     orderCustomerName: 'Customer Name',
-    
+
     // Billing & Upgrade
     backToBilling: 'Back to Billing',
     upgradePlan: 'Upgrade Your Plan',
@@ -515,7 +525,7 @@ export const translations = {
     shippedOrders: 'Shipped',
     deliveredOrders: 'Delivered',
     cancelledOrders: 'Cancelled',
-    
+
     // Inventory
     inventory: 'Inventory',
     updateInventory: 'Update Inventory',
@@ -524,7 +534,7 @@ export const translations = {
     exportInventory: 'Export Inventory',
     stockLevel: 'Stock Level',
     lowStockThreshold: 'Low Stock Threshold',
-    
+
     // Settings Common
     saveChanges: 'Save Changes',
     saving: 'Saving...',
@@ -557,7 +567,7 @@ export const translations = {
     draftStatus: 'Draft',
     publishedStatus: 'Published',
     archivedStatus: 'Archived',
-    
+
     // Store Settings
     storeSettings: 'Store Settings',
     storeNameLabel: 'Store Name',
@@ -573,14 +583,14 @@ export const translations = {
     businessAddress: 'Business Address',
     businessPhone: 'Business Phone',
     businessEmail: 'Business Email',
-    
+
     // Shipping Settings
     shippingSettings: 'Shipping Settings',
     insideDhakaRate: 'Inside Dhaka',
     outsideDhakaRate: 'Outside Dhaka',
     shippingCost: 'Shipping Cost',
     freeShippingAbove: 'Free Shipping Above',
-    
+
     // Marketing
     campaigns: 'Campaigns',
     newCampaign: 'New Campaign',
@@ -591,7 +601,7 @@ export const translations = {
     reports: 'Reports',
     pendingReviews: 'Pending Reviews',
     approvedReviews: 'Approved Reviews',
-    
+
     // Settings Pages
     domainSettings: 'Domain Settings',
     courierSettings: 'Courier Settings',
@@ -602,7 +612,7 @@ export const translations = {
     activityLogs: 'Activity Global Logs',
     homepageSettings: 'Homepage Strategy',
     landingSettings: 'Landing Page Settings',
-    
+
     // Analytics
     analyticsOverview: 'Analytics Overview',
     salesAnalytics: 'Sales Analytics',
@@ -611,7 +621,7 @@ export const translations = {
     averageOrderValue: 'Average Order Value',
     topProducts: 'Top Products',
     topCustomers: 'Top Customers',
-    
+
     // Reports
     reportsPage: 'Reports',
     salesReport: 'Sales Report',
@@ -619,7 +629,7 @@ export const translations = {
     customersReport: 'Customers Report',
     generateReport: 'Generate Report',
     dateRange: 'Date Range',
-    
+
     // Additional Labels (non-duplicate)
     divisionLabel: 'Division',
     countryLabel: 'Country',
@@ -633,20 +643,20 @@ export const translations = {
     taxLabel: 'Tax',
     imageLabel: 'Image',
     tagsLabel: 'Tags',
-    
+
     // Validation Messages
     fieldRequired: 'This field is required',
     invalidEmailMsg: 'Please enter a valid email',
     invalidPhoneMsg: 'Please enter a valid phone number',
     minLengthMsg: 'Minimum length is',
     maxLengthMsg: 'Maximum length is',
-    
+
     // Success/Error Messages
     successMsg: 'Success!',
     errorMsg: 'Error',
     tryAgainBtn: 'Try Again',
     changesApplied: 'Changes applied successfully',
-    
+
     // bKash Payment - Onboarding
     bkashPayment: 'bKash Payment',
     sendMoneyTo: 'Send Money to this number',
@@ -659,7 +669,7 @@ export const translations = {
     proceedWithFree: 'Continue with Free Plan',
     proceedWithPayment: 'I have paid, proceed',
     orContinueFree: 'Or continue with Free plan',
-    
+
     // Admin - Pending Payments
     pendingPayments: 'Pending Payments',
     pendingPaymentsDesc: 'Stores with unverified bKash payments',
@@ -676,7 +686,7 @@ export const translations = {
     verificationSuccess: 'Payment verified successfully!',
     rejectionSuccess: 'Payment rejected',
     downgradeSuccess: 'Store downgraded to Free plan',
-    
+
     // Sidebar Navigation - Section Headers
     sidebarHome: 'Home',
     sidebarCatalog: 'Catalog',
@@ -685,7 +695,7 @@ export const translations = {
     sidebarAnalytics: 'Analytics',
     sidebarSettings: 'Settings',
     sidebarAdmin: 'Admin',
-    
+
     // Sidebar Navigation - Item Labels
     navDashboard: 'Dashboard',
     navProducts: 'Products',
@@ -710,12 +720,12 @@ export const translations = {
     navDomainRequests: 'Domain Requests',
     navTutorials: 'Tutorials',
     goToStore: 'Go to Store',
-    
+
     // Store Language Settings
     storeLanguage: 'Store Language',
     storeLanguageDesc: 'Default language for your storefront',
   },
-  
+
   bn: {
     // Navigation
     home: 'হোম',
@@ -725,7 +735,7 @@ export const translations = {
     login: 'লগইন',
     register: 'রেজিস্টার',
     logout: 'লগআউট',
-    
+
     // Store
     addToCart: 'কার্টে যোগ করুন',
     buyNow: 'এখনই কিনুন',
@@ -738,7 +748,7 @@ export const translations = {
     shipping: 'শিপিং',
     tax: 'ট্যাক্স',
     grandTotal: 'সর্বমোট',
-    
+
     // Product
     description: 'বিবরণ',
     reviews: 'রিভিউ',
@@ -753,7 +763,7 @@ export const translations = {
     checkBackSoon: 'নতুন পণ্য শীঘ্রই আসছে',
     browseAllProducts: 'সব পণ্য দেখুন',
     shopByCategory: 'ক্যাটাগরি অনুযায়ী কেনাকাটা',
-    
+
     // Cart
     yourCart: 'আপনার কার্ট',
     cartEmpty: 'আপনার কার্ট খালি',
@@ -761,7 +771,7 @@ export const translations = {
     proceedToCheckout: 'চেকআউটে যান',
     removeFromCart: 'সরান',
     updateCart: 'কার্ট আপডেট করুন',
-    
+
     // Checkout
     orderSummary: 'অর্ডার সারাংশ',
     shippingAddress: 'শিপিং ঠিকানা',
@@ -770,7 +780,7 @@ export const translations = {
     placeOrder: 'অর্ডার করুন',
     orderPlaced: 'অর্ডার সফল হয়েছে!',
     orderNumber: 'অর্ডার নম্বর',
-    
+
     // Form
     name: 'নাম',
     email: 'ইমেইল',
@@ -781,7 +791,7 @@ export const translations = {
     postalCode: 'পোস্টাল কোড',
     notes: 'অর্ডার নোট',
     required: 'আবশ্যক',
-    
+
     // Onboarding
     createAccount: 'একাউন্ট তৈরি করুন',
     yourName: 'আপনার নাম',
@@ -805,7 +815,7 @@ export const translations = {
     stepPlan: 'প্ল্যান',
     stepSetup: 'সেটআপ',
     stepDone: 'সম্পন্ন',
-    
+
     // Marketing Landing
     tagline: 'বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম',
     heroTitle1: 'আপনার অনলাইন স্টোর চালু করুন',
@@ -823,7 +833,7 @@ export const translations = {
     ctaButton: 'আপনার ফ্রি স্টোর তৈরি করুন',
     perMonth: '/মাস',
     mostPopular: 'সবচেয়ে জনপ্রিয়',
-    
+
     // Features
     feature1Title: 'আপনার নিজের স্টোর',
     feature1Desc: 'মিনিটের মধ্যে আপনার কাস্টম সাবডোমেইন সহ একটি পেশাদার অনলাইন স্টোর পান।',
@@ -837,7 +847,7 @@ export const translations = {
     feature5Desc: 'আপনার বাংলাদেশী গ্রাহকদের জন্য সম্পূর্ণ দ্বিভাষিক সমর্থন।',
     feature6Title: '২৪/৭ সাপোর্ট',
     feature6Desc: 'আমরা যেকোনো সময় আপনাকে সফল হতে সাহায্য করতে এখানে আছি।',
-    
+
     // Products
     backToProducts: 'প্রোডাক্ট ভিউতে ফিরে যান',
     addNewProduct: 'নতুন প্রোডাক্ট যোগ করুন',
@@ -848,11 +858,11 @@ export const translations = {
     category: 'ক্যাটেগরি',
     productDetail: 'প্রোডাক্ট বিবরণ',
     createProduct: 'প্রোডাক্ট তৈরি করুন',
-    editProduct: 'প্রোডাক্ট এডিট করুন', 
+    editProduct: 'প্রোডাক্ট এডিট করুন',
     updateProduct: 'প্রোডাক্ট আপডেট করুন',
     outOfStockLabel: 'স্টক নেই',
     lowStockLabel: 'লো স্টক',
-    
+
     // Orders & Campaigns
     backToOrders: 'অর্ডার তালিকায় ফিরুন',
     createCampaign: 'ক্যাম্পেইন তৈরি করুন',
@@ -861,12 +871,12 @@ export const translations = {
     sendNow: 'এখনই পাঠান',
     sendTo: 'পাঠান',
     emailContent: 'ইমেইল কন্টেন্ট',
-    
+
     // Billing & Upgrade
     backToBilling: 'বিলিং এ ফিরুন',
     upgradePlan: 'প্ল্যান আপগ্রেড করুন',
     abandonedCarts: 'পরিত্যক্ত কার্ট',
-    
+
     // Plans
     planFree: 'ফ্রি',
     planStarter: 'স্টার্টার',
@@ -876,16 +886,16 @@ export const translations = {
     planPremiumDesc: 'প্রতিষ্ঠিত স্টোরের জন্য',
     selected: 'সিলেক্টেড',
     selectPlan: 'প্ল্যান সিলেক্ট করুন',
-    
+
     // Checkout
     paymentSuccessful: 'পেমেন্ট সফল হয়েছে!',
     thankYouOrder: 'আপনার অর্ডারের জন্য ধন্যবাদ। পেমেন্ট কনফার্ম হয়েছে।',
     orderDetails: 'অর্ডার বিবরণ',
-    
+
     // Language
     language: 'ভাষা',
     selectLanguage: 'ভাষা নির্বাচন করুন',
-    
+
     // Common
     loading: 'লোড হচ্ছে...',
     error: 'ত্রুটি',
@@ -904,7 +914,7 @@ export const translations = {
     none: 'কোনোটি না',
     yes: 'হ্যাঁ',
     no: 'না',
-    
+
     // Landing Page - Trust Badges
     freeDelivery: 'ফ্রি ডেলিভারি',
     freeDeliveryInDhaka: 'ঢাকায় ফ্রি ডেলিভারি',
@@ -913,7 +923,7 @@ export const translations = {
     payOnReceive: 'পণ্য হাতে পেয়ে টাকা পরিশোধ করুন',
     easyReturn: 'ইজি রিটার্ন',
     returnPolicy: '৭ দিনের রিটার্ন পলিসি',
-    
+
     // Landing Page - Why Choose Us
     whyChooseUs: 'কেন আমাদের থেকে কিনবেন?',
     weEnsureSatisfaction: 'আমরা প্রতিটি গ্রাহকের সন্তুষ্টি নিশ্চিত করি',
@@ -923,15 +933,15 @@ export const translations = {
     fastDeliveryDesc: 'ঢাকায় ২৪ ঘন্টায় এবং ঢাকার বাইরে ২-৩ কার্যদিবসের মধ্যে আপনার দোরগোড়ায় পৌঁছে দিই।',
     support247: '২৪/৭ সাপোর্ট',
     support247Desc: 'যেকোনো সমস্যায় আমাদের কাস্টমার সার্ভিস টিম সবসময় আপনার পাশে থাকবে।',
-    
+
     // Landing Page - Product Features
     productFeatures: 'প্রোডাক্টের বিশেষত্ব',
     whyThisProductSpecial: 'এই প্রোডাক্টটি কেন বিশেষ',
-    
+
     // Landing Page - Video Section
     watchInVideo: 'ভিডিওতে দেখুন',
     watchVideoDetails: 'বিস্তারিত জানতে ভিডিওটি দেখুন',
-    
+
     // Landing Page - How to Order
     howToOrder: 'কিভাবে অর্ডার করবেন?',
     justThreeSteps: 'মাত্র ৩টি সহজ ধাপে',
@@ -941,12 +951,12 @@ export const translations = {
     stepTwoDesc: 'আপনার নাম, মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা দিন।',
     stepThree: 'ডেলিভারি নিন',
     stepThreeDesc: 'পণ্য হাতে পেয়ে ক্যাশ অন ডেলিভারিতে মূল্য পরিশোধ করুন।',
-    
+
     // Landing Page - Testimonials
     customerReviews: 'গ্রাহকের মতামত',
     seeWhatTheySay: 'তারা কি বলছেন দেখুন',
     satisfiedCustomer: 'সন্তুষ্ট গ্রাহক',
-    
+
     // Landing Page - Delivery Info
     deliveryInfo: 'ডেলিভারি তথ্য',
     whenWillYouGet: 'আপনার প্রোডাক্ট কবে পাবেন',
@@ -958,7 +968,7 @@ export const translations = {
     twoToThreeDays: '২-৩ কার্যদিবস',
     courierService: 'কুরিয়ার সার্ভিস',
     nationwideDelivery: 'সারাদেশে ডেলিভারি',
-    
+
     // Landing Page - FAQ
     faq: 'সাধারণ জিজ্ঞাসা',
     yourQuestionAnswers: 'আপনার প্রশ্নের উত্তর',
@@ -974,17 +984,17 @@ export const translations = {
     faqChargeA: 'ঢাকায় ৳৬০ এবং ঢাকার বাইরে ৳১২০। বিশেষ অফারে ফ্রি ডেলিভারিও থাকে।',
     faqConfirmQ: 'অর্ডার কনফার্মেশন পাব কিভাবে?',
     faqConfirmA: 'অর্ডার করার পর আমাদের টিম ফোনে কল করে অর্ডার কনফার্ম করবে।',
-    
+
     // Landing Page - Guarantee
     ourGuarantee: 'আমাদের গ্যারান্টি',
     guaranteeDesc: 'আমরা আপনার সন্তুষ্টি নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ। প্রোডাক্টে কোনো সমস্যা থাকলে আমরা সম্পূর্ণ টাকা ফেরত দেব অথবা নতুন প্রোডাক্ট পাঠাব।',
-    
+
     // Landing Page - Final CTA
     whyDelay: 'আর দেরি কেন?',
     limitedTimeOffer: 'এই বিশেষ অফার সীমিত সময়ের জন্য!',
     specialPrice: 'বিশেষ মূল্য:',
     orderNowBtn: 'এখনই অর্ডার করুন',
-    
+
     // Landing Page - Contact
     callUs: 'কল করুন',
     callHours: 'সকাল ১০টা - রাত ১০টা',
@@ -992,7 +1002,7 @@ export const translations = {
     viaMessenger: 'ফেসবুক/হোয়াটসঅ্যাপে',
     emailUs: 'ইমেইল করুন',
     replyIn24Hours: '২৪ ঘন্টার মধ্যে উত্তর',
-    
+
     // Landing Page - Order Form
     orderFormTitle: 'এখনই অর্ডার করুন',
     fillFormWeContact: 'ফর্মটি পূরণ করুন, আমরা শীঘ্রই যোগাযোগ করব',
@@ -1016,10 +1026,10 @@ export const translations = {
     discount: 'ছাড়',
     youSave: 'সেভ করছেন',
     getting: 'পাচ্ছেন',
-    
+
     // Footer
     allRightsReserved: 'সর্বস্বত্ব সংরক্ষিত',
-    
+
     // Onboarding Setup Progress
     creatingYourStore: 'আপনার স্টোর তৈরি হচ্ছে...',
     aiNamingStore: 'AI আপনার স্টোরের নাম দিচ্ছে...',
@@ -1029,7 +1039,7 @@ export const translations = {
     almostDone: 'প্রায় শেষ!',
     somethingWentWrong: 'সমস্যা হয়েছে!',
     goToDashboard: 'ড্যাশবোর্ডে যান',
-    
+
     // Business Categories
     categoryFashion: 'ফ্যাশন ও পোশাক',
     categoryElectronics: 'ইলেকট্রনিক্স',
@@ -1038,7 +1048,7 @@ export const translations = {
     categoryHome: 'হোম ও লিভিং',
     categoryServices: 'সার্ভিস',
     categoryOther: 'অন্যান্য',
-    
+
     // Form Labels
     storeName: 'স্টোরের নাম',
     subdomain: 'সাবডোমেইন',
@@ -1047,7 +1057,7 @@ export const translations = {
     upgradeAnytime: 'আপনি যেকোনো সময় ড্যাশবোর্ড থেকে আপগ্রেড করতে পারবেন',
     createMyStore: 'আমার স্টোর তৈরি করুন',
     termsAgree: 'চালিয়ে যাওয়ার মাধ্যমে আপনি আমাদের ব্যবহারের শর্তাবলী এবং গোপনীয়তা নীতিতে সম্মত হচ্ছেন',
-    
+
     // Admin Panel - Common
     adminPanel: 'অ্যাডমিন প্যানেল',
     store: 'স্টোর',
@@ -1058,7 +1068,7 @@ export const translations = {
     update: 'আপডেট',
     created: 'তৈরির তারিখ',
     noResults: 'কোনো ফলাফল পাওয়া যায়নি',
-    
+
     // Admin - Plan Management
     planManagement: 'প্ল্যান ম্যানেজমেন্ট',
     planManagementDesc: 'ম্যানুয়ালি স্টোর প্ল্যান আপগ্রেড বা ডাউনগ্রেড করুন',
@@ -1073,7 +1083,7 @@ export const translations = {
     planStarterNote: 'স্টার্টার (৳৯৯৯/মাস): ৫০টি প্রোডাক্ট, ফুল স্টোর মোড, কাস্টম ডোমেইন',
     planPremiumNote: 'প্রিমিয়াম (৳২৯৯৯/মাস): ৫০০টি প্রোডাক্ট, প্রায়োরিটি সাপোর্ট, সব ফিচার',
     plansEffectImmediate: 'আপডেটের পর প্ল্যান তাৎক্ষণিক কার্যকর হয়',
-    
+
     // Admin - Payouts
     merchantPayouts: 'মার্চেন্ট পেআউট',
     exportCsv: 'CSV এক্সপোর্ট',
@@ -1090,7 +1100,7 @@ export const translations = {
     noMerchantsFound: 'কোনো মার্চেন্ট পাওয়া যায়নি',
     orders: 'অর্ডার',
     discounts: 'ডিসকাউন্ট কোড',
-    
+
     // Admin - Domain Management  
     domainManagement: 'ডোমেইন ম্যানেজমেন্ট',
     domainManagementDesc: 'সব স্টোরের কাস্টম ডোমেইন পরিচালনা করুন',
@@ -1110,7 +1120,7 @@ export const translations = {
     domainRemoved: 'ডোমেইন সরানো হয়েছে',
     domainApproved: 'ডোমেইন অনুমোদন হয়েছে!',
     requestRejected: 'রিকোয়েস্ট প্রত্যাখ্যান হয়েছে',
-    
+
     // Dashboard
     dashboard: 'ড্যাশবোর্ড',
     goodMorning: 'সুপ্রভাত',
@@ -1128,6 +1138,16 @@ export const translations = {
     last7Days: 'শেষ ৭ দিন',
     actionItems: 'কাজের তালিকা',
     noActionItems: 'সব ঠিক আছে! কোনো পেন্ডিং কাজ নেই।',
+    allCaughtUp: 'সব ঠিক আছে! 🎉',
+    noPendingActions: 'এই মুহূর্তে কোন পেন্ডিং কাজ নেই',
+    searchProductsPlaceholder: 'নাম, SKU, বা ক্যাটাগরি দিয়ে খুঁজুন...',
+    searchOrdersPlaceholder: 'অর্ডার নম্বর, কাস্টমার বা ফোন দিয়ে খুঁজুন...',
+    clearFilters: 'ফিল্টার মুছুন',
+    noOrdersMatch: 'আপনার ফিল্টারের সাথে কোনো অর্ডার মিলছে না।',
+    manageOrders: 'কাস্টমার অর্ডার দেখুন ও ম্যানেজ করুন',
+    processing: 'প্রসেসিং...',
+    adLink: 'অ্যাড লিংক',
+    primary: 'প্রাইমারি',
     lowStockAlert: 'কম স্টক সতর্কতা',
     productsRunningLow: 'টি প্রোডাক্টে স্টক কম',
     ordersNeedProcessing: 'টি অর্ডার প্রসেস করতে হবে',
@@ -1140,7 +1160,7 @@ export const translations = {
     analytics: 'অ্যানালিটিক্স',
     settings: 'সেটিংস',
     today: 'আজ',
-    
+
     // Billing
     billing: 'বিলিং',
     billingHistory: 'বিলিং ইতিহাস',
@@ -1152,7 +1172,7 @@ export const translations = {
     invoices: 'ইনভয়েস',
     downloadInvoice: 'ইনভয়েস ডাউনলোড',
     noBillingHistory: 'এখনো কোনো বিলিং ইতিহাস নেই',
-    
+
     // Products
     productName: 'প্রোডাক্টের নাম',
     productDescription: 'প্রোডাক্টের বিবরণ',
@@ -1167,7 +1187,7 @@ export const translations = {
     addYourFirstProduct: 'শুরু করতে প্রথম প্রোডাক্ট যোগ করুন',
     lowStock: 'কম স্টক',
     inStockLabel: 'স্টকে আছে',
-    
+
     // Orders
     orderId: 'অর্ডার নম্বর',
     orderDate: 'অর্ডারের তারিখ',
@@ -1188,7 +1208,7 @@ export const translations = {
     shippedOrders: 'শিপড',
     deliveredOrders: 'ডেলিভার্ড',
     cancelledOrders: 'বাতিল',
-    
+
     // Inventory
     inventory: 'ইনভেন্টরি',
     updateInventory: 'ইনভেন্টরি আপডেট',
@@ -1197,7 +1217,7 @@ export const translations = {
     exportInventory: 'ইনভেন্টরি এক্সপোর্ট',
     stockLevel: 'স্টক লেভেল',
     lowStockThreshold: 'কম স্টক থ্রেশহোল্ড',
-    
+
     // Settings Common
     saveChanges: 'পরিবর্তন সংরক্ষণ',
     saving: 'সংরক্ষণ হচ্ছে...',
@@ -1230,7 +1250,7 @@ export const translations = {
     draftStatus: 'ড্রাফট',
     publishedStatus: 'প্রকাশিত',
     archivedStatus: 'আর্কাইভড',
-    
+
     // Store Settings
     storeSettings: 'স্টোর সেটিংস',
     storeNameLabel: 'স্টোরের নাম',
@@ -1246,14 +1266,14 @@ export const translations = {
     businessAddress: 'ব্যবসায়ের ঠিকানা',
     businessPhone: 'ব্যবসায়ের ফোন',
     businessEmail: 'ব্যবসায়ের ইমেইল',
-    
+
     // Shipping Settings
     shippingSettings: 'শিপিং সেটিংস',
     insideDhakaRate: 'ঢাকার ভেতরে',
     outsideDhakaRate: 'ঢাকার বাইরে',
     shippingCost: 'শিপিং খরচ',
     freeShippingAbove: 'ফ্রি শিপিং',
-    
+
     // Marketing
     campaigns: 'ক্যাম্পেইন',
     newCampaign: 'নতুন ক্যাম্পেইন',
@@ -1275,7 +1295,7 @@ export const translations = {
     activityLogs: 'অ্যাক্টিভিটি লগ',
     homepageSettings: 'হোমপেজ সেটিংস',
     landingSettings: 'ল্যান্ডিং স্টাইল',
-    
+
     // Analytics
     analyticsOverview: 'অ্যানালিটিক্স সারসংক্ষেপ',
     salesAnalytics: 'বিক্রি অ্যানালিটিক্স',
@@ -1284,7 +1304,7 @@ export const translations = {
     averageOrderValue: 'গড় অর্ডার মূল্য',
     topProducts: 'শীর্ষ প্রোডাক্ট',
     topCustomers: 'শীর্ষ কাস্টমার',
-    
+
     // Reports
     reportsPage: 'রিপোর্ট',
     salesReport: 'বিক্রি রিপোর্ট',
@@ -1292,7 +1312,7 @@ export const translations = {
     customersReport: 'কাস্টমার রিপোর্ট',
     generateReport: 'রিপোর্ট তৈরি করুন',
     dateRange: 'তারিখের সীমা',
-    
+
     // Additional Labels
     divisionLabel: 'বিভাগ',
     countryLabel: 'দেশ',
@@ -1306,20 +1326,20 @@ export const translations = {
     taxLabel: 'ট্যাক্স',
     imageLabel: 'ছবি',
     tagsLabel: 'ট্যাগ',
-    
+
     // Validation Messages
     fieldRequired: 'এই ফিল্ড আবশ্যক',
     invalidEmailMsg: 'সঠিক ইমেইল দিন',
     invalidPhoneMsg: 'সঠিক ফোন নম্বর দিন',
     minLengthMsg: 'ন্যূনতম দৈর্ঘ্য',
     maxLengthMsg: 'সর্বোচ্চ দৈর্ঘ্য',
-    
+
     // Success/Error Messages
     successMsg: 'সফল!',
     errorMsg: 'ত্রুটি',
     tryAgainBtn: 'আবার চেষ্টা করুন',
     changesApplied: 'পরিবর্তন প্রয়োগ হয়েছে',
-    
+
     // bKash Payment - Onboarding
     bkashPayment: 'বিকাশ পেমেন্ট',
     sendMoneyTo: 'এই নম্বরে Send Money করুন',
@@ -1332,7 +1352,7 @@ export const translations = {
     proceedWithFree: 'ফ্রি প্ল্যানে চালিয়ে যান',
     proceedWithPayment: 'পেমেন্ট করেছি, চালিয়ে যান',
     orContinueFree: 'অথবা ফ্রি প্ল্যানে চালিয়ে যান',
-    
+
     // Admin - Pending Payments
     pendingPayments: 'পেন্ডিং পেমেন্টস',
     pendingPaymentsDesc: 'আনভেরিফাইড বিকাশ পেমেন্ট সহ স্টোর',
@@ -1349,7 +1369,7 @@ export const translations = {
     verificationSuccess: 'পেমেন্ট সফলভাবে ভেরিফাই হয়েছে!',
     rejectionSuccess: 'পেমেন্ট রিজেক্ট হয়েছে',
     downgradeSuccess: 'স্টোর ফ্রি প্ল্যানে ডাউনগ্রেড হয়েছে',
-    
+
     // Sidebar Navigation - Section Headers
     sidebarHome: 'হোম',
     sidebarCatalog: 'ক্যাটালগ',
@@ -1358,7 +1378,7 @@ export const translations = {
     sidebarAnalytics: 'অ্যানালিটিক্স',
     sidebarSettings: 'সেটিংস',
     sidebarAdmin: 'অ্যাডমিন',
-    
+
     // Sidebar Navigation - Item Labels
     navDashboard: 'ড্যাশবোর্ড',
     navProducts: 'পণ্য',
@@ -1383,7 +1403,7 @@ export const translations = {
     navDomainRequests: 'ডোমেইন রিকোয়েস্ট',
     navTutorials: 'টিউটোরিয়াল',
     goToStore: 'স্টোরে যান',
-    
+
     // Store Language Settings
     storeLanguage: 'স্টোর ভাষা',
     storeLanguageDesc: 'আপনার স্টোরফ্রন্টের ডিফল্ট ভাষা',
