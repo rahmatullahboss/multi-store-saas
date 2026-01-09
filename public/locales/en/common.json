@@ -270,5 +270,10 @@
   "faqReturnQ": "What is your return policy?",
   "faqReturnA": "7 day return policy if product is not as described.",
   "faqChargeQ": "What are the delivery charges?",
-  "faqChargeA": "৳60 inside Dhaka, ৳120 outside Dhaka."
+  "faqChargeA": "৳60 inside Dhaka, ৳120 outside Dhaka.",
+  
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "refundPolicy": "Refund Policy",
+  "within24Hours": "Within 24 hours"
 }

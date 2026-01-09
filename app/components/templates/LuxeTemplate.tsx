@@ -749,6 +749,21 @@ export function LuxeTemplate({
       {/* Footer Spacer for Mobile */}
       <div className="md:hidden h-20" />
 
+      {/* Footer */}
+      <footer className="bg-black text-zinc-500 py-8 border-t border-zinc-800">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <p className="font-serif-display text-white mb-2">{storeName}</p>
+          <p className="text-sm mb-4">© {new Date().getFullYear()} {t('allRightsReserved')}</p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs uppercase tracking-wider">
+            <a href="/policies/privacy" className="hover:text-amber-500 transition">{t('privacyPolicy')}</a>
+            <span className="opacity-50">•</span>
+            <a href="/policies/terms" className="hover:text-amber-500 transition">{t('termsOfService')}</a>
+            <span className="opacity-50">•</span>
+            <a href="/policies/refund" className="hover:text-amber-500 transition">{t('refundPolicy')}</a>
+          </div>
+        </div>
+      </footer>
+
       {/* WhatsApp Floating Button */}
       {editableConfig.whatsappEnabled && editableConfig.whatsappNumber && (
         <a
