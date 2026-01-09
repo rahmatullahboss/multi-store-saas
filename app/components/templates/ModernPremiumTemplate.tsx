@@ -442,7 +442,11 @@ export function ModernPremiumTemplate({
                         </span>
                       )}
                     </div>
-                    <AddToCartButton productId={product.id} />
+                    <AddToCartButton 
+                      productId={product.id}
+                      className="!w-auto !m-0 px-3 py-2 rounded-lg text-sm"
+                      style={{ backgroundColor: primaryColor }}
+                    />
                   </div>
                 </article>
               );
