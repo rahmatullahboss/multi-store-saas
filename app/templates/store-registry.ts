@@ -123,6 +123,17 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#111827',
     footerText: '#ffffff',
   },
+  'daraz': {
+    primary: '#F85606',
+    accent: '#F85606',
+    background: '#F5F5F5',
+    text: '#424242',
+    muted: '#999999',
+    cardBg: '#FFFFFF',
+    headerBg: '#F85606',
+    footerBg: '#FAFAFA',
+    footerText: '#424242',
+  },
 };
 
 // ============================================================================
@@ -132,6 +143,7 @@ import { LuxeBoutiqueTemplate } from '~/components/store-templates/LuxeBoutique'
 import { TechModernTemplate } from '~/components/store-templates/TechModern';
 import { ArtisanMarketTemplate } from '~/components/store-templates/ArtisanMarket';
 import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTemplate';
+import { DarazTemplate } from '~/components/store-templates/DarazTemplate';
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -188,6 +200,19 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: ModernPremiumTemplate,
+  },
+  {
+    id: 'daraz',
+    name: 'Daraz Style',
+    description: 'Daraz Bangladesh-inspired marketplace design with orange theme, category sidebar, flash sales, and modern grid layout.',
+    thumbnail: '/templates/daraz.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['daraz'],
+    fonts: {
+      heading: 'Roboto',
+      body: 'Roboto',
+    },
+    component: DarazTemplate,
   },
 ];
 

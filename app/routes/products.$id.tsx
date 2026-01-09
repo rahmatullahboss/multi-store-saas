@@ -17,10 +17,11 @@ import { products, reviews, stores, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig, type SocialLinks } from '@db/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { resolveStore } from '~/lib/store.server';
-import { Star, Send, CheckCircle, ShoppingBag, ChevronRight } from 'lucide-react';
+import { Star, Send, CheckCircle, ShoppingBag, ChevronRight, Truck, Shield, RotateCcw, Minus, Plus } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
+import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -404,13 +405,22 @@ export default function ProductDetail() {
   
   const hasTracked = useRef(false);
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
+  const isDaraz = storeTemplateId === 'daraz';
   
   // Template-aware styling
-  const cardBg = isDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
-  const textPrimary = isDarkTheme ? 'text-white' : 'text-gray-900';
-  const textMuted = isDarkTheme ? 'text-gray-400' : 'text-gray-600';
-  const borderColor = isDarkTheme ? 'border-gray-700' : 'border-gray-200';
-  const breadcrumbBg = isDarkTheme ? 'bg-gray-800/50 border-gray-800' : 'bg-white border-gray-100';
+  const cardBg = isDaraz 
+    ? 'bg-white border-gray-200' 
+    : isDarkTheme 
+      ? 'bg-gray-800 border-gray-700' 
+      : 'bg-white border-gray-200';
+  const textPrimary = isDaraz ? 'text-gray-800' : isDarkTheme ? 'text-white' : 'text-gray-900';
+  const textMuted = isDaraz ? 'text-gray-500' : isDarkTheme ? 'text-gray-400' : 'text-gray-600';
+  const borderColor = isDaraz ? 'border-gray-200' : isDarkTheme ? 'border-gray-700' : 'border-gray-200';
+  const breadcrumbBg = isDaraz 
+    ? 'bg-white border-gray-100' 
+    : isDarkTheme 
+      ? 'bg-gray-800/50 border-gray-800' 
+      : 'bg-white border-gray-100';
   
   // Track ViewContent event (FB Pixel + GA4) - only once on mount
   useEffect(() => {
@@ -443,30 +453,26 @@ export default function ProductDetail() {
       : [];
 
   const [selectedImage, setSelectedImage] = useState(0);
+  
+  // Use correct primary color based on template
+  const primaryColor = isDaraz ? DARAZ_THEME.orange : theme.primary;
 
-  return (
-    <StorePageWrapper
-      storeName={storeName}
-      storeId={storeId}
-      logo={logo}
-      templateId={storeTemplateId}
-      theme={theme}
-      currency={currency}
-      socialLinks={socialLinks}
-      businessInfo={businessInfo}
-    >
+  // Product detail content that will be wrapped
+  const productDetailContent = (
+    <>
       {/* Breadcrumb */}
       <nav className={`border-b ${borderColor} ${breadcrumbBg}`}>
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 text-sm">
-            <Link to="/" className={`${textMuted} hover:${textPrimary} transition`}>Home</Link>
-            <ChevronRight className={`w-4 h-4 ${textMuted}`} />
-            <Link to="/products" className={`${textMuted} hover:${textPrimary} transition`}>Products</Link>
-            <ChevronRight className={`w-4 h-4 ${textMuted}`} />
-            <span className={textPrimary}>{product.title}</span>
+        <div className="max-w-7xl mx-auto px-4 py-2 md:py-3">
+          <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm overflow-x-auto">
+            <Link to="/" className={`${textMuted} hover:text-orange-500 transition shrink-0`}>Home</Link>
+            <ChevronRight className={`w-3 h-3 md:w-4 md:h-4 ${textMuted} shrink-0`} />
+            <Link to="/" className={`${textMuted} hover:text-orange-500 transition shrink-0`}>Products</Link>
+            <ChevronRight className={`w-3 h-3 md:w-4 md:h-4 ${textMuted} shrink-0`} />
+            <span className={`${textPrimary} truncate`}>{product.title}</span>
           </div>
         </div>
       </nav>
+
 
       {/* Product Content */}
       <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12">
@@ -513,7 +519,7 @@ export default function ProductDetail() {
               {product.category && (
                 <span 
                   className="inline-block px-3 py-1 rounded-full text-xs font-medium mb-3"
-                  style={{ backgroundColor: `${theme.primary}20`, color: theme.primary }}
+                  style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
                 >
                   {product.category}
                 </span>
@@ -533,8 +539,8 @@ export default function ProductDetail() {
               </div>
             )}
             
-            <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold" style={{ color: theme.primary }}>
+            <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+              <span className="text-2xl md:text-3xl font-bold" style={{ color: primaryColor }}>
                 {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && product.compareAtPrice > product.price && (
@@ -574,8 +580,8 @@ export default function ProductDetail() {
                 productId={product.id} 
                 disabled={!product.inventory || product.inventory <= 0}
                 size="large"
-                className="!w-full py-4 text-lg rounded-xl"
-                style={{ backgroundColor: theme.primary }}
+                className="!w-full py-3 md:py-4 text-base md:text-lg rounded-lg md:rounded-xl"
+                style={{ backgroundColor: primaryColor }}
                 productName={product.title}
                 productPrice={product.price}
                 currency={currency}
@@ -639,6 +645,37 @@ export default function ProductDetail() {
           </div>
         )}
       </div>
+    </>
+  );
+
+  // Render with appropriate wrapper based on template
+  if (isDaraz) {
+    return (
+      <DarazPageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+      >
+        {productDetailContent}
+      </DarazPageWrapper>
+    );
+  }
+
+  return (
+    <StorePageWrapper
+      storeName={storeName}
+      storeId={storeId}
+      logo={logo}
+      templateId={storeTemplateId}
+      theme={theme}
+      currency={currency}
+      socialLinks={socialLinks}
+      businessInfo={businessInfo}
+    >
+      {productDetailContent}
     </StorePageWrapper>
   );
 }
