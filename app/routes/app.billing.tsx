@@ -215,10 +215,29 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function BillingPage() {
-  const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled, aiAgentRequestStatus, paymentHistory } = useLoaderData<typeof loader>();
+  const { storeName, planType, subscriptionStatus, usage: rawUsage, isCustomerAiEnabled, aiAgentRequestStatus, paymentHistory } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher<{ success?: boolean; aiAgentRequestStatus?: string; isCustomerAiEnabled?: boolean }>();
   const { t, lang } = useTranslation();
+  
+  // Safe defaults for usage to prevent null errors
+  const usage = {
+    orders: {
+      current: rawUsage?.orders?.current ?? 0,
+      limit: rawUsage?.orders?.limit ?? 0,
+      percentage: rawUsage?.orders?.percentage ?? 0,
+    },
+    products: {
+      current: rawUsage?.products?.current ?? 0,
+      limit: rawUsage?.products?.limit ?? 0,
+      percentage: rawUsage?.products?.percentage ?? 0,
+    },
+    visitors: {
+      current: rawUsage?.visitors?.current ?? 0,
+      limit: rawUsage?.visitors?.limit ?? Infinity,
+      percentage: rawUsage?.visitors?.percentage ?? 0,
+    },
+  };
   
   const success = searchParams.get('success');
   const upgradedPlan = searchParams.get('plan');
@@ -314,7 +333,7 @@ export default function BillingPage() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
               <span className="font-medium text-gray-900">
-                {(usage.orders.current ?? 0).toLocaleString()} / {usage.orders.limit === Infinity ? '∞' : usage.orders.limit.toLocaleString()}
+                {usage.orders.current.toLocaleString()} / {usage.orders.limit === Infinity ? '∞' : usage.orders.limit.toLocaleString()}
               </span>
             </div>
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -350,7 +369,7 @@ export default function BillingPage() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
               <span className="font-medium text-gray-900">
-                {(usage.products.current ?? 0).toLocaleString()} / {usage.products.limit === Infinity ? '∞' : usage.products.limit.toLocaleString()}
+                {usage.products.current.toLocaleString()} / {usage.products.limit === Infinity ? '∞' : usage.products.limit.toLocaleString()}
               </span>
             </div>
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -386,7 +405,7 @@ export default function BillingPage() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
               <span className="font-medium text-gray-900">
-                {usage.visitors.limit === Infinity ? (lang === 'bn' ? 'সীমাহীন' : 'Unlimited') : `${(usage.visitors.current ?? 0).toLocaleString()} / ${usage.visitors.limit.toLocaleString()}`}
+                {usage.visitors.limit === Infinity ? (lang === 'bn' ? 'সীমাহীন' : 'Unlimited') : `${usage.visitors.current.toLocaleString()} / ${usage.visitors.limit.toLocaleString()}`}
               </span>
             </div>
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
