@@ -363,10 +363,10 @@ export default function ReportsPage() {
   };
 
   const reports = [
-    { id: 'sales', label: 'Sales Report', icon: DollarSign, hasDateFilter: true },
-    { id: 'inventory', label: 'Inventory Report', icon: Package, hasDateFilter: false },
-    { id: 'customers', label: 'Customer Report', icon: Users, hasDateFilter: false },
-    { id: 'tax', label: 'Tax Report', icon: FileText, hasDateFilter: true },
+    { id: 'sales', label: t('salesReport'), icon: DollarSign, hasDateFilter: true },
+    { id: 'inventory', label: t('inventoryReport'), icon: Package, hasDateFilter: false },
+    { id: 'customers', label: t('customerReport'), icon: Users, hasDateFilter: false },
+    { id: 'tax', label: t('taxReport'), icon: FileText, hasDateFilter: true },
   ];
 
   const currentReport = reports.find(r => r.id === reportType) || reports[0];
@@ -384,7 +384,7 @@ export default function ReportsPage() {
           className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
         >
           <Download className="w-4 h-4" />
-          Export CSV
+          {t('exportCSV')}
         </button>
       </div>
 
@@ -411,11 +411,11 @@ export default function ReportsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-3 mb-3">
             <Filter className="w-5 h-5 text-gray-500" />
-            <span className="font-medium text-gray-700">Date Range</span>
+            <span className="font-medium text-gray-700">{t('dateRange')}</span>
           </div>
           <div className="flex flex-wrap gap-4">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Start Date</label>
+              <label className="block text-sm text-gray-600 mb-1">{t('startDate')}</label>
               <input
                 type="date"
                 value={startDate || ''}
@@ -424,7 +424,7 @@ export default function ReportsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">End Date</label>
+              <label className="block text-sm text-gray-600 mb-1">{t('endDate')}</label>
               <input
                 type="date"
                 value={endDate || ''}
@@ -442,7 +442,7 @@ export default function ReportsPage() {
                 }}
                 className="self-end px-3 py-2 text-sm text-emerald-600 hover:text-emerald-700"
               >
-                Clear dates
+                {t('clearDates')}
               </button>
             )}
           </div>
@@ -453,7 +453,7 @@ export default function ReportsPage() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">{currentReport.label}</h2>
-          <span className="text-sm text-gray-500">{reportData.length} records</span>
+          <span className="text-sm text-gray-500">{reportData.length} {t('records')}</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -471,6 +471,7 @@ export default function ReportsPage() {
 // TABLE COMPONENTS
 // ============================================================================
 function SalesTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: number) => string }) {
+  const { t } = useTranslation();
   const orders = data as Array<{
     id: number;
     orderNumber: string;
@@ -482,19 +483,19 @@ function SalesTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: n
   }>;
 
   if (orders.length === 0) {
-    return <EmptyState message="No sales data found" />;
+    return <EmptyState message={t('noSalesData')} />;
   }
 
   return (
     <table className="w-full text-sm">
       <thead className="bg-gray-50">
         <tr>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Order</th>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Customer</th>
-          <th className="text-right px-4 py-3 font-medium text-gray-600">Total</th>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Payment</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('order')}</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('date')}</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('customer')}</th>
+          <th className="text-right px-4 py-3 font-medium text-gray-600">{t('total')}</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('status')}</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('payment')}</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100">
@@ -504,7 +505,7 @@ function SalesTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: n
             <td className="px-4 py-3 text-gray-600">
               {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}
             </td>
-            <td className="px-4 py-3 text-gray-600">{order.customerName || 'Guest'}</td>
+            <td className="px-4 py-3 text-gray-600">{order.customerName || t('guest')}</td>
             <td className="px-4 py-3 text-right font-medium text-gray-900">{formatPrice(order.total)}</td>
             <td className="px-4 py-3">
               <StatusBadge status={order.status || 'pending'} />
@@ -520,6 +521,7 @@ function SalesTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: n
 }
 
 function InventoryTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: number) => string }) {
+  const { t } = useTranslation();
   const products = data as Array<{
     id: number;
     title: string;
@@ -530,19 +532,19 @@ function InventoryTable({ data, formatPrice }: { data: unknown[]; formatPrice: (
   }>;
 
   if (products.length === 0) {
-    return <EmptyState message="No inventory data found" />;
+    return <EmptyState message={t('noInventoryData')} />;
   }
 
   return (
     <table className="w-full text-sm">
       <thead className="bg-gray-50">
         <tr>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Product</th>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">SKU</th>
-          <th className="text-right px-4 py-3 font-medium text-gray-600">Price</th>
-          <th className="text-right px-4 py-3 font-medium text-gray-600">Stock</th>
-          <th className="text-right px-4 py-3 font-medium text-gray-600">Value</th>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('product')}</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('sku')}</th>
+          <th className="text-right px-4 py-3 font-medium text-gray-600">{t('price')}</th>
+          <th className="text-right px-4 py-3 font-medium text-gray-600">{t('stock')}</th>
+          <th className="text-right px-4 py-3 font-medium text-gray-600">{t('stockValue')}</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('status')}</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100">
@@ -565,7 +567,7 @@ function InventoryTable({ data, formatPrice }: { data: unknown[]; formatPrice: (
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                 product.isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
               }`}>
-                {product.isPublished ? 'Active' : 'Draft'}
+                {product.isPublished ? t('active') : t('draft')}
               </span>
             </td>
           </tr>
@@ -576,6 +578,7 @@ function InventoryTable({ data, formatPrice }: { data: unknown[]; formatPrice: (
 }
 
 function CustomersTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: number) => string }) {
+  const { t } = useTranslation();
   const customers = data as Array<{
     name: string;
     email: string;
@@ -586,24 +589,24 @@ function CustomersTable({ data, formatPrice }: { data: unknown[]; formatPrice: (
   }>;
 
   if (customers.length === 0) {
-    return <EmptyState message="No customer data found" />;
+    return <EmptyState message={t('noCustomerData')} />;
   }
 
   return (
     <table className="w-full text-sm">
       <thead className="bg-gray-50">
         <tr>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Customer</th>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Contact</th>
-          <th className="text-right px-4 py-3 font-medium text-gray-600">Orders</th>
-          <th className="text-right px-4 py-3 font-medium text-gray-600">Total Spent</th>
-          <th className="text-left px-4 py-3 font-medium text-gray-600">Last Order</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('customer')}</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('contact')}</th>
+          <th className="text-right px-4 py-3 font-medium text-gray-600">{t('orders')}</th>
+          <th className="text-right px-4 py-3 font-medium text-gray-600">{t('totalSpent')}</th>
+          <th className="text-left px-4 py-3 font-medium text-gray-600">{t('lastOrder')}</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100">
         {customers.map((customer, idx) => (
           <tr key={idx} className="hover:bg-gray-50">
-            <td className="px-4 py-3 font-medium text-gray-900">{customer.name || 'Unknown'}</td>
+            <td className="px-4 py-3 font-medium text-gray-900">{customer.name || t('unknown')}</td>
             <td className="px-4 py-3">
               <div className="text-gray-600">{customer.email || '-'}</div>
               {customer.phone && <div className="text-xs text-gray-400">{customer.phone}</div>}
@@ -621,6 +624,7 @@ function CustomersTable({ data, formatPrice }: { data: unknown[]; formatPrice: (
 }
 
 function TaxTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: number) => string }) {
+  const { t } = useTranslation();
   const orders = data as Array<{
     id: number;
     orderNumber: string;
@@ -632,7 +636,7 @@ function TaxTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: num
   }>;
 
   if (orders.length === 0) {
-    return <EmptyState message="No tax data found" />;
+    return <EmptyState message={t('noTaxData')} />;
   }
 
   const totalSubtotal = orders.reduce((sum, o) => sum + (o.subtotal || 0), 0);
@@ -643,11 +647,11 @@ function TaxTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: num
       <table className="w-full text-sm">
         <thead className="bg-gray-50">
           <tr>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Order</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
-            <th className="text-right px-4 py-3 font-medium text-gray-600">Subtotal</th>
-            <th className="text-right px-4 py-3 font-medium text-gray-600">Total</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Payment</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-600">{t('order')}</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-600">{t('date')}</th>
+            <th className="text-right px-4 py-3 font-medium text-gray-600">{t('subtotal')}</th>
+            <th className="text-right px-4 py-3 font-medium text-gray-600">{t('total')}</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-600">{t('payment')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -667,7 +671,7 @@ function TaxTable({ data, formatPrice }: { data: unknown[]; formatPrice: (n: num
         </tbody>
         <tfoot className="bg-gray-50 border-t-2 border-gray-200">
           <tr>
-            <td colSpan={2} className="px-4 py-3 font-semibold text-gray-900">Total</td>
+            <td colSpan={2} className="px-4 py-3 font-semibold text-gray-900">{t('total')}</td>
             <td className="px-4 py-3 text-right font-semibold text-gray-900">{formatPrice(totalSubtotal)}</td>
             <td className="px-4 py-3 text-right font-semibold text-gray-900">{formatPrice(totalAmount)}</td>
             <td></td>
@@ -691,6 +695,7 @@ function EmptyState({ message }: { message: string }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const styles: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-700',
     processing: 'bg-blue-100 text-blue-700',
@@ -700,12 +705,13 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-gray-100 text-gray-600'}`}>
-      {status}
+      {t(status)}
     </span>
   );
 }
 
 function PaymentBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const styles: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-700',
     paid: 'bg-emerald-100 text-emerald-700',
@@ -714,7 +720,7 @@ function PaymentBadge({ status }: { status: string }) {
   };
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-gray-100 text-gray-600'}`}>
-      {status}
+      {t(status)}
     </span>
   );
 }
