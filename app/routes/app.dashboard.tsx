@@ -37,7 +37,7 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
@@ -184,9 +184,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const actionItems: Array<{
     id: string;
     type: 'low_stock' | 'pending_order' | 'abandoned_cart' | 'domain_request';
-    title: string;
-    description: string;
-    count?: number;
+    count: number;
     link: string;
     priority: 'high' | 'medium' | 'low';
   }> = [];
@@ -196,8 +194,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     actionItems.push({
       id: 'pending-orders',
       type: 'pending_order',
-      title: 'Pending Orders',
-      description: `${pendingCount} order${pendingCount > 1 ? 's' : ''} need${pendingCount === 1 ? 's' : ''} processing`,
       count: pendingCount,
       link: '/app/orders?status=pending',
       priority: 'high',
@@ -209,8 +205,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     actionItems.push({
       id: 'low-stock',
       type: 'low_stock',
-      title: 'Low Stock Alert',
-      description: `${lowStockCount} product${lowStockCount > 1 ? 's' : ''} running low on inventory`,
       count: lowStockCount,
       link: '/app/inventory?filter=low',
       priority: 'medium',
@@ -222,8 +216,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     actionItems.push({
       id: 'abandoned-carts',
       type: 'abandoned_cart',
-      title: 'Abandoned Carts',
-      description: `${abandonedCount} cart${abandonedCount > 1 ? 's' : ''} waiting to be recovered`,
       count: abandonedCount,
       link: '/app/abandoned-carts',
       priority: 'low',

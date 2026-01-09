@@ -47,7 +47,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = drizzle(env.DB);
 
   // Get session and store
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request, env);
   const storeId = session.get('storeId');
 
   if (!storeId) {

@@ -15,8 +15,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, Link, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, desc } from 'drizzle-orm';
-import { orders, orderItems, products, stores, activityLogs, users } from '@db/schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { orders, orderItems, products, productVariants, stores, activityLogs, users } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send } from 'lucide-react';
 import { useState } from 'react';
@@ -34,7 +34,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // LOADER - Fetch order with items and store info
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw redirect('/auth/login');
   }
@@ -156,7 +156,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ACTION - Update order status or book courier
 // ============================================================================
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -289,7 +289,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 
   // Get current user ID for activity logging
-  const userId = await getUserId(request);
+  const userId = await getUserId(request, context.cloudflare.env);
 
   // Handle addNote intent
   if (intent === 'addNote') {
@@ -314,11 +314,11 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // Handle status update (default)
   const status = formData.get('status') as string;
 
-  if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
+  if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'].includes(status)) {
     return json({ error: 'Invalid status' }, { status: 400 });
   }
 
-  // Fetch order before update to check if we need to send email
+  // Fetch order before update to check if we need to send email or manage inventory
   const orderResult = await db
     .select()
     .from(orders)
@@ -331,6 +331,82 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   const order = orderResult[0];
   const previousStatus = order.status;
+  
+  const isCancelled = ['cancelled', 'returned'].includes(status);
+  const wasCancelled = ['cancelled', 'returned'].includes(previousStatus || '');
+  const isUncancel = !isCancelled && wasCancelled;
+
+  // ============================================================================
+  // PRE-UPDATE SECURITY CHECKS (Inventory Deduction)
+  // ============================================================================
+  
+  // If un-cancelling (Active -> Cancelled -> Active), we MUST re-deduct inventory FIRST.
+  // If this fails (out of stock), we MUST NOT update the status.
+  if (isUncancel) {
+    const items = await db
+      .select({ 
+        productId: orderItems.productId, 
+        variantId: orderItems.variantId, 
+        quantity: orderItems.quantity 
+      })
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId));
+
+    const successfulDeductions: { type: 'product' | 'variant', id: number, qty: number }[] = [];
+
+    for (const item of items) {
+       let result;
+       try {
+         if (item.variantId) {
+            result = await db
+             .update(productVariants)
+             .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
+             .where(and(
+               eq(productVariants.id, item.variantId),
+               sql`${productVariants.inventory} >= ${item.quantity}`
+             ))
+             .returning({ id: productVariants.id });
+             
+             if (result.length > 0) successfulDeductions.push({ type: 'variant', id: item.variantId, qty: item.quantity });
+         } else if (item.productId) {
+            result = await db
+             .update(products)
+             .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
+             .where(and(
+               eq(products.id, item.productId),
+               sql`${products.inventory} >= ${item.quantity}`
+             ))
+             .returning({ id: products.id });
+             
+             if (result.length > 0) successfulDeductions.push({ type: 'product', id: item.productId, qty: item.quantity });
+         }
+
+         if (!result || result.length === 0) {
+            throw new Error('Out of stock');
+         }
+       } catch (error) {
+          // ROLLBACK successful deductions
+          console.error("Un-cancel failed, rolling back inventory:", error);
+          for (const deduction of successfulDeductions) {
+            if (deduction.type === 'variant') {
+              await db.update(productVariants)
+                .set({ inventory: sql`${productVariants.inventory} + ${deduction.qty}` })
+                .where(eq(productVariants.id, deduction.id));
+            } else {
+              await db.update(products)
+                .set({ inventory: sql`${products.inventory} + ${deduction.qty}` })
+                .where(eq(products.id, deduction.id));
+            }
+          }
+          
+          return json({ error: `Cannot activate order: Item out of stock.` }, { status: 400 });
+       }
+    }
+  }
+
+  // ============================================================================
+  // STATUS UPDATE
+  // ============================================================================
 
   await db
     .update(orders)
@@ -353,58 +429,32 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 
   // ============================================================================
-  // INVENTORY UPDATES - Auto-adjust stock based on status changes
+  // POST-UPDATE ACTIONS (Inventory Restoration)
   // ============================================================================
-  
-  // When order is delivered: Decrease inventory for all order items
-  if (status === 'delivered' && previousStatus !== 'delivered') {
+
+  // When order is cancelled or returned: Restore inventory
+  if (isCancelled && !wasCancelled) {
     const items = await db
-      .select({ productId: orderItems.productId, quantity: orderItems.quantity })
+      .select({ 
+        productId: orderItems.productId, 
+        variantId: orderItems.variantId,
+        quantity: orderItems.quantity 
+      })
       .from(orderItems)
       .where(eq(orderItems.orderId, orderId));
     
     for (const item of items) {
-      if (item.productId) {
-        // Get current inventory first
-        const productResult = await db
-          .select({ inventory: products.inventory })
-          .from(products)
-          .where(eq(products.id, item.productId))
-          .limit(1);
-        
-        const currentInventory = productResult[0]?.inventory ?? 0;
-        const newInventory = Math.max(0, currentInventory - item.quantity);
-        
+      if (item.variantId) {
+        // Restore variant stock
+        await db
+          .update(productVariants)
+          .set({ inventory: sql`${productVariants.inventory} + ${item.quantity}` })
+          .where(eq(productVariants.id, item.variantId));
+      } else if (item.productId) {
+        // Restore product stock
         await db
           .update(products)
-          .set({ inventory: newInventory })
-          .where(eq(products.id, item.productId));
-      }
-    }
-  }
-  
-  // When order is cancelled from delivered: Restore inventory
-  if (status === 'cancelled' && previousStatus === 'delivered') {
-    const items = await db
-      .select({ productId: orderItems.productId, quantity: orderItems.quantity })
-      .from(orderItems)
-      .where(eq(orderItems.orderId, orderId));
-    
-    for (const item of items) {
-      if (item.productId) {
-        // Get current inventory first
-        const productResult = await db
-          .select({ inventory: products.inventory })
-          .from(products)
-          .where(eq(products.id, item.productId))
-          .limit(1);
-        
-        const currentInventory = productResult[0]?.inventory ?? 0;
-        const newInventory = currentInventory + item.quantity;
-        
-        await db
-          .update(products)
-          .set({ inventory: newInventory })
+          .set({ inventory: sql`${products.inventory} + ${item.quantity}` })
           .where(eq(products.id, item.productId));
       }
     }
@@ -459,6 +509,7 @@ const statusOptions = [
   { value: 'shipped', label: 'শিপড (Shipped)', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
   { value: 'delivered', label: 'ডেলিভার্ড (Delivered)', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
   { value: 'cancelled', label: 'বাতিল (Cancelled)', color: 'bg-red-100 text-red-800 border-red-300' },
+  { value: 'returned', label: 'রিটার্ন (Returned)', color: 'bg-orange-100 text-orange-800 border-orange-300' },
 ];
 
 function StatusBadge({ status }: { status: string }) {

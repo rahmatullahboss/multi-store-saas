@@ -41,7 +41,7 @@ interface DomainEntry {
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
   const db = drizzle(context.cloudflare.env.DB);
   
   // Check if user is admin
@@ -96,7 +96,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
   const db = drizzle(context.cloudflare.env.DB);
   const env = context.cloudflare.env as CloudflareEnv;
   

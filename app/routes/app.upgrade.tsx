@@ -74,8 +74,8 @@ const UPGRADE_PLANS = {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
@@ -106,8 +106,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Validate Coupon & Submit Payment
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     return json({ error: 'Store not found' }, { status: 404 });

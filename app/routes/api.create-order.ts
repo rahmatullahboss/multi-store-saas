@@ -15,9 +15,11 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens } from '@db/schema';
-import { eq, and, or, inArray, sql } from 'drizzle-orm';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions } from '@db/schema';
+import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
+import { sendPushNotification } from '~/services/push.server';
+import { dispatchWebhook } from '~/services/webhook.server';
 import { checkUsageLimit } from '~/utils/plans.server';
 import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
 import { sendPurchaseEvent } from '~/services/facebook-capi.server';
@@ -187,33 +189,38 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
-    // CHECK STOCK AVAILABILITY
-    if (currentStock < input.quantity) {
-       return json(
+    // DEDUCT INVENTORY (Atomic Update)
+    let updateResult;
+
+    if (isVariantStock && variantIdToUpdate) {
+       updateResult = await db
+        .update(productVariants)
+        .set({ inventory: sql`${productVariants.inventory} - ${input.quantity}` })
+        .where(and(
+          eq(productVariants.id, variantIdToUpdate),
+          gte(productVariants.inventory, input.quantity) // Atomic check
+        ))
+        .returning({ id: productVariants.id });
+    } else {
+       updateResult = await db
+        .update(products)
+        .set({ inventory: sql`${products.inventory} - ${input.quantity}` })
+        .where(and(
+          eq(products.id, productData.id),
+          gte(products.inventory, input.quantity) // Atomic check
+        ))
+        .returning({ id: products.id });
+    }
+
+    // If no rows updated, it means stock changed between check and update -> OUT OF STOCK
+    if (updateResult.length === 0) {
+      return json(
         { 
           success: false, 
-          error: `দুঃখিত! এই পণ্যটি বর্তমানে স্টকে নেই (অবশিষ্ট: ${currentStock})` 
+          error: `দুঃখিত! এই পণ্যটি বর্তমানে স্টকে নেই (Order collision detected)` 
         },
         { status: 400 }
       );
-    }
-
-    // DEDUCT INVENTORY (Optimistic Lock logic)
-    // We update first. If order creation fails, we must restore it manually or via transaction if possible.
-    // D1 non-interactive transaction: batch logic is preferred for atomic updates, but here we need dependent IDs.
-    // We will deduct now, and if the function throws later, the standard try/catch block should attempt to restore.
-    // ...Adding restore logic in the catch block is crucial.
-    
-    if (isVariantStock && variantIdToUpdate) {
-      await db
-        .update(productVariants)
-        .set({ inventory: currentStock - input.quantity })
-        .where(eq(productVariants.id, variantIdToUpdate));
-    } else {
-      await db
-        .update(products)
-        .set({ inventory: currentStock - input.quantity })
-        .where(eq(products.id, productData.id));
     }
     
     const itemTotal = unitPrice * input.quantity;
@@ -292,19 +299,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
         
         // Update bump conversion stats (non-blocking)
         context.cloudflare.ctx.waitUntil(
-          db
-            .update(orderBumps)
-            .set({ conversions: orderBumps.conversions })
-            .where(inArray(orderBumps.id, input.bump_ids))
-            .then(() => {
-              // Raw SQL for increment since Drizzle doesn't support easy increment
-              return Promise.all(input.bump_ids!.map(bumpId => 
-                context.cloudflare.env.DB.prepare(
-                  'UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?'
-                ).bind(bumpId).run()
-              ));
-            })
-            .catch(e => console.error('Failed to update bump conversions:', e))
+          Promise.all(input.bump_ids!.map(bumpId => 
+            context.cloudflare.env.DB.prepare(
+              'UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?'
+            ).bind(bumpId).run()
+          )).catch(e => console.error('Failed to update bump conversions:', e))
         );
       }
     }
@@ -320,59 +319,96 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const orderNumber = generateOrderNumber();
     const now = new Date();
 
-    // Use D1 Batch/Transaction to insert order and order_items together
+    // Transaction-like safety via Manual Compensation
     // Step 1: Insert order
-    const orderResult = await db
-      .insert(orders)
-      .values({
-        storeId: input.store_id,
-        orderNumber,
-        status: 'pending',
-        paymentStatus: 'pending', // Pending verification for manual payments too
-        paymentMethod: input.payment_method,
-        transactionId: input.transaction_id || null,
-        manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
-        customerName: input.customer_name,
-        customerPhone: input.phone,
-        customerEmail: input.customer_email || '', // Empty string instead of null for NOT NULL constraint
-        shippingAddress: input.address,
-        billingAddress: null,
-        subtotal,
-        tax,
-        shipping,
-        total,
-        notes: input.notes || null,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .returning({ id: orders.id, orderNumber: orders.orderNumber });
+    let orderId: number | undefined;
 
-    const orderId = orderResult[0].id;
+    try {
+      const orderResult = await db
+        .insert(orders)
+        .values({
+          storeId: input.store_id,
+          orderNumber,
+          status: 'pending',
+          paymentStatus: 'pending', // Pending verification for manual payments too
+          paymentMethod: input.payment_method,
+          transactionId: input.transaction_id || null,
+          manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
+          customerName: input.customer_name,
+          customerPhone: input.phone,
+          customerEmail: input.customer_email || '', // Empty string instead of null for NOT NULL constraint
+          shippingAddress: input.address,
+          billingAddress: null,
+          subtotal,
+          tax,
+          shipping,
+          total,
+          notes: input.notes || null,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning({ id: orders.id, orderNumber: orders.orderNumber });
 
-    // Step 2: Insert order item (with variant info if applicable)
-    await db
-      .insert(orderItems)
-      .values({
-        orderId,
-        productId: productData.id,
-        title: variantInfo ? `${productData.title} (${variantInfo})` : productData.title,
-        quantity: input.quantity,
-        price: unitPrice,
-        total: itemTotal,
-      });
-    
-    // Step 3: Insert order items for bump products
-    if (bumpItems.length > 0) {
-      await db.insert(orderItems).values(
-        bumpItems.map(bump => ({
+      orderId = orderResult[0].id;
+
+      if (!orderId) {
+        throw new Error('Failed to generate order ID');
+      }
+
+      // Step 2: Insert order item (with variant info if applicable)
+      await db
+        .insert(orderItems)
+        .values({
           orderId,
-          productId: bump.productId,
-          title: `[Bump] ${bump.title}`,
-          quantity: 1,
-          price: bump.discountedPrice,
-          total: bump.discountedPrice,
-        }))
-      );
+          productId: productData.id,
+          variantId: variantIdToUpdate || null,
+          title: variantInfo ? `${productData.title} (${variantInfo})` : productData.title,
+          variantTitle: variantInfo || null,
+          quantity: input.quantity,
+          price: unitPrice,
+          total: itemTotal,
+        });
+      
+      // Step 3: Insert order items for bump products
+      if (bumpItems.length > 0) {
+        await db.insert(orderItems).values(
+          bumpItems.map(bump => ({
+            orderId: orderId as number,
+            productId: bump.productId,
+            title: `[Bump] ${bump.title}`,
+            quantity: 1,
+            price: bump.discountedPrice,
+            total: bump.discountedPrice,
+          }))
+        );
+      }
+    } catch (insertError) {
+      console.error('Order/Item insertion failed, executing rollback:', insertError);
+      
+      // ROLLBACK: Delete Order (if created)
+      if (orderId) {
+        try {
+          await db.delete(orders).where(eq(orders.id, orderId));
+          // Items cascade delete usually, but we haven't inserted them successfully if we are here mostly
+          // If using relation delete... but here manual delete is fine.
+        } catch (cleanupError) {
+          console.error('CRITICAL: Failed to delete partial order during rollback:', cleanupError);
+        }
+      }
+
+      // ROLLBACK: Restore Inventory via Increment
+      if (isVariantStock && variantIdToUpdate) {
+        await db
+          .update(productVariants)
+          .set({ inventory: sql`${productVariants.inventory} + ${input.quantity}` })
+          .where(eq(productVariants.id, variantIdToUpdate));
+      } else {
+        await db
+          .update(products)
+          .set({ inventory: sql`${products.inventory} + ${input.quantity}` })
+          .where(eq(products.id, productData.id));
+      }
+      throw insertError;
     }
 
     // ============================================================================
@@ -423,6 +459,73 @@ export async function action({ request, context }: ActionFunctionArgs) {
           })
         );
       }
+
+    // ============================================================================
+    // SEND PUSH NOTIFICATIONS (non-blocking)
+    // ============================================================================
+    context.cloudflare.ctx.waitUntil(
+      (async () => {
+        try {
+          // Get all subscriptions for this store (e.g. admin/staff)
+          // For now, we notify ALL subscribers of the store
+          const subscriptions = await db
+            .select()
+            .from(pushSubscriptions)
+            .where(eq(pushSubscriptions.storeId, input.store_id));
+
+          if (subscriptions.length > 0) {
+             const payload = {
+              title: `New Order: ${orderNumber}`,
+              body: `${input.customer_name} ordered ${input.quantity}x items. Total: ${storeData.currency || 'BDT'} ${total}`,
+              url: `/admin/orders/${orderNumber}`, // Link to admin order details
+            };
+
+            await Promise.all(
+              subscriptions.map(sub => 
+                sendPushNotification(
+                  { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+                  payload,
+                  context.cloudflare.env
+                )
+              )
+            );
+          }
+        } catch (e) {
+          console.error('Failed to send push notifications:', e);
+        }
+      })()
+    );
+
+    // ============================================================================
+    // DISPATCH WEBHOOKS (non-blocking) - order.created
+    // ============================================================================
+    context.cloudflare.ctx.waitUntil(
+      (async () => {
+        try {
+          await dispatchWebhook(
+            context.cloudflare.env,
+            input.store_id,
+            'order.created',
+            {
+              event: 'order.created',
+              orderId,
+              orderNumber,
+              total,
+              currency: storeData.currency || 'BDT',
+              status: 'pending',
+              customer: {
+                name: input.customer_name,
+                phone: input.phone,
+                email: input.customer_email
+              },
+              createdAt: new Date().toISOString(),
+            }
+          );
+        } catch (e) {
+          console.error('Failed to dispatch webhooks:', e);
+        }
+      })()
+    );
     }
 
     // ============================================================================

@@ -23,7 +23,7 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw redirect('/auth/login');
   }

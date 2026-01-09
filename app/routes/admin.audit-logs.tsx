@@ -98,7 +98,7 @@ function getActionColor(action: string): 'red' | 'green' | 'blue' | 'yellow' | '
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   const url = new URL(request.url);

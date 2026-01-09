@@ -32,8 +32,8 @@ export const meta: MetaFunction = () => {
 };
 
 // Redirect if already logged in, otherwise redirect to new onboarding wizard
-export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await getUserId(request);
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const userId = await getUserId(request, context.cloudflare.env);
   if (userId) {
     return redirect('/app/orders');
   }
@@ -43,6 +43,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   console.log('[auth.register] Registration action started');
+
+  // Rate Limiting
+  const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const { checkAuthRateLimit } = await import('~/lib/rateLimit.server');
+  
+  // Use context.cloudflare.env.KV directly if it's there
+  const kv = (context.cloudflare.env as any).KV; 
+  if (kv) {
+    const rateLimit = await checkAuthRateLimit(kv, clientIp, 'register');
+    if (!rateLimit.allowed) {
+      return json<ActionData>({ 
+        errors: { form: 'Too many registration attempts. Please try again in an hour.' },
+        errorCode: 'RATE_LIMITED'
+      }, { status: 429 });
+    }
+  }
   
   try {
     // Parse form data
@@ -165,7 +181,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return await createUserSession(
         result.user.id,
         result.storeId,
-        '/app/orders'
+        '/app/orders',
+        context.cloudflare.env
       );
     } catch (sessionError) {
       console.error('[auth.register] Failed to create session:', sessionError);

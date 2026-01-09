@@ -162,6 +162,27 @@
       "when": 1767889030892,
       "tag": "0022_add_product_seo_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1767894311083,
+      "tag": "0023_slimy_leper_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1767895407436,
+      "tag": "0024_hot_talkback",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1767895705921,
+      "tag": "0025_tired_phantom_reporter",
+      "breakpoints": true
     }
   ]
 }

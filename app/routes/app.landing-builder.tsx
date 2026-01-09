@@ -65,7 +65,7 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch store data and products
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw redirect('/auth/login');
   }
@@ -118,7 +118,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Save landing page configuration
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -565,7 +565,7 @@ export default function LandingBuilderPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <Link
-                to="/app"
+                to="/app/dashboard"
                 className="p-2 hover:bg-gray-100 rounded-lg transition"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-600" />

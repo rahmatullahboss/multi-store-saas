@@ -799,6 +799,36 @@ export const abTests = sqliteTable('ab_tests', {
   index('ab_tests_status_idx').on(table.storeId, table.status),
 ]);
 
+// ============================================================================
+// PUSH SUBSCRIPTIONS TABLE - Web Push Notifications
+// ============================================================================
+export const pushSubscriptions = sqliteTable('push_subscriptions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id), // Optional: link to specific user (e.g. Admin)
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  userAgent: text('user_agent'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('push_subscriptions_store_id_idx').on(table.storeId),
+  index('push_subscriptions_user_id_idx').on(table.userId),
+]);
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  store: one(stores, {
+    fields: [pushSubscriptions.storeId],
+    references: [stores.id],
+  }),
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+
+
 export const abTestsRelations = relations(abTests, ({ one, many }) => ({
   store: one(stores, {
     fields: [abTests.storeId],
@@ -983,43 +1013,28 @@ export const pageViewsRelations = relations(pageViews, ({ one }) => ({
 // ============================================================================
 export const adminAuditLogs = sqliteTable('admin_audit_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  adminId: integer('admin_id').notNull().references(() => users.id),
-  action: text('action').notNull().$type<
-    | 'store_suspend' 
-    | 'store_unsuspend' 
-    | 'store_delete' 
-    | 'store_restore'
-    | 'store_impersonate'
-    | 'payment_approve'
-    | 'payment_reject'
-    | 'domain_approve'
-    | 'domain_reject'
-    | 'ai_approve'
-    | 'ai_reject'
-    | 'coupon_create'
-    | 'coupon_delete'
-    | 'broadcast_send'
-    | 'plan_change'
-    | 'bulk_action'
-    | 'other'
-  >(),
-  targetType: text('target_type').$type<'store' | 'user' | 'payment' | 'domain' | 'coupon' | 'broadcast' | 'other'>(),
-  targetId: integer('target_id'), // Store ID, User ID, etc.
-  targetName: text('target_name'), // Store name, user email, etc.
-  details: text('details'), // JSON with additional context
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  actorId: integer('actor_id').notNull().references(() => users.id), // Who performed the action
+  action: text('action').notNull(), // e.g., "update_settings", "delete_user"
+  resource: text('resource').notNull(), // e.g., "settings", "users"
+  resourceId: text('resource_id'), // ID of the affected resource
+  diff: text('diff'), // JSON object highlighting changes {before, after}
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
-  index('audit_logs_admin_idx').on(table.adminId),
-  index('audit_logs_action_idx').on(table.action),
-  index('audit_logs_target_idx').on(table.targetType, table.targetId),
-  index('audit_logs_date_idx').on(table.createdAt),
+  index('admin_audit_logs_store_idx').on(table.storeId),
+  index('admin_audit_logs_actor_idx').on(table.actorId),
+  index('admin_audit_logs_action_idx').on(table.storeId, table.action),
 ]);
 
 export const adminAuditLogsRelations = relations(adminAuditLogs, ({ one }) => ({
-  admin: one(users, {
-    fields: [adminAuditLogs.adminId],
+  store: one(stores, {
+    fields: [adminAuditLogs.storeId],
+    references: [stores.id],
+  }),
+  actor: one(users, {
+    fields: [adminAuditLogs.actorId],
     references: [users.id],
   }),
 }));
@@ -1153,3 +1168,95 @@ export type StoreTag = typeof storeTags.$inferSelect;
 export type NewStoreTag = typeof storeTags.$inferInsert;
 export type MarketingLead = typeof marketingLeads.$inferSelect;
 export type NewMarketingLead = typeof marketingLeads.$inferInsert;
+
+// ============================================================================
+// PAYMENTS TABLE - Historical Subscription Records
+// ============================================================================
+export const payments = sqliteTable('payments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  amount: integer('amount').notNull(),
+  currency: text('currency').default('BDT'),
+  status: text('status').$type<'pending' | 'paid' | 'failed' | 'refunded'>().default('pending'),
+  method: text('method').$type<'manual' | 'bkash' | 'nagad' | 'stripe'>().default('manual'),
+  transactionId: text('transaction_id'),
+  planType: text('plan_type'), // Snapshot of plan
+  periodStart: integer('period_start', { mode: 'timestamp' }),
+  periodEnd: integer('period_end', { mode: 'timestamp' }),
+  adminNote: text('admin_note'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  store: one(stores, {
+    fields: [payments.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;
+
+// ============================================================================
+// PHASE 6: SYSTEM HEALTH (Logs)
+// ============================================================================
+export const systemLogs = sqliteTable('system_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  level: text('level').$type<'info' | 'warn' | 'error' | 'fatal'>().notNull(),
+  message: text('message').notNull(),
+  stack: text('stack'), // Optional stack trace
+  context: text('context'), // JSON context (path, user_id, etc)
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export type SystemLog = typeof systemLogs.$inferSelect;
+export type NewSystemLog = typeof systemLogs.$inferInsert;
+
+// ============================================================================
+// PHASE 6: DEVELOPER TOOLS (API Keys)
+// ============================================================================
+export const apiKeys = sqliteTable('api_keys', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  name: text('name').notNull(), // e.g. "Production Key"
+  keyPrefix: text('key_prefix').notNull(), // First 8 chars for display
+  keyHash: text('key_hash').notNull(), // SHA-256 hash of full key
+  scopes: text('scopes').default('["read_orders","write_orders"]'), // JSON array
+  lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+});
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  store: one(stores, {
+    fields: [apiKeys.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
+
+// ============================================================================
+// PHASE 6: WEBHOOKS
+// ============================================================================
+export const webhooks = sqliteTable('webhooks', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  url: text('url').notNull(),
+  topics: text('topics').notNull(), // JSON array ["order.created", "inventory.low"]
+  secret: text('secret').notNull(), // HMAC secret
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  failureCount: integer('failure_count').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const webhooksRelations = relations(webhooks, ({ one }) => ({
+  store: one(stores, {
+    fields: [webhooks.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type Webhook = typeof webhooks.$inferSelect;
+export type NewWebhook = typeof webhooks.$inferInsert;

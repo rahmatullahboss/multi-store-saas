@@ -73,23 +73,23 @@ export function LanguageSelector({
     );
   }
 
-  // Pills variant - horizontal buttons
+  // Pills variant - horizontal buttons with improved UI
   if (variant === 'pills') {
     return (
-      <div className={`inline-flex rounded-lg border border-gray-200 overflow-hidden ${className}`}>
+      <div className={`inline-flex rounded-xl bg-gray-100 p-1 ${className}`}>
         {availableLanguages.map((language) => (
           <button
             key={language.code}
             onClick={() => setLang(language.code)}
             className={`
-              ${sizeClasses[size]} font-medium transition-colors
+              ${sizeClasses[size]} font-semibold rounded-lg transition-all duration-200
               ${lang === language.code
-                ? 'bg-emerald-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-[#006A4E] text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
               }
             `}
           >
-            {showFlag && <span className="mr-1">{language.flag}</span>}
+            {showFlag && <span className="mr-1.5">{language.flag}</span>}
             {showName ? language.nativeName : language.code.toUpperCase()}
           </button>
         ))}

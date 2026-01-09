@@ -19,7 +19,7 @@ import { stores, orders, products, pageViews, users } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 import { 
-  BarChart3, 
+  BarChart as LucideBarChart, 
   TrendingUp, 
   ShoppingCart, 
   Users,
@@ -33,6 +33,17 @@ import {
   Package
 } from 'lucide-react';
 import { useState } from 'react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  BarChart,
+  Bar
+} from 'recharts';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Analytics - Super Admin' }];
@@ -43,7 +54,8 @@ export const meta: MetaFunction = () => {
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  await requireSuperAdmin(request, db);
+// 1. Ensure Super Admin
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   
@@ -93,6 +105,57 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .select({ count: sql<number>`COUNT(DISTINCT ${pageViews.visitorId})` })
     .from(pageViews)
     .where(gte(pageViews.createdAt, todayStart));
+
+  // ===== CHART DATA (Last 30 Days) =====
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  // Note: Drizzle stores timestamps as Date objects (milliseconds), but usually stored as INTEGER in SQLite.
+  // We'll use raw SQL for grouping. D1 stores dates as milliseconds usually.
+  // SQLite `date` function expects seconds for unixepoch modifier. So we divide by 1000.
+  
+  const dailyGMVRaw = await drizzleDb.all(sql`
+    SELECT 
+      date(created_at / 1000, 'unixepoch') as date, 
+      sum(total) as total 
+    FROM orders 
+    WHERE status != 'cancelled' AND created_at >= ${thirtyDaysAgo.getTime() / 1000} 
+    GROUP BY date
+    ORDER BY date ASC
+  `);
+  // Cast to expected type
+  const dailyGMV = dailyGMVRaw as unknown as { date: string, total: number }[];
+
+  const dailySignupsRaw = await drizzleDb.all(sql`
+    SELECT 
+      date(created_at / 1000, 'unixepoch') as date, 
+      count(id) as count 
+    FROM stores 
+    WHERE created_at >= ${thirtyDaysAgo.getTime() / 1000} 
+    GROUP BY date
+    ORDER BY date ASC
+  `);
+  const dailySignups = dailySignupsRaw as unknown as { date: string, count: number }[];
+  
+  // Process chart data to fill in gaps
+  const chartData = [];
+  const currentDate = new Date(thirtyDaysAgo);
+  const nowTime = now.getTime();
+  
+  while (currentDate.getTime() <= nowTime) {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const gmvEntry = dailyGMV.find(d => d.date === dateStr);
+    const signupEntry = dailySignups.find(d => d.date === dateStr);
+    
+    chartData.push({
+      date: dateStr,
+      displayDate: currentDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+      revenue: gmvEntry ? Number(gmvEntry.total) : 0,
+      signups: signupEntry ? Number(signupEntry.count) : 0,
+    });
+    
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
   
   // ===== PER-STORE BREAKDOWN =====
   
@@ -202,33 +265,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .filter(s => s.limits.orderUsage >= 80 || s.limits.productUsage >= 80)
     .sort((a, b) => Math.max(b.limits.orderUsage, b.limits.productUsage) - Math.max(a.limits.orderUsage, a.limits.productUsage));
   
-  // ===== DAILY REVENUE TREND (Last 7 days) =====
-  const dailyRevenue: { date: string; revenue: number; orders: number }[] = [];
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(todayStart);
-    date.setDate(date.getDate() - i);
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + 1);
-    
-    const dayResult = await drizzleDb
-      .select({
-        revenue: sum(orders.total),
-        orders: count(),
-      })
-      .from(orders)
-      .where(and(
-        sql`${orders.status} != 'cancelled'`,
-        gte(orders.createdAt, date),
-        sql`${orders.createdAt} < ${nextDate}`
-      ));
-    
-    dailyRevenue.push({
-      date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-      revenue: Number(dayResult[0]?.revenue) || 0,
-      orders: dayResult[0]?.orders || 0,
-    });
-  }
-  
   return json({
     platformMetrics: {
       totalGMV: Number(totalGMVResult[0]?.total) || 0,
@@ -242,7 +278,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeAnalytics,
     topStores,
     storesApproachingLimits,
-    dailyRevenue,
+    chartData,
   });
 }
 
@@ -255,7 +291,7 @@ export default function AdminAnalytics() {
     storeAnalytics, 
     topStores, 
     storesApproachingLimits,
-    dailyRevenue,
+    chartData,
   } = useLoaderData<typeof loader>();
   
   const [sortBy, setSortBy] = useState<'revenue' | 'orders' | 'visitors' | 'products'>('revenue');
@@ -275,7 +311,6 @@ export default function AdminAnalytics() {
     });
   
   const formatCurrency = (amount: number) => `৳${amount.toLocaleString()}`;
-  const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue), 1);
   
   const getPlanBadge = (planType: string) => {
     switch (planType) {
@@ -309,7 +344,7 @@ export default function AdminAnalytics() {
       <div>
         <h1 className="text-2xl font-bold text-white flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-white" />
+            <LucideBarChart className="w-5 h-5 text-white" />
           </div>
           Platform Analytics
         </h1>
@@ -371,27 +406,98 @@ export default function AdminAnalytics() {
         />
       </div>
 
-      {/* Revenue Chart */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Platform Revenue - Last 7 Days</h2>
-        <div className="space-y-3">
-          {dailyRevenue.map((day, index) => (
-            <div key={index} className="flex items-center gap-4">
-              <div className="w-24 text-sm text-slate-400">{day.date}</div>
-              <div className="flex-1 h-8 bg-slate-800 rounded-lg overflow-hidden relative">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-lg transition-all duration-500"
-                  style={{ width: `${(day.revenue / maxRevenue) * 100}%` }}
+      {/* CHARTS SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Chart */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-emerald-400" />
+            Revenue Trend (30 Days)
+          </h3>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                <XAxis 
+                  dataKey="displayDate" 
+                  stroke="#64748b" 
+                  fontSize={12} 
+                  tickLine={false}
+                  axisLine={false}
+                  minTickGap={30}
                 />
-                {day.revenue > 0 && (
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-300">
-                    {formatCurrency(day.revenue)}
-                  </span>
-                )}
-              </div>
-              <div className="w-20 text-sm text-slate-500 text-right">{day.orders} orders</div>
-            </div>
-          ))}
+                <YAxis 
+                  stroke="#64748b" 
+                  fontSize={12} 
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `৳${value}`}
+                />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
+                  itemStyle={{ color: '#10b981' }}
+                  formatter={(value) => [`৳${value}`, 'Revenue']}
+                  labelStyle={{ color: '#94a3b8' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#10b981" 
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Signups Chart */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <Store className="w-5 h-5 text-blue-400" />
+            New Stores (30 Days)
+          </h3>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                <XAxis 
+                  dataKey="displayDate" 
+                  stroke="#64748b" 
+                  fontSize={12} 
+                  tickLine={false}
+                  axisLine={false}
+                  minTickGap={30}
+                />
+                <YAxis 
+                  stroke="#64748b" 
+                  fontSize={12} 
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#1e293b', opacity: 0.5 }}
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
+                  itemStyle={{ color: '#3b82f6' }}
+                  labelStyle={{ color: '#94a3b8' }}
+                />
+                <Bar 
+                  dataKey="signups" 
+                  name="New Stores" 
+                  fill="#3b82f6" 
+                  radius={[4, 4, 0, 0]} 
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 

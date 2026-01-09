@@ -14,6 +14,9 @@ import './styles/tailwind.css';
 import { GeneralError } from '~/components/GeneralError';
 import { LanguageProvider } from '~/contexts/LanguageContext';
 import { getFacebookPixelInitScript, getGA4InitScript, getGA4ScriptUrl } from '~/utils/tracking';
+import i18nextServer from '~/services/i18n.server';
+import { useChangeLanguage } from 'remix-i18next/react';
+import { dir } from 'i18next';
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -22,6 +25,7 @@ export const links: LinksFunction = () => [
     rel: 'stylesheet', 
     href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&display=swap' 
   },
+  { rel: 'manifest', href: '/manifest.webmanifest' },
 ];
 
 
@@ -33,13 +37,17 @@ export const links: LinksFunction = () => [
  * 
  * Tracking IDs are loaded per-store for data isolation.
  */
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ context, request }: LoaderFunctionArgs) {
   // The tenant middleware has already resolved the store
   // Access it from context (populated by Hono middleware)
   const { storeId, store, isCustomDomain } = context;
   
+  // Get locale from request
+  const locale = await i18nextServer.getLocale(request);
+
   // Handle main domain case where store is null (auth pages, marketing)
   return json({
+    locale,
     store: {
       id: storeId || 0,
       name: store?.name || 'Multi-Store SaaS',
@@ -52,14 +60,18 @@ export async function loader({ context }: LoaderFunctionArgs) {
     },
     isCustomDomain: isCustomDomain || false,
     isMainDomain: !store || storeId === 0,
+    ENV: {
+      VAPID_PUBLIC_KEY: context.cloudflare.env.VAPID_PUBLIC_KEY,
+    }
   });
 }
 
 export default function App() {
-  const { store } = useLoaderData<typeof loader>();
+  const { store, ENV, locale } = useLoaderData<typeof loader>();
+  useChangeLanguage(locale);
 
   return (
-    <html lang="en" className="h-full">
+    <html lang={locale} dir={dir(locale)} className="h-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -104,6 +116,11 @@ export default function App() {
           <Outlet />
         </LanguageProvider>
         <ScrollRestoration />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(ENV)}`,
+          }}
+        />
         <Scripts />
       </body>
     </html>

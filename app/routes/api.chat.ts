@@ -230,7 +230,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // Step 1: Identify Context
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request, env);
   const merchantStoreId = session.get('storeId');
   
   // Determine context: Merchant (logged in), Customer (store visitor), or Marketing (SaaS visitor)

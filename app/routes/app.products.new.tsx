@@ -33,7 +33,7 @@ export const meta: MetaFunction = () => {
 // ACTION - Create new product (with plan limit validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ errors: { form: 'Store not found' } }, { status: 404 });
   }

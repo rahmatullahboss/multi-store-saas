@@ -48,7 +48,7 @@ interface R2File {
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   const r2 = context.cloudflare.env.R2;
@@ -169,7 +169,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const r2 = context.cloudflare.env.R2;
   if (!r2) {

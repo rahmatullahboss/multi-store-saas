@@ -75,7 +75,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
   
   // Require super admin access
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   const env = context.cloudflare.env as CloudflareEnv;
@@ -146,7 +146,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
   
   // Require super admin access
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   const env = context.cloudflare.env as CloudflareEnv;

@@ -13,9 +13,11 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, Outlet, useLoaderData, useLocation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
-import { users } from '@db/schema';
+import { eq, desc, sql } from 'drizzle-orm';
+import { users, stores } from '@db/schema';
+import { CommandMenu } from '~/components/admin/CommandMenu';
 import { requireSuperAdmin } from '~/services/auth.server';
+import { NotificationToggle } from '~/components/admin/NotificationToggle';
 import { 
   Shield, 
   Users, 
@@ -50,8 +52,8 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
   
-  // Require super admin access - will redirect if not authorized
-  const { userId, userEmail } = await requireSuperAdmin(request, db);
+  // 1. Ensure Super Admin
+  const { userId, userEmail } = await requireSuperAdmin(request, context.cloudflare.env, db);
   
   const drizzleDb = drizzle(db);
   const userResult = await drizzleDb
@@ -59,6 +61,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
+
+  // Fetch stores for Command Menu
+  const storeList = await drizzleDb
+    .select({
+      id: stores.id,
+      name: stores.name,
+      subdomain: stores.subdomain,
+    })
+    .from(stores)
+    .where(sql`${stores.deletedAt} IS NULL`)
+    .orderBy(desc(stores.createdAt))
+    .limit(500);
   
   return json({
     user: {
@@ -66,6 +80,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       email: userEmail,
       name: userResult[0]?.name || 'Super Admin',
     },
+    storeList,
   });
 }
 
@@ -84,6 +99,7 @@ const navItems = [
   { to: '/admin/broadcasts', label: 'Broadcasts', icon: Radio },
   { to: '/admin/team', label: 'Team & Access', icon: Users },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: History },
+  { to: '/admin/health', label: 'System Health', icon: Activity },
   { to: '/admin/tutorials', label: 'Tutorials', icon: BookOpen },
 ];
 
@@ -91,7 +107,7 @@ const navItems = [
 // MAIN COMPONENT
 // ============================================================================
 export default function AdminLayout() {
-  const { user } = useLoaderData<typeof loader>();
+  const { user, storeList } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -105,6 +121,8 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      <CommandMenu stores={storeList} />
+
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
@@ -194,8 +212,12 @@ export default function AdminLayout() {
           </nav>
 
           {/* User Info & Logout */}
-          <div className="p-4 border-t border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="p-4 border-t border-slate-800 space-y-3">
+             {/* Push Notifications */}
+             <div className={sidebarCollapsed ? 'hidden' : 'block'}>
+                <NotificationToggle />
+             </div>
+            <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-red-500/20 rounded-full flex items-center justify-center">
                 <Shield className="w-4 h-4 text-red-400" />
               </div>

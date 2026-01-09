@@ -48,6 +48,9 @@ CLOUDFLARE_ZONE_ID = "YOUR_ZONE_ID_HERE"  # Zone ID from Cloudflare Dashboard (d
 # RESEND_API_KEY - Email service - SET IN DASHBOARD (secret)
 # CLOUDFLARE_API_TOKEN - SSL certificates - SET IN DASHBOARD (secret)
 
+# PUSH NOTIFICATIONS (VAPID)
+VAPID_PUBLIC_KEY = "BDl0oSQqYgSjUMZxblMeN1nhfndIyhlAKDujKvNfQyo4gMGVlvKs2aInkK9-PiflVUSDxmPPyienIPQlHMZPwJU"
+
 # ============================================================================
 # DEVELOPMENT SETTINGS
 # ============================================================================

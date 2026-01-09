@@ -313,23 +313,10 @@ const StaggeredText = ({ text, className = '', delay = 0 }: { text: string; clas
 // ============================================================================
 // LIVE SIGNUP COUNTER
 // ============================================================================
-const LiveSignupCounter = ({ initialCount = 0 }: { initialCount?: number }) => {
-  const [count, setCount] = useState(initialCount);
-  const [isAnimating, setIsAnimating] = useState(false);
-  
-  useEffect(() => {
-    // Simulate live signups
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        setCount(prev => prev + 1);
-        setIsAnimating(true);
-        setTimeout(() => setIsAnimating(false), 500);
-      }
-    }, 3000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
+// ============================================================================
+// LIVE SIGNUP COUNTER
+// ============================================================================
+const LiveSignupCounter = ({ count = 0 }: { count?: number }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -344,13 +331,9 @@ const LiveSignupCounter = ({ initialCount = 0 }: { initialCount?: number }) => {
       />
       <span className="text-white/50">
         এখন পর্যন্ত{' '}
-        <motion.span
-          className="text-white font-semibold"
-          animate={isAnimating ? { scale: [1, 1.15, 1], color: [COLORS.text, COLORS.accent, COLORS.text] } : {}}
-          transition={{ duration: 0.5 }}
-        >
+        <span className="text-white font-semibold">
           {count.toLocaleString()}
-        </motion.span>
+        </span>
         {' '}জন Signup করেছেন...
       </span>
     </motion.div>
@@ -811,7 +794,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
             </motion.div>
             
             {/* Live signup counter */}
-            <LiveSignupCounter initialCount={totalUsers} />
+            <LiveSignupCounter count={totalUsers} />
             
             {/* Beta notice */}
             <motion.div

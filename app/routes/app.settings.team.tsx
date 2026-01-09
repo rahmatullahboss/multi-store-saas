@@ -35,8 +35,8 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch team members and pending invites
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request);
-  const storeId = await getStoreId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
@@ -113,8 +113,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Handle invite, revoke, remove
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
-  const storeId = await getStoreId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     return json({ error: 'Store not found' }, { status: 404 });

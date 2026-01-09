@@ -13,7 +13,7 @@ import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return new Response('Unauthorized', { status: 401 });
   }

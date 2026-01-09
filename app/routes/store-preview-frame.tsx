@@ -22,7 +22,7 @@ import { useState, useEffect, useCallback } from 'react';
 // LOADER - Fetch store data for preview
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }

@@ -1,19 +1,20 @@
 /**
  * Language & Currency Context
  * 
- * Provides global language and currency state across the app
- * Language persists in localStorage and syncs with URL ?lang= param
+ * Provides global language and currency state across the app.
+ * Refactored to use react-i18next for translations while maintaining existing API.
  */
 
 import { createContext, useContext, useMemo, useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from '@remix-run/react';
-import { translations, LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type Language, type TranslationKey, type LanguageConfig } from '~/utils/i18n';
+import { LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type Language, type TranslationKey, type LanguageConfig } from '~/utils/i18n';
 import type { SupportedLocale, SupportedCurrency } from '~/utils/formatPrice';
+import { useTranslation as useI18NextTranslation } from 'react-i18next';
 
 interface LanguageContextValue {
   // Translation system
   lang: Language;
-  t: (key: TranslationKey) => string;
+  t: (key: string | TranslationKey, options?: any) => string;
   setLang: (lang: Language) => void;
   toggleLang: () => void;
   
@@ -21,7 +22,7 @@ interface LanguageContextValue {
   currentLanguage: LanguageConfig | undefined;
   availableLanguages: LanguageConfig[];
   
-  // Legacy compatibility (for existing LanguageToggle)
+  // Legacy compatibility
   locale: SupportedLocale;
   currency: SupportedCurrency;
   setLocale: (locale: SupportedLocale) => void;
@@ -36,59 +37,41 @@ interface LanguageProviderProps {
   defaultCurrency?: SupportedCurrency;
 }
 
-/**
- * Get initial language from localStorage (client-side only)
- */
-function getStoredLanguage(): Language | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (stored && (stored === 'en' || stored === 'bn')) {
-      return stored as Language;
-    }
-  } catch {
-    // localStorage not available
-  }
-  return null;
-}
-
 export function LanguageProvider({ 
   children, 
   defaultLang = DEFAULT_LANGUAGE,
   defaultCurrency = 'BDT'
 }: LanguageProviderProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isHydrated, setIsHydrated] = useState(false);
+  const { t: i18nT, i18n } = useI18NextTranslation();
   
-  // Get language from URL or localStorage or default
+  // Get language from i18n or URL
   const urlLang = searchParams.get('lang') as Language | null;
-  const [storedLang, setStoredLang] = useState<Language | null>(null);
+  const lang = (i18n.language as Language) || defaultLang;
   
-  // Hydration effect - get stored language on client
+  // Sync URL with i18n
   useEffect(() => {
-    setStoredLang(getStoredLanguage());
-    setIsHydrated(true);
-  }, []);
-  
-  // Priority: URL param > localStorage > default
-  const lang: Language = urlLang && (urlLang === 'en' || urlLang === 'bn') 
-    ? urlLang 
-    : (storedLang || defaultLang);
-  
+    if (urlLang && (urlLang === 'en' || urlLang === 'bn') && urlLang !== i18n.language) {
+      i18n.changeLanguage(urlLang);
+    }
+  }, [urlLang, i18n]);
+
   const currency = (searchParams.get('currency') as SupportedCurrency) || defaultCurrency;
   
   const setLang = (newLang: Language) => {
-    // Save to localStorage
-    try {
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
-    } catch {
-      // localStorage not available
-    }
+    // Change i18next language
+    i18n.changeLanguage(newLang);
     
     // Update URL
     const newParams = new URLSearchParams(searchParams);
     newParams.set('lang', newLang);
     setSearchParams(newParams, { preventScrollReset: true });
+    
+    // LocalStorage is handled by i18next-browser-languagedetector usually, 
+    // but specific key might be needed if we customized it.
+    try {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
+    } catch {}
   };
   
   const setCurrency = (newCurrency: SupportedCurrency) => {
@@ -101,11 +84,11 @@ export function LanguageProvider({
     setLang(lang === 'en' ? 'bn' : 'en');
   };
   
-  const t = useMemo(() => {
-    return (key: TranslationKey): string => {
-      return translations[lang][key] || translations.en[key] || key;
-    };
-  }, [lang]);
+  const t = (key: string | TranslationKey, options?: any): string => {
+      // Wrapper to ensure type compatibility if needed, 
+      // i18next t function handles strings
+      return i18nT(key, options) as string;
+  };
   
   const currentLanguage = useMemo(() => {
     return LANGUAGES.find(l => l.code === lang);
@@ -127,7 +110,7 @@ export function LanguageProvider({
     currency,
     setLocale: setLang as (locale: SupportedLocale) => void,
     setCurrency,
-  }), [lang, t, currency, currentLanguage]);
+  }), [lang, currency, currentLanguage, i18nT]); // i18nT change might trigger
   
   return (
     <LanguageContext.Provider value={value}>
@@ -171,4 +154,3 @@ export function useFormatPrice() {
     }).format(price);
   };
 }
-

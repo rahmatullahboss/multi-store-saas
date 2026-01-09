@@ -38,7 +38,7 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch store data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
@@ -104,7 +104,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update store settings (with server-side validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -288,7 +288,7 @@ export default function SettingsPage() {
 
   // Show success message
   useEffect(() => {
-    if (actionData && 'success' in actionData && actionData.success) {
+    if (actionData && typeof actionData === 'object' && 'success' in actionData && (actionData as { success?: boolean }).success) {
       setShowSuccess(true);
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
@@ -418,14 +418,14 @@ export default function SettingsPage() {
       {showSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          Settings saved successfully!
+          {lang === 'bn' ? 'সেটিংস সেভ হয়েছে!' : 'Settings saved successfully!'}
         </div>
       )}
 
       {/* Error Message */}
-      {actionData && 'error' in actionData && actionData.error && (
+      {actionData && typeof actionData === 'object' && 'error' in actionData && (actionData as { error?: string }).error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {actionData.error}
+          {(actionData as { error: string }).error}
         </div>
       )}
 
@@ -441,15 +441,15 @@ export default function SettingsPage() {
               <Image className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Branding</h2>
-              <p className="text-sm text-gray-500">Logo and favicon for your store</p>
+              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'ব্র্যান্ডিং' : 'Branding'}</h2>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরের লোগো এবং ফ্যাভিকন' : 'Logo and favicon for your store'}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Logo Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Store Logo</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{lang === 'bn' ? 'স্টোর লোগো' : 'Store Logo'}</label>
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {logoPreview ? (
@@ -486,9 +486,9 @@ export default function SettingsPage() {
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
                   >
                     <Upload className="w-4 h-4" />
-                    {isUploadingLogo ? 'Uploading...' : 'Upload'}
+                    {isUploadingLogo ? (lang === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...') : (lang === 'bn' ? 'আপলোড' : 'Upload')}
                   </button>
-                  <p className="text-xs text-gray-500 mt-1">PNG, JPG. Square works best.</p>
+                  <p className="text-xs text-gray-500 mt-1">{lang === 'bn' ? 'PNG, JPG। চারকোনা সবচেয়ে ভালো।' : 'PNG, JPG. Square works best.'}</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -539,7 +539,7 @@ export default function SettingsPage() {
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
                   >
                     <Upload className="w-4 h-4" />
-                    {isUploadingFavicon ? 'Uploading...' : 'Upload'}
+                    {isUploadingFavicon ? (lang === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...') : (lang === 'bn' ? 'আপলোড' : 'Upload')}
                   </button>
                   <p className="text-xs text-gray-500 mt-1">32x32 or 16x16 PNG</p>
                 </div>
@@ -562,8 +562,8 @@ export default function SettingsPage() {
               <Store className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Store Information</h2>
-              <p className="text-sm text-gray-500">Basic details about your store</p>
+              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'স্টোর তথ্য' : 'Store Information'}</h2>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরের মৌলিক বিবরণ' : 'Basic details about your store'}</p>
             </div>
           </div>
 
@@ -571,7 +571,7 @@ export default function SettingsPage() {
             {/* Store Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Store Name
+                {lang === 'bn' ? 'স্টোরের নাম' : 'Store Name'}
               </label>
               <input
                 type="text"
@@ -585,7 +585,7 @@ export default function SettingsPage() {
             {/* Currency */}
             <div>
               <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                Currency
+                {lang === 'bn' ? 'মুদ্রা' : 'Currency'}
               </label>
               <select
                 id="currency"
@@ -636,8 +636,8 @@ export default function SettingsPage() {
               <Layout className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Store Mode</h2>
-              <p className="text-sm text-gray-500">Choose how your store appears to customers</p>
+              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'স্টোর মোড' : 'Store Mode'}</h2>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'গ্রাহকদের কাছে আপনার স্টোর কীভাবে দেখাবে নির্বাচন করুন' : 'Choose how your store appears to customers'}</p>
             </div>
           </div>
 
@@ -660,8 +660,8 @@ export default function SettingsPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-3">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Landing Page</h3>
-                <p className="text-sm text-gray-500">Single product focus with high-converting sales page design. Perfect for featured products.</p>
+                <h3 className="font-semibold text-gray-900 mb-1">{lang === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}</h3>
+                <p className="text-sm text-gray-500">{lang === 'bn' ? 'একটি প্রোডাক্টের উপর ফোকাস করে হাই-কনভার্টিং সেলস পেজ ডিজাইন।' : 'Single product focus with high-converting sales page design. Perfect for featured products.'}</p>
                 {storeMode === 'landing' && (
                   <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
                 )}
@@ -680,8 +680,8 @@ export default function SettingsPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-3">
                   <ShoppingBag className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Full Store</h3>
-                <p className="text-sm text-gray-500">Complete e-commerce experience with product catalog, cart, categories, and checkout.</p>
+                <h3 className="font-semibold text-gray-900 mb-1">{lang === 'bn' ? 'ফুল স্টোর' : 'Full Store'}</h3>
+                <p className="text-sm text-gray-500">{lang === 'bn' ? 'প্রোডাক্ট ক্যাটালগ, কার্ট, ক্যাটাগরি এবং চেকআউট সহ সম্পূর্ণ ই-কমার্স অভিজ্ঞতা।' : 'Complete e-commerce experience with product catalog, cart, categories, and checkout.'}</p>
                 {storeMode === 'store' && (
                   <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
                 )}
@@ -696,10 +696,10 @@ export default function SettingsPage() {
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">Landing Page Mode</h3>
-                  <p className="text-sm text-gray-500">Your store displays a single product sales page</p>
+                  <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'ল্যান্ডিং পেজ মোড' : 'Landing Page Mode'}</h3>
+                  <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোর একটি সিঙ্গেল প্রোডাক্ট সেলস পেজ দেখায়' : 'Your store displays a single product sales page'}</p>
                 </div>
-                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">Active</span>
+                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">{lang === 'bn' ? 'সক্রিয়' : 'Active'}</span>
               </div>
 
               {/* Upgrade Prompt for Full Store */}
@@ -713,8 +713,8 @@ export default function SettingsPage() {
                     <ShoppingBag className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-700">Full Store Mode</h3>
-                    <p className="text-sm text-gray-500">Unlock product catalog, cart & categories</p>
+                    <h3 className="font-semibold text-gray-700">{lang === 'bn' ? 'ফুল স্টোর মোড' : 'Full Store Mode'}</h3>
+                    <p className="text-sm text-gray-500">{lang === 'bn' ? 'প্রোডাক্ট ক্যাটালগ, কার্ট ও ক্যাটাগরি আনলক করুন' : 'Unlock product catalog, cart & categories'}</p>
                   </div>
                 </div>
               </div>
@@ -725,7 +725,7 @@ export default function SettingsPage() {
                 className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-lg shadow-amber-500/20"
               >
                 <Crown className="w-5 h-5" />
-                Upgrade to Unlock Full Store Mode
+                {lang === 'bn' ? 'ফুল স্টোর মোড আনলক করতে আপগ্রেড করুন' : 'Upgrade to Unlock Full Store Mode'}
               </a>
             </div>
           )}
@@ -1069,6 +1069,15 @@ export default function SettingsPage() {
                 <Store className="w-4 h-4 text-purple-600" />
               </div>
               <span className="font-medium text-gray-700">Courier API</span>
+            </a>
+            <a
+              href="/app/settings/developer"
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                <FileText className="w-4 h-4 text-slate-600" />
+              </div>
+              <span className="font-medium text-gray-700">Developer API</span>
             </a>
           </div>
         </div>

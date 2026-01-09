@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
+import { StoreTemplatePreviewModal } from '~/components/StoreTemplatePreview';
 
 // Font Options
 const FONT_OPTIONS = [
@@ -41,8 +42,8 @@ export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store Sa
 // LOADER - Fetch current store config
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
 
   const db = drizzle(context.cloudflare.env.DB);
@@ -80,8 +81,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Save store customization
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
 
   const formData = await request.formData();
@@ -928,51 +929,18 @@ export default function StoreDesignPage() {
       </div>
 
       {/* Preview Modal */}
-      {previewTemplate && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setPreviewTemplate(null)}
-        >
-          <div 
-            className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-lg">
-                {templates.find(t => t.id === previewTemplate)?.name} Preview
-              </h3>
-              <button 
-                onClick={() => setPreviewTemplate(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6 overflow-auto max-h-[calc(90vh-80px)]">
-              <div className="text-center py-12 bg-gray-50 rounded-xl">
-                <div className="text-6xl mb-4">🏪</div>
-                <p className="text-gray-600">
-                  Apply this template to see it live on your store!
-                </p>
-                <Form method="post" className="mt-4">
-                  <input type="hidden" name="intent" value="select-template" />
-                  <input type="hidden" name="templateId" value={previewTemplate} />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
-                    onClick={() => {
-                      setSelectedTemplateId(previewTemplate);
-                      setTimeout(() => setPreviewTemplate(null), 100);
-                    }}
-                  >
-                    Apply {templates.find(t => t.id === previewTemplate)?.name}
-                  </button>
-                </Form>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <StoreTemplatePreviewModal
+        isOpen={!!previewTemplate}
+        onClose={() => setPreviewTemplate(null)}
+        templateId={previewTemplate || ''}
+        templateName={templates.find(t => t.id === previewTemplate)?.name || ''}
+        storeName={storeName}
+        onApply={() => {
+          if (previewTemplate) {
+            setSelectedTemplateId(previewTemplate);
+          }
+        }}
+      />
     </div>
   );
 }

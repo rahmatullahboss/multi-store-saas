@@ -32,8 +32,8 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch activity logs
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request);
-  const storeId = await getStoreId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });

@@ -34,7 +34,7 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch current store mode and plan
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
@@ -102,7 +102,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Handle mode switch with auto-save
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }

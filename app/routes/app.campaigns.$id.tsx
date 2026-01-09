@@ -39,8 +39,8 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   const campaignId = Number(params.id);
   
   if (!storeId) {
@@ -86,8 +86,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 // ACTION - Send campaign
 // ============================================================================
 export async function action({ request, context, params }: ActionFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   const campaignId = Number(params.id);
   
   if (!storeId) {

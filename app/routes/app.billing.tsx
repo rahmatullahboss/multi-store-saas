@@ -31,9 +31,13 @@ import {
   ArrowRight,
   Bot,
   Loader2,
-  Users
+  Users,
+  Download,
+  History
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { payments } from '@db/schema';
+import { desc } from 'drizzle-orm';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Billing & Plans - Multi-Store SaaS' }];
@@ -101,8 +105,8 @@ const PLAN_DISPLAY = {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
@@ -130,6 +134,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Get usage stats
   const usage = await getUsageStats(context.cloudflare.env.DB, storeId);
 
+  // Get payment history
+  const paymentHistory = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.storeId, storeId))
+    .orderBy(desc(payments.createdAt))
+    .limit(10);
+
   return json({
     storeName: store?.name || 'Your Store',
     planType,
@@ -138,6 +150,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     limits: PLAN_LIMITS[planType],
     isCustomerAiEnabled: store?.isCustomerAiEnabled || false,
     aiAgentRequestStatus: store?.aiAgentRequestStatus || 'none',
+    paymentHistory,
   });
 }
 
@@ -145,8 +158,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Request AI Agent Activation
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     return json({ error: 'Store not found' }, { status: 404 });
@@ -192,7 +205,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function BillingPage() {
-  const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled, aiAgentRequestStatus } = useLoaderData<typeof loader>();
+  const { storeName, planType, subscriptionStatus, usage, isCustomerAiEnabled, aiAgentRequestStatus, paymentHistory } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher<{ success?: boolean; aiAgentRequestStatus?: string; isCustomerAiEnabled?: boolean }>();
   const { t, lang } = useTranslation();
@@ -216,9 +229,9 @@ export default function BillingPage() {
       {/* Success Message */}
       {success && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-          <p className="text-green-800 font-semibold">🎉 Plan Upgraded Successfully!</p>
+          <p className="text-green-800 font-semibold">🎉 {lang === 'bn' ? 'প্ল্যান সফলভাবে আপগ্রেড হয়েছে!' : 'Plan Upgraded Successfully!'}</p>
           <p className="text-green-700 text-sm mt-1">
-            Your plan has been upgraded to {upgradedPlan}. Transaction ID: {trxID}
+            {lang === 'bn' ? `আপনার প্ল্যান ${upgradedPlan} এ আপগ্রেড হয়েছে। ট্রানজেকশন আইডি: ${trxID}` : `Your plan has been upgraded to ${upgradedPlan}. Transaction ID: ${trxID}`}
           </p>
         </div>
       )}
@@ -226,12 +239,12 @@ export default function BillingPage() {
       {/* Error Message */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-red-800 font-semibold">Payment Failed</p>
+          <p className="text-red-800 font-semibold">{lang === 'bn' ? 'পেমেন্ট ব্যর্থ' : 'Payment Failed'}</p>
           <p className="text-red-700 text-sm mt-1">
-            {error === 'payment_cancelled' && 'Payment was cancelled. Please try again.'}
-            {error === 'payment_failed' && 'Payment failed. Please try again or use a different method.'}
-            {error === 'payment_incomplete' && 'Payment could not be completed. Please try again.'}
-            {error === 'execution_failed' && 'There was an error processing your payment. Please contact support.'}
+            {error === 'payment_cancelled' && (lang === 'bn' ? 'পেমেন্ট বাতিল করা হয়েছে। আবার চেষ্টা করুন।' : 'Payment was cancelled. Please try again.')}
+            {error === 'payment_failed' && (lang === 'bn' ? 'পেমেন্ট ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Payment failed. Please try again or use a different method.')}
+            {error === 'payment_incomplete' && (lang === 'bn' ? 'পেমেন্ট সম্পন্ন হয়নি। আবার চেষ্টা করুন।' : 'Payment could not be completed. Please try again.')}
+            {error === 'execution_failed' && (lang === 'bn' ? 'পেমেন্ট প্রসেস করতে সমস্যা হয়েছে। সাপোর্টে যোগাযোগ করুন।' : 'There was an error processing your payment. Please contact support.')}
           </p>
         </div>
       )}
@@ -251,7 +264,7 @@ export default function BillingPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-gray-900">{currentPlan.name} Plan</h2>
+                <h2 className="text-xl font-bold text-gray-900">{currentPlan.name} {lang === 'bn' ? 'প্ল্যান' : 'Plan'}</h2>
                 <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                   subscriptionStatus === 'active' 
                     ? 'bg-green-100 text-green-700'
@@ -259,7 +272,7 @@ export default function BillingPage() {
                     ? 'bg-yellow-100 text-yellow-700'
                     : 'bg-red-100 text-red-700'
                 }`}>
-                  {subscriptionStatus === 'active' ? 'Active' : subscriptionStatus === 'past_due' ? 'Past Due' : 'Canceled'}
+                  {subscriptionStatus === 'active' ? (lang === 'bn' ? 'সক্রিয়' : 'Active') : subscriptionStatus === 'past_due' ? (lang === 'bn' ? 'বকেয়া' : 'Past Due') : (lang === 'bn' ? 'বাতিল' : 'Canceled')}
                 </span>
               </div>
               <p className="text-gray-500">{currentPlan.description}</p>
@@ -283,13 +296,13 @@ export default function BillingPage() {
               <ShoppingCart className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Monthly Orders</h3>
-              <p className="text-sm text-gray-500">Resets on the 1st of each month</p>
+              <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'মাসিক অর্ডার' : 'Monthly Orders'}</h3>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'প্রতি মাসের ১ তারিখে রিসেট হয়' : 'Resets on the 1st of each month'}</p>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Usage</span>
+              <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
               <span className="font-medium text-gray-900">
                 {usage.orders.current.toLocaleString()} / {usage.orders.limit === Infinity ? '∞' : usage.orders.limit.toLocaleString()}
               </span>
@@ -306,7 +319,7 @@ export default function BillingPage() {
             </div>
             {usage.orders.percentage >= 80 && planType === 'free' && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ You're approaching your monthly limit. Upgrade to continue accepting orders.
+                ⚠️ {lang === 'bn' ? 'আপনি মাসিক লিমিটের কাছে পৌঁছে যাচ্ছেন। অর্ডার নিতে আপগ্রেড করুন।' : "You're approaching your monthly limit. Upgrade to continue accepting orders."}
               </p>
             )}
           </div>
@@ -319,13 +332,13 @@ export default function BillingPage() {
               <Package className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Active Products</h3>
-              <p className="text-sm text-gray-500">Published products in your store</p>
+              <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'সক্রিয় প্রোডাক্ট' : 'Active Products'}</h3>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরে প্রকাশিত প্রোডাক্ট' : 'Published products in your store'}</p>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Usage</span>
+              <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
               <span className="font-medium text-gray-900">
                 {usage.products.current.toLocaleString()} / {usage.products.limit === Infinity ? '∞' : usage.products.limit.toLocaleString()}
               </span>
@@ -342,7 +355,7 @@ export default function BillingPage() {
             </div>
             {planType === 'free' && usage.products.current >= 1 && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ Free plan is limited to 10 products. Upgrade to add more.
+                ⚠️ {lang === 'bn' ? 'ফ্রি প্ল্যানে ১০টি প্রোডাক্ট সীমিত। আরো যোগ করতে আপগ্রেড করুন।' : 'Free plan is limited to 10 products. Upgrade to add more.'}
               </p>
             )}
           </div>
@@ -355,13 +368,13 @@ export default function BillingPage() {
               <Users className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Monthly Visitors</h3>
-              <p className="text-sm text-gray-500">Unique visitors this month</p>
+              <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'মাসিক ভিজিটর' : 'Monthly Visitors'}</h3>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'এই মাসে ইউনিক ভিজিটর' : 'Unique visitors this month'}</p>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Usage</span>
+              <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
               <span className="font-medium text-gray-900">
                 {usage.visitors.current.toLocaleString()} / {usage.visitors.limit === Infinity ? '∞' : usage.visitors.limit.toLocaleString()}
               </span>
@@ -378,7 +391,7 @@ export default function BillingPage() {
             </div>
             {usage.visitors.percentage >= 80 && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ High traffic! Upgrade to handle more visitors.
+                ⚠️ {lang === 'bn' ? 'উচ্চ ট্রাফিক! আরো ভিজিটর হ্যান্ডেল করতে আপগ্রেড করুন।' : 'High traffic! Upgrade to handle more visitors.'}
               </p>
             )}
           </div>
@@ -511,9 +524,9 @@ export default function BillingPage() {
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold">Ready to Grow?</h3>
+              <h3 className="text-lg font-bold">{lang === 'bn' ? 'বাড়তে প্রস্তুত?' : 'Ready to Grow?'}</h3>
                 <p className="text-emerald-100">
-                  Upgrade to Starter for full store access, 50 products, and 500 orders/month.
+                  {lang === 'bn' ? 'ফুল স্টোর অ্যাক্সেস, ৫০টি প্রোডাক্ট এবং ৫০০ অর্ডার/মাসের জন্য স্টার্টারে আপগ্রেড করুন।' : 'Upgrade to Starter for full store access, 50 products, and 500 orders/month.'}
                 </p>
               </div>
             </div>
@@ -521,7 +534,7 @@ export default function BillingPage() {
               to="/app/upgrade"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-600 font-semibold rounded-lg hover:bg-emerald-50 transition"
             >
-              Upgrade Now
+              {lang === 'bn' ? 'এখনই আপগ্রেড করুন' : 'Upgrade Now'}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -530,7 +543,7 @@ export default function BillingPage() {
 
       {/* Pricing Table */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Compare Plans</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">{lang === 'bn' ? 'প্ল্যান তুলনা করুন' : 'Compare Plans'}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(Object.entries(PLAN_DISPLAY) as [PlanType, typeof PLAN_DISPLAY['free']][]).map(([key, plan]) => {
             const isCurrentPlan = key === planType;

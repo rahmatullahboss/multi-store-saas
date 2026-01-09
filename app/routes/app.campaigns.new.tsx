@@ -30,8 +30,8 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request);
-  const storeId = await getStoreId(request);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
@@ -59,8 +59,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
-  const storeId = await getStoreId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });

@@ -32,7 +32,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // LOADER - Fetch product by ID
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw redirect('/auth/login');
   }
@@ -67,7 +67,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ACTION - Update or Delete product
 // ============================================================================
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json({ errors: { form: 'Unauthorized' } }, { status: 401 });
   }
@@ -168,7 +168,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   // Log stock change if inventory changed
   if (previousInventory !== newInventory) {
-    const userId = await getUserId(request);
+    const userId = await getUserId(request, context.cloudflare.env);
     await logActivity(db, {
       storeId,
       userId,

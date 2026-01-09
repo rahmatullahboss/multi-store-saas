@@ -44,7 +44,7 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  await requireSuperAdmin(request, db);
+  await requireSuperAdmin(request, context.cloudflare.env, db);
   return json({});
 }
 
