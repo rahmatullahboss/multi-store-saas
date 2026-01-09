@@ -946,7 +946,7 @@ export default function LiveEditorPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition ${
+                className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 font-medium rounded-lg transition ${
                   hasChanges 
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
                     : 'bg-gray-200 text-gray-600'
@@ -959,7 +959,9 @@ export default function LiveEditorPage() {
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                {showSuccess ? (language === 'bn' ? 'সেভড!' : 'Saved!') : (language === 'bn' ? 'সেভ করুন' : 'Save')}
+                <span className="hidden sm:inline">
+                  {showSuccess ? (language === 'bn' ? 'সেভড!' : 'Saved!') : (language === 'bn' ? 'সেভ করুন' : 'Save')}
+                </span>
                 {hasChanges && !showSuccess && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
               </button>
             </Form>
