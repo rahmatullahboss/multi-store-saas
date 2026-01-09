@@ -523,6 +523,62 @@ Generate a complete landing page configuration JSON:`;
 }
 
 // ============================================================================
+// ELEMENTOR BUILDER GENERATION
+// ============================================================================
+export const ElementorPageSchema = z.object({
+  html: z.string(),
+  css: z.string().optional(),
+});
+
+export type ElementorPageResult = z.infer<typeof ElementorPageSchema>;
+
+export async function generateElementorPage(
+  apiKey: string,
+  prompt: string
+): Promise<ElementorPageResult> {
+  const systemPrompt = `You are an elite landing page designer and conversion expert.
+Your goal is to generate a world-class, high-converting landing page for the Bangladesh e-commerce market using HTML and Tailwind CSS.
+
+### Design Principles:
+- Use Tailwind CSS version 2.2 utility classes only.
+- Direct rendering: Do not use React/Vue, just raw HTML strings.
+- Mobile First: Ensure the layout looks stunning on mobile devices.
+- Style: Premium, clean, and modern. Use gradients, rounded-3xl corners, and glassmorphism where appropriate.
+- Font: Use 'Hind Siliguri' for Bengali text (it's already available in the canvas).
+- Language: If the prompt is in Bengali or mentions a Bangladeshi context, use Persuasive Bengali for all headers and copy.
+
+### Content Strategy:
+1. Hero Section: Catchy headline, benefit-driven subheadline, and a prominent CTA button.
+2. Trust Features: Include 3-4 trust badges (Fast Delivery, COD, etc.) with icons or emojis.
+3. Product Showcase: Describe the product features and benefits clearly.
+4. Social Proof: Include realistic testimonials with Bengali names (e.g., সাদমান কবির, তানজিনা আক্তার).
+5. Professional Order Form: Include a section with a form to "Order Now".
+
+### CSS Rule:
+- Return any custom CSS needed (e.g., animations or specific fonts) in the "css" field.
+- Most styling should be done via Tailwind classes.
+
+### Output Format:
+Your response MUST be valid JSON:
+{
+  "html": "<section class='...'>...</section>",
+  "css": ".animation { ... }"
+}
+
+Important: Return ONLY the JSON. No conversational text.`;
+
+  const userPrompt = `Generate a high-converting landing page for: "${prompt}"
+  
+Include sections: Hero, Trust Badges, Features, Feedbacks, and Order Form.
+Tone: Professional and Trustworthy.
+Language: Bengali (if applicable).`;
+
+  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  const parsed = extractJSON(response);
+  return ElementorPageSchema.parse(parsed);
+}
+
+// ============================================================================
 // EXPORT: AI Service Factory
 // ============================================================================
 export function createAIService(apiKey: string) {
@@ -548,5 +604,8 @@ export function createAIService(apiKey: string) {
     
     quickEdit: (currentText: string, prompt: string) =>
       quickEdit(apiKey, currentText, prompt),
+    
+    generateElementorPage: (prompt: string) =>
+      generateElementorPage(apiKey, prompt),
   };
 }

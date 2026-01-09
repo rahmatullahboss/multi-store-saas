@@ -21,7 +21,7 @@ import { createAIService } from '~/services/ai.server';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 
 // Action types
-type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'GENERATE_FULL_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT';
+type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'GENERATE_FULL_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT' | 'GENERATE_ELEMENTOR_PAGE';
 
 interface ActionPayload {
   action: ActionType;
@@ -40,6 +40,8 @@ interface ActionPayload {
   fieldType?: string;
   currentText?: string;
   keywords?: string;
+  // ELEMENTOR
+  prompt?: string;
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -206,6 +208,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
           payload.currentText || '',
           payload.keywords
         );
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        return json({ success: true, data: result });
+      }
+
+      case 'GENERATE_ELEMENTOR_PAGE': {
+        if (!payload.prompt) {
+          return json({ error: 'AI Prompt required' }, { status: 400 });
+        }
+
+        const result = await ai.generateElementorPage(payload.prompt);
         await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }

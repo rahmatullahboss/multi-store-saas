@@ -20,7 +20,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, Code2
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
