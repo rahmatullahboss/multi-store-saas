@@ -90,7 +90,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
     .limit(50);
 
-  const landingConfig = parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;
+  // Load draft config if exists, otherwise fall back to published config
+  const draftConfig = parseLandingConfig(store.landingConfigDraft as string | null);
+  const publishedConfig = parseLandingConfig(store.landingConfig as string | null);
+  const landingConfig = draftConfig || publishedConfig || defaultLandingConfig;
+  
+  // Check if there are unpublished changes
+  const hasUnpublishedChanges = !!draftConfig && JSON.stringify(draftConfig) !== JSON.stringify(publishedConfig);
+  
   const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
 
   return json({
@@ -101,6 +108,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       mode: store.mode || 'landing',
       featuredProductId: store.featuredProductId,
       landingConfig,
+      hasUnpublishedChanges,
     },
     products: storeProducts,
     saasDomain,
@@ -118,6 +126,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const db = drizzle(context.cloudflare.env.DB);
+  
+  // Check intent: 'save_draft' (auto-save) or 'publish' (go live)
+  const intent = formData.get('intent') as string || 'save_draft';
 
   function safeJSONParse<T>(str: string | null, fallback: T): T {
     if (!str) return fallback;
@@ -231,17 +242,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
     landingLanguage,
   };
 
-  await db
-    .update(stores)
-    .set({
-      mode: storeMode,
-      featuredProductId: featuredProductId ? parseInt(featuredProductId) : null,
-      landingConfig: JSON.stringify(newConfig),
-      updatedAt: new Date(),
-    })
-    .where(eq(stores.id, storeId));
+  const configJson = JSON.stringify(newConfig);
 
-  return json({ success: true, message: 'Saved!' });
+  if (intent === 'publish') {
+    // PUBLISH: Save to both landingConfigDraft AND landingConfig (go live)
+    await db
+      .update(stores)
+      .set({
+        mode: storeMode,
+        featuredProductId: featuredProductId ? parseInt(featuredProductId) : null,
+        landingConfig: configJson,
+        landingConfigDraft: configJson,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+
+    return json({ success: true, message: 'Published!', published: true });
+  } else {
+    // SAVE DRAFT: Only save to landingConfigDraft (not visible to public)
+    await db
+      .update(stores)
+      .set({
+        mode: storeMode,
+        featuredProductId: featuredProductId ? parseInt(featuredProductId) : null,
+        landingConfigDraft: configJson,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+
+    return json({ success: true, message: 'Draft saved', published: false });
+  }
 }
 
 // ============================================================================
@@ -297,6 +327,13 @@ export default function LiveEditorPage() {
   
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Auto-save fetcher
+  const autoSaveFetcher = useFetcher<{ success?: boolean; message?: string; published?: boolean }>();
+  const isAutoSaving = autoSaveFetcher.state !== 'idle';
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(store.hasUnpublishedChanges || false);
+
 
   // State for landing config
   const [templateId, setTemplateId] = useState(store.landingConfig.templateId || 'modern-dark');
@@ -546,7 +583,91 @@ export default function LiveEditorPage() {
       return;
     }
     setHasChanges(true);
+    setHasUnpublishedChanges(true);
   }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage]);
+
+  // ============================================================================
+  // DEBOUNCED AUTO-SAVE (2 seconds after last change)
+  // ============================================================================
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    // Don't auto-save on initial load
+    if (initialLoadRef.current) return;
+    if (!hasChanges) return;
+    
+    // Clear previous timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    // Set new timeout for auto-save
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      setAutoSaveStatus('saving');
+      
+      const formData = new FormData();
+      formData.append('intent', 'save_draft');
+      formData.append('templateId', templateId);
+      formData.append('featuredProductId', featuredProductId);
+      formData.append('headline', headline);
+      formData.append('subheadline', subheadline);
+      formData.append('ctaText', ctaText);
+      formData.append('ctaSubtext', ctaSubtext);
+      formData.append('urgencyText', urgencyText);
+      formData.append('videoUrl', videoUrl);
+      formData.append('guaranteeText', guaranteeText);
+      formData.append('sectionOrder', JSON.stringify(sectionOrder));
+      formData.append('hiddenSections', JSON.stringify(hiddenSections));
+      formData.append('whatsappEnabled', whatsappEnabled.toString());
+      formData.append('whatsappNumber', whatsappNumber);
+      formData.append('whatsappMessage', whatsappMessage);
+      formData.append('callEnabled', callEnabled.toString());
+      formData.append('callNumber', callNumber);
+      formData.append('testimonials', JSON.stringify(testimonials));
+      formData.append('faq', JSON.stringify(faq));
+      formData.append('features', JSON.stringify(features));
+      formData.append('countdownEnabled', countdownEnabled.toString());
+      formData.append('countdownEndTime', countdownEndTime);
+      formData.append('showStockCounter', showStockCounter.toString());
+      formData.append('lowStockThreshold', lowStockThreshold.toString());
+      formData.append('showSocialProof', showSocialProof.toString());
+      formData.append('socialProofInterval', socialProofInterval.toString());
+      formData.append('primaryColor', primaryColor);
+      formData.append('accentColor', accentColor);
+      formData.append('backgroundColor', backgroundColor);
+      formData.append('textColor', textColor);
+      formData.append('borderColor', borderColor);
+      formData.append('typography', JSON.stringify(typography));
+      formData.append('storeMode', storeMode);
+      formData.append('galleryImages', JSON.stringify(galleryImages));
+      formData.append('benefits', JSON.stringify(benefits));
+      formData.append('comparison', JSON.stringify(comparison));
+      formData.append('socialProof', JSON.stringify(socialProof));
+      formData.append('orderFormVariant', orderFormVariant);
+      formData.append('customCSS', customCSS);
+      formData.append('fontFamily', fontFamily);
+      formData.append('landingLanguage', landingLanguage);
+      
+      autoSaveFetcher.submit(formData, { method: 'post' });
+    }, 2000); // 2 seconds debounce
+    
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, autoSaveFetcher]);
+
+  // Handle auto-save response
+  useEffect(() => {
+    if (autoSaveFetcher.data?.success && !autoSaveFetcher.data?.published) {
+      setAutoSaveStatus('saved');
+      setHasChanges(false);
+      // Reset status after 3 seconds
+      const timer = setTimeout(() => setAutoSaveStatus('idle'), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [autoSaveFetcher.data]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -560,11 +681,14 @@ export default function LiveEditorPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasChanges]);
 
-  // Show success message
+  // Show success message (for publish action)
   useEffect(() => {
     if (actionData && 'success' in actionData && actionData.success) {
       setShowSuccess(true);
       setHasChanges(false);
+      if ('published' in actionData && actionData.published) {
+        setHasUnpublishedChanges(false);
+      }
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
     }
@@ -886,7 +1010,27 @@ export default function LiveEditorPage() {
               <ExternalLink className="w-5 h-5" />
             </a>
             
-            {/* Save Button */}
+            {/* Auto-Save Status Indicator */}
+            <div className="hidden sm:flex items-center gap-2 text-sm">
+              {isAutoSaving || autoSaveStatus === 'saving' ? (
+                <span className="flex items-center gap-1.5 text-gray-500">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  {language === 'bn' ? 'সেভ হচ্ছে...' : 'Saving...'}
+                </span>
+              ) : autoSaveStatus === 'saved' ? (
+                <span className="flex items-center gap-1.5 text-emerald-600">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  {language === 'bn' ? 'ড্রাফট সেভড' : 'Draft saved'}
+                </span>
+              ) : hasUnpublishedChanges ? (
+                <span className="flex items-center gap-1.5 text-amber-600">
+                  <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                  {language === 'bn' ? 'অপ্রকাশিত' : 'Unpublished'}
+                </span>
+              ) : null}
+            </div>
+            
+            {/* Publish Button */}
             <Form 
               method="post"
               onSubmit={(e) => {
@@ -895,6 +1039,7 @@ export default function LiveEditorPage() {
                 }
               }}
             >
+              <input type="hidden" name="intent" value="publish" />
               <input type="hidden" name="templateId" value={templateId} />
               <input type="hidden" name="featuredProductId" value={featuredProductId} />
               <input type="hidden" name="headline" value={headline} />
@@ -922,35 +1067,32 @@ export default function LiveEditorPage() {
               <input type="hidden" name="socialProofInterval" value={socialProofInterval.toString()} />
               <input type="hidden" name="primaryColor" value={primaryColor} />
               <input type="hidden" name="accentColor" value={accentColor} />
-              {/* Extended colors (Phase 1) */}
               <input type="hidden" name="backgroundColor" value={backgroundColor} />
               <input type="hidden" name="textColor" value={textColor} />
               <input type="hidden" name="borderColor" value={borderColor} />
-              {/* Typography (Phase 1) */}
               <input type="hidden" name="typography" value={JSON.stringify(typography)} />
               <input type="hidden" name="storeMode" value={storeMode} />
-              {/* New sections */}
               <input type="hidden" name="galleryImages" value={JSON.stringify(galleryImages)} />
               <input type="hidden" name="benefits" value={JSON.stringify(benefits)} />
               <input type="hidden" name="comparison" value={JSON.stringify(comparison)} />
               <input type="hidden" name="socialProof" value={JSON.stringify(socialProof)} />
-              {/* Order form layout */}
               <input type="hidden" name="orderFormVariant" value={orderFormVariant} />
-              {/* Custom CSS */}
               <input type="hidden" name="customCSS" value={customCSS} />
-              {/* Font Family */}
               <input type="hidden" name="fontFamily" value={fontFamily} />
-              {/* Landing Language */}
               <input type="hidden" name="landingLanguage" value={landingLanguage} />
               
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !hasUnpublishedChanges}
                 className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 font-medium rounded-lg transition ${
-                  hasChanges 
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                    : 'bg-gray-200 text-gray-600'
+                  hasUnpublishedChanges 
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/20' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 } disabled:opacity-50`}
+                title={hasUnpublishedChanges 
+                  ? (language === 'bn' ? 'লাইভ সাইটে প্রকাশ করুন' : 'Publish to live site')
+                  : (language === 'bn' ? 'সব পরিবর্তন প্রকাশিত' : 'All changes published')
+                }
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -960,9 +1102,11 @@ export default function LiveEditorPage() {
                   <Save className="w-4 h-4" />
                 )}
                 <span className="hidden sm:inline">
-                  {showSuccess ? (language === 'bn' ? 'সেভড!' : 'Saved!') : (language === 'bn' ? 'সেভ করুন' : 'Save')}
+                  {showSuccess 
+                    ? (language === 'bn' ? 'প্রকাশিত!' : 'Published!') 
+                    : (language === 'bn' ? 'প্রকাশ করুন' : 'Publish')
+                  }
                 </span>
-                {hasChanges && !showSuccess && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
               </button>
             </Form>
           </div>

@@ -39,6 +39,8 @@ export const stores = sqliteTable('stores', {
   featuredProductId: integer('featured_product_id'),
   // Landing page config: { headline, subheadline, videoUrl, ctaText, testimonials }
   landingConfig: text('landing_config'),
+  // Draft landing config (auto-saved, not visible to public until published)
+  landingConfigDraft: text('landing_config_draft'),
   // Full store theme: { primaryColor, accentColor, bannerUrl, collections[] }
   themeConfig: text('theme_config'),
   // Business info: { phone, email, address, city, country }
