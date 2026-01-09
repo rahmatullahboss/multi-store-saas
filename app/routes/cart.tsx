@@ -15,8 +15,11 @@ import { parseThemeConfig, parseSocialLinks, type ThemeConfig, type SocialLinks 
 import { useTranslation } from '~/contexts/LanguageContext';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
+import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
+import { BDShopPageWrapper, BDSHOP_THEME } from '~/components/store-layouts/BDShopPageWrapper';
+import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from '~/components/store-layouts/GhorerBazarPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { ShoppingBag, Trash2, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const { store, storeId, cloudflare } = context;
@@ -108,7 +111,24 @@ export default function Cart() {
   const { t } = useTranslation();
   
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
+  const isDaraz = storeTemplateId === 'daraz';
+  const isBDShop = storeTemplateId === 'bdshop';
+  const isGhorerBazar = storeTemplateId === 'ghorer-bazar';
   
+  // Template-aware styling
+  const cardBg = isDaraz 
+    ? 'bg-white border-gray-200' 
+    : isDarkTheme 
+      ? 'bg-gray-800 border-gray-700' 
+      : 'bg-white border-gray-200';
+  const textPrimary = isDaraz ? 'text-gray-800' : isDarkTheme ? 'text-white' : 'text-gray-900';
+  const textMuted = isDaraz ? 'text-gray-500' : isDarkTheme ? 'text-gray-400' : 'text-gray-600';
+  const borderColor = isDaraz ? 'border-gray-200' : isDarkTheme ? 'border-gray-700' : 'border-gray-200';
+  const inputBg = isDaraz ? 'bg-white border-gray-300' : isDarkTheme ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300';
+  
+  // Use correct primary color based on template
+  const primaryColor = isDaraz ? DARAZ_THEME.orange : theme.primary;
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -116,46 +136,42 @@ export default function Cart() {
     }).format(price);
   };
 
-  // Template-aware styling
-  const cardBg = isDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
-  const textPrimary = isDarkTheme ? 'text-white' : 'text-gray-900';
-  const textMuted = isDarkTheme ? 'text-gray-400' : 'text-gray-600';
-  const borderColor = isDarkTheme ? 'border-gray-700' : 'border-gray-200';
-  const inputBg = isDarkTheme ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300';
-
-  return (
-    <StorePageWrapper
-      storeName={storeName}
-      storeId={storeId}
-      logo={logo}
-      templateId={storeTemplateId}
-      theme={theme}
-      currency={currency}
-      socialLinks={socialLinks}
-      businessInfo={businessInfo}
-    >
+  // Cart content that will be wrapped by the appropriate wrapper
+  const cartContent = (
+    <>
+      {/* Breadcrumb */}
+      <nav className="border-b border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-2 md:py-3">
+          <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm">
+            <Link to="/" className="text-gray-500 hover:text-orange-500 transition">Home</Link>
+            <ChevronRight className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
+            <span className={textPrimary}>{t('cart')}</span>
+          </div>
+        </div>
+      </nav>
+      
       {/* Cart Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12">
-        <h1 className={`text-2xl sm:text-3xl font-bold ${textPrimary} mb-8`}>{t('yourCart')}</h1>
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 lg:py-12">
+        <h1 className={`text-xl md:text-2xl lg:text-3xl font-bold ${textPrimary} mb-4 md:mb-8`}>{t('yourCart')}</h1>
         
         {/* Cart items will be managed client-side and rendered here */}
-        <div id="cart-container" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div id="cart-container" className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4" id="cart-items">
+          <div className="lg:col-span-2 space-y-3 md:space-y-4" id="cart-items">
             {/* Empty Cart Placeholder - items loaded client-side from localStorage */}
-            <div className={`rounded-xl border ${cardBg} p-6 sm:p-8 text-center`}>
+            <div className={`rounded-lg md:rounded-xl border ${cardBg} p-4 md:p-6 lg:p-8 text-center`}>
               <div 
-                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
-                style={{ backgroundColor: `${theme.primary}20` }}
+                className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full flex items-center justify-center mb-3 md:mb-4"
+                style={{ backgroundColor: `${primaryColor}20` }}
               >
-                <ShoppingBag className="w-8 h-8" style={{ color: theme.primary }} />
+                <ShoppingBag className="w-6 h-6 md:w-8 md:h-8" style={{ color: primaryColor }} />
               </div>
-              <p className={`text-lg font-medium ${textPrimary} mb-2`}>{t('cartEmpty')}</p>
-              <p className={`${textMuted} mb-6`}>Add some products to get started!</p>
+              <p className={`text-base md:text-lg font-medium ${textPrimary} mb-2`}>{t('cartEmpty')}</p>
+              <p className={`${textMuted} text-sm md:text-base mb-4 md:mb-6`}>Add some products to get started!</p>
               <Link 
                 to="/" 
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90"
-                style={{ backgroundColor: theme.primary }}
+                className="inline-flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium text-white text-sm md:text-base transition hover:opacity-90"
+                style={{ backgroundColor: primaryColor }}
               >
                 {t('continueShopping')}
               </Link>
@@ -164,10 +180,10 @@ export default function Cart() {
           
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className={`rounded-xl border ${cardBg} p-6 sticky top-24`}>
-              <h2 className={`text-lg font-semibold ${textPrimary} mb-4`}>{t('orderSummary')}</h2>
+            <div className={`rounded-lg md:rounded-xl border ${cardBg} p-4 md:p-6 sticky top-20 md:top-24`}>
+              <h2 className={`text-base md:text-lg font-semibold ${textPrimary} mb-3 md:mb-4`}>{t('orderSummary')}</h2>
               
-              <div className="space-y-3 text-sm">
+              <div className="space-y-2 md:space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className={textMuted}>{t('subtotal')}</span>
                   <span className={`font-medium ${textPrimary}`} id="cart-subtotal">{formatPrice(0)}</span>
@@ -176,16 +192,16 @@ export default function Cart() {
                   <span className={textMuted}>{t('shipping')}</span>
                   <span className={textMuted}>Calculated at checkout</span>
                 </div>
-                <div className={`border-t ${borderColor} pt-3 flex justify-between`}>
+                <div className={`border-t ${borderColor} pt-2 md:pt-3 flex justify-between`}>
                   <span className={`font-semibold ${textPrimary}`}>{t('total')}</span>
-                  <span className={`font-bold text-lg`} style={{ color: theme.primary }} id="cart-total">{formatPrice(0)}</span>
+                  <span className={`font-bold text-base md:text-lg`} style={{ color: primaryColor }} id="cart-total">{formatPrice(0)}</span>
                 </div>
               </div>
               
               <Link 
                 to="/checkout"
-                className="w-full mt-6 inline-flex items-center justify-center gap-2 px-6 py-4 rounded-lg font-bold text-white transition hover:opacity-90"
-                style={{ backgroundColor: theme.primary }}
+                className="w-full mt-4 md:mt-6 inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 rounded-lg font-bold text-white text-sm md:text-base transition hover:opacity-90"
+                style={{ backgroundColor: primaryColor }}
                 onClick={() => {
                   // Fire InitiateCheckout tracking event (FB Pixel + GA4)
                   // Note: value and numItems computed client-side from localStorage
@@ -197,7 +213,7 @@ export default function Cart() {
               </Link>
               
               {/* Trust Badges */}
-              <div className={`mt-6 pt-4 border-t ${borderColor} space-y-2`}>
+              <div className={`mt-4 md:mt-6 pt-3 md:pt-4 border-t ${borderColor} space-y-1.5 md:space-y-2`}>
                 <p className={`text-xs ${textMuted} flex items-center gap-2`}>
                   🔒 Secure checkout
                 </p>
@@ -227,6 +243,73 @@ export default function Cart() {
           // More cart rendering logic would go here
         })();
       `}} />
+    </>
+  );
+
+  // Render with appropriate wrapper based on template
+  if (isBDShop) {
+    return (
+      <BDShopPageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        pageTitle={t('cart')}
+        showBreadcrumbBanner={true}
+        breadcrumb={[{ label: t('cart') }]}
+      >
+        {cartContent}
+      </BDShopPageWrapper>
+    );
+  }
+
+  if (isGhorerBazar) {
+    return (
+      <GhorerBazarPageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        pageTitle={t('cart')}
+        showBreadcrumbBanner={true}
+        breadcrumb={[{ label: t('cart') }]}
+      >
+        {cartContent}
+      </GhorerBazarPageWrapper>
+    );
+  }
+
+  if (isDaraz) {
+    return (
+      <DarazPageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+      >
+        {cartContent}
+      </DarazPageWrapper>
+    );
+  }
+
+  return (
+    <StorePageWrapper
+      storeName={storeName}
+      storeId={storeId}
+      logo={logo}
+      templateId={storeTemplateId}
+      theme={theme}
+      currency={currency}
+      socialLinks={socialLinks}
+      businessInfo={businessInfo}
+    >
+      {cartContent}
     </StorePageWrapper>
   );
 }

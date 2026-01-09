@@ -123,6 +123,39 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#111827',
     footerText: '#ffffff',
   },
+  'daraz': {
+    primary: '#F85606',
+    accent: '#F85606',
+    background: '#F5F5F5',
+    text: '#424242',
+    muted: '#999999',
+    cardBg: '#FFFFFF',
+    headerBg: '#F85606',
+    footerBg: '#FAFAFA',
+    footerText: '#424242',
+  },
+  'bdshop': {
+    primary: '#1E3A8A',
+    accent: '#F97316',
+    background: '#F9FAFB',
+    text: '#424242',
+    muted: '#6B7280',
+    cardBg: '#FFFFFF',
+    headerBg: '#FFFFFF',
+    footerBg: '#0F172A',
+    footerText: '#FFFFFF',
+  },
+  'ghorer-bazar': {
+    primary: '#F28C38',
+    accent: '#F28C38',
+    background: '#F5F5F5',
+    text: '#212121',
+    muted: '#757575',
+    cardBg: '#FFFFFF',
+    headerBg: '#F28C38',
+    footerBg: '#F5F5F5',
+    footerText: '#424242',
+  },
 };
 
 // ============================================================================
@@ -132,6 +165,9 @@ import { LuxeBoutiqueTemplate } from '~/components/store-templates/LuxeBoutique'
 import { TechModernTemplate } from '~/components/store-templates/TechModern';
 import { ArtisanMarketTemplate } from '~/components/store-templates/ArtisanMarket';
 import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTemplate';
+import { DarazTemplate } from '~/components/store-templates/DarazTemplate';
+import { BDShopTemplate } from '~/components/store-templates/BDShopTemplate';
+import { GhorerBazarTemplate } from '~/components/store-templates/GhorerBazarTemplate';
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -188,6 +224,45 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: ModernPremiumTemplate,
+  },
+  {
+    id: 'daraz',
+    name: 'Daraz Style',
+    description: 'Daraz Bangladesh-inspired marketplace design with orange theme, category sidebar, flash sales, and modern grid layout.',
+    thumbnail: '/templates/daraz.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['daraz'],
+    fonts: {
+      heading: 'Roboto',
+      body: 'Roboto',
+    },
+    component: DarazTemplate,
+  },
+  {
+    id: 'bdshop',
+    name: 'BDShop Style',
+    description: 'BDShop-inspired modern electronics store template with navy blue theme, mobile-first design, top deals carousel, FAQ section, and dark footer.',
+    thumbnail: '/templates/bdshop.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['bdshop'],
+    fonts: {
+      heading: 'Inter',
+      body: 'Inter',
+    },
+    component: BDShopTemplate,
+  },
+  {
+    id: 'ghorer-bazar',
+    name: 'Ghorer Bazar',
+    description: 'Ghorer Bazar-inspired design with orange theme, clean product cards, Quick Add buttons, and COD-focused checkout flow.',
+    thumbnail: '/templates/ghorer-bazar.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['ghorer-bazar'],
+    fonts: {
+      heading: 'Noto Sans Bengali',
+      body: 'Noto Sans Bengali',
+    },
+    component: GhorerBazarTemplate,
   },
 ];
 
