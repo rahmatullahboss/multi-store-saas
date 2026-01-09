@@ -76,10 +76,36 @@ export default function PageBuilderRoute() {
   const [isCreating, setIsCreating] = useState(false);
   const navigation = useNavigation();
 
-  // If pageId is selected, show the editor
+  // If pageId is selected, show the editor in FULL SCREEN mode
   if (pageId) {
     return (
-      <div className="flex flex-col h-[calc(100vh-130px)] bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden">
+        {/* Full screen header/nav specifically for being in "Editor Mode" */}
+        <div className="bg-gray-900 px-4 py-2 flex items-center justify-between">
+           <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setSearchParams({})}
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 hover:text-white rounded-lg transition text-xs font-bold border border-gray-700"
+              >
+                 ← EXIT EDITOR
+              </button>
+              <div className="h-4 w-[1px] bg-gray-700" />
+              <div className="flex flex-col">
+                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest leading-none mb-1">Editing Page</span>
+                 <h2 className="text-white text-xs font-bold leading-none truncate max-w-[200px]">
+                    {pages.find(p => p.id.toString() === pageId)?.name || 'Loading...'}
+                 </h2>
+              </div>
+           </div>
+           
+           <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full">
+                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                 <span className="text-[10px] text-gray-400 font-bold uppercase">Auto-save Active</span>
+              </div>
+           </div>
+        </div>
+
         <div className="flex-1 relative">
           {typeof document !== 'undefined' ? (
             <Suspense fallback={
@@ -88,7 +114,7 @@ export default function PageBuilderRoute() {
                     <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
                        <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                     </div>
-                    <p className="text-gray-400 font-medium">Booting Canvas...</p>
+                    <p className="text-gray-400 font-medium">Booting Elementor Canvas...</p>
                  </div>
               </div>
             }>
