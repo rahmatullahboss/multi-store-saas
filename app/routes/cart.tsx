@@ -16,6 +16,8 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
+import { BDShopPageWrapper, BDSHOP_THEME } from '~/components/store-layouts/BDShopPageWrapper';
+import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from '~/components/store-layouts/GhorerBazarPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 
@@ -110,6 +112,8 @@ export default function Cart() {
   
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
   const isDaraz = storeTemplateId === 'daraz';
+  const isBDShop = storeTemplateId === 'bdshop';
+  const isGhorerBazar = storeTemplateId === 'ghorer-bazar';
   
   // Template-aware styling
   const cardBg = isDaraz 
@@ -243,6 +247,42 @@ export default function Cart() {
   );
 
   // Render with appropriate wrapper based on template
+  if (isBDShop) {
+    return (
+      <BDShopPageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        pageTitle={t('cart')}
+        showBreadcrumbBanner={true}
+        breadcrumb={[{ label: t('cart') }]}
+      >
+        {cartContent}
+      </BDShopPageWrapper>
+    );
+  }
+
+  if (isGhorerBazar) {
+    return (
+      <GhorerBazarPageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        pageTitle={t('cart')}
+        showBreadcrumbBanner={true}
+        breadcrumb={[{ label: t('cart') }]}
+      >
+        {cartContent}
+      </GhorerBazarPageWrapper>
+    );
+  }
+
   if (isDaraz) {
     return (
       <DarazPageWrapper

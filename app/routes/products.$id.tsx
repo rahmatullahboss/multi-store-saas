@@ -22,6 +22,8 @@ import { useState, useEffect, useRef } from 'react';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
+import { BDShopProductDetail } from '~/components/store-layouts/BDShopProductDetail';
+import { GhorerBazarProductDetail } from '~/components/store-layouts/GhorerBazarProductDetail';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -406,6 +408,8 @@ export default function ProductDetail() {
   const hasTracked = useRef(false);
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
   const isDaraz = storeTemplateId === 'daraz';
+  const isBDShop = storeTemplateId === 'bdshop';
+  const isGhorerBazar = storeTemplateId === 'ghorer-bazar';
   
   // Template-aware styling
   const cardBg = isDaraz 
@@ -649,6 +653,37 @@ export default function ProductDetail() {
   );
 
   // Render with appropriate wrapper based on template
+  if (isBDShop) {
+    return (
+      <BDShopProductDetail
+        product={product as any}
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        avgRating={avgRating}
+        reviewCount={reviewCount}
+      />
+    );
+  }
+
+  if (isGhorerBazar) {
+    return (
+      <GhorerBazarProductDetail
+        product={product as any}
+        relatedProducts={[]}
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+      />
+    );
+  }
+
   if (isDaraz) {
     return (
       <DarazPageWrapper
