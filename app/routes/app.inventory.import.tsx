@@ -65,11 +65,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     try {
+      // ========================================================================
+      // CHECK PRODUCT LIMIT BEFORE IMPORT
+      // ========================================================================
+      const { checkUsageLimit } = await import('~/utils/plans.server');
+      const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
+      
+      if (!limitCheck.allowed) {
+        return json({ 
+          error: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.' 
+        }, { status: 403 });
+      }
+
       // Parse CSV
       const lines = csvData.trim().split('\n');
       const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
       
-      const results = { created: 0, updated: 0, errors: [] as string[] };
+      const results = { created: 0, updated: 0, errors: [] as string[], skippedDueToLimit: 0 };
 
       for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);

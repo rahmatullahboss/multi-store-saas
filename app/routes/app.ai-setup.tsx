@@ -88,6 +88,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   try {
+    // ========================================================================
+    // CHECK PRODUCT LIMIT BEFORE AI CREATION
+    // ========================================================================
+    const { checkUsageLimit } = await import('~/utils/plans.server');
+    const limitCheck = await checkUsageLimit(env.DB, storeId, 'product');
+    
+    if (!limitCheck.allowed) {
+      return json({ 
+        error: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.' 
+      }, { status: 403 });
+    }
+
     const ai = createAIService(apiKey);
     
     // Step 1: Generate store setup
