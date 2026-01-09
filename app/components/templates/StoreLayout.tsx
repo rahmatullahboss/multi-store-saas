@@ -15,7 +15,7 @@ import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { getThemeColors, getFontConfig } from '~/lib/theme';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
-import { LanguageSelector } from '~/components/LanguageSelector';
+// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { WhatsAppButton } from '~/components/WhatsAppButton';
 
 // Serialized product type
@@ -152,7 +152,7 @@ export function StoreLayout({
             {/* Language Toggle & Cart Button */}
             <div className="flex items-center gap-2 md:gap-4">
               {/* Language Selector */}
-              <LanguageSelector variant="toggle" size="sm" className="hidden sm:flex" />
+              {/* <LanguageSelector variant="toggle" size="sm" className="hidden sm:flex" /> */} {/* Temporarily disabled - Bengali is default */}
               <Link
                 to="/cart"
                 className="relative p-2 text-gray-600 hover:text-gray-900 transition"

@@ -991,7 +991,7 @@ export default function LiveEditorPage() {
         {/* Left Sidebar - Editing Controls (Slide-out on mobile) */}
         <aside className={`
           fixed md:relative inset-y-0 left-0 z-40 md:z-auto
-          w-[85%] sm:w-80 md:w-80 bg-white border-r border-gray-200 
+          w-[75%] sm:w-72 md:w-80 bg-white border-r border-gray-200 
           overflow-y-auto flex-shrink-0
           transform transition-transform duration-300 ease-out
           ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}

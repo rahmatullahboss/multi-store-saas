@@ -11,7 +11,7 @@ import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
-import { LanguageSelector } from '~/components/LanguageSelector';
+// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 
 // ============================================================================
 // LUXE BOUTIQUE THEME CONSTANTS
@@ -136,7 +136,7 @@ export function LuxeBoutiqueTemplate({
             {/* Right Icons */}
             <div className="flex items-center gap-3">
               {/* Language Selector */}
-              <LanguageSelector variant="toggle" size="sm" showFlag={true} showName={false} />
+              {/* <LanguageSelector variant="toggle" size="sm" showFlag={true} showName={false} /> */} {/* Temporarily disabled - Bengali is default */}
               <button 
                 className="p-2 rounded-full transition-colors hover:bg-gray-100"
                 onClick={() => setSearchOpen(!searchOpen)}
