@@ -117,8 +117,19 @@ export default function EditorToolbar() {
           
           // Sort blocks by order and add to canvas
           blocks.sort((a: any, b: any) => a.order - b.order).forEach((block: any) => {
-             // Add block by type (content is pre-defined in block definition, but we could override if needed)
-             editor.addComponents({ type: block.type });
+             const blockType = block.type;
+             const blockDef = editor.Blocks.get(blockType);
+             
+             if (blockDef) {
+               const content = blockDef.getContent ? blockDef.getContent() : blockDef.attributes.content;
+               if (content) {
+                 editor.addComponents(content);
+               } else {
+                 console.warn(`Content not found for block type: ${blockType}`);
+               }
+             } else {
+               console.warn(`Block type not found: ${blockType}`);
+             }
           });
 
           // Optional: Set Primary Color variable if supported

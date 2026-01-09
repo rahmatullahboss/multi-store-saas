@@ -58,10 +58,23 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
     if (data.blocks && Array.isArray(data.blocks)) {
       data.blocks.sort((a: any, b: any) => a.order - b.order).forEach((block: any) => {
         const blockType = block.type;
-        // const blockContent = block.content || {}; // Usage to be implemented if blocks support props
-
-        // Add component to canvas
-        editor.addComponents({ type: blockType });
+        
+        // Find the block definition from GrapesJS Block Manager
+        const blockDef = editor.Blocks.get(blockType);
+        
+        if (blockDef) {
+           // Get HTML content from the block definition
+           // GrapesJS blocks store content in 'content' property of the model attributes
+           const content = blockDef.getContent ? blockDef.getContent() : blockDef.attributes.content;
+           
+           if (content) {
+             editor.addComponents(content);
+           } else {
+             console.warn(`Content not found for block type: ${blockType}`);
+           }
+        } else {
+          console.warn(`Block type not found: ${blockType}. Make sure bdBlocksPlugin is loaded.`);
+        }
       });
     }
 
