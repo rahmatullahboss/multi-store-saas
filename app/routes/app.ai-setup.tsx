@@ -22,7 +22,7 @@ export const meta = () => [
 // Loader: Check plan access
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request, env);
   const storeId = session.get('storeId');
 
   if (!storeId) {
@@ -51,7 +51,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const { env } = context.cloudflare;
   const db = drizzle(env.DB);
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request, env);
   const storeId = session.get('storeId');
 
   if (!storeId) {
