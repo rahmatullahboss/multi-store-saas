@@ -170,6 +170,12 @@ export interface ThemeConfig {
   }>;
   footerDescription?: string;
   copyrightText?: string;
+  // Floating Contact Buttons
+  floatingWhatsappEnabled?: boolean;
+  floatingWhatsappNumber?: string;
+  floatingWhatsappMessage?: string;
+  floatingCallEnabled?: boolean;
+  floatingCallNumber?: string;
 }
 
 // Social media links configuration

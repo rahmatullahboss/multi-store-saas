@@ -299,6 +299,13 @@ export default function StoreLiveEditor() {
     (themeConfig.footerColumns || []) as FooterColumn[]
   );
 
+  // Floating Contact Buttons state
+  const [floatingWhatsappEnabled, setFloatingWhatsappEnabled] = useState(themeConfig.floatingWhatsappEnabled ?? true);
+  const [floatingWhatsappNumber, setFloatingWhatsappNumber] = useState(themeConfig.floatingWhatsappNumber || whatsapp || '');
+  const [floatingWhatsappMessage, setFloatingWhatsappMessage] = useState(themeConfig.floatingWhatsappMessage || '');
+  const [floatingCallEnabled, setFloatingCallEnabled] = useState(themeConfig.floatingCallEnabled ?? true);
+  const [floatingCallNumber, setFloatingCallNumber] = useState(themeConfig.floatingCallNumber || phone || '');
+
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   
@@ -424,7 +431,7 @@ export default function StoreLiveEditor() {
       return;
     }
     setHasChanges(true);
-  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns]);
+  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, floatingCallNumber]);
 
   // Show success message
   useEffect(() => {
@@ -590,6 +597,12 @@ export default function StoreLiveEditor() {
             <input type="hidden" name="footerDescription" value={footerDescription} />
             <input type="hidden" name="copyrightText" value={copyrightText} />
             <input type="hidden" name="footerColumns" value={JSON.stringify(footerColumns)} />
+            {/* Floating Contact Buttons */}
+            <input type="hidden" name="floatingWhatsappEnabled" value={floatingWhatsappEnabled.toString()} />
+            <input type="hidden" name="floatingWhatsappNumber" value={floatingWhatsappNumber} />
+            <input type="hidden" name="floatingWhatsappMessage" value={floatingWhatsappMessage} />
+            <input type="hidden" name="floatingCallEnabled" value={floatingCallEnabled.toString()} />
+            <input type="hidden" name="floatingCallNumber" value={floatingCallNumber} />
 
             {/* Template Section */}
             <AccordionSection

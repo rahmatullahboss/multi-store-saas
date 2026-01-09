@@ -409,15 +409,24 @@ export default function StoreDesignPage() {
                     )}
 
                     {/* Preview Button Overlay */}
-                    <button
-                      onClick={() => setPreviewTemplate(template.id)}
-                      className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100"
-                    >
-                      <span className="bg-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg">
-                        <Eye className="w-4 h-4" />
-                        Preview
-                      </span>
-                    </button>
+                    <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          to={`/store-template-preview/${template.id}`}
+                          className="bg-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg hover:bg-gray-50 transition"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          পূর্ণ প্রিভিউ
+                        </Link>
+                        <button
+                          onClick={() => setPreviewTemplate(template.id)}
+                          className="bg-gray-800 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg hover:bg-gray-700 transition"
+                        >
+                          <Eye className="w-4 h-4" />
+                          কুইক প্রিভিউ
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   
                   {/* Info */}
