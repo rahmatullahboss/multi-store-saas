@@ -1498,26 +1498,30 @@ export default function LiveEditorPage() {
               {language === 'bn' ? 'লাইভ প্রিভিউ' : 'Live Preview'}
             </span>
             <span className="text-gray-500 text-xs">
-              {previewDevice === 'mobile' && '📱 375px'}
-              {previewDevice === 'tablet' && '📱 768px'}
-              {previewDevice === 'desktop' && '🖥️ 1200px'}
+              {previewDevice === 'mobile' && '📱 375 × 667'}
+              {previewDevice === 'tablet' && '📱 768 × 1024'}
+              {previewDevice === 'desktop' && '🖥️ Full Width'}
             </span>
           </div>
           
-          {/* Preview Container - Using iframe for true responsive preview */}
-          <div className="flex-1 flex items-start justify-center overflow-auto p-2 md:p-4">
+          {/* Preview Container - Chrome DevTools style responsive preview */}
+          <div className="flex-1 flex items-center justify-center overflow-auto bg-gray-800 p-2 md:p-4">
             {/* 
-              Iframe-based preview:
-              - Iframe has its own viewport, so CSS media queries work correctly
-              - postMessage API sends config updates for live editing
+              Chrome DevTools-like responsive preview:
+              - Mobile/Tablet: Fixed device frame with centered view
+              - Desktop: Full available width without restrictions
             */}
             <div 
-              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
-              style={{
-                width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
-                maxWidth: previewDevice === 'desktop' ? '1200px' : undefined,
-                height: previewDevice === 'mobile' ? '667px' : previewDevice === 'tablet' ? '1024px' : 'calc(100vh - 180px)',
-              }}
+              className={`bg-white rounded-lg overflow-hidden transition-all duration-300 relative ${
+                previewDevice === 'desktop' 
+                  ? 'w-full h-full shadow-none rounded-none' 
+                  : 'shadow-2xl'
+              }`}
+              style={previewDevice !== 'desktop' ? {
+                width: previewDevice === 'mobile' ? '375px' : '768px',
+                height: previewDevice === 'mobile' ? '667px' : '1024px',
+                maxHeight: 'calc(100vh - 150px)',
+              } : undefined}
             >
               <iframe
                 ref={iframeRef}
