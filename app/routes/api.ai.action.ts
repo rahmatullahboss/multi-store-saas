@@ -21,7 +21,15 @@ import { createAIService } from '~/services/ai.server';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 
 // Action types
-type ActionType = 'SETUP_STORE' | 'GENERATE_PAGE' | 'GENERATE_FULL_PAGE' | 'EDIT_SECTION' | 'ENHANCE_TEXT' | 'GENERATE_ELEMENTOR_PAGE' | 'EDIT_ELEMENTOR_SECTION';
+type ActionType = 
+  | 'SETUP_STORE' 
+  | 'GENERATE_PAGE' 
+  | 'GENERATE_FULL_PAGE' 
+  | 'EDIT_SECTION' 
+  | 'ENHANCE_TEXT' 
+  | 'GENERATE_ELEMENTOR_PAGE' 
+  | 'EDIT_ELEMENTOR_SECTION'
+  | 'GENERATE_GRAPESJS_PAGE';
 
 interface ActionPayload {
   action: ActionType;
@@ -232,6 +240,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.editElementorSection(payload.currentHtml, payload.prompt);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        return json({ success: true, data: result });
+      }
+
+      case 'GENERATE_GRAPESJS_PAGE': {
+        if (!payload.prompt) {
+          return json({ error: 'AI Prompt required' }, { status: 400 });
+        }
+
+        const result = await ai.generateGrapesJsPage(payload.prompt);
         await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }

@@ -97,25 +97,33 @@ export default function EditorToolbar() {
         }
 
       } else {
-        // GENERATE PAGE MODE
+        // GENERATE PAGE MODE (Block-based)
         const response = await fetch('/api/ai/action', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'GENERATE_ELEMENTOR_PAGE',
+            action: 'GENERATE_GRAPESJS_PAGE',
             prompt: aiPrompt
           })
         });
         
         const result = await response.json() as any;
         
-        if (result.success && result.data) {
-          const { html, css } = result.data;
+        if (result.success && result.data && result.data.blocks) {
+          const { blocks, primaryColor } = result.data;
           
-          // Load into GrapesJS
-          editor.setComponents(html);
-          if (css) editor.setStyle(css);
+          // Clear current canvas
+          editor.DomComponents.clear();
           
+          // Sort blocks by order and add to canvas
+          blocks.sort((a: any, b: any) => a.order - b.order).forEach((block: any) => {
+             // Add block by type (content is pre-defined in block definition, but we could override if needed)
+             editor.addComponents({ type: block.type });
+          });
+
+          // Optional: Set Primary Color variable if supported
+          // if (primaryColor) editor.Css.addRules(...) 
+
           toast.success('Magic! Page generated.', { id: 'ai-gen' });
         } else {
           throw new Error(result.error || 'AI Generation failed');

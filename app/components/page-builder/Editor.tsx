@@ -4,6 +4,7 @@
  * A React wrapper for the GrapesJS editor core.
  */
 
+import { useState } from 'react';
 import GjsEditor, { Canvas } from '@grapesjs/react';
 import grapesjs from 'grapesjs';
 import gjsBlocksBasic from 'grapesjs-blocks-basic';
@@ -15,14 +16,56 @@ import { getGrapesConfig } from '~/lib/grapesjs/config';
 import { bdBlocksPlugin } from '~/lib/grapesjs/bd-blocks';
 import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
+import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
+import MagicGenerateModal from "./MagicGenerateModal";
+import { toast } from 'sonner';
 
 interface GrapesEditorProps {
   pageId?: string;
 }
 
 export default function GrapesEditor({ pageId }: GrapesEditorProps) {
-  const onEditor = (editor: any) => {
-    console.log('Editor loaded', editor);
+  const [editor, setEditor] = (useState<any>)(null);
+  const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
+
+  const onEditor = (editorInstance: any) => {
+    console.log('Editor loaded', editorInstance);
+    setEditor(editorInstance);
+
+    // Add Magic Generate Button to Panel
+    editorInstance.Panels.addButton('options', {
+      id: 'magic-generate',
+      className: 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold !px-3 !border-none hover:opacity-90 flex items-center gap-2',
+      label: '✨ AI Generate',
+      command: 'open-magic-modal',
+      attributes: { title: 'Generate Landing Page with AI' }
+    });
+
+    editorInstance.Commands.add('open-magic-modal', {
+      run: () => {
+          setIsMagicModalOpen(true);
+      },
+    });
+  };
+
+  const handleMagicGenerate = (data: any) => {
+    if (!editor) return;
+
+    // Clear existing content
+    editor.DomComponents.clear();
+
+    // Add blocks based on AI response
+    if (data.blocks && Array.isArray(data.blocks)) {
+      data.blocks.sort((a: any, b: any) => a.order - b.order).forEach((block: any) => {
+        const blockType = block.type;
+        // const blockContent = block.content || {}; // Usage to be implemented if blocks support props
+
+        // Add component to canvas
+        editor.addComponents({ type: blockType });
+      });
+    }
+
+    toast.success("Page generated successfully!");
   };
 
   return (
@@ -60,6 +103,12 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
           </div>
         </div>
       </GjsEditor>
+
+      <MagicGenerateModal 
+        isOpen={isMagicModalOpen} 
+        onClose={() => setIsMagicModalOpen(false)}
+        onGenerate={handleMagicGenerate}
+      />
 
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {

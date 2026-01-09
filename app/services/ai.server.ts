@@ -629,6 +629,86 @@ Language: Bengali (if applicable).`;
 }
 
 // ============================================================================
+// GRAPESJS PAGE GENERATION
+// ============================================================================
+const GrapesJsPageSchema = z.object({
+  pageName: z.string().describe("Name of the landing page"),
+  blocks: z.array(z.object({
+    type: z.enum([
+      'bd-hero', 
+      'bd-trust', 
+      'bd-order-form', 
+      'bd-call-now', 
+      'bd-video', 
+      'bd-dual-order', 
+      'bd-features-grid', 
+      'bd-sticky-footer',
+      'bd-faq',
+      'bd-testimonials',
+      'bd-comparison',
+      'bd-gallery',
+      'bd-social-proof',
+      'bd-delivery-info',
+      'bd-guarantee',
+      'bd-why-buy'
+    ]).describe("The type of GrapesJS block to use"),
+    content: z.record(z.string()).describe("Key-value pairs for customizable content like headlines, button text, etc."),
+    order: z.number().describe("Order of the block on the page"),
+  })),
+  primaryColor: z.string().describe("Primary brand color hex code"),
+});
+
+export type GrapesJsPageConfig = z.infer<typeof GrapesJsPageSchema>;
+
+export async function generateGrapesJsPage(
+  apiKey: string,
+  prompt: string, 
+  model = DEFAULT_MODEL, 
+  baseUrl = DEFAULT_BASE_URL
+): Promise<GrapesJsPageConfig> {
+  // Use createAIService internally to pass options if needed, or just use callAI directly as helper
+  const service = createAIService(apiKey, { model, baseUrl });
+
+  const systemPrompt = `
+    You are an expert Landing Page Designer for the Bangladeshi e-commerce market.
+    Your goal is to generate a high-conversion landing page structure using a predefined set of GrapesJS blocks.
+    
+    The available blocks are:
+    - bd-hero: Hero section with product image and headline
+    - bd-trust: Trust badges (Delivery, COD, Warranty)
+    - bd-order-form: Bangla order form
+    - bd-call-now: Sticky call button
+    - bd-video: YouTube video embed
+    - bd-dual-order: Product details + Order form side-by-side
+    - bd-features-grid: 3-column feature grid
+    - bd-sticky-footer: Mobile sticky footer with Call/Order buttons
+    - bd-faq: FAQ accordion
+    - bd-testimonials: Customer review grid
+    - bd-comparison: Before/After comparison table
+    - bd-gallery: Product image gallery
+    - bd-social-proof: Order count/Live visitor count
+    - bd-delivery-info: Delivery charges inside/outside Dhaka
+    - bd-guarantee: Money back guarantee box
+    - bd-why-buy: Problem vs Solution comparison
+
+    Rules:
+    1. ALWAYS include 'bd-hero' at the top.
+    2. ALWAYS include 'bd-order-form' or 'bd-dual-order' at least once.
+    3. Use 'bd-sticky-footer' for mobile optimization.
+    4. Include 'bd-delivery-info' and 'bd-guarantee' near the order form.
+    5. Generate realistic Bangla content for a Bangladeshi audience.
+    6. Choose a primary color that fits the product niche (e.g., Green/Emerald for organic/health, Blue for tech, Red for sales).
+  `;
+
+  const userPrompt = `Create a high-converting landing page for: ${prompt}`;
+
+  // We reuse callAI helper but need to be careful with args
+  const completion = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
+  const parsed = extractJSON(completion);
+  return GrapesJsPageSchema.parse(parsed);
+}
+
+// ============================================================================
 // ELEMENTOR SECTION EDITING
 // ============================================================================
 export const ElementorEditSchema = z.object({
@@ -710,5 +790,8 @@ export function createAIService(apiKey: string, options?: { model?: string, base
       generateElementorPage(apiKey, prompt, model, baseUrl),
     editElementorSection: (currentHtml: string, prompt: string) => 
       editElementorSection(apiKey, currentHtml, prompt, options?.model, options?.baseUrl),
+    
+    generateGrapesJsPage: (prompt: string) => 
+      generateGrapesJsPage(apiKey, prompt, options?.model, options?.baseUrl),
   };
 }
