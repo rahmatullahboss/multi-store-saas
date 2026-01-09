@@ -62,6 +62,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const lowStockCount = storeProducts.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5).length;
   const outOfStockCount = storeProducts.filter(p => (p.inventory || 0) <= 0).length;
 
+  // Check product limit for the plan
+  const { checkUsageLimit } = await import('~/utils/plans.server');
+  const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
+
   return json({
     products: storeProducts,
     currency: store.currency || 'BDT',
@@ -78,6 +82,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       lowStock: lowStockCount,
       outOfStock: outOfStockCount,
     },
+    // Product limit info
+    canAddProduct: limitCheck.allowed,
+    productLimitMessage: limitCheck.error?.message || null,
   });
 }
 
@@ -119,7 +126,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ProductsIndexPage() {
-  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, storeMode } = useLoaderData<typeof loader>();
+  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, storeMode, canAddProduct, productLimitMessage } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
@@ -235,15 +242,38 @@ export default function ProductsIndexPage() {
 
   return (
     <div className="space-y-6">
+      {/* Product Limit Warning */}
+      {!canAddProduct && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-amber-800 font-medium">
+              {lang === 'bn' ? 'প্রোডাক্ট লিমিট পূর্ণ' : 'Product Limit Reached'}
+            </p>
+            <p className="text-amber-700 text-sm mt-1">
+              {productLimitMessage || (lang === 'bn' 
+                ? 'আপনার প্ল্যানের প্রোডাক্ট লিমিট পূর্ণ হয়েছে। আরও প্রোডাক্ট যোগ করতে প্ল্যান আপগ্রেড করুন।'
+                : 'You have reached your plan\'s product limit. Upgrade to add more products.')}
+            </p>
+            <Link 
+              to="/app/billing" 
+              className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:text-amber-900 mt-2"
+            >
+              {lang === 'bn' ? 'প্ল্যান আপগ্রেড করুন' : 'Upgrade Plan'} →
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <PageHeader
         title={t('products')}
         description={t('noProducts') ? t('noProducts').replace('No products yet', 'Manage your product catalog') : 'Manage your product catalog'}
-        primaryAction={{
+        primaryAction={canAddProduct ? {
           label: t('addProduct'),
           href: '/app/products/new',
           icon: <Plus className="w-4 h-4" />,
-        }}
+        } : undefined}
       />
 
       {/* Stats Cards */}
@@ -368,11 +398,11 @@ export default function ProductsIndexPage() {
             icon={<Package className="w-10 h-10" />}
             title={lang === 'bn' ? 'কোনো প্রোডাক্ট নেই' : 'No products yet'}
             description={lang === 'bn' ? 'আপনার প্রথম প্রোডাক্ট যোগ করে শুরু করুন।' : 'Get started by adding your first product to your store.'}
-            action={{
+            action={canAddProduct ? {
               label: lang === 'bn' ? 'প্রথম প্রোডাক্ট যোগ করুন' : 'Add Your First Product',
               href: '/app/products/new',
               icon: <Plus className="w-4 h-4" />,
-            }}
+            } : undefined}
           />
         </div>
       ) : filteredProducts.length === 0 ? (
