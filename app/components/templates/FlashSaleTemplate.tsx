@@ -272,7 +272,7 @@ export function FlashSaleTemplate({
       </div>
 
       {/* Spacer for fixed offer banner - matches banner height */}
-      {!isPreview && <div className="h-8 md:h-[44px]" />}
+      {!isPreview && <div className="h-11 md:h-[50px]" />}
 
       {/* ================================================================
           HERO SECTION - COMPACT
