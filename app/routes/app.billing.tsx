@@ -57,6 +57,7 @@ const PLAN_DISPLAY = {
     features: [
       { text: '1 product', included: true },
       { text: '50 orders/month', included: true },
+      { text: 'Unlimited visitors', included: true },
       { text: 'Landing page only', included: true },
       { text: 'Basic analytics', included: true },
       { text: 'Full store mode', included: false },
@@ -355,7 +356,7 @@ export default function BillingPage() {
             </div>
             {planType === 'free' && usage.products.current >= 1 && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ {lang === 'bn' ? 'ফ্রি প্ল্যানে ১০টি প্রোডাক্ট সীমিত। আরো যোগ করতে আপগ্রেড করুন।' : 'Free plan is limited to 10 products. Upgrade to add more.'}
+                ⚠️ {lang === 'bn' ? 'ফ্রি প্ল্যানে ১টি প্রোডাক্ট সীমিত। আরো যোগ করতে আপগ্রেড করুন।' : 'Free plan is limited to 1 product. Upgrade to add more.'}
               </p>
             )}
           </div>
@@ -376,7 +377,7 @@ export default function BillingPage() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
               <span className="font-medium text-gray-900">
-                {usage.visitors.current.toLocaleString()} / {usage.visitors.limit === Infinity ? '∞' : usage.visitors.limit.toLocaleString()}
+                {usage.visitors.limit === Infinity ? (lang === 'bn' ? 'সীমাহীন' : 'Unlimited') : `${usage.visitors.current.toLocaleString()} / ${usage.visitors.limit.toLocaleString()}`}
               </span>
             </div>
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
