@@ -3,7 +3,7 @@ export default {
     supportedLngs: ["en", "bn"],
     // This is the language you want to use in case
     // if the user language is not in the supportedLngs
-    fallbackLng: "en",
+    fallbackLng: "bn",
     // The default namespace of i18next is "translation", but you can customize it here
     defaultNS: "common",
     // Disabling suspense is recommended

@@ -47,7 +47,7 @@ import {
   AlertCircle,
   BookOpen
 } from 'lucide-react';
-// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
+import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ChatWidget } from '~/components/ai/ChatWidget';
 import { useState } from 'react';
@@ -521,7 +521,14 @@ export default function AppLayout() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="font-semibold text-gray-900">{store.name}</h1>
-            <div className="w-9" /> {/* Spacer for centering */}
+            <LanguageSelector variant="toggle" size="sm" />
+          </div>
+        </header>
+
+        {/* Desktop Header with Language Toggle */}
+        <header className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200 px-8 py-3">
+          <div className="flex items-center justify-end">
+            <LanguageSelector variant="pills" size="sm" />
           </div>
         </header>
 
