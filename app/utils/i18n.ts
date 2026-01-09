@@ -724,6 +724,30 @@ export const translations = {
     // Store Language Settings
     storeLanguage: 'Store Language',
     storeLanguageDesc: 'Default language for your storefront',
+    
+    // Onboarding - Additional Keys
+    createStoreIn2Min: 'Create your store in just 2 minutes',
+    validEmailRequired: 'Valid email required',
+    passwordMinChars: 'Password must be at least 6 characters',
+    nameRequired: 'Name required',
+    validMobileRequired: 'Valid mobile number required (01XXXXXXXXX)',
+    storeNameRequired: 'Store name is required',
+    subdomainMinChars: 'Subdomain must be at least 3 characters',
+    trxIdRequired: 'Please enter TRX ID',
+    mobileNumber: 'Mobile Number',
+    bdMobileHint: 'Bangladesh mobile number (starts with 01)',
+    setupYourStore: 'Set Up Your Store',
+    canChangeLater: 'You can change everything later',
+    storeLink: 'Store Link',
+    whatDoYouSellLabel: 'What do you sell?',
+    selectPlanBasedNeeds: 'Select a plan based on your needs',
+    bkashNumber: 'bKash Number',
+    copied: 'Copied!',
+    amount: 'Amount',
+    paymentPhoneUsed: 'Phone number used for payment',
+    startFreeUpgradeLater: 'Start with Free plan and upgrade later!',
+    paymentVerificationNotice: 'Your payment will be verified. Your plan will be activated within 24 hours.',
+    freeText: 'Free',
   },
 
   bn: {
@@ -1407,6 +1431,30 @@ export const translations = {
     // Store Language Settings
     storeLanguage: 'স্টোর ভাষা',
     storeLanguageDesc: 'আপনার স্টোরফ্রন্টের ডিফল্ট ভাষা',
+    
+    // Onboarding - Additional Keys
+    createStoreIn2Min: 'মাত্র ২ মিনিটে স্টোর তৈরি করুন',
+    validEmailRequired: 'সঠিক ইমেইল দিন',
+    passwordMinChars: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে',
+    nameRequired: 'নাম দিন',
+    validMobileRequired: 'সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)',
+    storeNameRequired: 'স্টোরের নাম দিন',
+    subdomainMinChars: 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে',
+    trxIdRequired: 'TRX ID দিন',
+    mobileNumber: 'মোবাইল নম্বর',
+    bdMobileHint: 'বাংলাদেশী মোবাইল নম্বর (01 দিয়ে শুরু)',
+    setupYourStore: 'আপনার স্টোর সেটআপ করুন',
+    canChangeLater: 'পরে সব চেঞ্জ করতে পারবেন',
+    storeLink: 'স্টোর লিংক',
+    whatDoYouSellLabel: 'আপনি কী বিক্রি করেন?',
+    selectPlanBasedNeeds: 'আপনার প্রয়োজন অনুযায়ী প্ল্যান সিলেক্ট করুন',
+    bkashNumber: 'বিকাশ নম্বর',
+    copied: 'কপি হয়েছে!',
+    amount: 'পরিমাণ',
+    paymentPhoneUsed: 'পেমেন্টে ব্যবহৃত ফোন নম্বর',
+    startFreeUpgradeLater: 'ফ্রি প্ল্যানে শুরু করুন এবং পরে আপগ্রেড করুন!',
+    paymentVerificationNotice: 'আপনার পেমেন্ট ভেরিফাই করা হবে। ২৪ ঘন্টার মধ্যে আপনার প্ল্যান একটিভ হয়ে যাবে।',
+    freeText: 'ফ্রি',
   },
 } as const;
 

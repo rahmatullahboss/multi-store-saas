@@ -859,6 +859,21 @@ export function PremiumBDTemplate({
         </a>
       )}
 
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-400 py-8 border-t border-gray-800">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <p className="font-semibold text-white mb-2">{storeName}</p>
+          <p className="text-sm mb-4">© {new Date().getFullYear()} {t('allRightsReserved')}</p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs">
+            <a href="/policies/privacy" className="hover:text-white transition">{t('privacyPolicy')}</a>
+            <span className="opacity-50">•</span>
+            <a href="/policies/terms" className="hover:text-white transition">{t('termsOfService')}</a>
+            <span className="opacity-50">•</span>
+            <a href="/policies/refund" className="hover:text-white transition">{t('refundPolicy')}</a>
+          </div>
+        </div>
+      </footer>
+
       {/* Call Floating Button */}
       {editableConfig.callEnabled && editableConfig.callNumber && (
         <a

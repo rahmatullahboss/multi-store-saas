@@ -14,18 +14,19 @@ import { Form, useLoaderData, useActionData, useNavigation, Link, useFetcher } f
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
-import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
+import { parseLandingConfig, defaultLandingConfig, type LandingConfig, type TypographySettings } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 import { 
   LandingTemplateGallery, 
   SectionManager, 
@@ -157,6 +158,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const primaryColor = formData.get('primaryColor') as string || '';
   const accentColor = formData.get('accentColor') as string || '';
+  // Extended colors (Phase 1)
+  const backgroundColor = formData.get('backgroundColor') as string || '';
+  const textColor = formData.get('textColor') as string || '';
+  const borderColor = formData.get('borderColor') as string || '';
+  // Typography (Phase 1)
+  const typographyJson = formData.get('typography') as string || '{}';
+  let typography: TypographySettings = {};
+  try {
+    typography = JSON.parse(typographyJson);
+  } catch { /* ignore */ }
+  
   const storeMode = formData.get('storeMode') as 'landing' | 'store' || 'landing';
 
   // New sections
@@ -169,6 +181,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const orderFormVariant = formData.get('orderFormVariant') as 'full-width' | 'compact' || 'full-width';
   const customCSS = formData.get('customCSS') as string || '';
   const fontFamily = formData.get('fontFamily') as string || 'inter';
+  const landingLanguage = formData.get('landingLanguage') as 'bn' | 'en' || 'bn';
 
   const newConfig: LandingConfig = {
     templateId,
@@ -197,6 +210,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     socialProofInterval,
     primaryColor: primaryColor || undefined,
     accentColor: accentColor || undefined,
+    // Extended colors (Phase 1)
+    backgroundColor: backgroundColor || undefined,
+    textColor: textColor || undefined,
+    borderColor: borderColor || undefined,
+    // Typography (Phase 1)
+    typography: Object.keys(typography).length > 0 ? typography : undefined,
     // New sections
     galleryImages: galleryImages.filter((url: string) => url),
     benefits: benefits.filter((b: {icon: string; title: string}) => b.icon && b.title),
@@ -208,6 +227,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     customCSS: customCSS || undefined,
     // Font Family
     fontFamily,
+    // Landing Language
+    landingLanguage,
   };
 
   await db
@@ -311,8 +332,20 @@ export default function LiveEditorPage() {
   const [showSocialProof, setShowSocialProof] = useState(store.landingConfig.showSocialProof || false);
   const [socialProofInterval, setSocialProofInterval] = useState(store.landingConfig.socialProofInterval || 15);
 
-  const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '');
-  const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '');
+  const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '#6366f1');
+  const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '#f59e0b');
+  // Extended colors (Phase 1)
+  const [backgroundColor, setBackgroundColor] = useState(store.landingConfig.backgroundColor || '#ffffff');
+  const [textColor, setTextColor] = useState(store.landingConfig.textColor || '#111827');
+  const [borderColor, setBorderColor] = useState(store.landingConfig.borderColor || '#e5e7eb');
+  // Typography settings (Phase 1)
+  const [typography, setTypography] = useState<TypographySettings>(store.landingConfig.typography || {
+    headingSize: 'medium',
+    bodySize: 'medium',
+    lineHeight: 'normal',
+    letterSpacing: 'normal',
+  });
+  
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
   const [customCSS, setCustomCSS] = useState(store.landingConfig.customCSS || '');
   const [fontFamily, setFontFamily] = useState(store.landingConfig.fontFamily || 'inter');
@@ -338,11 +371,19 @@ export default function LiveEditorPage() {
     store.landingConfig.orderFormVariant || 'full-width'
   );
 
+  // Landing Page Language (for visitor default view)
+  const [landingLanguage, setLandingLanguage] = useState<'bn' | 'en'>(
+    store.landingConfig.landingLanguage || 'bn'
+  );
+
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
 
   // Accordion state
   const [openSection, setOpenSection] = useState<string>('template');
+  
+  // Mobile sidebar state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // ============================================================================
   // IMAGE UPLOAD STATE FOR TESTIMONIALS
@@ -361,6 +402,139 @@ export default function LiveEditorPage() {
   // Image upload fetcher
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
 
+  // ============================================================================
+  // UNDO/REDO FUNCTIONALITY (Phase 1)
+  // ============================================================================
+  const createStateSnapshot = useCallback(() => ({
+    templateId,
+    featuredProductId,
+    headline,
+    subheadline,
+    ctaText,
+    ctaSubtext,
+    urgencyText,
+    videoUrl,
+    guaranteeText,
+    features,
+    sectionOrder,
+    hiddenSections,
+    whatsappEnabled,
+    whatsappNumber,
+    whatsappMessage,
+    callEnabled,
+    callNumber,
+    testimonials,
+    faq,
+    countdownEnabled,
+    countdownEndTime,
+    showStockCounter,
+    lowStockThreshold,
+    showSocialProof,
+    socialProofInterval,
+    primaryColor,
+    accentColor,
+    backgroundColor,
+    textColor,
+    borderColor,
+    typography,
+    storeMode,
+    customCSS,
+    fontFamily,
+    galleryImages,
+    benefits,
+    comparison,
+    socialProof,
+    orderFormVariant,
+    landingLanguage,
+  }), [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, customCSS, fontFamily, galleryImages, benefits, comparison, socialProof, orderFormVariant, landingLanguage]);
+
+  const initialSnapshot = useRef(createStateSnapshot());
+  
+  const {
+    state: historyState,
+    setState: setHistoryState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useEditorHistory(initialSnapshot.current, { maxHistory: 20, debounceMs: 500 });
+
+  // Track state changes for history
+  const prevSnapshotRef = useRef<string>(JSON.stringify(initialSnapshot.current));
+  useEffect(() => {
+    const currentSnapshot = createStateSnapshot();
+    const currentSnapshotStr = JSON.stringify(currentSnapshot);
+    if (currentSnapshotStr !== prevSnapshotRef.current) {
+      prevSnapshotRef.current = currentSnapshotStr;
+      setHistoryState(currentSnapshot);
+    }
+  }, [createStateSnapshot, setHistoryState]);
+
+  // Restore states from historyState when undo/redo happens
+  const isRestoringRef = useRef(false);
+  useEffect(() => {
+    if (isRestoringRef.current) {
+      isRestoringRef.current = false;
+      return;
+    }
+    // Sync historyState to individual states
+    if (historyState) {
+      setTemplateId(historyState.templateId ?? templateId);
+      setFeaturedProductId(historyState.featuredProductId ?? featuredProductId);
+      setHeadline(historyState.headline ?? headline);
+      setSubheadline(historyState.subheadline ?? subheadline);
+      setCtaText(historyState.ctaText ?? ctaText);
+      setCtaSubtext(historyState.ctaSubtext ?? ctaSubtext);
+      setUrgencyText(historyState.urgencyText ?? urgencyText);
+      setVideoUrl(historyState.videoUrl ?? videoUrl);
+      setGuaranteeText(historyState.guaranteeText ?? guaranteeText);
+      setFeatures(historyState.features ?? features);
+      setSectionOrder(historyState.sectionOrder ?? sectionOrder);
+      setHiddenSections(historyState.hiddenSections ?? hiddenSections);
+      setWhatsappEnabled(historyState.whatsappEnabled ?? whatsappEnabled);
+      setWhatsappNumber(historyState.whatsappNumber ?? whatsappNumber);
+      setWhatsappMessage(historyState.whatsappMessage ?? whatsappMessage);
+      setCallEnabled(historyState.callEnabled ?? callEnabled);
+      setCallNumber(historyState.callNumber ?? callNumber);
+      setTestimonials(historyState.testimonials ?? testimonials);
+      setFaq(historyState.faq ?? faq);
+      setCountdownEnabled(historyState.countdownEnabled ?? countdownEnabled);
+      setCountdownEndTime(historyState.countdownEndTime ?? countdownEndTime);
+      setShowStockCounter(historyState.showStockCounter ?? showStockCounter);
+      setLowStockThreshold(historyState.lowStockThreshold ?? lowStockThreshold);
+      setShowSocialProof(historyState.showSocialProof ?? showSocialProof);
+      setSocialProofInterval(historyState.socialProofInterval ?? socialProofInterval);
+      setPrimaryColor(historyState.primaryColor ?? primaryColor);
+      setAccentColor(historyState.accentColor ?? accentColor);
+      setBackgroundColor(historyState.backgroundColor ?? backgroundColor);
+      setTextColor(historyState.textColor ?? textColor);
+      setBorderColor(historyState.borderColor ?? borderColor);
+      setTypography(historyState.typography ?? typography);
+      setStoreMode(historyState.storeMode ?? storeMode);
+      setCustomCSS(historyState.customCSS ?? customCSS);
+      setFontFamily(historyState.fontFamily ?? fontFamily);
+      setGalleryImages(historyState.galleryImages ?? galleryImages);
+      setBenefits(historyState.benefits ?? benefits);
+      setComparison(historyState.comparison ?? comparison);
+      setSocialProof(historyState.socialProof ?? socialProof);
+      setOrderFormVariant(historyState.orderFormVariant ?? orderFormVariant);
+      setLandingLanguage(historyState.landingLanguage ?? landingLanguage);
+    }
+  // Only run when historyState reference changes (undo/redo)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historyState]);
+
+  // Handle undo/redo
+  const handleUndo = useCallback(() => {
+    undo();
+  }, [undo]);
+
+  const handleRedo = useCallback(() => {
+    redo();
+  }, [redo]);
+
+  // Keyboard shortcuts for undo/redo
+  useEditorKeyboardShortcuts(handleUndo, handleRedo, canUndo, canRedo);
 
   // Track unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
@@ -372,7 +546,7 @@ export default function LiveEditorPage() {
       return;
     }
     setHasChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -560,6 +734,8 @@ export default function LiveEditorPage() {
     socialProof,
     // Order form layout
     orderFormVariant,
+    // Landing language
+    landingLanguage,
   };
 
   // Mock product for preview
@@ -578,14 +754,14 @@ export default function LiveEditorPage() {
 
   // Device width mapping
   const deviceWidths = {
-    mobile: 375,
+    mobile: 414,
     tablet: 768,
     desktop: 1200,
   };
 
   // Device height mapping (for iframe)
   const deviceHeights = {
-    mobile: 667,
+    mobile: 896,
     tablet: 1024,
     desktop: 800,
   };
@@ -622,14 +798,24 @@ export default function LiveEditorPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 flex-shrink-0 z-20">
         <div className="px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Mobile Menu Toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition"
+              title={language === 'bn' ? 'এডিটর প্যানেল' : 'Editor Panel'}
+            >
+              <PanelLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            
             <Link
               to="/app/landing-builder"
               className="p-2 hover:bg-gray-100 rounded-lg transition"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </Link>
-            <div>
+            <div className="hidden sm:block">
               <h1 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-600" />
                 {language === 'bn' ? 'লাইভ এডিটর' : 'Live Editor'}
@@ -638,14 +824,36 @@ export default function LiveEditorPage() {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            {/* Device Toggle */}
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+            {/* Undo/Redo Buttons */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                className={`p-1.5 sm:p-2 rounded-md transition ${canUndo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
+                title={language === 'bn' ? 'আনডু (Ctrl+Z)' : 'Undo (Ctrl+Z)'}
+              >
+                <Undo2 className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleRedo}
+                disabled={!canRedo}
+                className={`p-1.5 sm:p-2 rounded-md transition ${canRedo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
+                title={language === 'bn' ? 'রিডু (Ctrl+Shift+Z)' : 'Redo (Ctrl+Shift+Z)'}
+              >
+                <Redo2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Device Toggle - Hidden on mobile since they can't see the preview anyway */}
+            <div className="hidden sm:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
                 type="button"
                 onClick={() => setPreviewDevice('mobile')}
                 className={`p-2 rounded-md transition ${previewDevice === 'mobile' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="Mobile (375px)"
+                title="Mobile (414px)"
               >
                 <Smartphone className="w-4 h-4" />
               </button>
@@ -667,12 +875,12 @@ export default function LiveEditorPage() {
               </button>
             </div>
 
-            {/* Open in New Tab */}
+            {/* Open in New Tab - Hidden on mobile */}
             <a
               href={storeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+              className="hidden sm:block p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
               title={language === 'bn' ? 'নতুন ট্যাবে খুলুন' : 'Open in new tab'}
             >
               <ExternalLink className="w-5 h-5" />
@@ -714,6 +922,12 @@ export default function LiveEditorPage() {
               <input type="hidden" name="socialProofInterval" value={socialProofInterval.toString()} />
               <input type="hidden" name="primaryColor" value={primaryColor} />
               <input type="hidden" name="accentColor" value={accentColor} />
+              {/* Extended colors (Phase 1) */}
+              <input type="hidden" name="backgroundColor" value={backgroundColor} />
+              <input type="hidden" name="textColor" value={textColor} />
+              <input type="hidden" name="borderColor" value={borderColor} />
+              {/* Typography (Phase 1) */}
+              <input type="hidden" name="typography" value={JSON.stringify(typography)} />
               <input type="hidden" name="storeMode" value={storeMode} />
               {/* New sections */}
               <input type="hidden" name="galleryImages" value={JSON.stringify(galleryImages)} />
@@ -726,11 +940,13 @@ export default function LiveEditorPage() {
               <input type="hidden" name="customCSS" value={customCSS} />
               {/* Font Family */}
               <input type="hidden" name="fontFamily" value={fontFamily} />
+              {/* Landing Language */}
+              <input type="hidden" name="landingLanguage" value={landingLanguage} />
               
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition ${
+                className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 font-medium rounded-lg transition ${
                   hasChanges 
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
                     : 'bg-gray-200 text-gray-600'
@@ -743,7 +959,9 @@ export default function LiveEditorPage() {
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                {showSuccess ? (language === 'bn' ? 'সেভড!' : 'Saved!') : (language === 'bn' ? 'সেভ করুন' : 'Save')}
+                <span className="hidden sm:inline">
+                  {showSuccess ? (language === 'bn' ? 'সেভড!' : 'Saved!') : (language === 'bn' ? 'সেভ করুন' : 'Save')}
+                </span>
                 {hasChanges && !showSuccess && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
               </button>
             </Form>
@@ -761,9 +979,38 @@ export default function LiveEditorPage() {
       )}
 
       {/* Main Content - Split Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Editing Controls (Hidden on mobile) */}
-        <aside className="hidden md:block w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Sidebar Overlay */}
+        {mobileSidebarOpen && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/50 z-30"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+        )}
+        
+        {/* Left Sidebar - Editing Controls (Slide-out on mobile) */}
+        <aside className={`
+          fixed md:relative inset-y-0 left-0 z-40 md:z-auto
+          w-[75%] sm:w-72 md:w-80 bg-white border-r border-gray-200 
+          overflow-y-auto flex-shrink-0
+          transform transition-transform duration-300 ease-out
+          ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          md:block
+        `}>
+          {/* Mobile Sidebar Header */}
+          <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 p-3 flex items-center justify-between z-10">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              {language === 'bn' ? 'এডিটর' : 'Editor'}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition"
+            >
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
           {/* Template Section */}
           <AccordionSection
             title={language === 'bn' ? 'টেমপ্লেট' : 'Template'}
@@ -799,7 +1046,7 @@ export default function LiveEditorPage() {
 
           {/* Content Section */}
           <AccordionSection
-            title={language === 'bn' ? 'কন্টেন্ট' : 'Content'}
+            title={language === 'bn' ? 'লেখা ও টেক্সট' : 'Text & Copy'}
             icon={Settings}
             isOpen={openSection === 'content'}
             onToggle={() => setOpenSection(openSection === 'content' ? '' : 'content')}
@@ -884,7 +1131,7 @@ export default function LiveEditorPage() {
 
           {/* Sections Section */}
           <AccordionSection
-            title={language === 'bn' ? 'সেকশন' : 'Sections'}
+            title={language === 'bn' ? 'পেজ সাজান' : 'Page Sections'}
             icon={Layout}
             isOpen={openSection === 'sections'}
             onToggle={() => setOpenSection(openSection === 'sections' ? '' : 'sections')}
@@ -998,56 +1245,170 @@ export default function LiveEditorPage() {
             </div>
           </AccordionSection>
 
-          {/* Colors Section */}
-
+          {/* Theme & Typography Section (Phase 1 Enhanced) */}
           <AccordionSection
-            title={language === 'bn' ? 'রং' : 'Colors'}
+            title={language === 'bn' ? 'রং ও স্টাইল' : 'Colors & Style'}
             icon={Paintbrush}
             isOpen={openSection === 'colors'}
             onToggle={() => setOpenSection(openSection === 'colors' ? '' : 'colors')}
           >
             <div className="space-y-4">
-              {/* Primary Color */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'প্রাইমারি কালার' : 'Primary Color'}
-                </label>
-                <div className="flex gap-2">
+              {/* Primary Colors */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {language === 'bn' ? 'প্রাইমারি' : 'Primary'}
+                  </label>
                   <input
                     type="color"
                     value={primaryColor || '#f97316'}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    placeholder="#f97316"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                    className="w-full h-8 rounded border cursor-pointer"
                   />
                 </div>
-              </div>
-
-              {/* Accent Color */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'অ্যাকসেন্ট কালার' : 'Accent Color'}
-                </label>
-                <div className="flex gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {language === 'bn' ? 'অ্যাকসেন্ট' : 'Accent'}
+                  </label>
                   <input
                     type="color"
                     value={accentColor || '#d4af37'}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                    className="w-full h-8 rounded border cursor-pointer"
                   />
-                  <input
-                    type="text"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    placeholder="#d4af37"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
-                  />
+                </div>
+              </div>
+
+              {/* Extended Colors (Phase 1) */}
+              <div>
+                <p className="text-xs font-medium text-gray-700 mb-2">
+                  {language === 'bn' ? 'অতিরিক্ত রং' : 'Extended Colors'}
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-1">
+                      {language === 'bn' ? 'ব্যাকগ্রাউন্ড' : 'Background'}
+                    </label>
+                    <input
+                      type="color"
+                      value={backgroundColor}
+                      onChange={(e) => setBackgroundColor(e.target.value)}
+                      className="w-full h-7 rounded border cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-1">
+                      {language === 'bn' ? 'টেক্সট' : 'Text'}
+                    </label>
+                    <input
+                      type="color"
+                      value={textColor}
+                      onChange={(e) => setTextColor(e.target.value)}
+                      className="w-full h-7 rounded border cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-1">
+                      {language === 'bn' ? 'বর্ডার' : 'Border'}
+                    </label>
+                    <input
+                      type="color"
+                      value={borderColor}
+                      onChange={(e) => setBorderColor(e.target.value)}
+                      className="w-full h-7 rounded border cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Typography Settings (Phase 1) */}
+              <div className="border-t border-gray-200 pt-4">
+                <p className="text-xs font-medium text-gray-700 mb-3 flex items-center gap-1">
+                  <Type className="w-3 h-3" /> {language === 'bn' ? 'টাইপোগ্রাফি' : 'Typography'}
+                </p>
+                
+                {/* Heading Size */}
+                <div className="mb-3">
+                  <label className="block text-[10px] text-gray-500 mb-1">
+                    {language === 'bn' ? 'হেডিং সাইজ' : 'Heading Size'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['small', 'medium', 'large'] as const).map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setTypography({ ...typography, headingSize: size })}
+                        className={`px-2 py-1.5 text-xs rounded border transition ${
+                          typography.headingSize === size ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Body Size */}
+                <div className="mb-3">
+                  <label className="block text-[10px] text-gray-500 mb-1">
+                    {language === 'bn' ? 'বডি সাইজ' : 'Body Size'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['small', 'medium', 'large'] as const).map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setTypography({ ...typography, bodySize: size })}
+                        className={`px-2 py-1.5 text-xs rounded border transition ${
+                          typography.bodySize === size ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Line Height */}
+                <div className="mb-3">
+                  <label className="block text-[10px] text-gray-500 mb-1">
+                    {language === 'bn' ? 'লাইন হাইট' : 'Line Height'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['compact', 'normal', 'relaxed'] as const).map((height) => (
+                      <button
+                        key={height}
+                        type="button"
+                        onClick={() => setTypography({ ...typography, lineHeight: height })}
+                        className={`px-2 py-1.5 text-[10px] rounded border transition ${
+                          typography.lineHeight === height ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {height.charAt(0).toUpperCase() + height.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Letter Spacing */}
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-1">
+                    {language === 'bn' ? 'লেটার স্পেসিং' : 'Letter Spacing'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['tight', 'normal', 'wide'] as const).map((spacing) => (
+                      <button
+                        key={spacing}
+                        type="button"
+                        onClick={() => setTypography({ ...typography, letterSpacing: spacing })}
+                        className={`px-2 py-1.5 text-[10px] rounded border transition ${
+                          typography.letterSpacing === spacing ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {spacing.charAt(0).toUpperCase() + spacing.slice(1)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1248,26 +1609,30 @@ export default function LiveEditorPage() {
               {language === 'bn' ? 'লাইভ প্রিভিউ' : 'Live Preview'}
             </span>
             <span className="text-gray-500 text-xs">
-              {previewDevice === 'mobile' && '📱 375px'}
-              {previewDevice === 'tablet' && '📱 768px'}
-              {previewDevice === 'desktop' && '🖥️ 1200px'}
+              {previewDevice === 'mobile' && '📱 414 × 896'}
+              {previewDevice === 'tablet' && '📱 768 × 1024'}
+              {previewDevice === 'desktop' && '🖥️ Full Width'}
             </span>
           </div>
           
-          {/* Preview Container - Using iframe for true responsive preview */}
-          <div className="flex-1 flex items-start justify-center overflow-auto p-2 md:p-4">
+          {/* Preview Container - Chrome DevTools style responsive preview */}
+          <div className="flex-1 flex items-center justify-center overflow-auto bg-gray-800 p-2 md:p-4">
             {/* 
-              Iframe-based preview:
-              - Iframe has its own viewport, so CSS media queries work correctly
-              - postMessage API sends config updates for live editing
+              Chrome DevTools-like responsive preview:
+              - Mobile/Tablet: Fixed device frame with centered view
+              - Desktop: Full available width without restrictions
             */}
             <div 
-              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
-              style={{
-                width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
-                maxWidth: previewDevice === 'desktop' ? '1200px' : undefined,
-                height: previewDevice === 'mobile' ? '667px' : previewDevice === 'tablet' ? '1024px' : 'calc(100vh - 180px)',
-              }}
+              className={`bg-white rounded-lg overflow-hidden transition-all duration-300 relative ${
+                previewDevice === 'desktop' 
+                  ? 'w-full h-full shadow-none rounded-none' 
+                  : 'shadow-2xl'
+              }`}
+              style={previewDevice !== 'desktop' ? {
+                width: previewDevice === 'mobile' ? '414px' : '768px',
+                height: previewDevice === 'mobile' ? '896px' : '1024px',
+                maxHeight: 'calc(100vh - 150px)',
+              } : undefined}
             >
               <iframe
                 ref={iframeRef}

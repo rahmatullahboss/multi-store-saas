@@ -820,6 +820,21 @@ export function OrganicTemplate({
         </a>
       )}
 
+      {/* Footer */}
+      <footer className="bg-emerald-950 text-emerald-200 py-8 border-t border-emerald-800">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <p className="font-semibold text-white mb-2">{storeName}</p>
+          <p className="text-sm mb-4">© {new Date().getFullYear()} {t('allRightsReserved')}</p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs">
+            <a href="/policies/privacy" className="hover:text-white transition">{t('privacyPolicy')}</a>
+            <span className="opacity-50">•</span>
+            <a href="/policies/terms" className="hover:text-white transition">{t('termsOfService')}</a>
+            <span className="opacity-50">•</span>
+            <a href="/policies/refund" className="hover:text-white transition">{t('refundPolicy')}</a>
+          </div>
+        </div>
+      </footer>
+
       <style>{`
         @keyframes blob {
           0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: translate(-50%, -50%) rotate(0deg); }

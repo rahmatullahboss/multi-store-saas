@@ -9,7 +9,7 @@
 
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useFetcher } from '@remix-run/react';
+import { useLoaderData, Link, useFetcher, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
@@ -205,6 +205,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function UpgradePage() {
   const { currentPlan } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
+  const [searchParams] = useSearchParams();
   const couponFetcher = useFetcher<{
     valid?: boolean;
     error?: string;
@@ -216,7 +217,11 @@ export default function UpgradePage() {
   }>();
   
   const [couponCode, setCouponCode] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'premium' | null>(null);
+  // Auto-select plan from URL parameter
+  const planFromUrl = searchParams.get('plan') as 'starter' | 'premium' | null;
+  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'premium' | null>(
+    planFromUrl && ['starter', 'premium'].includes(planFromUrl) ? planFromUrl : null
+  );
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     discountLabel: string;
@@ -251,22 +256,6 @@ export default function UpgradePage() {
   
   const removeCoupon = () => {
     setAppliedCoupon(null);
-  };
-  
-  const getWhatsAppLink = (planKey: 'starter' | 'premium') => {
-    const plan = UPGRADE_PLANS[planKey];
-    let message = `Hi! I want to upgrade to ${plan.name} plan`;
-    
-    if (appliedCoupon && selectedPlan === planKey) {
-      message += ` with coupon code: ${appliedCoupon.code}`;
-      message += `\n\nOriginal Price: ৳${appliedCoupon.originalPrice}`;
-      message += `\nDiscount: -৳${appliedCoupon.discountAmount} (${appliedCoupon.discountLabel})`;
-      message += `\nFinal Price: ৳${appliedCoupon.finalPrice}`;
-    } else {
-      message += ` (৳${plan.price}/month)`;
-    }
-    
-    return `https://wa.me/8801739416661?text=${encodeURIComponent(message)}`;
   };
   
   const isValidating = couponFetcher.state === 'submitting';
@@ -325,7 +314,7 @@ export default function UpgradePage() {
           </div>
         </div>
         
-        {/* Submission Form - Only show if plan selected */}
+        {/* Submission Form - Show directly if plan selected from URL */}
         {selectedPlan ? (
           <PaymentSubmitForm 
             selectedPlan={selectedPlan} 
@@ -340,22 +329,6 @@ export default function UpgradePage() {
             </p>
           </div>
         )}
-        
-        {/* WhatsApp Fallback */}
-        <div className="mt-4 pt-4 border-t border-pink-100 text-center">
-          <p className="text-sm text-gray-500 mb-2">
-            {lang === 'bn' ? 'সমস্যা হলে WhatsApp এ যোগাযোগ করুন' : 'Having issues? Contact us on WhatsApp'}
-          </p>
-          <a 
-            href="https://wa.me/8801739416661?text=Hi!%20I%20need%20help%20with%20plan%20upgrade"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-medium text-sm"
-          >
-            <MessageCircle className="w-4 h-4" />
-            WhatsApp: 01739416661
-          </a>
-        </div>
       </div>
 
       {/* Coupon Code Section */}
@@ -427,9 +400,7 @@ export default function UpgradePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {(Object.entries(UPGRADE_PLANS) as [keyof typeof UPGRADE_PLANS, typeof UPGRADE_PLANS['starter']][]).map(([key, plan]) => {
           const isCurrentPlan = key === currentPlan;
-          const isDowngrade = 
-            (currentPlan === 'premium' && key === 'starter') ||
-            (currentPlan === 'custom');
+          const isDowngrade = currentPlan === 'premium' && key === 'starter';
           const Icon = plan.icon;
           const isSelected = selectedPlan === key;
           
@@ -520,20 +491,31 @@ export default function UpgradePage() {
                   Not Available
                 </div>
               ) : (
-                <a
-                  href={getWhatsAppLink(key)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-full py-3 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition ${
-                    key === 'starter' 
-                      ? 'bg-emerald-600 hover:bg-emerald-700' 
-                      : 'bg-purple-600 hover:bg-purple-700'
+                <button
+                  onClick={() => {
+                    setSelectedPlan(key);
+                    // Scroll to payment section
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`w-full py-3 font-semibold rounded-xl flex items-center justify-center gap-2 transition ${
+                    isSelected
+                      ? key === 'starter' 
+                        ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-500' 
+                        : 'bg-purple-100 text-purple-700 border-2 border-purple-500'
+                      : key === 'starter' 
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                        : 'bg-purple-600 hover:bg-purple-700 text-white'
                   }`}
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  Contact to Upgrade
-                  {showDiscount && ` (৳${appliedCoupon.finalPrice})`}
-                </a>
+                  {isSelected ? (
+                    <>
+                      <Check className="w-5 h-5" />
+                      {lang === 'bn' ? 'নির্বাচিত' : 'Selected'}
+                    </>
+                  ) : (
+                    lang === 'bn' ? 'এই প্ল্যান নিন' : 'Select This Plan'
+                  )}
+                </button>
               )}
             </div>
           );
@@ -583,6 +565,17 @@ export default function UpgradePage() {
           </details>
         </div>
       </div>
+
+      {/* Floating WhatsApp Button */}
+      <a
+        href="https://wa.me/8801739416661?text=Hi!%20I%20need%20help%20with%20plan%20upgrade"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 z-50"
+        title={lang === 'bn' ? 'WhatsApp-এ যোগাযোগ করুন' : 'Contact via WhatsApp'}
+      >
+        <MessageCircle className="w-7 h-7" />
+      </a>
     </div>
   );
 }

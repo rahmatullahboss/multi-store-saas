@@ -220,6 +220,7 @@ type NavItem = {
   to: string;
   labelKey: TranslationKey;
   icon: typeof LayoutDashboard;
+  isPaidOnly?: boolean; // Feature requires paid plan
 };
 
 type NavSection = {
@@ -253,9 +254,9 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarMarketing',
     items: [
-      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
-      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
-      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
+      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail, isPaidOnly: true },
+      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail, isPaidOnly: true },
+      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, isPaidOnly: true },
     ],
   },
   {
@@ -421,6 +422,27 @@ export default function AppLayout() {
                   {section.items.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.to);
+                    const isLocked = item.isPaidOnly && store.planType === 'free';
+                    
+                    // Locked items - show disabled state with upgrade prompt
+                    if (isLocked) {
+                      const featureName = item.to.split('/').pop() || 'marketing';
+                      return (
+                        <Link
+                          key={item.to}
+                          to={`/app/upgrade?feature=${featureName}`}
+                          onClick={() => setSidebarOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group"
+                        >
+                          <Icon className="w-5 h-5" />
+                          <span className="flex-1">{t(item.labelKey)}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium group-hover:bg-amber-200">
+                            আপগ্রেড
+                          </span>
+                        </Link>
+                      );
+                    }
+                    
                     return (
                       <Link
                         key={item.to}
@@ -478,10 +500,10 @@ export default function AppLayout() {
 
           {/* User Info & Logout */}
           <div className="p-4 border-t border-gray-200">
-            {/* Language Selector */}
-            <div className="mb-3">
+            {/* Language Selector - Temporarily disabled - Bengali is default */}
+            {/* <div className="mb-3">
               <LanguageSelector variant="pills" size="sm" className="w-full" />
-            </div>
+            </div> */}
             
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center">
@@ -521,7 +543,14 @@ export default function AppLayout() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="font-semibold text-gray-900">{store.name}</h1>
-            <div className="w-9" /> {/* Spacer for centering */}
+            <LanguageSelector variant="toggle" size="sm" />
+          </div>
+        </header>
+
+        {/* Desktop Header with Language Toggle */}
+        <header className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200 px-8 py-3">
+          <div className="flex items-center justify-end">
+            <LanguageSelector variant="pills" size="sm" />
           </div>
         </header>
 

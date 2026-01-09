@@ -14,14 +14,14 @@ import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher, Link } from '@remix-run/react';
-import { Store, ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy } from 'lucide-react';
+import { Store, ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy, Eye, EyeOff } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
 import { getUserId, register, createUserSession } from '~/services/auth.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
-import { LanguageSelector } from '~/components/LanguageSelector';
+// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { useTranslation } from '~/contexts/LanguageContext';
 
 // ==============================================================================
@@ -50,13 +50,15 @@ const PLAN_OPTIONS = [
     icon: Gift,
     color: 'gray',
     features: [
-      '5 Products',
-      'Landing Page Only',
+      '1 Product',
+      '50 Orders/Month',
+      'Landing Page Mode',
       'Basic Support',
     ],
     featuresBn: [
-      '৫টি প্রোডাক্ট',
-      'শুধুমাত্র ল্যান্ডিং পেজ',
+      '১টি প্রোডাক্ট',
+      '৫০টি অর্ডার/মাস',
+      'ল্যান্ডিং পেজ মোড',
       'বেসিক সাপোর্ট',
     ],
   },
@@ -70,15 +72,17 @@ const PLAN_OPTIONS = [
     popular: true,
     features: [
       '50 Products',
+      '500 Orders/Month',
       'Full Store Mode',
+      'Custom Domain',
       'bKash/Nagad Payment',
-      'Priority Support',
     ],
     featuresBn: [
       '৫০টি প্রোডাক্ট',
+      '৫০০টি অর্ডার/মাস',
       'ফুল স্টোর মোড',
+      'কাস্টম ডোমেইন',
       'বিকাশ/নগদ পেমেন্ট',
-      'প্রায়োরিটি সাপোর্ট',
     ],
   },
   { 
@@ -89,15 +93,19 @@ const PLAN_OPTIONS = [
     icon: Crown,
     color: 'purple',
     features: [
-      'Unlimited Products',
-      'AI Features',
+      '200 Products',
+      '3000 Orders/Month',
+      'Facebook Conversion API',
       'Custom Domain',
+      'Priority Support',
       '24/7 Support',
     ],
     featuresBn: [
-      'আনলিমিটেড প্রোডাক্ট',
-      'AI ফিচার',
+      '২০০টি প্রোডাক্ট',
+      '৩০০০টি অর্ডার/মাস',
+      'ফেসবুক কনভার্সন API',
       'কাস্টম ডোমেইন',
+      'প্রায়োরিটি সাপোর্ট',
       '২৪/৭ সাপোর্ট',
     ],
   },
@@ -265,6 +273,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, emailAvailable: true });
   }
 
+  // Check if subdomain is available (Step 2 -> Step 3 transition)
+  if (step === 'check_subdomain') {
+    const subdomain = formData.get('subdomain') as string;
+    
+    if (!subdomain || subdomain.length < 3) {
+      return json({ error: 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে', field: 'subdomain' }, { status: 400 });
+    }
+    
+    const db = drizzle(env.DB);
+    const existingStore = await db
+      .select({ id: stores.id })
+      .from(stores)
+      .where(eq(stores.subdomain, subdomain.toLowerCase()))
+      .limit(1);
+    
+    if (existingStore.length > 0) {
+      console.log('[Onboarding] Subdomain not available:', subdomain);
+      return json({ 
+        error: `"${subdomain}" সাবডোমেইন আগেই নেওয়া হয়েছে। অন্য একটি বেছে নিন।`, 
+        errorEn: `The subdomain "${subdomain}" is already taken. Please choose another one.`,
+        field: 'subdomain',
+        subdomainTaken: true 
+      }, { status: 400 });
+    }
+    
+    return json({ success: true, subdomainAvailable: true });
+  }
+
   // Create store with category-based template and plan selection
   if (step === 'create_store') {
     const email = formData.get('email') as string;
@@ -293,6 +329,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       });
 
       if (result.error) {
+        console.log('[Onboarding] Registration failed:', result.error);
         return json({ error: result.error }, { status: 400 });
       }
 
@@ -397,9 +434,13 @@ export default function OnboardingPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [storeCreationFailed, setStoreCreationFailed] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
-  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean }>();
+  const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
+  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean }>();
   
   const { t, lang: language } = useTranslation();
+  
+  // Password visibility toggle
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handle fetcher response
   const lastFetcherData = useRef(fetcher.data);
@@ -411,10 +452,17 @@ export default function OnboardingPage() {
       setIsCheckingEmail(false);
       setCurrentStep(2);
     }
+    if (fetcher.data?.subdomainAvailable) {
+      setIsCheckingSubdomain(false);
+      setCurrentStep(3);
+    }
     if (fetcher.data?.error) {
       setIsCheckingEmail(false);
+      setIsCheckingSubdomain(false);
       if (fetcher.data.emailExists) {
         setErrors({ email: fetcher.data.error });
+      } else if (fetcher.data.subdomainTaken) {
+        setErrors({ subdomain: fetcher.data.error });
       } else {
         setErrors({ form: fetcher.data.error });
         if (fetcher.data.error.includes('store') || fetcher.data.error.includes('Store')) {
@@ -462,17 +510,17 @@ export default function OnboardingPage() {
     if (currentStep === 1) {
       const newErrors: Record<string, string> = {};
       if (!formData.email || !formData.email.includes('@')) {
-        newErrors.email = language === 'bn' ? 'সঠিক ইমেইল দিন' : 'Valid email required';
+        newErrors.email = t('validEmailRequired');
       }
       if (!formData.password || formData.password.length < 6) {
-        newErrors.password = language === 'bn' ? 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে' : 'Password must be at least 6 characters';
+        newErrors.password = t('passwordMinChars');
       }
       if (!formData.name || formData.name.length < 2) {
-        newErrors.name = language === 'bn' ? 'নাম দিন' : 'Name required';
+        newErrors.name = t('nameRequired');
       }
       // Phone validation: must start with 01 and be 11 digits
       if (!formData.phone || formData.phone.length !== 11 || !formData.phone.startsWith('01')) {
-        newErrors.phone = language === 'bn' ? 'সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)' : 'Valid mobile number required (01XXXXXXXXX)';
+        newErrors.phone = t('validMobileRequired');
       }
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -489,22 +537,27 @@ export default function OnboardingPage() {
       return;
     }
     
-    // Step 2: Validate store info
+    // Step 2: Validate store info and check subdomain availability
     if (currentStep === 2) {
       const newErrors: Record<string, string> = {};
       if (!formData.storeName || formData.storeName.length < 2) {
-        newErrors.storeName = language === 'bn' ? 'স্টোরের নাম দিন' : 'Store name is required';
+        newErrors.storeName = t('storeNameRequired');
       }
       if (!formData.subdomain || formData.subdomain.length < 3) {
-        newErrors.subdomain = language === 'bn' ? 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে' : 'Subdomain must be at least 3 characters';
+        newErrors.subdomain = t('subdomainMinChars');
       }
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
         return;
       }
       
+      // Check subdomain availability before proceeding
+      setIsCheckingSubdomain(true);
       setErrors({});
-      setCurrentStep(3); // Go to plan selection
+      const checkData = new FormData();
+      checkData.append('step', 'check_subdomain');
+      checkData.append('subdomain', formData.subdomain);
+      fetcher.submit(checkData, { method: 'POST' });
       return;
     }
     
@@ -512,7 +565,7 @@ export default function OnboardingPage() {
     if (currentStep === 3) {
       // For paid plans, validate TRX ID
       if (formData.selectedPlan !== 'free' && !formData.transactionId) {
-        setErrors({ transactionId: language === 'bn' ? 'TRX ID দিন' : 'Please enter TRX ID' });
+        setErrors({ transactionId: t('trxIdRequired') });
         return;
       }
       
@@ -583,7 +636,7 @@ export default function OnboardingPage() {
             <span className="font-bold text-xl text-gray-900">Multi-Store</span>
           </Link>
           <div className="flex items-center gap-4">
-            <LanguageSelector variant="toggle" size="sm" />
+            {/* <LanguageSelector variant="toggle" size="sm" /> */} {/* Temporarily disabled - Bengali is default */}
             <a 
               href="/auth/logout?redirect=/auth/login" 
               className="text-sm text-gray-600 hover:text-emerald-600"
@@ -606,7 +659,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('createAccount')}</h1>
-                <p className="text-gray-500 mt-2">{language === 'bn' ? 'মাত্র ২ মিনিটে স্টোর তৈরি করুন' : 'Create your store in just 2 minutes'}</p>
+                <p className="text-gray-500 mt-2">{t('createStoreIn2Min')}</p>
               </div>
 
               <div>
@@ -615,6 +668,8 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="text"
+                  name="name"
+                  autoComplete="name"
                   value={formData.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -629,6 +684,8 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="email"
+                  name="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={(e) => updateField('email', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -641,23 +698,37 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('password')}
                 </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => updateField('password', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    autoComplete="new-password"
+                    value={formData.password}
+                    onChange={(e) => updateField('password', e.target.value)}
+                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
                 {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
               </div>
 
               {/* Phone Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'মোবাইল নম্বর' : 'Mobile Number'} *
+                  {t('mobileNumber')} *
                 </label>
                 <input
                   type="tel"
+                  name="phone"
+                  autoComplete="tel"
                   value={formData.phone}
                   onChange={(e) => {
                     // Only allow numbers and max 11 digits
@@ -668,7 +739,7 @@ export default function OnboardingPage() {
                   placeholder="01XXXXXXXXX"
                 />
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                <p className="text-xs text-gray-500 mt-1">{language === 'bn' ? 'বাংলাদেশী মোবাইল নম্বর (01 দিয়ে শুরু)' : 'Bangladesh mobile number (starts with 01)'}</p>
+                <p className="text-xs text-gray-500 mt-1">{t('bdMobileHint')}</p>
               </div>
             </div>
           )}
@@ -677,8 +748,8 @@ export default function OnboardingPage() {
           {currentStep === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">{language === 'bn' ? 'আপনার স্টোর সেটআপ করুন' : 'Set Up Your Store'}</h1>
-                <p className="text-gray-500 mt-2">{language === 'bn' ? 'পরে সব চেঞ্জ করতে পারবেন' : 'You can change everything later'}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{t('setupYourStore')}</h1>
+                <p className="text-gray-500 mt-2">{t('canChangeLater')}</p>
               </div>
 
               {/* Store Name */}
@@ -699,7 +770,7 @@ export default function OnboardingPage() {
               {/* Subdomain */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'স্টোর লিংক' : 'Store Link'} *
+                  {t('storeLink')} *
                 </label>
                 <div className="flex items-center">
                   <input
@@ -722,7 +793,7 @@ export default function OnboardingPage() {
               {/* Category - Visual Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {language === 'bn' ? 'আপনি কী বিক্রি করেন?' : 'What do you sell?'}
+                  {t('whatDoYouSellLabel')}
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {BUSINESS_CATEGORIES.map((cat) => (
@@ -750,7 +821,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('choosePlan')}</h1>
-                <p className="text-gray-500 mt-2">{language === 'bn' ? 'আপনার প্রয়োজন অনুযায়ী প্ল্যান সিলেক্ট করুন' : 'Select a plan based on your needs'}</p>
+                <p className="text-gray-500 mt-2">{t('selectPlanBasedNeeds')}</p>
               </div>
 
               {/* Plan Cards */}
@@ -794,7 +865,7 @@ export default function OnboardingPage() {
                         <div>
                           <h3 className="font-bold text-gray-900">{t(plan.nameKey)}</h3>
                           <p className="text-lg font-bold">
-                            {plan.price === 0 ? (language === 'bn' ? 'ফ্রি' : 'Free') : `৳${plan.price}`}
+                            {plan.price === 0 ? t('freeText') : `৳${plan.price}`}
                             {plan.price > 0 && <span className="text-sm font-normal text-gray-500">{t('perMonth')}</span>}
                           </p>
                         </div>
@@ -842,7 +913,7 @@ export default function OnboardingPage() {
                   {/* bKash Number with Copy */}
                   <div className="bg-white rounded-xl p-4 mb-4 flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-500">{language === 'bn' ? 'বিকাশ নম্বর' : 'bKash Number'}</p>
+                      <p className="text-sm text-gray-500">{t('bkashNumber')}</p>
                       <p className="text-2xl font-bold text-pink-600">{BKASH_PAYMENT_NUMBER}</p>
                     </div>
                     <button
@@ -854,12 +925,12 @@ export default function OnboardingPage() {
                     </button>
                   </div>
                   {copied && (
-                    <p className="text-sm text-green-600 mb-4">{language === 'bn' ? 'কপি হয়েছে!' : 'Copied!'}</p>
+                    <p className="text-sm text-green-600 mb-4">{t('copied')}</p>
                   )}
 
                   {/* Amount */}
                   <div className="bg-white rounded-xl p-4 mb-4">
-                    <p className="text-sm text-gray-500">{language === 'bn' ? 'পরিমাণ' : 'Amount'}</p>
+                    <p className="text-sm text-gray-500">{t('amount')}</p>
                     <p className="text-2xl font-bold text-gray-900">৳{selectedPlanData?.price}</p>
                   </div>
 
@@ -888,7 +959,7 @@ export default function OnboardingPage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'bn' ? 'পেমেন্টে ব্যবহৃত ফোন নম্বর' : 'Phone number used for payment'}
+                        {t('paymentPhoneUsed')}
                       </label>
                       <input
                         type="tel"
@@ -917,9 +988,7 @@ export default function OnboardingPage() {
               {formData.selectedPlan === 'free' && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                   <p className="text-sm text-emerald-700">
-                    ✨ {language === 'bn' 
-                      ? 'ফ্রি প্ল্যানে শুরু করুন এবং পরে আপগ্রেড করুন!' 
-                      : 'Start with Free plan and upgrade later!'}
+                    ✨ {t('startFreeUpgradeLater')}
                   </p>
                 </div>
               )}
@@ -943,9 +1012,7 @@ export default function OnboardingPage() {
                     ⏳ {t('paymentPending')}
                   </p>
                   <p className="text-sm text-amber-600 mt-1">
-                    {language === 'bn' 
-                      ? 'আপনার পেমেন্ট ভেরিফাই করা হবে। ২৪ ঘন্টার মধ্যে আপনার প্ল্যান একটিভ হয়ে যাবে।'
-                      : 'Your payment will be verified. Your plan will be activated within 24 hours.'}
+                    {t('paymentVerificationNotice')}
                   </p>
                 </div>
               )}
@@ -1022,10 +1089,10 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={isCheckingEmail || isSubmitting}
+                disabled={isCheckingEmail || isCheckingSubdomain || isSubmitting}
                 className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {isCheckingEmail 
+                {(isCheckingEmail || isCheckingSubdomain)
                   ? t('loading') 
                   : currentStep === 3 
                     ? (formData.selectedPlan === 'free' 

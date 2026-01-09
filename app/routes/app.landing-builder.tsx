@@ -313,7 +313,13 @@ export default function LandingBuilderPage() {
 
   // State for landing config
   const [templateId, setTemplateId] = useState(store.landingConfig.templateId || 'modern-dark');
-  const [featuredProductId, setFeaturedProductId] = useState(store.featuredProductId?.toString() || '');
+  // Auto-select first product if no featured product is set but products exist
+  const [featuredProductId, setFeaturedProductId] = useState(() => {
+    if (store.featuredProductId) return store.featuredProductId.toString();
+    // Auto-select first product if available
+    if (storeProducts.length > 0) return storeProducts[0].id.toString();
+    return '';
+  });
   const [sectionOrder, setSectionOrder] = useState(store.landingConfig.sectionOrder || DEFAULT_SECTION_ORDER);
   const [hiddenSections, setHiddenSections] = useState<string[]>(store.landingConfig.hiddenSections || []);
   const [whatsappEnabled, setWhatsappEnabled] = useState(store.landingConfig.whatsappEnabled || false);
@@ -369,15 +375,15 @@ export default function LandingBuilderPage() {
     }
   }, [actionData]);
 
-
   // Track unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
-  const initialLoadRef = useRef(true);
+  const mountCountRef = useRef(0);
   
-  // Mark as dirty when any field changes (skip initial load)
+  // Mark as dirty when any field changes (skip initial load - wait for 2 renders)
   useEffect(() => {
-    if (initialLoadRef.current) {
-      initialLoadRef.current = false;
+    // Skip the first 2 renders to avoid false positives from initialization
+    if (mountCountRef.current < 2) {
+      mountCountRef.current += 1;
       return;
     }
     setHasChanges(true);
@@ -561,41 +567,47 @@ export default function LandingBuilderPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
+            {/* Left - Back button and title */}
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <Link
                 to="/app/dashboard"
-                className="p-2 hover:bg-gray-100 rounded-lg transition"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition flex-shrink-0"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </Link>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">
+              <div className="min-w-0 hidden sm:block">
+                <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate">
                   {language === 'bn' ? 'ল্যান্ডিং পেজ বিল্ডার' : 'Landing Page Builder'}
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500 truncate">
                   {store.name} • {selectedTemplate?.emoji} {language === 'bn' ? selectedTemplate?.name : selectedTemplate?.nameEn}
                 </p>
               </div>
+              {/* Mobile: Show store name only */}
+              <span className="sm:hidden text-sm font-semibold text-gray-900 truncate">
+                {store.name}
+              </span>
             </div>
             
-            <div className="flex items-center gap-3">
-              {/* Live Preview Button - Opens in Same Tab */}
+            {/* Right - Action buttons */}
+            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+              {/* Live Preview Button */}
               <Link
                 to="/landing-live-editor"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition font-medium"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition font-medium text-sm"
               >
                 <Eye className="w-4 h-4" />
-                {language === 'bn' ? 'লাইভ প্রিভিউ' : 'Live Preview'}
+                {language === 'bn' ? 'এডিট' : 'Edit'}
               </Link>
 
-              {/* Open Store in New Tab */}
+              {/* Open Store in New Tab - Hidden on mobile */}
               <a
                 href={previewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-sm"
               >
                 <ExternalLink className="w-4 h-4" />
                 {language === 'bn' ? 'নতুন ট্যাব' : 'Open'}
@@ -646,7 +658,7 @@ export default function LandingBuilderPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 font-medium rounded-lg transition text-sm ${
                     hasChanges 
                       ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
                       : 'bg-gray-200 text-gray-600'
@@ -657,13 +669,13 @@ export default function LandingBuilderPage() {
                   ) : (
                     <Save className="w-4 h-4" />
                   )}
-                  {language === 'bn' ? 'সেভ করুন' : 'Save'}
+                  {language === 'bn' ? 'সেভ' : 'Save'}
                   {hasChanges && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
                 </button>
                 
-                {/* Auto-save status indicator */}
+                {/* Auto-save status indicator - Hidden on mobile */}
                 {autoSaveStatus !== 'idle' && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${
+                  <span className={`hidden sm:inline text-xs px-2 py-1 rounded-full ${
                     autoSaveStatus === 'saving' ? 'bg-blue-100 text-blue-600' :
                     autoSaveStatus === 'saved' ? 'bg-emerald-100 text-emerald-600' :
                     'bg-red-100 text-red-600'

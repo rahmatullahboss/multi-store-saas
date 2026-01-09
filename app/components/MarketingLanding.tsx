@@ -263,6 +263,12 @@ export function MarketingLanding() {
               
               <div className="flex items-center gap-3">
                 <Link 
+                  to="/pricing" 
+                  className="hidden md:block text-white/60 hover:text-[#00875F] font-medium text-sm px-3 py-2 transition"
+                >
+                  প্রাইসিং
+                </Link>
+                <Link 
                   to="/tutorials" 
                   className="hidden md:block text-white/60 hover:text-[#00875F] font-medium text-sm px-3 py-2 transition"
                 >
@@ -311,6 +317,13 @@ export function MarketingLanding() {
                 className="sm:hidden mt-4 pt-4 border-t border-white/10"
               >
                 <div className="flex flex-col gap-2">
+                  <Link 
+                    to="/pricing" 
+                    className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    প্রাইসিং
+                  </Link>
                   <Link 
                     to="/tutorials" 
                     className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
@@ -513,6 +526,12 @@ export function MarketingLanding() {
             
             <div className="flex items-center gap-3">
               <Link 
+                to="/pricing" 
+                className="hidden md:block text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 transition"
+              >
+                প্রাইসিং
+              </Link>
+              <Link 
                 to="/tutorials" 
                 className="hidden md:block text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 transition"
               >
@@ -569,6 +588,13 @@ export function MarketingLanding() {
               className="sm:hidden mt-4 pt-4 border-t border-[#EBEDF0]"
             >
               <div className="flex flex-col gap-2">
+                <Link 
+                  to="/pricing" 
+                  className="text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 rounded-lg hover:bg-[#F4F5F7] transition"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  প্রাইসিং
+                </Link>
                 <Link 
                   to="/tutorials" 
                   className="text-[#475569] hover:text-[#006A4E] font-medium text-sm px-3 py-2 rounded-lg hover:bg-[#F4F5F7] transition"

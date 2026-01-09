@@ -337,6 +337,7 @@ export async function register({ email, password, name, phone, storeName, subdom
       .limit(1);
     
     if (existingUser.length > 0) {
+      console.log('[register] Email already exists:', email.toLowerCase());
       return { error: 'Email already registered' };
     }
     
@@ -360,6 +361,7 @@ export async function register({ email, password, name, phone, storeName, subdom
       .limit(1);
     
     if (existingStore.length > 0) {
+      console.log('[register] Subdomain already taken:', subdomain);
       return { error: `The subdomain "${subdomain}" is already taken. Please choose a different one.` };
     }
     

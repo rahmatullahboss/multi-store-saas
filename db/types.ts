@@ -2,6 +2,38 @@
  * Type definitions for Hybrid Mode configurations
  */
 
+// Typography settings for editors
+export interface TypographySettings {
+  headingSize?: 'small' | 'medium' | 'large';  // H1: 24/32/40px
+  bodySize?: 'small' | 'medium' | 'large';     // 14/16/18px
+  lineHeight?: 'compact' | 'normal' | 'relaxed'; // 1.4/1.6/1.8
+  letterSpacing?: 'tight' | 'normal' | 'wide';   // -0.02/0/0.02em
+}
+
+// Typography CSS values mapping
+export const TYPOGRAPHY_VALUES = {
+  headingSize: {
+    small: { fontSize: '1.5rem', lineHeight: '1.3' },   // 24px
+    medium: { fontSize: '2rem', lineHeight: '1.25' },   // 32px
+    large: { fontSize: '2.5rem', lineHeight: '1.2' },   // 40px
+  },
+  bodySize: {
+    small: '0.875rem',  // 14px
+    medium: '1rem',     // 16px
+    large: '1.125rem',  // 18px
+  },
+  lineHeight: {
+    compact: '1.4',
+    normal: '1.6',
+    relaxed: '1.8',
+  },
+  letterSpacing: {
+    tight: '-0.02em',
+    normal: '0',
+    wide: '0.02em',
+  },
+} as const;
+
 // Landing page configuration stored in landingConfig JSON field
 export interface LandingConfig {
   templateId?: string; // Template ID (e.g., 'modern-dark', 'minimal-light', 'video-focus')
@@ -71,13 +103,21 @@ export interface LandingConfig {
   };
   // Color Theme Customization
   primaryColor?: string; // Main brand color (buttons, accents)
-  accentColor?: string;  // Secondary accent color // Additional product images
+  accentColor?: string;  // Secondary accent color
+  // Extended Colors (Phase 1)
+  backgroundColor?: string; // Page background
+  textColor?: string;       // Main text color
+  borderColor?: string;     // Border/divider color
+  // Typography Settings (Phase 1)
+  typography?: TypographySettings;
   // Order Form Layout Variant
   orderFormVariant?: 'full-width' | 'compact'; // Default: 'full-width'
   // Custom CSS for advanced styling
   customCSS?: string;
   // Font Family
   fontFamily?: string;
+  // Landing Page Language (for visitor default view)
+  landingLanguage?: 'bn' | 'en';
 }
 
 // Store template configuration for full store mode
@@ -96,6 +136,12 @@ export interface ThemeConfig {
   primaryColor: string;
   accentColor: string;
   customAccentColor?: string; // Override preset accent color
+  // Extended Colors (Phase 1)
+  backgroundColor?: string; // Page background
+  textColor?: string;       // Main text color
+  borderColor?: string;     // Border/divider color
+  // Typography Settings (Phase 1)
+  typography?: TypographySettings;
   storeTemplateId?: string; // Selected store template ID
   bannerUrl?: string;
   bannerText?: string;

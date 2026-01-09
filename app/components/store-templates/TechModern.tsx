@@ -11,7 +11,7 @@ import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
-import { LanguageSelector } from '~/components/LanguageSelector';
+// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 
 // ============================================================================
 // TECH MODERN THEME CONSTANTS
@@ -155,7 +155,7 @@ export function TechModernTemplate({
             </div>
 
             {/* Language Selector */}
-            <LanguageSelector variant="toggle" size="sm" showFlag={true} showName={false} />
+            {/* <LanguageSelector variant="toggle" size="sm" showFlag={true} showName={false} /> */} {/* Temporarily disabled - Bengali is default */}
 
             {/* Cart Button */}
             <Link 
