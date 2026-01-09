@@ -935,7 +935,7 @@ export default function LiveEditorPage() {
 
           {/* Content Section */}
           <AccordionSection
-            title={language === 'bn' ? 'কন্টেন্ট' : 'Content'}
+            title={language === 'bn' ? 'লেখা ও টেক্সট' : 'Text & Copy'}
             icon={Settings}
             isOpen={openSection === 'content'}
             onToggle={() => setOpenSection(openSection === 'content' ? '' : 'content')}
@@ -1020,7 +1020,7 @@ export default function LiveEditorPage() {
 
           {/* Sections Section */}
           <AccordionSection
-            title={language === 'bn' ? 'সেকশন' : 'Sections'}
+            title={language === 'bn' ? 'পেজ সাজান' : 'Page Sections'}
             icon={Layout}
             isOpen={openSection === 'sections'}
             onToggle={() => setOpenSection(openSection === 'sections' ? '' : 'sections')}
@@ -1136,7 +1136,7 @@ export default function LiveEditorPage() {
 
           {/* Theme & Typography Section (Phase 1 Enhanced) */}
           <AccordionSection
-            title={language === 'bn' ? 'থিম ও টাইপোগ্রাফি' : 'Theme & Typography'}
+            title={language === 'bn' ? 'রং ও স্টাইল' : 'Colors & Style'}
             icon={Paintbrush}
             isOpen={openSection === 'colors'}
             onToggle={() => setOpenSection(openSection === 'colors' ? '' : 'colors')}

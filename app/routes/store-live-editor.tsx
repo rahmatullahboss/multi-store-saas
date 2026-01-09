@@ -30,6 +30,7 @@ import {
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
 import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Multi-Store SaaS' }];
 
@@ -248,6 +249,7 @@ export default function StoreLiveEditor() {
   const { store, themeConfig, templates, saasDomain } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const { lang: language } = useTranslation();
   
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
@@ -591,7 +593,7 @@ export default function StoreLiveEditor() {
 
             {/* Template Section */}
             <AccordionSection
-              title="Template"
+              title={language === 'bn' ? 'টেমপ্লেট' : 'Template'}
               icon={Layout}
               isOpen={openSection === 'template'}
               onToggle={() => setOpenSection(openSection === 'template' ? '' : 'template')}
@@ -624,7 +626,7 @@ export default function StoreLiveEditor() {
 
             {/* Theme Section */}
             <AccordionSection
-              title="Theme & Colors"
+              title={language === 'bn' ? 'রঙ ও স্টাইল' : 'Colors & Style'}
               icon={Palette}
               isOpen={openSection === 'theme'}
               onToggle={() => setOpenSection(openSection === 'theme' ? '' : 'theme')}
@@ -926,7 +928,7 @@ export default function StoreLiveEditor() {
 
             {/* Social Links Section */}
             <AccordionSection
-              title="Social Links"
+              title={language === 'bn' ? 'সোশ্যাল লিঙ্ক' : 'Social Links'}
               icon={Facebook}
               isOpen={openSection === 'social'}
               onToggle={() => setOpenSection(openSection === 'social' ? '' : 'social')}
@@ -975,7 +977,7 @@ export default function StoreLiveEditor() {
 
             {/* Header Layout Section */}
             <AccordionSection
-              title="Header Layout"
+              title={language === 'bn' ? 'হেডার লেআউট' : 'Header Layout'}
               icon={Menu}
               isOpen={openSection === 'header'}
               onToggle={() => setOpenSection(openSection === 'header' ? '' : 'header')}

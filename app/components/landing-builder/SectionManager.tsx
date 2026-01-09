@@ -33,33 +33,33 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-// Available landing page sections
+// Available landing page sections (Phase 3: More beginner-friendly labels)
 export const LANDING_SECTIONS = [
   {
     id: 'hero',
-    name: 'হিরো',
-    nameEn: 'Hero',
-    description: 'হেডলাইন ও প্রোডাক্ট',
-    descriptionEn: 'Headline & Product',
+    name: 'হেডার',
+    nameEn: 'Header',
+    description: 'প্রথমে যা দেখা যাবে',
+    descriptionEn: 'What visitors see first',
     icon: Type,
     required: true,
-    editable: false, // Edited in Content accordion
+    editable: false,
   },
   {
     id: 'trust',
-    name: 'ট্রাস্ট ব্যাজ',
+    name: 'বিশ্বাসযোগ্যতা',
     nameEn: 'Trust Badges',
-    description: 'গ্যারান্টি ও বিশ্বাসযোগ্যতা',
-    descriptionEn: 'Guarantee & trust indicators',
+    description: 'গ্যারান্টি ও নিরাপত্তা',
+    descriptionEn: 'Guarantee & safety indicators',
     icon: ShieldCheck,
     editable: false,
   },
   {
     id: 'features',
-    name: 'ফিচার্স',
+    name: 'বৈশিষ্ট্য',
     nameEn: 'Features',
-    description: 'প্রোডাক্টের বৈশিষ্ট্য',
-    descriptionEn: 'Product features',
+    description: 'প্রোডাক্টের সুবিধাসমূহ',
+    descriptionEn: 'Product benefits', 
     icon: Star,
     editable: true,
   },
@@ -146,13 +146,13 @@ export const LANDING_SECTIONS = [
   },
   {
     id: 'cta',
-    name: 'CTA',
-    nameEn: 'CTA',
-    description: 'অর্ডার ফর্ম',
-    descriptionEn: 'Order form',
+    name: 'অর্ডার ফর্ম',
+    nameEn: 'Order Form',
+    description: 'যেখানে কাস্টমার অর্ডার করবে',
+    descriptionEn: 'Where customers place orders',
     icon: ShoppingCart,
     required: true,
-    editable: true, // Enable variant selection
+    editable: true,
   },
 ];
 
