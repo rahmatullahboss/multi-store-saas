@@ -105,7 +105,7 @@ const PLAN_DISPLAY = {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request);
+  await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
@@ -158,7 +158,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Request AI Agent Activation
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  await requireUserId(request);
+  await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {

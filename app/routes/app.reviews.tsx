@@ -38,7 +38,7 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request);
+  await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {

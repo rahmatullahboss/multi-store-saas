@@ -30,7 +30,7 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request);
+  await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
@@ -59,7 +59,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const userId = await requireUserId(request);
+  const userId = await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   
   if (!storeId) {
