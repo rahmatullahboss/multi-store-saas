@@ -599,7 +599,7 @@ export default function LandingBuilderPage() {
                 className="inline-flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition font-medium text-sm"
               >
                 <Eye className="w-4 h-4" />
-                <span className="hidden sm:inline">{language === 'bn' ? 'লাইভ প্রিভিউ' : 'Live Preview'}</span>
+                {language === 'bn' ? 'এডিট' : 'Edit'}
               </Link>
 
               {/* Open Store in New Tab - Hidden on mobile */}
@@ -669,7 +669,7 @@ export default function LandingBuilderPage() {
                   ) : (
                     <Save className="w-4 h-4" />
                   )}
-                  <span className="hidden sm:inline">{language === 'bn' ? 'সেভ করুন' : 'Save'}</span>
+                  {language === 'bn' ? 'সেভ' : 'Save'}
                   {hasChanges && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
                 </button>
                 
