@@ -100,7 +100,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }, { status: 403 });
     }
 
-    const ai = createAIService(apiKey);
+    const ai = createAIService(apiKey, {
+      model: env.AI_MODEL,
+      baseUrl: env.AI_BASE_URL
+    });
     
     // Step 1: Generate store setup
     const storeSetup = await ai.generateStoreSetup(description);

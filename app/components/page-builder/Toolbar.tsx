@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEditor } from '@grapesjs/react';
+import { useEditorMaybe } from '@grapesjs/react';
 import { 
   Monitor, 
   Smartphone, 
@@ -16,10 +16,19 @@ import {
 import { toast } from 'sonner';
 
 export default function EditorToolbar() {
-  const editor = useEditor();
+  const editor = useEditorMaybe();
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Wait for editor to be ready
+  if (!editor) {
+    return (
+      <div className="flex items-center justify-center px-4 py-2 bg-white border-b border-gray-200 h-12">
+        <p className="text-gray-400 text-xs font-medium">Loading editor...</p>
+      </div>
+    );
+  }
 
   const handleDeviceChange = (device: string) => {
     editor.setDevice(device);

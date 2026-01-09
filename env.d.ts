@@ -20,6 +20,8 @@ declare global {
     VAPID_SUBJECT: string;
     ASSETS?: Fetcher; // Optional - only present in Workers, not Pages
     OPENROUTER_API_KEY?: string;
+    AI_MODEL?: string;
+    AI_BASE_URL?: string;
     // Super Admin Email (only this email can impersonate users)
     SUPER_ADMIN_EMAIL?: string;
     // bKash Payment Gateway

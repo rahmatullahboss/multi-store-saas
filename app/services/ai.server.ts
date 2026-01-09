@@ -18,6 +18,7 @@ import { generateText } from 'ai';
 // CONFIGURATION
 // ============================================================================
 const DEFAULT_MODEL = 'google/gemini-2.0-flash-001';
+const DEFAULT_BASE_URL = 'https://openrouter.ai/api/v1';
 
 // ============================================================================
 // ZOD SCHEMAS - Structured AI Output Validation
@@ -157,10 +158,14 @@ async function callAI(
   apiKey: string,
   systemPrompt: string,
   userPrompt: string,
-  model: string = DEFAULT_MODEL
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
 ): Promise<string> {
-  console.log(`[AI] Calling OpenRouter with model: ${model}`);
-  const openrouter = createOpenRouter({ apiKey });
+  console.log(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
+  const openrouter = createOpenRouter({ 
+    apiKey,
+    baseURL: baseUrl
+  });
   
   try {
     const result = await generateText({
@@ -211,7 +216,9 @@ function extractJSON(text: string): unknown {
 // ============================================================================
 export async function generateStoreSetup(
   apiKey: string,
-  businessDescription: string
+  businessDescription: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
 ): Promise<StoreSetupResult> {
   const systemPrompt = `You are an expert e-commerce consultant. Given a business description, generate:
 1. A catchy, professional store name
@@ -239,7 +246,7 @@ Important:
 
 Generate store setup JSON:`;
 
-  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   const parsed = extractJSON(response);
   return StoreSetupSchema.parse(parsed);
 }
@@ -250,7 +257,9 @@ Generate store setup JSON:`;
 export async function generateLandingConfig(
   apiKey: string,
   productInfo: { title: string; description?: string; price: number },
-  style?: string
+  style: string | undefined = undefined,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
 ): Promise<LandingConfigResult> {
   const systemPrompt = `You are an expert conversion copywriter. Create a high-converting landing page configuration.
 
@@ -288,7 +297,7 @@ Style preference: ${style || 'Professional and trustworthy'}
 
 Generate landing page JSON:`;
 
-  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   const parsed = extractJSON(response);
   return LandingConfigSchema.parse(parsed);
 }
@@ -340,7 +349,9 @@ export async function editSection(
   apiKey: string,
   sectionName: string,
   currentData: unknown,
-  editPrompt: string
+  editPrompt: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
 ): Promise<unknown> {
   // Normalize section name for schema lookup
   const normalizedSection = sectionName.toLowerCase().replace(/[^a-z]/g, '');
@@ -367,7 +378,7 @@ User's request: "${editPrompt}"${contextHint}
 
 Return ONLY the updated JSON:`;
 
-  const response = await callAI(apiKey, EDIT_SECTION_SYSTEM_PROMPT, userPrompt);
+  const response = await callAI(apiKey, EDIT_SECTION_SYSTEM_PROMPT, userPrompt, model, baseUrl);
   
   // Parse JSON from response
   let parsed: unknown;
@@ -415,7 +426,9 @@ export async function enhanceText(
   apiKey: string,
   fieldType: string,
   currentText: string,
-  keywords: string
+  keywords: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
 ): Promise<string> {
   const basePrompt = ENHANCE_PROMPTS[fieldType] || ENHANCE_PROMPTS.headline;
   
@@ -436,7 +449,7 @@ Improve this text based on the keywords:`
 
 Create new text based on these keywords:`;
 
-  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   return response.trim().replace(/^["']|["']$/g, ''); // Remove surrounding quotes if any
 }
 
@@ -446,7 +459,9 @@ Create new text based on these keywords:`;
 export async function quickEdit(
   apiKey: string,
   currentText: string,
-  editPrompt: string
+  editPrompt: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
 ): Promise<string> {
   const systemPrompt = `You are a copywriting assistant. Edit the given text according to the user's instructions.
 Return ONLY the edited text, no explanations or quotes.`;
@@ -456,7 +471,7 @@ Edit instruction: "${editPrompt}"
 
 Edited text:`;
 
-  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   return response.trim().replace(/^["']|["']$/g, ''); // Remove surrounding quotes if any
 }
 
@@ -465,7 +480,9 @@ Edited text:`;
 // ============================================================================
 export async function generateFullPage(
   apiKey: string,
-  businessDescription: string
+  businessDescription: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
 ): Promise<FullPageConfigResult> {
   const systemPrompt = `You are an expert e-commerce landing page designer. Given a business description, generate a complete high-converting landing page configuration.
 
@@ -517,7 +534,7 @@ Important:
 
 Generate a complete landing page configuration JSON:`;
 
-  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   const parsed = extractJSON(response);
   return FullPageConfigSchema.parse(parsed);
 }
@@ -534,7 +551,9 @@ export type ElementorPageResult = z.infer<typeof ElementorPageSchema>;
 
 export async function generateElementorPage(
   apiKey: string,
-  prompt: string
+  prompt: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
 ): Promise<ElementorPageResult> {
   const systemPrompt = `You are an elite landing page designer and conversion expert.
 Your goal is to generate a world-class, high-converting landing page for the Bangladesh e-commerce market using HTML and Tailwind CSS.
@@ -573,7 +592,7 @@ Include sections: Hero, Trust Badges, Features, Feedbacks, and Order Form.
 Tone: Professional and Trustworthy.
 Language: Bengali (if applicable).`;
 
-  const response = await callAI(apiKey, systemPrompt, userPrompt);
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   const parsed = extractJSON(response);
   return ElementorPageSchema.parse(parsed);
 }
@@ -581,31 +600,34 @@ Language: Bengali (if applicable).`;
 // ============================================================================
 // EXPORT: AI Service Factory
 // ============================================================================
-export function createAIService(apiKey: string) {
+export function createAIService(apiKey: string, options?: { model?: string, baseUrl?: string }) {
   if (!apiKey) {
-    throw new Error('OpenRouter API key is required');
+    throw new Error('AI API key is required');
   }
+
+  const model = options?.model || DEFAULT_MODEL;
+  const baseUrl = options?.baseUrl || DEFAULT_BASE_URL;
 
   return {
     generateStoreSetup: (description: string) => 
-      generateStoreSetup(apiKey, description),
+      generateStoreSetup(apiKey, description, model, baseUrl),
     
     generateLandingConfig: (productInfo: { title: string; description?: string; price: number }, style?: string) =>
-      generateLandingConfig(apiKey, productInfo, style),
+      generateLandingConfig(apiKey, productInfo, style, model, baseUrl),
     
     generateFullPage: (businessDescription: string) =>
-      generateFullPage(apiKey, businessDescription),
+      generateFullPage(apiKey, businessDescription, model, baseUrl),
     
     editSection: (sectionName: string, currentData: unknown, prompt: string) =>
-      editSection(apiKey, sectionName, currentData, prompt),
+      editSection(apiKey, sectionName, currentData, prompt, model, baseUrl),
     
     enhanceText: (fieldType: string, currentText: string, keywords: string) =>
-      enhanceText(apiKey, fieldType, currentText, keywords),
+      enhanceText(apiKey, fieldType, currentText, keywords, model, baseUrl),
     
     quickEdit: (currentText: string, prompt: string) =>
-      quickEdit(apiKey, currentText, prompt),
+      quickEdit(apiKey, currentText, prompt, model, baseUrl),
     
     generateElementorPage: (prompt: string) =>
-      generateElementorPage(apiKey, prompt),
+      generateElementorPage(apiKey, prompt, model, baseUrl),
   };
 }

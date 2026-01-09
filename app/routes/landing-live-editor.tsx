@@ -1440,6 +1440,18 @@ export default function LiveEditorPage() {
                   {language === 'bn' ? '📦 স্টক কাউন্টার' : '📦 Stock Counter'}
                 </span>
               </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showSocialProof}
+                  onChange={(e) => setShowSocialProof(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 rounded"
+                />
+                <span className="text-sm text-gray-700">
+                  {language === 'bn' ? '👥 সোশ্যাল প্রুফ' : '👥 Social Proof'}
+                </span>
+              </label>
             </div>
           </AccordionSection>
 

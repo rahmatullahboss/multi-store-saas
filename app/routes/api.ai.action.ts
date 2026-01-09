@@ -111,7 +111,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // Create AI service
-  const ai = createAIService(apiKey);
+  const ai = createAIService(apiKey, {
+    model: env.AI_MODEL,
+    baseUrl: env.AI_BASE_URL
+  });
 
   try {
     switch (actionType) {
