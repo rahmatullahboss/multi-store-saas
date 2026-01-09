@@ -42,30 +42,58 @@ export const meta: MetaFunction = () => {
 const UPGRADE_PLANS = {
   starter: {
     name: 'Starter',
-    price: 999,
+    nameBn: 'স্টার্টার',
+    price: 499,
     description: 'For growing businesses',
+    descriptionBn: 'বাড়তে থাকা ব্যবসার জন্য',
     icon: Zap,
     color: 'emerald',
     features: [
+      '৫০টি Product',
+      '৫০০ Orders/মাস',
+      '১ লাখ Visitors/মাস',
+      'Full E-commerce Store',
+      'Custom Domain',
+      'Facebook Pixel',
+      '২ জন Team Member',
+    ],
+    featuresEn: [
       '50 products',
       '500 orders/month',
-      'Full store mode',
-      'Custom domain',
-      'Email campaigns',
+      '100K visitors/month',
+      'Full E-commerce Store',
+      'Custom Domain',
+      'Facebook Pixel',
+      '2 Team Members',
     ],
   },
   premium: {
     name: 'Premium',
-    price: 2999,
-    description: 'For established stores',
+    nameBn: 'প্রিমিয়াম',
+    price: 1999,
+    description: 'For serious businesses',
+    descriptionBn: 'সিরিয়াস ব্যবসার জন্য',
     icon: Crown,
     color: 'purple',
     features: [
-      '500 products',
-      '5,000 orders/month',
-      'Full store mode',
-      'Custom domain',
-      'Priority support',
+      '২০০টি Product',
+      '৩,০০০ Orders/মাস',
+      '৬ লাখ Visitors/মাস',
+      'Facebook CAPI',
+      'Priority Support',
+      '২ GB Storage',
+      '৫ জন Team Member',
+      '০% Platform Fee (আপাতত ফ্রি)',
+    ],
+    featuresEn: [
+      '200 products',
+      '3,000 orders/month',
+      '600K visitors/month',
+      'Facebook CAPI',
+      'Priority Support',
+      '2 GB Storage',
+      '5 Team Members',
+      '0% Platform Fee (Currently Free)',
     ],
   },
 } as const;
@@ -427,7 +455,7 @@ export default function UpgradePage() {
               {key === 'starter' && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    Most Popular
+                    {lang === 'bn' ? 'সবচেয়ে জনপ্রিয়' : 'Most Popular'}
                   </span>
                 </div>
               )}
@@ -451,8 +479,12 @@ export default function UpgradePage() {
                     key === 'starter' ? 'text-emerald-600' : 'text-purple-600'
                   }`} />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">{plan.name}</h2>
-                <p className="text-gray-500 text-sm mt-1">{plan.description}</p>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {lang === 'bn' ? plan.nameBn : plan.name}
+                </h2>
+                <p className="text-gray-500 text-sm mt-1">
+                  {lang === 'bn' ? plan.descriptionBn : plan.description}
+                </p>
                 
                 {/* Price with discount */}
                 <div className="mt-4">
@@ -461,18 +493,18 @@ export default function UpgradePage() {
                   )}
                   <p className={`text-4xl font-bold ${showDiscount ? 'text-green-600' : 'text-gray-900'}`}>
                     ৳{displayPrice.toLocaleString()}
-                    <span className="text-base font-normal text-gray-500">/month</span>
+                    <span className="text-base font-normal text-gray-500">/{lang === 'bn' ? 'মাস' : 'month'}</span>
                   </p>
                   {showDiscount && (
                     <p className="text-sm text-green-600 font-medium mt-1">
-                      🎉 {appliedCoupon.discountLabel} - Save ৳{appliedCoupon.discountAmount}!
+                      🎉 {appliedCoupon.discountLabel} - {lang === 'bn' ? 'বাঁচান' : 'Save'} ৳{appliedCoupon.discountAmount}!
                     </p>
                   )}
                 </div>
               </div>
               
               <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, i) => (
+                {(lang === 'bn' ? plan.features : plan.featuresEn).map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 text-gray-700">
                     <Check className={`w-5 h-5 flex-shrink-0 ${
                       key === 'starter' ? 'text-emerald-500' : 'text-purple-500'
@@ -484,11 +516,11 @@ export default function UpgradePage() {
               
               {isCurrentPlan ? (
                 <div className="w-full py-3 text-center text-gray-500 font-medium border border-gray-200 rounded-xl bg-gray-50">
-                  Current Plan
+                  {lang === 'bn' ? 'বর্তমান প্ল্যান' : 'Current Plan'}
                 </div>
               ) : isDowngrade ? (
                 <div className="w-full py-3 text-center text-gray-400 font-medium border border-gray-200 rounded-xl bg-gray-50">
-                  Not Available
+                  {lang === 'bn' ? 'উপলব্ধ নয়' : 'Not Available'}
                 </div>
               ) : (
                 <button
