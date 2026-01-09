@@ -5,17 +5,23 @@ export default function BlocksPanel() {
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {
-          width: 5px;
+          width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
+          background: #f8fafc;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
-          border-radius: 10px;
+          background: #94a3b8;
+          border-radius: 4px;
+          border: 2px solid #f8fafc;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #cbd5e1;
+          background: #64748b;
+        }
+        /* Firefox support */
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #94a3b8 #f8fafc;
         }
       `}} />
       <BlocksProvider>
@@ -29,8 +35,8 @@ export default function BlocksPanel() {
         });
 
         return (
-          <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64 shadow-sm">
-            <div className="p-4 border-b border-gray-100 bg-gray-50/30">
+          <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64 shadow-sm min-h-0">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/30 flex-shrink-0">
               <h3 className="font-bold text-gray-900">Content Blocks</h3>
               <p className="text-[10px] text-gray-400 uppercase font-semibold">Drag onto canvas</p>
             </div>

@@ -67,5 +67,7 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string): any =>
         },
       ],
     },
+    // Disable default panels that overlap the canvas
+    panels: { defaults: [] },
   };
 };
