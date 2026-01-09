@@ -293,6 +293,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       });
 
       if (result.error) {
+        console.log('[Onboarding] Registration failed:', result.error);
         return json({ error: result.error }, { status: 400 });
       }
 
