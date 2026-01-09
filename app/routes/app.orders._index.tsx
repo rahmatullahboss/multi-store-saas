@@ -261,7 +261,7 @@ export default function DashboardOrdersPage() {
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <SearchInput
-          placeholder="Search by order #, customer, or phone..."
+          placeholder={lang === 'bn' ? 'অর্ডার #, কাস্টমার, অথবা ফোন দিয়ে খুঁজুন...' : 'Search by order #, customer, or phone...'}
           value={searchQuery}
           onChange={setSearchQuery}
           className="w-full md:w-80"
@@ -282,17 +282,17 @@ export default function DashboardOrdersPage() {
         <div className="bg-white rounded-xl border border-gray-200">
           <EmptyState
             icon={<ShoppingCart className="w-10 h-10" />}
-            title="No orders yet"
-            description="Orders will appear here when customers place them."
+            title={lang === 'bn' ? 'এখনো কোনো অর্ডার নেই' : 'No orders yet'}
+            description={lang === 'bn' ? 'কাস্টমাররা অর্ডার করলে এখানে দেখা যাবে।' : 'Orders will appear here when customers place them.'}
             action={{
-              label: 'View Store',
+              label: lang === 'bn' ? 'স্টোর দেখুন' : 'View Store',
               href: '/',
             }}
           />
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No orders match your filters.</p>
+          <p className="text-gray-500">{lang === 'bn' ? 'কোনো অর্ডার আপনার ফিল্টারের সাথে মিলছে না।' : 'No orders match your filters.'}</p>
           <button
             onClick={() => {
               setSearchQuery('');
@@ -300,7 +300,7 @@ export default function DashboardOrdersPage() {
             }}
             className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            Clear filters
+            {lang === 'bn' ? 'ফিল্টার সাফ করুন' : 'Clear filters'}
           </button>
         </div>
       ) : (
@@ -311,22 +311,22 @@ export default function DashboardOrdersPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Order
+                    {lang === 'bn' ? 'অর্ডার' : 'Order'}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Date
+                    {lang === 'bn' ? 'তারিখ' : 'Date'}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Customer
+                    {lang === 'bn' ? 'কাস্টমার' : 'Customer'}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Total
+                    {lang === 'bn' ? 'মোট' : 'Total'}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
+                    {lang === 'bn' ? 'স্ট্যাটাস' : 'Status'}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
+                    {lang === 'bn' ? 'অ্যাকশন' : 'Actions'}
                   </th>
                 </tr>
               </thead>
@@ -373,7 +373,7 @@ export default function DashboardOrdersPage() {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
                       >
                         <Eye className="w-4 h-4" />
-                        View
+                        {lang === 'bn' ? 'দেখুন' : 'View'}
                       </Link>
                     </td>
                   </tr>
