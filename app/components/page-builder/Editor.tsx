@@ -39,7 +39,6 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
         // Load plugins correctly
         plugins={[
           gjsBlocksBasic as any,
-          gjsPresetWebpage as any,
           gjsForms as any,
           bdBlocksPlugin as any, // Our custom plugin
         ]}

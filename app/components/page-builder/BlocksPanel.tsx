@@ -5,23 +5,23 @@ export default function BlocksPanel() {
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
+          width: 12px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f8fafc;
+          background: #f1f5f9;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #94a3b8;
-          border-radius: 4px;
-          border: 2px solid #f8fafc;
+          background: #64748b;
+          border-radius: 6px;
+          border: 3px solid #f1f5f9;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #64748b;
+          background: #475569;
         }
         /* Firefox support */
         .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #94a3b8 #f8fafc;
+          scrollbar-width: auto;
+          scrollbar-color: #64748b #f1f5f9;
         }
       `}} />
       <BlocksProvider>
