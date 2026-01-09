@@ -52,7 +52,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
     max_products: 1,
     max_orders: 50,
-    max_visitors: Infinity,
+    max_visitors: 10000,
     max_storage_mb: 100,
     max_staff: 1,
     allow_store_mode: false,
@@ -64,7 +64,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   starter: {
     max_products: 50,
     max_orders: 500,
-    max_visitors: 50000,  // doubled from 25000
+    max_visitors: 100000,
     max_storage_mb: 500,
     max_staff: 2,
     allow_store_mode: true,

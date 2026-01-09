@@ -57,7 +57,7 @@ const PLAN_DISPLAY = {
     features: [
       { text: '1 product', included: true },
       { text: '50 orders/month', included: true },
-      { text: 'Unlimited visitors', included: true },
+      { text: '10,000 visitors/month', included: true },
       { text: 'Landing page only', included: true },
       { text: 'Basic analytics', included: true },
       { text: 'Full store mode', included: false },
