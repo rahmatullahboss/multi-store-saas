@@ -254,8 +254,8 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarMarketing',
     items: [
-      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
-      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
+      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail, isPaidOnly: true },
+      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail, isPaidOnly: true },
       { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, isPaidOnly: true },
     ],
   },
@@ -426,10 +426,11 @@ export default function AppLayout() {
                     
                     // Locked items - show disabled state with upgrade prompt
                     if (isLocked) {
+                      const featureName = item.to.split('/').pop() || 'marketing';
                       return (
                         <Link
                           key={item.to}
-                          to="/app/upgrade?feature=reviews"
+                          to={`/app/upgrade?feature=${featureName}`}
                           onClick={() => setSidebarOpen(false)}
                           className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group"
                         >
