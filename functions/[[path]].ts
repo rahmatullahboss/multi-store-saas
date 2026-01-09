@@ -86,13 +86,12 @@ export const onRequest = createPagesFunctionHandler({
       return {
         cloudflare: {
           env: {
-            DB: env.DB,
-            R2: env.R2,
-            R2_PUBLIC_URL: env.R2_PUBLIC_URL || '',
+            ...context.env,
+            R2_PUBLIC_URL: (context.env.R2_PUBLIC_URL as string) || '',
             SAAS_DOMAIN: saasDomain,
-            CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN || '',
-            CLOUDFLARE_ZONE_ID: env.CLOUDFLARE_ZONE_ID || '',
-          },
+            CLOUDFLARE_API_TOKEN: (context.env.CLOUDFLARE_API_TOKEN as string) || '',
+            CLOUDFLARE_ZONE_ID: (context.env.CLOUDFLARE_ZONE_ID as string) || '',
+          } as Env,
           ctx: context as unknown as ExecutionContext,
           cf: context.request.cf,
         },
@@ -150,13 +149,12 @@ export const onRequest = createPagesFunctionHandler({
     return {
       cloudflare: {
         env: {
-          DB: env.DB,
-          R2: env.R2,
-          R2_PUBLIC_URL: env.R2_PUBLIC_URL || '',
+          ...context.env,
+          R2_PUBLIC_URL: (context.env.R2_PUBLIC_URL as string) || '',
           SAAS_DOMAIN: saasDomain,
-          CLOUDFLARE_API_TOKEN: env.CLOUDFLARE_API_TOKEN || '',
-          CLOUDFLARE_ZONE_ID: env.CLOUDFLARE_ZONE_ID || '',
-        },
+          CLOUDFLARE_API_TOKEN: (context.env.CLOUDFLARE_API_TOKEN as string) || '',
+          CLOUDFLARE_ZONE_ID: (context.env.CLOUDFLARE_ZONE_ID as string) || '',
+        } as Env,
         ctx: context as unknown as ExecutionContext,
         cf: context.request.cf,
       },

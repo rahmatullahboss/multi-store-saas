@@ -281,14 +281,14 @@ export function MarketingLanding() {
                   to="/auth/login" 
                   className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
                 >
-                  {content.login}
+                  লগইন
                 </Link>
                 <MagneticButton>
                   <Link 
                     to="/auth/register" 
                     className="hidden sm:inline-block px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
                   >
-                    {content.getStarted}
+                    ফ্রি স্টোর তৈরি করুন
                   </Link>
                 </MagneticButton>
                 {/* Mobile Menu Button */}
@@ -338,14 +338,14 @@ export function MarketingLanding() {
                     className="text-white/70 hover:text-white font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {content.login}
+                    লগইন
                   </Link>
                   <Link 
                     to="/auth/register" 
                     className="px-4 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-semibold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {content.getStarted}
+                    ফ্রি স্টোর তৈরি করুন
                   </Link>
                 </div>
               </motion.div>
@@ -424,12 +424,12 @@ export function MarketingLanding() {
                   </div>
                   <span className="font-bold text-xl text-white">Multi-Store</span>
                 </div>
-                <p className="text-sm text-white/50">{content.footerAbout}</p>
+                <p className="text-sm text-white/50">বাংলাদেশি মার্চেন্টদের জন্য সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। তৈরি করুন, বিক্রি করুন, বড় হন।</p>
               </div>
               
               {/* Product Links */}
               <div className="text-center sm:text-left">
-                <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">প্রোডাক্ট</h4>
               <ul className="space-y-2">
                   <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
                   <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
@@ -439,7 +439,7 @@ export function MarketingLanding() {
               
               {/* Company Links */}
               <div className="text-center sm:text-left">
-                <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
+                <h4 className="text-[#006A4E] font-semibold mb-4">কোম্পানি</h4>
                 <ul className="space-y-2">
                   <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
                   <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
@@ -448,7 +448,7 @@ export function MarketingLanding() {
               
               {/* Legal Links */}
               <div className="text-center sm:text-left">
-                <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
+                <h4 className="text-[#006A4E] font-semibold mb-4">আইনি</h4>
                 <ul className="space-y-2">
                   <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>
                   <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">শর্তাবলী</Link></li>
@@ -458,7 +458,7 @@ export function MarketingLanding() {
             </div>
             
             <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-sm text-white/40">{content.copyright}</p>
+              <p className="text-sm text-white/40">© ২০২৬ মাল্টি-স্টোর। বাংলাদেশে ❤️ দিয়ে তৈরি।</p>
               <div className="flex items-center gap-3">
                 {[
                   { icon: '💬', label: 'WhatsApp' },
@@ -539,14 +539,14 @@ export function MarketingLanding() {
                 to="/auth/login" 
                 className="hidden sm:block text-[#475569] hover:text-[#0F172A] font-medium text-sm px-4 py-2 transition"
               >
-                {content.login}
+                লগইন
               </Link>
               <MagneticButton>
                 <Link 
                   to="/auth/register" 
                   className="hidden sm:inline-block px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#059669] hover:from-[#005740] hover:to-[#047857] text-white font-semibold rounded-xl text-sm transition shadow-[0_4px_14px_rgba(0,106,78,0.25)] hover:shadow-[0_6px_20px_rgba(0,106,78,0.35)]"
                 >
-                  {content.getStarted}
+                  ফ্রি স্টোর তৈরি করুন
                 </Link>
               </MagneticButton>
               {/* Mobile Menu Button */}
@@ -596,14 +596,14 @@ export function MarketingLanding() {
                   className="text-[#475569] hover:text-[#0F172A] font-medium text-sm px-3 py-2 rounded-lg hover:bg-[#F4F5F7] transition"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {content.login}
+                  লগইন
                 </Link>
                 <Link 
                   to="/auth/register" 
                   className="px-4 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#059669] text-white font-semibold rounded-xl text-sm text-center shadow-[0_4px_14px_rgba(0,106,78,0.25)]"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {content.getStarted}
+                  ফ্রি স্টোর তৈরি করুন
                 </Link>
               </div>
             </motion.div>
@@ -643,12 +643,12 @@ export function MarketingLanding() {
                 </div>
                 <span className="font-bold text-xl text-white">Multi-Store</span>
               </div>
-              <p className="text-sm text-white/50">{content.footerAbout}</p>
+              <p className="text-sm text-white/50">বাংলাদেশি মার্চেন্টদের জন্য সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। তৈরি করুন, বিক্রি করুন, বড় হন।</p>
             </div>
             
             {/* Product Links */}
             <div className="text-center sm:text-left">
-              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">প্রোডাক্ট</h4>
               <ul className="space-y-2">
                 <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
                 <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
@@ -658,7 +658,7 @@ export function MarketingLanding() {
             
             {/* Company Links */}
             <div className="text-center sm:text-left">
-              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">কোম্পানি</h4>
               <ul className="space-y-2">
                 <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
                 <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
@@ -667,7 +667,7 @@ export function MarketingLanding() {
             
             {/* Legal Links */}
             <div className="text-center sm:text-left">
-              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">আইনি</h4>
               <ul className="space-y-2">
                 <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>
                 <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">শর্তাবলী</Link></li>
@@ -677,7 +677,7 @@ export function MarketingLanding() {
           </div>
           
           <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-white/40">{content.copyright}</p>
+            <p className="text-sm text-white/40">© ২০২৬ মাল্টি-স্টোর। বাংলাদেশে ❤️ দিয়ে তৈরি।</p>
             <div className="flex items-center gap-3">
               {[
                 { icon: '💬', label: 'WhatsApp' },
