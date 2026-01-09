@@ -116,6 +116,8 @@ export interface LandingConfig {
   customCSS?: string;
   // Font Family
   fontFamily?: string;
+  // Landing Page Language (for visitor default view)
+  landingLanguage?: 'bn' | 'en';
 }
 
 // Store template configuration for full store mode

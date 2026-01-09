@@ -181,6 +181,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const orderFormVariant = formData.get('orderFormVariant') as 'full-width' | 'compact' || 'full-width';
   const customCSS = formData.get('customCSS') as string || '';
   const fontFamily = formData.get('fontFamily') as string || 'inter';
+  const landingLanguage = formData.get('landingLanguage') as 'bn' | 'en' || 'bn';
 
   const newConfig: LandingConfig = {
     templateId,
@@ -226,6 +227,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     customCSS: customCSS || undefined,
     // Font Family
     fontFamily,
+    // Landing Language
+    landingLanguage,
   };
 
   await db
@@ -368,6 +371,11 @@ export default function LiveEditorPage() {
     store.landingConfig.orderFormVariant || 'full-width'
   );
 
+  // Landing Page Language (for visitor default view)
+  const [landingLanguage, setLandingLanguage] = useState<'bn' | 'en'>(
+    store.landingConfig.landingLanguage || 'bn'
+  );
+
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
 
@@ -434,7 +442,8 @@ export default function LiveEditorPage() {
     comparison,
     socialProof,
     orderFormVariant,
-  }), [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, customCSS, fontFamily, galleryImages, benefits, comparison, socialProof, orderFormVariant]);
+    landingLanguage,
+  }), [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, customCSS, fontFamily, galleryImages, benefits, comparison, socialProof, orderFormVariant, landingLanguage]);
 
   const initialSnapshot = useRef(createStateSnapshot());
   
@@ -480,7 +489,7 @@ export default function LiveEditorPage() {
       return;
     }
     setHasChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -668,6 +677,8 @@ export default function LiveEditorPage() {
     socialProof,
     // Order form layout
     orderFormVariant,
+    // Landing language
+    landingLanguage,
   };
 
   // Mock product for preview
@@ -797,6 +808,26 @@ export default function LiveEditorPage() {
               </button>
             </div>
 
+            {/* Landing Page Language Selector */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setLandingLanguage('bn')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${landingLanguage === 'bn' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
+                title="বাংলা"
+              >
+                বাংলা
+              </button>
+              <button
+                type="button"
+                onClick={() => setLandingLanguage('en')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${landingLanguage === 'en' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
+                title="English"
+              >
+                EN
+              </button>
+            </div>
+
             {/* Open in New Tab */}
             <a
               href={storeUrl}
@@ -862,6 +893,8 @@ export default function LiveEditorPage() {
               <input type="hidden" name="customCSS" value={customCSS} />
               {/* Font Family */}
               <input type="hidden" name="fontFamily" value={fontFamily} />
+              {/* Landing Language */}
+              <input type="hidden" name="landingLanguage" value={landingLanguage} />
               
               <button
                 type="submit"
