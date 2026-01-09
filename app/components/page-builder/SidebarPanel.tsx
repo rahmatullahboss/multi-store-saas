@@ -105,7 +105,7 @@ export default function SidebarPanel() {
               }}
             </BlocksProvider>
           ) : activeTab === 'styles' ? (
-            <div className="flex-1 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300">
+            <div className="absolute inset-0 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300">
               {/* Selectors Manager */}
               <div className="p-4 border-b border-gray-50 bg-blue-50/10">
                 <SelectorsProvider>
@@ -185,7 +185,7 @@ export default function SidebarPanel() {
               </div>
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300 p-4">
+            <div className="absolute inset-0 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300 p-4">
                <div className="mb-4">
                   <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Layer Structure</h3>
                   <p className="text-[9px] text-gray-300 font-bold">Manage element hierarchy</p>
