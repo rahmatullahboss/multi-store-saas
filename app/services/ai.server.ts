@@ -1,7 +1,7 @@
 /**
- * AI Service - OpenRouter API Integration
+ * AI Service - OpenAI-Compatible API Integration
  * 
- * Uses OpenRouter with Google Gemini for:
+ * Supports any OpenAI-compatible provider (OpenRouter, Xiaomi Mimo, etc.):
  * - Store setup generation
  * - Landing page generation
  * - Section editing with natural language
@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createOpenAI } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 
 // ============================================================================
@@ -152,7 +152,7 @@ export const FullPageConfigSchema = z.object({
 export type FullPageConfigResult = z.infer<typeof FullPageConfigSchema>;
 
 // ============================================================================
-// HELPER: Make OpenRouter API call
+// HELPER: Make OpenAI-Compatible API call
 // ============================================================================
 async function callAI(
   apiKey: string,
@@ -162,14 +162,16 @@ async function callAI(
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<string> {
   console.log(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
-  const openrouter = createOpenRouter({ 
+  
+  const openai = createOpenAI({ 
     apiKey,
-    baseURL: baseUrl
+    baseURL: baseUrl,
+    compatibility: 'compatible'  // relaxed mode for non-OpenAI providers
   });
   
   try {
     const result = await generateText({
-      model: openrouter(model),
+      model: openai(model),
       system: systemPrompt,
       prompt: userPrompt,
     });

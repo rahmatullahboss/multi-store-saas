@@ -47,7 +47,9 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
           <EditorToolbar />
           <div className="flex flex-1 overflow-hidden min-h-0">
             {/* Unified Left Sidebar: Blocks + Customization */}
-            <SidebarPanel />
+            <div className="h-full overflow-hidden flex-shrink-0">
+              <SidebarPanel />
+            </div>
 
             {/* Main Area: Canvas */}
             <div className="flex-1 bg-gray-100 flex items-center justify-center overflow-hidden relative">
