@@ -2,7 +2,23 @@ import { BlocksProvider } from '@grapesjs/react';
 
 export default function BlocksPanel() {
   return (
-    <BlocksProvider>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
+        }
+      `}} />
+      <BlocksProvider>
       {({ blocks, dragStart, dragStop }) => {
         // Group blocks by category manually if categories prop is missing
         const categories: Record<string, any[]> = {};
@@ -19,7 +35,7 @@ export default function BlocksPanel() {
               <p className="text-[10px] text-gray-400 uppercase font-semibold">Drag onto canvas</p>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
                 {Object.entries(categories).map(([catLabel, catBlocks]) => (
                   <div key={catLabel}>
                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
@@ -53,6 +69,7 @@ export default function BlocksPanel() {
           </div>
         );
       }}
-    </BlocksProvider>
+      </BlocksProvider>
+    </>
   );
 }
