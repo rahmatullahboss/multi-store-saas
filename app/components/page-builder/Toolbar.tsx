@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEditorMaybe } from '@grapesjs/react';
 import { 
   Monitor, 
@@ -21,6 +21,23 @@ export default function EditorToolbar() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const [selectedComponent, setSelectedComponent] = useState<any>(null);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const onSelected = () => setSelectedComponent(editor.getSelected());
+    const onDeselected = () => setSelectedComponent(null);
+
+    editor.on('component:selected', onSelected);
+    editor.on('component:deselected', onDeselected);
+
+    return () => {
+      editor.off('component:selected', onSelected);
+      editor.off('component:deselected', onDeselected);
+    };
+  }, [editor]);
+
   // Wait for editor to be ready
   if (!editor) {
     return (
@@ -28,18 +45,6 @@ export default function EditorToolbar() {
         <p className="text-gray-400 text-xs font-medium">Loading editor...</p>
       </div>
     );
-  }
-
-  const [selectedComponent, setSelectedComponent] = useState<any>(null);
-
-  // Bind editor events
-  if (editor) {
-    editor.on('component:selected', () => {
-      setSelectedComponent(editor.getSelected());
-    });
-    editor.on('component:deselected', () => {
-      setSelectedComponent(null);
-    });
   }
 
   const handleDeviceChange = (device: string) => {

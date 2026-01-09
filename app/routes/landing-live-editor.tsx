@@ -34,6 +34,7 @@ import {
   DEFAULT_SECTION_ORDER,
   LANDING_TEMPLATES 
 } from '~/components/landing-builder';
+import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
 import { getTemplateComponent } from '~/templates/registry';
 
 // Default features
@@ -437,7 +438,35 @@ export default function LiveEditorPage() {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   
   // Image upload fetcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
+
+  // ============================================================================
+  // AI GENERATOR MODAL STATE
+  // ============================================================================
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  
+  // Handle AI generation response
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = actionData as any;
+    if (data?.success && data?.data?.aiGeneratedConfig) {
+      const aiConfig = data.data.aiGeneratedConfig;
+      
+      // Update all states with AI generated data
+      if (aiConfig.headline) setHeadline(aiConfig.headline);
+      if (aiConfig.subheadline) setSubheadline(aiConfig.subheadline);
+      if (aiConfig.ctaText) setCtaText(aiConfig.ctaText);
+      if (aiConfig.features) setFeatures(aiConfig.features);
+      if (aiConfig.testimonials) setTestimonials(aiConfig.testimonials);
+      if (aiConfig.primaryColor) setPrimaryColor(aiConfig.primaryColor);
+      if (aiConfig.accentColor) setAccentColor(aiConfig.accentColor);
+      
+      setIsAIModalOpen(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }
+  }, [actionData]);
 
   // ============================================================================
   // UNDO/REDO FUNCTIONALITY (Phase 1)
@@ -1131,6 +1160,13 @@ export default function LiveEditorPage() {
             onClick={() => setMobileSidebarOpen(false)}
           />
         )}
+
+        {/* AI Generator Modal */}
+        <AIGeneratorModal 
+          isOpen={isAIModalOpen} 
+          onClose={() => setIsAIModalOpen(false)}
+          language={language as 'en' | 'bn'}
+        />
         
         {/* Left Sidebar - Editing Controls (Slide-out on mobile) */}
         <aside className={`
