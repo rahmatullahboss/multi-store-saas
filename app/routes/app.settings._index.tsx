@@ -418,7 +418,7 @@ export default function SettingsPage() {
       {showSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          Settings saved successfully!
+          {lang === 'bn' ? 'সেটিংস সেভ হয়েছে!' : 'Settings saved successfully!'}
         </div>
       )}
 
@@ -441,15 +441,15 @@ export default function SettingsPage() {
               <Image className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Branding</h2>
-              <p className="text-sm text-gray-500">Logo and favicon for your store</p>
+              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'ব্র্যান্ডিং' : 'Branding'}</h2>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরের লোগো এবং ফ্যাভিকন' : 'Logo and favicon for your store'}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Logo Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Store Logo</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{lang === 'bn' ? 'স্টোর লোগো' : 'Store Logo'}</label>
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {logoPreview ? (
@@ -486,9 +486,9 @@ export default function SettingsPage() {
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
                   >
                     <Upload className="w-4 h-4" />
-                    {isUploadingLogo ? 'Uploading...' : 'Upload'}
+                    {isUploadingLogo ? (lang === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...') : (lang === 'bn' ? 'আপলোড' : 'Upload')}
                   </button>
-                  <p className="text-xs text-gray-500 mt-1">PNG, JPG. Square works best.</p>
+                  <p className="text-xs text-gray-500 mt-1">{lang === 'bn' ? 'PNG, JPG। চারকোনা সবচেয়ে ভালো।' : 'PNG, JPG. Square works best.'}</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -539,7 +539,7 @@ export default function SettingsPage() {
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
                   >
                     <Upload className="w-4 h-4" />
-                    {isUploadingFavicon ? 'Uploading...' : 'Upload'}
+                    {isUploadingFavicon ? (lang === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...') : (lang === 'bn' ? 'আপলোড' : 'Upload')}
                   </button>
                   <p className="text-xs text-gray-500 mt-1">32x32 or 16x16 PNG</p>
                 </div>
@@ -562,8 +562,8 @@ export default function SettingsPage() {
               <Store className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Store Information</h2>
-              <p className="text-sm text-gray-500">Basic details about your store</p>
+              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'স্টোর তথ্য' : 'Store Information'}</h2>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরের মৌলিক বিবরণ' : 'Basic details about your store'}</p>
             </div>
           </div>
 
@@ -571,7 +571,7 @@ export default function SettingsPage() {
             {/* Store Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Store Name
+                {lang === 'bn' ? 'স্টোরের নাম' : 'Store Name'}
               </label>
               <input
                 type="text"
@@ -585,7 +585,7 @@ export default function SettingsPage() {
             {/* Currency */}
             <div>
               <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                Currency
+                {lang === 'bn' ? 'মুদ্রা' : 'Currency'}
               </label>
               <select
                 id="currency"
