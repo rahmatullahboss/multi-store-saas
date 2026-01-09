@@ -74,7 +74,7 @@ export function SectionRenderer({
   includeWhyBuy = true,
 }: SectionRendererProps) {
   // Get section order, fallback to default
-  const sectionOrder = config.sectionOrder?.length > 0 
+  const sectionOrder = config.sectionOrder && config.sectionOrder.length > 0 
     ? config.sectionOrder 
     : DEFAULT_SECTION_ORDER;
   
