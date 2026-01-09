@@ -8,11 +8,10 @@
  * - Customer chat support
  * 
  * All responses are validated with Zod schemas.
+ * Uses raw fetch for maximum provider compatibility.
  */
 
 import { z } from 'zod';
-import { createOpenAI } from '@ai-sdk/openai';
-import { generateText } from 'ai';
 
 // ============================================================================
 // CONFIGURATION
@@ -152,7 +151,7 @@ export const FullPageConfigSchema = z.object({
 export type FullPageConfigResult = z.infer<typeof FullPageConfigSchema>;
 
 // ============================================================================
-// HELPER: Make OpenAI-Compatible API call
+// HELPER: Make OpenAI-Compatible API call (Raw Fetch for maximum compatibility)
 // ============================================================================
 async function callAI(
   apiKey: string,
@@ -163,27 +162,42 @@ async function callAI(
 ): Promise<string> {
   console.log(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
   
-  const openai = createOpenAI({ 
-    apiKey,
-    baseURL: baseUrl,
-    compatibility: 'compatible'  // relaxed mode for non-OpenAI providers
-  });
-  
   try {
-    const result = await generateText({
-      model: openai(model),
-      system: systemPrompt,
-      prompt: userPrompt,
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
+      })
     });
 
-    console.log(`[AI] Response received. Length: ${result.text?.length || 0}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[AI] API Error ${response.status}:`, errorText);
+      throw new Error(`AI API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json() as { 
+      choices: Array<{ message: { content: string } }>;
+      usage?: { total_tokens: number };
+    };
     
-    if (!result.text) {
-      console.error('[AI] Empty response from OpenRouter');
+    const content = data.choices?.[0]?.message?.content;
+    console.log(`[AI] Response received. Length: ${content?.length || 0}${data.usage ? `, Tokens: ${data.usage.total_tokens}` : ''}`);
+    
+    if (!content) {
+      console.error('[AI] Empty response from AI');
       throw new Error('No response from AI');
     }
 
-    return result.text;
+    return content;
   } catch (error) {
     console.error('[AI] Error in callAI:', error);
     throw error;

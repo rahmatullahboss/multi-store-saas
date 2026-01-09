@@ -55,7 +55,7 @@ export default function SidebarPanel() {
            </button>
         </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0 max-h-full">
+        <div className="flex-1 min-h-0 relative">
           {activeTab === 'elements' ? (
             <BlocksProvider>
               {({ blocks, dragStart, dragStop }) => {
@@ -67,7 +67,7 @@ export default function SidebarPanel() {
                 });
 
                 return (
-                  <div className="h-full overflow-y-auto p-4 space-y-6 custom-scrollbar animate-in fade-in duration-300">
+                  <div className="absolute inset-0 overflow-y-auto p-4 space-y-6 custom-scrollbar animate-in fade-in duration-300">
                     <div className="mb-2">
                        <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">Components</h3>
                     </div>
