@@ -199,11 +199,11 @@ export const meta: MetaFunction = () => {
 
 // Redirect if already logged in AND onboarding is completed
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await getUserId(request);
+  const { env } = context.cloudflare;
+  const userId = await getUserId(request, env);
   
   if (userId) {
     try {
-      const { env } = context.cloudflare;
       const db = drizzle(env.DB);
       
       const userResult = await db
@@ -360,7 +360,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return await createUserSession(
         result.user!.id,
         storeId,
-        '/app/orders?onboarding=success'
+        '/app/orders?onboarding=success',
+        env
       );
     } catch (error) {
       console.error('[Onboarding] Error:', error);
