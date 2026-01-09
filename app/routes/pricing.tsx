@@ -114,17 +114,17 @@ const pricingPlans: PricingPlan[] = [
     priceDisplay: '৳০',
     description: 'ট্রায়ালের জন্য পারফেক্ট',
     features: [
-      { text: '১০টি Product' },
+      { text: '১টি Product' },
       { text: '৫০ Orders/মাস' },
-      { text: '৫,০০০ Visitors/মাস' },
+      { text: '১০,০০০ Visitors/মাস' },
       { text: 'Single Landing Page' },
       { text: 'Live Visual Editor' },
       { text: 'Bangla Support' },
     ],
     limits: {
-      products: '১০',
+      products: '১',
       orders: '৫০/মাস',
-      visitors: '৫,০০০/মাস',
+      visitors: '১০,০০০/মাস',
       storage: '১০০ MB',
       staff: '১ জন',
     },
@@ -141,7 +141,7 @@ const pricingPlans: PricingPlan[] = [
     features: [
       { text: '৫০টি Product' },
       { text: '৫০০ Orders/মাস' },
-      { text: '২৫,০০০ Visitors/মাস' },
+      { text: '১ লাখ Visitors/মাস' },
       { text: 'Full E-commerce Store', highlighted: true },
       { text: 'Custom Domain', highlighted: true },
       { text: 'Facebook Pixel' },
@@ -151,7 +151,7 @@ const pricingPlans: PricingPlan[] = [
     limits: {
       products: '৫০',
       orders: '৫০০/মাস',
-      visitors: '২৫,০০০/মাস',
+      visitors: '১,০০,০০০/মাস',
       storage: '৫০০ MB',
       staff: '২ জন',
     },
@@ -169,7 +169,7 @@ const pricingPlans: PricingPlan[] = [
     features: [
       { text: '২০০টি Product' },
       { text: '৩,০০০ Orders/মাস' },
-      { text: '৩ লাখ Visitors/মাস' },
+      { text: '৬ লাখ Visitors/মাস' },
       { text: 'Facebook CAPI', highlighted: true },
       { text: 'Priority Support', highlighted: true },
       { text: '২ GB Storage' },
@@ -180,7 +180,7 @@ const pricingPlans: PricingPlan[] = [
     limits: {
       products: '২০০',
       orders: '৩,০০০/মাস',
-      visitors: '৩,০০,০০০/মাস',
+      visitors: '৬,০০,০০০/মাস',
       storage: '২ GB',
       staff: '৫ জন',
     },
@@ -193,9 +193,9 @@ const pricingPlans: PricingPlan[] = [
 // COMPARISON DATA
 // ============================================================================
 const comparisonFeatures = [
-  { name: 'Max Products', free: '১০', starter: '৫০', premium: '২০০', business: 'Unlimited' },
+  { name: 'Max Products', free: '১', starter: '৫০', premium: '২০০', business: 'Unlimited' },
   { name: 'Monthly Orders', free: '৫০', starter: '৫০০', premium: '৩,০০০', business: '২৫,০০০+' },
-  { name: 'Monthly Visitors', free: '৫K', starter: '২৫K', premium: '৩০০K', business: '১.৫M+' },
+  { name: 'Monthly Visitors', free: '১০K', starter: '১০০K', premium: '৬০০K', business: '৩০ লাখ+' },
   { name: 'Storage', free: '১০০ MB', starter: '৫০০ MB', premium: '২ GB', business: '১০ GB' },
   { name: 'Team Members', free: '১', starter: '২', premium: '৫', business: '১৫' },
   { name: 'Custom Domain', free: '❌', starter: '✅', premium: '✅', business: '✅' },
