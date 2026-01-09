@@ -23,6 +23,7 @@ import {
   Layout, Image, Settings, Save, Loader2, Megaphone, User, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Type, Code
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
 import { StoreTemplatePreviewModal } from '~/components/StoreTemplatePreview';
 
@@ -106,7 +107,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
     
-    return json({ success: true, message: 'Template applied!' });
+    return json({ success: true, message: 'templateApplied' });
   }
 
   if (intent === 'save-theme') {
@@ -121,7 +122,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
     
-    return json({ success: true, message: 'Theme saved!' });
+    return json({ success: true, message: 'themeSaved' });
   }
 
   if (intent === 'save-banner') {
@@ -141,7 +142,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
     
-    return json({ success: true, message: 'Banner saved!' });
+    return json({ success: true, message: 'bannerSaved' });
   }
 
   if (intent === 'save-info') {
@@ -163,7 +164,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
     
-    return json({ success: true, message: 'Store info saved!' });
+    return json({ success: true, message: 'infoSaved' });
   }
 
   if (intent === 'save-advanced') {
@@ -175,7 +176,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
     
-    return json({ success: true, message: 'Advanced settings saved!' });
+    return json({ success: true, message: 'advancedSaved' });
   }
 
   return json({ error: 'Unknown action' }, { status: 400 });
@@ -188,6 +189,9 @@ export default function StoreDesignPage() {
   const { currentTemplateId, themeConfig, templates, storeSubdomain, storeName, storeMode, storeLogo, businessInfo, socialLinks, fontFamily: storedFontFamily } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const { t, lang } = useTranslation();
+  
+  const storeUrl = `https://${storeSubdomain}.digitalcare.site`;
   
   const [activeTab, setActiveTab] = useState<'templates' | 'theme' | 'banner' | 'info' | 'advanced'>('templates');
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
@@ -236,20 +240,20 @@ export default function StoreDesignPage() {
     modern: <Layout className="w-4 h-4" />,
   };
   const categoryLabels: Record<string, string> = {
-    luxury: 'Fashion & Luxury',
-    tech: 'Tech & Electronics',
-    artisan: 'Handmade & Artisan',
-    modern: 'Modern & Premium',
+    luxury: t('catLuxury'),
+    tech: t('catTech'),
+    artisan: t('catArtisan'),
+    modern: t('catModern'),
   };
 
   // Preset colors
   const colorPresets = [
-    { name: 'Indigo', primary: '#6366f1', accent: '#f59e0b' },
-    { name: 'Emerald', primary: '#10b981', accent: '#f472b6' },
-    { name: 'Rose', primary: '#f43f5e', accent: '#8b5cf6' },
-    { name: 'Amber', primary: '#f59e0b', accent: '#3b82f6' },
-    { name: 'Sky', primary: '#0ea5e9', accent: '#f97316' },
-    { name: 'Slate', primary: '#1e293b', accent: '#c9a961' },
+    { name: t('colorIndigo'), primary: '#6366f1', accent: '#f59e0b' },
+    { name: t('colorEmerald'), primary: '#10b981', accent: '#f472b6' },
+    { name: t('colorRose'), primary: '#f43f5e', accent: '#8b5cf6' },
+    { name: t('colorAmber'), primary: '#f59e0b', accent: '#3b82f6' },
+    { name: t('colorSky'), primary: '#0ea5e9', accent: '#f97316' },
+    { name: t('colorSlate'), primary: '#1e293b', accent: '#c9a961' },
   ];
 
   return (
@@ -259,9 +263,9 @@ export default function StoreDesignPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
             <Store className="w-7 h-7 text-purple-600" />
-            Store Design
+            {t('storeDesign')}
           </h1>
-          <p className="text-gray-600 mt-1">Customize your store's appearance</p>
+          <p className="text-gray-600 mt-1">{t('storeDesignSubtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
@@ -269,16 +273,16 @@ export default function StoreDesignPage() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition"
           >
             <Sparkles className="w-4 h-4" />
-            Live Editor
+            {t('liveEditor')}
           </Link>
           {storeMode === 'store' && (
             <Link
-              to={`https://${storeSubdomain}.digitalcare.site`}
+              to={storeUrl}
               target="_blank"
               className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition"
             >
               <ExternalLink className="w-4 h-4" />
-              View Store
+              {t('viewStore')}
             </Link>
           )}
         </div>
@@ -291,12 +295,16 @@ export default function StoreDesignPage() {
             <Store className="w-5 h-5 text-amber-600" />
           </div>
           <div>
-            <h4 className="font-medium text-amber-900">Store Mode Required</h4>
+            <h4 className="font-medium text-amber-900">{t('storeModeRequired')}</h4>
             <p className="text-sm text-amber-700 mt-1">
-              Your store is in <strong>Landing Page Mode</strong>. Switch to <strong>Store Mode</strong> in settings.
+              {lang === 'bn' ? (
+                <>আপনার স্টোর এখন <strong>ল্যান্ডিং পেজ মোডে</strong> আছে। সেটিংস থেকে <strong>স্টোর মোড</strong> চালু করুন।</>
+              ) : (
+                <>Your store is in <strong>Landing Page Mode</strong>. Switch to <strong>Store Mode</strong> in settings.</>
+              )}
             </p>
             <Link to="/app/settings" className="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800 mt-2">
-              Go to Settings →
+              {t('goToSettings')} →
             </Link>
           </div>
         </div>
@@ -306,18 +314,18 @@ export default function StoreDesignPage() {
       {showSuccess && (
         <div className="fixed top-4 right-4 z-50 bg-purple-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
           <Check className="w-5 h-5" />
-          {actionData && 'message' in actionData ? actionData.message : 'Saved!'}
+          {actionData && 'message' in actionData ? t(actionData.message) : t('saved')}
         </div>
       )}
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-gray-200">
         {[
-          { id: 'templates', label: 'Templates', icon: Layout },
-          { id: 'theme', label: 'Theme', icon: Palette },
-          { id: 'banner', label: 'Banner', icon: Image },
-          { id: 'info', label: 'Info', icon: User },
-          { id: 'advanced', label: 'Advanced', icon: Code },
+          { id: 'templates', label: t('templates'), icon: Layout },
+          { id: 'theme', label: t('theme'), icon: Palette },
+          { id: 'banner', label: t('banner'), icon: Image },
+          { id: 'info', label: t('info'), icon: User },
+          { id: 'advanced', label: t('advanced'), icon: Code },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -404,7 +412,7 @@ export default function StoreDesignPage() {
                     {isActive && (
                       <div className="absolute top-3 right-3 bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                         <Check className="w-3 h-3" />
-                        Active
+                        {t('activeTemplate')}
                       </div>
                     )}
 
@@ -416,14 +424,14 @@ export default function StoreDesignPage() {
                           className="bg-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg hover:bg-gray-50 transition"
                         >
                           <ExternalLink className="w-4 h-4" />
-                          পূর্ণ প্রিভিউ
+                          {t('fullPreview')}
                         </Link>
                         <button
                           onClick={() => setPreviewTemplate(template.id)}
                           className="bg-gray-800 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg hover:bg-gray-700 transition"
                         >
                           <Eye className="w-4 h-4" />
-                          কুইক প্রিভিউ
+                          {t('quickPreview')}
                         </button>
                       </div>
                     </div>
@@ -436,7 +444,7 @@ export default function StoreDesignPage() {
                     
                     {/* Color Swatches */}
                     <div className="flex items-center gap-2 mt-3">
-                      <span className="text-xs text-gray-400">Colors:</span>
+                      <span className="text-xs text-gray-400">{t('colors')}:</span>
                       <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: theme?.primary || '#333' }} title="Primary" />
                       <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: theme?.accent || '#666' }} title="Accent" />
                       <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: theme?.background || '#fff' }} title="Background" />
@@ -446,7 +454,7 @@ export default function StoreDesignPage() {
                     <div className="mt-4">
                       {isActive ? (
                         <div className="w-full py-2.5 text-center font-medium text-purple-600 bg-purple-50 rounded-lg">
-                          Currently Active
+                          {t('currentlyActive')}
                         </div>
                       ) : (
                         <Form method="post">
@@ -458,7 +466,7 @@ export default function StoreDesignPage() {
                             className="w-full py-2.5 font-medium rounded-lg transition-colors bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
                             onClick={() => setSelectedTemplateId(template.id)}
                           >
-                            {isSubmitting && selectedTemplateId === template.id ? 'Applying...' : 'Apply Template'}
+                            {isSubmitting && selectedTemplateId === template.id ? t('applying') : t('applyTemplate')}
                           </button>
                         </Form>
                       )}
@@ -479,16 +487,16 @@ export default function StoreDesignPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Palette className="w-5 h-5 text-purple-600" />
-                  Color Theme
+                  {t('colorTheme')}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Choose colors that match your brand. These will be used throughout your store.
+                  {t('colorThemeDesc')}
                 </p>
               </div>
 
               {/* Color Presets */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Quick Presets</label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">{t('quickPresets')}</label>
                 <div className="flex flex-wrap gap-3">
                   {colorPresets.map((preset) => (
                     <button
@@ -515,7 +523,7 @@ export default function StoreDesignPage() {
               {/* Custom Colors */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('primaryColor')}</label>
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
@@ -532,11 +540,11 @@ export default function StoreDesignPage() {
                       placeholder="#6366f1"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Used for buttons, headers, and accents</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('primaryColorDesc')}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('accentColor')}</label>
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
@@ -553,7 +561,7 @@ export default function StoreDesignPage() {
                       placeholder="#f59e0b"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Used for highlights and secondary elements</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('accentColorDesc')}</p>
                 </div>
               </div>
 
@@ -561,7 +569,7 @@ export default function StoreDesignPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                   <Type className="w-4 h-4" />
-                  Font Family
+                  {t('fontFamily')}
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {FONT_OPTIONS.map((font) => (
@@ -587,7 +595,7 @@ export default function StoreDesignPage() {
 
               {/* Preview */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Preview</label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">{t('preview')}</label>
                 <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
                   <div className="flex items-center gap-4">
                     <button
@@ -595,14 +603,14 @@ export default function StoreDesignPage() {
                       className="px-4 py-2 rounded-lg font-medium text-white"
                       style={{ backgroundColor: primaryColor }}
                     >
-                      Primary Button
+                      {t('primaryButton')}
                     </button>
                     <button
                       type="button"
                       className="px-4 py-2 rounded-lg font-medium text-white"
                       style={{ backgroundColor: accentColor }}
                     >
-                      Accent Button
+                      {t('accentButton')}
                     </button>
                     <div 
                       className="w-8 h-8 rounded-full" 
@@ -620,7 +628,7 @@ export default function StoreDesignPage() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Save Colors
+                  {t('saveColors')}
                 </button>
               </div>
             </div>
@@ -637,7 +645,7 @@ export default function StoreDesignPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Image className="w-5 h-5 text-purple-600" />
-                  Hero Banner
+                  {t('heroBanner')}
                 </h3>
 
                 <div className="space-y-4">
@@ -645,8 +653,8 @@ export default function StoreDesignPage() {
                     value={bannerUrl}
                     onChange={setBannerUrl}
                     folder="banners"
-                    label="Banner Image"
-                    hint="Recommended size: 1920x600px"
+                    label={t('bannerImage')}
+                    hint={t('bannerSizeHint')}
                     aspectRatio="banner"
                     maxWidth={1920}
                     maxHeight={600}
@@ -654,13 +662,13 @@ export default function StoreDesignPage() {
                   <input type="hidden" name="bannerUrl" value={bannerUrl} />
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Banner Headline</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('bannerHeadline')}</label>
                     <input
                       type="text"
                       name="bannerText"
                       value={bannerText}
                       onChange={(e) => setBannerText(e.target.value)}
-                      placeholder="Welcome to Our Store"
+                      placeholder={t('bannerHeadlinePlaceholder')}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -671,27 +679,27 @@ export default function StoreDesignPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Megaphone className="w-5 h-5 text-purple-600" />
-                  Announcement Bar
+                  {t('announcementBar')}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Shows at the top of your store. Great for promotions and announcements.
+                  {t('announcementBarDesc')}
                 </p>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Announcement Text</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('announcementText')}</label>
                     <input
                       type="text"
                       name="announcementText"
                       value={announcementText}
                       onChange={(e) => setAnnouncementText(e.target.value)}
-                      placeholder="🎉 Free shipping on orders over ৳1000!"
+                      placeholder={t('announcementPlaceholder')}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Link (optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('linkOptional')}</label>
                     <input
                       type="url"
                       name="announcementLink"
@@ -704,7 +712,7 @@ export default function StoreDesignPage() {
 
                   {announcementText && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('preview')}</label>
                       <div 
                         className="py-2.5 px-4 text-center text-sm font-medium text-white rounded-lg"
                         style={{ backgroundColor: primaryColor }}
@@ -724,7 +732,7 @@ export default function StoreDesignPage() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Save Banner
+                  {t('saveBanner')}
                 </button>
               </div>
             </div>
@@ -741,7 +749,7 @@ export default function StoreDesignPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Store className="w-5 h-5 text-purple-600" />
-                  Store Logo
+                  {t('storeLogoTitle')}
                 </h3>
 
                 <div className="space-y-4">
@@ -749,8 +757,8 @@ export default function StoreDesignPage() {
                     value={logo}
                     onChange={setLogo}
                     folder="logos"
-                    label="Store Logo"
-                    hint="Recommended: Square image, 200x200px or larger"
+                    label={t('storeLogoTitle')}
+                    hint={t('logoRecommendedSize')}
                     aspectRatio="logo"
                     maxWidth={400}
                     maxHeight={400}
@@ -763,13 +771,13 @@ export default function StoreDesignPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Phone className="w-5 h-5 text-purple-600" />
-                  Contact Information
+                  {t('contactInfo')}
                 </h3>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                      <Phone className="w-4 h-4" /> Phone Number
+                      <Phone className="w-4 h-4" /> {t('phoneNumber')}
                     </label>
                     <input
                       type="tel"
@@ -783,7 +791,7 @@ export default function StoreDesignPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                      <Mail className="w-4 h-4" /> Email Address
+                      <Mail className="w-4 h-4" /> {t('emailAddress')}
                     </label>
                     <input
                       type="email"
@@ -797,7 +805,7 @@ export default function StoreDesignPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                      <MapPin className="w-4 h-4" /> Address
+                      <MapPin className="w-4 h-4" /> {t('address')}
                     </label>
                     <textarea
                       name="address"
@@ -815,16 +823,16 @@ export default function StoreDesignPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Facebook className="w-5 h-5 text-purple-600" />
-                  Social Media Links
+                  {t('socialMediaLinks')}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Add your social media profiles to display in the footer.
+                  {t('socialLinksDesc')}
                 </p>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                      <Facebook className="w-4 h-4 text-blue-600" /> Facebook
+                      <Facebook className="w-4 h-4 text-blue-600" /> {t('facebookUrl')}
                     </label>
                     <input
                       type="url"
@@ -838,7 +846,7 @@ export default function StoreDesignPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                      <Instagram className="w-4 h-4 text-pink-600" /> Instagram
+                      <Instagram className="w-4 h-4 text-pink-600" /> {t('instagramUrl')}
                     </label>
                     <input
                       type="url"
@@ -852,7 +860,7 @@ export default function StoreDesignPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-green-600" /> WhatsApp
+                      <MessageCircle className="w-4 h-4 text-green-600" /> {t('whatsappNumber')}
                     </label>
                     <input
                       type="text"
@@ -862,7 +870,7 @@ export default function StoreDesignPage() {
                       placeholder="01XXXXXXXXX"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Enter your WhatsApp number without country code</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('whatsappHelp')}</p>
                   </div>
                 </div>
               </div>
@@ -875,7 +883,7 @@ export default function StoreDesignPage() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Save Info
+                  {t('saveStoreInfo')}
                 </button>
               </div>
             </div>
@@ -892,10 +900,10 @@ export default function StoreDesignPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Code className="w-5 h-5 text-purple-600" />
-                  Custom CSS
+                  {t('customCss')}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Add custom CSS to style your store. Use this for advanced customizations.
+                  {t('customCssDesc')}
                 </p>
 
                 <div>
@@ -916,7 +924,7 @@ export default function StoreDesignPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"
                   />
                   <p className="text-xs text-gray-500 mt-2">
-                    ⚠️ Be careful with CSS - invalid styles may break your store layout.
+                    {t('cssWarning')}
                   </p>
                 </div>
               </div>
@@ -929,7 +937,7 @@ export default function StoreDesignPage() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50"
                 >
                   {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Save Advanced Settings
+                  {t('saveAdvancedSettings')}
                 </button>
               </div>
             </div>
