@@ -174,7 +174,7 @@ const pricingPlans: PricingPlan[] = [
       { text: 'Priority Support', highlighted: true },
       { text: '২ GB Storage' },
       { text: '৫ জন Team Member' },
-      { text: '১% Platform Fee (কম)' },
+      { text: '০% Platform Fee (আপাতত ফ্রি)' },
       { text: 'সব Starter Features' },
     ],
     limits: {
@@ -202,7 +202,7 @@ const comparisonFeatures = [
   { name: 'Full Store Mode', free: '❌', starter: '✅', premium: '✅', business: '✅' },
   { name: 'Facebook CAPI', free: '❌', starter: '❌', premium: '✅', business: '✅' },
   { name: 'Priority Support', free: '❌', starter: '❌', premium: '✅', business: '✅' },
-  { name: 'Platform Fee', free: '২%', starter: '১.৫%', premium: '১%', business: '০.৫%' },
+  { name: 'Platform Fee', free: '০%', starter: '০%', premium: '০%', business: '০%' },
 ];
 
 // ============================================================================
