@@ -462,13 +462,13 @@ export default function OnboardingPage() {
     if (currentStep === 1) {
       const newErrors: Record<string, string> = {};
       if (!formData.email || !formData.email.includes('@')) {
-        newErrors.email = 'Valid email required';
+        newErrors.email = language === 'bn' ? 'সঠিক ইমেইল দিন' : 'Valid email required';
       }
       if (!formData.password || formData.password.length < 6) {
-        newErrors.password = 'Password must be at least 6 characters';
+        newErrors.password = language === 'bn' ? 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে' : 'Password must be at least 6 characters';
       }
       if (!formData.name || formData.name.length < 2) {
-        newErrors.name = 'Name required';
+        newErrors.name = language === 'bn' ? 'নাম দিন' : 'Name required';
       }
       // Phone validation: must start with 01 and be 11 digits
       if (!formData.phone || formData.phone.length !== 11 || !formData.phone.startsWith('01')) {
@@ -493,10 +493,10 @@ export default function OnboardingPage() {
     if (currentStep === 2) {
       const newErrors: Record<string, string> = {};
       if (!formData.storeName || formData.storeName.length < 2) {
-        newErrors.storeName = 'Store name is required';
+        newErrors.storeName = language === 'bn' ? 'স্টোরের নাম দিন' : 'Store name is required';
       }
       if (!formData.subdomain || formData.subdomain.length < 3) {
-        newErrors.subdomain = 'Subdomain must be at least 3 characters';
+        newErrors.subdomain = language === 'bn' ? 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে' : 'Subdomain must be at least 3 characters';
       }
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
