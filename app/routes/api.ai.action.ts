@@ -85,6 +85,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Check for API key
   const apiKey = env.OPENROUTER_API_KEY;
+  console.log(`[AI Action] API Key present: ${!!apiKey}${apiKey ? ` (starts with ${apiKey.substring(0, 8)}...)` : ''}`);
   if (!apiKey) {
     console.error('[AI Action] OPENROUTER_API_KEY not configured');
     return json(

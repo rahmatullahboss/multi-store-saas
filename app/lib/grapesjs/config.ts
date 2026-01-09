@@ -6,13 +6,29 @@
 
 import type { EditorConfig } from 'grapesjs';
 
-export const getGrapesConfig = (container: HTMLElement): any => {
+export const getGrapesConfig = (container: HTMLElement, pageId?: string): any => {
   return {
     container,
     fromElement: false,
     height: '100%',
     width: 'auto',
-    storageManager: false,
+    storageManager: {
+      type: 'remote',
+      stepsBeforeSave: 3,
+      contentTypeJson: true,
+      options: {
+        remote: {
+          urlLoad: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
+          urlStore: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
+          // The data GrapesJS sends
+          onStore: (data: any) => ({
+            ...data,
+            html: data.html,
+            css: data.css,
+          }),
+        }
+      }
+    },
     selectorManager: { componentFirst: true },
     projectData: {
       assets: [],

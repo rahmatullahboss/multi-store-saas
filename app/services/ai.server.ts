@@ -159,37 +159,50 @@ async function callAI(
   userPrompt: string,
   model: string = DEFAULT_MODEL
 ): Promise<string> {
+  console.log(`[AI] Calling OpenRouter with model: ${model}`);
   const openrouter = createOpenRouter({ apiKey });
   
-  const result = await generateText({
-    model: openrouter(model),
-    system: systemPrompt,
-    prompt: userPrompt,
-  });
+  try {
+    const result = await generateText({
+      model: openrouter(model),
+      system: systemPrompt,
+      prompt: userPrompt,
+    });
 
-  if (!result.text) {
-    throw new Error('No response from AI');
+    console.log(`[AI] Response received. Length: ${result.text?.length || 0}`);
+    
+    if (!result.text) {
+      console.error('[AI] Empty response from OpenRouter');
+      throw new Error('No response from AI');
+    }
+
+    return result.text;
+  } catch (error) {
+    console.error('[AI] Error in callAI:', error);
+    throw error;
   }
-
-  return result.text;
 }
 
 // ============================================================================
 // HELPER: Extract JSON from AI response
 // ============================================================================
 function extractJSON(text: string): unknown {
+  console.log('[AI] Extracting JSON from response...');
   // Try to find JSON in the response
   const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/);
   if (jsonMatch) {
+    console.log('[AI] Found JSON inside markdown block');
     return JSON.parse(jsonMatch[1]);
   }
   
   // Try to parse the whole response as JSON
   const trimmed = text.trim();
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    console.log('[AI] Parsing whole response as JSON');
     return JSON.parse(trimmed);
   }
   
+  console.error('[AI] JSON extraction failed. Response start:', text.substring(0, 100));
   throw new Error('Could not extract JSON from AI response');
 }
 

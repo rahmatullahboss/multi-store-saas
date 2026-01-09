@@ -632,6 +632,32 @@ export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ on
 }));
 
 // ============================================================================
+// LANDING PAGES TABLE - GrapesJS Custom Pages
+// ============================================================================
+export const landingPages = sqliteTable('landing_pages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  slug: text('slug').notNull(),
+  projectData: text('project_data'), // GrapesJS Internal JSON
+  htmlContent: text('html_content'),
+  cssContent: text('css_content'),
+  isPublished: integer('is_published', { mode: 'boolean' }).default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('landing_pages_store_id_idx').on(table.storeId),
+  index('landing_pages_slug_idx').on(table.storeId, table.slug),
+]);
+
+export const landingPagesRelations = relations(landingPages, ({ one }) => ({
+  store: one(stores, {
+    fields: [landingPages.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
 // REVIEWS TABLE - Product reviews with moderation (Paid plans only)
 // ============================================================================
 export const reviews = sqliteTable('reviews', {

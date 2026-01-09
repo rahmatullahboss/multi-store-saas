@@ -17,7 +17,11 @@ import { bdBlocksPlugin } from '~/lib/grapesjs/bd-blocks';
 import EditorToolbar from './Toolbar';
 import BlocksPanel from './BlocksPanel';
 
-export default function GrapesEditor() {
+interface GrapesEditorProps {
+  pageId?: string;
+}
+
+export default function GrapesEditor({ pageId }: GrapesEditorProps) {
   const onEditor = (editor: any) => {
     console.log('Editor loaded', editor);
   };
@@ -29,7 +33,7 @@ export default function GrapesEditor() {
         grapesjsCss="https://unpkg.com/grapesjs/dist/css/grapes.min.css"
         // Pass GrapesJS options
         options={{
-          ...getGrapesConfig(null as any),
+          ...getGrapesConfig(null as any, pageId),
           height: '100%',
         }}
         // Load plugins correctly
