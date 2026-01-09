@@ -256,5 +256,19 @@
   "needHelp": "Need Help?",
   "contactSupport": "Contact Support",
   "readMore": "Read More",
-  "learnMore": "Learn More"
+  "learnMore": "Learn More",
+  
+  "ourGuarantee": "Our Guarantee",
+  "guaranteeDesc": "100% satisfaction guaranteed. 7-day return if not satisfied.",
+  
+  "faqDeliveryQ": "How long does delivery take?",
+  "faqDeliveryA": "Delivery within 24 hours inside Dhaka, 2-3 days outside Dhaka.",
+  "faqPaymentQ": "What payment methods do you accept?",
+  "faqPaymentA": "Cash on Delivery, bKash, Nagad available.",
+  "faqOriginalQ": "Are your products original?",
+  "faqOriginalA": "Yes, 100% original products guaranteed.",
+  "faqReturnQ": "What is your return policy?",
+  "faqReturnA": "7 day return policy if product is not as described.",
+  "faqChargeQ": "What are the delivery charges?",
+  "faqChargeA": "৳60 inside Dhaka, ৳120 outside Dhaka."
 }
