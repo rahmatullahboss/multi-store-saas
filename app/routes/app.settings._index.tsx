@@ -23,7 +23,7 @@ import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { fontOptions } from '~/lib/theme';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
-import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Eye, Trash2, AlertTriangle } from 'lucide-react';
+import { Store, Globe, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Trash2, AlertTriangle, Palette } from 'lucide-react';
 import { StoreDeleteWarningModal } from '~/components/StoreDeleteWarningModal';
 import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
@@ -228,17 +228,6 @@ const currencies = [
   { value: 'INR', label: '₹ INR - Indian Rupee' },
 ];
 
-// ============================================================================
-// THEMES (Preset themes - no drag & drop builder)
-// ============================================================================
-const themes = [
-  { value: 'default', label: 'Default', color: '#10b981', description: 'Clean emerald theme' },
-  { value: 'ocean', label: 'Ocean Blue', color: '#3b82f6', description: 'Professional blue theme' },
-  { value: 'sunset', label: 'Sunset', color: '#f59e0b', description: 'Warm orange theme' },
-  { value: 'rose', label: 'Rose', color: '#f43f5e', description: 'Bold pink theme' },
-  { value: 'purple', label: 'Purple', color: '#8b5cf6', description: 'Modern violet theme' },
-  { value: 'dark', label: 'Dark Mode', color: '#1f2937', description: 'Sleek dark theme' },
-];
 
 // ============================================================================
 // MAIN COMPONENT
@@ -729,92 +718,6 @@ export default function SettingsPage() {
               </a>
             </div>
           )}
-        </div>
-        {/* Theme & Font Selection */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Palette className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">Theme & Typography</h2>
-                <p className="text-sm text-gray-500">Customize the look of your store</p>
-              </div>
-            </div>
-            {/* Preview Button */}
-            <button
-              type="button"
-              onClick={() => setShowPreview(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-indigo-600 transition shadow-md"
-            >
-              <Eye className="w-4 h-4" />
-              Preview Theme
-            </button>
-          </div>
-
-          {/* Theme Grid */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">Color Theme</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {themes.map((t) => (
-                <label
-                  key={t.value}
-                  className={`
-                    relative flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer transition
-                    ${selectedTheme === t.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}
-                  `}
-                  onClick={() => setSelectedTheme(t.value)}
-                >
-                  <input
-                    type="radio"
-                    name="theme"
-                    value={t.value}
-                    checked={selectedTheme === t.value}
-                    onChange={() => setSelectedTheme(t.value)}
-                    className="sr-only"
-                  />
-                  <div
-                    className="w-10 h-10 rounded-full mb-2 border-2 border-white shadow-md"
-                    style={{ backgroundColor: t.color }}
-                  />
-                  <span className="font-medium text-gray-900 text-sm">{t.label}</span>
-                  <span className="text-xs text-gray-500 text-center">{t.description}</span>
-                  {selectedTheme === t.value && (
-                    <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
-                  )}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Font Selection */}
-          <div>
-            <label htmlFor="fontFamily" className="block text-sm font-medium text-gray-700 mb-1">
-              <Type className="w-4 h-4 inline mr-1" /> Font Family
-            </label>
-            <select
-              id="fontFamily"
-              name="fontFamily"
-              value={selectedFont}
-              onChange={(e) => setSelectedFont(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
-            >
-              {fontOptions.map((font) => (
-                <option key={font.value} value={font.value} style={{ fontFamily: font.family }}>
-                  {font.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-500 mt-1">The font will be applied to your storefront.</p>
-          </div>
-
-          {/* Preview Tip */}
-          <div className="mt-4 p-3 bg-purple-50 border border-purple-100 rounded-lg">
-            <p className="text-sm text-purple-700">
-              💡 <strong>Tip:</strong> Click "Preview Theme" above to see how your store will look before saving!
-            </p>
-          </div>
         </div>
 
         {/* Theme Preview Modal */}
