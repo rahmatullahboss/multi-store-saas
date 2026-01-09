@@ -49,55 +49,64 @@ export const meta: MetaFunction = () => {
 const PLAN_DISPLAY = {
   free: {
     name: 'Free',
+    nameBn: 'ফ্রি',
     description: 'Perfect for testing and getting started',
-    price: '৳0',
-    period: '/forever',
+    descriptionBn: 'ট্রায়ালের জন্য পারফেক্ট',
+    price: '৳০',
+    period: '/মাস',
     icon: Rocket,
     color: 'gray',
     features: [
-      { text: '1 product', included: true },
-      { text: '50 orders/month', included: true },
-      { text: '10,000 visitors/month', included: true },
-      { text: 'Landing page only', included: true },
-      { text: 'Basic analytics', included: true },
-      { text: 'Full store mode', included: false },
-      { text: 'Custom domain', included: false },
-      { text: 'Priority support', included: false },
+      { text: '১টি Product', textEn: '1 product', included: true },
+      { text: '৫০ Orders/মাস', textEn: '50 orders/month', included: true },
+      { text: '১০,০০০ Visitors/মাস', textEn: '10,000 visitors/month', included: true },
+      { text: 'Single Landing Page', textEn: 'Single Landing Page', included: true },
+      { text: 'Live Visual Editor', textEn: 'Live Visual Editor', included: true },
+      { text: 'Bangla Support', textEn: 'Bangla Support', included: true },
+      { text: 'Full E-commerce Store', textEn: 'Full store mode', included: false },
+      { text: 'Custom Domain', textEn: 'Custom domain', included: false },
     ],
   },
   starter: {
     name: 'Starter',
+    nameBn: 'স্টার্টার',
     description: 'For growing businesses',
-    price: '৳499',
-    period: '/month',
+    descriptionBn: 'বাড়তে থাকা ব্যবসার জন্য',
+    price: '৳৪৯৯',
+    period: '/মাস',
     icon: Zap,
     color: 'emerald',
     popular: true,
     features: [
-      { text: '50 products', included: true },
-      { text: '500 orders/month', included: true },
-      { text: 'Full store mode', included: true },
-      { text: 'Advanced analytics', included: true },
-      { text: 'Custom domain', included: true },
-      { text: 'Email campaigns', included: true },
-      { text: 'Priority support', included: false },
+      { text: '৫০টি Product', textEn: '50 products', included: true },
+      { text: '৫০০ Orders/মাস', textEn: '500 orders/month', included: true },
+      { text: '১ লাখ Visitors/মাস', textEn: '100K visitors/month', included: true },
+      { text: 'Full E-commerce Store', textEn: 'Full store mode', included: true },
+      { text: 'Custom Domain', textEn: 'Custom domain', included: true },
+      { text: 'Facebook Pixel', textEn: 'Facebook Pixel', included: true },
+      { text: '২ জন Team Member', textEn: '2 team members', included: true },
+      { text: 'সব Free Features', textEn: 'All Free features', included: true },
     ],
   },
   premium: {
-    name: 'Ultimate',
-    description: 'For enterprise needs',
-    price: '৳1,999',
-    period: '/month',
+    name: 'Premium',
+    nameBn: 'প্রিমিয়াম',
+    description: 'For serious businesses',
+    descriptionBn: 'সিরিয়াস ব্যবসার জন্য',
+    price: '৳১,৯৯৯',
+    period: '/মাস',
     icon: Crown,
     color: 'purple',
     features: [
-      { text: 'Unlimited products', included: true },
-      { text: 'Unlimited orders', included: true },
-      { text: 'Full store mode', included: true },
-      { text: 'Advanced analytics', included: true },
-      { text: 'Custom domain', included: true },
-      { text: 'Email campaigns', included: true },
-      { text: 'Priority support', included: true },
+      { text: '২০০টি Product', textEn: '200 products', included: true },
+      { text: '৩,০০০ Orders/মাস', textEn: '3,000 orders/month', included: true },
+      { text: '৬ লাখ Visitors/মাস', textEn: '600K visitors/month', included: true },
+      { text: 'Facebook CAPI', textEn: 'Facebook CAPI', included: true },
+      { text: 'Priority Support', textEn: 'Priority support', included: true },
+      { text: '২ GB Storage', textEn: '2 GB Storage', included: true },
+      { text: '৫ জন Team Member', textEn: '5 team members', included: true },
+      { text: '০% Platform Fee (আপাতত ফ্রি)', textEn: '0% Platform Fee (Currently Free)', included: true },
+      { text: 'সব Starter Features', textEn: 'All Starter features', included: true },
     ],
   },
 } as const;
@@ -615,16 +624,71 @@ export default function BillingPage() {
           })}
         </div>
       </div>
+      {/* Business Plan - Contact Us */}
+      <div className="mt-8">
+        <div className="bg-gradient-to-r from-violet-600 to-blue-600 rounded-xl p-6 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">{lang === 'bn' ? 'Business Plan' : 'Business Plan'}</h3>
+                <p className="text-white/80">
+                  {lang === 'bn' ? 'বড় ব্যবসার জন্য Custom Solution' : 'Custom solution for large businesses'}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                lang === 'bn' ? 'Unlimited Products' : 'Unlimited Products',
+                lang === 'bn' ? 'Unlimited Orders' : 'Unlimited Orders',
+                lang === 'bn' ? 'Unlimited Visitors' : 'Unlimited Visitors',
+                lang === 'bn' ? 'Dedicated Support' : 'Dedicated Support',
+              ].map((feature, i) => (
+                <span key={i} className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                  {feature}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <p className="text-white/70 text-sm">
+              {lang === 'bn' 
+                ? 'সব কিছু Unlimited! কোনো লিমিট নেই। আপনার প্রয়োজন অনুযায়ী Custom Pricing।' 
+                : 'Everything Unlimited! No limits. Custom pricing based on your needs.'}
+            </p>
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-violet-600 font-semibold rounded-lg hover:bg-violet-50 transition"
+            >
+              {lang === 'bn' ? 'যোগাযোগ করুন' : 'Contact Us'}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* FAQ or Help */}
       <div className="bg-gray-50 rounded-xl p-6">
-        <h3 className="font-semibold text-gray-900 mb-2">Need Help?</h3>
+        <h3 className="font-semibold text-gray-900 mb-2">{lang === 'bn' ? 'সাহায্য দরকার?' : 'Need Help?'}</h3>
         <p className="text-gray-600">
-          Contact our support team at{' '}
-          <a href="mailto:support@example.com" className="text-emerald-600 hover:underline">
-            support@example.com
-          </a>
-          {' '}for billing questions or custom plan requests.
+          {lang === 'bn' ? (
+            <>
+              বিলিং সংক্রান্ত প্রশ্ন বা কাস্টম প্ল্যানের জন্য আমাদের সাপোর্ট টিমে যোগাযোগ করুন{' '}
+              <a href="mailto:support@digitalcare.site" className="text-emerald-600 hover:underline">
+                support@digitalcare.site
+              </a>
+            </>
+          ) : (
+            <>
+              Contact our support team at{' '}
+              <a href="mailto:support@digitalcare.site" className="text-emerald-600 hover:underline">
+                support@digitalcare.site
+              </a>
+              {' '}for billing questions or custom plan requests.
+            </>
+          )}
         </p>
       </div>
     </div>
