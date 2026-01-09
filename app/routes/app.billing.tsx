@@ -599,7 +599,7 @@ export default function BillingPage() {
                   </div>
                 ) : (
                   <Link 
-                    to="/app/upgrade"
+                    to={`/app/upgrade?plan=${key}`}
                     className={`block w-full py-2.5 text-center text-white font-medium rounded-lg transition ${
                       key === 'starter' ? 'bg-emerald-600 hover:bg-emerald-700' :
                       key === 'premium' ? 'bg-purple-600 hover:bg-purple-700' :
