@@ -692,12 +692,30 @@ export async function generateGrapesJsPage(
     - bd-why-buy: Problem vs Solution comparison
 
     Rules:
-    1. ALWAYS include 'bd-hero' at the top.
+    1. ALWAYS include 'bd-hero' at the top (order: 1).
     2. ALWAYS include 'bd-order-form' or 'bd-dual-order' at least once.
-    3. Use 'bd-sticky-footer' for mobile optimization.
+    3. Use 'bd-sticky-footer' for mobile optimization (last block).
     4. Include 'bd-delivery-info' and 'bd-guarantee' near the order form.
-    5. Generate realistic Bangla content for a Bangladeshi audience.
-    6. Choose a primary color that fits the product niche (e.g., Green/Emerald for organic/health, Blue for tech, Red for sales).
+    5. Generate realistic Bangla content keys for a Bangladeshi audience.
+    6. Choose a primary color that fits the product niche (e.g., #10B981 for organic/health, #3B82F6 for tech).
+
+    Your response MUST be valid JSON in this EXACT format:
+    {
+      "pageName": "Product Landing Page",
+      "blocks": [
+        { "type": "bd-hero", "content": { "headline": "...", "subheadline": "..." }, "order": 1 },
+        { "type": "bd-trust", "content": {}, "order": 2 },
+        { "type": "bd-features-grid", "content": {}, "order": 3 },
+        { "type": "bd-testimonials", "content": {}, "order": 4 },
+        { "type": "bd-order-form", "content": {}, "order": 5 },
+        { "type": "bd-delivery-info", "content": {}, "order": 6 },
+        { "type": "bd-guarantee", "content": {}, "order": 7 },
+        { "type": "bd-sticky-footer", "content": {}, "order": 8 }
+      ],
+      "primaryColor": "#10B981"
+    }
+
+    CRITICAL: Return ONLY the JSON object. No explanations, no markdown code fences.
   `;
 
   const userPrompt = `Create a high-converting landing page for: ${prompt}`;
