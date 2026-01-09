@@ -636,8 +636,8 @@ export default function SettingsPage() {
               <Layout className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Store Mode</h2>
-              <p className="text-sm text-gray-500">Choose how your store appears to customers</p>
+              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'স্টোর মোড' : 'Store Mode'}</h2>
+              <p className="text-sm text-gray-500">{lang === 'bn' ? 'গ্রাহকদের কাছে আপনার স্টোর কীভাবে দেখাবে নির্বাচন করুন' : 'Choose how your store appears to customers'}</p>
             </div>
           </div>
 
@@ -660,8 +660,8 @@ export default function SettingsPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-3">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Landing Page</h3>
-                <p className="text-sm text-gray-500">Single product focus with high-converting sales page design. Perfect for featured products.</p>
+                <h3 className="font-semibold text-gray-900 mb-1">{lang === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}</h3>
+                <p className="text-sm text-gray-500">{lang === 'bn' ? 'একটি প্রোডাক্টের উপর ফোকাস করে হাই-কনভার্টিং সেলস পেজ ডিজাইন।' : 'Single product focus with high-converting sales page design. Perfect for featured products.'}</p>
                 {storeMode === 'landing' && (
                   <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
                 )}
@@ -680,8 +680,8 @@ export default function SettingsPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-3">
                   <ShoppingBag className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Full Store</h3>
-                <p className="text-sm text-gray-500">Complete e-commerce experience with product catalog, cart, categories, and checkout.</p>
+                <h3 className="font-semibold text-gray-900 mb-1">{lang === 'bn' ? 'ফুল স্টোর' : 'Full Store'}</h3>
+                <p className="text-sm text-gray-500">{lang === 'bn' ? 'প্রোডাক্ট ক্যাটালগ, কার্ট, ক্যাটাগরি এবং চেকআউট সহ সম্পূর্ণ ই-কমার্স অভিজ্ঞতা।' : 'Complete e-commerce experience with product catalog, cart, categories, and checkout.'}</p>
                 {storeMode === 'store' && (
                   <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
                 )}
@@ -696,10 +696,10 @@ export default function SettingsPage() {
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">Landing Page Mode</h3>
-                  <p className="text-sm text-gray-500">Your store displays a single product sales page</p>
+                  <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'ল্যান্ডিং পেজ মোড' : 'Landing Page Mode'}</h3>
+                  <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোর একটি সিঙ্গেল প্রোডাক্ট সেলস পেজ দেখায়' : 'Your store displays a single product sales page'}</p>
                 </div>
-                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">Active</span>
+                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">{lang === 'bn' ? 'সক্রিয়' : 'Active'}</span>
               </div>
 
               {/* Upgrade Prompt for Full Store */}
@@ -713,8 +713,8 @@ export default function SettingsPage() {
                     <ShoppingBag className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-700">Full Store Mode</h3>
-                    <p className="text-sm text-gray-500">Unlock product catalog, cart & categories</p>
+                    <h3 className="font-semibold text-gray-700">{lang === 'bn' ? 'ফুল স্টোর মোড' : 'Full Store Mode'}</h3>
+                    <p className="text-sm text-gray-500">{lang === 'bn' ? 'প্রোডাক্ট ক্যাটালগ, কার্ট ও ক্যাটাগরি আনলক করুন' : 'Unlock product catalog, cart & categories'}</p>
                   </div>
                 </div>
               </div>
@@ -725,7 +725,7 @@ export default function SettingsPage() {
                 className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-lg shadow-amber-500/20"
               >
                 <Crown className="w-5 h-5" />
-                Upgrade to Unlock Full Store Mode
+                {lang === 'bn' ? 'ফুল স্টোর মোড আনলক করতে আপগ্রেড করুন' : 'Upgrade to Unlock Full Store Mode'}
               </a>
             </div>
           )}
