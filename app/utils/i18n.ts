@@ -807,6 +807,7 @@ export const translations = {
     info: 'Info',
     advanced: 'Advanced',
     colors: 'Colors',
+    preview: 'Preview',
     whatsappHelp: 'Enter your WhatsApp number without country code',
     socialLinksDesc: 'Display your social profiles on your store footer.',
     templateApplied: 'Template applied!',
@@ -871,6 +872,12 @@ export const translations = {
     customCssDesc: 'Add custom CSS to further customize your store\'s styling. (Advanced users only)',
     saveAdvancedSettings: 'Save Advanced Settings',
     cssWarning: '⚠️ Be careful with CSS - invalid styles may break your store layout.',
+    fontInterDesc: 'A modern, clean font',
+    fontPoppinsDesc: 'Friendly & rounded',
+    fontRobotoDesc: "Google's classic",
+    fontHindDesc: 'Bengali font',
+    fontPlayfairDesc: 'Elegant serif',
+    fontMontserratDesc: 'Bold & modern',
     liveEditor: 'Live Editor',
 
     // Shipping Zones
@@ -1688,6 +1695,7 @@ export const translations = {
     info: 'তথ্য',
     advanced: 'অ্যাডভান্সড',
     colors: 'রং',
+    preview: 'প্রিভিউ',
     whatsappHelp: 'দেশের কোড ছাড়া আপনার হোয়াটসঅ্যাপ নম্বর লিখুন',
     socialLinksDesc: 'আপনার স্টোরের ফুটারে সোশ্যাল প্রোফাইলগুলো প্রদর্শন করুন।',
     templateApplied: 'টেমপ্লেট প্রয়োগ করা হয়েছে!',
@@ -1752,6 +1760,12 @@ export const translations = {
     customCssDesc: 'আপনার স্টোরের স্টাইলিং আরো উন্নত করতে কাস্টম সিএসএস যোগ করুন। (শুধুমাত্র অ্যাডভান্সড ইউজারদের জন্য)',
     saveAdvancedSettings: 'অ্যাডভান্সড সেটিংস সংরক্ষণ করুন',
     cssWarning: '⚠️ সিএসএস ব্যবহারের ক্ষেত্রে সতর্ক থাকুন - ভুল স্টাইল আপনার স্টোরের লেআউট নষ্ট করতে পারে।',
+    fontInterDesc: 'একটি আধুনিক, পরিষ্কার ফন্ট',
+    fontPoppinsDesc: 'সুন্দর এবং বৃত্তাকার',
+    fontRobotoDesc: 'গুগলের ক্লাসিক ফন্ট',
+    fontHindDesc: 'বাংলা ফন্ট',
+    fontPlayfairDesc: 'মার্জিত সেরিফ ফন্ট',
+    fontMontserratDesc: 'বোল্ড এবং আধুনিক',
     liveEditor: 'লাইভ এডিটর',
 
     // Shipping Zones

@@ -29,12 +29,12 @@ import { StoreTemplatePreviewModal } from '~/components/StoreTemplatePreview';
 
 // Font Options
 const FONT_OPTIONS = [
-  { id: 'inter', name: 'Inter', family: "'Inter', sans-serif", preview: 'A modern, clean font' },
-  { id: 'poppins', name: 'Poppins', family: "'Poppins', sans-serif", preview: 'Friendly & rounded' },
-  { id: 'roboto', name: 'Roboto', family: "'Roboto', sans-serif", preview: 'Google\'s classic' },
-  { id: 'hind-siliguri', name: 'Hind Siliguri (Bengali)', family: "'Hind Siliguri', sans-serif", preview: 'বাংলা ফন্ট' },
-  { id: 'playfair', name: 'Playfair Display', family: "'Playfair Display', serif", preview: 'Elegant serif' },
-  { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", preview: 'Bold & modern' },
+  { id: 'inter', name: 'Inter', family: "'Inter', sans-serif", previewKey: 'fontInterDesc' },
+  { id: 'poppins', name: 'Poppins', family: "'Poppins', sans-serif", previewKey: 'fontPoppinsDesc' },
+  { id: 'roboto', name: 'Roboto', family: "'Roboto', sans-serif", previewKey: 'fontRobotoDesc' },
+  { id: 'hind-siliguri', name: 'Hind Siliguri (Bengali)', family: "'Hind Siliguri', sans-serif", previewKey: 'fontHindDesc' },
+  { id: 'playfair', name: 'Playfair Display', family: "'Playfair Display', serif", previewKey: 'fontPlayfairDesc' },
+  { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", previewKey: 'fontMontserratDesc' },
 ];
 
 export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store SaaS' }];
@@ -586,7 +586,7 @@ export default function StoreDesignPage() {
                       <span className="block font-medium text-gray-900" style={{ fontFamily: font.family }}>
                         {font.name}
                       </span>
-                      <span className="text-xs text-gray-500">{font.preview}</span>
+                      <span className="text-xs text-gray-500">{t(font.previewKey)}</span>
                     </button>
                   ))}
                 </div>
