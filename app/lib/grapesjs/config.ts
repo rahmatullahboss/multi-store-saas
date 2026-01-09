@@ -29,6 +29,70 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string): any =>
         }
       }
     },
+    styleManager: {
+      sectors: [
+        {
+          name: 'General',
+          open: false,
+          properties: [
+            'display',
+            { name: 'Position', property: 'position', type: 'select', defaults: 'static', options: [{value: 'static'}, {value: 'relative'}, {value: 'absolute'}, {value: 'fixed'}] },
+            { name: 'Top', property: 'top', type: 'integer', units: ['px', '%', 'vh'], defaults: 'auto' },
+            { name: 'Right', property: 'right', type: 'integer', units: ['px', '%', 'vw'], defaults: 'auto' },
+            { name: 'Bottom', property: 'bottom', type: 'integer', units: ['px', '%', 'vh'], defaults: 'auto' },
+            { name: 'Left', property: 'left', type: 'integer', units: ['px', '%', 'vw'], defaults: 'auto' },
+          ],
+        },
+        {
+          name: 'Layout',
+          open: false,
+          properties: [
+            'width', 
+            'height',
+            'max-width',
+            'min-height',
+            'margin', 
+            'padding',
+            'border-radius'
+          ],
+        },
+        {
+          name: 'Typography',
+          open: false,
+          properties: [
+            'font-family', 
+            'font-size', 
+            'font-weight', 
+            'letter-spacing', 
+            'color', 
+            'line-height', 
+            'text-align', 
+            { name: 'Decoration', property: 'text-decoration', type: 'radio', defaults: 'none', options: [{value: 'none', title: 'None'}, {value: 'underline', title: 'Underline'}, {value: 'line-through', title: 'Line-through'}] },
+            'text-shadow'
+          ],
+        },
+        {
+          name: 'Decorations',
+          open: false,
+          properties: [
+            'opacity',
+            'background-color',
+            'border',
+            'box-shadow', 
+            'background', 
+          ],
+        },
+        {
+          name: 'Extra',
+          open: false,
+          properties: [
+            'transition',
+            'perspective',
+            'transform',
+          ],
+        }
+      ],
+    },
     selectorManager: { componentFirst: true },
     projectData: {
       assets: [],
