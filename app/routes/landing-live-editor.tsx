@@ -1629,56 +1629,6 @@ export default function LiveEditorPage() {
             </div>
           </AccordionSection>
 
-          {/* Mode Section */}
-
-          <AccordionSection
-            title={language === 'bn' ? 'মোড' : 'Mode'}
-            icon={Settings}
-            isOpen={openSection === 'mode'}
-            onToggle={() => setOpenSection(openSection === 'mode' ? '' : 'mode')}
-          >
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setStoreMode('landing')}
-                className={`w-full p-3 rounded-lg border-2 text-left transition ${
-                  storeMode === 'landing'
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🎯</span>
-                  <span className="font-medium text-sm">
-                    {language === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'bn' ? 'একটি প্রোডাক্টে ফোকাস' : 'Single product focus'}
-                </p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setStoreMode('store')}
-                className={`w-full p-3 rounded-lg border-2 text-left transition ${
-                  storeMode === 'store'
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🏪</span>
-                  <span className="font-medium text-sm">
-                    {language === 'bn' ? 'ফুল স্টোর' : 'Full Store'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'bn' ? 'প্রোডাক্ট ক্যাটালগ সহ' : 'With product catalog'}
-                </p>
-              </button>
-            </div>
-          </AccordionSection>
-
           {/* Font Picker Section */}
           <AccordionSection
             title={language === 'bn' ? 'ফন্ট' : 'Typography'}
