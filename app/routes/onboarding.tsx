@@ -14,7 +14,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher, Link } from '@remix-run/react';
-import { Store, ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy } from 'lucide-react';
+import { Store, ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy, Eye, EyeOff } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
@@ -438,6 +438,9 @@ export default function OnboardingPage() {
   const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean }>();
   
   const { t, lang: language } = useTranslation();
+  
+  // Password visibility toggle
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handle fetcher response
   const lastFetcherData = useRef(fetcher.data);
@@ -695,15 +698,25 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('password')}
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  autoComplete="new-password"
-                  value={formData.password}
-                  onChange={(e) => updateField('password', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    autoComplete="new-password"
+                    value={formData.password}
+                    onChange={(e) => updateField('password', e.target.value)}
+                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
                 {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
               </div>
 
