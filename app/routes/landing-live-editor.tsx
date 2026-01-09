@@ -862,26 +862,6 @@ export default function LiveEditorPage() {
               </button>
             </div>
 
-            {/* Landing Page Language Selector */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              <button
-                type="button"
-                onClick={() => setLandingLanguage('bn')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${landingLanguage === 'bn' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="বাংলা"
-              >
-                বাংলা
-              </button>
-              <button
-                type="button"
-                onClick={() => setLandingLanguage('en')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${landingLanguage === 'en' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="English"
-              >
-                EN
-              </button>
-            </div>
-
             {/* Open in New Tab */}
             <a
               href={storeUrl}
