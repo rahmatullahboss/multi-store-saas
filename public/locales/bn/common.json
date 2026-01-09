@@ -158,5 +158,46 @@
   "buyNow": "এখনই কিনুন",
   "addToCart": "কার্টে যোগ করুন",
   "callNow": "কল করুন",
-  "messageUs": "মেসেজ করুন"
+  "messageUs": "মেসেজ করুন",
+  
+  "productFeatures": "প্রোডাক্ট ফিচারস",
+  "whyThisProductSpecial": "এই প্রোডাক্ট কেন বিশেষ",
+  "watchInVideo": "ভিডিওতে দেখুন",
+  "watchVideoDetails": "প্রোডাক্ট বিস্তারিত দেখুন",
+  
+  "deliveryInfo": "ডেলিভারি তথ্য",
+  "insideDhaka": "ঢাকার ভেতরে",
+  "outsideDhaka": "ঢাকার বাইরে",
+  "deliveryCharge": "ডেলিভারি চার্জ",
+  "onTimeDelivery": "সময়মত ডেলিভারির নিশ্চয়তা",
+  "twoToThreeDays": "২-৩ কার্যদিবস",
+  "courierService": "কুরিয়ার সার্ভিস",
+  "nationwideDelivery": "সারাদেশে ডেলিভারি",
+  
+  "testimonials": "গ্রাহক রিভিউ",
+  "whatCustomersSay": "আমাদের গ্রাহকরা কী বলছেন",
+  "faq": "সচরাচর জিজ্ঞাসিত প্রশ্ন",
+  "faqSubtitle": "সাধারণ প্রশ্নের উত্তর",
+  
+  "specialOffer": "বিশেষ অফার",
+  "limitedTimeOffer": "সীমিত সময়ের অফার",
+  "orderConfirm": "অর্ডার নিশ্চিত",
+  "thankYouOrder": "আপনার অর্ডারের জন্য ধন্যবাদ",
+  
+  "customerName": "নাম",
+  "phoneNumber": "ফোন নম্বর",
+  "address": "ঠিকানা",
+  "quantity": "পরিমাণ",
+  "total": "মোট",
+  "subtotal": "সাবটোটাল",
+  "shipping": "ডেলিভারি চার্জ",
+  "placeOrder": "অর্ডার করুন",
+  
+  "inStock": "স্টকে আছে",
+  "outOfStock": "স্টকে নেই",
+  "lowStock": "মাত্র {{count}}টি বাকি",
+  "regularPrice": "আসল দাম",
+  "salePrice": "অফার মূল্য",
+  "discount": "ছাড়",
+  "save": "সেভ করুন"
 }

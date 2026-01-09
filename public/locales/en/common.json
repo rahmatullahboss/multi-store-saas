@@ -158,5 +158,46 @@
   "buyNow": "Buy Now",
   "addToCart": "Add to Cart",
   "callNow": "Call Now",
-  "messageUs": "Message Us"
+  "messageUs": "Message Us",
+  
+  "productFeatures": "Product Features",
+  "whyThisProductSpecial": "What makes this product special",
+  "watchInVideo": "Watch in Video",
+  "watchVideoDetails": "See the product in detail",
+  
+  "deliveryInfo": "Delivery Information",
+  "insideDhaka": "Inside Dhaka",
+  "outsideDhaka": "Outside Dhaka",
+  "deliveryCharge": "Delivery Charge",
+  "onTimeDelivery": "On-time delivery guaranteed",
+  "twoToThreeDays": "2-3 business days",
+  "courierService": "Courier service available",
+  "nationwideDelivery": "Nationwide delivery",
+  
+  "testimonials": "Customer Reviews",
+  "whatCustomersSay": "What our customers say",
+  "faq": "Frequently Asked Questions",
+  "faqSubtitle": "Common questions answered",
+  
+  "specialOffer": "Special Offer",
+  "limitedTimeOffer": "Limited Time Offer",
+  "orderConfirm": "Order Confirmed",
+  "thankYouOrder": "Thank you for your order",
+  
+  "customerName": "Customer Name",
+  "phoneNumber": "Phone Number",
+  "address": "Delivery Address",
+  "quantity": "Quantity",
+  "total": "Total",
+  "subtotal": "Subtotal",
+  "shipping": "Shipping",
+  "placeOrder": "Place Order",
+  
+  "inStock": "In Stock",
+  "outOfStock": "Out of Stock",
+  "lowStock": "Only {{count}} left",
+  "regularPrice": "Regular Price",
+  "salePrice": "Sale Price",
+  "discount": "Discount",
+  "save": "Save"
 }
