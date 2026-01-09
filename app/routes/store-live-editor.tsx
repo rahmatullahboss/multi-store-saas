@@ -165,6 +165,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     footerColumns = JSON.parse(footerColumnsJson);
   } catch { /* ignore parse errors */ }
 
+  // Floating contact buttons
+  const floatingWhatsappEnabled = formData.get('floatingWhatsappEnabled') === 'true';
+  const floatingWhatsappNumber = formData.get('floatingWhatsappNumber') as string || '';
+  const floatingWhatsappMessage = formData.get('floatingWhatsappMessage') as string || '';
+  const floatingCallEnabled = formData.get('floatingCallEnabled') === 'true';
+  const floatingCallNumber = formData.get('floatingCallNumber') as string || '';
+
   const updatedConfig: ThemeConfig = {
     ...currentConfig,
     storeTemplateId,
@@ -186,6 +193,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     footerDescription,
     copyrightText,
     footerColumns,
+    // Floating contact buttons
+    floatingWhatsappEnabled,
+    floatingWhatsappNumber: floatingWhatsappNumber || undefined,
+    floatingWhatsappMessage: floatingWhatsappMessage || undefined,
+    floatingCallEnabled,
+    floatingCallNumber: floatingCallNumber || undefined,
   };
 
   await db.update(stores).set({ 
@@ -1116,6 +1129,102 @@ export default function StoreLiveEditor() {
                       <p className="text-xs text-gray-500">{column.links.length} links</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* Floating Contact Buttons Section */}
+            <AccordionSection
+              title={language === 'bn' ? 'ফ্লোটিং বাটন' : 'Floating Buttons'}
+              icon={MessageCircle}
+              isOpen={openSection === 'floating'}
+              onToggle={() => setOpenSection(openSection === 'floating' ? '' : 'floating')}
+            >
+              <div className="space-y-4">
+                <p className="text-xs text-gray-500 mb-3">
+                  {language === 'bn' 
+                    ? 'গ্রাহকদের সহজে যোগাযোগ করতে ফ্লোটিং বাটন দেখান।'
+                    : 'Show floating buttons for easy customer contact.'}
+                </p>
+
+                {/* WhatsApp Toggle */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <label className="flex items-center justify-between cursor-pointer mb-3">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium text-gray-700">
+                        {language === 'bn' ? 'হোয়াটসঅ্যাপ বাটন' : 'WhatsApp Button'}
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={floatingWhatsappEnabled}
+                      onChange={(e) => setFloatingWhatsappEnabled(e.target.checked)}
+                      className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                  </label>
+                  
+                  {floatingWhatsappEnabled && (
+                    <div className="space-y-3 pt-2 border-t border-gray-100">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">
+                          {language === 'bn' ? 'হোয়াটসঅ্যাপ নম্বর' : 'WhatsApp Number'}
+                        </label>
+                        <input
+                          type="tel"
+                          value={floatingWhatsappNumber}
+                          onChange={(e) => setFloatingWhatsappNumber(e.target.value)}
+                          placeholder="01712345678"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">
+                          {language === 'bn' ? 'প্রি-ফিল্ড মেসেজ' : 'Pre-filled Message'}
+                        </label>
+                        <input
+                          type="text"
+                          value={floatingWhatsappMessage}
+                          onChange={(e) => setFloatingWhatsappMessage(e.target.value)}
+                          placeholder={language === 'bn' ? 'হ্যালো, আমি জানতে চাই...' : 'Hello, I want to know...'}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Call Toggle */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <label className="flex items-center justify-between cursor-pointer mb-3">
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-700">
+                        {language === 'bn' ? 'কল বাটন' : 'Call Button'}
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={floatingCallEnabled}
+                      onChange={(e) => setFloatingCallEnabled(e.target.checked)}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                  </label>
+                  
+                  {floatingCallEnabled && (
+                    <div className="pt-2 border-t border-gray-100">
+                      <label className="block text-xs text-gray-500 mb-1">
+                        {language === 'bn' ? 'ফোন নম্বর' : 'Phone Number'}
+                      </label>
+                      <input
+                        type="tel"
+                        value={floatingCallNumber}
+                        onChange={(e) => setFloatingCallNumber(e.target.value)}
+                        placeholder="01712345678"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </AccordionSection>

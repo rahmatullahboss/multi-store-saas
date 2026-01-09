@@ -527,8 +527,31 @@ export function GhorerBazarTemplate({
         </div>
       </footer>
 
-      {/* WhatsApp Floating Button */}
-      {socialLinks?.whatsapp && (
+      {/* Floating Contact Buttons from Config */}
+      {config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber && (
+        <a
+          href={`https://wa.me/${config.floatingWhatsappNumber.replace(/\D/g, '').replace(/^01/, '8801')}?text=${encodeURIComponent(config.floatingWhatsappMessage || `হ্যালো ${storeName}, আমি জানতে চাই...`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-20 right-4 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+          title="WhatsApp এ মেসেজ করুন"
+        >
+          <MessageCircle className="h-7 w-7 text-white" />
+          <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25" />
+        </a>
+      )}
+      {config?.floatingCallEnabled && config?.floatingCallNumber && (
+        <a
+          href={`tel:${config.floatingCallNumber}`}
+          className={`fixed bottom-20 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-50 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
+          title="কল করুন"
+        >
+          <Phone className="h-7 w-7 text-white" />
+          <span className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-25" />
+        </a>
+      )}
+      {/* Fallback: WhatsApp from socialLinks if no config */}
+      {!config?.floatingWhatsappEnabled && socialLinks?.whatsapp && (
         <a
           href={`https://wa.me/${socialLinks.whatsapp.replace(/\D/g, '')}`}
           target="_blank"
