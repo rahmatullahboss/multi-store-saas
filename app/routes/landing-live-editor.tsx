@@ -20,7 +20,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
@@ -381,6 +381,9 @@ export default function LiveEditorPage() {
 
   // Accordion state
   const [openSection, setOpenSection] = useState<string>('template');
+  
+  // Mobile sidebar state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // ============================================================================
   // IMAGE UPLOAD STATE FOR TESTIMONIALS
@@ -795,14 +798,24 @@ export default function LiveEditorPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 flex-shrink-0 z-20">
         <div className="px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Mobile Menu Toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition"
+              title={language === 'bn' ? 'এডিটর প্যানেল' : 'Editor Panel'}
+            >
+              <PanelLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            
             <Link
               to="/app/landing-builder"
               className="p-2 hover:bg-gray-100 rounded-lg transition"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </Link>
-            <div>
+            <div className="hidden sm:block">
               <h1 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-600" />
                 {language === 'bn' ? 'লাইভ এডিটর' : 'Live Editor'}
@@ -811,14 +824,14 @@ export default function LiveEditorPage() {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            {/* Undo/Redo Buttons (Phase 1) */}
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+            {/* Undo/Redo Buttons */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
                 type="button"
                 onClick={handleUndo}
                 disabled={!canUndo}
-                className={`p-2 rounded-md transition ${canUndo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
+                className={`p-1.5 sm:p-2 rounded-md transition ${canUndo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
                 title={language === 'bn' ? 'আনডু (Ctrl+Z)' : 'Undo (Ctrl+Z)'}
               >
                 <Undo2 className="w-4 h-4" />
@@ -827,20 +840,20 @@ export default function LiveEditorPage() {
                 type="button"
                 onClick={handleRedo}
                 disabled={!canRedo}
-                className={`p-2 rounded-md transition ${canRedo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
+                className={`p-1.5 sm:p-2 rounded-md transition ${canRedo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
                 title={language === 'bn' ? 'রিডু (Ctrl+Shift+Z)' : 'Redo (Ctrl+Shift+Z)'}
               >
                 <Redo2 className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Device Toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            {/* Device Toggle - Hidden on mobile since they can't see the preview anyway */}
+            <div className="hidden sm:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
                 type="button"
                 onClick={() => setPreviewDevice('mobile')}
                 className={`p-2 rounded-md transition ${previewDevice === 'mobile' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="Mobile (375px)"
+                title="Mobile (414px)"
               >
                 <Smartphone className="w-4 h-4" />
               </button>
@@ -862,12 +875,12 @@ export default function LiveEditorPage() {
               </button>
             </div>
 
-            {/* Open in New Tab */}
+            {/* Open in New Tab - Hidden on mobile */}
             <a
               href={storeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+              className="hidden sm:block p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
               title={language === 'bn' ? 'নতুন ট্যাবে খুলুন' : 'Open in new tab'}
             >
               <ExternalLink className="w-5 h-5" />
@@ -964,9 +977,38 @@ export default function LiveEditorPage() {
       )}
 
       {/* Main Content - Split Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Editing Controls (Hidden on mobile) */}
-        <aside className="hidden md:block w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Sidebar Overlay */}
+        {mobileSidebarOpen && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/50 z-30"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+        )}
+        
+        {/* Left Sidebar - Editing Controls (Slide-out on mobile) */}
+        <aside className={`
+          fixed md:relative inset-y-0 left-0 z-40 md:z-auto
+          w-[85%] sm:w-80 md:w-80 bg-white border-r border-gray-200 
+          overflow-y-auto flex-shrink-0
+          transform transition-transform duration-300 ease-out
+          ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          md:block
+        `}>
+          {/* Mobile Sidebar Header */}
+          <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 p-3 flex items-center justify-between z-10">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              {language === 'bn' ? 'এডিটর' : 'Editor'}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition"
+            >
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
           {/* Template Section */}
           <AccordionSection
             title={language === 'bn' ? 'টেমপ্লেট' : 'Template'}
