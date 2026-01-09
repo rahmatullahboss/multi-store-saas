@@ -19,7 +19,7 @@ import {
   Heart, User, Truck, Headphones, Shield, RotateCcw,
   Smartphone, Shirt, Watch, Laptop, Home as HomeIcon, Car, 
   Baby, Dumbbell, Sparkles, ShoppingBag, Zap, ChevronDown, ChevronUp,
-  MapPin, Mail, Phone, Facebook, Youtube, MessageCircle, Package,
+  MapPin, Mail, Phone, Facebook, MessageCircle, Package,
   Grid3X3, UserCircle
 } from 'lucide-react';
 import { AddToCartButton } from '~/components/AddToCartButton';
