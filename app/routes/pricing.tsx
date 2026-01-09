@@ -194,10 +194,10 @@ const pricingPlans: PricingPlan[] = [
 // ============================================================================
 const comparisonFeatures = [
   { name: 'Max Products', free: '১', starter: '৫০', premium: '২০০', business: 'Unlimited' },
-  { name: 'Monthly Orders', free: '৫০', starter: '৫০০', premium: '৩,০০০', business: '২৫,০০০+' },
-  { name: 'Monthly Visitors', free: '১০K', starter: '১০০K', premium: '৬০০K', business: '৩০ লাখ+' },
-  { name: 'Storage', free: '১০০ MB', starter: '৫০০ MB', premium: '২ GB', business: '১০ GB' },
-  { name: 'Team Members', free: '১', starter: '২', premium: '৫', business: '১৫' },
+  { name: 'Monthly Orders', free: '৫০', starter: '৫০০', premium: '৩,০০০', business: 'Unlimited' },
+  { name: 'Monthly Visitors', free: '১০K', starter: '১০০K', premium: '৬০০K', business: 'Unlimited' },
+  { name: 'Storage', free: '১০০ MB', starter: '৫০০ MB', premium: '২ GB', business: 'Unlimited' },
+  { name: 'Team Members', free: '১', starter: '২', premium: '৫', business: 'Unlimited' },
   { name: 'Custom Domain', free: '❌', starter: '✅', premium: '✅', business: '✅' },
   { name: 'Full Store Mode', free: '❌', starter: '✅', premium: '✅', business: '✅' },
   { name: 'Facebook CAPI', free: '❌', starter: '❌', premium: '✅', business: '✅' },
@@ -401,7 +401,8 @@ const BusinessPlanCard = () => {
               <div className="flex flex-wrap gap-3 mt-4">
                 {[
                   'Unlimited Products',
-                  '২৫,০০০+ Orders',
+                  'Unlimited Orders',
+                  'Unlimited Visitors',
                   'Dedicated Support',
                   'Custom Integration',
                 ].map((feature, i) => (
