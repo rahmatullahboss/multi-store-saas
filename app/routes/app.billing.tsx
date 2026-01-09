@@ -281,7 +281,7 @@ export default function BillingPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('billing')}</h1>
-        <p className="text-gray-500 mt-1">{lang === 'bn' ? 'আপনার প্ল্যান ও ব্যবহার ম্যানেজ করুন' : 'Manage your plan and monitor usage'}</p>
+        <p className="text-gray-500 mt-1">{t('managePlanAndUsage')}</p>
       </div>
 
       {/* Current Plan Card */}
@@ -293,7 +293,9 @@ export default function BillingPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-gray-900">{currentPlan.name} {lang === 'bn' ? 'প্ল্যান' : 'Plan'}</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {lang === 'bn' ? currentPlan.nameBn : currentPlan.name} {t('plan')}
+                </h2>
                 <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                   subscriptionStatus === 'active' 
                     ? 'bg-green-100 text-green-700'
@@ -301,10 +303,10 @@ export default function BillingPage() {
                     ? 'bg-yellow-100 text-yellow-700'
                     : 'bg-red-100 text-red-700'
                 }`}>
-                  {subscriptionStatus === 'active' ? (lang === 'bn' ? 'সক্রিয়' : 'Active') : subscriptionStatus === 'past_due' ? (lang === 'bn' ? 'বকেয়া' : 'Past Due') : (lang === 'bn' ? 'বাতিল' : 'Canceled')}
+                  {subscriptionStatus === 'active' ? t('planStatusActive') : subscriptionStatus === 'past_due' ? t('planStatusPastDue') : t('planStatusCanceled')}
                 </span>
               </div>
-              <p className="text-gray-500">{currentPlan.description}</p>
+              <p className="text-gray-500">{lang === 'bn' ? currentPlan.descriptionBn : currentPlan.description}</p>
             </div>
           </div>
           <div className="text-right">
@@ -325,13 +327,13 @@ export default function BillingPage() {
               <ShoppingCart className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'মাসিক অর্ডার' : 'Monthly Orders'}</h3>
-              <p className="text-sm text-gray-500">{lang === 'bn' ? 'প্রতি মাসের ১ তারিখে রিসেট হয়' : 'Resets on the 1st of each month'}</p>
+              <h3 className="font-semibold text-gray-900">{t('monthlyOrders')}</h3>
+              <p className="text-sm text-gray-500">{t('resetsOn1st')}</p>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
+              <span className="text-gray-600">{t('usage')}</span>
               <span className="font-medium text-gray-900">
                 {usage.orders.current.toLocaleString()} / {usage.orders.limit === Infinity ? '∞' : usage.orders.limit.toLocaleString()}
               </span>
@@ -348,7 +350,7 @@ export default function BillingPage() {
             </div>
             {usage.orders.percentage >= 80 && planType === 'free' && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ {lang === 'bn' ? 'আপনি মাসিক লিমিটের কাছে পৌঁছে যাচ্ছেন। অর্ডার নিতে আপগ্রেড করুন।' : "You're approaching your monthly limit. Upgrade to continue accepting orders."}
+                ⚠️ {t('approachingLimit')}
               </p>
             )}
           </div>
@@ -361,8 +363,8 @@ export default function BillingPage() {
               <Package className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'সক্রিয় প্রোডাক্ট' : 'Active Products'}</h3>
-              <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরে প্রকাশিত প্রোডাক্ট' : 'Published products in your store'}</p>
+              <h3 className="font-semibold text-gray-900">{t('activeProducts')}</h3>
+              <p className="text-sm text-gray-500">{t('publishedProducts')}</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -384,7 +386,7 @@ export default function BillingPage() {
             </div>
             {planType === 'free' && usage.products.current >= 1 && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ {lang === 'bn' ? 'ফ্রি প্ল্যানে ১টি প্রোডাক্ট সীমিত। আরো যোগ করতে আপগ্রেড করুন।' : 'Free plan is limited to 1 product. Upgrade to add more.'}
+                ⚠️ {t('freePlanLimit1Product')}
               </p>
             )}
           </div>
@@ -397,15 +399,15 @@ export default function BillingPage() {
               <Users className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'মাসিক ভিজিটর' : 'Monthly Visitors'}</h3>
-              <p className="text-sm text-gray-500">{lang === 'bn' ? 'এই মাসে ইউনিক ভিজিটর' : 'Unique visitors this month'}</p>
+              <h3 className="font-semibold text-gray-900">{t('monthlyVisitors')}</h3>
+              <p className="text-sm text-gray-500">{t('uniqueVisitorsThisMonth')}</p>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{lang === 'bn' ? 'ব্যবহার' : 'Usage'}</span>
+              <span className="text-gray-600">{t('usage')}</span>
               <span className="font-medium text-gray-900">
-                {usage.visitors.limit === Infinity ? (lang === 'bn' ? 'সীমাহীন' : 'Unlimited') : `${usage.visitors.current.toLocaleString()} / ${usage.visitors.limit.toLocaleString()}`}
+                {usage.visitors.limit === Infinity ? t('unlimited') : `${usage.visitors.current.toLocaleString()} / ${usage.visitors.limit.toLocaleString()}`}
               </span>
             </div>
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -420,7 +422,7 @@ export default function BillingPage() {
             </div>
             {usage.visitors.percentage >= 80 && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ {lang === 'bn' ? 'উচ্চ ট্রাফিক! আরো ভিজিটর হ্যান্ডেল করতে আপগ্রেড করুন।' : 'High traffic! Upgrade to handle more visitors.'}
+                ⚠️ {t('highTrafficUpgrade')}
               </p>
             )}
           </div>
@@ -553,9 +555,9 @@ export default function BillingPage() {
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div>
-              <h3 className="text-lg font-bold">{lang === 'bn' ? 'বাড়তে প্রস্তুত?' : 'Ready to Grow?'}</h3>
+                <h3 className="text-lg font-bold">{t('readyToGrow')}</h3>
                 <p className="text-emerald-100">
-                  {lang === 'bn' ? 'ফুল স্টোর অ্যাক্সেস, ৫০টি প্রোডাক্ট এবং ৫০০ অর্ডার/মাসের জন্য স্টার্টারে আপগ্রেড করুন।' : 'Upgrade to Starter for full store access, 50 products, and 500 orders/month.'}
+                  {t('upgradeToStarterDesc')}
                 </p>
               </div>
             </div>
@@ -563,7 +565,7 @@ export default function BillingPage() {
               to="/app/upgrade"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-600 font-semibold rounded-lg hover:bg-emerald-50 transition"
             >
-              {lang === 'bn' ? 'এখনই আপগ্রেড করুন' : 'Upgrade Now'}
+              {t('upgradeNow')}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -590,7 +592,7 @@ export default function BillingPage() {
                 {(plan as { popular?: boolean }).popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                      Most Popular
+                      {lang === 'bn' ? 'সবচেয়ে জনপ্রিয়' : 'Most Popular'}
                     </span>
                   </div>
                 )}
@@ -599,8 +601,8 @@ export default function BillingPage() {
                   <div className={`w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-${plan.color}-100`}>
                     <Icon className={`w-6 h-6 text-${plan.color}-600`} />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
+                  <h3 className="text-lg font-bold text-gray-900">{lang === 'bn' ? plan.nameBn : plan.name}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{lang === 'bn' ? plan.descriptionBn : plan.description}</p>
                   <p className="text-3xl font-bold text-gray-900 mt-4">
                     {plan.price}
                     <span className="text-sm font-normal text-gray-500">{plan.period}</span>
@@ -616,7 +618,7 @@ export default function BillingPage() {
                         <X className="w-4 h-4 text-gray-300 flex-shrink-0" />
                       )}
                       <span className={feature.included ? 'text-gray-700' : 'text-gray-400'}>
-                        {feature.text}
+                        {lang === 'bn' ? feature.text : feature.textEn}
                       </span>
                     </li>
                   ))}
@@ -624,7 +626,7 @@ export default function BillingPage() {
                 
                 {isCurrentPlan ? (
                   <div className="w-full py-2.5 text-center text-emerald-600 font-medium border border-emerald-200 rounded-lg bg-emerald-50">
-                    Current Plan
+                    {lang === 'bn' ? 'বর্তমান প্ল্যান' : 'Current Plan'}
                   </div>
                 ) : (
                   <Link 
@@ -635,7 +637,7 @@ export default function BillingPage() {
                       'bg-gray-600 hover:bg-gray-700'
                     }`}
                   >
-                    Upgrade to {plan.name}
+                    {t('upgradeTo')} {lang === 'bn' ? plan.nameBn : plan.name}
                   </Link>
                 )}
               </div>
@@ -652,18 +654,18 @@ export default function BillingPage() {
                 <Building2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">{lang === 'bn' ? 'Business Plan' : 'Business Plan'}</h3>
+                <h3 className="text-xl font-bold">{t('businessPlan')}</h3>
                 <p className="text-white/80">
-                  {lang === 'bn' ? 'বড় ব্যবসার জন্য Custom Solution' : 'Custom solution for large businesses'}
+                  {t('customSolutionForLarge')}
                 </p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               {[
-                lang === 'bn' ? 'Unlimited Products' : 'Unlimited Products',
-                lang === 'bn' ? 'Unlimited Orders' : 'Unlimited Orders',
-                lang === 'bn' ? 'Unlimited Visitors' : 'Unlimited Visitors',
-                lang === 'bn' ? 'Dedicated Support' : 'Dedicated Support',
+                t('unlimitedProducts'),
+                t('unlimitedOrders'),
+                t('unlimitedVisitors'),
+                t('dedicatedSupport'),
               ].map((feature, i) => (
                 <span key={i} className="px-3 py-1 bg-white/20 rounded-full text-sm">
                   {feature}
@@ -673,15 +675,13 @@ export default function BillingPage() {
           </div>
           <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-white/70 text-sm">
-              {lang === 'bn' 
-                ? 'সব কিছু Unlimited! কোনো লিমিট নেই। আপনার প্রয়োজন অনুযায়ী Custom Pricing।' 
-                : 'Everything Unlimited! No limits. Custom pricing based on your needs.'}
+              {t('everythingUnlimited')}
             </p>
             <Link
               to="/contact"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-violet-600 font-semibold rounded-lg hover:bg-violet-50 transition"
             >
-              {lang === 'bn' ? 'যোগাযোগ করুন' : 'Contact Us'}
+              {t('contactUs')}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -690,24 +690,9 @@ export default function BillingPage() {
 
       {/* FAQ or Help */}
       <div className="bg-gray-50 rounded-xl p-6">
-        <h3 className="font-semibold text-gray-900 mb-2">{lang === 'bn' ? 'সাহায্য দরকার?' : 'Need Help?'}</h3>
+        <h3 className="font-semibold text-gray-900 mb-2">{t('needHelp')}</h3>
         <p className="text-gray-600">
-          {lang === 'bn' ? (
-            <>
-              বিলিং সংক্রান্ত প্রশ্ন বা কাস্টম প্ল্যানের জন্য আমাদের সাপোর্ট টিমে যোগাযোগ করুন{' '}
-              <a href="mailto:support@digitalcare.site" className="text-emerald-600 hover:underline">
-                support@digitalcare.site
-              </a>
-            </>
-          ) : (
-            <>
-              Contact our support team at{' '}
-              <a href="mailto:support@digitalcare.site" className="text-emerald-600 hover:underline">
-                support@digitalcare.site
-              </a>
-              {' '}for billing questions or custom plan requests.
-            </>
-          )}
+          {t('billingSupportContact')}
         </p>
       </div>
     </div>

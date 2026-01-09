@@ -7,7 +7,7 @@
 
 import { createContext, useContext, useMemo, useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from '@remix-run/react';
-import { LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type Language, type TranslationKey, type LanguageConfig } from '~/utils/i18n';
+import { LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type Language, type TranslationKey, type LanguageConfig, t as i18nCustomT } from '~/utils/i18n';
 import type { SupportedLocale, SupportedCurrency } from '~/utils/formatPrice';
 import { useTranslation as useI18NextTranslation } from 'react-i18next';
 
@@ -85,9 +85,16 @@ export function LanguageProvider({
   };
   
   const t = (key: string | TranslationKey, options?: any): string => {
-      // Wrapper to ensure type compatibility if needed, 
-      // i18next t function handles strings
-      return i18nT(key, options) as string;
+    // 1. Try customs translations from ~/utils/i18n.ts first
+    const customTranslation = i18nCustomT(key as TranslationKey, lang);
+    
+    // If it's not the same as the key, it means we found a translation
+    if (customTranslation !== key) {
+      return customTranslation;
+    }
+
+    // 2. Fallback to i18next (JSON files)
+    return i18nT(key, options) as string;
   };
   
   const currentLanguage = useMemo(() => {
