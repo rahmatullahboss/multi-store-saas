@@ -114,9 +114,7 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string): any =>
         'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
         'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap'
       ],
-      scripts: [
-        'https://cdn.tailwindcss.com'
-      ]
+      scripts: [],
     },
     deviceManager: {
       devices: [

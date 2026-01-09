@@ -141,11 +141,18 @@ export const FullPageConfigSchema = z.object({
     primary: z.string(),
     secondary: z.string().optional(),
     accent: z.string().optional(),
+    background: z.string().optional(),
+    text: z.string().optional(),
   }).optional(),
   socialProof: z.object({
     count: z.number(),
     text: z.string(),
   }).optional(),
+  benefits: z.array(z.object({
+    icon: z.string(),
+    title: z.string(),
+    description: z.string(),
+  })).optional(),
 });
 
 export type FullPageConfigResult = z.infer<typeof FullPageConfigSchema>;
@@ -523,12 +530,19 @@ Your response MUST be valid JSON in this exact structure:
   "colors": {
     "primary": "#HEX_CODE",
     "secondary": "#HEX_CODE",
-    "accent": "#HEX_CODE"
+    "accent": "#HEX_CODE",
+    "background": "#HEX_CODE",
+    "text": "#HEX_CODE"
   },
   "socialProof": {
     "count": 500,
     "text": "সন্তুষ্ট গ্রাহক"
-  }
+  },
+  "benefits": [
+    { "icon": "💡", "title": "Benefit 1", "description": "Short description" },
+    { "icon": "🚀", "title": "Benefit 2", "description": "Short description" },
+    { "icon": "🛡️", "title": "Benefit 3", "description": "Short description" }
+  ]
 }
 
 Color Guidelines:
@@ -541,6 +555,7 @@ Color Guidelines:
 Important:
 - Detect if business is Bangladeshi, use Bengali for all copy
 - Create exactly 3 features with relevant emojis
+- Create exactly 3 benefits with different icons
 - Create exactly 2 testimonials with realistic Bengali names
 - Choose colors that match the product category
 - Write compelling, benefit-focused copy
