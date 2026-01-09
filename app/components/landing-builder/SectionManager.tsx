@@ -321,6 +321,17 @@ export function SectionManager({
       case 'features':
         return (
           <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            {/* Helpful empty state */}
+            {features.length === 0 && (
+              <div className="text-center py-4 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                <p className="mb-1">
+                  {language === 'bn' ? '🎯 প্রোডাক্টের সুবিধাগুলো যোগ করুন' : '🎯 Add your product benefits'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {language === 'bn' ? 'নিচের বাটনে ক্লিক করুন' : 'Click the button below'}
+                </p>
+              </div>
+            )}
             {features.map((feature, index) => (
               <div key={index} className="p-3 bg-white rounded-lg border border-gray-200 space-y-2">
                 <div className="flex gap-2">
@@ -403,6 +414,17 @@ export function SectionManager({
                 ? 'স্ক্রিনশট আপলোড করুন (প্রস্তাবিত সাইজ: 400x300px)'
                 : 'Upload screenshots (Recommended: 400x300px)'}
             </p>
+            {/* Helpful empty state */}
+            {testimonials.length === 0 && (
+              <div className="text-center py-4 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                <p className="mb-1">
+                  {language === 'bn' ? '⭐ কাস্টমার রিভিউ যোগ করুন' : '⭐ Add customer reviews'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {language === 'bn' ? 'Facebook/WhatsApp থেকে স্ক্রিনশট আপলোড করুন' : 'Upload screenshots from Facebook/WhatsApp'}
+                </p>
+              </div>
+            )}
             {testimonials.map((item, index) => (
               <div key={index} className="p-3 bg-white rounded-lg border border-gray-200 space-y-2">
                 {item.imageUrl ? (
@@ -483,6 +505,17 @@ export function SectionManager({
       case 'faq':
         return (
           <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            {/* Helpful empty state */}
+            {faq.length === 0 && (
+              <div className="text-center py-4 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                <p className="mb-1">
+                  {language === 'bn' ? '❓ সচরাচর প্রশ্ন যোগ করুন' : '❓ Add common questions'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {language === 'bn' ? 'কাস্টমারদের সাধারণ প্রশ্নের উত্তর দিন' : 'Answer common customer questions'}
+                </p>
+              </div>
+            )}
             {faq.map((item, index) => (
               <div key={index} className="p-3 bg-white rounded-lg border border-gray-200 space-y-2">
                 <input
