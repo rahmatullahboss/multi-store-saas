@@ -269,9 +269,6 @@ export function FlashSaleTemplate({
         </div>
       </div>
 
-      {/* Spacer for fixed header */}
-      <div className="h-16" />
-
       {/* ================================================================
           HERO SECTION - COMPACT
           ================================================================ */}
