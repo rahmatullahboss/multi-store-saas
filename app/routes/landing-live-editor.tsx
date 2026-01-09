@@ -751,14 +751,14 @@ export default function LiveEditorPage() {
 
   // Device width mapping
   const deviceWidths = {
-    mobile: 375,
+    mobile: 414,
     tablet: 768,
     desktop: 1200,
   };
 
   // Device height mapping (for iframe)
   const deviceHeights = {
-    mobile: 667,
+    mobile: 896,
     tablet: 1024,
     desktop: 800,
   };
@@ -1585,7 +1585,7 @@ export default function LiveEditorPage() {
               {language === 'bn' ? 'লাইভ প্রিভিউ' : 'Live Preview'}
             </span>
             <span className="text-gray-500 text-xs">
-              {previewDevice === 'mobile' && '📱 375 × 667'}
+              {previewDevice === 'mobile' && '📱 414 × 896'}
               {previewDevice === 'tablet' && '📱 768 × 1024'}
               {previewDevice === 'desktop' && '🖥️ Full Width'}
             </span>
@@ -1605,8 +1605,8 @@ export default function LiveEditorPage() {
                   : 'shadow-2xl'
               }`}
               style={previewDevice !== 'desktop' ? {
-                width: previewDevice === 'mobile' ? '375px' : '768px',
-                height: previewDevice === 'mobile' ? '667px' : '1024px',
+                width: previewDevice === 'mobile' ? '414px' : '768px',
+                height: previewDevice === 'mobile' ? '896px' : '1024px',
                 maxHeight: 'calc(100vh - 150px)',
               } : undefined}
             >
