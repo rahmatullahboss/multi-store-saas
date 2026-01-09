@@ -265,6 +265,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true, emailAvailable: true });
   }
 
+  // Check if subdomain is available (Step 2 -> Step 3 transition)
+  if (step === 'check_subdomain') {
+    const subdomain = formData.get('subdomain') as string;
+    
+    if (!subdomain || subdomain.length < 3) {
+      return json({ error: 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে', field: 'subdomain' }, { status: 400 });
+    }
+    
+    const db = drizzle(env.DB);
+    const existingStore = await db
+      .select({ id: stores.id })
+      .from(stores)
+      .where(eq(stores.subdomain, subdomain.toLowerCase()))
+      .limit(1);
+    
+    if (existingStore.length > 0) {
+      console.log('[Onboarding] Subdomain not available:', subdomain);
+      return json({ 
+        error: `"${subdomain}" সাবডোমেইন আগেই নেওয়া হয়েছে। অন্য একটি বেছে নিন।`, 
+        errorEn: `The subdomain "${subdomain}" is already taken. Please choose another one.`,
+        field: 'subdomain',
+        subdomainTaken: true 
+      }, { status: 400 });
+    }
+    
+    return json({ success: true, subdomainAvailable: true });
+  }
+
   // Create store with category-based template and plan selection
   if (step === 'create_store') {
     const email = formData.get('email') as string;
@@ -398,7 +426,8 @@ export default function OnboardingPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [storeCreationFailed, setStoreCreationFailed] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
-  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean }>();
+  const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
+  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean }>();
   
   const { t, lang: language } = useTranslation();
 
@@ -412,10 +441,17 @@ export default function OnboardingPage() {
       setIsCheckingEmail(false);
       setCurrentStep(2);
     }
+    if (fetcher.data?.subdomainAvailable) {
+      setIsCheckingSubdomain(false);
+      setCurrentStep(3);
+    }
     if (fetcher.data?.error) {
       setIsCheckingEmail(false);
+      setIsCheckingSubdomain(false);
       if (fetcher.data.emailExists) {
         setErrors({ email: fetcher.data.error });
+      } else if (fetcher.data.subdomainTaken) {
+        setErrors({ subdomain: fetcher.data.error });
       } else {
         setErrors({ form: fetcher.data.error });
         if (fetcher.data.error.includes('store') || fetcher.data.error.includes('Store')) {
@@ -463,17 +499,17 @@ export default function OnboardingPage() {
     if (currentStep === 1) {
       const newErrors: Record<string, string> = {};
       if (!formData.email || !formData.email.includes('@')) {
-        newErrors.email = language === 'bn' ? 'সঠিক ইমেইল দিন' : 'Valid email required';
+        newErrors.email = t('validEmailRequired');
       }
       if (!formData.password || formData.password.length < 6) {
-        newErrors.password = language === 'bn' ? 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে' : 'Password must be at least 6 characters';
+        newErrors.password = t('passwordMinChars');
       }
       if (!formData.name || formData.name.length < 2) {
-        newErrors.name = language === 'bn' ? 'নাম দিন' : 'Name required';
+        newErrors.name = t('nameRequired');
       }
       // Phone validation: must start with 01 and be 11 digits
       if (!formData.phone || formData.phone.length !== 11 || !formData.phone.startsWith('01')) {
-        newErrors.phone = language === 'bn' ? 'সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)' : 'Valid mobile number required (01XXXXXXXXX)';
+        newErrors.phone = t('validMobileRequired');
       }
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -490,22 +526,27 @@ export default function OnboardingPage() {
       return;
     }
     
-    // Step 2: Validate store info
+    // Step 2: Validate store info and check subdomain availability
     if (currentStep === 2) {
       const newErrors: Record<string, string> = {};
       if (!formData.storeName || formData.storeName.length < 2) {
-        newErrors.storeName = language === 'bn' ? 'স্টোরের নাম দিন' : 'Store name is required';
+        newErrors.storeName = t('storeNameRequired');
       }
       if (!formData.subdomain || formData.subdomain.length < 3) {
-        newErrors.subdomain = language === 'bn' ? 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে' : 'Subdomain must be at least 3 characters';
+        newErrors.subdomain = t('subdomainMinChars');
       }
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
         return;
       }
       
+      // Check subdomain availability before proceeding
+      setIsCheckingSubdomain(true);
       setErrors({});
-      setCurrentStep(3); // Go to plan selection
+      const checkData = new FormData();
+      checkData.append('step', 'check_subdomain');
+      checkData.append('subdomain', formData.subdomain);
+      fetcher.submit(checkData, { method: 'POST' });
       return;
     }
     
@@ -513,7 +554,7 @@ export default function OnboardingPage() {
     if (currentStep === 3) {
       // For paid plans, validate TRX ID
       if (formData.selectedPlan !== 'free' && !formData.transactionId) {
-        setErrors({ transactionId: language === 'bn' ? 'TRX ID দিন' : 'Please enter TRX ID' });
+        setErrors({ transactionId: t('trxIdRequired') });
         return;
       }
       
@@ -607,7 +648,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('createAccount')}</h1>
-                <p className="text-gray-500 mt-2">{language === 'bn' ? 'মাত্র ২ মিনিটে স্টোর তৈরি করুন' : 'Create your store in just 2 minutes'}</p>
+                <p className="text-gray-500 mt-2">{t('createStoreIn2Min')}</p>
               </div>
 
               <div>
@@ -655,7 +696,7 @@ export default function OnboardingPage() {
               {/* Phone Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'মোবাইল নম্বর' : 'Mobile Number'} *
+                  {t('mobileNumber')} *
                 </label>
                 <input
                   type="tel"
@@ -669,7 +710,7 @@ export default function OnboardingPage() {
                   placeholder="01XXXXXXXXX"
                 />
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                <p className="text-xs text-gray-500 mt-1">{language === 'bn' ? 'বাংলাদেশী মোবাইল নম্বর (01 দিয়ে শুরু)' : 'Bangladesh mobile number (starts with 01)'}</p>
+                <p className="text-xs text-gray-500 mt-1">{t('bdMobileHint')}</p>
               </div>
             </div>
           )}
@@ -678,8 +719,8 @@ export default function OnboardingPage() {
           {currentStep === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">{language === 'bn' ? 'আপনার স্টোর সেটআপ করুন' : 'Set Up Your Store'}</h1>
-                <p className="text-gray-500 mt-2">{language === 'bn' ? 'পরে সব চেঞ্জ করতে পারবেন' : 'You can change everything later'}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{t('setupYourStore')}</h1>
+                <p className="text-gray-500 mt-2">{t('canChangeLater')}</p>
               </div>
 
               {/* Store Name */}
@@ -700,7 +741,7 @@ export default function OnboardingPage() {
               {/* Subdomain */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'স্টোর লিংক' : 'Store Link'} *
+                  {t('storeLink')} *
                 </label>
                 <div className="flex items-center">
                   <input
@@ -723,7 +764,7 @@ export default function OnboardingPage() {
               {/* Category - Visual Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {language === 'bn' ? 'আপনি কী বিক্রি করেন?' : 'What do you sell?'}
+                  {t('whatDoYouSellLabel')}
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {BUSINESS_CATEGORIES.map((cat) => (
@@ -751,7 +792,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{t('choosePlan')}</h1>
-                <p className="text-gray-500 mt-2">{language === 'bn' ? 'আপনার প্রয়োজন অনুযায়ী প্ল্যান সিলেক্ট করুন' : 'Select a plan based on your needs'}</p>
+                <p className="text-gray-500 mt-2">{t('selectPlanBasedNeeds')}</p>
               </div>
 
               {/* Plan Cards */}
@@ -1023,10 +1064,10 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={isCheckingEmail || isSubmitting}
+                disabled={isCheckingEmail || isCheckingSubdomain || isSubmitting}
                 className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {isCheckingEmail 
+                {(isCheckingEmail || isCheckingSubdomain)
                   ? t('loading') 
                   : currentStep === 3 
                     ? (formData.selectedPlan === 'free' 
