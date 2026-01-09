@@ -491,7 +491,7 @@ export default function SettingsPage() {
 
             {/* Favicon Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('favicon')}</label>
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {faviconPreview ? (
@@ -737,8 +737,8 @@ export default function SettingsPage() {
               <Instagram className="w-5 h-5 text-pink-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Social Media</h2>
-              <p className="text-sm text-gray-500">Connect your social profiles</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('socialMedia')}</h2>
+              <p className="text-sm text-gray-500">{t('connectSocialProfiles')}</p>
             </div>
           </div>
 
@@ -786,7 +786,7 @@ export default function SettingsPage() {
                 placeholder="+8801XXXXXXXXX"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              <p className="text-xs text-gray-500 mt-1">Include country code for WhatsApp link</p>
+              <p className="text-xs text-gray-500 mt-1">{t('whatsappCountryCodeHint')}</p>
             </div>
           </div>
         </div>
@@ -798,8 +798,8 @@ export default function SettingsPage() {
               <Phone className="w-5 h-5 text-orange-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Business Information</h2>
-              <p className="text-sm text-gray-500">Contact details for invoices and customers</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('businessInformation')}</h2>
+              <p className="text-sm text-gray-500">{t('contactDetailsInvoices')}</p>
             </div>
           </div>
 
@@ -807,7 +807,7 @@ export default function SettingsPage() {
             {/* Phone */}
             <div>
               <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                <Phone className="w-4 h-4 inline mr-1" /> Business Phone
+                <Phone className="w-4 h-4 inline mr-1" /> {t('businessPhoneLabel')}
               </label>
               <input
                 type="tel"
@@ -822,7 +822,7 @@ export default function SettingsPage() {
             {/* Email */}
             <div>
               <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                <Mail className="w-4 h-4 inline mr-1" /> Business Email
+                <Mail className="w-4 h-4 inline mr-1" /> {t('businessEmailLabel')}
               </label>
               <input
                 type="email"
@@ -837,7 +837,7 @@ export default function SettingsPage() {
             {/* Address */}
             <div>
               <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-1">
-                <MapPin className="w-4 h-4 inline mr-1" /> Business Address
+                <MapPin className="w-4 h-4 inline mr-1" /> {t('businessAddressLabel')}
               </label>
               <textarea
                 id="businessAddress"
@@ -858,15 +858,15 @@ export default function SettingsPage() {
               <Globe className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Custom Domain</h2>
-              <p className="text-sm text-gray-500">Connect your own domain</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('customDomain')}</h2>
+              <p className="text-sm text-gray-500">{t('connectOwnDomain')}</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {/* Current Domain Info */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600">Your store is currently accessible at:</p>
+              <p className="text-sm text-gray-600">{t('storeCurrentlyAt')}</p>
               <p className="font-medium text-gray-900 mt-1">
                 https://{store.subdomain}.digitalcare.site
               </p>
@@ -875,7 +875,7 @@ export default function SettingsPage() {
             {/* Custom Domain Input */}
             <div>
               <label htmlFor="customDomain" className="block text-sm font-medium text-gray-700 mb-1">
-                Custom Domain (optional)
+                {t('customDomainOptional')}
               </label>
               <input
                 type="text"
@@ -885,12 +885,12 @@ export default function SettingsPage() {
                 placeholder="mystore.com"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              <p className="text-xs text-gray-500 mt-1">Enter your domain without https://</p>
+              <p className="text-xs text-gray-500 mt-1">{t('enterDomainWithoutHttps')}</p>
             </div>
 
             {/* DNS Instructions */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">Setup Instructions:</h4>
+              <h4 className="font-medium text-blue-900 mb-2">{t('setupInstructions')}</h4>
               <ol className="text-sm text-blue-800 space-y-2">
                 <li>1. Go to your domain registrar's DNS settings</li>
                 <li>2. Add a <strong>CNAME</strong> record:</li>
@@ -917,7 +917,7 @@ export default function SettingsPage() {
 
         {/* Quick Links to Other Settings */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">More Settings</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('moreSettings')}</h2>
           <div className="grid grid-cols-2 gap-3">
             <a
               href="/app/settings/shipping"
@@ -926,7 +926,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                 <Store className="w-4 h-4 text-emerald-600" />
               </div>
-              <span className="font-medium text-gray-700">Shipping Zones</span>
+              <span className="font-medium text-gray-700">{t('shippingZonesLink')}</span>
             </a>
             <a
               href="/app/settings/seo"
@@ -935,7 +935,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Globe className="w-4 h-4 text-blue-600" />
               </div>
-              <span className="font-medium text-gray-700">SEO Settings</span>
+              <span className="font-medium text-gray-700">{t('seoSettingsLink')}</span>
             </a>
             <a
               href="/app/settings/team"
@@ -944,7 +944,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Mail className="w-4 h-4 text-purple-600" />
               </div>
-              <span className="font-medium text-gray-700">Team Members</span>
+              <span className="font-medium text-gray-700">{t('teamMembersLink')}</span>
             </a>
             <a
               href="/app/settings/activity"
@@ -953,7 +953,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
                 <Globe className="w-4 h-4 text-amber-600" />
               </div>
-              <span className="font-medium text-gray-700">Activity Log</span>
+              <span className="font-medium text-gray-700">{t('activityLogLink')}</span>
             </a>
             <a
               href="/app/settings/landing"
@@ -962,7 +962,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
                 <Palette className="w-4 h-4 text-rose-600" />
               </div>
-              <span className="font-medium text-gray-700">Landing Mode</span>
+              <span className="font-medium text-gray-700">{t('landingModeLink')}</span>
             </a>
             <a
               href="/app/settings/courier"
@@ -971,7 +971,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Store className="w-4 h-4 text-purple-600" />
               </div>
-              <span className="font-medium text-gray-700">Courier API</span>
+              <span className="font-medium text-gray-700">{t('courierApiLink')}</span>
             </a>
             <a
               href="/app/settings/developer"
@@ -980,7 +980,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
                 <FileText className="w-4 h-4 text-slate-600" />
               </div>
-              <span className="font-medium text-gray-700">Developer API</span>
+              <span className="font-medium text-gray-700">{t('developerApiLink')}</span>
             </a>
           </div>
         </div>
@@ -995,10 +995,10 @@ export default function SettingsPage() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
+                {t('savingSettings')}
               </>
             ) : (
-              'Save Settings'
+              t('saveSettings')
             )}
           </button>
         </div>
@@ -1011,16 +1011,16 @@ export default function SettingsPage() {
               <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-red-800">Danger Zone</h2>
-              <p className="text-sm text-red-600">Irreversible actions</p>
+              <h2 className="text-lg font-semibold text-red-800">{t('dangerZone')}</h2>
+              <p className="text-sm text-red-600">{t('irreversibleActions')}</p>
             </div>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-red-100">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-gray-900">Delete Store</h3>
-                <p className="text-sm text-gray-500">Permanently delete this store and all its data</p>
+                <h3 className="font-medium text-gray-900">{t('deleteStore')}</h3>
+                <p className="text-sm text-gray-500">{t('permanentlyDeleteStore')}</p>
               </div>
               <button
                 type="button"
@@ -1028,7 +1028,7 @@ export default function SettingsPage() {
                 className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition flex items-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete Store
+                {t('deleteStore')}
               </button>
             </div>
           </div>
