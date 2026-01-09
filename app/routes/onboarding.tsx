@@ -657,6 +657,8 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="text"
+                  name="name"
+                  autoComplete="name"
                   value={formData.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -671,6 +673,8 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="email"
+                  name="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={(e) => updateField('email', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -685,6 +689,8 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="password"
+                  name="password"
+                  autoComplete="new-password"
                   value={formData.password}
                   onChange={(e) => updateField('password', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -700,6 +706,8 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="tel"
+                  name="phone"
+                  autoComplete="tel"
                   value={formData.phone}
                   onChange={(e) => {
                     // Only allow numbers and max 11 digits
