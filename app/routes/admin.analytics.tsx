@@ -265,6 +265,34 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .filter(s => s.limits.orderUsage >= 80 || s.limits.productUsage >= 80)
     .sort((a, b) => Math.max(b.limits.orderUsage, b.limits.productUsage) - Math.max(a.limits.orderUsage, a.limits.productUsage));
   
+  // ===== UNUSUAL ACTIVITY DETECTION =====
+  // Calculate visitor-to-order ratio for suspicious activity
+  // Normal ratio: 10-100 visitors per order
+  // Warning: ratio > 500 (500+ visitors per 1 order)
+  // Critical: ratio > 1000 (possible bot/abuse)
+  const unusualActivityStores = storeAnalytics
+    .filter(s => {
+      // Only flag stores with at least some visitors
+      if (s.visitors < 100) return false;
+      
+      // Calculate ratio (if no orders, use 1 to avoid division by zero)
+      const ratio = s.totalOrders > 0 ? s.visitors / s.totalOrders : s.visitors;
+      
+      // Flag if ratio is suspiciously high
+      return ratio > 500;
+    })
+    .map(s => {
+      const ratio = s.totalOrders > 0 ? Math.round(s.visitors / s.totalOrders) : s.visitors;
+      const severity: 'warning' | 'critical' = ratio > 1000 ? 'critical' : 'warning';
+      
+      return {
+        ...s,
+        visitorOrderRatio: ratio,
+        severity,
+      };
+    })
+    .sort((a, b) => b.visitorOrderRatio - a.visitorOrderRatio);
+  
   return json({
     platformMetrics: {
       totalGMV: Number(totalGMVResult[0]?.total) || 0,
@@ -278,6 +306,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeAnalytics,
     topStores,
     storesApproachingLimits,
+    unusualActivityStores,
     chartData,
   });
 }
@@ -291,6 +320,7 @@ export default function AdminAnalytics() {
     storeAnalytics, 
     topStores, 
     storesApproachingLimits,
+    unusualActivityStores,
     chartData,
   } = useLoaderData<typeof loader>();
   
@@ -579,6 +609,77 @@ export default function AdminAnalytics() {
           </div>
         </div>
       </div>
+
+      {/* Unusual Activity Section */}
+      {unusualActivityStores.length > 0 && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+            ⚠️ Unusual Activity Detected
+            <span className="text-xs px-2 py-0.5 bg-red-500/20 rounded-full text-red-400">
+              {unusualActivityStores.length} stores
+            </span>
+          </h2>
+          <p className="text-sm text-slate-400 mb-4">
+            এই স্টোরগুলোতে Order এর তুলনায় অস্বাভাবিক বেশি Visitor দেখা যাচ্ছে। সম্ভাব্য bot/spam activity পরীক্ষা করুন।
+          </p>
+          <div className="space-y-3">
+            {unusualActivityStores.slice(0, 10).map((store) => (
+              <div 
+                key={store.id} 
+                className={`p-4 rounded-lg ${
+                  store.severity === 'critical' 
+                    ? 'bg-red-500/20 border border-red-500/40' 
+                    : 'bg-amber-500/10 border border-amber-500/30'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                      store.severity === 'critical' 
+                        ? 'bg-red-500 text-white' 
+                        : 'bg-amber-500 text-black'
+                    }`}>
+                      {store.severity === 'critical' ? '🚨 CRITICAL' : '⚠️ WARNING'}
+                    </span>
+                    <div>
+                      <p className="text-white font-medium">{store.name}</p>
+                      <p className="text-xs text-slate-500">{store.subdomain}</p>
+                    </div>
+                  </div>
+                  <Link
+                    to={`/admin/stores?search=${store.subdomain}`}
+                    className="text-xs text-blue-400 hover:underline flex items-center gap-1"
+                  >
+                    View Store <ArrowUpRight className="w-3 h-3" />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-slate-500">Visitors</span>
+                    <p className="text-white font-medium">{store.visitors.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Orders</span>
+                    <p className="text-white font-medium">{store.totalOrders}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Ratio</span>
+                    <p className={`font-bold ${
+                      store.severity === 'critical' ? 'text-red-400' : 'text-amber-400'
+                    }`}>
+                      {store.visitorOrderRatio}:1
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  প্রতি ১ অর্ডারে {store.visitorOrderRatio} জন ভিজিটর (স্বাভাবিক: ১০-১০০)
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* All Stores Table */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
