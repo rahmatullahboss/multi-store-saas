@@ -12,7 +12,7 @@ import autoTable from 'jspdf-autotable';
 // However, newer versions support it. We'll try standard usage first.)
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
   const paymentId = params.paymentId;

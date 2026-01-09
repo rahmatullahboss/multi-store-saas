@@ -40,7 +40,7 @@ export const meta: MetaFunction = () => {
 // ============================================================================
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
   await requireUserId(request);
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   const campaignId = Number(params.id);
   
   if (!storeId) {
@@ -87,7 +87,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context, params }: ActionFunctionArgs) {
   await requireUserId(request);
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   const campaignId = Number(params.id);
   
   if (!storeId) {

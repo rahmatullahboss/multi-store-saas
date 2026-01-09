@@ -42,7 +42,7 @@ export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store Sa
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   await requireUserId(request);
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
 
   const db = drizzle(context.cloudflare.env.DB);
@@ -81,7 +81,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   await requireUserId(request);
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
 
   const formData = await request.formData();

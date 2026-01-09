@@ -41,7 +41,7 @@ interface ActionData {
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -92,7 +92,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     return json<ActionData>({ error: 'Unauthorized' }, { status: 401 });
   }
