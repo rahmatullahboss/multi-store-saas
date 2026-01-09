@@ -836,7 +836,7 @@ export default function OnboardingPage() {
                         <div>
                           <h3 className="font-bold text-gray-900">{t(plan.nameKey)}</h3>
                           <p className="text-lg font-bold">
-                            {plan.price === 0 ? (language === 'bn' ? 'ফ্রি' : 'Free') : `৳${plan.price}`}
+                            {plan.price === 0 ? t('freeText') : `৳${plan.price}`}
                             {plan.price > 0 && <span className="text-sm font-normal text-gray-500">{t('perMonth')}</span>}
                           </p>
                         </div>
@@ -884,7 +884,7 @@ export default function OnboardingPage() {
                   {/* bKash Number with Copy */}
                   <div className="bg-white rounded-xl p-4 mb-4 flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-500">{language === 'bn' ? 'বিকাশ নম্বর' : 'bKash Number'}</p>
+                      <p className="text-sm text-gray-500">{t('bkashNumber')}</p>
                       <p className="text-2xl font-bold text-pink-600">{BKASH_PAYMENT_NUMBER}</p>
                     </div>
                     <button
@@ -896,12 +896,12 @@ export default function OnboardingPage() {
                     </button>
                   </div>
                   {copied && (
-                    <p className="text-sm text-green-600 mb-4">{language === 'bn' ? 'কপি হয়েছে!' : 'Copied!'}</p>
+                    <p className="text-sm text-green-600 mb-4">{t('copied')}</p>
                   )}
 
                   {/* Amount */}
                   <div className="bg-white rounded-xl p-4 mb-4">
-                    <p className="text-sm text-gray-500">{language === 'bn' ? 'পরিমাণ' : 'Amount'}</p>
+                    <p className="text-sm text-gray-500">{t('amount')}</p>
                     <p className="text-2xl font-bold text-gray-900">৳{selectedPlanData?.price}</p>
                   </div>
 
@@ -930,7 +930,7 @@ export default function OnboardingPage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {language === 'bn' ? 'পেমেন্টে ব্যবহৃত ফোন নম্বর' : 'Phone number used for payment'}
+                        {t('paymentPhoneUsed')}
                       </label>
                       <input
                         type="tel"
@@ -959,9 +959,7 @@ export default function OnboardingPage() {
               {formData.selectedPlan === 'free' && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                   <p className="text-sm text-emerald-700">
-                    ✨ {language === 'bn' 
-                      ? 'ফ্রি প্ল্যানে শুরু করুন এবং পরে আপগ্রেড করুন!' 
-                      : 'Start with Free plan and upgrade later!'}
+                    ✨ {t('startFreeUpgradeLater')}
                   </p>
                 </div>
               )}
@@ -985,9 +983,7 @@ export default function OnboardingPage() {
                     ⏳ {t('paymentPending')}
                   </p>
                   <p className="text-sm text-amber-600 mt-1">
-                    {language === 'bn' 
-                      ? 'আপনার পেমেন্ট ভেরিফাই করা হবে। ২৪ ঘন্টার মধ্যে আপনার প্ল্যান একটিভ হয়ে যাবে।'
-                      : 'Your payment will be verified. Your plan will be activated within 24 hours.'}
+                    {t('paymentVerificationNotice')}
                   </p>
                 </div>
               )}
