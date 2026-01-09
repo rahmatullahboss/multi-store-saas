@@ -214,23 +214,38 @@ async function callAI(
 // ============================================================================
 // HELPER: Extract JSON from AI response
 // ============================================================================
+// ============================================================================
+// HELPER: Extract JSON from AI response
+// ============================================================================
 function extractJSON(text: string): unknown {
   console.log('[AI] Extracting JSON from response...');
-  // Try to find JSON in the response
-  const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/);
-  if (jsonMatch) {
-    console.log('[AI] Found JSON inside markdown block');
-    return JSON.parse(jsonMatch[1]);
+  
+  try {
+    // 1. Try to find JSON in markdown block first
+    const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/);
+    if (jsonMatch) {
+      console.log('[AI] Found JSON inside markdown block');
+      return JSON.parse(jsonMatch[1]);
+    }
+    
+    // 2. Try to find the first `{` and last `}` to handle unwrapped JSON with extra text
+    const objectMatch = text.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+       console.log('[AI] Found JSON object pattern in text');
+       return JSON.parse(objectMatch[0]);
+    }
+    
+    // 3. Fallback: Try to parse the whole text (rarely works if there's noise)
+    const trimmed = text.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      console.log('[AI] Parsing whole response as JSON');
+      return JSON.parse(trimmed);
+    }
+  } catch (e: any) {
+    console.error('[AI] JSON Parse Error:', e.message);
+    console.error('[AI] Failed text snippet:', text.substring(0, 200) + '...');
   }
   
-  // Try to parse the whole response as JSON
-  const trimmed = text.trim();
-  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-    console.log('[AI] Parsing whole response as JSON');
-    return JSON.parse(trimmed);
-  }
-  
-  console.error('[AI] JSON extraction failed. Response start:', text.substring(0, 100));
   throw new Error('Could not extract JSON from AI response');
 }
 
