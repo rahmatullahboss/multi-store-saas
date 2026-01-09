@@ -52,7 +52,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
     max_products: 1,
     max_orders: 50,
-    max_visitors: 10000,
+    max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 100,
     max_staff: 1,
     allow_store_mode: false,
@@ -64,7 +64,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   starter: {
     max_products: 50,
     max_orders: 500,
-    max_visitors: 100000,
+    max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 500,
     max_staff: 2,
     allow_store_mode: true,
@@ -76,7 +76,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   premium: {
     max_products: 200,
     max_orders: 3000,
-    max_visitors: 600000,  // doubled from 300000
+    max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 2048, // 2GB
     max_staff: 5,
     allow_store_mode: true,
@@ -88,7 +88,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   business: {
     max_products: 1000,
     max_orders: 25000,
-    max_visitors: 3000000,  // doubled from 1500000
+    max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 10240, // 10GB
     max_staff: 15,
     allow_store_mode: true,

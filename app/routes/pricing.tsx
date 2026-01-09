@@ -116,7 +116,7 @@ const pricingPlans: PricingPlan[] = [
     features: [
       { text: '১টি Product' },
       { text: '৫০ Orders/মাস' },
-      { text: '১০,০০০ Visitors/মাস' },
+      { text: 'সীমাহীন Visitors*' },
       { text: 'Single Landing Page' },
       { text: 'Live Visual Editor' },
       { text: 'Bangla Support' },
@@ -124,7 +124,7 @@ const pricingPlans: PricingPlan[] = [
     limits: {
       products: '১',
       orders: '৫০/মাস',
-      visitors: '১০,০০০/মাস',
+      visitors: 'সীমাহীন',
       storage: '১০০ MB',
       staff: '১ জন',
     },
@@ -141,7 +141,7 @@ const pricingPlans: PricingPlan[] = [
     features: [
       { text: '৫০টি Product' },
       { text: '৫০০ Orders/মাস' },
-      { text: '১ লাখ Visitors/মাস' },
+      { text: 'সীমাহীন Visitors*' },
       { text: 'Full E-commerce Store', highlighted: true },
       { text: 'Custom Domain', highlighted: true },
       { text: 'Facebook Pixel' },
@@ -151,7 +151,7 @@ const pricingPlans: PricingPlan[] = [
     limits: {
       products: '৫০',
       orders: '৫০০/মাস',
-      visitors: '১,০০,০০০/মাস',
+      visitors: 'সীমাহীন',
       storage: '৫০০ MB',
       staff: '২ জন',
     },
@@ -169,7 +169,7 @@ const pricingPlans: PricingPlan[] = [
     features: [
       { text: '২০০টি Product' },
       { text: '৩,০০০ Orders/মাস' },
-      { text: '৬ লাখ Visitors/মাস' },
+      { text: 'সীমাহীন Visitors*' },
       { text: 'Facebook CAPI', highlighted: true },
       { text: 'Priority Support', highlighted: true },
       { text: '২ GB Storage' },
@@ -180,7 +180,7 @@ const pricingPlans: PricingPlan[] = [
     limits: {
       products: '২০০',
       orders: '৩,০০০/মাস',
-      visitors: '৬,০০,০০০/মাস',
+      visitors: 'সীমাহীন',
       storage: '২ GB',
       staff: '৫ জন',
     },
@@ -195,7 +195,7 @@ const pricingPlans: PricingPlan[] = [
 const comparisonFeatures = [
   { name: 'Max Products', free: '১', starter: '৫০', premium: '২০০', business: 'Unlimited' },
   { name: 'Monthly Orders', free: '৫০', starter: '৫০০', premium: '৩,০০০', business: 'Unlimited' },
-  { name: 'Monthly Visitors', free: '১০K', starter: '১০০K', premium: '৬০০K', business: 'Unlimited' },
+  { name: 'Monthly Visitors', free: 'সীমাহীন', starter: 'সীমাহীন', premium: 'সীমাহীন', business: 'সীমাহীন' },
   { name: 'Storage', free: '১০০ MB', starter: '৫০০ MB', premium: '২ GB', business: 'Unlimited' },
   { name: 'Team Members', free: '১', starter: '২', premium: '৫', business: 'Unlimited' },
   { name: 'Custom Domain', free: '❌', starter: '✅', premium: '✅', business: '✅' },

@@ -118,6 +118,23 @@ export default function TermsPage() {
               </section>
 
               <section>
+                <h2 className="text-xl font-bold text-white mb-3">সীমাহীন ভিজিটর* (Fair Use Policy)</h2>
+                <p className="leading-relaxed mb-3">
+                  সকল প্ল্যানে "সীমাহীন ভিজিটর*" নিম্নলিখিত শর্ত সাপেক্ষে:
+                </p>
+                <ul className="list-disc list-inside space-y-2">
+                  <li>স্বাভাবিক অনলাইন স্টোর ভিজিটর - কোনো সংখ্যা সীমা নেই</li>
+                  <li>অস্বাভাবিক ট্রাফিক প্যাটার্ন (যেমন: বট, স্প্যাম, অতিরিক্ত অটোমেটেড রিকোয়েস্ট) মনিটর করা হয়</li>
+                  <li>অর্ডার অনুপাতে অস্বাভাবিক বেশি ভিজিটর হলে আমরা যোগাযোগ করব</li>
+                  <li>আমাদের সার্ভার ও অন্যান্য ব্যবহারকারীদের সুরক্ষার জন্য অতিরিক্ত ব্যবস্থা নেওয়া হতে পারে</li>
+                  <li>Fair Use Policy লঙ্ঘন হলে স্টোর সাময়িকভাবে বন্ধ করা হতে পারে</li>
+                </ul>
+                <p className="mt-3 text-sm text-white/50">
+                  * স্বাভাবিক ই-কমার্স ব্যবহারের জন্য কোনো সীমাবদ্ধতা নেই। শর্ত প্রযোজ্য।
+                </p>
+              </section>
+
+              <section>
                 <h2 className="text-xl font-bold text-white mb-3">সার্ভিস পরিবর্তন</h2>
                 <p className="leading-relaxed">
                   আমরা যেকোনো সময় প্ল্যাটফর্মের ফিচার, প্রাইসিং বা শর্তাবলী পরিবর্তন করার অধিকার রাখি। 

@@ -59,7 +59,7 @@ const PLAN_DISPLAY = {
     features: [
       { text: '১টি Product', textEn: '1 product', included: true },
       { text: '৫০ Orders/মাস', textEn: '50 orders/month', included: true },
-      { text: '১০,০০০ Visitors/মাস', textEn: '10,000 visitors/month', included: true },
+      { text: 'সীমাহীন Visitors*', textEn: 'Unlimited visitors*', included: true },
       { text: 'Single Landing Page', textEn: 'Single Landing Page', included: true },
       { text: 'Live Visual Editor', textEn: 'Live Visual Editor', included: true },
       { text: 'Bangla Support', textEn: 'Bangla Support', included: true },
@@ -80,7 +80,7 @@ const PLAN_DISPLAY = {
     features: [
       { text: '৫০টি Product', textEn: '50 products', included: true },
       { text: '৫০০ Orders/মাস', textEn: '500 orders/month', included: true },
-      { text: '১ লাখ Visitors/মাস', textEn: '100K visitors/month', included: true },
+      { text: 'সীমাহীন Visitors*', textEn: 'Unlimited visitors*', included: true },
       { text: 'Full E-commerce Store', textEn: 'Full store mode', included: true },
       { text: 'Custom Domain', textEn: 'Custom domain', included: true },
       { text: 'Facebook Pixel', textEn: 'Facebook Pixel', included: true },
@@ -100,7 +100,7 @@ const PLAN_DISPLAY = {
     features: [
       { text: '২০০টি Product', textEn: '200 products', included: true },
       { text: '৩,০০০ Orders/মাস', textEn: '3,000 orders/month', included: true },
-      { text: '৬ লাখ Visitors/মাস', textEn: '600K visitors/month', included: true },
+      { text: 'সীমাহীন Visitors*', textEn: 'Unlimited visitors*', included: true },
       { text: 'Facebook CAPI', textEn: 'Facebook CAPI', included: true },
       { text: 'Priority Support', textEn: 'Priority support', included: true },
       { text: '২ GB Storage', textEn: '2 GB Storage', included: true },

@@ -51,7 +51,7 @@ const UPGRADE_PLANS = {
     features: [
       '৫০টি Product',
       '৫০০ Orders/মাস',
-      '১ লাখ Visitors/মাস',
+      'সীমাহীন Visitors*',
       'Full E-commerce Store',
       'Custom Domain',
       'Facebook Pixel',
@@ -60,7 +60,7 @@ const UPGRADE_PLANS = {
     featuresEn: [
       '50 products',
       '500 orders/month',
-      '100K visitors/month',
+      'Unlimited visitors*',
       'Full E-commerce Store',
       'Custom Domain',
       'Facebook Pixel',
@@ -78,7 +78,7 @@ const UPGRADE_PLANS = {
     features: [
       '২০০টি Product',
       '৩,০০০ Orders/মাস',
-      '৬ লাখ Visitors/মাস',
+      'সীমাহীন Visitors*',
       'Facebook CAPI',
       'Priority Support',
       '২ GB Storage',
@@ -88,7 +88,7 @@ const UPGRADE_PLANS = {
     featuresEn: [
       '200 products',
       '3,000 orders/month',
-      '600K visitors/month',
+      'Unlimited visitors*',
       'Facebook CAPI',
       'Priority Support',
       '2 GB Storage',
