@@ -19,9 +19,6 @@ import { toast } from 'sonner';
 
 export default function EditorToolbar() {
   const editor = useEditorMaybe();
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
 
@@ -65,101 +62,6 @@ export default function EditorToolbar() {
     }
   };
 
-  const handleAIGenerate = async () => {
-    if (!aiPrompt.trim()) return;
-    
-    setIsGenerating(true);
-    const isEditing = !!selectedComponent;
-    const loadingMsg = aiPrompt.toLowerCase().includes('connect') || aiPrompt.toLowerCase().includes('backend')
-      ? 'AI is connecting your form to the backend... 🔌' 
-      : (isEditing ? 'AI is improving your section... ✨' : 'AI is crafting your page... 🏗️');
-    
-    const toastId = toast.loading(loadingMsg, { id: 'ai-gen' });
-    
-    try {
-      if (isEditing) {
-        // EDIT MODE
-        const currentHtml = selectedComponent.toHTML();
-        
-        const response = await fetch('/api/ai/action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'EDIT_ELEMENTOR_SECTION',
-            prompt: aiPrompt,
-            currentHtml
-          })
-        });
-
-        const result = await response.json() as any;
-        if (result.success && result.data) {
-          const { html, css } = result.data;
-          
-          // Replace selected component content
-          selectedComponent.replaceWith(html);
-          if (css) editor.setStyle(css); // Append new CSS
-          
-          toast.success('Magic! Section updated.', { id: 'ai-gen' });
-        } else {
-          throw new Error(result.error || 'AI Edit failed');
-        }
-
-      } else {
-        // GENERATE PAGE MODE (Block-based)
-        const response = await fetch('/api/ai/action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'GENERATE_GRAPESJS_PAGE',
-            prompt: aiPrompt
-          })
-        });
-        
-        const result = await response.json() as any;
-        
-        if (result.success && result.data && result.data.blocks) {
-          const { blocks, primaryColor } = result.data;
-          
-          // Clear current canvas
-          editor.DomComponents.clear();
-          
-          // Sort blocks by order and add to canvas
-          blocks.sort((a: any, b: any) => a.order - b.order).forEach((block: any) => {
-             const blockType = block.type;
-             const blockDef = editor.Blocks.get(blockType);
-             
-             if (blockDef) {
-               const content = blockDef.getContent ? blockDef.getContent() : blockDef.attributes.content;
-               if (content) {
-                 editor.addComponents(content);
-               } else {
-                 console.warn(`Content not found for block type: ${blockType}`);
-               }
-             } else {
-               console.warn(`Block type not found: ${blockType}`);
-             }
-          });
-
-          // Optional: Set Primary Color variable if supported
-          // if (primaryColor) editor.Css.addRules(...) 
-
-          toast.success('Magic! Page generated.', { id: 'ai-gen' });
-        } else {
-          throw new Error(result.error || 'AI Generation failed');
-        }
-      }
-
-      setIsAIModalOpen(false);
-      setAiPrompt('');
-      setSelectedComponent(null); // Reset selection
-      
-    } catch (error) {
-      console.error('AI Gen Error:', error);
-      toast.error('AI failed. Try a different prompt.', { id: 'ai-gen' });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const handlePublish = async () => {
     try {
@@ -203,14 +105,40 @@ export default function EditorToolbar() {
   };
 
   const handleSaveCode = () => {
-    if (selectedComponent) {
-      selectedComponent.replaceWith(codeContent);
-      toast.success('Element updated from code');
-    } else {
-      editor.setComponents(codeContent);
-      toast.success('Page updated from code');
+    try {
+      if (!codeContent.trim()) return;
+
+      // Robust extraction for full HTML documents
+      let htmlToApply = codeContent;
+      let cssToApply = '';
+
+      // Check if it's a full document
+      if (codeContent.includes('<body') || codeContent.includes('<style')) {
+        const doc = new DOMParser().parseFromString(codeContent, 'text/html');
+        
+        // Extract body content
+        const bodyContent = doc.body.innerHTML;
+        if (bodyContent) htmlToApply = bodyContent;
+
+        // Extract and combine style blocks
+        const styles = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
+        if (styles) cssToApply = styles;
+      }
+
+      if (selectedComponent) {
+        selectedComponent.replaceWith(htmlToApply);
+        if (cssToApply) editor.addStyle(cssToApply);
+        toast.success('Element updated successfully');
+      } else {
+        editor.setComponents(htmlToApply);
+        if (cssToApply) editor.addStyle(cssToApply);
+        toast.success('Page updated successfully');
+      }
+      setIsCodeModalOpen(false);
+    } catch (error) {
+      console.error('Save code error:', error);
+      toast.error('Failed to apply changes. Check code syntax.');
     }
-    setIsCodeModalOpen(false);
   };
 
   // Simple formatter since we don't have a library
@@ -282,7 +210,7 @@ export default function EditorToolbar() {
       <div className="flex items-center gap-3">
         {selectedComponent ? (
           <button 
-            onClick={() => setIsAIModalOpen(true)}
+            onClick={() => editor.runCommand('open-ai-design-modal')}
             className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl transition shadow-md shadow-purple-100 animate-in fade-in zoom-in"
             title="Edit Selected Element with AI"
           >
@@ -291,7 +219,7 @@ export default function EditorToolbar() {
           </button>
         ) : (
           <button 
-            onClick={() => setIsAIModalOpen(true)}
+            onClick={() => editor.runCommand('open-magic-modal')}
             className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition border border-emerald-100 shadow-sm shadow-emerald-50"
             title="Generate Page with AI"
           >
@@ -334,68 +262,6 @@ export default function EditorToolbar() {
         </button>
       </div>
 
-      {/* AI Prompt Modal */}
-      {isAIModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-              <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-emerald-50/30">
-                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center">
-                       <Sparkles size={20} className="text-emerald-600" />
-                    </div>
-                    <div>
-                       <h3 className="text-lg font-bold text-gray-900 leading-tight">
-                         {selectedComponent ? 'Magic Editor' : 'Magic AI Generator'}
-                       </h3>
-                       <p className="text-xs text-gray-500 font-medium">
-                         {selectedComponent ? 'Describe how to change this element.' : 'Describe your page and watch the magic happen.'}
-                       </p>
-                    </div>
-                 </div>
-                 <button 
-                  onClick={() => setIsAIModalOpen(false)}
-                  className="p-2 hover:bg-white rounded-xl transition text-gray-400 hover:text-gray-600"
-                 >
-                    <X size={20} />
-                 </button>
-              </div>
-
-              <div className="p-8">
-                 <label className="block text-sm font-bold text-gray-700 mb-3">
-                   {selectedComponent ? 'What changes do you want?' : 'What kind of page should I build?'}
-                 </label>
-                 <textarea 
-                    autoFocus
-                    value={aiPrompt}
-                    onChange={(e) => setAiPrompt(e.target.value)}
-                    placeholder={selectedComponent ? "e.g., Make the background red, change text to 'Buy Now', add a shadow..." : "e.g., Create a high-converting landing page for a Premium Honey..."}
-                    className="w-full h-32 px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition text-gray-600 font-medium text-sm resize-none"
-                 />
-                 
-                 <div className="mt-6 flex flex-col gap-3">
-                    <button 
-                       onClick={handleAIGenerate}
-                       disabled={isGenerating || !aiPrompt.trim()}
-                       className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition shadow-xl shadow-emerald-200 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-3 active:scale-[0.98]"
-                    >
-                       {isGenerating ? (
-                          <>
-                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                             {selectedComponent ? 'UPDATING...' : 'CRAFTING PAGE...'}
-                          </>
-                       ) : (
-                          <>
-                             <Wand2 size={18} />
-                             {selectedComponent ? 'UPDATE ELEMENT' : 'GENERATE MAGIC PAGE'}
-                          </>
-                       )}
-                    </button>
-                    <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">Powered by OpenRouter AI</p>
-                 </div>
-              </div>
-           </div>
-        </div>
-      )}
 
       {/* Code Editor Modal */}
       {isCodeModalOpen && (

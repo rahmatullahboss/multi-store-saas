@@ -104,50 +104,40 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
       const selected = editor.getSelected();
       if (selected && data.html) {
         // Replace selected component with new HTML
-        // We use insertBefore and then remove old to ensure proper placement
         const parent = selected.parent();
-        if (parent) {
-          const index = selected.index();
-          const newComp = editor.addComponents(data.html, { at: index })[0];
-          selected.remove();
-          editor.select(newComp);
-        } else {
-          // If no parent (root level), just append
-          editor.DomComponents.clear(); // Safety clearing if it was a placeholder at root
-          editor.addComponents(data.html);
+        const index = selected.index();
+        
+        // Add components and get the first one
+        const newComps = editor.addComponents(data.html, { at: index });
+        const newComp = newComps[0];
+        
+        // Apply CSS if provided
+        if (data.css && newComp) {
+          newComp.addStyle(data.css);
         }
-        toast.success("Section redesigned successfully!");
+        
+        selected.remove();
+        editor.select(newComp);
+        toast.success("Design updated by AI!");
       }
       return;
     }
 
-    // Clear existing content (Full Page Mode)
+    // Full Page Mode
     editor.DomComponents.clear();
-
-    // Add blocks based on AI response
     if (data.blocks && Array.isArray(data.blocks)) {
       data.blocks.sort((a: any, b: any) => a.order - b.order).forEach((block: any) => {
         const blockType = block.type;
-        
-        // Find the block definition from GrapesJS Block Manager
         const blockDef = editor.Blocks.get(blockType);
         
         if (blockDef) {
-           // Get HTML content from the block definition
-           // GrapesJS blocks store content in 'content' property of the model attributes
            const content = blockDef.getContent ? blockDef.getContent() : blockDef.attributes.content;
-           
            if (content) {
              editor.addComponents(content);
-           } else {
-             console.warn(`Content not found for block type: ${blockType}`);
            }
-        } else {
-          console.warn(`Block type not found: ${blockType}. Make sure bdBlocksPlugin is loaded.`);
         }
       });
     }
-
     toast.success("Page generated successfully!");
   };
 

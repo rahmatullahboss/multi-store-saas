@@ -20,7 +20,8 @@ export default function MagicGenerateModal({
   initialData 
 }: MagicGenerateModalProps) {
   const [prompt, setPrompt] = useState('');
-  const [step, setStep] = useState<'input' | 'generating' | 'success'>('input');
+  const [step, setStep] = useState<'input' | 'generating' | 'preview' | 'success'>('input');
+  const [generatedData, setGeneratedData] = useState<any>(null);
   const fetcher = useFetcher<{ success: boolean; data?: any; error?: string }>();
 
   // Reset state when modal opens
@@ -28,6 +29,7 @@ export default function MagicGenerateModal({
     if (isOpen) {
       setStep('input');
       setPrompt('');
+      setGeneratedData(null);
     }
   }, [isOpen]);
 
@@ -35,50 +37,33 @@ export default function MagicGenerateModal({
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data) {
       if (fetcher.data.success) {
-        setStep('success');
-        setTimeout(() => {
-            if (fetcher.data?.data) {
-                onGenerate(fetcher.data.data);
-            }
-            onClose();
-        }, 1500);
+        setGeneratedData(fetcher.data.data);
+        setStep('preview');
       } else if (fetcher.data.error) {
         setStep('input');
         toast.error(fetcher.data.error);
       }
     }
-  }, [fetcher.state, fetcher.data, onClose, onGenerate]);
+  }, [fetcher.state, fetcher.data]);
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
-    
     setStep('generating');
     
-    if (mode === 'section-design') {
-      fetcher.submit(
-        { 
-          action: 'DESIGN_CUSTOM_SECTION',
-          prompt,
-          currentHtml: initialData || ''
-        },
-        { 
-          method: 'post', 
-          action: '/api/ai/action',
-          encType: 'application/json' 
-        }
-      );
-    } else {
-      fetcher.submit(
-        { 
-          action: 'GENERATE_GRAPESJS_PAGE',
-          prompt 
-        },
-        { 
-          method: 'post', 
-          action: '/api/ai/action',
-          encType: 'application/json' 
-        }
-      );
+    const action = mode === 'section-design' ? 'DESIGN_CUSTOM_SECTION' : 'GENERATE_GRAPESJS_PAGE';
+    fetcher.submit(
+      { action, prompt, currentHtml: initialData || '' },
+      { method: 'post', action: '/api/ai/action', encType: 'application/json' }
+    );
+  };
+
+  const handleApply = () => {
+    if (generatedData) {
+      setStep('success');
+      onGenerate(generatedData);
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     }
   };
 
@@ -95,20 +80,24 @@ export default function MagicGenerateModal({
         </button>
 
         <div className="p-8 text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-200">
-            <Sparkles className="text-white w-8 h-8" />
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-200 text-white">
+            <Sparkles size={32} />
           </div>
 
           <h2 className="text-2xl font-black text-gray-900 mb-2">
-            {step === 'input' && 'Magic Page Generator'}
-            {step === 'generating' && 'Designing Your Page...'}
-            {step === 'success' && 'Page Ready!'}
+            {step === 'input' && (mode === 'section-design' ? 'Magic AI Editor' : 'Magic Page Generator')}
+            {step === 'generating' && 'Designing Your Request...'}
+            {step === 'preview' && 'Design Ready!'}
+            {step === 'success' && 'Applied Successfully!'}
           </h2>
           
           <p className="text-gray-500 mb-8 max-w-sm mx-auto">
-            {step === 'input' && 'Describe your product or business, and AI will build a high-converting landing page instantly.'}
-            {step === 'generating' && 'AI is selecting the best layout, writing sales copy, and optimizing for conversion.'}
-            {step === 'success' && 'Your landing page has been generated successfully. Loading editor...'}
+            {step === 'input' && (mode === 'section-design' 
+              ? 'Tell AI how to edit or design this section. (e.g. "Move this to right", "Make it dark gold")' 
+              : 'Describe your product, and AI will build a high-converting landing page.')}
+            {step === 'generating' && 'AI is generating high-quality HTML & Tailwind CSS...'}
+            {step === 'preview' && 'The AI has completed your design. Click Apply to update your page.'}
+            {step === 'success' && 'Your page has been updated. Loading editor changes...'}
           </p>
 
           {step === 'input' && (
@@ -116,7 +105,7 @@ export default function MagicGenerateModal({
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g. A premium organic honey brand called 'Modhu' that offers pure Sundarbans honey with home delivery."
+                placeholder={mode === 'section-design' ? 'e.g. Center the headline and change all buttons to Emerald green.' : 'e.g. A premium honey brand...'}
                 className="w-full px-4 py-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[120px] text-lg resize-none bg-gray-50 focus:bg-white transition"
                 autoFocus
                 onKeyDown={(e) => {
@@ -132,7 +121,7 @@ export default function MagicGenerateModal({
                 className="w-full bg-indigo-600 text-white font-bold text-lg py-4 rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
               >
                 <Sparkles size={20} />
-                Generate Page
+                {mode === 'section-design' ? 'Start AI Design' : 'Generate Full Page'}
               </button>
             </div>
           )}
@@ -140,15 +129,36 @@ export default function MagicGenerateModal({
           {step === 'generating' && (
             <div className="py-8">
               <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto mb-4" />
-              <div className="h-2 w-48 bg-gray-100 rounded-full mx-auto overflow-hidden">
-                <div className="h-full bg-indigo-500 animate-progress w-2/3"></div>
+              <div className="h-2 w-48 bg-gray-100 rounded-full mx-auto overflow-hidden text-sm font-bold text-indigo-600">
+                Processing magic...
               </div>
             </div>
           )}
 
+          {step === 'preview' && (
+            <div className="py-4 space-y-4">
+               <div className="py-8 bg-emerald-50 rounded-2xl flex items-center justify-center">
+                  <CheckCircle className="w-16 h-16 text-emerald-500" />
+               </div>
+               <button
+                onClick={handleApply}
+                className="w-full bg-emerald-600 text-white font-bold text-lg py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"
+              >
+                Apply Design to Page
+              </button>
+              <button
+                onClick={() => setStep('input')}
+                className="w-full bg-white text-gray-500 font-bold text-lg py-2 rounded-xl hover:bg-gray-50 transition"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
           {step === 'success' && (
-            <div className="py-8 animate-in zoom-in duration-300">
-              <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto" />
+            <div className="py-8 animate-in zoom-in duration-300 text-emerald-600 font-bold">
+              <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-2" />
+              Everything is set!
             </div>
           )}
         </div>

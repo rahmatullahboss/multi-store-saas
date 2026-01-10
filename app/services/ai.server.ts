@@ -809,9 +809,6 @@ Generate the updated JSON:`;
   return ElementorEditSchema.parse(parsed);
 }
 
-// ============================================================================
-// CUSTOM SECTION DESIGN (Raw HTML/Tailwind)
-// ============================================================================
 export async function designCustomSection(
   apiKey: string,
   prompt: string,
@@ -820,7 +817,7 @@ export async function designCustomSection(
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<ElementorPageResult> {
   const systemPrompt = `You are a world-class UI designer and Tailwind CSS developer.
-Your task is to generate a premium, high-converting landing page section using HTML and Tailwind CSS.
+Your task is to either DESIGN a new landing page section or EDIT an existing one using HTML and Tailwind CSS.
 
 ### Design Principles:
 - Use Tailwind CSS 2.2 utility classes.
@@ -831,10 +828,15 @@ Your task is to generate a premium, high-converting landing page section using H
 - Interactive: Use hover effects (e.g., hover:scale-105) for CTA buttons.
 - Links: ALL buttons should be <a> tags with href="#order".
 
-### Structure:
-- Return ONLY valid HTML for the section.
-- If currentHtml is provided, you are MODIFYING or IMPROVING an existing section.
-- If currentHtml is empty, you are DESIGNING FROM SCRATCH.
+### Combined Capability (Edit & Design):
+- If 'currentHtml' is provided:
+    - You MUST preserve the core structure if possible, but apply the requested changes.
+    - If user says 'make it red', update background/text classes to red variants.
+    - If user says 'move it right', use flex/grid alignment or margin classes.
+    - If user says 'redesign completely', throw away old HTML and build fresh.
+    - ALWAYS return a complete, valid <section> or <div>.
+- If 'currentHtml' is NOT provided:
+    - Design a fresh, premium section from scratch based on the prompt.
 
 ### Response format:
 Your response MUST be valid JSON:
@@ -845,8 +847,8 @@ Your response MUST be valid JSON:
 Return ONLY the JSON. No markdown, no code fences.`;
 
   const userPrompt = currentHtml 
-    ? `Update this section based on this request: "${prompt}"\n\nCurrent HTML:\n${currentHtml}`
-    : `Design a new section based on this request: "${prompt}"`;
+    ? `Objective: Edit/Refine the existing section.\nPrompt: "${prompt}"\n\nCurrent HTML:\n${currentHtml}`
+    : `Objective: Design from scratch.\nPrompt: "${prompt}"`;
 
   const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   const parsed = extractJSON(response);
