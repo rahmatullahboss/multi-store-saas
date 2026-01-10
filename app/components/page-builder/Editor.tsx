@@ -91,6 +91,48 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
 
     toast.success("Page generated successfully!");
   };
+
+  // Handle template loading
+  const handleLoadTemplate = (templateId: string) => {
+    if (!editor) return;
+
+    // Import template config
+    import('~/lib/grapesjs/template-configs').then(({ TEMPLATE_CONFIGS }) => {
+      const template = TEMPLATE_CONFIGS[templateId];
+      if (!template) {
+        console.warn(`Template not found: ${templateId}`);
+        return;
+      }
+
+      // Clear existing canvas content
+      editor.DomComponents.clear();
+
+      //Load template blocks sequentially
+      template.blocks.forEach((blockId) => {
+        const blockDef = editor.Blocks.get(blockId);
+        if (blockDef) {
+          const content = blockDef.getContent ? blockDef.getContent() : blockDef.attributes.content;
+          if (content) {
+            editor.addComponents(content);
+          } else {
+            console.warn(`Content not found for block: ${blockId}`);
+          }
+        } else {
+          console.warn(`Block not found: ${blockId}`);
+        }
+      });
+
+      // Apply template colors to theme
+      setThemeConfig({
+        primaryColor: template.themeColors.primaryColor,
+        secondaryColor: template.themeColors.secondaryColor,
+        fontHeading: template.themeColors.fontHeading,
+        fontBody: template.themeColors.fontBody,
+      });
+
+      toast.success(`Template "${template.nameEn}" loaded!`);
+    });
+  };
   
   // Inject Dynamic Tailwind Config when Theme Changes
   useEffect(() => {
@@ -173,7 +215,8 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
             <div className="h-full overflow-hidden flex-shrink-0">
             <SidebarPanel 
                 themeConfig={themeConfig} 
-                onThemeChange={setThemeConfig} 
+                onThemeChange={setThemeConfig}
+                onLoadTemplate={handleLoadTemplate}
             />
             </div>
 

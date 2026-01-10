@@ -248,7 +248,15 @@ export default function SidebarPanel({ themeConfig, onThemeChange, onLoadTemplat
         </div>
 
         <div className="flex-1 min-h-0 relative">
-          {activeTab === 'elements' ? (
+          {activeTab === 'templates' ? (
+            onLoadTemplate ? (
+              <TemplatesPanel onLoadTemplate={onLoadTemplate} />
+            ) : (
+              <div className="p-4">
+                <p className="text-xs text-gray-500">Templates feature not available</p>
+              </div>
+            )
+          ) : activeTab === 'elements' ? (
             <BlocksProvider>
               {({ blocks, dragStart, dragStop }) => {
                 const categories: Record<string, any[]> = {};
