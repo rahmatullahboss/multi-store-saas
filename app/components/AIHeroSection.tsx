@@ -370,18 +370,6 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
                 </span>
               </Link>
               
-              <Link
-                to="/demo"
-                className="group px-8 py-3.5 rounded-xl font-semibold transition-all border hover:bg-white/5 active:scale-95"
-                style={{ 
-                  color: colors.text,
-                  borderColor: colors.cardBorder
-                }}
-              >
-                 <span className="flex items-center gap-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
-                    <Bot className="w-5 h-5 text-purple-400" /> AI Demo দেখুন
-                 </span>
-              </Link>
             </div>
 
             {/* Trust Badges */}
