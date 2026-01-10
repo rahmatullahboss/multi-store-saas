@@ -19,6 +19,10 @@ import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingB
 import { useLanguage } from '~/contexts/LanguageContext';
 import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingOrbs, TiltCard, MagneticButton, ShimmerText } from '~/components/animations';
 import { AwardWinningHero } from '~/components/AwardWinningHero';
+import { AIHeroSection } from '~/components/AIHeroSection';
+import { AIShowcaseSection } from '~/components/landing/AIShowcaseSection';
+import { DragDropBuilderShowcase } from '~/components/landing/DragDropBuilderShowcase';
+import { EditorModeComparison } from '~/components/landing/EditorModeComparison';
 import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
 import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
 import { InfrastructureSection } from '~/components/InfrastructureSection';
@@ -36,6 +40,7 @@ import { PricingSection } from '~/components/PricingSection'; // Keep for refere
 import { FinalCTA } from '~/components/FinalCTA';
 import { FAQSection } from '~/components/FAQSection';
 import { LightFloatingOrbs, LightHeroGradient, LightShimmerText } from '~/components/LightThemeEffects';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 import type { MarketingStats } from '~/routes/api.marketing-stats';
 
 
@@ -369,8 +374,18 @@ export function MarketingLanding() {
         {/* Award-Winning Bangladesh Hero - Bangla Native */}
         <AwardWinningHero totalUsers={marketingStats?.totalUsers} />
 
+        {/* AI Hero Section - New Transformation */}
+        <AIHeroSection theme="dark" totalUsers={marketingStats?.totalUsers} />
+
         {/* Problem-Solution Section */}
         <ProblemSolutionSection />
+
+        {/* AI Showcase Section */}
+        <AIShowcaseSection />
+
+        {/* Drag & Drop Builder Section */}
+        <DragDropBuilderShowcase />
+        <EditorModeComparison />
 
         {/* Bento Grid Features Section */}
         <BentoFeaturesSection />
@@ -493,7 +508,7 @@ export function MarketingLanding() {
         </footer>
 
         {/* Sticky Mobile CTA Button - FAB Style */}
-        <div className="sm:hidden fixed bottom-4 right-4 z-40">
+        <div className="sm:hidden fixed bottom-4 left-4 z-40">
           <Link 
             to="/auth/register" 
             className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm shadow-xl shadow-[#006A4E]/40 active:scale-[0.95] transition-transform"
@@ -502,6 +517,9 @@ export function MarketingLanding() {
             ফ্রি শুরু
           </Link>
         </div>
+
+        {/* Ozzyl AI Chat Widget */}
+        <OzzylAIChatWidget />
       </div>
     );
   }
@@ -639,7 +657,10 @@ export function MarketingLanding() {
 
       {/* Light Theme Hero - Premium Light Styling */}
       <AwardWinningHero theme="light" totalUsers={marketingStats?.totalUsers} />
+      <AIHeroSection theme="light" totalUsers={marketingStats?.totalUsers} />
       <ProblemSolutionSection />
+      <AIShowcaseSection />
+      <DragDropBuilderShowcase />
       <BentoFeaturesSection />
       <InfrastructureSection />
       <SpeedComparison />
@@ -725,7 +746,7 @@ export function MarketingLanding() {
       </footer>
 
         {/* Sticky Mobile CTA Button - FAB Style */}
-        <div className="sm:hidden fixed bottom-4 right-4 z-40">
+        <div className="sm:hidden fixed bottom-4 left-4 z-40">
           <Link 
             to="/auth/register" 
             className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm shadow-xl shadow-[#006A4E]/40 active:scale-[0.95] transition-transform"
@@ -734,6 +755,9 @@ export function MarketingLanding() {
             ফ্রি শুরু
           </Link>
         </div>
+
+        {/* Ozzyl AI Chat Widget */}
+        <OzzylAIChatWidget />
     </div>
   );
 }

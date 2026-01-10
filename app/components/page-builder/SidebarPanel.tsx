@@ -22,7 +22,8 @@ export default function SidebarPanel({
   onLoadTemplate 
 }: SidebarPanelProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'templates' | 'elements' | 'styles' | 'layers' | 'theme' | 'settings'>('templates');
+  const [activeTab, setActiveTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
+  const [activeDesignSubTab, setActiveDesignSubTab] = useState<'styles' | 'theme' | 'templates'>('styles');
   const editor = useEditorMaybe();
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
@@ -34,26 +35,26 @@ export default function SidebarPanel({
     if (!editor) return;
 
     // Render Traits Manager
-    if (traitsContainerRef.current && activeTab === 'styles') {
+    if (traitsContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
       const traitsEl = editor.TraitManager.render();
       traitsContainerRef.current.innerHTML = '';
       traitsContainerRef.current.appendChild(traitsEl);
     }
 
     // Render Style Manager
-    if (stylesContainerRef.current && activeTab === 'styles') {
+    if (stylesContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
       const stylesEl = editor.StyleManager.render();
       stylesContainerRef.current.innerHTML = '';
       stylesContainerRef.current.appendChild(stylesEl);
     }
 
     // Render Layers
-    if (layersContainerRef.current && activeTab === 'layers') {
+    if (layersContainerRef.current && activeTab === 'structure') {
       const layersEl = editor.LayerManager.render();
       layersContainerRef.current.innerHTML = '';
       layersContainerRef.current.appendChild(layersEl);
     }
-  }, [editor, activeTab]);
+  }, [editor, activeTab, activeDesignSubTab]);
 
   return (
     <>
@@ -208,181 +209,192 @@ export default function SidebarPanel({
         }
       `}} />
 
-      <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64 shadow-sm min-h-0">
-        {/* Tab Switcher */}
-        <div className="flex border-b border-gray-100 bg-gray-50/50 p-1 gap-1">
-           {/* Templates Tab */}
+      <div className="flex flex-col h-full bg-white border-r border-gray-200 w-72 shadow-sm min-h-0">
+        {/* Tab Switcher - Elementor Style */}
+        <div className="flex border-b border-gray-100 bg-gray-50/80 p-1.5 gap-1.5">
            <button 
-             onClick={() => setActiveTab('templates')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'templates' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-             title="Templates"
+             onClick={() => setActiveTab('widgets')}
+             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'widgets' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50 shadow-indigo-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
-              <LayoutTemplate size={14} strokeWidth={2.5} />
-              <span className="sr-only">Templates</span>
+              <Box size={16} strokeWidth={2.5} />
+              WIDGETS
            </button>
            <button 
-             onClick={() => setActiveTab('elements')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'elements' ? 'bg-white text-emerald-600 shadow-sm border border-emerald-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-             title="Add Elements"
+             onClick={() => setActiveTab('design')}
+             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'design' ? 'bg-white text-blue-600 shadow-sm border border-blue-50 shadow-blue-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
-              <Box size={14} strokeWidth={2.5} />
-              <span className="sr-only">Elements</span>
+              <Palette size={16} strokeWidth={2.5} />
+              DESIGN
            </button>
            <button 
-             onClick={() => setActiveTab('styles')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'styles' ? 'bg-white text-blue-600 shadow-sm border border-blue-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-             title="Style Editor"
+             onClick={() => setActiveTab('structure')}
+             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'structure' ? 'bg-white text-purple-600 shadow-sm border border-purple-50 shadow-purple-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
-              <Palette size={14} strokeWidth={2.5} />
-              <span className="sr-only">Styles</span>
+              <Layers size={16} strokeWidth={2.5} />
+              STRUCTURE
            </button>
-           <button 
-             onClick={() => setActiveTab('layers')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'layers' ? 'bg-white text-purple-600 shadow-sm border border-purple-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-             title="Layers"
-           >
-              <Layers size={14} strokeWidth={2.5} />
-              <span className="sr-only">Layers</span>
-           </button>
-           
-           {/* New Theme Tab */}
-           <button 
-             onClick={() => setActiveTab('theme')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'theme' ? 'bg-white text-pink-600 shadow-sm border border-pink-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-             title="Global Theme"
-           >
-              <PaintBucket size={14} strokeWidth={2.5} />
-              <span className="sr-only">Theme</span>
-           </button>
-
-           {/* Page Settings Tab */}
            <button 
              onClick={() => setActiveTab('settings')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'settings' ? 'bg-white text-orange-600 shadow-sm border border-orange-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-             title="Page Settings"
+             className={`p-2 rounded-xl text-gray-400 hover:text-orange-600 hover:bg-orange-50 transition-all ${activeTab === 'settings' ? 'bg-orange-50 text-orange-600 shadow-sm' : ''}`}
+             title="Settings"
            >
-              <Settings2 size={14} strokeWidth={2.5} />
-              <span className="sr-only">Settings</span>
+              <Settings2 size={16} strokeWidth={2.5} />
            </button>
         </div>
 
         <div className="flex-1 min-h-0 relative">
-          {activeTab === 'templates' && onLoadTemplate && (
-            <TemplatesPanel onLoadTemplate={onLoadTemplate} />
-          )}
-
-          {activeTab === 'elements' && (
-            <BlocksProvider>
-              {({ blocks, dragStart, dragStop }) => {
-                const categories: Record<string, any[]> = {};
-                blocks.forEach((block) => {
-                  const cat = block.getCategoryLabel() || 'Uncategorized';
-                  if (!categories[cat]) categories[cat] = [];
-                  categories[cat].push(block);
-                });
-
-                return (
-                  <div className="absolute inset-0 overflow-y-auto p-4 space-y-6 custom-scrollbar animate-in fade-in duration-300">
-                    <div className="mb-2">
-                       <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">Components</h3>
-                    </div>
-                    {Object.entries(categories).map(([catLabel, catBlocks]) => (
-                      <div key={catLabel}>
-                        <h4 className="text-xs font-black text-gray-600 uppercase tracking-wide mb-3 flex items-center gap-2">
-                           <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                           {catLabel}
-                        </h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {catBlocks.map((block) => (
-                            <div
-                              key={block.getId()}
-                              draggable
-                              onDragStart={(ev) => dragStart(block, ev.nativeEvent)}
-                              onDragEnd={() => dragStop()}
-                              className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-emerald-500 hover:shadow-md transition cursor-grab group bg-gray-50/30"
-                            >
-                              <div 
-                                className="text-gray-400 group-hover:text-emerald-600 mb-2 transition transform group-hover:scale-110"
-                                dangerouslySetInnerHTML={{ __html: block.getMedia() || `
-                                  <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
-                                ` }}
-                              />
-                              <span className="text-[10px] font-extrabold text-gray-600 group-hover:text-emerald-700 text-center line-clamp-1 uppercase">
-                                {block.getLabel()}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              }}
-            </BlocksProvider>
-          )}
-
-          {activeTab === 'styles' && (
-            <div className="absolute inset-0 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300">
-              {/* Selectors Manager */}
-              <div className="p-4 border-b border-gray-50 bg-blue-50/10">
-                <SelectorsProvider>
-                  {(props) => (
-                    <div className="space-y-2">
-                       <div className="flex items-center gap-2 mb-2">
-                          <Settings2 size={12} className="text-blue-600" />
-                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest active-selectors-label">Active Selectors</span>
-                       </div>
-                       <div className="flex flex-wrap gap-2">
-                          {props.selectors.map(sel => (
-                            <span key={sel.getLabel()} className="px-2 py-1 bg-white text-blue-700 rounded-md text-[10px] font-bold border border-blue-100 shadow-sm italic">
-                               .{sel.getLabel()}
-                            </span>
-                          ))}
-                          {props.selectors.length === 0 && (
-                            <div className="py-2 px-3 bg-gray-50 rounded-lg border border-dashed border-gray-200 w-full text-center">
-                               <p className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Select an element to customize</p>
-                            </div>
-                          )}
-                       </div>
-                    </div>
-                  )}
-                </SelectorsProvider>
-              </div>
-
-              {/* Traits Manager */}
-              <div className="p-4 border-b border-gray-50">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Element Attributes</span>
-                </div>
-                <div ref={traitsContainerRef} className="gjs-traits-wrap" />
-              </div>
-
-              {/* Style Manager */}
-              <div className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Visual Styling</span>
-                </div>
-                <div ref={stylesContainerRef} className="gjs-styles-wrap" />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'layers' && (
-            <div className="absolute inset-0 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300 p-4">
-               <div className="mb-4">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Layer Structure</h3>
-                  <p className="text-[9px] text-gray-300 font-bold">Manage element hierarchy</p>
+          {activeTab === 'widgets' && (
+            <div className="absolute inset-0 flex flex-col overflow-hidden animate-in fade-in duration-300">
+               <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Available Widgets</h3>
                </div>
-               <div ref={layersContainerRef} className="gjs-layers-wrap min-h-[200px]" />
+               <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <BlocksProvider>
+                  {({ blocks, dragStart, dragStop }) => {
+                    const categories: Record<string, any[]> = {};
+                    blocks.forEach((block) => {
+                      const cat = block.getCategoryLabel() || 'Uncategorized';
+                      if (!categories[cat]) categories[cat] = [];
+                      categories[cat].push(block);
+                    });
+
+                    return (
+                      <div className="p-4 space-y-6">
+                        {Object.entries(categories).map(([catLabel, catBlocks]) => (
+                          <div key={catLabel}>
+                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                               <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                               {catLabel}
+                            </h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              {catBlocks.map((block) => (
+                                <div
+                                  key={block.getId()}
+                                  draggable
+                                  onDragStart={(ev) => dragStart(block, ev.nativeEvent)}
+                                  onDragEnd={() => dragStop()}
+                                  className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
+                                >
+                                  <div 
+                                    className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
+                                    dangerouslySetInnerHTML={{ __html: block.getMedia() || `
+                                      <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
+                                    ` }}
+                                  />
+                                  <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
+                                    {block.getLabel()}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }}
+                </BlocksProvider>
+              </div>
             </div>
           )}
 
-          {activeTab === 'theme' && themeConfig && onThemeChange && (
-             <ThemePanel config={themeConfig} onChange={onThemeChange} />
+          {activeTab === 'design' && (
+            <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300">
+              {/* Sub-tabs for Design */}
+              <div className="flex p-2 gap-1 border-b border-gray-50 bg-gray-50/30">
+                 <button 
+                   onClick={() => setActiveDesignSubTab('styles')}
+                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'styles' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                 >
+                    <Palette size={12} />
+                    STYLES
+                 </button>
+                 <button 
+                   onClick={() => setActiveDesignSubTab('theme')}
+                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'theme' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                 >
+                    <PaintBucket size={12} />
+                    THEME
+                 </button>
+                 <button 
+                   onClick={() => setActiveDesignSubTab('templates')}
+                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'templates' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                 >
+                    <LayoutTemplate size={12} />
+                    PRESETS
+                 </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {activeDesignSubTab === 'styles' && (
+                  <div className="p-4 space-y-6">
+                    {/* Selectors Manager */}
+                    <div className="bg-blue-50/30 rounded-2xl p-4 border border-blue-50">
+                      <SelectorsProvider>
+                        {(props) => (
+                          <div className="space-y-3">
+                             <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">Active Element</span>
+                             </div>
+                             <div className="flex flex-wrap gap-2">
+                                {props.selectors.map(sel => (
+                                  <span key={sel.getLabel()} className="px-2.5 py-1 bg-white text-blue-600 rounded-lg text-[10px] font-black border border-blue-100 shadow-sm">
+                                     #{sel.getLabel()}
+                                  </span>
+                                ))}
+                                {props.selectors.length === 0 && (
+                                  <p className="text-gray-400 text-[10px] font-medium italic">Select an element to start styling</p>
+                                )}
+                             </div>
+                          </div>
+                        )}
+                      </SelectorsProvider>
+                    </div>
+
+                    {/* Traits Manager */}
+                    <div className="space-y-4">
+                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">Attributes</h4>
+                      <div ref={traitsContainerRef} className="gjs-traits-wrap" />
+                    </div>
+
+                    {/* Style Manager */}
+                    <div className="space-y-4 pb-10">
+                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">Visual Style</h4>
+                      <div ref={stylesContainerRef} className="gjs-styles-wrap" />
+                    </div>
+                  </div>
+                )}
+
+                {activeDesignSubTab === 'theme' && themeConfig && onThemeChange && (
+                   <ThemePanel config={themeConfig} onChange={onThemeChange} />
+                )}
+
+                {activeDesignSubTab === 'templates' && onLoadTemplate && (
+                  <TemplatesPanel onLoadTemplate={onLoadTemplate} />
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'structure' && (
+            <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300">
+               <div className="p-4 border-b border-gray-50 bg-gray-50/30">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Document Structure</h3>
+               </div>
+               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                  <div ref={layersContainerRef} className="gjs-layers-wrap" />
+               </div>
+            </div>
           )}
 
           {activeTab === 'settings' && pageConfig && onPageConfigChange && (
-            <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />
+            <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300 text-sm">
+               <div className="p-4 border-b border-gray-50 bg-gray-50/30">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Page Settings</h3>
+               </div>
+               <div className="flex-1 overflow-y-auto">
+                 <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />
+               </div>
+            </div>
           )}
         </div>
       </div>

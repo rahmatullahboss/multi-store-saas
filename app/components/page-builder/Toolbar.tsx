@@ -14,11 +14,18 @@ import {
   X,
   Code,
   Check,
-  Lock
+  Lock,
+  Layout
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function EditorToolbar({ isAiLocked = false }: { isAiLocked?: boolean }) {
+export default function EditorToolbar({ 
+  isAiLocked = false,
+  onOpenLibrary
+}: { 
+  isAiLocked?: boolean,
+  onOpenLibrary?: () => void 
+}) {
   const editor = useEditorMaybe();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
@@ -271,6 +278,17 @@ export default function EditorToolbar({ isAiLocked = false }: { isAiLocked?: boo
       </div>
 
       <div className="flex items-center gap-3">
+        <button 
+          onClick={onOpenLibrary}
+          className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-white hover:border-indigo-500 hover:text-indigo-600 rounded-xl transition border shadow-sm group"
+          title="Browse Block Library"
+        >
+          <Layout size={14} className="group-hover:scale-110 transition-transform" />
+          ADD BLOCK
+        </button>
+
+        <div className="w-[1px] h-6 bg-gray-200 mx-1" />
+
         {selectedComponent ? (
           <button 
             onClick={() => editor.runCommand('open-ai-design-modal')}

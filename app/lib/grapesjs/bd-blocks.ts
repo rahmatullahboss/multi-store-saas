@@ -1210,6 +1210,222 @@ export const bdBlocksPlugin = (editor: Editor) => {
     `,
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="16" width="20" height="6" rx="1"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="8" y1="8" x2="16" y2="8"/></svg>',
   });
+  // 19. Premium Hero (Glassmorphism)
+  Blocks.add('bd-premium-hero', {
+    label: 'Premium Hero',
+    category: 'Premium Designs',
+    content: `
+      <section class="relative py-20 md:py-32 px-6 overflow-hidden bg-slate-950 text-white">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse"></div>
+        
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+          <div>
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="text-xs font-bold tracking-widest uppercase text-emerald-400">Limited Collection Available</span>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black mb-8 leading-[1.1] tracking-tight">
+              স্মার্ট জীবনের জন্য <span class="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">স্মার্ট চয়েস</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-400 mb-10 leading-relaxed max-w-xl">
+              সেরা কোয়ালিটি এবং আধুনিক ফিচারের সমন্বয়ে তৈরি আমাদের এই প্রোডাক্টটি আপনার দৈনন্দিন কাজকে করবে আরও সহজ এবং আরামদায়ক।
+            </p>
+            <div class="flex flex-wrap gap-5">
+              <a href="#order" class="px-10 py-5 bg-blue-600 text-white font-black rounded-2xl shadow-2xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300">
+                অর্ডার দিন এখনই
+              </a>
+              <a href="#features" class="px-10 py-5 bg-white/5 border border-white/10 backdrop-blur-md text-white font-black rounded-2xl hover:bg-white/10 transition-all">
+                ফিচারগুলো দেখুন
+              </a>
+            </div>
+          </div>
+          <div class="relative">
+            <div class="absolute inset-0 bg-gradient-to-tr from-blue-500/30 to-purple-500/30 blur-[100px] -z-10 animate-pulse"></div>
+            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200" alt="Premium Product" class="w-full h-auto rounded-[2.5rem] shadow-2xl border border-white/10" />
+            <div class="absolute -bottom-6 -left-6 bg-white/10 backdrop-blur-2xl border border-white/20 p-6 rounded-3xl shadow-2xl hidden md:block">
+               <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🏆</div>
+                  <div>
+                    <div class="text-sm font-black text-white">#1 Choice in 2024</div>
+                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Customer Satisfaction</div>
+                  </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-indigo-400" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  });
+
+  // 20. Modern Icon Grid
+  Blocks.add('bd-modern-grid', {
+    label: 'Modern Features',
+    category: 'Premium Designs',
+    content: `
+      <section class="py-24 bg-white px-6">
+        <div class="max-w-7xl mx-auto">
+          <div class="text-center max-w-3xl mx-auto mb-20">
+            <h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-6">বিশেষ কেন এই পন্যটি?</h2>
+            <div class="w-20 h-2 bg-blue-600 mx-auto rounded-full mb-8"></div>
+            <p class="text-lg text-slate-500 font-medium">আমরা আমাদের পন্যের গুনগত মানের ক্ষেত্রে কোনো আপোষ করি না। এক নজরে দেখে নিন আমাদের বিশেষ ফিচারগুলো।</p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Feature 1 -->
+            <div class="group p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-white hover:shadow-2xl hover:shadow-slate-200 transition-all duration-500">
+              <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-4xl mb-8 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">🛡️</div>
+              <h3 class="text-2xl font-black text-slate-900 mb-4 tracking-tight">অরিজিনাল গ্যারান্টি</h3>
+              <p class="text-slate-600 leading-relaxed font-medium">আমরা সরাসরি ইম্পোর্টার থেকে পন্য সংগ্রহ করি, তাই আপনি পাচ্ছেন ১০০% অরিজিনাল পন্যের নিশ্চয়তা।</p>
+            </div>
+            <!-- Feature 2 -->
+            <div class="group p-10 rounded-[2.5rem] bg-indigo-50 border border-indigo-100 hover:bg-white hover:border-white hover:shadow-2xl hover:shadow-indigo-200 transition-all duration-500">
+              <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center text-4xl mb-8 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm">🚀</div>
+              <h3 class="text-2xl font-black text-slate-900 mb-4 tracking-tight">দ্রুততম ডেলিভারি</h3>
+              <p class="text-slate-600 leading-relaxed font-medium">সারা বাংলাদেশে ২৪-৭২ ঘণ্টার মধ্যে হোম ডেলিভারি নিশ্চিত করি আমরা। কোনো অগ্রিম পেমেন্ট ছাড়াই।</p>
+            </div>
+            <!-- Feature 3 -->
+            <div class="group p-10 rounded-[2.5rem] bg-purple-50 border border-purple-100 hover:bg-white hover:border-white hover:shadow-2xl hover:shadow-purple-200 transition-all duration-500">
+              <div class="w-20 h-20 bg-purple-100 text-purple-600 rounded-3xl flex items-center justify-center text-4xl mb-8 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-500 shadow-sm">🎧</div>
+              <h3 class="text-2xl font-black text-slate-900 mb-4 tracking-tight">লাইফ টাইম সাপোর্ট</h3>
+              <p class="text-slate-600 leading-relaxed font-medium">পন্য কেনার পরেও যেকোনো প্রয়োজনে আমাদের এক্সপার্ট টিম সবসময় আপনার পাশে থাকবে।</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-emerald-500" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>',
+  });
+
+  // 21. Video Showcase
+  Blocks.add('bd-video-showcase', {
+    label: 'Modern Video',
+    category: 'Premium Designs',
+    content: `
+      <section class="py-24 bg-slate-50 px-6">
+        <div class="max-w-6xl mx-auto">
+          <div class="relative group rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-8 border-white">
+            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2000" alt="Video Cover" class="w-full aspect-video object-cover brightness-75 group-hover:scale-105 transition-all duration-1000" />
+            <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all duration-500 px-6 text-center">
+              <button class="w-24 h-24 md:w-32 md:h-32 bg-white text-blue-600 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 mb-8 overflow-hidden group/btn">
+                 <svg class="w-10 h-10 md:w-16 md:h-16 fill-current relative z-10" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <h3 class="text-white text-3xl md:text-5xl font-black mb-4 drop-shadow-lg">আমাদের পন্যের গুনগতমান দেখুন</h3>
+              <p class="text-white/80 text-lg font-bold max-w-xl drop-shadow-md">পন্যের আসল রূপ এবং ফিচারগুলো ভিডিওতে দেখে নিন</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-red-500" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M10 9l5 3-5 3V9z"/></svg>',
+  });
+
+  // 22. Professional Pricing
+  Blocks.add('bd-pricing-modern', {
+    label: 'Premium Pricing',
+    category: 'Premium Designs',
+    content: `
+      <section class="py-24 bg-white px-6">
+        <div class="max-w-7xl mx-auto">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- Normal Offer -->
+            <div class="p-10 rounded-[2.5rem] bg-slate-50 border border-slate-200">
+               <div class="flex items-center gap-4 mb-8">
+                  <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm">📦</div>
+                  <div>
+                    <h3 class="text-xl font-bold text-slate-900">একক প্যাকেজ</h3>
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Normal Delivery</p>
+                  </div>
+               </div>
+               <div class="mb-8">
+                  <div class="text-5xl font-black text-slate-900 mb-2">৳১২৫০</div>
+                  <div class="text-slate-400 font-medium line-through">৳১৫০০</div>
+               </div>
+               <ul class="space-y-4 mb-10">
+                  <li class="flex items-center gap-3 font-bold text-slate-700">
+                    <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-[10px]">✓</span> 
+                    ১ পিস মর্ডান পণ্য
+                  </li>
+                  <li class="flex items-center gap-3 font-bold text-slate-700">
+                    <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-[10px]">✓</span> 
+                    ৭ দিনের রিপ্লেসমেন্ট সুবিধা
+                  </li>
+                  <li class="flex items-center text-slate-300 font-medium">
+                    <span class="w-6 h-6 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center text-[10px] mr-3 font-black">×</span> 
+                    ফ্রি ডেলিভারি নেই
+                  </li>
+               </ul>
+               <a href="#order" class="block w-full py-5 bg-slate-900 text-white text-center font-black rounded-2xl hover:bg-slate-800 transition shadow-xl">বেছে নিন এই অফার</a>
+            </div>
+            
+            <!-- Best Offer -->
+            <div class="p-1 right-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-[2.5rem] shadow-2xl shadow-indigo-200 group transform hover:-translate-y-2 transition duration-500">
+               <div class="bg-white p-10 rounded-[2.3rem] h-full relative overflow-hidden">
+                  <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-6 py-2 rounded-bl-3xl">BEST CHOICE</div>
+                  <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl shadow-sm">🎁</div>
+                    <div>
+                      <h3 class="text-xl font-bold text-indigo-900">ফ্যামিলি কম্বো প্যাকেজ</h3>
+                      <p class="text-xs text-indigo-500 font-bold uppercase tracking-widest">Save Extra 500 Taka</p>
+                    </div>
+                  </div>
+                  <div class="mb-8">
+                    <div class="text-5xl font-black text-indigo-600 mb-2">৳২০০০</div>
+                    <div class="text-slate-400 font-medium line-through">৳২৫০০</div>
+                  </div>
+                  <ul class="space-y-4 mb-10 relative z-10">
+                    <li class="flex items-center gap-3 font-bold text-slate-700">
+                      <span class="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-[10px]">✓</span> 
+                      ২ পিস প্রিমিয়াম পণ্য
+                    </li>
+                    <li class="flex items-center gap-3 font-bold text-slate-700">
+                      <span class="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-[10px]">✓</span> 
+                      লাইফ টাইম সাপোর্ট সুবিধা
+                    </li>
+                    <li class="flex items-center gap-3 font-bold text-emerald-600">
+                      <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-[10px]">✓</span> 
+                      সারা বাংলাদেশে ফ্রি ডেলিভারি
+                    </li>
+                  </ul>
+                  <a href="#order" class="block w-full py-5 bg-indigo-600 text-white text-center font-black rounded-2xl hover:bg-indigo-700 transition shadow-2xl shadow-indigo-200">অর্ডার করুন এখনই</a>
+                  <div class="absolute bottom-[-5%] right-[-5%] w-32 h-32 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-blue-600" stroke-width="2"><path d="M12 2v20m-7-3l7-3 7 3m-14-10l7-3 7 3"/></svg>',
+  });
+
+  // 23. High Conversion Gradient CTA
+  Blocks.add('bd-cta-gradient', {
+    label: 'Modern CTA',
+    category: 'High Conversion',
+    content: `
+      <section class="py-20 px-6">
+        <div class="max-w-7xl mx-auto bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl shadow-indigo-300">
+          <div class="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+          <div class="absolute bottom-0 right-0 w-96 h-96 bg-black/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
+          
+          <div class="relative z-10 max-w-3xl mx-auto">
+            <h2 class="text-4xl md:text-6xl font-black text-white mb-8 leading-tight tracking-tight">আপনার ব্যবসা পরিবর্তনের সময় <span class="text-yellow-300">এখনি!</span></h2>
+            <p class="text-blue-100 text-lg md:text-xl mb-12 font-medium">৫০০০+ সফল কাস্টমারদের সাথে আপনিও যোগ দিন এবং উপভোগ করুন প্রিমিয়াম সার্ভিস।</p>
+            <div class="flex flex-col sm:flex-row gap-6 justify-center">
+              <a href="#order" class="px-12 py-6 bg-white text-indigo-700 text-xl font-black rounded-2xl hover:shadow-2xl hover:shadow-white/20 hover:-translate-y-1 transition-all duration-300">অর্ডার কনফার্ম করুন</a>
+              <a href="tel:01XXXXXXXXX" class="px-12 py-6 bg-indigo-800 text-white text-xl font-black rounded-2xl border border-white/20 hover:bg-indigo-900 transition-all flex items-center justify-center gap-3">
+                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                 সহযোগিতা নিন
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-yellow-400" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  });
+
   // AI Placeholder Block
   Blocks.add('bd-ai-placeholder', {
     label: 'AI Design Me',

@@ -18,6 +18,7 @@ import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
 import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
 import MagicGenerateModal from "./MagicGenerateModal";
+import BlockLibraryModal from "./BlockLibraryModal";
 import AiChatWidget from "./AiChatWidget";
 import { toast } from 'sonner';
 
@@ -30,6 +31,7 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
   const [editor, setEditor] = useState<any>(null);
   const isAiLocked = planType === 'free';
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
+  const [isBlockLibraryOpen, setIsBlockLibraryOpen] = useState(false);
   const [aiDesignMode, setAiDesignMode] = useState<'full-page' | 'section-design'>('full-page');
   const [selectedComponentData, setSelectedComponentData] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -410,7 +412,7 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
         onEditor={onEditor}
       >
         <div className="flex flex-col h-full overflow-hidden">
-          <EditorToolbar isAiLocked={isAiLocked} />
+          <EditorToolbar isAiLocked={isAiLocked} onOpenLibrary={() => setIsBlockLibraryOpen(true)} />
           <div className="flex flex-1 overflow-hidden min-h-0">
             {/* Unified Left Sidebar: Blocks + Customization */}
             <div className="h-full overflow-hidden flex-shrink-0">
@@ -443,6 +445,12 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
         mode={aiDesignMode}
         initialData={selectedComponentData || undefined}
         isLocked={isAiLocked}
+      />
+
+      <BlockLibraryModal 
+        isOpen={isBlockLibraryOpen}
+        onClose={() => setIsBlockLibraryOpen(false)}
+        editor={editor}
       />
       
       <AiChatWidget 

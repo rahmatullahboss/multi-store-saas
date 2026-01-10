@@ -247,21 +247,37 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
           open: false,
           properties: [
             { name: 'Opacity', property: 'opacity', type: 'slider', step: 0.01, max: 1, min: 0, defaults: '1' },
-            'box-shadow',
+            { name: 'Box Shadow', property: 'box-shadow', type: 'stack', preview: true },
             { name: 'Cursor', property: 'cursor', type: 'select', defaults: 'auto', options: [{value: 'auto'}, {value: 'pointer'}, {value: 'crosshair'}, {value: 'grab'}, {value: 'not-allowed'}, {value: 'zoom-in'}] },
-            { name: 'Filter', property: 'filter', type: 'composite', properties: [
+            { name: 'General Filter', property: 'filter', type: 'composite', properties: [
               { name: 'Blur', property: 'blur', type: 'integer', units: ['px'], defaults: '0' },
               { name: 'Brightness', property: 'brightness', type: 'slider', step: 0.1, max: 2, min: 0, defaults: '1' },
               { name: 'Contrast', property: 'contrast', type: 'slider', step: 0.1, max: 2, min: 0, defaults: '1' },
               { name: 'Grayscale', property: 'grayscale', type: 'slider', step: 0.1, max: 1, min: 0, defaults: '0' },
             ]},
-            'transition',
+            { name: 'Backdrop Filter', property: 'backdrop-filter', type: 'composite', properties: [
+               { name: 'Blur', property: 'blur', type: 'integer', units: ['px'], defaults: '0', functionName: 'blur' },
+            ]},
+            { name: 'Transition', property: 'transition', type: 'stack', preview: false, properties: [
+                { name: 'Property', property: 'transition-property', type: 'select', defaults: 'all', options: [{value: 'all'}, {value: 'width'}, {value: 'height'}, {value: 'background-color'}, {value: 'transform'}, {value: 'opacity'}, {value: 'box-shadow'}] },
+                { name: 'Duration', property: 'transition-duration', type: 'integer', units: ['s', 'ms'], defaults: '0.3s' },
+                { name: 'Timing', property: 'transition-timing-function', type: 'select', defaults: 'ease', options: [{value: 'linear'}, {value: 'ease'}, {value: 'ease-in'}, {value: 'ease-out'}, {value: 'ease-in-out'}] },
+            ]},
             'transform',
           ],
         },
       ],
     },
-    selectorManager: { componentFirst: true },
+    selectorManager: { 
+      componentFirst: true,
+      // Enable pseudo-class state selectors
+      states: [
+        { name: '', label: 'Normal' },
+        { name: 'hover', label: 'Hover' },
+        { name: 'focus', label: 'Focus' },
+        { name: 'active', label: 'Active' },
+      ],
+    },
     projectData: {
       assets: [],
       pages: [
