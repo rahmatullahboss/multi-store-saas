@@ -252,14 +252,14 @@ export function OzzylAIChatWidget() {
                   className={`flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
                   {/* Avatar */}
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden ${
                     msg.role === 'user' 
                       ? 'bg-white/10' 
-                      : 'bg-gradient-to-br from-[#006A4E] to-[#00875F]'
+                      : ''
                   }`}>
                     {msg.role === 'user' 
                       ? <User className="w-4 h-4 text-white/70" />
-                      : <Bot className="w-4 h-4 text-white" />
+                      : <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="w-7 h-7" />
                     }
                   </div>
                   
@@ -281,8 +281,8 @@ export function OzzylAIChatWidget() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-start gap-2"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#006A4E] to-[#00875F] flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-white" />
+                  <div className="w-7 h-7 rounded-lg overflow-hidden">
+                    <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="w-7 h-7" />
                   </div>
                   <div className="bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1.5">
                     <span className="w-2 h-2 bg-[#006A4E] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
