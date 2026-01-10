@@ -1,24 +1,20 @@
 /**
- * Award-Winning Hero Section - Bangladesh Edition
+ * Award-Winning Hero Section - Bangladesh Edition (AI Transformation)
  * 
- * Design: Bangladesh's First Bangla-Native E-commerce Builder
- * Theme: Dark mode with Bangladesh-inspired accent colors
- *        Deep Green (#006A4E) + Golden (#F9A825)
+ * Design: Bangladesh's First AI-Powered E-commerce Builder
+ * Theme: Dark mode with Bangladesh-inspired accent colors + AI Purples
  * 
  * Features:
- * - Split screen layout (messaging + builder demo)
- * - Gradient mesh background (green to deep blue)
- * - Floating Bengali typography elements
- * - Staggered headline animation (word by word)
- * - Magnetic hover effects on CTAs
- * - Live signup counter
- * - Builder interface mockup with animations
+ * - Split screen layout (messaging + AI visual)
+ * - Neural network background pattern
+ * - Floating typography + AI nodes
+ * - AI Chat & Drag-Drop Simulation
  */
 
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import { Link } from '@remix-run/react';
-import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe } from 'lucide-react';
+import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe, Bot, Zap, MessageCircle, Box } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -29,44 +25,41 @@ interface HeroProps {
 }
 
 // ============================================================================
-// DESIGN TOKENS - Theme-Aware Bangladesh Theme
+// DESIGN TOKENS - AI Enhanced Theme
 // ============================================================================
 const DARK_COLORS = {
   primary: '#006A4E',      // Bangladesh Green
   primaryLight: '#00875F',
   primaryDark: '#004D38',
   accent: '#F9A825',       // Golden Yellow
-  accentLight: '#FFB74D',
-  background: '#0A0F0D',   // Deep dark with green tint
-  backgroundAlt: '#0D1512',
+  aiPurple: '#8B5CF6',     // AI Purple
+  aiPurpleLight: '#A78BFA',
+  background: '#0A0A0B',   // Deep dark base
+  backgroundAlt: '#0E1210',
   text: '#FFFFFF',
   textMuted: 'rgba(255, 255, 255, 0.6)',
   textSubtle: 'rgba(255, 255, 255, 0.4)',
   cardBg: 'rgba(255, 255, 255, 0.05)',
   cardBorder: 'rgba(255, 255, 255, 0.1)',
-  cardShadow: 'none',
 };
 
 const LIGHT_COLORS = {
-  primary: '#006A4E',      // Bangladesh Green (same)
+  primary: '#006A4E',
   primaryLight: '#00875F',
   primaryDark: '#005740',
-  accent: '#D97706',       // Deeper amber for light bg
-  accentLight: '#F59E0B',
-  background: '#FAFBFC',   // Warm off-white
+  accent: '#D97706',
+  aiPurple: '#7C3AED',
+  aiPurpleLight: '#8B5CF6',
+  background: '#FAFBFC',
   backgroundAlt: '#F4F5F7',
-  text: '#0F172A',         // Deep blue-black
-  textMuted: '#475569',    // Gray-blue
-  textSubtle: '#94A3B8',   // Light gray
+  text: '#0F172A',
+  textMuted: '#475569',
+  textSubtle: '#94A3B8',
   cardBg: '#FFFFFF',
   cardBorder: '#EBEDF0',
-  cardShadow: '0 4px 6px rgba(0,0,0,0.04), 0 10px 25px rgba(0,0,0,0.06)',
 };
 
 const getColors = (theme: 'dark' | 'light') => theme === 'light' ? LIGHT_COLORS : DARK_COLORS;
-
-// Keep COLORS for backward compatibility in child components
-const COLORS = DARK_COLORS;
 
 // ============================================================================
 // GRAIN TEXTURE OVERLAY
@@ -81,561 +74,226 @@ const GrainOverlay = ({ isLight = false }: { isLight?: boolean }) => (
 );
 
 // ============================================================================
-// FLOATING BENGALI TYPOGRAPHY ELEMENTS
+// NEURAL NETWORK BACKGROUND (Updated for AI Theme)
 // ============================================================================
-const FloatingBengaliText = () => {
-  const bengaliChars = ['অ', 'আ', 'ই', 'ক', 'খ', 'গ', 'ব', 'ম', 'স', 'হ', 'ড', 'ন'];
+const NeuralBackground = ({ colors }: { colors: any }) => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    {/* Grid Pattern */}
+    <div 
+      className="absolute inset-0 opacity-[0.03]"
+      style={{
+        backgroundImage: `linear-gradient(${colors.text} 1px, transparent 1px), linear-gradient(90deg, ${colors.text} 1px, transparent 1px)`,
+        backgroundSize: '40px 40px',
+      }}
+    />
+    
+    {/* Green Orb */}
+    <motion.div
+      className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-full blur-[100px]"
+      style={{ background: colors.primary }}
+      animate={{
+        opacity: [0.1, 0.15, 0.1],
+        scale: [1, 1.1, 1],
+      }}
+      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+    />
+    
+    {/* Purple Orb (AI) */}
+    <motion.div
+      className="absolute top-[20%] right-[0%] w-[500px] h-[500px] rounded-full blur-[100px]"
+      style={{ background: colors.aiPurple }}
+      animate={{
+        opacity: [0.05, 0.1, 0.05],
+        scale: [1, 1.2, 1],
+        x: [0, -20, 0],
+      }}
+      transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+    />
+  </div>
+);
+
+// ============================================================================
+// AI VISUAL COMPONENT
+// ============================================================================
+const AIHeroVisual = ({ theme }: { theme: 'dark' | 'light' }) => {
+  const colors = getColors(theme);
+  const [activeChat, setActiveChat] = useState(0);
   
+  // Chat sequence animation
+  useEffect(() => {
+    const sequence = async () => {
+      while(true) {
+        await new Promise(r => setTimeout(r, 1000)); // Start
+        setActiveChat(1); // User asks
+        await new Promise(r => setTimeout(r, 2000)); // AI thinks
+        setActiveChat(2); // AI responds
+        await new Promise(r => setTimeout(r, 5000)); // Wait
+        setActiveChat(0); // Reset
+      }
+    };
+    sequence();
+  }, []);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {bengaliChars.map((char, i) => (
-        <motion.span
-          key={i}
-          className="absolute text-6xl md:text-8xl font-bold select-none"
-          style={{
-            left: `${10 + (i % 4) * 25}%`,
-            top: `${15 + Math.floor(i / 4) * 30}%`,
-            color: 'rgba(0, 106, 78, 0.07)',
-            fontFamily: "'Noto Sans Bengali', sans-serif",
+    <div className="relative w-full aspect-[4/3] md:aspect-square max-h-[500px]">
+      {/* Container Frame */}
+      <div 
+        className="absolute inset-0 rounded-2xl border backdrop-blur-xl overflow-hidden shadow-2xl"
+        style={{ 
+          borderColor: colors.cardBorder,
+          backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.6)',
+        }}
+      >
+        {/* Split View Divider */}
+        <div className="absolute inset-0 flex">
+          {/* LEFT: Drag & Drop Canvas */}
+          <div className="w-1/2 border-r p-4 relative" style={{ borderColor: colors.cardBorder }}>
+            <div className="absolute top-4 left-4 flex gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-400" />
+              <div className="w-2 h-2 rounded-full bg-yellow-400" />
+              <div className="w-2 h-2 rounded-full bg-green-400" />
+            </div>
+            
+            {/* Draggable Blocks Simulation */}
+            <div className="mt-8 space-y-3">
+              {[1, 2, 3].map((i) => (
+                <motion.div
+                  key={`block-${i}`}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: i * 0.2 }}
+                  className="rounded-lg p-3 border border-dashed relative overflow-hidden"
+                  style={{ 
+                    borderColor: colors.cardBorder,
+                    background: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
+                  }}
+                >
+                  <div className="h-2 w-2/3 rounded bg-current opacity-10 mb-2" />
+                  <div className="h-12 rounded bg-current opacity-5" />
+                  
+                  {/* Drag Hand Animation */}
+                  {i === 2 && activeChat === 1 && (
+                    <motion.div
+                      className="absolute bottom-1 right-2"
+                      initial={{ opacity: 0, x: 20, y: 20 }}
+                      animate={{ opacity: 1, x: 0, y: 0 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <MousePointer2 className="w-6 h-6 fill-white stroke-black" />
+                    </motion.div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+            
+            <div 
+              className="absolute bottom-4 left-4 text-[10px] font-mono px-2 py-1 rounded border"
+              style={{ borderColor: colors.primary, color: colors.primary }}
+            >
+              Drag & Drop Editor
+            </div>
+          </div>
+
+          {/* RIGHT: AI Chat Interface */}
+          <div className="w-1/2 relative bg-opacity-50" style={{ backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)' }}>
+            <div className="p-4 flex flex-col justify-center h-full gap-4">
+              
+              {/* User Message Bubble */}
+              <AnimatePresence>
+                {activeChat >= 1 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="self-end max-w-[90%] rounded-2xl rounded-tr-sm p-3 shadow-sm"
+                    style={{ background: colors.primary, color: 'white' }}
+                  >
+                    <p className="text-xs">💬 "এই Product এর দাম কত?"</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Bot Typing Indicator */}
+              <AnimatePresence>
+                {activeChat === 1 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="self-start relative"
+                  >
+                     <div className="flex gap-1 px-3 py-2 rounded-2xl rounded-tl-sm bg-white/10">
+                        <motion.div animate={{ y: [0,-3,0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-1 h-1 rounded-full bg-current opacity-50"/>
+                        <motion.div animate={{ y: [0,-3,0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1 h-1 rounded-full bg-current opacity-50"/>
+                        <motion.div animate={{ y: [0,-3,0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1 h-1 rounded-full bg-current opacity-50"/>
+                     </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Bot Response Bubble */}
+              <AnimatePresence>
+                {activeChat >= 2 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="self-start max-w-[90%] rounded-2xl rounded-tl-sm p-3 border shadow-sm"
+                    style={{ 
+                      background: theme === 'dark' ? '#1a1a20' : '#ffffff',
+                      borderColor: colors.cardBorder 
+                    }}
+                  >
+                    <div className="flex items-start gap-2">
+                       <div className="p-1 rounded bg-purple-500/10 mt-0.5">
+                         <Bot className="w-3 h-3 text-purple-500" />
+                       </div>
+                       <div>
+                         <p className="text-xs font-medium" style={{ color: colors.text }}>🤖 "এটার দাম ৳999,</p>
+                         <p className="text-xs opacity-70" style={{ color: colors.text }}>M size available"</p>
+                       </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Badges */}
+        <motion.div
+          className="absolute -right-4 top-10 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg flex items-center gap-2 z-10"
+          style={{ 
+            background: theme === 'dark' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.8)',
+            borderColor: colors.aiPurple
           }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ 
-            opacity: [0.03, 0.08, 0.03],
-            y: [0, -10, 0],
-            rotate: [-2, 2, -2],
-          }}
-          transition={{
-            duration: 8 + i * 0.5,
-            delay: i * 0.3,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         >
-          {char}
-        </motion.span>
-      ))}
+          <Sparkles className="w-3 h-3 text-purple-500" />
+          <span className="text-xs font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">AI Logic</span>
+        </motion.div>
+
+        <motion.div
+          className="absolute -left-4 bottom-20 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg flex items-center gap-2 z-10"
+          style={{ 
+            background: theme === 'dark' ? 'rgba(0, 106, 78, 0.1)' : 'rgba(255,255,255,0.8)',
+            borderColor: colors.primary
+          }}
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <Zap className="w-3 h-3" style={{ color: colors.primary }} />
+          <span className="text-xs font-medium" style={{ color: colors.primary }}>Fast CDN</span>
+        </motion.div>
+
+      </div>
     </div>
   );
 };
 
 // ============================================================================
-// GRADIENT MESH BACKGROUND (Dark Theme)
-// ============================================================================
-const GradientMeshBackground = () => (
-  <div className="absolute inset-0 overflow-hidden">
-    {/* Primary green gradient orb */}
-    <motion.div
-      className="absolute -top-1/4 -left-1/4 w-[800px] h-[800px] rounded-full"
-      style={{
-        background: `radial-gradient(circle, ${COLORS.primary}40 0%, transparent 70%)`,
-      }}
-      animate={{
-        scale: [1, 1.15, 1],
-        x: [0, 60, 0],
-        y: [0, 40, 0],
-      }}
-      transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    
-    {/* Deep blue gradient orb */}
-    <motion.div
-      className="absolute -bottom-1/4 -right-1/4 w-[700px] h-[700px] rounded-full"
-      style={{
-        background: 'radial-gradient(circle, rgba(30, 58, 138, 0.35) 0%, transparent 70%)',
-      }}
-      animate={{
-        scale: [1.1, 1, 1.1],
-        x: [0, -40, 0],
-        y: [0, -60, 0],
-      }}
-      transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    
-    {/* Golden accent orb */}
-    <motion.div
-      className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full"
-      style={{
-        background: `radial-gradient(circle, ${COLORS.accent}20 0%, transparent 70%)`,
-      }}
-      animate={{
-        scale: [1, 1.3, 1],
-        opacity: [0.3, 0.5, 0.3],
-      }}
-      transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    
-    {/* Gradient overlay */}
-    <div 
-      className="absolute inset-0"
-      style={{
-        background: `linear-gradient(135deg, ${COLORS.background} 0%, ${COLORS.backgroundAlt} 50%, rgba(10, 30, 50, 0.95) 100%)`,
-      }}
-    />
-  </div>
-);
-
-// ============================================================================
-// LIGHT GRADIENT BACKGROUND (Light Theme)
-// ============================================================================
-const LightGradientBackground = () => (
-  <div className="absolute inset-0 overflow-hidden" style={{ backgroundColor: LIGHT_COLORS.background }}>
-    {/* Subtle green gradient at top */}
-    <motion.div
-      className="absolute -top-1/4 left-1/4 w-[900px] h-[900px] rounded-full"
-      style={{
-        background: 'radial-gradient(ellipse at center, rgba(0,106,78,0.06) 0%, transparent 60%)',
-      }}
-      animate={{
-        scale: [1, 1.1, 1],
-        x: [0, 30, 0],
-      }}
-      transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    
-    {/* Soft purple accent - subtle */}
-    <motion.div
-      className="absolute top-1/3 -right-1/4 w-[700px] h-[700px] rounded-full"
-      style={{
-        background: 'radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 60%)',
-      }}
-      animate={{
-        scale: [1.05, 1, 1.05],
-        opacity: [0.4, 0.6, 0.4],
-      }}
-      transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    
-    {/* Warm amber accent bottom */}
-    <motion.div
-      className="absolute bottom-0 left-1/3 w-[500px] h-[500px] rounded-full"
-      style={{
-        background: 'radial-gradient(circle, rgba(217,119,6,0.04) 0%, transparent 60%)',
-      }}
-      animate={{
-        scale: [1, 1.15, 1],
-        y: [0, -20, 0],
-      }}
-      transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    
-    {/* Subtle dot grid pattern */}
-    <div 
-      className="absolute inset-0 opacity-[0.03]"
-      style={{
-        backgroundImage: 'radial-gradient(circle, rgba(0,106,78,0.4) 1px, transparent 1px)',
-        backgroundSize: '24px 24px',
-      }}
-    />
-    
-    {/* Soft glow behind mockup area */}
-    <div 
-      className="absolute top-1/4 right-1/4 w-[500px] h-[400px] rounded-full"
-      style={{
-        background: 'radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, transparent 70%)',
-        filter: 'blur(60px)',
-      }}
-    />
-  </div>
-);
-
-
-// ============================================================================
-// MAGNETIC BUTTON COMPONENT
-// ============================================================================
-interface MagneticProps {
-  children: ReactNode;
-  className?: string;
-}
-
-const Magnetic = ({ children, className = '' }: MagneticProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  
-  const springConfig = { stiffness: 150, damping: 15 };
-  const xSpring = useSpring(x, springConfig);
-  const ySpring = useSpring(y, springConfig);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    x.set((e.clientX - centerX) * 0.35);
-    y.set((e.clientY - centerY) * 0.35);
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
-
-  return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ x: xSpring, y: ySpring }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-// ============================================================================
-// STAGGERED TEXT REVEAL
-// ============================================================================
-const StaggeredText = ({ text, className = '', delay = 0 }: { text: string; className?: string; delay?: number }) => {
-  const words = text.split(' ');
-  
-  return (
-    <span className={className}>
-      {words.map((word, i) => (
-        <motion.span
-          key={i}
-          className="inline-block"
-          initial={{ opacity: 0, y: 30, rotateX: -40 }}
-          animate={{ opacity: 1, y: 0, rotateX: 0 }}
-          transition={{
-            duration: 0.6,
-            delay: delay + i * 0.12,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-        >
-          {word}{i < words.length - 1 ? '\u00A0' : ''}
-        </motion.span>
-      ))}
-    </span>
-  );
-};
-
-// ============================================================================
-// LIVE SIGNUP COUNTER
-// ============================================================================
-// ============================================================================
-// LIVE SIGNUP COUNTER
-// ============================================================================
-const LiveSignupCounter = ({ count = 0 }: { count?: number }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.5 }}
-      className="flex items-center gap-2 text-sm"
-    >
-      <motion.div
-        className="w-2 h-2 rounded-full bg-green-400"
-        animate={{ scale: [1, 1.2, 1] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
-      />
-      <span className="text-white/50">
-        এখন পর্যন্ত{' '}
-        <span className="text-white font-semibold">
-          {count.toLocaleString()}
-        </span>
-        {' '}জন Signup করেছেন...
-      </span>
-    </motion.div>
-  );
-};
-
-// ============================================================================
-// BUILDER MOCKUP - ANIMATED DEMO
-// ============================================================================
-const BuilderMockup = () => {
-  const [step, setStep] = useState(0);
-  const [isPublished, setIsPublished] = useState(false);
-  
-  // Cycle through builder demo steps
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (step < 4) {
-        setStep(step + 1);
-      } else {
-        setIsPublished(true);
-        setTimeout(() => {
-          setStep(0);
-          setIsPublished(false);
-        }, 3000);
-      }
-    }, step === 0 ? 1500 : 2000);
-    
-    return () => clearTimeout(timer);
-  }, [step]);
-
-  const templates = [
-    { name: 'মডার্ন স্টোর', color: '#006A4E', active: step >= 1 },
-    { name: 'প্রোডাক্ট শোকেস', color: '#3B82F6', active: false },
-    { name: 'ফ্ল্যাশ সেল', color: '#EF4444', active: false },
-  ];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 60, rotateY: -15 }}
-      animate={{ opacity: 1, x: 0, rotateY: 0 }}
-      transition={{ duration: 1, delay: 0.6 }}
-      className="relative"
-      style={{ perspective: '1000px' }}
-    >
-      {/* Browser chrome */}
-      <div className="relative backdrop-blur-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.03] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Browser header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.02]">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500/70" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-            <div className="w-3 h-3 rounded-full bg-green-500/70" />
-          </div>
-          <div className="flex items-center gap-2 px-4 py-1.5 bg-black/30 rounded-lg text-xs text-white/40 min-w-[200px]">
-            <Globe className="w-3 h-3" />
-            <span>your-store.bikrimart.com</span>
-          </div>
-          <div className="w-16" />
-        </div>
-        
-        {/* Builder interface */}
-        <div className="p-4 min-h-[380px]">
-          {/* Template selection step */}
-          <AnimatePresence mode="wait">
-            {step === 0 && (
-              <motion.div
-                key="templates"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-3"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-4 h-4 text-[#F9A825]" />
-                  <span className="text-white/70 text-sm">টেমপ্লেট বাছুন</span>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  {templates.map((tmpl, i) => (
-                    <motion.div
-                      key={i}
-                      className={`relative p-4 rounded-xl border ${i === 0 ? 'border-[#006A4E] bg-[#006A4E]/10' : 'border-white/10 bg-white/[0.02]'} cursor-pointer`}
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <div 
-                        className="w-full h-28 rounded-lg mb-3"
-                        style={{ background: `linear-gradient(135deg, ${tmpl.color}40, ${tmpl.color}20)` }}
-                      />
-                      <p className="text-sm text-white/70 font-medium">{tmpl.name}</p>
-                      {i === 0 && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute -top-1 -right-1 w-5 h-5 bg-[#006A4E] rounded-full flex items-center justify-center"
-                        >
-                          <Check className="w-3 h-3 text-white" />
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-                
-                {/* Animated cursor */}
-                <motion.div
-                  className="absolute"
-                  initial={{ x: 200, y: 200, opacity: 0 }}
-                  animate={{ x: 60, y: 130, opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
-                >
-                  <MousePointer2 className="w-5 h-5 text-white drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' }} />
-                </motion.div>
-              </motion.div>
-            )}
-            
-            {step >= 1 && step < 4 && (
-              <motion.div
-                key="editing"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-4"
-              >
-                {/* Store preview */}
-                <div className="rounded-xl border border-white/10 overflow-hidden">
-                  {/* Store header */}
-                  <div 
-                    className="p-4 transition-all duration-500"
-                    style={{ 
-                      background: step >= 2 
-                        ? `linear-gradient(135deg, ${COLORS.primary}80, ${COLORS.primary}40)` 
-                        : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))' 
-                    }}
-                  >
-                    <motion.h3 
-                      className="text-lg font-bold text-white"
-                      key={step}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      {step >= 3 ? 'ফ্যাশন হাউস বিডি' : 'আপনার স্টোরের নাম'}
-                    </motion.h3>
-                    <p className="text-sm text-white/60">
-                      {step >= 3 ? 'সেরা মানের ফ্যাশন প্রোডাক্ট' : 'স্লোগান এখানে'}
-                    </p>
-                  </div>
-                  
-                  {/* Products grid */}
-                  <div className="p-3 bg-black/20 grid grid-cols-3 gap-2">
-                    {[1, 2, 3].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className="aspect-square rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/5"
-                        initial={{ opacity: 0.3 }}
-                        animate={{ opacity: step >= 3 ? 1 : 0.5 }}
-                        transition={{ delay: i * 0.1 }}
-                      >
-                        <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
-                          📦
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Editor tools */}
-                <div className="flex items-center gap-2">
-                  <motion.div
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${step === 2 ? 'bg-[#006A4E]/20 border border-[#006A4E]/50 text-[#006A4E]' : 'bg-white/5 text-white/50'}`}
-                    animate={step === 2 ? { scale: [1, 1.05, 1] } : {}}
-                  >
-                    <Palette className="w-3 h-3" />
-                    <span>থিম</span>
-                  </motion.div>
-                  <motion.div
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${step === 3 ? 'bg-[#F9A825]/20 border border-[#F9A825]/50 text-[#F9A825]' : 'bg-white/5 text-white/50'}`}
-                    animate={step === 3 ? { scale: [1, 1.05, 1] } : {}}
-                  >
-                    <Type className="w-3 h-3" />
-                    <span>কন্টেন্ট</span>
-                  </motion.div>
-                </div>
-                
-                {/* Live editing cursor */}
-                {step >= 2 && step < 4 && (
-                  <motion.div
-                    className="absolute"
-                    initial={{ x: step === 2 ? 60 : 130, y: 250, opacity: 1 }}
-                    animate={{ 
-                      x: step === 3 ? 130 : 60,
-                      y: step === 3 ? 250 : 250,
-                    }}
-                    transition={{ duration: 0.6, ease: 'easeInOut' }}
-                  >
-                    <MousePointer2 className="w-5 h-5 text-white drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' }} />
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
-            
-            {step === 4 && !isPublished && (
-              <motion.div
-                key="publishing"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center h-[300px] gap-4"
-              >
-                <motion.div
-                  className="w-16 h-16 rounded-full border-4 border-[#006A4E]/30 border-t-[#006A4E]"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                />
-                <p className="text-white/60">পাবলিশ হচ্ছে...</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          
-          {/* Published success overlay */}
-          <AnimatePresence>
-            {isPublished && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm rounded-2xl"
-              >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: [0, 1.2, 1] }}
-                  transition={{ duration: 0.5 }}
-                  className="w-20 h-20 rounded-full bg-gradient-to-br from-[#006A4E] to-[#00875F] flex items-center justify-center mb-4"
-                >
-                  <Check className="w-10 h-10 text-white" />
-                </motion.div>
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-2xl font-bold text-white mb-2"
-                >
-                  ✓ Published!
-                </motion.p>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-white/60"
-                >
-                  আপনার স্টোর এখন লাইভ 🎉
-                </motion.p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-      
-      {/* Floating notification */}
-      <motion.div
-        initial={{ opacity: 0, x: 30, y: -20 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ delay: 1.8 }}
-        className="absolute -right-4 top-20"
-      >
-        <motion.div
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          className="backdrop-blur-xl bg-white/10 border border-white/10 rounded-xl p-3 shadow-xl"
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F9A825] to-[#FFB74D] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-black" />
-            </div>
-            <div>
-              <p className="text-white text-xs font-medium">৫ মিনিটে রেডি!</p>
-              <p className="text-white/50 text-[10px]">কোনো কোডিং লাগবে না</p>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-      
-      {/* Step indicator */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2 }}
-        className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2"
-      >
-        {[0, 1, 2, 3, 4].map((s) => (
-          <motion.div
-            key={s}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              s <= step ? 'bg-[#006A4E]' : 'bg-white/20'
-            }`}
-            style={{ width: s === step ? 24 : 8 }}
-          />
-        ))}
-      </motion.div>
-    </motion.div>
-  );
-};
-
-// ============================================================================
-// MAIN HERO COMPONENT - THEME AWARE
+// MAIN HERO COMPONENT
 // ============================================================================
 export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) {
   const colors = getColors(theme);
@@ -643,211 +301,140 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
 
   return (
     <section 
-      className="relative min-h-screen overflow-hidden flex items-center"
+      className="relative min-h-[90vh] overflow-hidden flex items-center"
       style={{ backgroundColor: colors.background }}
     >
-      {/* Background layers - conditional on theme */}
       <GrainOverlay isLight={isLight} />
-      {isLight ? <LightGradientBackground /> : <GradientMeshBackground />}
-      {!isLight && <FloatingBengaliText />}
+      <NeuralBackground colors={colors} />
       
-      {/* Subtle grid pattern */}
-      <div 
-        className={`absolute inset-0 ${isLight ? 'opacity-[0.015]' : 'opacity-[0.02]'}`}
-        style={{
-          backgroundImage: isLight 
-            ? `linear-gradient(${colors.text}10 1px, transparent 1px),
-               linear-gradient(90deg, ${colors.text}10 1px, transparent 1px)`
-            : `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-               linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: '48px 48px',
-        }}
-      />
-      
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-24 md:py-32">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 md:py-28">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           
-          {/* LEFT: Bold Messaging */}
-          <div>
-            {/* Badge */}
+          {/* LEFT: CONTENT */}
+          <div className="relative z-20">
+            {/* New AI Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-8"
-              style={{ 
-                backgroundColor: isLight ? 'rgba(0,106,78,0.08)' : `${colors.primary}10`,
-                borderColor: isLight ? 'rgba(0,106,78,0.15)' : `${colors.primary}30`,
-                boxShadow: isLight ? '0 2px 8px rgba(0,106,78,0.1)' : 'none',
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-6"
+              style={{
+                backgroundColor: isLight ? 'rgba(139, 92, 246, 0.05)' : 'rgba(139, 92, 246, 0.1)',
+                borderColor: isLight ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.3)',
               }}
             >
-              <motion.span
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+              </span>
+              <span 
+                className="text-xs font-semibold tracking-wide uppercase"
+                style={{ color: isLight ? colors.aiPurple : colors.aiPurpleLight }}
               >
-                🇧🇩
-              </motion.span>
-              <span style={{ color: colors.textMuted }} className="text-sm">
-                বাংলাদেশের প্রথম বাংলা-ভিত্তিক বিল্ডার
+                বাংলাদেশের প্রথম AI-Powered E-commerce Platform
               </span>
             </motion.div>
-            
-            {/* Main Headline */}
-            <h1 
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-bold leading-[1.1] tracking-tight mb-6"
-              style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
-            >
-              <StaggeredText 
-                text="বাংলায় বিজনেস," 
-                className={`block ${isLight ? 'text-[#0F172A]' : 'text-white'}`}
-              />
-              <StaggeredText 
-                text="বাংলাতেই বানান।" 
-                className="block bg-clip-text text-transparent"
-                delay={0.4}
-              />
-            </h1>
-            
-            {/* Gradient text effect via style - works for both themes */}
-            <style>{`
-              h1 .block:nth-child(2) {
-                background-image: linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 50%, ${isLight ? '#8B5CF6' : colors.accent} 100%);
-                background-size: 200% 100%;
-                animation: gradientShift 4s ease infinite;
-              }
-              @keyframes gradientShift {
-                0%, 100% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-              }
-            `}</style>
-            
-            {/* Subheadline */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="text-lg md:text-xl mb-10 max-w-xl leading-relaxed"
-              style={{ color: colors.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
-            >
-              কোনো কোডিং নেই, কোনো ঝামেলা নেই।
-              <br />
-              টেমপ্লেট বাছুন, কন্টেন্ট দিন — <span style={{ color: colors.text, fontWeight: 600 }}>৫ মিনিটে Online।</span>
-            </motion.p>
-            
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-              className="flex flex-wrap gap-4 mb-6"
-            >
-              {/* Primary CTA */}
-              <Magnetic>
-                <Link
-                  to="/auth/register"
-                  className="group relative px-8 py-4 rounded-xl font-semibold text-white overflow-hidden flex items-center gap-2 transition-all hover:scale-[1.02] hover:-translate-y-0.5"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
-                    boxShadow: isLight 
-                      ? '0 4px 14px rgba(0,106,78,0.3), 0 1px 3px rgba(0,0,0,0.1)' 
-                      : `0 0 30px ${colors.primary}60, 0 0 60px ${colors.primary}30`,
-                    fontFamily: "'Noto Sans Bengali', sans-serif",
-                  }}
-                >
-                  {/* Glow pulse effect - only on dark theme */}
-                  {!isLight && (
-                    <motion.div
-                      className="absolute inset-0 rounded-xl"
-                      style={{ background: `linear-gradient(135deg, ${colors.primaryLight} 0%, ${colors.accent} 100%)` }}
-                      animate={{ opacity: [0, 0.3, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                  )}
-                  <span className="relative z-10">ফ্রিতে শুরু করুন</span>
-                  <motion.span
-                    className="relative z-10"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.span>
-                </Link>
-              </Magnetic>
-            </motion.div>
-            
-            {/* Trust badges */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="flex flex-wrap items-center gap-4 text-sm mb-8"
-              style={{ color: colors.textSubtle }}
-            >
-              <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4" style={{ color: colors.primary }} />
-                ক্রেডিট কার্ড লাগবে না
+
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] mb-6 tracking-tight">
+              <span className="block" style={{ color: colors.text }}>
+                AI দিয়ে বানান,
               </span>
-              <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4" style={{ color: colors.primary }} />
-                ১ মিনিটে সাইনআপ
-              </span>
-            </motion.div>
-            
-            {/* Live signup counter */}
-            <LiveSignupCounter count={totalUsers} />
-            
-            {/* Beta notice */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.8 }}
-              className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-lg border"
-              style={{ 
-                backgroundColor: isLight ? 'rgba(217,119,6,0.08)' : `${colors.accent}10`,
-                borderColor: isLight ? 'rgba(217,119,6,0.2)' : `${colors.accent}30`,
-                boxShadow: isLight ? '0 2px 8px rgba(217,119,6,0.1)' : 'none',
-              }}
-            >
-              <Sparkles className="w-4 h-4" style={{ color: colors.accent }} />
-              <span className="text-sm" style={{ color: colors.accent }}>
-                Beta User হিসেবে Join করুন — Early Adopter Benefits পাবেন
-              </span>
-            </motion.div>
-          </div>
-          
-          {/* RIGHT: Builder Demo Mockup */}
-          <div className="hidden lg:block">
-            {/* Light theme: white card with shadow wrapping the mockup */}
-            {isLight ? (
-              <div 
-                className="rounded-2xl p-1 bg-white"
-                style={{
-                  boxShadow: '0 10px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)',
+              <span 
+                className="block bg-clip-text text-transparent bg-gradient-to-r"
+                style={{ 
+                  backgroundImage: `linear-gradient(135deg, ${colors.primaryLight} 0%, ${colors.aiPurpleLight} 100%)`
                 }}
               >
-                <BuilderMockup />
-              </div>
-            ) : (
-              <BuilderMockup />
-            )}
+                AI দিয়ে বিক্রি করুন।
+              </span>
+            </h1>
+
+            {/* Subheadline */}
+            <p 
+              className="text-lg md:text-xl mb-8 leading-relaxed max-w-lg"
+              style={{ color: colors.textMuted }}
+            >
+              Drag & Drop এ Store বানান, AI আপনার ও আপনার Customer দের সাহায্য করবে ২৪/৭।
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-wrap gap-4 mb-10">
+              <Link
+                to="/auth/register"
+                className="group relative px-8 py-3.5 rounded-xl font-semibold text-white overflow-hidden transition-all hover:shadow-lg hover:shadow-green-500/25 active:scale-95"
+                style={{ background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)` }}
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <span className="relative flex items-center gap-2">
+                  <RocketIcon /> ফ্রিতে শুরু করুন
+                </span>
+              </Link>
+              
+              <Link
+                to="/demo"
+                className="group px-8 py-3.5 rounded-xl font-semibold transition-all border hover:bg-white/5 active:scale-95"
+                style={{ 
+                  color: colors.text,
+                  borderColor: colors.cardBorder
+                }}
+              >
+                 <span className="flex items-center gap-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
+                    <Bot className="w-5 h-5 text-purple-400" /> AI Demo দেখুন
+                 </span>
+              </Link>
+            </div>
+
+            {/* Trust Badges */}
+            <div 
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-t"
+              style={{ borderColor: colors.cardBorder, color: colors.textSubtle }}
+            >
+              {[
+                { icon: Bot, label: "AI-Powered", color: colors.aiPurpleLight },
+                { icon: Zap, label: "310+ CDN", color: "#EAB308" },
+                { icon: Box, label: "Drag & Drop", color: colors.primaryLight },
+                { icon: Globe, label: "বাংলা", color: "#EF4444" },
+              ].map((badge, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <badge.icon className="w-4 h-4" style={{ color: badge.color }} />
+                  <span className="text-sm font-medium">{badge.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT: AI VISUAL */}
+          <div className="relative z-10 lg:translate-x-10">
+             <AIHeroVisual theme={theme} />
+             
+             {/* Decorative Background Blob behind Visual */}
+             <div 
+               className="absolute inset-0 -z-10 bg-gradient-to-tr from-purple-500/20 to-green-500/20 rounded-full blur-[80px] opacity-50"
+               style={{ transform: 'scale(0.8)' }}
+             />
           </div>
         </div>
-        
-        {/* Trust footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-          className="text-center mt-20"
-        >
-          <p className="text-sm" style={{ color: colors.textSubtle }}>
-            বাংলাদেশ থেকে, বাংলাদেশের জন্য 🇧🇩
-          </p>
-        </motion.div>
       </div>
     </section>
   );
 }
 
-export default AwardWinningHero;
-
+// Simple Rocket Icon helper
+const RocketIcon = () => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="20" 
+    height="20" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+    <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+    <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+  </svg>
+);
