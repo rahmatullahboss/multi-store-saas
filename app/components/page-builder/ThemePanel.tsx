@@ -14,11 +14,22 @@ interface ThemePanelProps {
 }
 
 const FONTS = [
-  { name: 'Hind Siliguri', value: 'Hind Siliguri' },
-  { name: 'Inter', value: 'Inter' },
+  // Bengali Fonts
+  { name: 'Hind Siliguri (Standard)', value: 'Hind Siliguri' },
+  { name: 'Noto Sans Bengali', value: 'Noto Sans Bengali' },
+  { name: 'Galada (Stylish)', value: 'Galada' },
+  { name: 'Tiro Bangla (Serif)', value: 'Tiro Bangla' },
+  { name: 'Mina', value: 'Mina' },
+  { name: 'Atma (Playful)', value: 'Atma' },
+  // English Fonts
+  { name: 'Inter (Modern)', value: 'Inter' },
   { name: 'Roboto', value: 'Roboto' },
   { name: 'Poppins', value: 'Poppins' },
-  { name: 'Noto Sans Bengali', value: 'Noto Sans Bengali' },
+  { name: 'Montserrat', value: 'Montserrat' },
+  { name: 'Lato', value: 'Lato' },
+  { name: 'Open Sans', value: 'Open Sans' },
+  { name: 'Oswald (Bold)', value: 'Oswald' },
+  { name: 'Playfair Display (Serif)', value: 'Playfair Display' },
 ];
 
 export default function ThemePanel({ config, onChange }: ThemePanelProps) {
