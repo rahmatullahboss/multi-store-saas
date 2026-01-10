@@ -9,6 +9,7 @@ import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { landingPages } from '@db/schema';
+import { useTrackVisit } from '~/hooks/use-track-visit';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data || 'error' in data) {
@@ -51,6 +52,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
 export default function PublishedPageRoute() {
   const page = useLoaderData<typeof loader>();
+  
+  // Track visitor
+  useTrackVisit(page.storeId);
 
   return (
     <>

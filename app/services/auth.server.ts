@@ -170,6 +170,9 @@ interface LoginParams {
   email: string;
   password: string;
   db: D1Database;
+  ip?: string;
+  userAgent?: string;
+  env?: Env;
 }
 
 interface RegisterParams {
@@ -186,7 +189,7 @@ interface RegisterParams {
  * Login a user
  * Returns detailed error information for debugging
  */
-export async function login({ email, password, db }: LoginParams): Promise<{
+export async function login({ email, password, db, ip, userAgent, env }: LoginParams): Promise<{
   user?: typeof users.$inferSelect;
   error?: string;
   errorCode?: 'USER_NOT_FOUND' | 'INVALID_PASSWORD' | 'DATABASE_ERROR' | 'STORE_NOT_FOUND' | 'ACCOUNT_DISABLED' | 'UNKNOWN_ERROR';
@@ -194,6 +197,9 @@ export async function login({ email, password, db }: LoginParams): Promise<{
 }> {
   const normalizedEmail = email.toLowerCase().trim();
   console.log('[login] Attempting login for email:', normalizedEmail);
+  const { logSystemEvent } = await import('./logger.server');
+  const { checkLoginAnomalies } = await import('./security.server');
+
   
   try {
     const drizzleDb = drizzle(db);
@@ -221,6 +227,20 @@ export async function login({ email, password, db }: LoginParams): Promise<{
     // Step 2: Check if user exists
     if (!userResult || userResult.length === 0) {
       console.log('[login] User not found for email:', normalizedEmail);
+
+      // Log security event
+      await logSystemEvent(
+          db, 
+          'warn', 
+          'Login failed: User not found', 
+          { type: 'auth_failure', email: normalizedEmail, reason: 'USER_NOT_FOUND', ip, userAgent }
+      );
+      
+      // Check for anomalies if env is provided
+      if (env) {
+          await checkLoginAnomalies(db, env, { ip, email: normalizedEmail });
+      }
+
       return {
         error: 'Invalid email or password',
         errorCode: 'USER_NOT_FOUND',
@@ -259,6 +279,20 @@ export async function login({ email, password, db }: LoginParams): Promise<{
     
     if (!isValid) {
       console.log('[login] Invalid password for user:', user.id);
+
+      // Log security event
+      await logSystemEvent(
+          db, 
+          'warn', 
+          'Login failed: Invalid password', 
+          { type: 'auth_failure', email: normalizedEmail, userId: user.id, reason: 'INVALID_PASSWORD', ip, userAgent }
+      );
+
+       // Check for anomalies
+      if (env) {
+          await checkLoginAnomalies(db, env, { ip, email: normalizedEmail });
+      }
+
       return {
         error: 'Invalid email or password',
         errorCode: 'INVALID_PASSWORD',

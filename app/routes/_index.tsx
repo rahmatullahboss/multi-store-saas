@@ -28,6 +28,7 @@ import { StoreLayout } from '~/components/templates/StoreLayout';
 import { MarketingLanding } from '~/components/MarketingLanding';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
+import { useTrackVisit } from '~/hooks/use-track-visit';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -601,6 +602,9 @@ export default function Index() {
   
   // Check for edit mode via URL param (for merchant editing)
   const isEditMode = searchParams.get('edit') === 'true';
+
+  // Track visitor (only for store pages)
+  useTrackVisit(data.mode !== 'marketing' ? data.storeId : undefined);
 
   // ========== MARKETING MODE ==========
   if (data.mode === 'marketing') {

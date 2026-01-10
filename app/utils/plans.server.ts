@@ -215,19 +215,36 @@ async function getMonthlyAiMessageCount(
 }
 
 // ============================================================================
-// HELPER: Get store plan type
+// AI PLAN CONFIGURATION (Add-on)
 // ============================================================================
-async function getStorePlan(
+export type AIPlanType = 'lite' | 'standard' | 'pro';
+
+export const AI_PLAN_LIMITS: Record<AIPlanType, number> = {
+  lite: 500,
+  standard: 1200,
+  pro: 3000,
+};
+
+// ============================================================================
+// HELPER: Get store plans (Base + AI)
+// ============================================================================
+async function getStorePlans(
   db: ReturnType<typeof drizzle>,
   storeId: number
-): Promise<PlanType> {
+): Promise<{ planType: PlanType; aiPlan: AIPlanType | null }> {
   const result = await db
-    .select({ planType: stores.planType })
+    .select({ 
+      planType: stores.planType,
+      aiPlan: stores.aiPlan 
+    })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
   
-  return (result[0]?.planType as PlanType) || 'free';
+  return {
+    planType: (result[0]?.planType as PlanType) || 'free',
+    aiPlan: (result[0]?.aiPlan as AIPlanType) || null
+  };
 }
 
 // ============================================================================
@@ -243,7 +260,7 @@ export async function checkUsageLimit(
     ? drizzle(dbBinding as D1Database) 
     : dbBinding as ReturnType<typeof drizzle>;
   
-  const planType = await getStorePlan(db, storeId);
+  const { planType, aiPlan } = await getStorePlans(db, storeId);
   const limits = PLAN_LIMITS[planType];
   
   if (type === 'order') {
@@ -310,21 +327,36 @@ export async function checkUsageLimit(
   
   if (type === 'ai_message') {
     const currentCount = await getMonthlyAiMessageCount(db, storeId);
-    const maxMessages = limits.max_ai_messages;
+    
+    // Use AI Add-on Plan Limit
+    // If no AI plan is selected, limit is effectively 0 (or a small trial amount like 10?)
+    // Let's provide a small trial of 10 messages for 'free' users without add-on, 
+    // unless strictly forced. The user said "Add-on service". 
+    // If no add-on, limit = 0 is safest, or fallback to the old visual limit.
+    // Let's check if aiPlan exists.
+    
+    const maxMessages = aiPlan ? AI_PLAN_LIMITS[aiPlan] : 0; 
+    
+    // Allow small trial if no plan? Maybe not for now. Strict implementation.
     
     if (currentCount >= maxMessages) {
+        // Different message if no plan
+        const msg = !aiPlan 
+            ? "AI Agent is an add-on service. Please activate a plan to use it."
+            : `Monthly AI message limit reached (${maxMessages}). Upgrade your AI plan.`;
+
       return {
         allowed: false,
         error: {
           code: LIMIT_CODES.AI,
-          message: `Monthly AI message limit reached (${maxMessages}). Upgrade for more AI capacity.`,
+          message: msg,
           limit: maxMessages,
           current: currentCount,
         },
         usage: {
           current: currentCount,
           limit: maxMessages,
-          percentage: 100,
+          percentage: maxMessages === 0 ? 100 : Math.round((currentCount / maxMessages) * 100), // Handle div by 0
         },
       };
     }
@@ -334,7 +366,7 @@ export async function checkUsageLimit(
       usage: {
         current: currentCount,
         limit: maxMessages,
-        percentage: maxMessages === Infinity ? 0 : Math.round((currentCount / maxMessages) * 100),
+        percentage: maxMessages === Infinity ? 0 : (maxMessages === 0 ? 0 : Math.round((currentCount / maxMessages) * 100)),
       },
     };
   }
@@ -351,16 +383,19 @@ export async function getUsageStats(
   storeId: number
 ): Promise<{
   planType: PlanType;
+  aiPlan: AIPlanType | null;
   orders: { current: number; limit: number; percentage: number };
   products: { current: number; limit: number; percentage: number };
   visitors: { current: number; limit: number; percentage: number };
+  aiMessages: { current: number; limit: number; percentage: number };
 }> {
   const db = drizzle(dbBinding);
-  const planType = await getStorePlan(db, storeId);
+  const { planType, aiPlan } = await getStorePlans(db, storeId);
   const limits = PLAN_LIMITS[planType];
   
   const orderCount = await getMonthlyOrderCount(db, storeId);
   const productCount = await getActiveProductCount(db, storeId);
+  const aiMessageCount = await getMonthlyAiMessageCount(db, storeId);
   
   // Get visitor count from stores table
   const storeResult = await db
@@ -371,8 +406,11 @@ export async function getUsageStats(
   
   const visitorCount = storeResult[0]?.monthlyVisitorCount ?? 0;
   
+  const aiLimit = aiPlan ? AI_PLAN_LIMITS[aiPlan] : 0;
+
   return {
     planType,
+    aiPlan,
     orders: {
       current: orderCount,
       limit: limits.max_orders,
@@ -388,6 +426,11 @@ export async function getUsageStats(
       limit: limits.max_visitors,
       percentage: limits.max_visitors === Infinity ? 0 : Math.round((visitorCount / limits.max_visitors) * 100),
     },
+    aiMessages: {
+      current: aiMessageCount,
+      limit: aiLimit,
+      percentage: aiLimit === 0 ? (aiMessageCount > 0 ? 100 : 0) : Math.round((aiMessageCount / aiLimit) * 100),
+    }
   };
 }
 

@@ -118,6 +118,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         email,
         password,
         db: context.cloudflare.env.DB,
+        ip: clientIp,
+        userAgent: request.headers.get('User-Agent') || 'unknown',
+        env: context.cloudflare.env,
       });
       console.log('[auth.login] Login service returned:', result.error ? 'Error' : 'Success');
       if (result.errorCode) {

@@ -96,6 +96,7 @@ export const stores = sqliteTable('stores', {
   // AI Agent Activation Request System
   aiAgentRequestStatus: text('ai_agent_request_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
   aiAgentRequestedAt: integer('ai_agent_requested_at', { mode: 'timestamp' }),
+  aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
   
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID

@@ -25,7 +25,8 @@ import {
   DollarSign,
   ExternalLink,
   Sparkles,
-  Clock
+  Clock,
+  Bot
 } from 'lucide-react';
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
@@ -353,6 +354,41 @@ export default function DashboardPage() {
           color="blue"
           link="/app/products"
         />
+        {/* AI Usage Card */}
+        {usage.aiPlan && (
+          <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col justify-between">
+              <div>
+                  <div className="flex items-center justify-between mb-4">
+                      <div>
+                          <p className="text-gray-500 text-sm font-medium">AI Messages</p>
+                          <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                              {usage.aiMessages?.current}
+                              <span className="text-sm font-normal text-gray-400"> / {usage.aiMessages?.limit}</span>
+                          </h3>
+                      </div>
+                      <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                          <Bot className="w-5 h-5 text-orange-600" />
+                      </div>
+                  </div>
+                  <div className="space-y-2">
+                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                              className={`h-full rounded-full transition-all ${
+                                  (usage.aiMessages?.percentage || 0) >= 90 ? 'bg-red-500' : 'bg-orange-500'
+                              }`}
+                              style={{ width: `${Math.min(usage.aiMessages?.percentage || 0, 100)}%` }}
+                          />
+                       </div>
+                       {(usage.aiMessages?.percentage || 0) >= 80 && (
+                           <p className="text-xs text-orange-600 font-medium">
+                               {usage.aiMessages?.percentage >= 100 ? 'Limit Reached' : 'Running Low'}
+                               <Link to="/app/billing" className="ml-1 underline">Upgrade</Link>
+                           </p>
+                       )}
+                  </div>
+              </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content Grid */}

@@ -15,7 +15,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, gte, desc, sql, count, countDistinct } from 'drizzle-orm';
-import { orders, orderItems, products, stores, abandonedCarts } from '@db/schema';
+import { orders, orderItems, products, stores, abandonedCarts, pageViews } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   TrendingUp, 
@@ -75,6 +75,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(orders)
     .where(eq(orders.storeId, storeId));
 
+  // Get page views
+  const allPageViews = await db
+    .select({
+      visitorId: pageViews.visitorId,
+      createdAt: pageViews.createdAt,
+    })
+    .from(pageViews)
+    .where(eq(pageViews.storeId, storeId));
+
   // Calculate stats - include ALL orders for revenue (COD orders have pending payment status)
   // Convert timestamps for proper comparison with SQLite integer timestamps
   const todayStartTs = Math.floor(todayStart.getTime() / 1000);
@@ -93,6 +102,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const orderTs = o.createdAt instanceof Date ? Math.floor(o.createdAt.getTime() / 1000) : o.createdAt;
     return orderTs && orderTs >= monthStartTs;
   });
+
+  const todayVisitors = allPageViews.filter(v => {
+    const ts = v.createdAt instanceof Date ? Math.floor(v.createdAt.getTime() / 1000) : v.createdAt;
+    return ts && ts >= todayStartTs;
+  }).length;
+
+  const weekVisitors = allPageViews.filter(v => {
+    const ts = v.createdAt instanceof Date ? Math.floor(v.createdAt.getTime() / 1000) : v.createdAt;
+    return ts && ts >= weekStartTs;
+  }).length;
+
+  const monthVisitors = allPageViews.filter(v => {
+    const ts = v.createdAt instanceof Date ? Math.floor(v.createdAt.getTime() / 1000) : v.createdAt;
+    return ts && ts >= monthStartTs;
+  }).length;
   
   // Revenue includes all non-cancelled orders (COD orders have pending payment but still count)
   const validOrders = allOrders.filter(o => o.status !== 'cancelled');
@@ -104,18 +128,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     today: {
       orders: todayOrders.length,
       revenue: todayValid.reduce((sum, o) => sum + (o.total || 0), 0),
+      visitors: todayVisitors,
     },
     week: {
       orders: weekOrders.length,
       revenue: weekValid.reduce((sum, o) => sum + (o.total || 0), 0),
+      visitors: weekVisitors,
     },
     month: {
       orders: monthOrders.length,
       revenue: monthValid.reduce((sum, o) => sum + (o.total || 0), 0),
+      visitors: monthVisitors,
     },
     allTime: {
       orders: allOrders.length,
       revenue: validOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+      visitors: allPageViews.length,
     },
   };
 
@@ -320,28 +348,28 @@ export default function AnalyticsPage() {
         <StatCard
           title="Today"
           value={formatPrice(stats.today.revenue)}
-          subtitle={`${stats.today.orders} orders`}
+          subtitle={`${stats.today.orders} orders • ${stats.today.visitors} visits`}
           icon={<Calendar className="w-5 h-5" />}
           color="emerald"
         />
         <StatCard
           title="This Week"
           value={formatPrice(stats.week.revenue)}
-          subtitle={`${stats.week.orders} orders`}
+          subtitle={`${stats.week.orders} orders • ${stats.week.visitors} visits`}
           icon={<TrendingUp className="w-5 h-5" />}
           color="blue"
         />
         <StatCard
           title="This Month"
           value={formatPrice(stats.month.revenue)}
-          subtitle={`${stats.month.orders} orders`}
+          subtitle={`${stats.month.orders} orders • ${stats.month.visitors} visits`}
           icon={<DollarSign className="w-5 h-5" />}
           color="purple"
         />
         <StatCard
           title="All Time"
           value={formatPrice(stats.allTime.revenue)}
-          subtitle={`${stats.allTime.orders} orders`}
+          subtitle={`${stats.allTime.orders} orders • ${stats.allTime.visitors} visits`}
           icon={<ShoppingCart className="w-5 h-5" />}
           color="orange"
         />

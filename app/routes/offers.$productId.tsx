@@ -24,6 +24,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getTemplateComponent } from '~/templates/registry';
+import { useTrackVisit } from '~/hooks/use-track-visit';
 
 // ============================================================================
 // CDN CACHING HEADERS - Same as _index.tsx
@@ -211,6 +212,9 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
 export default function OfferProductPage() {
   const data = useLoaderData<LoaderData>();
   const TemplateComponent = getTemplateComponent(data.landingConfig.templateId);
+
+  // Track visitor
+  useTrackVisit(data.storeId);
 
   return (
     <TemplateComponent
