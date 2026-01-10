@@ -1368,6 +1368,14 @@ ${historyText || "কোনো previous message নেই।"}
 
 6. **Accuracy**: শুধু উপরের knowledge base থেকে তথ্য দাও, কিছু বানিয়ে বলো না।
 
+7. **FORMATTING - MOST IMPORTANT**:
+   - কখনো markdown formatting (** বা ## বা ### বা - বা *) ব্যবহার করো না
+   - শুধু plain text লেখো
+   - Visual structure এর জন্য emojis ব্যবহার করো (✅ 💰 🚀 📱 ইত্যাদি)
+   - নতুন paragraph এর জন্য একটি blank line দাও
+   - Lists দেখাতে চাইলে প্রতি item এর আগে ✅ বা 👉 বা সংখ্যা দাও
+   - Response সংক্ষিপ্ত এবং readable রাখো
+
 ---
 
 Visitor এর প্রশ্ন: "${userMessage}"

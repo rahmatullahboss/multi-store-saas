@@ -23,6 +23,9 @@ import { AIHeroSection } from '~/components/AIHeroSection';
 import { AIShowcaseSection } from '~/components/landing/AIShowcaseSection';
 import { DragDropBuilderShowcase } from '~/components/landing/DragDropBuilderShowcase';
 import { EditorModeComparison } from '~/components/landing/EditorModeComparison';
+import { AIMagicSection } from '~/components/landing/AIMagicSection';
+import { AISocialProofSection } from '~/components/landing/AISocialProofSection';
+import { AIPoweredFinalCTA } from '~/components/landing/AIPoweredFinalCTA';
 import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
 import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
 import { InfrastructureSection } from '~/components/InfrastructureSection';
@@ -386,6 +389,8 @@ export function MarketingLanding() {
         {/* Drag & Drop Builder Section */}
         <DragDropBuilderShowcase />
         <EditorModeComparison />
+        <AIMagicSection />
+        <AISocialProofSection />
 
         {/* Bento Grid Features Section */}
         <BentoFeaturesSection />
@@ -437,6 +442,7 @@ export function MarketingLanding() {
         <FAQSection />
 
         {/* Final CTA - Compelling Bengali Design */}
+        <AIPoweredFinalCTA />
         <FinalCTA stats={marketingStats} />
 
         {/* Footer - Bangladesh Green Theme */}
@@ -662,6 +668,8 @@ export function MarketingLanding() {
       <AIShowcaseSection />
       <DragDropBuilderShowcase />
       <EditorModeComparison />
+      <AIMagicSection />
+      <AISocialProofSection />
       <BentoFeaturesSection />
       <InfrastructureSection />
       <SpeedComparison />
@@ -676,6 +684,7 @@ export function MarketingLanding() {
       <InteractiveStoreDemo />
       {/* Pricing moved to dedicated /pricing page */}
       <FAQSection />
+      <AIPoweredFinalCTA />
       <FinalCTA />
 
       {/* Footer - Bangladesh Green Theme */}
