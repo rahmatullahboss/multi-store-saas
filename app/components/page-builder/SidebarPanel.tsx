@@ -1,10 +1,10 @@
-import { BlocksProvider, SelectorsProvider, useEditor } from '@grapesjs/react';
+import { BlocksProvider, SelectorsProvider, useEditorMaybe } from '@grapesjs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Box, Palette, Settings2, Layers } from 'lucide-react';
 
 export default function SidebarPanel() {
   const [activeTab, setActiveTab] = useState<'elements' | 'styles' | 'layers'>('elements');
-  const editor = useEditor();
+  const editor = useEditorMaybe();
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
   const stylesContainerRef = useRef<HTMLDivElement>(null);
