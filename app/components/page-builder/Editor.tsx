@@ -14,6 +14,7 @@ import gjsForms from 'grapesjs-plugin-forms';
 import 'grapesjs/dist/css/grapes.min.css';
 import { getGrapesConfig } from '~/lib/grapesjs/config';
 import { bdBlocksPlugin } from '~/lib/grapesjs/bd-blocks';
+import { animationPlugin } from '~/lib/grapesjs/animation-plugin';
 import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
 import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
@@ -407,7 +408,8 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
         plugins={[
           gjsBlocksBasic as any,
           gjsForms as any,
-          bdBlocksPlugin as any, // Our custom plugin
+          bdBlocksPlugin as any, // Our custom blocks
+          animationPlugin as any, // Animation traits for all components
         ]}
         onEditor={onEditor}
       >
