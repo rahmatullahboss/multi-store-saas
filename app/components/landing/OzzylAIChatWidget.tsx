@@ -196,7 +196,7 @@ export function OzzylAIChatWidget() {
               <img 
                 src="/ozzyl-logo-small.png" 
                 alt="Ozzyl AI" 
-                className="w-12 h-12 rounded-full"
+                className="w-14 h-14 rounded-full"
               />
               {/* Online indicator */}
               <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
