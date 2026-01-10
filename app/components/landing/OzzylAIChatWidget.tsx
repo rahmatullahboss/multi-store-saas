@@ -14,7 +14,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, ArrowRight, Phone, MessageCircle } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -234,12 +234,31 @@ export function OzzylAIChatWidget() {
                   <p className="text-xs text-white/50">Ozzyl Assistant</p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/5 rounded-lg text-white/50 hover:text-white transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <a
+                  href="https://wa.me/8801739416661"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 hover:bg-white/5 rounded-lg text-white/50 hover:text-[#25D366] transition tooltip-trigger"
+                  title="WhatsApp"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </a>
+                <a
+                  href="tel:+8801739416661"
+                  className="p-2 hover:bg-white/5 rounded-lg text-white/50 hover:text-[#3B82F6] transition tooltip-trigger"
+                  title="Call Us"
+                >
+                  <Phone className="w-5 h-5" />
+                </a>
+                <div className="w-px h-6 bg-white/10 mx-1" />
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 hover:bg-white/5 rounded-lg text-white/50 hover:text-white transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
