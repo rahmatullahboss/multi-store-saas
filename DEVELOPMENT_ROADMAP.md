@@ -77,3 +77,10 @@
 - [x] **GJS Rich Templates & Blocks**: Migrated legacy rich templates to GrapesJS with enhanced blocks.
 - [x] **Landing Page Internationalization**: Complete i18n support for all marketing components.
 - [ ] **Phase 9: Reliability Engineering** (Next)
+
+### Phase 9: Visual Store Builder Upgrade (Completed)
+
+- [x] **New Section Architecture**: Replaced hardcoded templates with dynamic `SectionRenderer`.
+- [x] **Visual Section Editor**: Drag-and-drop management in `store-live-editor.tsx`.
+- [x] **Theme Refactoring**: Ported 6 templates (`LuxeBoutique`, `TechModern`, `ArtisanMarket`, `BDShop`, `Daraz`, `GhorerBazar`) to the new system.
+- [x] **Theme Centralization**: Standardized brand colors across all refactored themes.
