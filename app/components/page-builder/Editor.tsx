@@ -106,38 +106,46 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
     const doc = frame.contentDocument;
     if (!doc) return;
 
-    // Remove existing config script if any
-    const existingScript = doc.getElementById('tailwind-config-script');
-    if (existingScript) existingScript.remove();
+    // Remove existing theme style if any
+    const existingStyle = doc.getElementById('theme-variables-style');
+    if (existingStyle) existingStyle.remove();
 
-    // Create new config script
-    const script = doc.createElement('script');
-    script.id = 'tailwind-config-script';
-    script.innerHTML = `
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '${config.primaryColor}',
-              secondary: '${config.secondaryColor}',
-            },
-            fontFamily: {
-              heading: ['"${config.fontHeading}"', 'sans-serif'],
-              body: ['"${config.fontBody}"', 'sans-serif'],
-            }
-          }
-        }
+    // Create new theme style with CSS custom properties
+    const style = doc.createElement('style');
+    style.id = 'theme-variables-style';
+    style.innerHTML = `
+      :root {
+        --primary-color: ${config.primaryColor};
+        --secondary-color: ${config.secondaryColor};
+        --font-heading: "${config.fontHeading}", sans-serif;
+        --font-body: "${config.fontBody}", sans-serif;
       }
+      
+      /* Apply fonts to common elements */
+      h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-heading);
+      }
+      
+      body, p, span, div, a, button, input, textarea, select {
+        font-family: var(--font-body);
+      }
+      
+      /* Utility classes for theme colors */
+      .bg-primary { background-color: var(--primary-color) !important; }
+      .text-primary { color: var(--primary-color) !important; }
+      .border-primary { border-color: var(--primary-color) !important; }
+      
+      .bg-secondary { background-color: var(--secondary-color) !important; }
+      .text-secondary { color: var(--secondary-color) !important; }
+      .border-secondary { border-color: var(--secondary-color) !important; }
+      
+      /* Button hover effects */
+      .bg-primary:hover { filter: brightness(0.9); }
+      .bg-secondary:hover { filter: brightness(0.9); }
     `;
     
     // Inject into head
-    doc.head.appendChild(script);
-    
-    // Force refresh might be needed or just wait for Tailwind Play to observe
-    // Tailwind Play CDN usually watches DOM, but config changes might require re-init
-    // A simple hack to force style re-calc is to add/remove a class from body
-    doc.body.classList.add('theme-updating');
-    setTimeout(() => doc.body.classList.remove('theme-updating'), 10);
+    doc.head.appendChild(style);
   };
 
   return (
