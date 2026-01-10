@@ -642,6 +642,7 @@ export const landingPages = sqliteTable('landing_pages', {
   projectData: text('project_data'), // GrapesJS Internal JSON
   htmlContent: text('html_content'),
   cssContent: text('css_content'),
+  pageConfig: text('page_config'), // JSON configuration for featured product, WhatsApp, etc.
   isPublished: integer('is_published', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),

@@ -20,7 +20,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, Code2
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, Code2, AlertCircle
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
@@ -948,6 +948,22 @@ export default function LiveEditorPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
+      {/* DEPRECATION BANNER */}
+      <div className="bg-amber-600 text-white px-4 py-2 flex items-center justify-between shadow-md z-50">
+        <div className="flex items-center gap-2 text-sm">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <p>
+            <span className="font-bold">Legacy Editor:</span> This editor is deprecated. Use the new <Link to="/app/page-builder" className="underline font-black hover:text-white/80">Landing Page Editor</Link> for better features.
+          </p>
+        </div>
+        <Link 
+          to="/app/page-builder" 
+          className="bg-white text-amber-700 px-3 py-1 rounded text-xs font-black hover:bg-amber-50 transition ml-4 whitespace-nowrap"
+        >
+          GO TO NEW EDITOR
+        </Link>
+      </div>
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 flex-shrink-0 z-20">
         <div className="px-4 h-14 flex items-center justify-between">

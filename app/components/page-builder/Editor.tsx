@@ -30,6 +30,17 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
   const [aiDesignMode, setAiDesignMode] = useState<'full-page' | 'section-design'>('full-page');
   const [selectedComponentData, setSelectedComponentData] = useState<string | null>(null);
   
+  // Page Configurations (Featured Product, WhatsApp, etc.)
+  const [pageConfig, setPageConfig] = useState<{
+    featuredProductId?: number;
+    featuredProductName?: string;
+    whatsappNumber?: string;
+    whatsappMessage?: string;
+    timerEndDate?: string;
+    socialProofCount?: number;
+    socialProofText?: string;
+  }>({});
+
   // Global Theme State
   const [themeConfig, setThemeConfig] = useState({
     primaryColor: '#059669', // emerald-600
@@ -42,7 +53,23 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
     console.log('Editor loaded', editorInstance);
     setEditor(editorInstance);
 
-    // Add Magic Generate Button to Panel
+    // 1. Initial Data Loading (pageConfig)
+    editorInstance.on('storage:load', (res: any) => {
+      if (res && res.pageConfig) {
+        setPageConfig(res.pageConfig);
+      }
+      if (res && res.themeConfig) {
+        setThemeConfig(res.themeConfig);
+      }
+    });
+
+    // 2. Inject pageConfig during Save
+    editorInstance.on('storage:start:store', (data: any) => {
+      data.pageConfig = pageConfig;
+      data.themeConfig = themeConfig;
+    });
+
+    // 3. Add Magic Generate Button to Panel
     editorInstance.Panels.addButton('options', {
       id: 'magic-generate',
       className: 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold !px-3 !border-none hover:opacity-90 flex items-center gap-2',
@@ -104,7 +131,6 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
       const selected = editor.getSelected();
       if (selected && data.html) {
         // Replace selected component with new HTML
-        const parent = selected.parent();
         const index = selected.index();
         
         // Add components and get the first one
@@ -183,6 +209,51 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
     });
   };
   
+  // Smart Sync: Update blocks when pageConfig changes
+  useEffect(() => {
+    if (!editor || !pageConfig) return;
+
+    const syncConfigToBlocks = () => {
+      const wrapper = editor.getWrapper();
+      if (!wrapper) return;
+
+      // Update Featured Product references
+      if (pageConfig.featuredProductName) {
+        wrapper.find('.product-name').forEach((comp: any) => {
+          comp.set('content', pageConfig.featuredProductName);
+        });
+      }
+
+      // Update WhatsApp links
+      if (pageConfig.whatsappNumber) {
+        const msg = encodeURIComponent(pageConfig.whatsappMessage || '');
+        const url = `https://wa.me/${pageConfig.whatsappNumber}?text=${msg}`;
+        wrapper.find('.whatsapp-link').forEach((comp: any) => {
+          // Check if it's a link component or has a tagName 'a'
+          if (comp.get('type') === 'link' || comp.get('tagName') === 'a') {
+            comp.addAttributes({ href: url });
+          }
+        });
+      }
+
+      // Update Social Proof
+      if (pageConfig.socialProofCount !== undefined && pageConfig.socialProofCount !== null) {
+        wrapper.find('.social-proof-count').forEach((comp: any) => {
+          comp.set('content', pageConfig.socialProofCount?.toString() || '0');
+        });
+      }
+
+      // Update Countdown Timers
+      if (pageConfig.timerEndDate) {
+        wrapper.find('[data-gjs-type="countdown"]').forEach((comp: any) => {
+          comp.set('end-date', pageConfig.timerEndDate);
+        });
+      }
+    };
+
+    syncConfigToBlocks();
+  }, [pageConfig, editor]);
+
   // Inject Dynamic Tailwind Config when Theme Changes
   useEffect(() => {
     if (editor) {
@@ -265,6 +336,8 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
             <SidebarPanel 
                 themeConfig={themeConfig} 
                 onThemeChange={setThemeConfig}
+                pageConfig={pageConfig}
+                onPageConfigChange={setPageConfig}
                 onLoadTemplate={handleLoadTemplate}
             />
             </div>

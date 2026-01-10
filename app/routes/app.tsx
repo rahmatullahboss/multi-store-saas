@@ -269,14 +269,14 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarSettings',
     items: [
-      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: Rocket },
-      { to: '/app/page-builder', labelKey: 'navPageBuilder' as any, icon: Palette },
-      { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Sparkles },
+      { to: '/app/page-builder', labelKey: 'navPageBuilder' as any, icon: Rocket },
+      { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Palette },
       { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/billing', labelKey: 'navBilling', icon: CreditCard },
       { to: '/app/settings', labelKey: 'navAllSettings', icon: Settings },
+      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: AlertTriangle },
     ],
   },
 ];

@@ -4,16 +4,25 @@ import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate } from 'lu
 import { useTranslation } from '~/contexts/LanguageContext';
 import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
+import PageSettingsPanel from './PageSettingsPanel';
 
 interface SidebarPanelProps {
   themeConfig?: any;
   onThemeChange?: (config: any) => void;
+  pageConfig?: any;
+  onPageConfigChange?: (config: any) => void;
   onLoadTemplate?: (templateId: string) => void;
 }
 
-export default function SidebarPanel({ themeConfig, onThemeChange, onLoadTemplate }: SidebarPanelProps) {
+export default function SidebarPanel({ 
+  themeConfig, 
+  onThemeChange, 
+  pageConfig,
+  onPageConfigChange,
+  onLoadTemplate 
+}: SidebarPanelProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'templates' | 'elements' | 'styles' | 'layers' | 'theme'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'elements' | 'styles' | 'layers' | 'theme' | 'settings'>('templates');
   const editor = useEditorMaybe();
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
@@ -245,18 +254,24 @@ export default function SidebarPanel({ themeConfig, onThemeChange, onLoadTemplat
               <PaintBucket size={14} strokeWidth={2.5} />
               <span className="sr-only">Theme</span>
            </button>
+
+           {/* Page Settings Tab */}
+           <button 
+             onClick={() => setActiveTab('settings')}
+             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'settings' ? 'bg-white text-orange-600 shadow-sm border border-orange-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             title="Page Settings"
+           >
+              <Settings2 size={14} strokeWidth={2.5} />
+              <span className="sr-only">Settings</span>
+           </button>
         </div>
 
         <div className="flex-1 min-h-0 relative">
-          {activeTab === 'templates' ? (
-            onLoadTemplate ? (
-              <TemplatesPanel onLoadTemplate={onLoadTemplate} />
-            ) : (
-              <div className="p-4">
-                <p className="text-xs text-gray-500">Templates feature not available</p>
-              </div>
-            )
-          ) : activeTab === 'elements' ? (
+          {activeTab === 'templates' && onLoadTemplate && (
+            <TemplatesPanel onLoadTemplate={onLoadTemplate} />
+          )}
+
+          {activeTab === 'elements' && (
             <BlocksProvider>
               {({ blocks, dragStart, dragStop }) => {
                 const categories: Record<string, any[]> = {};
@@ -304,7 +319,9 @@ export default function SidebarPanel({ themeConfig, onThemeChange, onLoadTemplat
                 );
               }}
             </BlocksProvider>
-          ) : activeTab === 'styles' ? (
+          )}
+
+          {activeTab === 'styles' && (
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300">
               {/* Selectors Manager */}
               <div className="p-4 border-b border-gray-50 bg-blue-50/10">
@@ -348,7 +365,9 @@ export default function SidebarPanel({ themeConfig, onThemeChange, onLoadTemplat
                 <div ref={stylesContainerRef} className="gjs-styles-wrap" />
               </div>
             </div>
-          ) : activeTab === 'layers' ? (
+          )}
+
+          {activeTab === 'layers' && (
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300 p-4">
                <div className="mb-4">
                   <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Layer Structure</h3>
@@ -356,10 +375,14 @@ export default function SidebarPanel({ themeConfig, onThemeChange, onLoadTemplat
                </div>
                <div ref={layersContainerRef} className="gjs-layers-wrap min-h-[200px]" />
             </div>
-          ) : (
-             themeConfig && onThemeChange && (
-               <ThemePanel config={themeConfig} onChange={onThemeChange} />
-             )
+          )}
+
+          {activeTab === 'theme' && themeConfig && onThemeChange && (
+             <ThemePanel config={themeConfig} onChange={onThemeChange} />
+          )}
+
+          {activeTab === 'settings' && pageConfig && onPageConfigChange && (
+            <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />
           )}
         </div>
       </div>
