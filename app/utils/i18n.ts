@@ -1518,6 +1518,7 @@ export const translations = {
     
     // Billing & Upgrade
     backToBilling: 'বিলিং এ ফিরুন',
+    upgradePlan: 'আপনার প্ল্যান আপগ্রেড করুন',
     navAgent: 'সেলস এজেন্ট',
     navUpgrade: 'প্ল্যান আপগ্রেড করুন',
     abandonedCarts: 'পরিত্যক্ত কার্ট',
@@ -2669,7 +2670,9 @@ export type TranslationKey = keyof typeof translations.en;
  * Get translation for a key
  */
 export function t(key: TranslationKey, lang: Language = 'en'): string {
-  return translations[lang][key] || translations.en[key] || key;
+  const dict = translations[lang] as Record<string, string>;
+  const enDict = translations.en as Record<string, string>;
+  return dict[key] || enDict[key] || key;
 }
 
 /**

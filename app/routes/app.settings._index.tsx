@@ -265,7 +265,7 @@ const currencies = [
 // ============================================================================
 export default function SettingsPage() {
   const { store, allowStoreMode, dataCounts } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<typeof action>() as { success?: boolean; error?: string } | undefined;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
@@ -308,7 +308,7 @@ export default function SettingsPage() {
 
   // Show success message
   useEffect(() => {
-    if (actionData && typeof actionData === 'object' && 'success' in actionData && (actionData as { success?: boolean }).success) {
+    if (actionData?.success) {
       setShowSuccess(true);
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
@@ -434,18 +434,18 @@ export default function SettingsPage() {
         <p className="text-gray-600">{t('settingsSubtitle')}</p>
       </div>
 
-      {/* Success Message */}
+
       {showSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {t('settingsSaved') as string}
+          {t('settingsSaved')}
         </div>
       )}
 
       {/* Error Message */}
-      {actionData && typeof actionData === 'object' && 'error' in actionData && (actionData as { error?: string }).error && (
+      {actionData?.error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {(actionData as { error: string }).error}
+          {actionData.error}
         </div>
       )}
 
