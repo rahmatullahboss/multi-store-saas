@@ -59,6 +59,7 @@ export default function EditorToolbar({ isAiLocked = false }: { isAiLocked?: boo
       await editor.store();
       toast.success('Draft saved successfully!', { id: 'save-draft' });
     } catch (error) {
+      console.error('Save draft error:', error);
       toast.error('Failed to save draft', { id: 'save-draft' });
     }
   };
@@ -68,27 +69,18 @@ export default function EditorToolbar({ isAiLocked = false }: { isAiLocked?: boo
     try {
       toast.loading('Publishing page...', { id: 'publish' });
       
-      // Get storage manager and current options
-      const sm = editor.StorageManager;
-      const remote = sm.get('remote');
-      
-      if (!remote) {
-        throw new Error('Remote storage not configured');
-      }
-
-      const originalUrl = remote.get('urlStore') as string;
-      
-      // Temporarily add publish flag
-      const publishUrl = `${originalUrl}${originalUrl.includes('?') ? '&' : '?'}publish=true`;
-      remote.set('urlStore', publishUrl);
+      // Set publishing flag on editor instance (read by storage:start:store hook in Editor.tsx)
+      (editor as any).isPublishing = true;
       
       await editor.store();
       
-      // Restore original URL
-      remote.set('urlStore', originalUrl);
+      // Reset flag
+      (editor as any).isPublishing = false;
       
       toast.success('Page live and published!', { id: 'publish' });
     } catch (error) {
+      console.error('Publish error:', error);
+      (editor as any).isPublishing = false;
       toast.error('Failed to publish page', { id: 'publish' });
     }
   };

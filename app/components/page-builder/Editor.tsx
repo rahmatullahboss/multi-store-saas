@@ -137,6 +137,9 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
     editorInstance.on('storage:start:store', (data: any) => {
       data.pageConfig = pageConfig;
       data.themeConfig = themeConfig;
+      if (editorInstance.isPublishing) {
+        data.publish = true;
+      }
     });
 
     // 3. Add Magic Generate Button to Panel

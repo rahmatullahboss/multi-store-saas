@@ -75,7 +75,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     const data = await request.json() as any;
     const pageId = new URL(request.url).searchParams.get('id');
-    const publish = new URL(request.url).searchParams.get('publish') === 'true';
+    // Check both URL query and body for publish flag
+    const publish = new URL(request.url).searchParams.get('publish') === 'true' || data.publish === true || data.isPublished === true;
 
     // Extract pageConfig if present
     const pageConfig = data.pageConfig ? JSON.stringify(data.pageConfig) : null;
