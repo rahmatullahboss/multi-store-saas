@@ -62,6 +62,7 @@
 - [x] **Audit Trails**: Detailed logs for all sensitive actions (Expanded).
 - [x] **SSO**: Single Sign-On for enterprise merchants (Google OAuth).
 - [x] **Multi-Language Admin**: Full Bengali/English toggle for Admin panel.
+- [x] **Marketing Landing Page i18n**: Full Bengali/English support for all landing page components (Chat, Builder, Product, etc.).
 - [x] **Ozzyl AI Chatbot**: Premium dark glassmorphism chatbot for marketing pages.
 - [x] **Lead Capture & Chat History**: Mandatory Name/Phone registration and persistent message logging.
 - [x] **Marketing Header Standardization**: Unified header component across all marketing pages.
@@ -74,4 +75,5 @@
 - [x] Integrate Google SSO
 - [x] Setup i18n and Language Switcher
 - [x] **GJS Rich Templates & Blocks**: Migrated legacy rich templates to GrapesJS with enhanced blocks.
+- [x] **Landing Page Internationalization**: Complete i18n support for all marketing components.
 - [ ] **Phase 9: Reliability Engineering** (Next)
