@@ -104,39 +104,74 @@ export default function MagicGenerateModal({
 
           {isLocked ? (
             <div className="space-y-6 py-4">
-              <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 text-left">
-                <div className="flex items-center gap-3 mb-4 text-amber-700">
-                  <Sparkles size={20} className="animate-pulse" />
-                  <span className="font-black uppercase tracking-wider text-xs">Premium AI Feature</span>
+              <div className="p-8 bg-gradient-to-br from-slate-50 to-gray-100 rounded-3xl border border-gray-200 text-left relative overflow-hidden shadow-inner">
+                {/* Background Pattern */}
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                  <Sparkles size={120} />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Upgrade to Unlock Magic Generation</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  AI-powered page building and design customization is a premium feature. Upgrade to our Starter or Business plan to experience the magic!
+                
+                <div className="flex items-center gap-3 mb-6 relative">
+                  <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <Sparkles size={20} className="animate-pulse" />
+                  </div>
+                  <div>
+                    <span className="bg-gray-900 text-white text-[10px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase">Premium PRO</span>
+                    <h3 className="text-xl font-black text-gray-900 mt-1">Unlock Magic AI</h3>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-600 leading-relaxed mb-6 font-medium">
+                  Experience the future of landing page creation. Our AI models generate high-converting, mobile-perfect designs in seconds.
                 </p>
-                <ul className="mt-4 space-y-2">
-                  <li className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                    <CheckCircle size={14} className="text-emerald-500" /> Professional Copywriting
-                  </li>
-                  <li className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                    <CheckCircle size={14} className="text-emerald-500" /> Modern UI/UX Patterns
-                  </li>
-                  <li className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                    <CheckCircle size={14} className="text-emerald-500" /> One-click Conversions
-                  </li>
-                </ul>
+
+                <div className="grid grid-cols-1 gap-3 mb-2">
+                  <div className="flex items-start gap-3 p-3 bg-white/50 rounded-xl border border-white">
+                    <div className="mt-1 w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle size={12} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">Custom Section Redesign</p>
+                      <p className="text-[10px] text-gray-500">Edit colors, layouts, and copy instantly.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-white/50 rounded-xl border border-white">
+                    <div className="mt-1 w-5 h-5 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle size={12} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">Landing Page Generation</p>
+                      <p className="text-[10px] text-gray-500">Full-page high-converting templates.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-white/50 rounded-xl border border-white">
+                    <div className="mt-1 w-5 h-5 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle size={12} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">Persuasive Bengali Marketing Copy</p>
+                      <p className="text-[10px] text-gray-500">Auto-generated for the BD market.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <a
-                href="/app/billing"
-                className="w-full bg-gray-900 text-white font-bold text-lg py-4 rounded-xl hover:bg-black transition shadow-lg flex items-center justify-center gap-2"
-              >
-                Go to Upgrade Page
-              </a>
-              <button
-                onClick={onClose}
-                className="w-full text-gray-400 font-bold text-sm py-2 hover:text-gray-600 transition"
-              >
-                Maybe Later
-              </button>
+
+              <div className="space-y-3">
+                <a
+                  href="/app/billing"
+                  className="w-full bg-gray-900 text-white font-black text-lg py-5 rounded-2xl hover:bg-black transition shadow-xl shadow-gray-200 flex items-center justify-center gap-3 group"
+                >
+                  UPGRADE NOW
+                  <div className="bg-white/10 p-1 rounded-lg group-hover:bg-white/20 transition">
+                    <Sparkles size={18} />
+                  </div>
+                </a>
+                <button
+                  onClick={onClose}
+                  className="w-full text-gray-400 font-bold text-sm py-2 hover:text-gray-600 transition tracking-wide"
+                >
+                  MAYBE LATER
+                </button>
+              </div>
             </div>
           ) : step === 'input' && (
             <div className="space-y-4">

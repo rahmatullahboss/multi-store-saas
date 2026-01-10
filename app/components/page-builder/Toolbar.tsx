@@ -212,20 +212,48 @@ export default function EditorToolbar({ isAiLocked = false }: { isAiLocked?: boo
         {selectedComponent ? (
           <button 
             onClick={() => editor.runCommand('open-ai-design-modal')}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl transition shadow-md shadow-purple-100 animate-in fade-in zoom-in group"
-            title="Edit Selected Element with AI"
+            className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition shadow-md animate-in fade-in zoom-in group relative ${
+              isAiLocked 
+                ? 'bg-gradient-to-r from-slate-400 to-slate-500 text-white shadow-slate-100 hover:from-slate-500 hover:to-slate-600' 
+                : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-purple-100'
+            }`}
+            title={isAiLocked ? "Unlock Magic AI (Premium)" : "Edit Selected Element with AI"}
           >
-            {isAiLocked ? <Lock size={14} className="text-white/70" /> : <Sparkles size={14} />}
-            MAGIC EDIT
+            {isAiLocked ? (
+              <div className="flex items-center gap-1.5">
+                <Lock size={12} className="text-white/80" />
+                <span>MAGIC EDIT</span>
+                <span className="bg-white/20 text-[8px] px-1 rounded-sm backdrop-blur-sm">PRO</span>
+              </div>
+            ) : (
+              <>
+                <Sparkles size={14} />
+                <span>MAGIC EDIT</span>
+              </>
+            )}
           </button>
         ) : (
           <button 
             onClick={() => editor.runCommand('open-magic-modal')}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition border border-emerald-100 shadow-sm shadow-emerald-50 group"
-            title="Generate Page with AI"
+            className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition border shadow-sm group relative ${
+              isAiLocked
+                ? 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:border-slate-300 shadow-slate-50'
+                : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100 shadow-emerald-50'
+            }`}
+            title={isAiLocked ? "Unlock Magic AI (Premium)" : "Generate Page with AI"}
           >
-            {isAiLocked ? <Lock size={14} className="text-emerald-400" /> : <Wand2 size={14} />}
-            MAGIC AI
+            {isAiLocked ? (
+              <div className="flex items-center gap-1.5">
+                <Lock size={12} className="text-slate-400" />
+                <span>MAGIC AI</span>
+                <span className="bg-slate-200 text-slate-600 text-[8px] px-1 rounded-sm">PRO</span>
+              </div>
+            ) : (
+              <>
+                <Wand2 size={14} />
+                <span>MAGIC AI</span>
+              </>
+            )}
           </button>
         )}
 

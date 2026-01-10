@@ -74,10 +74,18 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
     // 3. Add Magic Generate Button to Panel
     editorInstance.Panels.addButton('options', {
       id: 'magic-generate',
-      className: 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold !px-3 !border-none hover:opacity-90 flex items-center gap-2',
-      label: '✨ AI Generate',
+      className: isAiLocked 
+        ? 'bg-slate-400 text-white font-bold !px-3 !border-none hover:bg-slate-500 flex items-center gap-2'
+        : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold !px-3 !border-none hover:opacity-90 flex items-center gap-2',
+      label: isAiLocked ? `
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        AI Generate (PRO)
+      ` : '✨ AI Generate',
       command: 'open-magic-modal',
-      attributes: { title: 'Generate Landing Page with AI' }
+      attributes: { title: isAiLocked ? 'Unlock Magic AI (Premium)' : 'Generate Landing Page with AI' }
     });
 
     editorInstance.Commands.add('open-magic-modal', {
