@@ -3034,7 +3034,7 @@ export const translations = {
     landingOzzylChat_suggestPricing: 'Pricing জানতে চাই',
     landingOzzylChat_suggestBkash: 'বিকাশ পেমেন্ট নেওয়া যায়?',
     landingOzzylChat_suggestHowToStart: 'কিভাবে শুরু করব?',
-    landingOzzylChat_alwaysHelp: 'Always here to help',
+    landingOzzylChat_alwaysHelp: 'সহায়তার জন্য সবসময় প্রস্তুত',
     landingOzzylChat_identifyYourself: 'আপনার পরিচয় দিন',
     landingOzzylChat_identifyDesc: 'চ্যাট শুরু করার আগে দয়া করে আপনার নাম এবং ফোন নাম্বারটি দিন।',
     landingOzzylChat_yourName: 'আপনার নাম',

@@ -36,6 +36,7 @@ export function OzzylAIChatWidget() {
   const [visitorId, setVisitorId] = useState<number | null>(null);
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
 
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -142,12 +143,28 @@ export function OzzylAIChatWidget() {
     }
   }, [fetcher.state, fetcher.data, isRegistered, t]);
 
+  // Validate Bangladesh phone number (01XXXXXXXXX - 11 digits)
+  const validatePhone = (phone: string): boolean => {
+    const cleaned = phone.replace(/\D/g, ''); // Remove non-digits
+    const bdPhoneRegex = /^01[3-9]\d{8}$/;
+    return bdPhoneRegex.test(cleaned);
+  };
+
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    setPhoneError('');
+
     if (!regName.trim() || !regPhone.trim() || isLoading) return;
 
+    // Validate phone
+    const cleanedPhone = regPhone.replace(/\D/g, '');
+    if (!validatePhone(cleanedPhone)) {
+      setPhoneError('সঠিক বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)');
+      return;
+    }
+
     fetcher.submit(
-      { action: 'register', name: regName.trim(), phone: regPhone.trim() },
+      { action: 'register', name: regName.trim(), phone: cleanedPhone },
       { method: 'post', action: '/api/visitor-chat', encType: 'application/json' }
     );
   };
@@ -363,6 +380,12 @@ export function OzzylAIChatWidget() {
                             placeholder={t('landingOzzylChat_phonePlaceholder')}
                         />
                     </div>
+
+                    {phoneError && (
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs">
+                            {phoneError}
+                        </div>
+                    )}
 
                     {fetcher.data?.error && !isRegistered && (
                         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs">
