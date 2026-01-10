@@ -23,7 +23,7 @@ interface Message {
 }
 
 const QUICK_SUGGESTIONS = [
-  { text: "Multi-Store কি?", emoji: "💡" },
+  { text: "Ozzyl কি?", emoji: "💡" },
   { text: "Pricing জানতে চাই", emoji: "💰" },
   { text: "বিকাশ পেমেন্ট নেওয়া যায়?", emoji: "📱" },
   { text: "কিভাবে শুরু করব?", emoji: "🚀" },
@@ -36,7 +36,7 @@ export function OzzylAIChatWidget() {
     {
       id: '1',
       role: 'assistant',
-      content: 'আসসালামু আলাইকুম! 👋 আমি Ozzyl AI - Multi-Store এর official assistant। আপনার অনলাইন বিজনেস নিয়ে কিভাবে সাহায্য করতে পারি?'
+      content: 'আসসালামু আলাইকুম! 👋 আমি Ozzyl AI - Ozzyl এর official assistant। আপনার অনলাইন বিজনেস নিয়ে কিভাবে সাহায্য করতে পারি?'
     }
   ]);
   
@@ -170,7 +170,7 @@ export function OzzylAIChatWidget() {
                     Ozzyl AI
                     <span className="text-[10px] font-medium px-1.5 py-0.5 bg-[#006A4E]/30 text-[#00875F] rounded">BETA</span>
                   </h3>
-                  <p className="text-xs text-white/50">Multi-Store Assistant</p>
+                  <p className="text-xs text-white/50">Ozzyl Assistant</p>
                 </div>
               </div>
               <button
