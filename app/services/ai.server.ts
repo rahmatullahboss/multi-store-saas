@@ -13,6 +13,17 @@
 
 import { z } from 'zod';
 
+// Cloudflare Workers AI Binding Type
+export interface Env {
+  AI: any; // Cloudflare Workers AI namespace
+  VECTORIZE: any; // Cloudflare Vectorize Index binding
+}
+
+// Embedding Model
+const EMBEDDING_MODEL = '@cf/baai/bge-base-en-v1.5';
+
+
+
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
@@ -942,11 +953,38 @@ export async function chatWithMerchant(
     storeName: string;
     userName: string;
     planType?: string;
-    pageContext?: string; // Which page they are on (e.g., "Settings > Shipping")
+    pageContext?: string;
+    history?: Array<{ role: 'user' | 'assistant'; content: string }>;
   },
   model: string = DEFAULT_MODEL,
-  baseUrl: string = DEFAULT_BASE_URL
+  baseUrl: string = DEFAULT_BASE_URL,
+  aiContext?: { AI: any; VECTORIZE: any } // Added Cloudflare Env Context
 ): Promise<string> {
+  // 1. RAG: Search for relevant context using Vectorize
+  let ragContext = "";
+  if (aiContext?.VECTORIZE) {
+    try {
+      console.log('[AI] Searching vectors for query:', userMessage);
+      // Pass storeId for tenant isolation
+      const vectors = await searchVectors(userMessage, storeId, aiContext, 3);
+      if (vectors.length > 0) {
+        ragContext = "\n\nRelevant Documentation/Context:\n" + 
+          vectors.map(v => `- ${v.metadata?.text || 'No text'}`).join("\n");
+        console.log('[AI] RAG Context injected:', vectors.length, 'items');
+      }
+    } catch (e) {
+      console.error('[AI] RAG Search failed:', e);
+    }
+  }
+
+  // 2. Format Chat History
+  let historyText = '';
+  if (context.history && context.history.length > 0) {
+    historyText = context.history.map(msg => 
+      `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+    ).join('\n\n');
+  }
+
   // Simplified RAG: We inject knowledge about the system
   const systemKnowledge = `
     MultiStore SaaS Platform Knowledge Base:
@@ -968,7 +1006,13 @@ export async function chatWithMerchant(
   - Plan: ${context.planType || 'Free'}
   - Current Page: ${context.pageContext || 'Dashboard'}
 
-  ### Knowledge Base
+  ### Chat History
+  ${historyText ? historyText : "No previous messages."}
+
+  ### Relevant Documentation (RAG)
+  ${ragContext ? ragContext : "No specific documentation found for this query."}
+
+  ### General Knowledge Base
   ${systemKnowledge}
 
   ### Rules
@@ -1007,54 +1051,183 @@ export async function chatWithSuperAdmin(
   return callAI(apiKey, systemPrompt, userMessage, model, baseUrl);
 }
 
+/**
+ * Generate vector embeddings for text using Cloudflare Workers AI
+ * Free Tier: 10,000 requests/day
+ */
+async function generateEmbedding(text: string, context: { AI: any }): Promise<number[]> {
+  if (!context?.AI) {
+    console.warn('[AI] Cloudflare Workers AI binding not found. Mocking embedding.');
+    // Fallback or throw based on strictness. Throwing for now to ensure config is correct.
+    throw new Error('Cloudflare AI binding (env.AI) missing');
+  }
+
+  try {
+    const response = await context.AI.run(EMBEDDING_MODEL, {
+      text: [text] // Array input supported
+    });
+
+    // Response format: { shape: [1, 768], data: [[...]] } or { data: [[...]] }
+    if (response?.data && response.data.length > 0) {
+      // API returns [[0.1, 0.2...]], we want the first vector
+      return response.data[0];
+    }
+    
+    throw new Error('Invalid embedding response');
+  } catch (error) {
+    console.error('Embedding Generation Failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Insert a vector into the Cloudflare Vectorize index
+ */
+/**
+ * Insert a vector into the Cloudflare Vectorize index
+ */
+/**
+ * Insert or Update a vector in the Cloudflare Vectorize index
+ */
+async function insertVector(
+  text: string, 
+  metadata: { storeId: number | string; customId?: string; [key: string]: any }, 
+  context: { AI: any; VECTORIZE: any }
+): Promise<void> {
+  if (!context?.VECTORIZE) {
+    console.warn('[AI] Vectorize binding missing. Skipping vector insertion.');
+    return;
+  }
+
+  try {
+    const values = await generateEmbedding(text, context);
+    // Use customId if provided (for Sync), otherwise random
+    const id = metadata.customId || crypto.randomUUID();
+    
+    // Cloudflare Vectorize upsert (inserts or replaces)
+    await context.VECTORIZE.upsert([{
+      id,
+      values,
+      metadata: {
+        ...metadata,
+        storeId: String(metadata.storeId), // Ensure storeId is string
+        text // Store text in metadata
+      }
+    }]);
+    
+    console.log(`[AI] Vector upserted: ${id} for Store: ${metadata.storeId}`);
+  } catch (error) {
+    console.error('[AI] Vector Upsert Failed:', error);
+  }
+}
+
+/**
+ * Delete a vector by ID
+ */
+async function deleteVector(
+  id: string,
+  context: { VECTORIZE: any }
+): Promise<void> {
+  if (!context?.VECTORIZE) return;
+  try {
+    await context.VECTORIZE.deleteByIds([id]);
+    console.log(`[AI] Vector deleted: ${id}`);
+  } catch (error) {
+    console.error('[AI] Vector Deletion Failed:', error);
+  }
+}
+
+/**
+ * Search for similar vectors in the Cloudflare Vectorize index
+ */
+async function searchVectors(
+  query: string, 
+  storeId: number | string,
+  context: { AI: any; VECTORIZE: any },
+  limit: number = 3
+): Promise<Array<{ score: number; metadata: any }>> {
+  if (!context?.VECTORIZE) {
+    console.warn('[AI] Vectorize binding missing. Skipping vector search.');
+    return [];
+  }
+
+  try {
+    const vector = await generateEmbedding(query, context);
+    
+    // TENANT ISOLATION:
+    // We STRICTLY filter by storeId to ensure one store cannot see another's data.
+    const results = await context.VECTORIZE.query(vector, {
+      topK: limit,
+      filter: { storeId: String(storeId) }, // Only match vectors with this storeId
+      returnMetadata: true
+    });
+
+    console.log(`[AI] Vector search for Store ${storeId} found ${results.matches.length} matches`);
+    return results.matches || [];
+  } catch (error) {
+    console.error('[AI] Vector Search Failed:', error);
+    return [];
+  }
+}
+
 // ============================================================================
 // EXPORT: AI Service Factory
 // ============================================================================
-export function createAIService(apiKey: string, options?: { model?: string, baseUrl?: string }) {
-  if (!apiKey) {
-    throw new Error('AI API key is required');
-  }
+export function createAIService(apiKey: string | undefined, options?: { model?: string, baseUrl?: string, context?: any }) {
+  // Ensure API key is present for AI features
+  // We allow undefined initialization but methods will fail if called without key, 
+  // OR we enforce it here. Given the lint errors, strict enforcement or default empty string is needed.
+  // The downstream functions require string.
+  const validApiKey = apiKey || ''; 
+
 
   const model = options?.model || DEFAULT_MODEL;
   const baseUrl = options?.baseUrl || DEFAULT_BASE_URL;
+  const aiContext = options?.context || {};
 
   return {
     generateStoreSetup: (description: string) => 
-      generateStoreSetup(apiKey, description, model, baseUrl),
+      generateStoreSetup(validApiKey, description, model, baseUrl),
+    
+    // New Vector Capabilities
+    insertVector: (text: string, metadata: { storeId: number | string; customId?: string; [key: string]: any }) => insertVector(text, metadata, aiContext),
+    deleteVector: (id: string) => deleteVector(id, aiContext),
+    searchVectors: (query: string, storeId: number | string, limit?: number) => searchVectors(query, storeId, aiContext, limit),
+    generateEmbedding: (text: string) => generateEmbedding(text, aiContext),
     
     generateLandingConfig: (productInfo: { title: string; description?: string; price: number }, style?: string) =>
-      generateLandingConfig(apiKey, productInfo, style, model, baseUrl),
+      generateLandingConfig(validApiKey, productInfo, style, model, baseUrl),
     
     generateFullPage: (businessDescription: string) =>
-      generateFullPage(apiKey, businessDescription, model, baseUrl),
+      generateFullPage(validApiKey, businessDescription, model, baseUrl),
     
     editSection: (sectionName: string, currentData: unknown, prompt: string) =>
-      editSection(apiKey, sectionName, currentData, prompt, model, baseUrl),
+      editSection(validApiKey, sectionName, currentData, prompt, model, baseUrl),
     
     enhanceText: (fieldType: string, currentText: string, keywords: string) =>
-      enhanceText(apiKey, fieldType, currentText, keywords, model, baseUrl),
+      enhanceText(validApiKey, fieldType, currentText, keywords, model, baseUrl),
     
     quickEdit: (currentText: string, prompt: string) =>
-      quickEdit(apiKey, currentText, prompt, model, baseUrl),
+      quickEdit(validApiKey, currentText, prompt, model, baseUrl),
     
     generateElementorPage: (prompt: string) =>
-      generateElementorPage(apiKey, prompt, model, baseUrl),
+      generateElementorPage(validApiKey, prompt, model, baseUrl),
     editElementorSection: (currentHtml: string, prompt: string) => 
-      editElementorSection(apiKey, currentHtml, prompt, options?.model, options?.baseUrl),
+      editElementorSection(validApiKey, currentHtml, prompt, options?.model, options?.baseUrl),
     
     generateGrapesJsPage: (prompt: string) => 
-      generateGrapesJsPage(apiKey, prompt, options?.model, options?.baseUrl),
+      generateGrapesJsPage(validApiKey, prompt, options?.model, options?.baseUrl),
     
     designCustomSection: (prompt: string, currentHtml?: string) =>
-      designCustomSection(apiKey, prompt, currentHtml, options?.model, options?.baseUrl),
+      designCustomSection(validApiKey, prompt, currentHtml, options?.model, options?.baseUrl),
 
     commandGrapesJs: (prompt: string, context: any) =>
-      commandGrapesJs(apiKey, prompt, context, options?.model, options?.baseUrl),
+      commandGrapesJs(validApiKey, prompt, context, options?.model, options?.baseUrl),
 
     chatWithMerchant: (message: string, storeId: number, context: any) =>
-      chatWithMerchant(apiKey, message, storeId, context, options?.model, options?.baseUrl),
+      chatWithMerchant(validApiKey, message, storeId, context, options?.model, options?.baseUrl, aiContext),
 
     chatWithSuperAdmin: (message: string, context: any) =>
-      chatWithSuperAdmin(apiKey, message, context, options?.model, options?.baseUrl),
+      chatWithSuperAdmin(validApiKey, message, context, options?.model, options?.baseUrl),
   };
 }

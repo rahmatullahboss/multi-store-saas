@@ -140,6 +140,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
     console.log(`[AUTO-PUBLISH] First product created for store ${storeId}. Auto-set as featured and published.`);
   }
 
+  // ========================================================================
+  // AI AUTO-SYNC: Index new product in Vector Database
+  // ========================================================================
+  try {
+    const { createAIService } = await import('~/services/ai.server');
+    const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+      context: context.cloudflare.env 
+    });
+
+    const productText = `Product: ${title}\nCategory: ${category || 'Uncategorized'}\nPrice: ${price}\nDescription: ${description || ''}`;
+    
+    // Fire and forget (don't await to block UI)
+    context.cloudflare.ctx.waitUntil(
+      ai.insertVector(productText, {
+        storeId,
+        type: 'product',
+        productId: inserted.id,
+        title,
+        category: category || 'Uncategorized',
+        customId: `product-${inserted.id}` // Deterministic ID for upsert
+      })
+    );
+    console.log(`[AI SYNC] Queued vector insertion for product ${inserted.id}`);
+  } catch (err) {
+    console.error('[AI SYNC] Failed to init AI service:', err);
+  }
+
   return redirect('/app/products');
 }
 

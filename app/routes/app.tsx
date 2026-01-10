@@ -255,6 +255,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarMarketing',
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail, isPaidOnly: true },
+      { to: '/app/agent', labelKey: 'navAgent', icon: Sparkles },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail, isPaidOnly: true },
       { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, isPaidOnly: true },
     ],
@@ -593,6 +594,7 @@ export default function AppLayout() {
       <DashboardChatWidget 
         userName={user.name || undefined}
         storeName={store.name}
+        isLocked={store.planType === 'free'}
       />
     </div>
   );

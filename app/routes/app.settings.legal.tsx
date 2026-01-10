@@ -100,6 +100,55 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
 
+    // ========================================================================
+    // AI AUTO-SYNC: Update Vector Database
+    // ========================================================================
+    try {
+      const { createAIService } = await import('~/services/ai.server');
+      const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+          context: context.cloudflare.env 
+      });
+
+      // Fetch refined store data for policy generation
+      const [updatedStore] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+      
+      let contactEmail = 'support@yourstore.com';
+      if (updatedStore?.businessInfo) {
+        try {
+          const info = JSON.parse(updatedStore.businessInfo as string);
+          if (info.email) contactEmail = info.email;
+        } catch {}
+      }
+
+      // Generate effective policies (Custom OR Auto-generated)
+      const effectivePrivacy = updatedStore.customPrivacyPolicy || getPolicyContent('privacy', updatedStore.name, contactEmail).content;
+      const effectiveTerms = updatedStore.customTermsOfService || getPolicyContent('terms', updatedStore.name, contactEmail).content;
+      const effectiveRefund = updatedStore.customRefundPolicy || getPolicyContent('refund', updatedStore.name, contactEmail).content;
+
+      const policiesText = `Store Policies:
+      
+Privacy Policy:
+${effectivePrivacy}
+
+Terms of Service:
+${effectiveTerms}
+
+Refund Policy:
+${effectiveRefund}`;
+      
+      context.cloudflare.ctx.waitUntil(
+          ai.insertVector(policiesText, {
+              storeId,
+              type: 'policies',
+              title: 'Legal Policies',
+              customId: `policies-${storeId}` // Deterministic ID for upsert
+          })
+      );
+      console.log(`[AI SYNC] Queued vector update for policies-${storeId}`);
+    } catch (err) {
+      console.error('[AI SYNC] Failed to update policies vector:', err);
+    }
+
     return json({ success: true, message: 'Policies saved successfully!' });
   }
 

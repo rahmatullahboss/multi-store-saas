@@ -345,6 +345,50 @@ const tutorialSections = [
       },
     ],
   },
+  {
+    id: 'ai-setup',
+    icon: Bot,
+    title: 'AI Agent Setup (Technical)',
+    description: 'কিভাবে AI Agent System সেটআপ করবেন',
+    content: [
+      {
+        heading: '1. Meta App তৈরি করুন',
+        steps: [
+          'developers.facebook.com এ যান -> "My Apps" -> "Create App"',
+          'Select "Other" -> "Business" app type',
+          'App create হলে "WhatsApp" product add করুন',
+        ],
+      },
+      {
+        heading: '2. Webhook Setup',
+        steps: [
+          'WhatsApp settings থেকে "Configuration" এ যান',
+          'Callback URL: [YOUR_DOMAIN]/api/agent/webhook',
+          'Verify Token: একটি গোপন শব্দ দিন (Cloudflare এ META_VERIFY_TOKEN হিসেবে সেট করতে হবে)',
+          '"Verify and Save" এ ক্লিক করুন',
+          'Webhook fields: "messages" subscribe করুন',
+        ],
+      },
+      {
+        heading: '3. Environment Variables (Cloudflare)',
+        steps: [
+          'Cloudflare Dashboard -> Pages -> Settings -> Environment variables এ যান',
+          'OPENROUTER_API_KEY: আপনার OpenRouter Key (AI এর জন্য)',
+          'META_VERIFY_TOKEN: Webhook verify token (যা ধাপ ২ এ দিয়েছেন)',
+          'META_ACCESS_TOKEN: System User Access Token (মেসেজ পাঠানোর জন্য)',
+          'Save করুন এবং Redeploy করুন',
+        ],
+      },
+      {
+        heading: '4. Testing',
+        steps: [
+          'Meta App Dashboard থেকে "WhatsApp" -> "API Setup" এ যান',
+          'আপনার নম্বর add করুন এবং test message পাঠান',
+          'সব ঠিক থাকলে AI reply দিবে',
+        ],
+      },
+    ],
+  },
 ];
 
 // ============================================================================

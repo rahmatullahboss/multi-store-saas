@@ -1,8 +1,8 @@
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useSearchParams, Form, useNavigation, useSubmit, useActionData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc, and, sql, like, gte } from 'drizzle-orm';
-import { systemLogs } from '@db/schema';
+import { eq, desc, and, sql, like, gte, count } from 'drizzle-orm';
+import { systemLogs, stores, products, pageViews } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { logSystemEvent } from '~/services/logger.server';
 import { 
@@ -15,7 +15,8 @@ import {
   Terminal,
   Clock,
   RefreshCw,
-  Bug
+  Bug,
+  DollarSign
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -67,6 +68,26 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   `);
   
   const metrics = metricsRaw[0] as { total: number, errors: number, warnings: number };
+
+  // Cost Estimation
+  const activeStoresCount = (await drizzleDb.select({ count: count() }).from(stores).where(eq(stores.isActive, true)))[0].count;
+  const productsCount = (await drizzleDb.select({ count: count() }).from(products))[0].count;
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const monthlyViewsResult = await drizzleDb.select({ count: count() }).from(pageViews).where(gte(pageViews.createdAt, monthStart));
+  const monthlyViews = monthlyViewsResult[0]?.count || 0;
+  
+  // Assumptions
+  const AVG_IMAGES_PER_PRODUCT = 3;
+  const AVG_IMAGE_SIZE_MB = 0.5;
+  const TOTAL_STORAGE_GB = (productsCount * AVG_IMAGES_PER_PRODUCT * AVG_IMAGE_SIZE_MB) / 1024;
+  
+  const estimatedCost = {
+    compute: 5 + (monthlyViews / 1000000) * 0.50, // Base $5 + $0.50/M req
+    storage: Math.max(0.01, TOTAL_STORAGE_GB * 0.015), // $0.015/GB
+    database: 5, // Flat $5 (D1 Paid)
+    total: 0
+  };
+  estimatedCost.total = estimatedCost.compute + estimatedCost.storage + estimatedCost.database;
   
   // Logs Query
   let query = drizzleDb.select().from(systemLogs);
@@ -85,11 +106,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(desc(systemLogs.createdAt))
     .limit(100);
     
-  return json({ logs, metrics, search, level });
+  return json({ logs, metrics, search, level, estimatedCost });
 }
 
 export default function AdminHealth() {
-  const { logs, metrics, search, level } = useLoaderData<typeof loader>();
+  const { logs, metrics, search, level, estimatedCost } = useLoaderData<typeof loader>();
   const [searchValue, setSearchValue] = useState(search);
   const submit = useSubmit();
   const navigation = useNavigation();
@@ -195,6 +216,24 @@ export default function AdminHealth() {
           </div>
           <p className="text-2xl font-bold text-white">{metrics.total || 0}</p>
           <p className="text-xs text-slate-500 mt-1">Total log entries</p>
+        </div>
+
+        {/* Cost Estimator */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-emerald-400" />
+            </div>
+            <span className="text-sm font-medium text-slate-400">Est. Infrastructure Cost</span>
+          </div>
+          <p className="text-2xl font-bold text-white">${estimatedCost.total.toFixed(2)}</p>
+          <div className="flex gap-2 text-xs text-slate-500 mt-1">
+             <span>DB: ${estimatedCost.database}</span>
+             <span>•</span>
+             <span>Compute: ${estimatedCost.compute.toFixed(2)}</span>
+             <span>•</span>
+             <span>S3: ${estimatedCost.storage.toFixed(3)}</span>
+          </div>
         </div>
       </div>
       

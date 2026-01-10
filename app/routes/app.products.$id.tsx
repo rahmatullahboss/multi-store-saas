@@ -86,6 +86,18 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     await db
       .delete(products)
       .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
+
+    // AI SYNC: Delete vector
+    try {
+        const { createAIService } = await import('~/services/ai.server');
+        const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+            context: context.cloudflare.env 
+        });
+        context.cloudflare.ctx.waitUntil(
+            ai.deleteVector(`product-${productId}`)
+        );
+    } catch(e) { console.error('Vector deletion failed', e); }
+
     return redirect('/app/products');
   }
 
@@ -210,6 +222,32 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     } catch (e) {
       console.error('Failed to update variants', e);
     }
+  }
+
+  // ========================================================================
+  // AI AUTO-SYNC: Update Vector Database
+  // ========================================================================
+  try {
+    const { createAIService } = await import('~/services/ai.server');
+    const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+      context: context.cloudflare.env 
+    });
+
+    const productText = `Product: ${title}\nCategory: ${category || 'Uncategorized'}\nPrice: ${price}\nDescription: ${description || ''}`;
+    
+    context.cloudflare.ctx.waitUntil(
+      ai.insertVector(productText, {
+        storeId,
+        type: 'product',
+        productId,
+        title,
+        category: category || 'Uncategorized',
+        customId: `product-${productId}` // Deterministic ID for upsert
+      })
+    );
+     console.log(`[AI SYNC] Queued vector update for product ${productId}`);
+  } catch (err) {
+    console.error('[AI SYNC] Failed to update vector:', err);
   }
 
   return redirect('/app/products');

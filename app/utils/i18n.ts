@@ -515,7 +515,8 @@ export const translations = {
     upgradeToStarterDesc: 'Upgrade to Starter for full store access, 50 products, and 500 orders/month.',
     upgradeNow: 'Upgrade Now',
     comparePlans: 'Compare Plans',
-    upgradeTo: 'Upgrade to',
+    navAgent: 'Sales Agent',
+    navUpgrade: 'Upgrade Plan',
     businessPlan: 'Business Plan',
     customSolutionForLarge: 'Custom solution for large businesses',
     unlimitedProducts: 'Unlimited Products',
@@ -1517,7 +1518,8 @@ export const translations = {
     
     // Billing & Upgrade
     backToBilling: 'বিলিং এ ফিরুন',
-    upgradePlan: 'প্ল্যান আপগ্রেড করুন',
+    navAgent: 'সেলস এজেন্ট',
+    navUpgrade: 'প্ল্যান আপগ্রেড করুন',
     abandonedCarts: 'পরিত্যক্ত কার্ট',
     
     // Plans

@@ -11,8 +11,8 @@
  */
 
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, gte, count } from 'drizzle-orm';
-import { stores, orders, products } from '@db/schema';
+import { eq, and, gte, count, sql } from 'drizzle-orm';
+import { stores, orders, products, messages, conversations, agents } from '@db/schema';
 
 // ============================================================================
 // PLAN CONFIGURATION
@@ -40,6 +40,7 @@ export interface PlanLimits {
   max_orders: number;
   max_visitors: number;      // Monthly unique visitors
   max_storage_mb: number;    // Image storage in MB
+  max_ai_messages: number;   // Monthly AI conversation messages
   max_staff: number;         // Team members
   allow_store_mode: boolean;
   allow_custom_domain: boolean;
@@ -54,6 +55,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_orders: 50,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 100,
+    max_ai_messages: 10,
     max_staff: 1,
     allow_store_mode: false,
     allow_custom_domain: false,
@@ -66,6 +68,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_orders: 500,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 500,
+    max_ai_messages: 100,
     max_staff: 2,
     allow_store_mode: true,
     allow_custom_domain: true,
@@ -78,6 +81,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_orders: 3000,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 2048, // 2GB
+    max_ai_messages: 1000,
     max_staff: 5,
     allow_store_mode: true,
     allow_custom_domain: true,
@@ -90,6 +94,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_orders: 25000,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 10240, // 10GB
+    max_ai_messages: Infinity,
     max_staff: 15,
     allow_store_mode: true,
     allow_custom_domain: true,
@@ -113,6 +118,7 @@ export const LIMIT_CODES = {
   PRODUCT: 'LIMIT_REACHED_PRODUCT',
   VISITOR: 'LIMIT_REACHED_VISITOR',
   STORAGE: 'LIMIT_REACHED_STORAGE',
+  AI: 'LIMIT_REACHED_AI',
 } as const;
 
 export interface LimitError {
@@ -183,6 +189,32 @@ async function getActiveProductCount(
 }
 
 // ============================================================================
+// HELPER: Get monthly AI message count for store
+// ============================================================================
+async function getMonthlyAiMessageCount(
+  db: ReturnType<typeof drizzle>,
+  storeId: number
+): Promise<number> {
+  const monthStart = getMonthStart();
+  
+  // Count user messages for this store's agent created this month
+  const result = await db
+    .select({ count: count() })
+    .from(messages)
+    .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+    .innerJoin(agents, eq(conversations.agentId, agents.id))
+    .where(
+      and(
+        eq(agents.storeId, storeId),
+        eq(messages.role, 'user'),
+        gte(messages.createdAt, monthStart)
+      )
+    );
+  
+  return result[0]?.count ?? 0;
+}
+
+// ============================================================================
 // HELPER: Get store plan type
 // ============================================================================
 async function getStorePlan(
@@ -204,7 +236,7 @@ async function getStorePlan(
 export async function checkUsageLimit(
   dbBinding: D1Database | ReturnType<typeof drizzle>,
   storeId: number,
-  type: 'order' | 'product'
+  type: 'order' | 'product' | 'ai_message'
 ): Promise<LimitCheckResult> {
   // Handle both D1Database and drizzle instances
   const db = 'prepare' in dbBinding 
@@ -272,6 +304,37 @@ export async function checkUsageLimit(
         current: currentCount,
         limit: maxProducts,
         percentage: Math.round((currentCount / maxProducts) * 100),
+      },
+    };
+  }
+  
+  if (type === 'ai_message') {
+    const currentCount = await getMonthlyAiMessageCount(db, storeId);
+    const maxMessages = limits.max_ai_messages;
+    
+    if (currentCount >= maxMessages) {
+      return {
+        allowed: false,
+        error: {
+          code: LIMIT_CODES.AI,
+          message: `Monthly AI message limit reached (${maxMessages}). Upgrade for more AI capacity.`,
+          limit: maxMessages,
+          current: currentCount,
+        },
+        usage: {
+          current: currentCount,
+          limit: maxMessages,
+          percentage: 100,
+        },
+      };
+    }
+    
+    return {
+      allowed: true,
+      usage: {
+        current: currentCount,
+        limit: maxMessages,
+        percentage: maxMessages === Infinity ? 0 : Math.round((currentCount / maxMessages) * 100),
       },
     };
   }

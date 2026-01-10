@@ -214,6 +214,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .set(updateData)
     .where(eq(stores.id, storeId));
 
+  // ========================================================================
+  // AI AUTO-SYNC: Update Vector Database
+  // ========================================================================
+  try {
+    const { createAIService } = await import('~/services/ai.server');
+    const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+        context: context.cloudflare.env 
+    });
+
+    const settingsText = `Store Settings:
+Name: ${updateData.name}
+Currency: ${updateData.currency}
+Domain: ${updateData.customDomain || 'Not set'}
+Business Phone: ${businessPhone}
+Business Email: ${businessEmail}
+Business Address: ${businessAddress}
+Social Media: Facebook: ${facebook}, Instagram: ${instagram}, WhatsApp: ${whatsapp}`;
+    
+    context.cloudflare.ctx.waitUntil(
+        ai.insertVector(settingsText, {
+            storeId,
+            type: 'settings',
+            title: 'General Settings',
+            customId: `settings-${storeId}` // Deterministic ID for upsert
+        })
+    );
+     console.log(`[AI SYNC] Queued vector update for settings-${storeId}`);
+  } catch (err) {
+    console.error('[AI SYNC] Failed to update settings vector:', err);
+  }
+
   return json({ success: true });
 }
 

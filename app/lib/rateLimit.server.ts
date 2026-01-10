@@ -11,10 +11,10 @@ import type { PlanType } from '~/utils/plans.server';
 
 // Rate limits per plan
 const AI_RATE_LIMITS: Record<PlanType, number> = {
-  free: 5,      // 5 AI requests per day
-  starter: 100, // 100 per day (effectively unlimited for most)
-  premium: -1,  // Unlimited
-  business: -1, // Unlimited
+  free: 1,       // 1 AI request per day (Trial)
+  starter: 5,    // 5 requests per day
+  premium: 30,   // 30 requests per day
+  business: 100, // 100 requests per day
 };
 
 // Auth Limits (per hour)

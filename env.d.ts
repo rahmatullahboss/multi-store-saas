@@ -39,6 +39,11 @@ declare global {
     // Google OAuth
     GOOGLE_CLIENT_ID?: string;
     GOOGLE_CLIENT_SECRET?: string;
+
+    // Agent Flow Bindings
+    AI: any; // Cloudflare Workers AI
+    VECTORIZE: VectorizeIndex;
+    MIMO_API_KEY?: string; // XiaoMi MiMo API Key
   }
 }
 
