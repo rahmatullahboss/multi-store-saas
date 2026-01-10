@@ -1,8 +1,10 @@
 import { BlocksProvider, SelectorsProvider, useEditorMaybe } from '@grapesjs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Box, Palette, Settings2, Layers } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export default function SidebarPanel() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'elements' | 'styles' | 'layers'>('elements');
   const editor = useEditorMaybe();
   
@@ -196,21 +198,21 @@ export default function SidebarPanel() {
              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'elements' ? 'bg-white text-emerald-600 shadow-sm border border-emerald-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Box size={14} strokeWidth={2.5} />
-              ELEMENTS
+              {t('pageBuilderElements').toUpperCase()}
            </button>
            <button 
              onClick={() => setActiveTab('styles')}
              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'styles' ? 'bg-white text-blue-600 shadow-sm border border-blue-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Palette size={14} strokeWidth={2.5} />
-              STYLE
+              {t('pageBuilderStyle').toUpperCase()}
            </button>
            <button 
              onClick={() => setActiveTab('layers')}
              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'layers' ? 'bg-white text-purple-600 shadow-sm border border-purple-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Layers size={14} strokeWidth={2.5} />
-              LAYERS
+              {t('pageBuilderLayers').toUpperCase()}
            </button>
         </div>
 
@@ -228,7 +230,7 @@ export default function SidebarPanel() {
                 return (
                   <div className="absolute inset-0 overflow-y-auto p-4 space-y-6 custom-scrollbar animate-in fade-in duration-300">
                     <div className="mb-2">
-                       <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">Components</h3>
+                       <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">{t('pageBuilderComponents')}</h3>
                     </div>
                     {Object.entries(categories).map(([catLabel, catBlocks]) => (
                       <div key={catLabel}>
@@ -272,7 +274,7 @@ export default function SidebarPanel() {
                     <div className="space-y-2">
                        <div className="flex items-center gap-2 mb-2">
                           <Settings2 size={12} className="text-blue-600" />
-                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest active-selectors-label">Active Selectors</span>
+                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest active-selectors-label">{t('pageBuilderActiveSelectors')}</span>
                        </div>
                        <div className="flex flex-wrap gap-2">
                           {props.selectors.map(sel => (
@@ -282,7 +284,7 @@ export default function SidebarPanel() {
                           ))}
                           {props.selectors.length === 0 && (
                             <div className="py-2 px-3 bg-gray-50 rounded-lg border border-dashed border-gray-200 w-full text-center">
-                               <p className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Select an element to customize</p>
+                               <p className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">{t('pageBuilderSelectElement')}</p>
                             </div>
                           )}
                        </div>
@@ -294,7 +296,7 @@ export default function SidebarPanel() {
               {/* Traits Manager */}
               <div className="p-4 border-b border-gray-50">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Element Attributes</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('pageBuilderElementAttributes')}</span>
                 </div>
                 <div ref={traitsContainerRef} className="gjs-traits-wrap" />
               </div>
@@ -302,7 +304,7 @@ export default function SidebarPanel() {
               {/* Style Manager */}
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Visual Styling</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('pageBuilderVisualStyling')}</span>
                 </div>
                 <div ref={stylesContainerRef} className="gjs-styles-wrap" />
               </div>
@@ -310,8 +312,8 @@ export default function SidebarPanel() {
           ) : (
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300 p-4">
                <div className="mb-4">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Layer Structure</h3>
-                  <p className="text-[9px] text-gray-300 font-bold">Manage element hierarchy</p>
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('pageBuilderLayerStructure')}</h3>
+                  <p className="text-[9px] text-gray-300 font-bold">{t('pageBuilderManageHierarchy')}</p>
                </div>
                <div ref={layersContainerRef} className="gjs-layers-wrap min-h-[200px]" />
             </div>
