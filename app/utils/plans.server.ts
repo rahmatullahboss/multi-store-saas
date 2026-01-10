@@ -15,6 +15,25 @@ import { eq, and, gte, count, sql } from 'drizzle-orm';
 import { stores, orders, products, messages, conversations, agents } from '@db/schema';
 
 // ============================================================================
+// AI LIMIT CONFIGURATION (Hybrid)
+// ============================================================================
+
+// 1. Daily Limits for STORE PLANS (Trial/Basic) -> Managed by KV
+export const STORE_AI_DAILY_LIMITS: Record<PlanType, number> = {
+  free: 1,       // 1/day
+  starter: 5,    // 5/day
+  premium: 10,   // 10/day (reduced from 30)
+  business: 20,  // 20/day (reduced from 100)
+};
+
+// 2. Monthly Limits for AI PLANS (Add-on) -> Managed by D1
+export const AI_PLAN_LIMITS: Record<AIPlanType, number> = {
+  lite: 500,     // 500/month
+  standard: 1200,// 1200/month
+  pro: 3000,     // 3000/month
+};
+
+// ============================================================================
 // PLAN CONFIGURATION
 // ============================================================================
 export type PlanType = 'free' | 'starter' | 'premium' | 'business';
@@ -40,7 +59,6 @@ export interface PlanLimits {
   max_orders: number;
   max_visitors: number;      // Monthly unique visitors
   max_storage_mb: number;    // Image storage in MB
-  max_ai_messages: number;   // Monthly AI conversation messages
   max_staff: number;         // Team members
   allow_store_mode: boolean;
   allow_custom_domain: boolean;
@@ -55,7 +73,6 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_orders: 50,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 100,
-    max_ai_messages: 10,
     max_staff: 1,
     allow_store_mode: false,
     allow_custom_domain: false,
@@ -68,7 +85,6 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_orders: 500,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 500,
-    max_ai_messages: 100,
     max_staff: 2,
     allow_store_mode: true,
     allow_custom_domain: true,
@@ -81,7 +97,6 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_orders: 3000,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 2048, // 2GB
-    max_ai_messages: 1000,
     max_staff: 5,
     allow_store_mode: true,
     allow_custom_domain: true,
@@ -94,7 +109,6 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     max_orders: 25000,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 10240, // 10GB
-    max_ai_messages: Infinity,
     max_staff: 15,
     allow_store_mode: true,
     allow_custom_domain: true,
@@ -218,12 +232,6 @@ async function getMonthlyAiMessageCount(
 // AI PLAN CONFIGURATION (Add-on)
 // ============================================================================
 export type AIPlanType = 'lite' | 'standard' | 'pro';
-
-export const AI_PLAN_LIMITS: Record<AIPlanType, number> = {
-  lite: 500,
-  standard: 1200,
-  pro: 3000,
-};
 
 export const AI_PLAN_PRICES: Record<AIPlanType, number> = {
   lite: 500,
@@ -446,13 +454,13 @@ export async function getUsageStats(
 export async function getBulkUsageStats(
   dbBinding: D1Database,
   storeIds: number[]
-): Promise<Map<number, { orders: number; products: number }>> {
+): Promise<Map<number, { orders: number; products: number; aiMessages: number }>> {
   // Return empty map for empty input
   if (storeIds.length === 0) return new Map();
   
-  // Initialize result map with zeros for all stores
-  const result = new Map<number, { orders: number; products: number }>();
-  storeIds.forEach(id => result.set(id, { orders: 0, products: 0 }));
+  // Initialize result map
+  const result = new Map<number, { orders: number; products: number; aiMessages: number }>();
+  storeIds.forEach(id => result.set(id, { orders: 0, products: 0, aiMessages: 0 }));
   
   try {
     const db = drizzle(dbBinding);
@@ -477,8 +485,25 @@ export async function getBulkUsageStats(
       .from(products)
       .where(eq(products.isPublished, true))
       .groupBy(products.storeId);
+
+    // Get AI message counts for all stores in one query
+    const aiCounts = await db
+      .select({ 
+        storeId: agents.storeId, 
+        count: count() 
+      })
+      .from(messages)
+      .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+      .innerJoin(agents, eq(conversations.agentId, agents.id))
+      .where(
+        and(
+          eq(messages.role, 'user'),
+          gte(messages.createdAt, monthStart)
+        )
+      )
+      .groupBy(agents.storeId);
     
-    // Fill in order counts
+    // Fill in Order counts
     orderCounts.forEach(row => {
       const existing = result.get(row.storeId);
       if (existing) {
@@ -491,6 +516,14 @@ export async function getBulkUsageStats(
       const existing = result.get(row.storeId);
       if (existing) {
         existing.products = row.count;
+      }
+    });
+
+    // Fill in AI counts
+    aiCounts.forEach(row => {
+      const existing = result.get(row.storeId);
+      if (existing) {
+        existing.aiMessages = row.count;
       }
     });
   } catch (error) {

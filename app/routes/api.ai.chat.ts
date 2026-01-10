@@ -8,7 +8,7 @@ import { eq, desc, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 import { getStoreStats } from '~/services/analytics.server';
-import type { PlanType } from '~/utils/plans.server';
+import type { PlanType, AIPlanType } from '~/utils/plans.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
@@ -206,12 +206,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
        // Rate Limit Check
        const planType = (store.planType as PlanType) || 'free';
-       const rateCheck = await checkAIRateLimit(env.AI_RATE_LIMIT, user.storeId, planType);
+       const aiPlan = (store.aiPlan as AIPlanType) || null;
+       
+       const rateCheck = await checkAIRateLimit(
+         env.AI_RATE_LIMIT, 
+         env.DB, 
+         user.storeId, 
+         planType,
+         aiPlan
+       );
        
        if (!rateCheck.allowed) {
+        // Customize message based on limit type
+        const period = rateCheck.type === 'daily' ? 'Daily' : 'Monthly';
+        const msg = rateCheck.type === 'daily' 
+            ? `Daily AI trial limit reached (${rateCheck.limit}). Upgrade to an AI Plan for more!`
+            : `Monthly AI plan limit reached (${rateCheck.limit}). Upgrade your plan.`;
+
         return json(
           { 
-            error: `Daily AI limit reached (${rateCheck.limit}). ${planType === 'free' ? 'Upgrade for more!' : 'Try again tomorrow.'}`,
+            error: msg,
             code: 'RATE_LIMIT_EXCEEDED'
           }, 
           { status: 429 }
@@ -232,13 +246,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
          .limit(6);
          
          // Reverse to chronological order
-         // Filter out the very last user message if it matches (to avoid duplication with 'message' arg), 
-         // OR just pass ALL history and let ai.server handle it. 
-         // Standard: Pass history *excluding* current turn.
-         // Since I inserted the current message at step 3, it IS in the DB.
-         // It will be the most recent one.
-         
-         // Let's filter out the TOP one if it is 'user' and matches 'message'
+         // Filter out the TOP one if it is 'user' and matches 'message'
          const chronMsgs = recentMsgs.reverse();
          if (chronMsgs.length > 0 && chronMsgs[chronMsgs.length - 1].role === 'user' && chronMsgs[chronMsgs.length - 1].content === message) {
             chronMsgs.pop(); // Remove current message from history context
@@ -263,7 +271,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
        });
 
        // Increment usage
-       await incrementAIUsage(env.AI_RATE_LIMIT, user.storeId);
+       // Only increment KV if we are in Daily/Trial mode
+       await incrementAIUsage(env.AI_RATE_LIMIT, user.storeId, rateCheck.type === 'daily');
     }
 
     // 4. Save Assistant Response

@@ -11,10 +11,11 @@
  */
 
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
+import { useLoaderData, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, or, desc } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { 
@@ -28,10 +29,19 @@ import {
   BarChart3,
   Search, 
   Zap,
-  Activity
+  Activity,
+  CalendarDays,
+  Calendar
 } from 'lucide-react';
-import { getStoreAIUsage, AI_RATE_LIMITS } from '~/lib/rateLimit.server';
-import type { PlanType } from '~/utils/plans.server';
+import { getStoreAIUsage } from '~/lib/rateLimit.server';
+import { 
+  getBulkUsageStats, 
+  activePlans,
+  STORE_AI_DAILY_LIMITS, 
+  AI_PLAN_LIMITS, 
+  type PlanType,
+  type AIPlanType 
+} from '~/utils/plans.server';
 import { useState } from 'react';
 
 export const meta: MetaFunction = () => {
@@ -81,17 +91,41 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       eq(stores.isCustomerAiEnabled, true)
     ));
 
-  // 3. Fetch Real-time Usage from KV for Active Stores
+  // 3. Get Monthly Stats (D1) for EVERYONE (Single DB query is cheap)
+  // This gives us the "Monthly" usage for anyone who needs it.
+  const storeIds = activeStores.map(s => s.id);
+  const monthlyStats = await getBulkUsageStats(context.cloudflare.env.DB, storeIds);
+
+  // 4. Combine Stats based on Active Plan Logic
   const usageStats = await Promise.all(
     activeStores.map(async (store) => {
-      const usage = await getStoreAIUsage(context.cloudflare.env.AI_RATE_LIMIT, store.id);
-      const limit = AI_RATE_LIMITS[(store.planType as PlanType) || 'free'];
+      const planType = (store.planType as PlanType) || 'free';
+      const aiPlan = (store.aiPlan as AIPlanType) || null;
+      
+      let usage = 0;
+      let limit = 0;
+      let mode: 'daily' | 'monthly' = 'daily';
+
+      if (aiPlan) {
+        // === MONTHLY MODE (Paid AI Plan) ===
+        // Fetch from D1 bulk stats
+        usage = monthlyStats.get(store.id)?.aiMessages || 0;
+        limit = AI_PLAN_LIMITS[aiPlan];
+        mode = 'monthly';
+      } else {
+        // === DAILY MODE (Store Plan Trial) ===
+        // Fetch from KV (Real-time daily)
+        usage = await getStoreAIUsage(context.cloudflare.env.AI_RATE_LIMIT, store.id);
+        limit = STORE_AI_DAILY_LIMITS[planType];
+        mode = 'daily';
+      }
       
       return {
         ...store,
-        usage: usage || 0,
+        usage,
         limit,
-        usagePercent: limit === -1 ? 0 : Math.min(100, Math.round((usage / limit) * 100))
+        mode,
+        usagePercent: limit === -1 ? 0 : (limit === 0 ? (usage > 0 ? 100 : 0) : Math.min(100, Math.round((usage / limit) * 100)))
       };
     })
   );
@@ -390,7 +424,7 @@ export default function AdminAiRequests() {
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Store</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Plan</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Daily Usage</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Usage</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
@@ -416,16 +450,32 @@ export default function AdminAiRequests() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                             <span className={`px-2.5 py-1 text-xs font-medium rounded-full border uppercase ${getPlanBadgeColor(store.planType || 'free')}`}>
-                                {store.planType || 'Free'}
-                             </span>
+                             <div className="flex flex-col gap-1">
+                                <span className={`w-fit px-2.5 py-1 text-xs font-medium rounded-full border uppercase ${getPlanBadgeColor(store.planType || 'free')}`}>
+                                    {store.planType || 'Free'}
+                                </span>
+                                {store.aiPlan && (
+                                     <span className="w-fit px-2 py-0.5 text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded uppercase font-bold tracking-wide">
+                                         {store.aiPlan} AI
+                                     </span>
+                                )}
+                             </div>
                           </td>
-                          <td className="px-6 py-4 min-w-[200px]">
-                            <div className="flex flex-col gap-1.5">
-                                <div className="flex justify-between text-xs">
-                                    <span className="text-white font-medium">{store.usage} reqs</span>
+                          <td className="px-6 py-4 min-w-[250px]">
+                            <div className="flex flex-col gap-2">
+                                {/* Values */}
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="text-white font-medium flex items-center gap-1.5">
+                                        {store.mode === 'daily' ? <CalendarDays className="w-3 h-3 text-slate-400" /> : <Calendar className="w-3 h-3 text-purple-400" />}
+                                        {store.usage} used
+                                        <span className="text-slate-500 font-normal">
+                                            ({store.mode === 'daily' ? 'Today' : 'Month'})
+                                        </span>
+                                    </span>
                                     <span className="text-slate-400">Limit: {store.limit === -1 ? '∞' : store.limit}</span>
                                 </div>
+                                
+                                {/* Progress Bar */}
                                 {store.limit !== -1 && (
                                     <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
                                         <div 

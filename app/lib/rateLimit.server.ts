@@ -7,15 +7,15 @@
  * - Auth attempts per IP (Hourly limit)
  */
 
-import type { PlanType } from '~/utils/plans.server';
+import type { PlanType, AIPlanType } from '~/utils/plans.server';
+import { STORE_AI_DAILY_LIMITS, AI_PLAN_LIMITS } from '~/utils/plans.server';
+import { checkUsageLimit } from '~/utils/plans.server';
+import type { D1Database } from '@cloudflare/workers-types';
+import { drizzle } from 'drizzle-orm/d1';
 
-// Rate limits per plan
-export const AI_RATE_LIMITS: Record<PlanType, number> = {
-  free: 1,       // 1 AI request per day (Trial)
-  starter: 5,    // 5 requests per day
-  premium: 30,   // 30 requests per day
-  business: 100, // 100 requests per day
-};
+// Rate limits are now imported from plans.server.ts
+// Re-export for backward compatibility if needed, or remove
+// const AI_RATE_LIMITS = STORE_AI_DAILY_LIMITS;
 
 // Auth Limits (per hour)
 const AUTH_LIMITS = {
@@ -42,23 +42,59 @@ export async function getStoreAIUsage(kv: KVNamespace | undefined, storeId: numb
 
 /**
  * Check if store has remaining AI requests
+ * Supports Hybrid: Daily (KV) for trials, Monthly (D1) for paid plans.
  */
 export async function checkAIRateLimit(
   kv: KVNamespace | undefined,
+  dbBinding: D1Database | undefined,
   storeId: number,
-  planType: PlanType
-): Promise<{ allowed: boolean; remaining: number; limit: number }> {
-  const limit = AI_RATE_LIMITS[planType];
+  planType: PlanType,
+  aiPlan: AIPlanType | null
+): Promise<{ allowed: boolean; remaining: number; limit: number; type: 'daily' | 'monthly' }> {
   
-  // Unlimited for premium/custom
-  if (limit === -1) {
-    return { allowed: true, remaining: -1, limit: -1 };
+  // 1. If User has Paid AI Plan -> Check Monthly Limit (D1)
+  if (aiPlan) {
+    if (!dbBinding) {
+       // Fallback/Error if DB not provided but AI plan exists? 
+       // Should allow or block? Let's block to be safe, or allow on error.
+       console.error('[Rate Limit] DB not provided for AI Plan check');
+       return { allowed: false, remaining: 0, limit: 0, type: 'monthly' };
+    }
+
+    // Reuse existing logic from plans.server implementation
+    const result = await checkUsageLimit(dbBinding, storeId, 'ai_message');
+    
+    if (!result.allowed && result.error) {
+        return { 
+            allowed: false, 
+            remaining: 0, 
+            limit: result.error.limit,
+            type: 'monthly'
+        };
+    }
+    
+    // Calculate remaining from usage result
+    const usage = result.usage?.current || 0;
+    const limit = result.usage?.limit || AI_PLAN_LIMITS[aiPlan];
+    
+    return {
+        allowed: true,
+        remaining: Math.max(0, limit - usage),
+        limit,
+        type: 'monthly'
+    };
   }
 
-  // If KV not configured, allow but log warning
+  // 2. If User has NO AI Plan -> Check Daily Trial Limit (KV)
+  const limit = STORE_AI_DAILY_LIMITS[planType];
+  
+  // Unlimited for some logic? No, STORE_AI_DAILY_LIMITS are fixed.
+  // Unless we want 'business' to mean something else. 
+  // Currently defined as: free:1, starter:5, premium:30, business:100.
+  
   if (!kv) {
     console.warn('[Rate Limit] KV namespace not configured, allowing request');
-    return { allowed: true, remaining: limit, limit };
+    return { allowed: true, remaining: limit, limit, type: 'daily' };
   }
 
   const currentUsage = await getStoreAIUsage(kv, storeId);
@@ -68,13 +104,20 @@ export async function checkAIRateLimit(
     allowed: currentUsage < limit,
     remaining,
     limit,
+    type: 'daily'
   };
 }
 
 /**
  * Increment AI usage count for store
+ * ONLY increments KV (Daily). D1 (Monthly) is auto-incremented by message insertion.
  */
-export async function incrementAIUsage(kv: KVNamespace | undefined, storeId: number) {
+export async function incrementAIUsage(
+    kv: KVNamespace | undefined, 
+    storeId: number,
+    isDailyMode: boolean = true
+) {
+  if (!isDailyMode) return; // Don't increment KV if we are on Monthly plan usage
   if (!kv) return;
   
   const key = getUsageKey(storeId);

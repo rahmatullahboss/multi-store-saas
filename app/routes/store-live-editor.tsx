@@ -221,7 +221,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     primaryColor,
     accentColor,
     // Add sections to updated config
-    sections: [], // Will be overwritten by ...currentConfig if we don't handle it, but wait:
     // We are putting this in updatedConfig, so we need to capture it from form data or specialized parsing.
     // The code block below 'sections' input is hidden JSON string.
     
