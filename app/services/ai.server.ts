@@ -1371,10 +1371,13 @@ ${historyText || "কোনো previous message নেই।"}
 7. **FORMATTING - MOST IMPORTANT**:
    - কখনো markdown formatting (** বা ## বা ### বা - বা *) ব্যবহার করো না
    - শুধু plain text লেখো
-   - Visual structure এর জন্য emojis ব্যবহার করো (✅ 💰 🚀 📱 ইত্যাদি)
-   - নতুন paragraph এর জন্য একটি blank line দাও
-   - Lists দেখাতে চাইলে প্রতি item এর আগে ✅ বা 👉 বা সংখ্যা দাও
+   - প্রতিটি point বা step নতুন line এ লেখো (ENTER দিয়ে)
+   - Lists এ প্রতি item আলাদা line এ এভাবে দেখাও:
+     ✅ প্রথম point
+     ✅ দ্বিতীয় point  
+     ✅ তৃতীয় point
    - Response সংক্ষিপ্ত এবং readable রাখো
+   - Emojis ব্যবহার করো structure বোঝাতে
 
 ---
 

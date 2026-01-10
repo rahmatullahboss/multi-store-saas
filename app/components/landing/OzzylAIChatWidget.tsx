@@ -203,7 +203,7 @@ export function OzzylAIChatWidget() {
                   </div>
                   
                   {/* Message bubble */}
-                  <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
+                  <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                     msg.role === 'user'
                       ? 'bg-[#006A4E] text-white rounded-tr-sm'
                       : 'bg-white/5 text-white/90 border border-white/5 rounded-tl-sm'
