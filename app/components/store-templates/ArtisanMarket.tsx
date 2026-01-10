@@ -11,7 +11,7 @@ import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
-// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
+import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 
 // ============================================================================
 // ARTISAN MARKET THEME CONSTANTS
@@ -197,206 +197,66 @@ export function ArtisanMarketTemplate({
         )}
       </header>
 
-      {/* ==================== HERO SECTION ==================== */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: THEME.cream }}>
-        {/* Decorative Pattern Background */}
-        <div className="absolute inset-0 opacity-30">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
-                <circle cx="15" cy="15" r="1.5" fill={THEME.accent} opacity="0.3" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dots)" />
-          </svg>
-        </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Content */}
-            <div>
-              <div 
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6"
-                style={{ backgroundColor: THEME.accentLight, color: THEME.accent }}
-              >
-                <Leaf className="w-4 h-4" />
-                Handcrafted with Love
-              </div>
-              <h1 
-                className="text-4xl sm:text-5xl lg:text-6xl font-semibold mb-6 leading-tight"
-                style={{ fontFamily: "'Newsreader', serif", color: THEME.primary }}
-              >
-                {config?.bannerText || `Artisan Goods from ${storeName}`}
-              </h1>
-              <p className="text-lg mb-8 leading-relaxed" style={{ color: THEME.muted }}>
-                Each piece tells a story. Discover unique handmade products crafted by skilled artisans using traditional techniques.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link
-                  to="/#products"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold transition-all hover:scale-105"
-                  style={{ backgroundColor: THEME.accent, color: 'white' }}
-                >
-                  Browse Products
-                  <ChevronRight className="w-5 h-5" />
-                </Link>
-                <Link
-                  to="/about"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold border-2 transition-all hover:bg-amber-50"
-                  style={{ borderColor: THEME.accent, color: THEME.accent }}
-                >
-                  Our Story
-                </Link>
-              </div>
-            </div>
+      {/* ==================== DYNAMIC SECTIONS ==================== */}
+      {(config?.sections ?? [
+         {
+           id: 'hero',
+           type: 'hero',
+           settings: {
+             heading: config?.bannerText || `Artisan Goods from ${storeName}`,
+             subheading: 'Each piece tells a story. Discover unique handmade products crafted by skilled artisans using traditional techniques.',
+             primaryAction: { label: 'Browse Products', url: '/#products' },
+             image: config?.bannerUrl,
+             layout: 'standard', // Using standard for now, but could be 'image_right' if I implemented split layout properly in HeroSection
+             alignment: 'left'
+           }
+         },
+         {
+           id: 'categories',
+           type: 'category-list',
+           settings: {
+             layout: 'pills',
+             limit: 8
+           }
+         },
+         {
+           id: 'products',
+           type: 'product-grid',
+           settings: {
+             heading: currentCategory || 'Our Products',
+             productCount: 12,
+             paddingTop: 'large',
+             paddingBottom: 'large'
+           }
+         },
+         {
+           id: 'story',
+           type: 'rich-text',
+           settings: {
+             heading: 'Handcrafted with Passion',
+             text: 'Every product in our collection is made by skilled artisans who pour their heart and soul into their craft. We believe in sustainable practices, fair wages, and preserving traditional techniques that have been passed down through generations.',
+             alignment: 'center',
+             backgroundColor: THEME.cream
+           }
+         }
+       ]).map((section: any) => {
+        const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+        if (!SectionComponent) return null;
+        
+        return (
+          <SectionComponent
+            key={section.id}
+            settings={section.settings}
+            theme={THEME}
+            products={products}
+            categories={categories}
+            storeId={storeId}
+            currency={currency}
+          />
+        );
+      })}
 
-            {/* Hero Image */}
-            <div className="relative">
-              {config?.bannerUrl ? (
-                <div className="relative">
-                  <img 
-                    src={config.bannerUrl} 
-                    alt="Featured Product" 
-                    className="w-full h-auto rounded-3xl shadow-2xl"
-                  />
-                  {/* Decorative frame */}
-                  <div 
-                    className="absolute -inset-3 rounded-3xl border-2 -z-10"
-                    style={{ borderColor: THEME.accent, opacity: 0.3 }}
-                  />
-                </div>
-              ) : (
-                <div 
-                  className="aspect-[4/3] rounded-3xl flex items-center justify-center"
-                  style={{ backgroundColor: THEME.accentLight }}
-                >
-                  <div className="text-center">
-                    <div className="text-8xl mb-4">🧺</div>
-                    <p className="text-lg font-medium" style={{ color: THEME.accent }}>
-                      Authentic Handmade Goods
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Curved Bottom */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path 
-              d="M0 60H1440V30C1440 30 1200 0 720 0C240 0 0 30 0 30V60Z" 
-              fill={THEME.background}
-            />
-          </svg>
-        </div>
-      </section>
-
-      {/* ==================== CATEGORY PILLS ==================== */}
-      {validCategories.length > 0 && (
-        <div className="py-6 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Link
-                to="/"
-                className="px-5 py-2.5 rounded-full text-sm font-medium border-2 transition-all"
-                style={{
-                  backgroundColor: !currentCategory ? THEME.accent : 'transparent',
-                  color: !currentCategory ? 'white' : THEME.primary,
-                  borderColor: !currentCategory ? THEME.accent : '#d6d3d1',
-                }}
-              >
-                All Products
-              </Link>
-              {validCategories.map((category) => (
-                <Link
-                  key={category}
-                  to={`/?category=${encodeURIComponent(category)}`}
-                  className="px-5 py-2.5 rounded-full text-sm font-medium border-2 transition-all hover:border-amber-600"
-                  style={{
-                    backgroundColor: currentCategory === category ? THEME.accent : 'transparent',
-                    color: currentCategory === category ? 'white' : THEME.primary,
-                    borderColor: currentCategory === category ? THEME.accent : '#d6d3d1',
-                  }}
-                >
-                  {category}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== PRODUCTS GRID ==================== */}
-      <section id="products" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <h2 
-              className="text-3xl lg:text-4xl font-semibold mb-3"
-              style={{ fontFamily: "'Newsreader', serif", color: THEME.primary }}
-            >
-              {currentCategory || 'Our Products'}
-            </h2>
-            <p style={{ color: THEME.muted }}>
-              Handpicked artisan goods, made with care
-            </p>
-            {/* Decorative Divider */}
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <div className="w-16 h-0.5" style={{ backgroundColor: THEME.accent, opacity: 0.3 }} />
-              <Leaf className="w-5 h-5" style={{ color: THEME.accent }} />
-              <div className="w-16 h-0.5" style={{ backgroundColor: THEME.accent, opacity: 0.3 }} />
-            </div>
-          </div>
-
-          {/* Products Grid */}
-          {products.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((product) => (
-                <ArtisanProductCard 
-                  key={product.id} 
-                  product={product} 
-                  storeId={storeId}
-                  formatPrice={formatPrice}
-                  isPreview={isPreview}
-                />
-              ))}
-            </div>
-          ) : (
-            <div 
-              className="text-center py-16 rounded-3xl"
-              style={{ backgroundColor: THEME.cream }}
-            >
-              <div className="text-6xl mb-4">🌿</div>
-              <p className="text-lg font-medium" style={{ color: THEME.text }}>
-                No products found
-              </p>
-              <p className="text-sm mt-1" style={{ color: THEME.muted }}>
-                Check back soon for new handcrafted items.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ==================== STORY SECTION ==================== */}
-      <section className="py-16 lg:py-24" style={{ backgroundColor: THEME.cream }}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Leaf className="w-12 h-12 mx-auto mb-6" style={{ color: THEME.accent }} />
-          <h2 
-            className="text-3xl lg:text-4xl font-semibold mb-6"
-            style={{ fontFamily: "'Newsreader', serif", color: THEME.primary }}
-          >
-            Handcrafted with Passion
-          </h2>
-          <p className="text-lg leading-relaxed" style={{ color: THEME.muted }}>
-            Every product in our collection is made by skilled artisans who pour their heart and soul into their craft. 
-            We believe in sustainable practices, fair wages, and preserving traditional techniques that have been 
-            passed down through generations.
-          </p>
-        </div>
-      </section>
 
       {/* ==================== FOOTER ==================== */}
       <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>

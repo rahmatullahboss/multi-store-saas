@@ -10,7 +10,7 @@
 import type { PlanType } from '~/utils/plans.server';
 
 // Rate limits per plan
-const AI_RATE_LIMITS: Record<PlanType, number> = {
+export const AI_RATE_LIMITS: Record<PlanType, number> = {
   free: 1,       // 1 AI request per day (Trial)
   starter: 5,    // 5 requests per day
   premium: 30,   // 30 requests per day
@@ -24,9 +24,20 @@ const AUTH_LIMITS = {
 };
 
 // KV key format: ai_usage:{storeId}:{date}
-function getUsageKey(storeId: number): string {
+export function getUsageKey(storeId: number): string {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   return `ai_usage:${storeId}:${today}`;
+}
+
+/**
+ * Get current AI usage for a store (Read-only)
+ */
+export async function getStoreAIUsage(kv: KVNamespace | undefined, storeId: number): Promise<number> {
+  if (!kv) return 0;
+  
+  const key = getUsageKey(storeId);
+  const currentUsage = await kv.get(key);
+  return currentUsage ? parseInt(currentUsage, 10) : 0;
 }
 
 /**
@@ -50,13 +61,11 @@ export async function checkAIRateLimit(
     return { allowed: true, remaining: limit, limit };
   }
 
-  const key = getUsageKey(storeId);
-  const currentUsage = await kv.get(key);
-  const usageCount = currentUsage ? parseInt(currentUsage, 10) : 0;
-  const remaining = Math.max(0, limit - usageCount);
+  const currentUsage = await getStoreAIUsage(kv, storeId);
+  const remaining = Math.max(0, limit - currentUsage);
 
   return {
-    allowed: usageCount < limit,
+    allowed: currentUsage < limit,
     remaining,
     limit,
   };
@@ -69,11 +78,10 @@ export async function incrementAIUsage(kv: KVNamespace | undefined, storeId: num
   if (!kv) return;
   
   const key = getUsageKey(storeId);
-  const currentUsage = await kv.get(key);
-  const usageCount = currentUsage ? parseInt(currentUsage, 10) : 0;
+  const currentUsage = await getStoreAIUsage(kv, storeId);
   
   // Expire after 24 hours (86400 seconds)
-  await kv.put(key, (usageCount + 1).toString(), { expirationTtl: 86400 });
+  await kv.put(key, (currentUsage + 1).toString(), { expirationTtl: 86400 });
 }
 
 

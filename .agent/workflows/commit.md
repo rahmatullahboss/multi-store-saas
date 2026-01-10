@@ -2,4 +2,4 @@
 description: commit
 ---
 
-commit
+build test and commit

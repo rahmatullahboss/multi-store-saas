@@ -11,7 +11,7 @@ import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
-// import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
+import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 
 // ============================================================================
 // TECH MODERN THEME CONSTANTS
@@ -213,175 +213,56 @@ export function TechModernTemplate({
         )}
       </header>
 
-      {/* ==================== HERO SECTION ==================== */}
-      <section className="relative overflow-hidden" style={{ background: THEME.gradient }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Content */}
-            <div className="text-white">
-              <div 
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)', color: THEME.accent }}
-              >
-                <Zap className="w-4 h-4" />
-                New Arrivals
-              </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                {config?.bannerText || `Next-Gen Tech from ${storeName}`}
-              </h1>
-              <p className="text-lg text-white/70 mb-8 max-w-lg">
-                Discover the latest innovations in technology. Premium quality, unbeatable prices.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link
-                  to="/#products"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold transition-all hover:scale-105"
-                  style={{ backgroundColor: THEME.accent, color: 'white' }}
-                >
-                  {t('buyNow')}
-                  <ChevronRight className="w-5 h-5" />
-                </Link>
-                <Link
-                  to="/about"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all"
-                >
-                  Learn More
-                </Link>
-              </div>
-              
-              {/* Stats */}
-              <div className="flex gap-8 mt-12 pt-8 border-t border-white/20">
-                <div>
-                  <div className="text-3xl font-bold">500+</div>
-                  <div className="text-white/60 text-sm">Products</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold">10K+</div>
-                  <div className="text-white/60 text-sm">Happy Customers</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold flex items-center gap-1">
-                    4.9 <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  </div>
-                  <div className="text-white/60 text-sm">Rating</div>
-                </div>
-              </div>
-            </div>
 
-            {/* Hero Image */}
-            <div className="relative hidden lg:block">
-              {config?.bannerUrl ? (
-                <img 
-                  src={config.bannerUrl} 
-                  alt="Featured Product" 
-                  className="w-full h-auto rounded-2xl shadow-2xl"
-                />
-              ) : (
-                <div className="aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-3xl flex items-center justify-center">
-                  <div className="text-8xl">🔌</div>
-                </div>
-              )}
-              {/* Floating Elements */}
-              <div 
-                className="absolute -top-4 -right-4 w-24 h-24 rounded-full"
-                style={{ backgroundColor: THEME.accent, opacity: 0.3 }}
-              />
-              <div 
-                className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full"
-                style={{ backgroundColor: THEME.accent, opacity: 0.2 }}
-              />
-            </div>
-          </div>
-        </div>
+      {/* ==================== DYNAMIC SECTIONS ==================== */}
+      {(config?.sections ?? [
+         {
+           id: 'hero',
+           type: 'hero',
+           settings: {
+             heading: config?.bannerText || `Next-Gen Tech from ${storeName}`,
+             subheading: 'Discover the latest innovations. Premium quality, unbeatable prices.',
+             primaryAction: { label: t('buyNow'), url: '/#products' },
+             image: config?.bannerUrl,
+             layout: 'standard',
+             alignment: 'left'
+           }
+         },
+         {
+           id: 'categories',
+           type: 'category-list',
+           settings: {
+             layout: 'tabs',
+             limit: 10
+           }
+         },
+         {
+           id: 'products',
+           type: 'product-grid',
+           settings: {
+             heading: currentCategory || 'All Products',
+             productCount: 12,
+             paddingTop: 'large',
+             paddingBottom: 'large'
+           }
+         }
+       ]).map((section: any) => {
+        const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+        if (!SectionComponent) return null;
+        
+        return (
+          <SectionComponent
+            key={section.id}
+            settings={section.settings}
+            theme={THEME}
+            products={products}
+            categories={categories}
+            storeId={storeId}
+            currency={currency}
+          />
+        );
+      })}
 
-        {/* Wave Divider */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path 
-              d="M0 50L48 55C96 60 192 70 288 70C384 70 480 60 576 55C672 50 768 50 864 55C960 60 1056 70 1152 70C1248 70 1344 60 1392 55L1440 50V100H1392C1344 100 1248 100 1152 100C1056 100 960 100 864 100C768 100 672 100 576 100C480 100 384 100 288 100C192 100 96 100 48 100H0V50Z" 
-              fill={THEME.background}
-            />
-          </svg>
-        </div>
-      </section>
-
-      {/* ==================== CATEGORY TABS ==================== */}
-      {validCategories.length > 0 && (
-        <div className="bg-white border-b border-gray-200 sticky top-16 lg:top-20 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-1 py-2 overflow-x-auto">
-              <Link
-                to="/"
-                className="flex-shrink-0 px-6 py-2.5 rounded-lg text-sm font-medium transition-all"
-                style={{
-                  backgroundColor: !currentCategory ? THEME.accent : 'transparent',
-                  color: !currentCategory ? 'white' : THEME.muted,
-                }}
-              >
-                All
-              </Link>
-              {validCategories.map((category) => (
-                <Link
-                  key={category}
-                  to={`/?category=${encodeURIComponent(category)}`}
-                  className="flex-shrink-0 px-6 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-gray-100"
-                  style={{
-                    backgroundColor: currentCategory === category ? THEME.accent : 'transparent',
-                    color: currentCategory === category ? 'white' : THEME.muted,
-                  }}
-                >
-                  {category}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== PRODUCTS GRID ==================== */}
-      <section id="products" className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 
-                className="text-2xl lg:text-3xl font-bold"
-                style={{ color: THEME.primary }}
-              >
-                {currentCategory || 'All Products'}
-              </h2>
-              <p className="text-sm mt-1" style={{ color: THEME.muted }}>
-                {products.length} products available
-              </p>
-            </div>
-          </div>
-
-          {/* Products Grid */}
-          {products.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <TechProductCard 
-                  key={product.id} 
-                  product={product} 
-                  storeId={storeId}
-                  formatPrice={formatPrice}
-                  isPreview={isPreview}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
-              <div className="text-6xl mb-4">🔍</div>
-              <p className="text-lg font-medium" style={{ color: THEME.text }}>
-                No products found
-              </p>
-              <p className="text-sm mt-1" style={{ color: THEME.muted }}>
-                Try a different category or check back later.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* ==================== FOOTER ==================== */}
       <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
