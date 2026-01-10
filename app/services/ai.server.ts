@@ -810,6 +810,50 @@ Generate the updated JSON:`;
 }
 
 // ============================================================================
+// CUSTOM SECTION DESIGN (Raw HTML/Tailwind)
+// ============================================================================
+export async function designCustomSection(
+  apiKey: string,
+  prompt: string,
+  currentHtml?: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<ElementorPageResult> {
+  const systemPrompt = `You are a world-class UI designer and Tailwind CSS developer.
+Your task is to generate a premium, high-converting landing page section using HTML and Tailwind CSS.
+
+### Design Principles:
+- Use Tailwind CSS 2.2 utility classes.
+- Mobile-First: Ensure the section looks stunning on small screens.
+- Aesthetics: Use rich gradients, glassmorphism, rounded-3xl corners, and smooth spacing.
+- Font: Use 'Hind Siliguri' for all Bengali text.
+- Language: If the prompt is in Bengali or mentions Bangladesh, use Persuasive Bengali.
+- Interactive: Use hover effects (e.g., hover:scale-105) for CTA buttons.
+- Links: ALL buttons should be <a> tags with href="#order".
+
+### Structure:
+- Return ONLY valid HTML for the section.
+- If currentHtml is provided, you are MODIFYING or IMPROVING an existing section.
+- If currentHtml is empty, you are DESIGNING FROM SCRATCH.
+
+### Response format:
+Your response MUST be valid JSON:
+{
+  "html": "<section class='...'>...</section>",
+  "css": ".optional-custom-css { ... }"
+}
+Return ONLY the JSON. No markdown, no code fences.`;
+
+  const userPrompt = currentHtml 
+    ? `Update this section based on this request: "${prompt}"\n\nCurrent HTML:\n${currentHtml}`
+    : `Design a new section based on this request: "${prompt}"`;
+
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
+  const parsed = extractJSON(response);
+  return ElementorPageSchema.parse(parsed);
+}
+
+// ============================================================================
 // EXPORT: AI Service Factory
 // ============================================================================
 export function createAIService(apiKey: string, options?: { model?: string, baseUrl?: string }) {
@@ -846,5 +890,8 @@ export function createAIService(apiKey: string, options?: { model?: string, base
     
     generateGrapesJsPage: (prompt: string) => 
       generateGrapesJsPage(apiKey, prompt, options?.model, options?.baseUrl),
+    
+    designCustomSection: (prompt: string, currentHtml?: string) =>
+      designCustomSection(apiKey, prompt, currentHtml, options?.model, options?.baseUrl),
   };
 }

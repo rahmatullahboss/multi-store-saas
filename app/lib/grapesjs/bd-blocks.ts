@@ -1226,5 +1226,25 @@ export const bdBlocksPlugin = (editor: Editor) => {
     `,
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="16" width="20" height="6" rx="1"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="8" y1="8" x2="16" y2="8"/></svg>',
   });
+  // AI Placeholder Block
+  Blocks.add('bd-ai-placeholder', {
+    label: 'AI Design Me',
+    category: 'High Conversion',
+    content: `
+      <section class="py-20 px-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-dashed border-indigo-200 rounded-3xl m-4 flex flex-col items-center justify-center text-center cursor-pointer hover:border-indigo-400 transition-all group min-h-[400px]" data-ai-placeholder="true">
+        <div class="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+           <svg viewBox="0 0 24 24" fill="none" class="w-10 h-10 text-indigo-600" stroke="currentColor" stroke-width="2">
+             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+           </svg>
+        </div>
+        <h3 class="text-2xl font-black text-gray-900 mb-3">Magic AI Design</h3>
+        <p class="text-gray-500 max-w-sm mb-8 font-medium">Click this block or use the floating toolbar's sparkle icon to design a custom section with AI.</p>
+        <button class="px-8 py-3 bg-indigo-600 text-white font-black rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition" onclick="editor.runCommand('open-ai-design-modal')">
+           START DESIGNING
+        </button>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 text-indigo-500" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" /></svg>',
+  });
 };
 

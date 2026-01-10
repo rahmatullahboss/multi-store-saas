@@ -27,6 +27,8 @@ interface GrapesEditorProps {
 export default function GrapesEditor({ pageId }: GrapesEditorProps) {
   const [editor, setEditor] = (useState<any>)(null);
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
+  const [aiDesignMode, setAiDesignMode] = useState<'full-page' | 'section-design'>('full-page');
+  const [selectedComponentData, setSelectedComponentData] = useState<string | null>(null);
   
   // Global Theme State
   const [themeConfig, setThemeConfig] = useState({
@@ -51,8 +53,44 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
 
     editorInstance.Commands.add('open-magic-modal', {
       run: () => {
+          setAiDesignMode('full-page');
           setIsMagicModalOpen(true);
       },
+    });
+
+    editorInstance.Commands.add('open-ai-design-modal', {
+      run: () => {
+          const selected = editorInstance.getSelected();
+          if (selected) {
+            setSelectedComponentData(selected.toHTML());
+            setAiDesignMode('section-design');
+            setIsMagicModalOpen(true);
+          } else {
+            toast.error("Please select a block to design with AI");
+          }
+      },
+    });
+
+    // Add Sparkle icon to component toolbar
+    editorInstance.on('component:selected', () => {
+      const selected = editorInstance.getSelected();
+      if (selected) {
+        const toolbar = selected.get('toolbar');
+        const hasAiBtn = toolbar.some((btn: any) => btn.command === 'open-ai-design-modal');
+        
+        if (!hasAiBtn) {
+          toolbar.unshift({
+            attributes: { title: 'Design with AI', class: 'fa fa-magic' },
+            command: 'open-ai-design-modal',
+            label: `
+              <svg viewBox="0 0 24 24" fill="none" width="12" height="12" style="margin: 4px" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
+            `
+          });
+          selected.set('toolbar', toolbar);
+        }
+      }
     });
 
     // Initial Theme Injection
@@ -62,7 +100,28 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
   const handleMagicGenerate = (data: any) => {
     if (!editor) return;
 
-    // Clear existing content
+    if (aiDesignMode === 'section-design') {
+      const selected = editor.getSelected();
+      if (selected && data.html) {
+        // Replace selected component with new HTML
+        // We use insertBefore and then remove old to ensure proper placement
+        const parent = selected.parent();
+        if (parent) {
+          const index = selected.index();
+          const newComp = editor.addComponents(data.html, { at: index })[0];
+          selected.remove();
+          editor.select(newComp);
+        } else {
+          // If no parent (root level), just append
+          editor.DomComponents.clear(); // Safety clearing if it was a placeholder at root
+          editor.addComponents(data.html);
+        }
+        toast.success("Section redesigned successfully!");
+      }
+      return;
+    }
+
+    // Clear existing content (Full Page Mode)
     editor.DomComponents.clear();
 
     // Add blocks based on AI response
@@ -232,8 +291,13 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
 
       <MagicGenerateModal 
         isOpen={isMagicModalOpen} 
-        onClose={() => setIsMagicModalOpen(false)}
+        onClose={() => {
+          setIsMagicModalOpen(false);
+          setSelectedComponentData(null);
+        }}
         onGenerate={handleMagicGenerate}
+        mode={aiDesignMode}
+        initialData={selectedComponentData || undefined}
       />
 
       <style dangerouslySetInnerHTML={{ __html: `

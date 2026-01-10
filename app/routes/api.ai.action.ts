@@ -29,7 +29,8 @@ type ActionType =
   | 'ENHANCE_TEXT' 
   | 'GENERATE_ELEMENTOR_PAGE' 
   | 'EDIT_ELEMENTOR_SECTION'
-  | 'GENERATE_GRAPESJS_PAGE';
+  | 'GENERATE_GRAPESJS_PAGE'
+  | 'DESIGN_CUSTOM_SECTION';
 
 interface ActionPayload {
   action: ActionType;
@@ -250,6 +251,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.generateGrapesJsPage(payload.prompt);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        return json({ success: true, data: result });
+      }
+
+      case 'DESIGN_CUSTOM_SECTION': {
+        if (!payload.prompt) {
+          return json({ error: 'AI Prompt required' }, { status: 400 });
+        }
+
+        const result = await ai.designCustomSection(payload.prompt, payload.currentHtml);
         await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }

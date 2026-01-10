@@ -8,9 +8,17 @@ interface MagicGenerateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGenerate: (data: any) => void;
+  mode?: 'full-page' | 'section-design';
+  initialData?: string; // Current HTML if in section-design mode
 }
 
-export default function MagicGenerateModal({ isOpen, onClose, onGenerate }: MagicGenerateModalProps) {
+export default function MagicGenerateModal({ 
+  isOpen, 
+  onClose, 
+  onGenerate, 
+  mode = 'full-page',
+  initialData 
+}: MagicGenerateModalProps) {
   const [prompt, setPrompt] = useState('');
   const [step, setStep] = useState<'input' | 'generating' | 'success'>('input');
   const fetcher = useFetcher<{ success: boolean; data?: any; error?: string }>();
@@ -45,17 +53,33 @@ export default function MagicGenerateModal({ isOpen, onClose, onGenerate }: Magi
     if (!prompt.trim()) return;
     
     setStep('generating');
-    fetcher.submit(
-      { 
-        action: 'GENERATE_GRAPESJS_PAGE',
-        prompt 
-      },
-      { 
-        method: 'post', 
-        action: '/api/ai/action',
-        encType: 'application/json' 
-      }
-    );
+    
+    if (mode === 'section-design') {
+      fetcher.submit(
+        { 
+          action: 'DESIGN_CUSTOM_SECTION',
+          prompt,
+          currentHtml: initialData || ''
+        },
+        { 
+          method: 'post', 
+          action: '/api/ai/action',
+          encType: 'application/json' 
+        }
+      );
+    } else {
+      fetcher.submit(
+        { 
+          action: 'GENERATE_GRAPESJS_PAGE',
+          prompt 
+        },
+        { 
+          method: 'post', 
+          action: '/api/ai/action',
+          encType: 'application/json' 
+        }
+      );
+    }
   };
 
   if (!isOpen) return null;
