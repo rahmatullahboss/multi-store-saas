@@ -36,48 +36,52 @@ export default function ThemePanel({ config, onChange }: ThemePanelProps) {
       {/* Colors Section */}
       <div className="space-y-4 mb-8">
         <h4 className="flex items-center gap-2 text-[10px] font-bold text-gray-800 uppercase border-b pb-2">
-          <Palette size={12} className="text-blue-500" />
+          <Palette size={12} className="text-primary" />
           Brand Colors
         </h4>
         
-        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-3">
-          <div>
-            <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Primary Color (Buttons/Links)</label>
-            <div className="flex gap-2">
+        <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-5">
+          <div className="flex flex-col gap-3">
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Primary Color</label>
+            <div className="flex items-center gap-3">
               <input 
                 type="color" 
                 value={config.primaryColor}
                 onChange={(e) => handleChange('primaryColor', e.target.value)}
-                className="w-12 h-10 rounded-lg cursor-pointer border border-gray-200"
+                className="w-14 h-14 rounded-2xl cursor-pointer border-4 border-white shadow-lg shadow-primary/20 appearance-none bg-transparent overflow-hidden transition-transform active:scale-95"
                 title="Pick primary color"
               />
-              <input 
-                type="text" 
-                value={config.primaryColor}
-                onChange={(e) => handleChange('primaryColor', e.target.value)}
-                className="flex-1 text-xs border border-gray-200 rounded-lg px-2 text-gray-600 font-mono uppercase focus:ring-2 focus:ring-blue-100 outline-none"
-                placeholder="#059669"
-              />
+              <div className="flex-1">
+                <input 
+                  type="text" 
+                  value={config.primaryColor}
+                  onChange={(e) => handleChange('primaryColor', e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-600 font-mono uppercase focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white transition-all shadow-sm"
+                  placeholder="#059669"
+                />
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Secondary Color (Accents)</label>
-            <div className="flex gap-2">
+          <div className="flex flex-col gap-3">
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Secondary Color</label>
+            <div className="flex items-center gap-3">
               <input 
                 type="color" 
                 value={config.secondaryColor}
                 onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                className="w-12 h-10 rounded-lg cursor-pointer border border-gray-200"
+                className="w-14 h-14 rounded-2xl cursor-pointer border-4 border-white shadow-lg shadow-secondary/20 appearance-none bg-transparent overflow-hidden transition-transform active:scale-95"
                 title="Pick secondary color"
               />
-              <input 
-                type="text" 
-                value={config.secondaryColor}
-                onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                className="flex-1 text-xs border border-gray-200 rounded-lg px-2 text-gray-600 font-mono uppercase focus:ring-2 focus:ring-blue-100 outline-none"
-                placeholder="#2563eb"
-              />
+              <div className="flex-1">
+                <input 
+                  type="text" 
+                  value={config.secondaryColor}
+                  onChange={(e) => handleChange('secondaryColor', e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-600 font-mono uppercase focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-white transition-all shadow-sm"
+                  placeholder="#2563eb"
+                />
+              </div>
             </div>
           </div>
         </div>
