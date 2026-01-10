@@ -5,63 +5,10 @@ import {
   Smartphone, Eye, RotateCcw, Copy, Save, CheckCircle2,
   Square, FileText, BarChart3, Video, Star, Move
 } from 'lucide-react';
-
-const widgets = [
-  { id: 'text', icon: Type, label: 'Text' },
-  { id: 'image', icon: ImageIcon, label: 'Image' },
-  { id: 'button', icon: Square, label: 'Button' },
-  { id: 'form', icon: FileText, label: 'Form' },
-  { id: 'chart', icon: BarChart3, label: 'Chart' },
-  { id: 'video', icon: Video, label: 'Video' },
-  { id: 'review', icon: Star, label: 'Review' },
-];
-
-const features = [
-  {
-    icon: LayoutTemplate,
-    title: 'Pixel Perfect',
-    desc: 'যেখানে চান সেখানে রাখুন',
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10'
-  },
-  {
-    icon: Smartphone,
-    title: 'Responsive',
-    desc: 'Mobile, Tablet, Desktop — সব জায়গায় Perfect',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10'
-  },
-  {
-    icon: Eye,
-    title: 'Live Preview',
-    desc: 'Real-time এ দেখুন কেমন হচ্ছে',
-    color: 'text-orange-400',
-    bg: 'bg-orange-500/10'
-  },
-  {
-    icon: Save,
-    title: 'Auto Save',
-    desc: 'কোনো কিছু হারাবে না, সব Save',
-    color: 'text-green-400',
-    bg: 'bg-green-500/10'
-  },
-  {
-    icon: RotateCcw,
-    title: 'Undo/Redo',
-    desc: 'ভুল হলে আগের অবস্থায় ফিরে যান',
-    color: 'text-red-400',
-    bg: 'bg-red-500/10'
-  },
-  {
-    icon: Copy,
-    title: 'Copy/Paste',
-    desc: 'Section Copy করে অন্যখানে Paste করুন',
-    color: 'text-cyan-400',
-    bg: 'bg-cyan-500/10'
-  }
-];
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export function DragDropBuilderShowcase() {
+  const { t } = useTranslation();
   const [activeDrop, setActiveDrop] = useState<number | null>(null);
   const [canvasElements, setCanvasElements] = useState([
     { id: 1, type: 'header', height: 'h-16' },
@@ -70,6 +17,61 @@ export function DragDropBuilderShowcase() {
 
   // Animation sequence state
   const [animationStep, setAnimationStep] = useState(0);
+
+  const widgets = [
+    { id: 'text', icon: Type, label: t('landingDragDrop_widgetText') },
+    { id: 'image', icon: ImageIcon, label: t('landingDragDrop_widgetImage') },
+    { id: 'button', icon: Square, label: t('landingDragDrop_widgetButton') },
+    { id: 'form', icon: FileText, label: t('landingDragDrop_widgetForm') },
+    { id: 'chart', icon: BarChart3, label: t('landingDragDrop_widgetChart') },
+    { id: 'video', icon: Video, label: t('landingDragDrop_widgetVideo') },
+    { id: 'review', icon: Star, label: t('landingDragDrop_widgetReview') },
+  ];
+
+  const features = [
+    {
+      icon: LayoutTemplate,
+      title: t('landingDragDrop_pixelPerfect'),
+      desc: t('landingDragDrop_placeAnywhere'),
+      color: 'text-purple-400',
+      bg: 'bg-purple-500/10'
+    },
+    {
+      icon: Smartphone,
+      title: t('landingDragDrop_responsive'),
+      desc: t('landingDragDrop_perfectEverywhere'),
+      color: 'text-blue-400',
+      bg: 'bg-blue-500/10'
+    },
+    {
+      icon: Eye,
+      title: t('landingDragDrop_livePreview'),
+      desc: t('landingDragDrop_seeRealTime'),
+      color: 'text-orange-400',
+      bg: 'bg-orange-500/10'
+    },
+    {
+      icon: Save,
+      title: t('landingDragDrop_autoSave'),
+      desc: t('landingDragDrop_nothingLost'),
+      color: 'text-green-400',
+      bg: 'bg-green-500/10'
+    },
+    {
+      icon: RotateCcw,
+      title: t('landingDragDrop_undoRedo'),
+      desc: t('landingDragDrop_backToPrevious'),
+      color: 'text-red-400',
+      bg: 'bg-red-500/10'
+    },
+    {
+      icon: Copy,
+      title: t('landingDragDrop_copyPaste'),
+      desc: t('landingDragDrop_sectionCopyPaste'),
+      color: 'text-cyan-400',
+      bg: 'bg-cyan-500/10'
+    }
+  ];
 
   useEffect(() => {
     const sequence = async () => {
@@ -116,14 +118,14 @@ export function DragDropBuilderShowcase() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
           >
             <Move className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-medium text-purple-300">Drag & Drop Builder</span>
+            <span className="text-sm font-medium text-purple-300">{t('landingDragDrop_title')}</span>
           </motion.div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            🎨 Drag & Drop Builder — <span className="text-purple-400">ইচ্ছামতো সাজান</span>
+            🎨 {t('landingDragDrop_title')} — <span className="text-purple-400">{t('landingDragDrop_customizeAsYouWish')}</span>
           </h2>
           <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            Elementor এর মতো — কিন্তু আরো সহজ। কোডিং ছাড়াই তৈরি করুন প্রফেশনাল ওয়েবসাইট।
+            {t('landingDragDrop_builderDesc')}
           </p>
         </div>
 
@@ -136,7 +138,7 @@ export function DragDropBuilderShowcase() {
             {/* Sidebar (Widgets) */}
             <div className="w-64 bg-[#111] border-r border-white/5 flex flex-col">
               <div className="p-4 border-b border-white/5">
-                <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Widgets</span>
+                <span className="text-xs font-bold text-white/40 uppercase tracking-widest">{t('landingDragDrop_widgets')}</span>
               </div>
               <div className="p-4 grid grid-cols-2 gap-3 overflow-y-auto">
                 {widgets.map((w) => (
@@ -243,7 +245,7 @@ export function DragDropBuilderShowcase() {
                     }}
                     className="w-full rounded-lg border-2 border-dashed border-purple-500 bg-purple-500/10 flex items-center justify-center overflow-hidden"
                  >
-                    <span className="text-purple-400 text-sm font-medium">Drop Here</span>
+                    <span className="text-purple-400 text-sm font-medium">{t('landingDragDrop_dropHere')}</span>
                  </motion.div>
 
                </div>

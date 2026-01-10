@@ -5,6 +5,10 @@
  * Opens WhatsApp with pre-filled order message
  */
 
+import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+
 interface WhatsAppOrderButtonProps {
   /** Store's WhatsApp number */
   phoneNumber: string;
@@ -29,10 +33,13 @@ export function WhatsAppOrderButton({
   price,
   currency = '৳',
   quantity = 1,
-  buttonText = 'WhatsApp এ অর্ডার করুন',
+  buttonText,
   fullWidth = false,
   className = '',
 }: WhatsAppOrderButtonProps) {
+  const { t, lang } = useTranslation();
+  const displayButtonText = buttonText || t('landingProduct_whatsappOrder');
+
   // Format phone for WhatsApp
   const formatPhone = (phone: string): string => {
     let cleaned = phone.replace(/[^\d+]/g, '');
@@ -46,20 +53,25 @@ export function WhatsAppOrderButton({
 
   const total = price * quantity;
   
+  // Format total based on language
+  const formattedTotal = lang === 'bn' && (currency === '৳' || currency === 'BDT')
+    ? `${currency}${total.toLocaleString('bn-BD')}`
+    : `${currency}${total.toLocaleString()}`;
+
   // Pre-filled message template
-  const message = `আসসালামু আলাইকুম!
+  const message = `${t('landingProduct_orderMsg_greeting')}
 
-আমি *${productName}* অর্ডার করতে চাই।
+${t('landingProduct_orderMsg_iWantToOrder', { productName })}
 
-📦 পরিমাণ: ${quantity}টি
-💰 মূল্য: ${currency}${total.toLocaleString()}
+${t('landingProduct_orderMsg_quantity', { quantity: lang === 'bn' ? quantity.toLocaleString('bn-BD') : quantity })}
+${t('landingProduct_orderMsg_price', { total: formattedTotal })}
 
-আমার তথ্য:
-নাম: 
-ঠিকানা: 
-মোবাইল: 
+${t('landingProduct_orderMsg_myInfo')}
+${t('landingProduct_orderMsg_name')} 
+${t('landingProduct_orderMsg_address')} 
+${t('landingProduct_orderMsg_mobile')} 
 
-ধন্যবাদ!`;
+${t('landingProduct_orderMsg_thanks')}`;
 
   const whatsappUrl = `https://wa.me/${formatPhone(phoneNumber)}?text=${encodeURIComponent(message)}`;
 
@@ -84,7 +96,7 @@ export function WhatsAppOrderButton({
       <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
       </svg>
-      {buttonText}
+      {displayButtonText}
     </button>
   );
 }
@@ -94,9 +106,6 @@ export function WhatsAppOrderButton({
  * 
  * Shows multiple product images with thumbnails
  */
-
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 
 interface ProductGalleryProps {
   /** Array of image URLs */
@@ -243,6 +252,8 @@ export function VariantSelector({
   displayType = 'buttons',
   className = '',
 }: VariantSelectorProps) {
+  const { t, lang } = useTranslation();
+
   // Color swatches
   if (displayType === 'colors') {
     return (
@@ -277,7 +288,7 @@ export function VariantSelector({
         </div>
         {selectedId && (
           <p className="text-sm text-gray-600 mt-2">
-            নির্বাচিত: {variants.find(v => v.id === selectedId)?.name}
+            {t('landingProduct_selected')} {variants.find(v => v.id === selectedId)?.name}
           </p>
         )}
       </div>
@@ -297,15 +308,15 @@ export function VariantSelector({
           }}
           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent text-lg"
         >
-          <option value="">-- নির্বাচন করুন --</option>
+          <option value="">{t('landingProduct_selectOption')}</option>
           {variants.map((variant) => (
             <option 
               key={variant.id} 
               value={variant.id}
               disabled={variant.stock === 0}
             >
-              {variant.name} {variant.stock === 0 ? '(স্টক নেই)' : ''}
-              {variant.price ? ` (+৳${variant.price})` : ''}
+              {variant.name} {variant.stock === 0 ? t('landingProduct_outOfStock') : ''}
+              {variant.price ? ` (+${lang === 'bn' ? '৳' : '৳'}${lang === 'bn' ? variant.price.toLocaleString('bn-BD') : variant.price.toLocaleString()})` : ''}
             </option>
           ))}
         </select>
@@ -337,7 +348,7 @@ export function VariantSelector({
               `}
             >
               {variant.name}
-              {variant.price ? <span className="text-sm ml-1">(+৳{variant.price})</span> : ''}
+              {variant.price ? <span className="text-sm ml-1">(+${lang === 'bn' ? '৳' : '৳'}${lang === 'bn' ? variant.price.toLocaleString('bn-BD') : variant.price.toLocaleString()})</span> : ''}
             </button>
           );
         })}

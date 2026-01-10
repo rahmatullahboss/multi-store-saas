@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface CountdownTimerProps {
   /** End date/time for the countdown */
@@ -14,8 +15,6 @@ interface CountdownTimerProps {
   expiredText?: string;
   /** Visual style */
   variant?: 'default' | 'compact' | 'banner';
-  /** Show labels in Bengali */
-  bengali?: boolean;
   /** Custom class names */
   className?: string;
 }
@@ -46,13 +45,13 @@ function calculateTimeLeft(endDate: Date): TimeLeft {
 
 export function CountdownTimer({
   endDate,
-  expiredText = 'অফার শেষ!',
+  expiredText,
   variant = 'default',
-  bengali = true,
   className = '',
 }: CountdownTimerProps) {
+  const { t } = useTranslation();
+  
   // Memoize the targetDate to prevent recreating on every render
-  // If no endDate is provided, use a past date to show expired state
   const targetDate = useMemo(() => {
     if (!endDate) return new Date(0); // Past date = expired
     return typeof endDate === 'string' ? new Date(endDate) : endDate;
@@ -63,7 +62,6 @@ export function CountdownTimer({
 
   useEffect(() => {
     setMounted(true);
-    // Calculate immediately on mount
     setTimeLeft(calculateTimeLeft(targetDate));
     
     const timer = setInterval(() => {
@@ -78,14 +76,19 @@ export function CountdownTimer({
     return null;
   }
 
-  const labels = bengali
-    ? { days: 'দিন', hours: 'ঘণ্টা', minutes: 'মিনিট', seconds: 'সেকেন্ড' }
-    : { days: 'Days', hours: 'Hours', minutes: 'Min', seconds: 'Sec' };
+  const labels = {
+    days: t('landingConversion_days'),
+    hours: t('landingConversion_hours'),
+    minutes: t('landingConversion_minutes'),
+    seconds: t('landingConversion_seconds')
+  };
+
+  const finalExpiredText = expiredText || t('landingConversion_offerExpired');
 
   if (timeLeft.total <= 0) {
     return (
       <div className={`text-center py-3 px-4 bg-gray-100 rounded-lg ${className}`}>
-        <p className="text-gray-600 font-medium">{expiredText}</p>
+        <p className="text-gray-600 font-medium">{finalExpiredText}</p>
       </div>
     );
   }
@@ -109,7 +112,7 @@ export function CountdownTimer({
     return (
       <div className={`bg-gradient-to-r from-red-600 to-orange-500 text-white py-3 px-4 ${className}`}>
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
-          <span className="font-bold text-lg">🔥 অফার শেষ হচ্ছে:</span>
+          <span className="font-bold text-lg">{t('landingConversion_offerEnding')}</span>
           <div className="flex items-center gap-2">
             {timeLeft.days > 0 && (
               <div className="bg-white/20 rounded px-3 py-1">
@@ -201,6 +204,7 @@ export function StockCounter({
   initialStock = 100,
   className = '',
 }: StockCounterProps) {
+  const { t } = useTranslation();
   const isLowStock = stock <= lowStockThreshold;
   const isCritical = stock <= 5;
   const stockPercentage = Math.min(100, (stock / initialStock) * 100);
@@ -209,7 +213,7 @@ export function StockCounter({
     return (
       <div className={`flex items-center gap-2 text-red-600 ${className}`}>
         <span className="text-xl">❌</span>
-        <span className="font-bold">স্টক শেষ!</span>
+        <span className="font-bold">{t('landingConversion_stockOut')}</span>
       </div>
     );
   }
@@ -222,10 +226,10 @@ export function StockCounter({
         </span>
         <span className={`font-bold ${isCritical ? 'text-red-600' : isLowStock ? 'text-orange-600' : 'text-gray-700'}`}>
           {isCritical 
-            ? `মাত্র ${stock}টি বাকি! দ্রুত অর্ডার করুন!`
+            ? t('landingConversion_onlyStockLeft', { stock })
             : isLowStock 
-              ? `শুধুমাত্র ${stock}টি স্টকে আছে`
-              : `${stock}টি স্টকে আছে`
+              ? t('landingConversion_onlyXInStock', { stock })
+              : t('landingConversion_xInStock', { stock })
           }
         </span>
       </div>
@@ -280,6 +284,7 @@ export function SocialProofPopup({
   buyers = DEFAULT_BUYERS,
   locations = DEFAULT_LOCATIONS,
 }: SocialProofPopupProps) {
+  const { t, lang } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [currentBuyer, setCurrentBuyer] = useState({ name: '', location: '', time: '' });
 
@@ -305,10 +310,14 @@ export function SocialProofPopup({
     const randomLocation = locations[Math.floor(Math.random() * locations.length)];
     const randomMinutes = Math.floor(Math.random() * 30) + 1;
 
+    const timeText = randomMinutes === 1 
+      ? t('landingConversion_justNow') 
+      : t('landingConversion_minutesAgo', { randomMinutes });
+
     setCurrentBuyer({
       name: randomBuyer,
       location: randomLocation,
-      time: randomMinutes === 1 ? 'এইমাত্র' : `${randomMinutes} মিনিট আগে`,
+      time: timeText,
     });
 
     setVisible(true);
@@ -330,7 +339,11 @@ export function SocialProofPopup({
           </div>
           <div>
             <p className="text-sm text-gray-800">
-              <strong>{currentBuyer.name}</strong> ({currentBuyer.location}) <strong>{productName}</strong> অর্ডার করেছেন
+               {lang === 'bn' ? (
+                 <><strong>{currentBuyer.name}</strong> ({currentBuyer.location}) <strong>{productName}</strong> {t('landingConversion_orderedText')}</>
+               ) : (
+                 <><strong>{currentBuyer.name}</strong> ({currentBuyer.location}) {t('landingConversion_orderedText')} <strong>{productName}</strong></>
+               )}
             </p>
             <p className="text-xs text-gray-500 mt-1">{currentBuyer.time}</p>
           </div>

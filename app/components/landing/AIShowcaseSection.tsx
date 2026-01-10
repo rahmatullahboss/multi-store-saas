@@ -1,89 +1,52 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Sparkles, MessageSquare, BrainCircuit, Bot, Zap, Check, Send, Search, Menu, BarChart3, TrendingUp, Users, Package, Shirt, Footprints, AlertCircle, Phone, HelpCircle } from 'lucide-react';
-import { useLanguage } from '~/contexts/LanguageContext';
-
-const aiFeatures = {
-  en: {
-    sectionTitle: "AI Everywhere — For You, For Your Customers",
-    sectionSubtitle: "Not just one, but three powerful AIs working together to grow your business",
-    tabs: [
-      {
-        id: 'visitor',
-        title: 'Visitor AI',
-        role: 'For Shoppers',
-        icon: MessageSquare,
-        color: 'from-blue-500 to-cyan-500',
-        description: 'Personal shopping assistant for every visitor',
-      },
-      {
-        id: 'merchant',
-        title: 'Merchant AI',
-        role: 'For You',
-        icon: BrainCircuit,
-        color: 'from-emerald-500 to-green-500',
-        description: 'Your intelligent business co-pilot',
-      },
-      {
-        id: 'customer',
-        title: 'Customer AI',
-        role: 'Post-Purchase',
-        icon: ShoppingBag,
-        color: 'from-purple-500 to-pink-500',
-        description: 'Automated retention & support system',
-      }
-    ]
-  },
-  bn: {
-    sectionTitle: "🤖 AI সব জায়গায় — আপনার জন্য, কাস্টমারের জন্য",
-    sectionSubtitle: "একটা নয়, তিনটা AI — সবার জন্য সাহায্যকারী",
-    tabs: [
-      {
-        id: 'visitor',
-        title: 'ভিজিটর AI',
-        role: 'ভিজিটরদের জন্য',
-        icon: MessageSquare,
-        color: 'from-blue-500 to-cyan-500',
-        description: 'প্রত্যেক ভিজিটর পাবে পার্সোনাল শপিং অ্যাসিস্ট্যান্ট',
-      },
-      {
-        id: 'merchant',
-        title: 'মার্চেন্ট AI',
-        role: 'আপনার জন্য',
-        icon: BrainCircuit,
-        color: 'from-emerald-500 to-green-500',
-        description: 'আপনার বুদ্ধিমান বিজনেস কো-পাইলট',
-      },
-      {
-        id: 'customer',
-        title: 'কাস্টমার AI',
-        role: 'কাস্টমারদের জন্য',
-        icon: ShoppingBag,
-        color: 'from-purple-500 to-pink-500',
-        description: 'অটোমেটেড সাপোর্ট এবং রিটেনশন সিস্টেম',
-      }
-    ]
-  }
-};
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export function AIShowcaseSection() {
-  const { lang } = useLanguage();
-  const content = aiFeatures[lang];
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const rotationTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const tabs = [
+    {
+      id: 'visitor',
+      title: t('landingShowcase_visitorTitle'),
+      role: t('landingShowcase_visitorRole'),
+      icon: MessageSquare,
+      color: 'from-blue-500 to-cyan-500',
+      description: t('landingShowcase_visitorDesc'),
+    },
+    {
+      id: 'merchant',
+      title: t('landingShowcase_merchantTitle'),
+      role: t('landingShowcase_merchantRole'),
+      icon: BrainCircuit,
+      color: 'from-emerald-500 to-green-500',
+      description: t('landingShowcase_merchantDesc'),
+    },
+    {
+      id: 'customer',
+      title: t('landingShowcase_customerTitle'),
+      role: t('landingShowcase_customerRole'),
+      icon: ShoppingBag,
+      color: 'from-purple-500 to-pink-500',
+      description: t('landingShowcase_customerDesc'),
+    }
+  ];
 
   // Auto-rotation logic
   useEffect(() => {
     if (!isPaused) {
       rotationTimer.current = setInterval(() => {
-        setActiveTab((prev) => (prev + 1) % content.tabs.length);
+        setActiveTab((prev) => (prev + 1) % tabs.length);
       }, 8000); // 8 seconds per slide to read content
     }
     return () => {
       if (rotationTimer.current) clearInterval(rotationTimer.current);
     };
-  }, [isPaused, content.tabs.length]);
+  }, [isPaused, tabs.length]);
 
   return (
     <section className="relative py-24 overflow-hidden bg-[#0A0F0D]">
@@ -103,14 +66,14 @@ export function AIShowcaseSection() {
              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-6"
            >
              <Sparkles className="w-4 h-4 text-emerald-400" />
-             <span className="text-sm font-medium text-emerald-200">Total AI Suite</span>
+             <span className="text-sm font-medium text-emerald-200">{t('landingShowcase_suite')}</span>
            </motion.div>
            
            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-             {content.sectionTitle}
+             {t('landingShowcase_title')}
            </h2>
            <p className="text-lg text-white/60 max-w-2xl mx-auto">
-             {content.sectionSubtitle}
+             {t('landingShowcase_subtitle')}
            </p>
         </div>
 
@@ -122,7 +85,7 @@ export function AIShowcaseSection() {
         >
           {/* Top Tabs */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {content.tabs.map((tab, index) => {
+            {tabs.map((tab, index) => {
               const isActive = activeTab === index;
               const Icon = tab.icon;
 
@@ -187,16 +150,16 @@ export function AIShowcaseSection() {
                    <div className="w-full h-full flex flex-col lg:flex-row">
                       {/* Left: Features */}
                       <div className="w-full lg:w-5/12 p-8 lg:p-12 border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col justify-center relative bg-gradient-to-b from-blue-900/10 to-transparent">
-                          <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">VISITOR AI</h3>
-                          <p className="text-lg text-blue-300 mb-8">OZZYL সম্পর্কে জানতে চান? AI কে জিজ্ঞেস করুন!</p>
+                          <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">{t('landingShowcase_visitorTitle')}</h3>
+                          <p className="text-lg text-blue-300 mb-8">{t('landingShowcase_visitor_askAi')}</p>
                           
                           <div className="space-y-6">
                             {[
-                              { title: 'OZZYL কি করে?', desc: 'AI বলে দেবে' },
-                              { title: 'Pricing জানতে চান?', desc: 'জিজ্ঞেস করুন' },
-                              { title: 'Features সম্পর্কে detail জানুন', desc: '' },
-                              { title: 'কিভাবে শুরু করবেন?', desc: 'AI Guide করবে' },
-                              { title: '২৪/৭ Available', desc: 'কোনো waiting নেই' },
+                              { title: t('landingShowcase_visitor_feature1'), desc: t('landingShowcase_visitor_feature1_desc') },
+                              { title: t('landingShowcase_visitor_feature2'), desc: t('landingShowcase_visitor_feature2_desc') },
+                              { title: t('landingShowcase_visitor_feature3'), desc: '' },
+                              { title: t('landingShowcase_visitor_feature4'), desc: t('landingShowcase_visitor_feature4_desc') },
+                              { title: t('landingShowcase_visitor_feature5'), desc: t('landingShowcase_visitor_feature5_desc') },
                             ].map((item, i) => (
                               <motion.div 
                                 initial={{ opacity: 0, x: -20 }}
@@ -218,7 +181,7 @@ export function AIShowcaseSection() {
 
                           <div className="mt-8 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                             <p className="text-sm text-blue-200">
-                              💡 "Sales team এর দরকার নেই — AI ই আপনার সব প্রশ্নের উত্তর দেবে"
+                              {t('landingShowcase_visitor_tip')}
                             </p>
                           </div>
                       </div>
@@ -235,8 +198,8 @@ export function AIShowcaseSection() {
                                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-[#1a1f1d] rounded-full" />
                               </div>
                               <div>
-                                <h4 className="font-bold text-white">OZZYL AI</h4>
-                                <p className="text-xs text-white/50">Always Active</p>
+                                <h4 className="font-bold text-white">{t('landingShowcase_visitor_aiName')}</h4>
+                                <p className="text-xs text-white/50">{t('landingShowcase_visitor_alwaysActive')}</p>
                               </div>
                             </div>
                             
@@ -247,7 +210,7 @@ export function AIShowcaseSection() {
                                   <Bot className="w-4 h-4 text-blue-400" />
                                 </div>
                                 <div className="bg-white/10 p-3 rounded-2xl rounded-tl-none max-w-[85%] text-sm text-white/90">
-                                  হ্যালো! আমি OZZYL AI।<br/>কিভাবে সাহায্য করতে পারি?
+                                  {t('landingShowcase_visitor_initialMsg')}
                                 </div>
                               </div>
                               
@@ -261,7 +224,7 @@ export function AIShowcaseSection() {
                                   <div className="w-2 h-2 rounded-full bg-emerald-400" />
                                 </div>
                                 <div className="bg-emerald-600/20 p-3 rounded-2xl rounded-tr-none max-w-[85%] text-sm text-white/90 border border-emerald-500/20">
-                                  Free plan এ কি কি পাব?
+                                  {t('landingShowcase_visitor_userMsg1')}
                                 </div>
                               </motion.div>
 
@@ -275,11 +238,11 @@ export function AIShowcaseSection() {
                                   <Bot className="w-4 h-4 text-blue-400" />
                                 </div>
                                 <div className="bg-white/10 p-3 rounded-2xl rounded-tl-none max-w-[85%] text-sm text-white/90">
-                                  Free plan এ আপনি পাবেন:
+                                  {t('landingShowcase_visitor_aiResponse1')}
                                   <ul className="list-disc ml-4 mt-1 space-y-1 text-white/70">
-                                    <li>১টি Product</li>
-                                    <li>১টি Landing Page</li>
-                                    <li>৫০টি Order/month</li>
+                                    <li>{t('landingShowcase_visitor_aiResponseBullet1')}</li>
+                                    <li>{t('landingShowcase_visitor_aiResponseBullet2')}</li>
+                                    <li>{t('landingShowcase_visitor_aiResponseBullet3')}</li>
                                   </ul>
                                 </div>
                               </motion.div>
@@ -300,14 +263,14 @@ export function AIShowcaseSection() {
                             {/* Chat Footer */}
                             <div className="p-3 bg-[#1a1f1d] border-t border-white/5">
                                 <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-                                   {['Pricing কেমন?', 'কিভাবে শুরু করব?'].map((chip, i) => (
+                                   {[t('landingAiChat_suggest2'), t('landingAiChat_suggest4')].map((chip, i) => (
                                      <span key={i} className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full text-xs text-blue-300 border border-white/10 cursor-pointer whitespace-nowrap transition-colors">
                                        {chip}
                                      </span>
                                    ))}
                                 </div>
                                 <div className="h-10 bg-black/30 rounded-lg border border-white/5 flex items-center px-3 justify-between">
-                                  <span className="text-white/20 text-sm">Type a message...</span>
+                                  <span className="text-white/20 text-sm">{t('landingShowcase_visitor_typeMessage')}</span>
                                   <Send className="w-4 h-4 text-white/20" />
                                 </div>
                             </div>
@@ -329,10 +292,10 @@ export function AIShowcaseSection() {
                          <div className="flex items-center gap-8">
                             <div className="w-24 h-6 bg-white/10 rounded" />
                             <div className="hidden md:flex gap-6 text-sm font-medium text-white/50">
-                               <span className="text-white">Dashboard</span>
-                               <span>Products</span>
-                               <span>Orders</span>
-                               <span>Analytics</span>
+                               <span className="text-white">{t('landingShowcase_merchant_dashboard')}</span>
+                               <span>{t('landingShowcase_merchant_products')}</span>
+                               <span>{t('landingShowcase_merchant_orders')}</span>
+                               <span>{t('landingShowcase_merchant_analytics')}</span>
                             </div>
                          </div>
                          <div className="flex items-center gap-3">
@@ -349,19 +312,19 @@ export function AIShowcaseSection() {
                          <div className="flex-1 p-6 lg:p-8 overflow-hidden opacity-50 lg:opacity-100 transition-opacity">
                             <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                                <BarChart3 className="w-6 h-6 text-white/50" /> 
-                               Dashboard
+                               {t('landingShowcase_merchant_dashboard')}
                             </h3>
                             
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
-                                  <p className="text-white/50 text-sm mb-1">Today's Sales</p>
+                                  <p className="text-white/50 text-sm mb-1">{t('landingShowcase_merchant_todaysSales')}</p>
                                   <h4 className="text-2xl font-bold text-white">৳45,230</h4>
                                   <p className="text-emerald-400 text-xs flex items-center mt-2">
                                     <TrendingUp className="w-3 h-3 mr-1" /> +23%
                                   </p>
                                </div>
                                <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
-                                  <p className="text-white/50 text-sm mb-1">Orders</p>
+                                  <p className="text-white/50 text-sm mb-1">{t('landingShowcase_merchant_orders')}</p>
                                   <h4 className="text-2xl font-bold text-white">23</h4>
                                   <p className="text-emerald-400 text-xs flex items-center mt-2">
                                     <TrendingUp className="w-3 h-3 mr-1" /> +12%
@@ -388,13 +351,13 @@ export function AIShowcaseSection() {
                          >
                             <div className="p-4 border-b border-white/5 flex items-center gap-2 bg-emerald-900/10">
                                <Sparkles className="w-4 h-4 text-emerald-400" />
-                               <span className="font-bold text-white text-sm">Merchant AI Assistant</span>
+                               <span className="font-bold text-white text-sm">{t('landingShowcase_merchant_assistantName')}</span>
                             </div>
                             
                             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                               <div className="flex flex-col gap-3">
                                 <div className="self-end bg-emerald-600/20 border border-emerald-500/20 text-white/90 text-sm p-3 rounded-2xl rounded-tr-none max-w-[90%]">
-                                   আজকে কত বিক্রি হয়েছে?
+                                   {t('landingShowcase_merchant_userMsg1')}
                                 </div>
                                 <motion.div 
                                   initial={{ opacity: 0, scale: 0.95 }}
@@ -404,24 +367,24 @@ export function AIShowcaseSection() {
                                 >
                                    <div className="flex items-center gap-2 mb-2">
                                       <Bot className="w-4 h-4 text-emerald-400" />
-                                      <span className="font-bold text-white">AI Snippet</span>
+                                      <span className="font-bold text-white">{t('landingShowcase_merchant_aiSnippet')}</span>
                                    </div>
-                                    আজ আপনার <span className="text-emerald-400 font-bold">৳45,230</span> বিক্রি হয়েছে।
+                                    {t('landingShowcase_merchant_aiResponse1', { total: '৳45,230' })}
                                     <div className="mt-2 text-xs bg-white/5 p-2 rounded border border-white/5">
-                                      গতকালের থেকে ২৩% বেশি! 🎉
+                                      {t('landingShowcase_merchant_aiResponse2', { percent: 23 })}
                                     </div>
                                 </motion.div>
                               </div>
                             </div>
 
                             <div className="p-4 bg-[#111]">
-                               <p className="text-xs text-white/40 mb-2">Suggested:</p>
+                               <p className="text-xs text-white/40 mb-2">{t('landingShowcase_merchant_suggested')}</p>
                                <div className="space-y-2">
                                   {/* Animated List of capabilities */}
                                   {[
-                                    { icon: Package, text: 'Inventory তে কোন Product কম?' },
-                                    { icon: Users, text: 'Customer complaint আছে?' },
-                                    { icon: HelpCircle, text: 'Shipping charge সেট করব?' },
+                                    { icon: Package, text: t('landingShowcase_merchant_suggested1') },
+                                    { icon: Users, text: t('landingShowcase_merchant_suggested2') },
+                                    { icon: HelpCircle, text: t('landingShowcase_merchant_suggested3') },
                                   ].map((item, idx) => (
                                      <motion.button 
                                        initial={{ opacity: 0, x: 20 }}
@@ -449,7 +412,7 @@ export function AIShowcaseSection() {
                    <div className="w-full h-full flex flex-col relative bg-white lg:rounded-3xl overflow-hidden">
                       {/* Store Header Mockup */}
                       <div className="bg-white border-b border-gray-100 p-4 flex items-center justify-between">
-                         <div className="font-bold text-gray-900 tracking-tight">FASHION STORE</div>
+                         <div className="font-bold text-gray-900 tracking-tight">{t('landingShowcase_customer_storeTitle')}</div>
                          <div className="flex gap-4">
                              <Search className="w-5 h-5 text-gray-400" />
                              <div className="relative">
@@ -487,7 +450,7 @@ export function AIShowcaseSection() {
                       >
                          <div className="bg-indigo-600 p-3 flex items-center gap-2 text-white">
                             <Bot className="w-5 h-5" />
-                            <span className="font-bold text-sm">Store Assistant</span>
+                            <span className="font-bold text-sm">{t('landingShowcase_customer_assistantName')}</span>
                          </div>
                          <div className="h-64 bg-gray-50 p-4 flex flex-col overflow-y-auto space-y-3">
                             <motion.div 
@@ -496,7 +459,7 @@ export function AIShowcaseSection() {
                                transition={{ delay: 1 }}
                                className="self-end bg-indigo-100 text-indigo-900 text-xs p-3 rounded-xl rounded-br-none max-w-[85%]"
                             >
-                               Blue T-shirt এর XL size আছে?
+                               {t('landingShowcase_customer_userMsg1')}
                             </motion.div>
                             <motion.div 
                                initial={{ opacity: 0, x: -20 }}
@@ -504,7 +467,7 @@ export function AIShowcaseSection() {
                                transition={{ delay: 2.5 }}
                                className="self-start bg-white border border-gray-200 text-gray-800 text-xs p-3 rounded-xl rounded-bl-none shadow-sm max-w-[90%]"
                             >
-                               <p className="mb-2">হ্যাঁ, Blue T-shirt এ XL available!</p>
+                               <p className="mb-2">{t('landingShowcase_customer_aiResponse1')}</p>
                                <div className="flex items-center gap-2 bg-gray-50 p-2 rounded mb-2">
                                   <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
                                     <Shirt className="w-4 h-4 text-blue-500" />
@@ -514,11 +477,11 @@ export function AIShowcaseSection() {
                                      <div className="text-gray-500">৳899</div>
                                   </div>
                                </div>
-                               <p>Add to cart করব?</p>
+                               <p>{t('landingShowcase_customer_addToCartMsg')}</p>
                                <div className="mt-2 flex gap-2">
-                                  <button className="px-3 py-1 bg-indigo-600 text-white rounded-full text-[10px]">হ্যাঁ</button>
-                                  <button className="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-[10px]">অন্য Color</button>
-                               </div>
+                                  <button className="px-3 py-1 bg-indigo-600 text-white rounded-full text-[10px]">{t('landingShowcase_customer_yes')}</button>
+                                  <button className="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-[10px]">{t('landingShowcase_customer_otherColor')}</button>
+                                </div>
                             </motion.div>
                          </div>
                       </motion.div>
@@ -526,9 +489,9 @@ export function AIShowcaseSection() {
                       {/* Capabilities Overlay (Left Side) */}
                       <div className="absolute bottom-6 left-6 max-w-xs space-y-2 hidden lg:block">
                          <div className="bg-black/80 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold inline-block mb-2">
-                           কাস্টমাররা জিজ্ঞেস করতে পারবে:
+                           {t('landingShowcase_customer_canAsk')}
                          </div>
-                         {['📦 Order কোথায়?', '💰 কোনো Offer আছে?', '🔄 Return policy কি?'].map((q, i) => (
+                         {[t('landingShowcase_customer_ask1'), t('landingShowcase_customer_ask2'), t('landingShowcase_customer_ask3')].map((q, i) => (
                             <motion.div 
                               key={i}
                               initial={{ opacity: 0, x: -20 }}

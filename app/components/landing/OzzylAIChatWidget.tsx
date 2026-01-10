@@ -17,6 +17,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, ArrowRight, Phone, MessageCircle } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface Message {
   id: string;
@@ -24,14 +25,8 @@ interface Message {
   content: string;
 }
 
-const QUICK_SUGGESTIONS = [
-  { text: "Ozzyl কি?", emoji: "💡" },
-  { text: "Pricing জানতে চাই", emoji: "💰" },
-  { text: "বিকাশ পেমেন্ট নেওয়া যায়?", emoji: "📱" },
-  { text: "কিভাবে শুরু করব?", emoji: "🚀" },
-];
-
 export function OzzylAIChatWidget() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(false);
   const [hasShownGreeting, setHasShownGreeting] = useState(false);
@@ -47,7 +42,7 @@ export function OzzylAIChatWidget() {
     {
       id: '1',
       role: 'assistant',
-      content: 'আসসালামু আলাইকুম! 👋 আমি Ozzyl AI - Ozzyl এর official assistant। আপনার অনলাইন বিজনেস নিয়ে কিভাবে সাহায্য করতে পারি?'
+      content: t('landingOzzylChat_initialMsg')
     }
   ]);
   
@@ -56,6 +51,13 @@ export function OzzylAIChatWidget() {
   const fetcher = useFetcher<{ success: boolean; response?: string; visitorId?: number; error?: string }>();
   
   const isLoading = fetcher.state !== 'idle';
+
+  const QUICK_SUGGESTIONS = [
+    { text: t('landingOzzylChat_suggestWhatIs'), emoji: "💡" },
+    { text: t('landingOzzylChat_suggestPricing'), emoji: "💰" },
+    { text: t('landingOzzylChat_suggestBkash'), emoji: "📱" },
+    { text: t('landingOzzylChat_suggestHowToStart'), emoji: "🚀" },
+  ];
 
   // Check LocalStorage for Visitor ID
   useEffect(() => {
@@ -132,13 +134,13 @@ export function OzzylAIChatWidget() {
             {
                 id: Date.now().toString(),
                 role: 'assistant',
-                content: data.error || 'দুঃখিত, একটু সমস্যা হয়েছে। আবার চেষ্টা করুন।'
+                content: data.error || t('landingOzzylChat_errorMsg')
             }
             ]);
         }
       }
     }
-  }, [fetcher.state, fetcher.data, isRegistered]);
+  }, [fetcher.state, fetcher.data, isRegistered, t]);
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,7 +226,7 @@ export function OzzylAIChatWidget() {
                   <div>
                     <h4 className="text-sm font-bold text-white mb-0.5">Ozzyl AI</h4>
                     <p className="text-xs text-white/80 leading-relaxed max-w-[180px]">
-                      👋 আসসালামু আলাইকুম! অনলাইনে ব্যবসা করতে সাহায্য লাগবে?
+                      {t('landingOzzylChat_greetingMsg')}
                     </p>
                   </div>
                   {/* Arrow pointing to button */}
@@ -235,7 +237,7 @@ export function OzzylAIChatWidget() {
                 </motion.div>
               )}
             </AnimatePresence>
-
+            
             {/* Main Button */}
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
@@ -297,7 +299,7 @@ export function OzzylAIChatWidget() {
                     Ozzyl AI
                     <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#006A4E] text-white rounded-full tracking-wide">BETA</span>
                   </h3>
-                  <p className="text-xs text-white/50 font-medium">Always here to help</p>
+                  <p className="text-xs text-white/50 font-medium">{t('landingOzzylChat_alwaysHelp')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -335,30 +337,30 @@ export function OzzylAIChatWidget() {
                  <div className="w-16 h-16 bg-[#006A4E]/10 rounded-full flex items-center justify-center mb-4 border border-[#006A4E]/20">
                     <User className="w-8 h-8 text-[#006A4E]" />
                  </div>
-                 <h3 className="text-xl font-bold text-white mb-2">আপনার পরিচয় দিন</h3>
-                 <p className="text-sm text-white/60 mb-6">চ্যাট শুরু করার আগে দয়া করে আপনার নাম এবং ফোন নাম্বারটি দিন।</p>
+                 <h3 className="text-xl font-bold text-white mb-2">{t('landingOzzylChat_identifyYourself')}</h3>
+                 <p className="text-sm text-white/60 mb-6">{t('landingOzzylChat_identifyDesc')}</p>
                  
                  <form onSubmit={handleRegister} className="w-full space-y-4">
                     <div className="space-y-1.5 text-left">
-                        <label className="text-xs font-medium text-white/70 ml-1">আপনার নাম</label>
+                        <label className="text-xs font-medium text-white/70 ml-1">{t('landingOzzylChat_yourName')}</label>
                         <input 
                             type="text" 
                             required
                             value={regName}
                             onChange={(e) => setRegName(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 focus:border-[#006A4E] rounded-xl px-4 py-3 text-white placeholder-white/20 outline-none transition"
-                            placeholder="উদাহরণ: মিস্টার রহিম"
+                            placeholder={t('landingOzzylChat_namePlaceholder')}
                         />
                     </div>
                     <div className="space-y-1.5 text-left">
-                        <label className="text-xs font-medium text-white/70 ml-1">ফোন নাম্বার</label>
+                        <label className="text-xs font-medium text-white/70 ml-1">{t('landingOzzylChat_phone')}</label>
                         <input 
                             type="tel" 
                             required
                             value={regPhone}
                             onChange={(e) => setRegPhone(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 focus:border-[#006A4E] rounded-xl px-4 py-3 text-white placeholder-white/20 outline-none transition"
-                            placeholder="উদাহরণ: 017XXXXXXXX"
+                            placeholder={t('landingOzzylChat_phonePlaceholder')}
                         />
                     </div>
 
@@ -373,7 +375,7 @@ export function OzzylAIChatWidget() {
                         disabled={isLoading}
                         className="w-full py-3 bg-[#006A4E] hover:bg-[#005740] text-white font-medium rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-[#006A4E]/20"
                     >
-                        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'চ্যাট শুরু করুন'}
+                        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('landingOzzylChat_startChat')}
                     </button>
                  </form>
                </div>
@@ -460,7 +462,7 @@ export function OzzylAIChatWidget() {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="আপনার প্রশ্ন লিখুন..."
+                        placeholder={t('landingOzzylChat_typeMessage')}
                         disabled={isLoading}
                         className="flex-1 bg-white/5 border border-white/10 focus:border-[#006A4E]/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition disabled:opacity-50"
                         />
@@ -486,7 +488,7 @@ export function OzzylAIChatWidget() {
                 href="/auth/register"
                 className="flex items-center justify-center gap-2 text-xs font-medium text-[#00875F] hover:text-white transition"
               >
-                <span>ফ্রি স্টোর তৈরি করুন</span>
+                <span>{t('landingOzzylChat_createFreeStore')}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>

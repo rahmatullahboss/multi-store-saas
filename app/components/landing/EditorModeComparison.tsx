@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
 import { Zap, Palette, ArrowRight, CheckCircle2, LayoutTemplate, MousePointer2 } from 'lucide-react';
 import { Link } from '@remix-run/react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export function EditorModeComparison() {
+  const { t } = useTranslation();
+
   return (
     <section className="relative py-24 overflow-hidden bg-[#0A0F0D]">
       {/* Background Gradients */}
@@ -20,14 +23,14 @@ export function EditorModeComparison() {
             whileInView={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6"
           >
-            <span className="text-sm font-medium text-white/70">Flexible Workflow</span>
+            <span className="text-sm font-medium text-white/70">{t('landingEditorMode_flexibleWorkflow')}</span>
           </motion.div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            আপনার পছন্দ, <span className="text-emerald-400">আপনার স্টাইল</span>
+            {t('landingEditorMode_yourChoice')}
           </h2>
           <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            দুটো Mode, একটাই Goal — আপনার সুবিধা। আপনি যেভাবে চান, সেভাবেই কাজ করুন।
+            {t('landingEditorMode_comparisonDesc')}
           </p>
         </div>
 
@@ -49,32 +52,32 @@ export function EditorModeComparison() {
                    <Zap className="w-6 h-6 text-blue-400" />
                  </div>
                  <div>
-                   <h3 className="text-2xl font-bold text-white">SIMPLE MODE</h3>
-                   <p className="text-blue-400 text-sm font-medium">দ্রুত ও সহজ</p>
+                   <h3 className="text-2xl font-bold text-white uppercase">{t('landingEditorMode_simpleMode')}</h3>
+                   <p className="text-blue-400 text-sm font-medium">{t('landingEditorMode_fastEasy')}</p>
                  </div>
                </div>
 
                {/* Flow Diagram */}
                <div className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/5 text-center space-y-3">
                  <div className="inline-flex items-center gap-2 text-white/80 text-sm font-medium">
-                   <LayoutTemplate className="w-4 h-4 text-blue-400" /> Template Select
+                   <LayoutTemplate className="w-4 h-4 text-blue-400" /> {t('landingEditorMode_templateSelect')}
                  </div>
                  <div className="text-white/20">↓</div>
                  <div className="inline-flex items-center gap-2 text-white/80 text-sm font-medium">
-                   <Zap className="w-4 h-4 text-blue-400" /> Fill Content
+                   <Zap className="w-4 h-4 text-blue-400" /> {t('landingEditorMode_fillContent')}
                  </div>
                  <div className="text-white/20">↓</div>
                  <div className="inline-flex items-center gap-2 text-white font-bold text-sm bg-blue-500/20 px-3 py-1 rounded-full border border-blue-500/30">
-                   🚀 Publish!
+                   🚀 {t('landingEditorMode_publish')}
                  </div>
                </div>
 
                <div className="space-y-3 mb-8 flex-1">
                  {[
-                   { text: '৫ মিনিটে Ready', sub: 'কোনো কোডিং লাগবে না' },
-                   { text: 'কোনো Learning নেই', sub: 'সবকিছু প্রি-মেড' },
-                   { text: 'Template Change সহজ', sub: 'এক ক্লিকে ডিজাইন চেঞ্জ' },
-                   { text: 'Beginners দের জন্য', sub: 'সবচেয়ে সহজ উপায়' }
+                   { text: t('landingEditorMode_ready5Mins'), sub: t('landingEditorMode_noCoding') },
+                   { text: t('landingEditorMode_noLearning'), sub: t('landingEditorMode_preMade') },
+                   { text: t('landingEditorMode_tempChangeEasy'), sub: t('landingEditorMode_oneClickDesign') },
+                   { text: t('landingEditorMode_forBeginners'), sub: t('landingEditorMode_easiestWay') }
                  ].map((item, i) => (
                    <div key={i} className="flex gap-3">
                      <CheckCircle2 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
@@ -87,13 +90,13 @@ export function EditorModeComparison() {
                </div>
 
                <div className="mt-auto">
-                 <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-3">BEST FOR:</p>
+                 <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-3">{t('landingEditorMode_bestFor')}</p>
                  <div className="p-3 bg-blue-900/10 border border-blue-500/10 rounded-xl mb-6">
-                   <p className="text-blue-200 italic text-sm text-center">"আমি দ্রুত Launch করতে চাই"</p>
+                   <p className="text-blue-200 italic text-sm text-center">"{t('landingEditorMode_launchFast')}"</p>
                  </div>
                  
                  <Link to="/auth/register?mode=simple" className="w-full flex items-center justify-center gap-2 btn-secondary py-3 rounded-xl border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors font-bold">
-                   Simple দিয়ে শুরু
+                   {t('landingEditorMode_startSimple')}
                    <ArrowRight className="w-4 h-4" />
                  </Link>
                </div>
@@ -115,32 +118,32 @@ export function EditorModeComparison() {
                    <Palette className="w-6 h-6 text-purple-400" />
                  </div>
                  <div>
-                   <h3 className="text-2xl font-bold text-white">PRO MODE</h3>
-                   <p className="text-purple-400 text-sm font-medium">Full Control</p>
+                   <h3 className="text-2xl font-bold text-white uppercase">{t('landingEditorMode_proMode')}</h3>
+                   <p className="text-purple-400 text-sm font-medium">{t('landingEditorMode_fullControl')}</p>
                  </div>
                </div>
 
                {/* Flow Diagram */}
                <div className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/5 text-center space-y-3">
                  <div className="inline-flex items-center gap-2 text-white/80 text-sm font-medium">
-                   <MousePointer2 className="w-4 h-4 text-purple-400" /> Drag & Drop
+                   <MousePointer2 className="w-4 h-4 text-purple-400" /> {t('landingEditorMode_dragDrop')}
                  </div>
                  <div className="text-white/20">↓</div>
                  <div className="inline-flex items-center gap-2 text-white/80 text-sm font-medium">
-                   <Palette className="w-4 h-4 text-purple-400" /> Customization
+                   <Palette className="w-4 h-4 text-purple-400" /> {t('landingEditorMode_customization')}
                  </div>
                  <div className="text-white/20">↓</div>
                  <div className="inline-flex items-center gap-2 text-white font-bold text-sm bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30">
-                   🚀 Publish!
+                   🚀 {t('landingEditorMode_publish')}
                  </div>
                </div>
 
                <div className="space-y-3 mb-8 flex-1">
                  {[
-                   { text: 'Pixel Perfect Design', sub: 'প্রতিটি পিক্সেল কন্ট্রোল করুন' },
-                   { text: 'Unlimited Widgets', sub: '৫০+ উইজেট কালেকশন' },
-                   { text: 'Complete Freedom', sub: 'যেভাবে খুশি সেভাবে সাজান' },
-                   { text: 'Advanced Users', sub: 'প্রফেশনাল ফিনিশিং' }
+                   { text: t('landingEditorMode_ppDesign'), sub: t('landingEditorMode_controlEveryPixel') },
+                   { text: t('landingEditorMode_unlimitedWidgets'), sub: t('landingEditorMode_widgetCollection') },
+                   { text: t('landingEditorMode_completeFreedom'), sub: t('landingEditorMode_arrangeAsYouWish') },
+                   { text: t('landingEditorMode_advancedUsers'), sub: t('landingEditorMode_proFinishing') }
                  ].map((item, i) => (
                    <div key={i} className="flex gap-3">
                      <CheckCircle2 className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
@@ -153,13 +156,13 @@ export function EditorModeComparison() {
                </div>
 
                <div className="mt-auto">
-                 <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-3">BEST FOR:</p>
+                 <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-3">{t('landingEditorMode_bestFor')}</p>
                  <div className="p-3 bg-purple-900/10 border border-purple-500/10 rounded-xl mb-6">
-                   <p className="text-purple-200 italic text-sm text-center">"আমি নিজের মতো করে সব সাজাতে চাই"</p>
+                   <p className="text-purple-200 italic text-sm text-center">"{t('landingEditorMode_customizeMyWay')}"</p>
                  </div>
                  
                  <Link to="/auth/register?mode=pro" className="w-full flex items-center justify-center gap-2 btn-secondary py-3 rounded-xl border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 transition-colors font-bold">
-                   Pro Mode Try করুন
+                   {t('landingEditorMode_tryProMode')}
                    <ArrowRight className="w-4 h-4" />
                  </Link>
                </div>
@@ -172,7 +175,7 @@ export function EditorModeComparison() {
         <div className="max-w-3xl mx-auto rounded-full bg-white/5 border border-white/10 p-2 backdrop-blur-sm">
            <div className="flex items-center justify-between px-6 py-2">
              <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
-                <Zap className="w-4 h-4" /> Simple
+                <Zap className="w-4 h-4" /> {t('landingEditorMode_simple')}
              </div>
              
              <div className="flex-1 mx-6 relative h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -183,16 +186,16 @@ export function EditorModeComparison() {
                   className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-50 block"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                   <span className="bg-[#0A0F0D] px-2 text-[10px] text-white/50 uppercase tracking-wider">You can be anywhere</span>
+                   <span className="bg-[#0A0F0D] px-2 text-[10px] text-white/50 uppercase tracking-wider">{t('landingEditorMode_anywhere')}</span>
                 </div>
              </div>
 
              <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
-                Pro <Palette className="w-4 h-4" />
+                {t('landingEditorMode_pro')} <Palette className="w-4 h-4" />
              </div>
            </div>
            <div className="text-center pb-2">
-              <p className="text-white/40 text-xs">💡 যেকোনো সময় Mode Switch করতে পারবেন!</p>
+              <p className="text-white/40 text-xs">{t('landingEditorMode_switchModeHint')}</p>
            </div>
         </div>
 
