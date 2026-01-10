@@ -18,6 +18,13 @@ import { eq, desc } from 'drizzle-orm';
 import { stores, payments } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getUsageStats, PLAN_LIMITS, type PlanType, AI_PLAN_LIMITS, AI_PLAN_PRICES } from '~/utils/plans.server';
+
+// Client-side constant for AI plan prices (mirrored from server)
+const CLIENT_AI_PLAN_PRICES = {
+  lite: 500,
+  standard: 1000,
+  pro: 2000,
+} as const;
 import { 
   Check, 
   X, 
@@ -634,7 +641,7 @@ export default function BillingPage() {
                             <fetcher.Form method="post" className="space-y-4">
                                 <input type="hidden" name="action" value="submit_ai_payment" />
                                 <input type="hidden" name="aiPlan" value={aiPlan} />
-                                <input type="hidden" name="amount" value={AI_PLAN_PRICES[aiPlan as keyof typeof AI_PLAN_PRICES]} />
+                                <input type="hidden" name="amount" value={CLIENT_AI_PLAN_PRICES[aiPlan as keyof typeof CLIENT_AI_PLAN_PRICES]} />
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
