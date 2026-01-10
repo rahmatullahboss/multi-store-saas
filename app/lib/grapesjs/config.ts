@@ -111,10 +111,15 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string): any =>
     },
     canvas: {
       styles: [
+        // Tailwind CSS CDN for all utility classes (rounded, shadow, padding, etc.)
+        'https://cdn.tailwindcss.com',
         // Google Fonts for Bengali support
         'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap'
       ],
-      scripts: [],
+      scripts: [
+        // Tailwind Play CDN script for JIT compilation
+        'https://cdn.tailwindcss.com'
+      ],
     },
     deviceManager: {
       devices: [

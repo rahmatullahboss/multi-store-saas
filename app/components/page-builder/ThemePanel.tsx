@@ -48,13 +48,15 @@ export default function ThemePanel({ config, onChange }: ThemePanelProps) {
                 type="color" 
                 value={config.primaryColor}
                 onChange={(e) => handleChange('primaryColor', e.target.value)}
-                className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0"
+                className="w-12 h-10 rounded-lg cursor-pointer border border-gray-200"
+                title="Pick primary color"
               />
               <input 
                 type="text" 
                 value={config.primaryColor}
                 onChange={(e) => handleChange('primaryColor', e.target.value)}
                 className="flex-1 text-xs border border-gray-200 rounded-lg px-2 text-gray-600 font-mono uppercase focus:ring-2 focus:ring-blue-100 outline-none"
+                placeholder="#059669"
               />
             </div>
           </div>
@@ -66,13 +68,15 @@ export default function ThemePanel({ config, onChange }: ThemePanelProps) {
                 type="color" 
                 value={config.secondaryColor}
                 onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0"
+                className="w-12 h-10 rounded-lg cursor-pointer border border-gray-200"
+                title="Pick secondary color"
               />
               <input 
                 type="text" 
                 value={config.secondaryColor}
                 onChange={(e) => handleChange('secondaryColor', e.target.value)}
                 className="flex-1 text-xs border border-gray-200 rounded-lg px-2 text-gray-600 font-mono uppercase focus:ring-2 focus:ring-blue-100 outline-none"
+                placeholder="#2563eb"
               />
             </div>
           </div>
