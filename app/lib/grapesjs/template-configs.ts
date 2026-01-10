@@ -29,7 +29,18 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     descriptionEn: 'Best choice for Tech products and Gadgets',
     category: 'premium',
     emoji: '🎧',
-    blocks: ['bd-header', 'bd-hero-modern', 'bd-features-zigzag', 'bd-dual-order', 'bd-testimonials-marquee', 'bd-faq', 'bd-footer-simple'],
+    blocks: [
+      'bd-urgency-timer',
+      'bd-header',
+      'bd-hero-modern',
+      'bd-trust-glass',
+      'bd-features-zigzag',
+      'bd-gallery',
+      'bd-dual-order',
+      'bd-testimonials-marquee',
+      'bd-faq',
+      'bd-footer-simple'
+    ],
     themeColors: {
       primaryColor: '#2563eb', // blue-600
       secondaryColor: '#1e293b', // slate-800
@@ -45,7 +56,18 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     descriptionEn: 'Elegant design for Skincare and Cosmetics',
     category: 'minimal',
     emoji: '✨',
-    blocks: ['bd-header', 'bd-hero', 'bd-gallery', 'bd-trust', 'bd-features-grid', 'bd-testimonials', 'bd-order-form', 'bd-footer-simple'],
+    blocks: [
+      'bd-header',
+      'bd-urgency-timer',
+      'bd-hero',
+      'bd-trust-glass',
+      'bd-gallery',
+      'bd-features-grid',
+      'bd-why-buy',
+      'bd-testimonials',
+      'bd-order-form',
+      'bd-footer-simple'
+    ],
     themeColors: {
       primaryColor: '#db2777', // pink-600
       secondaryColor: '#fce7f3', // pink-100
@@ -61,7 +83,18 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     descriptionEn: 'Perfect for Video Courses and Digital Products',
     category: 'video',
     emoji: '📹',
-    blocks: ['bd-hero-video', 'bd-social-proof', 'bd-why-buy', 'bd-features-grid', 'bd-call-now', 'bd-faq', 'bd-footer-simple'],
+    blocks: [
+      'bd-header',
+      'bd-hero-video',
+      'bd-social-proof',
+      'bd-why-buy',
+      'bd-features-grid',
+      'bd-testimonials-marquee',
+      'bd-guarantee',
+      'bd-call-now',
+      'bd-faq',
+      'bd-footer-simple'
+    ],
     themeColors: {
       primaryColor: '#7c3aed', // violet-600
       secondaryColor: '#000000', // black
@@ -77,7 +110,18 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     descriptionEn: 'Urgency design for Stock Clearance',
     category: 'sales',
     emoji: '🔥',
-    blocks: ['bd-social-proof', 'bd-hero', 'bd-comparison', 'bd-order-form', 'bd-sticky-footer'],
+    blocks: [
+      'bd-header',
+      'bd-urgency-timer',
+      'bd-social-proof',
+      'bd-hero',
+      'bd-trust-glass',
+      'bd-video',
+      'bd-comparison',
+      'bd-order-form',
+      'bd-faq',
+      'bd-sticky-footer'
+    ],
     themeColors: {
       primaryColor: '#dc2626', // red-600
       secondaryColor: '#fef08a', // yellow-200
@@ -93,7 +137,18 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     descriptionEn: 'Natural look for Food and Herbal products',
     category: 'minimal',
     emoji: '🍃',
-    blocks: ['bd-header', 'bd-hero', 'bd-features-grid', 'bd-trust', 'bd-dual-order', 'bd-footer-simple'],
+    blocks: [
+      'bd-header',
+      'bd-urgency-timer',
+      'bd-hero',
+      'bd-gallery',
+      'bd-features-grid',
+      'bd-trust',
+      'bd-testimonials',
+      'bd-dual-order',
+      'bd-faq',
+      'bd-footer-simple'
+    ],
     themeColors: {
       primaryColor: '#ea580c', // orange-600
       secondaryColor: '#f1f5f9', // slate-100
@@ -111,6 +166,7 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     emoji: '💎',
     blocks: [
       'bd-urgency-timer', 
+      'bd-header',
       'bd-hero-modern', 
       'bd-trust-glass', 
       'bd-video', 
@@ -121,7 +177,6 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       'bd-why-buy', 
       'bd-testimonials', 
       'bd-faq', 
-      'bd-features-grid', 
       'bd-delivery-info', 
       'bd-guarantee', 
       'bd-order-form-premium',
@@ -143,11 +198,14 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     category: 'sales',
     emoji: '🔥',
     blocks: [
+      'bd-header',
       'bd-urgency-timer',
       'bd-hero',
+      'bd-gallery',
       'bd-social-proof',
       'bd-comparison-advanced',
       'bd-trust-glass',
+      'bd-faq',
       'bd-order-form-premium',
       'bd-sticky-footer'
     ],
@@ -167,12 +225,14 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     category: 'premium',
     emoji: '👑',
     blocks: [
+      'bd-urgency-timer',
       'bd-header',
       'bd-hero-modern',
       'bd-trust-glass',
       'bd-benefits-grid-rich',
       'bd-video',
       'bd-testimonials-marquee',
+      'bd-faq',
       'bd-order-form-premium',
       'bd-footer-simple'
     ],
