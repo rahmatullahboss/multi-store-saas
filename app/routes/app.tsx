@@ -134,7 +134,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     if (!store) {
       console.error('[app.loader] Store not found in database. StoreID:', storeId);
-      throw new Response('Your store could not be found. Please contact support.', { status: 404 });
+      
+      // CRITICAL: If store is deleted, session is invalid. Logout and redirect with info.
+      const session = await getSession(request, context.cloudflare.env);
+      const { destroySession } = await import('~/services/auth.server');
+      
+      throw redirect('/auth/login?error=store_not_found', {
+        headers: {
+          'Set-Cookie': await destroySession(session, context.cloudflare.env),
+        },
+      });
     }
 
     if (!user) {
