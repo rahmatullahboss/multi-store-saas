@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ScrollReveal, MagneticButton } from '~/components/animations';
 import { Store, Menu, X } from 'lucide-react';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 // ============================================================================
 // META
@@ -973,6 +974,7 @@ export default function PricingPage() {
           </div>
         </div>
       </footer>
+      <OzzylAIChatWidget />
     </div>
   );
 }

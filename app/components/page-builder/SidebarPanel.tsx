@@ -325,7 +325,7 @@ export default function SidebarPanel({
                  </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <div className="flex-1 overflow-y-auto custom-scrollbar relative">
                 {activeDesignSubTab === 'styles' && (
                   <div className="p-4 space-y-6">
                     {/* State Selector (Normal/Hover/Focus/Active) */}
@@ -395,7 +395,7 @@ export default function SidebarPanel({
                <div className="p-4 border-b border-gray-50 bg-gray-50/30">
                   <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Page Settings</h3>
                </div>
-               <div className="flex-1 overflow-y-auto">
+               <div className="flex-1 overflow-y-auto relative">
                  <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />
                </div>
             </div>
