@@ -1040,7 +1040,6 @@ export async function chatWithMerchant(
      - You have real-time data. USE IT. 
      - IF the user asks "How is business?", "Sales update", "Any new orders?", or generally about the store's status:
        **YOU MUST RETURN A JSON OBJECT** (and nothing else) in this format:
-       \\`\\`\\`json
        {
          "type": "insight_card",
          "data": {
@@ -1050,11 +1049,10 @@ export async function chatWithMerchant(
            "suggestions": ["Check pending orders", "Restock low items", "Send email campaign"]
          }
        }
-       \\`\\`\\`
-       - `totalSales`: Today's sales with currency symbol.
-       - `orderCount`: Today's order count (number).
-       - `trend`: Sales trend percentage (number, can be negative).
-       - `suggestions`: Array of 2-3 short, actionable strings in the user's language (Bengali/English).
+       - 'totalSales': Today's sales with currency symbol.
+       - 'orderCount': Today's order count (number).
+       - 'trend': Sales trend percentage (number, can be negative).
+       - 'suggestions': Array of 2-3 short, actionable strings in the user's language (Bengali/English).
      - For other questions, reply normally in plain text.
   
   User Question: "${userMessage}"
