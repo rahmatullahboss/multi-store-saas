@@ -225,6 +225,12 @@ export const AI_PLAN_LIMITS: Record<AIPlanType, number> = {
   pro: 3000,
 };
 
+export const AI_PLAN_PRICES: Record<AIPlanType, number> = {
+  lite: 500,
+  standard: 1000,
+  pro: 2000,
+};
+
 // ============================================================================
 // HELPER: Get store plans (Base + AI)
 // ============================================================================

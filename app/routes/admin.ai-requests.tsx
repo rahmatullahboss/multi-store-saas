@@ -45,9 +45,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       name: stores.name,
       subdomain: stores.subdomain,
       planType: stores.planType,
-      aiAgentRequestStatus: stores.aiAgentRequestStatus,
       aiAgentRequestedAt: stores.aiAgentRequestedAt,
       isCustomerAiEnabled: stores.isCustomerAiEnabled,
+      aiPlan: stores.aiPlan,
+      paymentTransactionId: stores.paymentTransactionId,
+      paymentPhone: stores.paymentPhone,
+      paymentAmount: stores.paymentAmount,
+      paymentStatus: stores.paymentStatus,
     })
     .from(stores)
     .where(eq(stores.aiAgentRequestStatus, 'pending'));
@@ -80,6 +84,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .set({
         isCustomerAiEnabled: true,
         aiAgentRequestStatus: 'approved',
+        paymentStatus: 'verified',
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
@@ -160,6 +165,9 @@ export default function AdminAiRequests() {
                   <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                     Requested At
                   </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    Payment Info
+                  </th>
                   <th className="px-6 py-4 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
                     Actions
                   </th>
@@ -192,6 +200,26 @@ export default function AdminAiRequests() {
                           <Clock className="w-4 h-4 text-slate-500" />
                           {formatDate(request.aiAgentRequestedAt)}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {request.paymentTransactionId ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-500 uppercase">TRX:</span>
+                              <code className="text-xs bg-slate-800 px-1.5 py-0.5 rounded text-amber-400 font-mono">{request.paymentTransactionId}</code>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                              <span className="font-bold uppercase">Phone:</span>
+                              <span>{request.paymentPhone}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                              <span className="font-bold uppercase">Amount:</span>
+                              <span className="text-emerald-400 font-medium">৳{request.paymentAmount}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500 italic">No payment info</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">

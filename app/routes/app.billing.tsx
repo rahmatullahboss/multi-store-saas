@@ -17,7 +17,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { stores, payments } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
-import { getUsageStats, PLAN_LIMITS, type PlanType, AI_PLAN_LIMITS } from '~/utils/plans.server';
+import { getUsageStats, PLAN_LIMITS, type PlanType, AI_PLAN_LIMITS, AI_PLAN_PRICES } from '~/utils/plans.server';
 import { 
   Check, 
   X, 
@@ -31,8 +31,13 @@ import {
   ArrowRight,
   Bot,
   Loader2,
-  Users
+  Users,
+  CreditCard,
+  Clock,
+  Send,
+  Copy
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
@@ -129,6 +134,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       isCustomerAiEnabled: stores.isCustomerAiEnabled,
       aiAgentRequestStatus: stores.aiAgentRequestStatus,
       aiPlan: stores.aiPlan,
+      paymentStatus: stores.paymentStatus,
+      paymentTransactionId: stores.paymentTransactionId,
+      paymentPhone: stores.paymentPhone,
+      paymentAmount: stores.paymentAmount,
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -158,6 +167,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     isCustomerAiEnabled: store?.isCustomerAiEnabled || false,
     aiAgentRequestStatus: store?.aiAgentRequestStatus || 'none',
     aiPlan: store?.aiPlan || null,
+    paymentStatus: store?.paymentStatus || 'none',
+    paymentTransactionId: store?.paymentTransactionId || null,
+    paymentPhone: store?.paymentPhone || null,
+    paymentAmount: store?.paymentAmount || null,
     paymentHistory,
   });
 }
@@ -184,20 +197,46 @@ export async function action({ request, context }: ActionFunctionArgs) {
          return json({ error: 'Invalid plan' }, { status: 400 });
     }
 
-    // In a real app, this would trigger a payment flow.
-    // For now, we auto-enable it (Add-on activated).
-
+    // Set request as pending and store the plan
     await db
       .update(stores)
       .set({ 
-        isCustomerAiEnabled: true,
         aiPlan: plan, 
-        aiAgentRequestStatus: 'approved', // Auto-approve for demo
+        aiAgentRequestStatus: 'pending',
+        aiAgentRequestedAt: new Date(),
         updatedAt: new Date()
       })
       .where(eq(stores.id, storeId));
     
-    return json({ success: true, aiPlan: plan, isCustomerAiEnabled: true });
+    return json({ success: true, aiPlan: plan });
+  }
+
+  if (actionType === 'submit_ai_payment') {
+    const transactionId = formData.get('transactionId') as string;
+    const phoneNumber = formData.get('phoneNumber') as string;
+    const amount = parseFloat(formData.get('amount') as string);
+    const aiPlan = formData.get('aiPlan') as string;
+
+    if (!transactionId || transactionId.length < 6) {
+      return json({ error: 'Invalid Transaction ID' }, { status: 400 });
+    }
+    if (!phoneNumber || phoneNumber.length < 11) {
+      return json({ error: 'Invalid Phone Number' }, { status: 400 });
+    }
+
+    await db
+      .update(stores)
+      .set({ 
+        paymentTransactionId: transactionId.trim(),
+        paymentPhone: phoneNumber.trim(),
+        paymentAmount: amount,
+        paymentStatus: 'pending_verification',
+        aiAgentRequestStatus: 'pending',
+        updatedAt: new Date()
+      })
+      .where(eq(stores.id, storeId));
+    
+    return json({ success: true });
   }
 
   if (actionType === 'disable_ai_agent') {
@@ -236,9 +275,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function BillingPage() {
-  const { storeName, planType, subscriptionStatus, usage: rawUsage, isCustomerAiEnabled, aiAgentRequestStatus, aiPlan, paymentHistory } = useLoaderData<typeof loader>();
+  const { 
+    storeName, 
+    planType, 
+    subscriptionStatus, 
+    usage: rawUsage, 
+    isCustomerAiEnabled, 
+    aiAgentRequestStatus, 
+    aiPlan, 
+    paymentStatus, 
+    paymentTransactionId, 
+    paymentPhone, 
+    paymentAmount, 
+    paymentHistory 
+  } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
-  const fetcher = useFetcher<{ success?: boolean; aiAgentRequestStatus?: string; isCustomerAiEnabled?: boolean }>();
+  const fetcher = useFetcher<{ success?: boolean; error?: string; aiAgentRequestStatus?: string; isCustomerAiEnabled?: boolean }>();
   // Use a minimal T function if language context is missing or fix usage
   // The user's rule says "Use Context7 MCP server: Fetch latest docs...". 
   // Assuming 't' exists in useTranslation.
@@ -528,6 +580,97 @@ export default function BillingPage() {
                             Turn off AI Agent
                         </button>
                       </fetcher.Form>
+                </div>
+            )}
+
+            {/* Manual Payment Section for AI Agent */}
+            {aiPlan && !isCustomerAiEnabled && (
+                <div className="mt-8 p-6 bg-orange-50 border border-orange-200 rounded-xl">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                            <CreditCard className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-gray-900">
+                                {lang === 'bn' ? 'bKash / Nagad পেমেন্ট' : 'bKash / Nagad Payment'}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                {lang === 'bn' ? 'এজেন্ট অ্যাক্টিভ করার জন্য পেমেন্ট করুন' : 'Complete payment to activate AI Agent'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {paymentStatus === 'pending_verification' ? (
+                        <div className="bg-white border border-orange-200 rounded-lg p-6 text-center">
+                            <Clock className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+                            <h4 className="font-bold text-gray-900">
+                                {lang === 'bn' ? 'ভেরিফিকেশন চলছে' : 'Verification in Progress'}
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-2 max-w-sm mx-auto">
+                                {lang === 'bn' 
+                                    ? `আমরা আপনার পেমেন্ট ভেরিফাই করছি (TRX ID: ${paymentTransactionId})। সম্পন্ন হলে আপনি একটি কনফার্মেশন পাবেন।` 
+                                    : `We are verifying your payment (TRX ID: ${paymentTransactionId}). You will receive a notification once activated.`}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {/* Payment Number */}
+                            <div className="bg-white rounded-lg p-4 border border-orange-100 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">Send Money To</p>
+                                    <span className="text-xl font-mono font-bold text-orange-600">01739416661</span>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText('01739416661');
+                                        toast.success('Number copied!');
+                                    }}
+                                    className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-medium rounded-lg transition flex items-center gap-1"
+                                >
+                                    <Copy className="w-4 h-4" /> Copy
+                                </button>
+                            </div>
+
+                            <fetcher.Form method="post" className="space-y-4">
+                                <input type="hidden" name="action" value="submit_ai_payment" />
+                                <input type="hidden" name="aiPlan" value={aiPlan} />
+                                <input type="hidden" name="amount" value={AI_PLAN_PRICES[aiPlan as keyof typeof AI_PLAN_PRICES]} />
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Transaction ID (TRX ID)</label>
+                                        <input 
+                                            name="transactionId"
+                                            required
+                                            placeholder="e.g. TXN12345678"
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 font-mono uppercase"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Your BKash/Nagad Number</label>
+                                        <input 
+                                            name="phoneNumber"
+                                            required
+                                            placeholder="01XXXXXXXXX"
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                {fetcher.data?.error && (
+                                    <p className="text-sm text-red-500">{fetcher.data.error}</p>
+                                )}
+
+                                <button 
+                                    className={`w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition flex items-center justify-center gap-2 ${fetcher.state !== 'idle' ? 'opacity-50' : ''}`}
+                                    disabled={fetcher.state !== 'idle'}
+                                >
+                                    {fetcher.state !== 'idle' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                                    {lang === 'bn' ? 'পেমেন্ট সাবমিট করুন' : 'Submit Payment'}
+                                </button>
+                            </fetcher.Form>
+                        </div>
+                    )}
                 </div>
             )}
           </div>
