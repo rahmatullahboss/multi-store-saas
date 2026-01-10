@@ -50,8 +50,6 @@ export function ChatWidget({
   accentColor = '#6366f1', // Indigo default
 }: ChatWidgetProps) {
   const { t, lang } = useTranslation();
-  const fetcher = useFetcher<{ success?: boolean; response?: string; error?: string }>();
-  
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -59,8 +57,7 @@ export function ChatWidget({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Use lang for language checks
-  const language = lang;
+  const fetcher = useFetcher<{ success?: boolean; response?: string; error?: string }>();
 
   // Load messages from sessionStorage on mount
   useEffect(() => {
@@ -122,7 +119,7 @@ export function ChatWidget({
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
-    // Send to API using native fetch (bypass Remix single-fetch .data suffix)
+    // Send to API using native fetch
     const formData = new FormData();
     formData.append('message', input.trim());
     formData.append('storeId', String(storeId || ''));
@@ -155,7 +152,7 @@ export function ChatWidget({
         setMessages(prev => [...prev, {
           id: `error-${Date.now()}`,
           role: 'assistant',
-          content: 'Failed to connect to AI service',
+          content: t('chatWidget_errorConnection'),
           timestamp: Date.now(),
         }]);
         setIsLoading(false);
@@ -181,12 +178,8 @@ export function ChatWidget({
 
   // Default welcome messages
   const defaultWelcome = mode === 'merchant'
-    ? language === 'bn' 
-      ? 'আসসালামু আলাইকুম! 👋 আমি আপনার AI সহকারী। কিভাবে সাহায্য করতে পারি?'
-      : 'Hello! 👋 I\'m your AI assistant. How can I help you today?'
-    : language === 'bn'
-      ? 'আসসালামু আলাইকুম! 👋 কিভাবে সাহায্য করতে পারি?'
-      : 'Hello! 👋 How can I help you today?';
+    ? t('chatWidget_merchantWelcome')
+    : t('chatWidget_customerWelcome');
 
   return (
     <>
@@ -227,12 +220,12 @@ export function ChatWidget({
               <div>
                 <h3 className="font-semibold text-sm">
                   {mode === 'merchant' 
-                    ? (language === 'bn' ? 'AI সহকারী' : 'AI Assistant')
-                    : (language === 'bn' ? 'সেলস সহায়তা' : 'Sales Support')
+                    ? t('chatWidget_merchantTitle')
+                    : t('chatWidget_customerTitle')
                   }
                 </h3>
                 <p className="text-xs opacity-80">
-                  {language === 'bn' ? 'সাধারণত কয়েক সেকেন্ডে উত্তর দেয়' : 'Usually replies in seconds'}
+                  {t('chatWidget_repliesInSeconds')}
                 </p>
               </div>
             </div>
@@ -245,7 +238,7 @@ export function ChatWidget({
             </button>
           </div>
 
-          {/* Messages Area - flex-col to start from top */}
+          {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 flex flex-col">
             {/* Welcome message */}
             {messages.length === 0 && (
@@ -306,7 +299,7 @@ export function ChatWidget({
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
                     <span className="text-sm text-gray-500">
-                      {language === 'bn' ? 'চিন্তা করছি...' : 'Thinking...'}
+                      {t('chatWidget_thinking')}
                     </span>
                   </div>
                 </div>
@@ -332,7 +325,7 @@ export function ChatWidget({
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={language === 'bn' ? 'আপনার প্রশ্ন লিখুন...' : 'Type your message...'}
+                placeholder={t('chatWidget_placeholder')}
                 className="flex-1 px-4 py-2.5 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-1"
                 style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
                 disabled={isLoading}
@@ -354,7 +347,7 @@ export function ChatWidget({
                 onClick={handleClear}
                 className="w-full mt-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {language === 'bn' ? 'চ্যাট মুছে ফেলুন' : 'Clear chat'}
+                {t('chatWidget_clearChat')}
               </button>
             )}
           </div>

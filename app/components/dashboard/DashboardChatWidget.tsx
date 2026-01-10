@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useFetcher, useLocation } from '@remix-run/react';
 import { Send, Sparkles, Loader2, Bot, User, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface DashboardChatWidgetProps {
   userName?: string;
@@ -17,19 +18,27 @@ interface Message {
 }
 
 export default function DashboardChatWidget({ userName, storeName, isLocked = false }: DashboardChatWidgetProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: `Hi ${userName || 'there'}! I'm your store assistant. Ask me about your sales, orders, or how to configure settings.`
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fetcher = useFetcher<{ success: boolean; response?: string; error?: string }>();
   const historyFetcher = useFetcher<{ messages: Message[] }>();
   const location = useLocation();
+
+  // Set initial welcome message
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: '1',
+          role: 'assistant',
+          content: t('dashboardChat_welcome', { userName: userName || t('common_there') })
+        }
+      ]);
+    }
+  }, [userName, t]);
 
   // Load History on Open
   useEffect(() => {
@@ -132,10 +141,10 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
             </div>
             <div>
                 <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm text-gray-900">Store Assistant</h3>
+                    <h3 className="font-bold text-sm text-gray-900">{t('dashboardChat_title')}</h3>
                     {isLocked && <span className="bg-gray-100 text-gray-600 text-[10px] font-black px-1.5 py-0.5 rounded flex items-center gap-1"><Sparkles size={8} /> PRO</span>}
                 </div>
-                <p className="text-[10px] text-gray-500 font-medium">Online • {storeName || 'MultiStore'}</p>
+                <p className="text-[10px] text-gray-500 font-medium">{t('dashboardChat_online')} • {storeName || 'MultiStore'}</p>
             </div>
         </div>
         <button 
@@ -151,9 +160,9 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
             <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                 <Bot size={32} className="text-emerald-600" />
             </div>
-            <h3 className="text-lg font-black text-gray-900 mb-2">Unlock Store Assistant</h3>
+            <h3 className="text-lg font-black text-gray-900 mb-2">{t('dashboardChat_unlockTitle')}</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                Get real-time insights and help with your store management. Available exclusively on the Pro plan.
+                {t('dashboardChat_unlockDesc')}
             </p>
             
             <div className="space-y-3 w-full">
@@ -161,13 +170,13 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
                     href="/app/upgrade" 
                     className="flex w-full items-center justify-center gap-2 bg-black text-white px-4 py-3 rounded-xl font-bold hover:bg-gray-900 transition shadow-lg shadow-gray-200"
                 >
-                    Upgrade to Pro <Sparkles size={16} />
+                    {t('dashboardChat_upgradePro')} <Sparkles size={16} />
                 </a>
                 <button 
                     onClick={() => setIsOpen(false)}
                     className="w-full text-xs font-bold text-gray-400 hover:text-gray-600 py-2"
                 >
-                    Maybe Later
+                    {t('dashboardChat_maybeLater')}
                 </button>
             </div>
         </div>
@@ -203,7 +212,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
                 </div>
                 <div className="bg-white border border-gray-100 px-3 py-2 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin text-emerald-500" />
-                <span className="text-xs text-gray-500 font-medium">Thinking...</span>
+                <span className="text-xs text-gray-500 font-medium">{t('dashboardChat_thinking')}</span>
                 </div>
             </div>
             )}
@@ -217,7 +226,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask anything..."
+                placeholder={t('dashboardChat_askAnything')}
                 className="w-full pl-4 pr-12 py-3 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition border border-transparent focus:border-emerald-200"
                 disabled={fetcher.state !== 'idle'}
                 />

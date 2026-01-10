@@ -1578,6 +1578,39 @@ export const translations = {
     landingShowcase_visitor_feature3: 'Learn detailed features',
     landingShowcase_visitor_feature4: 'How to start?',
     landingShowcase_visitor_feature4_desc: 'AI will guide you',
+
+    // ChatWidget (Merchant/Customer Storefront)
+    chatWidget_merchantTitle: 'AI Assistant',
+    chatWidget_customerTitle: 'Sales Support',
+    chatWidget_repliesInSeconds: 'Usually replies in seconds',
+    chatWidget_merchantWelcome: "Hello! 👋 I'm your AI assistant. How can I help you today?",
+    chatWidget_customerWelcome: "Hello! 👋 How can I help you today?",
+    chatWidget_thinking: 'Thinking...',
+    chatWidget_placeholder: 'Type your message...',
+    chatWidget_clearChat: 'Clear chat',
+    chatWidget_errorConnection: 'Failed to connect to AI service',
+
+    // DashboardChatWidget (Merchant Dashboard)
+    dashboardChat_welcome: "Hi {userName}! I'm your store assistant. Ask me about your sales, orders, or how to configure settings.",
+    dashboardChat_title: 'Store Assistant',
+    dashboardChat_online: 'Online',
+    dashboardChat_unlockTitle: 'Unlock Store Assistant',
+    dashboardChat_unlockDesc: 'Get real-time insights and help with your store management. Available exclusively on the Pro plan.',
+    dashboardChat_upgradePro: 'Upgrade to Pro',
+    dashboardChat_maybeLater: 'Maybe Later',
+    dashboardChat_askAnything: 'Ask anything...',
+    dashboardChat_thinking: 'Thinking...',
+
+    // AiChatWidget (Page Builder)
+    builderChat_intro: "Hi! I'm your AI design assistant. Select any element and tell me how to change it. (e.g., \"Change to blue\", \"Add a button here\")",
+    builderChat_title: 'Lovable AI',
+    builderChat_subtitle: 'Design Assistant',
+    builderChat_unlockTitle: 'Unlock AI Assistant',
+    builderChat_unlockDesc: 'Chat with your editor to design instantly. Available exclusively on the Pro plan.',
+    builderChat_describeChange: 'Describe change...',
+    builderChat_doneMessage: "Done! I've updated the design.",
+
+    common_there: 'there',
     landingShowcase_visitor_feature5: '24/7 Available',
     landingShowcase_visitor_feature5_desc: 'No waiting',
     landingShowcase_visitor_tip: '💡 "No sales team needed — AI will answer all your questions"',
@@ -3160,6 +3193,39 @@ export const translations = {
     landingShowcase_visitor_feature3: 'Features সম্পর্কে detail জানুন',
     landingShowcase_visitor_feature4: 'কিভাবে শুরু করবেন?',
     landingShowcase_visitor_feature4_desc: 'AI Guide করবে',
+
+    // ChatWidget (Merchant/Customer Storefront)
+    chatWidget_merchantTitle: 'AI সহকারী',
+    chatWidget_customerTitle: 'সেলস সহায়তা',
+    chatWidget_repliesInSeconds: 'সাধারণত কয়েক সেকেন্ডে উত্তর দেয়',
+    chatWidget_merchantWelcome: 'আসসালামু আলাইকুম! 👋 আমি আপনার AI সহকারী। কিভাবে সাহায্য করতে পারি?',
+    chatWidget_customerWelcome: 'আসসালামু আলাইকুম! 👋 কিভাবে সাহায্য করতে পারি?',
+    chatWidget_thinking: 'চিন্তা করছি...',
+    chatWidget_placeholder: 'আপনার প্রশ্ন লিখুন...',
+    chatWidget_clearChat: 'চ্যাট মুছে ফেলুন',
+    chatWidget_errorConnection: 'AI সার্ভিসের সাথে কানেক্ট করতে ব্যর্থ হয়েছে',
+
+    // DashboardChatWidget (Merchant Dashboard)
+    dashboardChat_welcome: 'আসসালামু আলাইকুম {userName}! আমি আপনার স্টোর সহকারী। আপনার বিক্রি, অর্ডার বা সেটিংস সম্পর্কে যেকোনো প্রশ্ন করতে পারেন।',
+    dashboardChat_title: 'স্টোর সহকারী',
+    dashboardChat_online: 'অনলাইন',
+    dashboardChat_unlockTitle: 'স্টোর সহকারী আনলক করুন',
+    dashboardChat_unlockDesc: 'আপনার স্টোর ম্যানেজমেন্টে সাহায্য এবং রিয়েল-টাইম তথ্য পান। শুধুমাত্র প্রো প্ল্যানে উপলব্ধ।',
+    dashboardChat_upgradePro: 'প্রো-তে আপগ্রেড করুন',
+    dashboardChat_maybeLater: 'পরে করব',
+    dashboardChat_askAnything: 'যেকোনো কিছু জিজ্ঞেস করুন...',
+    dashboardChat_thinking: 'চিন্তা করছি...',
+
+    // AiChatWidget (Page Builder)
+    builderChat_intro: 'আসসালামু আলাইকুম! আমি আপনার AI ডিজাইন সহকারী। যেকোনো এলিমেন্ট সিলেক্ট করুন এবং আমাকে বলুন সেটি কিভাবে পরিবর্তন করতে হবে। (যেমন: "নীল রঙ করুন", "এখানে একটি বাটন দিন")',
+    builderChat_title: 'লাভেবল AI',
+    builderChat_subtitle: 'ডিজাইন সহকারী',
+    builderChat_unlockTitle: 'AI সহকারী আনলক করুন',
+    builderChat_unlockDesc: 'তাতক্ষণাৎ ডিজাইন করার জন্য আপনার এডিটরের সাথে চ্যাট করুন। শুধুমাত্র প্রো প্ল্যানে উপলব্ধ।',
+    builderChat_describeChange: 'পরিবর্তনটি ব্যাখ্যা করুন...',
+    builderChat_doneMessage: "হয়ে গেছে! আমি ডিজাইনটি আপডেট করেছি।",
+
+    common_there: '',
     landingShowcase_visitor_feature5: '২৪/৭ Available',
     landingShowcase_visitor_feature5_desc: 'কোনো waiting নেই',
     landingShowcase_visitor_tip: '💡 "Sales team এর দরকার নেই — AI ই আপনার সব প্রশ্নের উত্তর দেবে"',

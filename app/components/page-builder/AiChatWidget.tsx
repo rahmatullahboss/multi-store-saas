@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useFetcher } from '@remix-run/react';
 import { Send, Sparkles, Loader2, Bot, User, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface AiChatWidgetProps {
   editor: any; // GrapesJS Editor instance
@@ -20,16 +21,24 @@ interface Message {
 }
 
 export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggle, isLocked = false }: AiChatWidgetProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hi! I\'m your AI design assistant. Select any element and tell me how to change it. (e.g., "Change to blue", "Add a button here")'
-    }
-  ]);
+  const { t } = useTranslation();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fetcher = useFetcher<{ success: boolean; data?: any; error?: string }>();
+
+  // Set initial welcome message
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: '1',
+          role: 'assistant',
+          content: t('builderChat_intro')
+        }
+      ]);
+    }
+  }, [t]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -48,7 +57,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
           { 
             id: Date.now().toString(), 
             role: 'assistant', 
-            content: command.message || "Done! I've updated the design." 
+            content: command.message || t('builderChat_doneMessage')
           }
         ]);
 
@@ -63,12 +72,12 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
             { 
               id: Date.now().toString(), 
               role: 'assistant', 
-              content: `Oops! Something went wrong: ${errorMessage}` 
+              content: `Oops! ${errorMessage}` 
             }
           ]);
       }
     }
-  }, [fetcher.state, fetcher.data, onExecuteCommand]);
+  }, [fetcher.state, fetcher.data, onExecuteCommand, t]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -127,10 +136,10 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
             </div>
             <div>
                 <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm text-gray-900">Lovable AI</h3>
+                    <h3 className="font-bold text-sm text-gray-900">{t('builderChat_title')}</h3>
                     {isLocked && <span className="bg-gray-100 text-gray-600 text-[10px] font-black px-1.5 py-0.5 rounded flex items-center gap-1"><Sparkles size={8} /> PRO</span>}
                 </div>
-                <p className="text-[10px] text-gray-500 font-medium">Design Assistant</p>
+                <p className="text-[10px] text-gray-500 font-medium">{t('builderChat_subtitle')}</p>
             </div>
         </div>
         <button 
@@ -146,9 +155,9 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
             <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                 <Sparkles size={32} className="text-indigo-600" />
             </div>
-            <h3 className="text-lg font-black text-gray-900 mb-2">Unlock AI Assistant</h3>
+            <h3 className="text-lg font-black text-gray-900 mb-2">{t('builderChat_unlockTitle')}</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                Chat with your editor to design instantly. Available exclusively on the Pro plan.
+                {t('builderChat_unlockDesc')}
             </p>
             
             <div className="space-y-3 w-full">
@@ -156,13 +165,13 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
                     href="/app/upgrade" 
                     className="flex w-full items-center justify-center gap-2 bg-black text-white px-4 py-3 rounded-xl font-bold hover:bg-gray-900 transition shadow-lg shadow-gray-200"
                 >
-                    Upgrade to Pro <Sparkles size={16} />
+                    {t('dashboardChat_upgradePro')} <Sparkles size={16} />
                 </a>
                 <button 
                     onClick={onToggle}
                     className="w-full text-xs font-bold text-gray-400 hover:text-gray-600 py-2"
                 >
-                    Maybe Later
+                    {t('dashboardChat_maybeLater')}
                 </button>
             </div>
         </div>
@@ -198,7 +207,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
                 </div>
                 <div className="bg-white border border-gray-100 px-3 py-2 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin text-indigo-500" />
-                <span className="text-xs text-gray-500 font-medium">Thinking...</span>
+                <span className="text-xs text-gray-500 font-medium">{t('dashboardChat_thinking')}</span>
                 </div>
             </div>
             )}
@@ -212,7 +221,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Describe change..."
+                placeholder={t('builderChat_describeChange')}
                 className="w-full pl-4 pr-12 py-3 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition border border-transparent focus:border-indigo-200"
                 disabled={fetcher.state !== 'idle'}
                 autoFocus
