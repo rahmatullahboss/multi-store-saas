@@ -76,7 +76,7 @@ const compressImage = async (file: File): Promise<File> => {
   });
 };
 
-export const getGrapesConfig = (container: HTMLElement, pageId?: string): any => {
+export const getGrapesConfig = (container: HTMLElement, pageId?: string, planType?: string): any => {
   return {
     container,
     fromElement: false,

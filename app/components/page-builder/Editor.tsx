@@ -22,10 +22,12 @@ import { toast } from 'sonner';
 
 interface GrapesEditorProps {
   pageId?: string;
+  planType?: string;
 }
 
-export default function GrapesEditor({ pageId }: GrapesEditorProps) {
-  const [editor, setEditor] = (useState<any>)(null);
+export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditorProps) {
+  const [editor, setEditor] = useState<any>(null);
+  const isAiLocked = planType === 'free';
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
   const [aiDesignMode, setAiDesignMode] = useState<'full-page' | 'section-design'>('full-page');
   const [selectedComponentData, setSelectedComponentData] = useState<string | null>(null);
@@ -317,7 +319,7 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
         grapesjsCss="https://unpkg.com/grapesjs/dist/css/grapes.min.css"
         // Pass GrapesJS options
         options={{
-          ...getGrapesConfig(null as any, pageId),
+          ...getGrapesConfig(null as any, pageId, planType),
           height: '100%',
         }}
         // Load plugins correctly
@@ -329,7 +331,7 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
         onEditor={onEditor}
       >
         <div className="flex flex-col h-full overflow-hidden">
-          <EditorToolbar />
+          <EditorToolbar isAiLocked={isAiLocked} />
           <div className="flex flex-1 overflow-hidden min-h-0">
             {/* Unified Left Sidebar: Blocks + Customization */}
             <div className="h-full overflow-hidden flex-shrink-0">
@@ -361,6 +363,7 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
         onGenerate={handleMagicGenerate}
         mode={aiDesignMode}
         initialData={selectedComponentData || undefined}
+        isLocked={isAiLocked}
       />
 
       <style dangerouslySetInnerHTML={{ __html: `

@@ -9,13 +9,13 @@ import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFuncti
 import { useLoaderData, useSearchParams, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
-import { landingPages } from '@db/schema';
+import { landingPages, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { Plus, FileText, ChevronRight, Globe, Lock, Clock, ExternalLink, Trash2 } from 'lucide-react';
 
 // Lazy load the editor
-const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as React.FC<{ pageId?: string }>;
+const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as React.FC<{ pageId?: string; planType?: string }>;
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Elementor Builder' }];
@@ -29,19 +29,28 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
   const db = drizzle(context.cloudflare.env.DB);
-  const pages = await db
-    .select({
-      id: landingPages.id,
-      name: landingPages.name,
-      slug: landingPages.slug,
-      isPublished: landingPages.isPublished,
-      updatedAt: landingPages.updatedAt,
-    })
-    .from(landingPages)
-    .where(eq(landingPages.storeId, storeId))
-    .orderBy(desc(landingPages.updatedAt));
+  
+  // Fetch pages and store plan type
+  const [pages, store] = await Promise.all([
+    db
+      .select({
+        id: landingPages.id,
+        name: landingPages.name,
+        slug: landingPages.slug,
+        isPublished: landingPages.isPublished,
+        updatedAt: landingPages.updatedAt,
+      })
+      .from(landingPages)
+      .where(eq(landingPages.storeId, storeId))
+      .orderBy(desc(landingPages.updatedAt)),
+    db
+      .select({ planType: stores.planType })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .get()
+  ]);
 
-  return json({ pages });
+  return json({ pages, planType: store?.planType || 'free' });
 }
 
 // ============================================================================
@@ -70,7 +79,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function PageBuilderRoute() {
-  const { pages } = useLoaderData<typeof loader>();
+  const { pages, planType } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const pageId = searchParams.get('id');
   const [isCreating, setIsCreating] = useState(false);
@@ -93,7 +102,7 @@ export default function PageBuilderRoute() {
               <div className="flex flex-col">
                  <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest leading-none mb-1">Editing Page</span>
                  <h2 className="text-white text-xs font-bold leading-none truncate max-w-[200px]">
-                    {pages.find(p => p.id.toString() === pageId)?.name || 'Loading...'}
+                    {pages.find((p: any) => p.id.toString() === pageId)?.name || 'Loading...'}
                  </h2>
               </div>
            </div>
@@ -118,7 +127,7 @@ export default function PageBuilderRoute() {
                  </div>
               </div>
             }>
-              <GrapesEditor pageId={pageId} />
+              <GrapesEditor pageId={pageId} planType={planType} />
             </Suspense>
           ) : null}
         </div>
@@ -201,7 +210,7 @@ export default function PageBuilderRoute() {
              </div>
           </div>
         ) : (
-          pages.map((page) => (
+          pages.map((page: any) => (
             <div key={page.id} className="group bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:border-emerald-200 transition-all hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-1">
                <div className="flex items-start justify-between mb-4">
                   <div className={`p-3 rounded-2xl ${page.isPublished ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'} transition-colors group-hover:bg-emerald-100`}>

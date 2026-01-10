@@ -10,14 +10,15 @@ import {
   Send,
   Wand2,
   Trash2,
-  Sparkles,
+  Sparkles, 
   X,
   Code,
-  Check
+  Check,
+  Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function EditorToolbar() {
+export default function EditorToolbar({ isAiLocked = false }: { isAiLocked?: boolean }) {
   const editor = useEditorMaybe();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
@@ -211,19 +212,19 @@ export default function EditorToolbar() {
         {selectedComponent ? (
           <button 
             onClick={() => editor.runCommand('open-ai-design-modal')}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl transition shadow-md shadow-purple-100 animate-in fade-in zoom-in"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl transition shadow-md shadow-purple-100 animate-in fade-in zoom-in group"
             title="Edit Selected Element with AI"
           >
-            <Sparkles size={14} />
+            {isAiLocked ? <Lock size={14} className="text-white/70" /> : <Sparkles size={14} />}
             MAGIC EDIT
           </button>
         ) : (
           <button 
             onClick={() => editor.runCommand('open-magic-modal')}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition border border-emerald-100 shadow-sm shadow-emerald-50"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition border border-emerald-100 shadow-sm shadow-emerald-50 group"
             title="Generate Page with AI"
           >
-            <Wand2 size={14} />
+            {isAiLocked ? <Lock size={14} className="text-emerald-400" /> : <Wand2 size={14} />}
             MAGIC AI
           </button>
         )}

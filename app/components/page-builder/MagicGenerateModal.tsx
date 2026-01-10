@@ -10,6 +10,7 @@ interface MagicGenerateModalProps {
   onGenerate: (data: any) => void;
   mode?: 'full-page' | 'section-design';
   initialData?: string; // Current HTML if in section-design mode
+  isLocked?: boolean;
 }
 
 export default function MagicGenerateModal({ 
@@ -17,7 +18,8 @@ export default function MagicGenerateModal({
   onClose, 
   onGenerate, 
   mode = 'full-page',
-  initialData 
+  initialData,
+  isLocked = false
 }: MagicGenerateModalProps) {
   const [prompt, setPrompt] = useState('');
   const [step, setStep] = useState<'input' | 'generating' | 'preview' | 'success'>('input');
@@ -100,7 +102,43 @@ export default function MagicGenerateModal({
             {step === 'success' && 'Your page has been updated. Loading editor changes...'}
           </p>
 
-          {step === 'input' && (
+          {isLocked ? (
+            <div className="space-y-6 py-4">
+              <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 text-left">
+                <div className="flex items-center gap-3 mb-4 text-amber-700">
+                  <Sparkles size={20} className="animate-pulse" />
+                  <span className="font-black uppercase tracking-wider text-xs">Premium AI Feature</span>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Upgrade to Unlock Magic Generation</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  AI-powered page building and design customization is a premium feature. Upgrade to our Starter or Business plan to experience the magic!
+                </p>
+                <ul className="mt-4 space-y-2">
+                  <li className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                    <CheckCircle size={14} className="text-emerald-500" /> Professional Copywriting
+                  </li>
+                  <li className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                    <CheckCircle size={14} className="text-emerald-500" /> Modern UI/UX Patterns
+                  </li>
+                  <li className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                    <CheckCircle size={14} className="text-emerald-500" /> One-click Conversions
+                  </li>
+                </ul>
+              </div>
+              <a
+                href="/app/billing"
+                className="w-full bg-gray-900 text-white font-bold text-lg py-4 rounded-xl hover:bg-black transition shadow-lg flex items-center justify-center gap-2"
+              >
+                Go to Upgrade Page
+              </a>
+              <button
+                onClick={onClose}
+                className="w-full text-gray-400 font-bold text-sm py-2 hover:text-gray-600 transition"
+              >
+                Maybe Later
+              </button>
+            </div>
+          ) : step === 'input' && (
             <div className="space-y-4">
               <textarea
                 value={prompt}
