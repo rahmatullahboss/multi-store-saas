@@ -764,6 +764,242 @@ export const bdBlocksPlugin = (editor: Editor) => {
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-red-500" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
   });
 
+  // 17. Urgency Countdown Bar (Sticky/Legacy Style)
+  Blocks.add('bd-urgency-timer', {
+    label: 'Urgency Timer Bar',
+    category: 'High Conversion',
+    content: `
+      <div class="sticky top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 py-3 shadow-lg">
+        <div class="max-w-4xl mx-auto px-4 flex items-center justify-center gap-4 text-white">
+          <span class="text-xl animate-pulse">⚡</span>
+          <span class="font-bold text-sm md:text-base uppercase tracking-wider">অফারটি শেষ হতে আর মাত্র:</span>
+          <div class="flex items-center gap-2 font-mono font-black text-xl md:text-2xl">
+            <div class="bg-black/20 px-2 rounded">02</div>
+            <span class="animate-pulse">:</span>
+            <div class="bg-black/20 px-2 rounded">45</div>
+            <span class="animate-pulse">:</span>
+            <div class="bg-black/20 px-2 rounded text-yellow-300">12</div>
+          </div>
+          <span class="text-xl animate-pulse">⚡</span>
+        </div>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-red-500" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>',
+  });
+
+  // 18. Glassmorphism Trust Badges
+  Blocks.add('bd-trust-glass', {
+    label: 'Trust Glassmorphism',
+    category: 'BD Landing',
+    content: `
+      <section class="py-12 bg-gray-50/50">
+        <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+          <div class="bg-white/70 backdrop-blur-xl border border-white/50 p-6 rounded-3xl shadow-xl shadow-gray-200/50 text-center flex flex-col items-center gap-3 transform hover:-translate-y-2 transition duration-500">
+            <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
+               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="font-black text-gray-900 leading-tight">দ্রুত ডেলিভারি</h3>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-tighter">সারা বাংলাদেশে</p>
+          </div>
+          <div class="bg-white/70 backdrop-blur-xl border border-white/50 p-6 rounded-3xl shadow-xl shadow-gray-200/50 text-center flex flex-col items-center gap-3 transform hover:-translate-y-2 transition duration-500">
+            <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">
+               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            </div>
+            <h3 class="font-black text-gray-900 leading-tight">ক্যাশ অন ডেলিভারি</h3>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-tighter">হাতে পেয়ে পেমেন্ট</p>
+          </div>
+          <div class="bg-white/70 backdrop-blur-xl border border-white/50 p-6 rounded-3xl shadow-xl shadow-gray-200/50 text-center flex flex-col items-center gap-3 transform hover:-translate-y-2 transition duration-500">
+            <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 shadow-inner">
+               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+            <h3 class="font-black text-gray-900 leading-tight">১০০% গ্যারান্টি</h3>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-tighter">অরিজিনাল প্রোডাক্ট</p>
+          </div>
+          <div class="bg-white/70 backdrop-blur-xl border border-white/50 p-6 rounded-3xl shadow-xl shadow-gray-200/50 text-center flex flex-col items-center gap-3 transform hover:-translate-y-2 transition duration-500">
+            <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 shadow-inner">
+               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </div>
+            <h3 class="font-black text-gray-900 leading-tight">সহজ রিটার্ন</h3>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-tighter">৭ দিনের পলিসি</p>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-indigo-500" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="3"/></svg>',
+  });
+
+  // 19. Premium Order Form (2-Column Legacy)
+  Blocks.add('bd-order-form-premium', {
+    label: 'Order Form Premium',
+    category: 'High Conversion',
+    content: `
+      <section id="order" class="py-16 bg-emerald-50/50 px-4">
+        <div class="max-w-6xl mx-auto">
+          <div class="text-center mb-10">
+            <h2 class="text-3xl md:text-5xl font-black text-gray-900 mb-4">অর্ডার কনফার্ম করুন</h2>
+            <p class="text-xl text-gray-600 font-medium">নিচের ফর্মটি পূরণ করুন, আমরা আপনাকে কল করবো</p>
+          </div>
+
+          <div class="bg-white rounded-[2.5rem] p-6 md:p-12 shadow-2xl shadow-emerald-200/50 border border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+            <!-- Product Info Summary -->
+            <div class="space-y-8">
+              <div class="bg-emerald-50 rounded-3xl p-6 border border-emerald-100 relative overflow-hidden">
+                <div class="flex items-center gap-6">
+                  <div class="w-24 h-24 bg-white rounded-2xl overflow-hidden shadow-md flex-shrink-0 p-1">
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&q=80" class="w-full h-full object-cover rounded-xl" />
+                  </div>
+                  <div>
+                    <h4 class="text-xl font-black text-gray-900 mb-2">প্রিমিয়াম কোয়ালিটি পণ্য</h4>
+                    <div class="flex items-center gap-3">
+                      <span class="text-emerald-600 font-black text-3xl">৳৯৫০</span>
+                      <span class="text-gray-400 line-through text-lg">৳১,৯৫০</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="space-y-4">
+                <h5 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                   <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
+                   কেন আপনি আমাদের পণ্যটি কিনবেন?
+                </h5>
+                <ul class="space-y-3">
+                  <li class="flex items-start gap-3 font-medium text-gray-700">
+                    <span class="text-emerald-500 text-xl font-bold">✓</span>
+                    ১০০% অরিজিনাল কালার গ্যারান্টি।
+                  </li>
+                  <li class="flex items-start gap-3 font-medium text-gray-700">
+                    <span class="text-emerald-500 text-xl font-bold">✓</span>
+                    প্রিমিয়াম মেটেরিয়াল দিয়ে তৈরী।
+                  </li>
+                  <li class="flex items-start gap-3 font-medium text-gray-700">
+                    <span class="text-emerald-500 text-xl font-bold">✓</span>
+                    ৭ দিনের রিপ্লেসমেন্ট ওয়ারেন্টি।
+                  </li>
+                </ul>
+              </div>
+
+              <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 flex items-center gap-4 animate-pulse">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-sm">🔥</div>
+                <p class="text-blue-900 font-bold">গত ২৪ ঘণ্টায় ১২৫ জন নতুন গ্রাহক অর্ডার করেছেন!</p>
+              </div>
+            </div>
+
+            <!-- Form -->
+            <form action="/api/create-order" method="POST" class="space-y-6">
+              <div class="space-y-2">
+                <label class="block text-sm font-bold text-gray-500 uppercase tracking-widest px-1">আপনার নাম</label>
+                <input type="text" name="customer_name" placeholder="নাম লিখুন" class="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition" required />
+              </div>
+              <div class="space-y-2">
+                <label class="block text-sm font-bold text-gray-500 uppercase tracking-widest px-1">মোবাইল নাম্বার</label>
+                <input type="tel" name="phone" placeholder="017XXXXXXXX" class="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition" required />
+              </div>
+              <div class="space-y-2">
+                <label class="block text-sm font-bold text-gray-500 uppercase tracking-widest px-1">সম্পূর্ণ ঠিকানা</label>
+                <textarea name="address" placeholder="বাসা নং, রোড, থানা, জেলা লিখুন" class="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none h-32 transition resize-none" required></textarea>
+              </div>
+              
+              <div class="bg-gray-50 p-6 rounded-3xl border border-dashed border-gray-300 space-y-3">
+                <div class="flex justify-between items-center text-gray-600 font-medium">
+                  <span>পণ্যের মূল্য:</span>
+                  <span class="font-bold text-gray-900 text-xl">৳৯৫০</span>
+                </div>
+                <div class="flex justify-between items-center text-emerald-600 font-medium">
+                  <span>ডেলিভারি চার্জ:</span>
+                  <span class="font-bold text-lg">ফ্রি</span>
+                </div>
+                <div class="pt-3 border-t border-gray-200 flex justify-between items-center text-gray-900">
+                  <span class="text-xl font-black">সর্বমোট মূল্য:</span>
+                  <span class="text-3xl font-black text-emerald-600">৳৯৫০</span>
+                </div>
+              </div>
+
+              <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-black text-2xl py-6 rounded-3xl shadow-2xl shadow-emerald-200 hover:shadow-emerald-300 hover:scale-[1.02] active:scale-95 transition-all">অর্ডার কনফার্ম করুন</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-emerald-600" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>',
+  });
+
+  // 20. Advanced Comparison (Problem/Solution)
+  Blocks.add('bd-comparison-advanced', {
+    label: 'Rich Comparison',
+    category: 'High Conversion',
+    content: `
+      <section class="py-16 bg-white px-4">
+        <div class="max-w-5xl mx-auto">
+          <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-5xl font-black text-gray-900 mb-4">পার্থক্যটি নিজেই দেখুন</h2>
+            <div class="w-24 h-2 bg-emerald-500 mx-auto rounded-full"></div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            <div class="bg-red-50/50 p-8 rounded-[3rem] border border-red-100 relative grayscale-[0.5] opacity-80">
+              <div class="absolute -top-4 left-8 bg-red-500 text-white px-6 py-2 rounded-full font-bold shadow-lg">সাধারণ বাজারজাত পণ্য</div>
+              <div class="aspect-video bg-gray-200 rounded-3xl mb-8 overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=50" class="w-full h-full object-cover" />
+              </div>
+              <ul class="space-y-4 font-bold text-gray-500">
+                <li class="flex items-center gap-3"><span class="text-red-500 text-2xl">❌</span> নিম্নমানের পাতলা ফেব্রিক</li>
+                <li class="flex items-center gap-3"><span class="text-red-500 text-2xl">❌</span> ধোয়ার পর রং নষ্ট হয়ে যায়</li>
+                <li class="flex items-center gap-3"><span class="text-red-500 text-2xl">❌</span> কোনো গ্যারান্টি বা ওয়ারেন্টি নেই</li>
+                <li class="flex items-center gap-3"><span class="text-red-500 text-2xl">❌</span> সাইজ ছোট-বড় হওয়ার ভয় থাকে</li>
+              </ul>
+            </div>
+            
+            <div class="bg-emerald-50 p-8 rounded-[3rem] border-2 border-emerald-200 relative shadow-2xl shadow-emerald-200/50 transform md:scale-105">
+              <div class="absolute -top-4 left-8 bg-emerald-600 text-white px-6 py-2 rounded-full font-bold shadow-lg">আমাদের প্রিমিয়াম পণ্য</div>
+              <div class="aspect-video bg-white rounded-3xl mb-8 overflow-hidden shadow-inner">
+                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80" class="w-full h-full object-cover" />
+              </div>
+              <ul class="space-y-4 font-black text-gray-800">
+                <li class="flex items-center gap-3"><span class="text-emerald-500 text-2xl">✅</span> ১০০% প্রিমিয়াম কটন ফেব্রিক</li>
+                <li class="flex items-center gap-3"><span class="text-emerald-500 text-2xl">✅</span> গ্যারান্টিড কালার ও টেকসই বুনন</li>
+                <li class="flex items-center gap-3"><span class="text-emerald-500 text-2xl">✅</span> ৭ দিনের মানি ব্যাক গ্যারান্টি</li>
+                <li class="flex items-center gap-3"><span class="text-emerald-500 text-2xl">✅</span> সঠিক এবং স্ট্যান্ডার্ড সাইজিং</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-emerald-500" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  });
+
+  // 21. Benefits Rich Grid
+  Blocks.add('bd-benefits-grid-rich', {
+    label: 'Benefits Grid Rich',
+    category: 'BD Landing',
+    content: `
+      <section class="py-16 bg-white px-4">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-center text-3xl md:text-4xl font-black mb-12">কেন অর্ডার করবেন?</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-10">
+            <div class="group bg-gradient-to-br from-emerald-50 to-white p-8 rounded-[2.5rem] border border-emerald-100 hover:shadow-2xl hover:shadow-emerald-200/50 transition-all duration-500 text-center">
+              <div class="w-20 h-20 bg-white rounded-3xl shadow-xl shadow-emerald-100 flex items-center justify-center text-4xl mx-auto mb-6 transform group-hover:rotate-12 transition">🛡️</div>
+              <h4 class="text-xl font-black text-gray-900 mb-4">মানি ব্যাক গ্যারান্টি</h4>
+              <p class="text-gray-600 font-medium leading-relaxed">পণ্য হাতে পেয়ে কোনো সমস্যা থাকলে আমাদের বলুন, ১০০% রিটার্ন গ্যারান্টি।</p>
+            </div>
+            <div class="group bg-gradient-to-br from-blue-50 to-white p-8 rounded-[2.5rem] border border-blue-100 hover:shadow-2xl hover:shadow-blue-200/50 transition-all duration-500 text-center">
+              <div class="w-20 h-20 bg-white rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-4xl mx-auto mb-6 transform group-hover:rotate-12 transition">🛵</div>
+              <h4 class="text-xl font-black text-gray-900 mb-4">দ্রুত হোম ডেলিভারি</h4>
+              <p class="text-gray-600 font-medium leading-relaxed">ঢাকার ভিতরে ২৪ ঘণ্টা এবং সারা বাংলাদেশে মাত্র ২-৩ দিনের ডেলিভারি।</p>
+            </div>
+            <div class="group bg-gradient-to-br from-amber-50 to-white p-8 rounded-[2.5rem] border border-amber-100 hover:shadow-2xl hover:shadow-amber-200/50 transition-all duration-500 text-center">
+              <div class="w-20 h-20 bg-white rounded-3xl shadow-xl shadow-amber-100 flex items-center justify-center text-4xl mx-auto mb-6 transform group-hover:rotate-12 transition">💎</div>
+              <h4 class="text-xl font-black text-gray-900 mb-4">প্রিমিয়াম কোয়ালিটি</h4>
+              <p class="text-gray-600 font-medium leading-relaxed">আমরা দিচ্ছি সরাসরি ইম্পোর্টেড হাই কোয়ালিটি পণ্য যা আপনি নিশ্চিত থাকতে পারেন।</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-emerald-500" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  });
+
   // ========================================
   // BASIC BUILDING BLOCKS (Elementor-style)
   // ========================================

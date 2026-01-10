@@ -84,7 +84,7 @@ export function LanguageProvider({
     setLang(lang === 'en' ? 'bn' : 'en');
   };
   
-  const t = (key: string | TranslationKey, options?: any): string => {
+  const t: (key: string | TranslationKey, options?: any) => string = (key, options) => {
     // 1. Try customs translations from ~/utils/i18n.ts first
     const customTranslation = i18nCustomT(key as TranslationKey, lang);
     
@@ -94,7 +94,7 @@ export function LanguageProvider({
     }
 
     // 2. Fallback to i18next (JSON files)
-    return i18nT(key, options) as string;
+    return String(i18nT(key, options));
   };
   
   const currentLanguage = useMemo(() => {

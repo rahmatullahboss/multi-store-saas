@@ -407,7 +407,7 @@ export default function SettingsPage() {
       {showSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {t('settingsSaved')}
+          {t('settingsSaved') as string}
         </div>
       )}
 

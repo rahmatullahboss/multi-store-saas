@@ -666,7 +666,12 @@ const GrapesJsPageSchema = z.object({
       'bd-social-proof',
       'bd-delivery-info',
       'bd-guarantee',
-      'bd-why-buy'
+      'bd-why-buy',
+      'bd-urgency-timer',
+      'bd-trust-glass',
+      'bd-order-form-premium',
+      'bd-comparison-advanced',
+      'bd-benefits-grid-rich'
     ]).describe("The type of GrapesJS block to use"),
     content: z.record(z.string()).describe("Key-value pairs for customizable content like headlines, button text, etc."),
     order: z.number().describe("Order of the block on the page"),
@@ -706,6 +711,11 @@ export async function generateGrapesJsPage(
     - bd-delivery-info: Delivery charges inside/outside Dhaka
     - bd-guarantee: Money back guarantee box
     - bd-why-buy: Problem vs Solution comparison
+    - bd-urgency-timer: Sticky top bar with countdown and gradient
+    - bd-trust-glass: Glassmorphism trust badges
+    - bd-order-form-premium: Advanced 2-column order form with product summary
+    - bd-comparison-advanced: Detailed problem/solution comparison with labels
+    - bd-benefits-grid-rich: High-end icons and card design for benefits grid
 
     Rules for Multilingual Support:
     1. If user asks in Bengali/Banglish, content MUST be in **Bengali**.

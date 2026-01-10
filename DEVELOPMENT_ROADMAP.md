@@ -70,4 +70,5 @@
 - [x] Implement Audit Logging System
 - [x] Integrate Google SSO
 - [x] Setup i18n and Language Switcher
+- [x] **GJS Rich Templates & Blocks**: Migrated legacy rich templates to GrapesJS with enhanced blocks.
 - [ ] **Phase 9: Reliability Engineering** (Next)
