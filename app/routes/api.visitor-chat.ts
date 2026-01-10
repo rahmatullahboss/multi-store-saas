@@ -1,12 +1,18 @@
 import { json } from '@remix-run/cloudflare';
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { createAIService } from '~/services/ai.server';
+import { drizzle } from 'drizzle-orm/d1';
+import { visitors, visitorMessages } from '@db/schema';
 
 /**
  * Public API endpoint for Ozzyl AI visitor chat
  * No authentication required - for marketing landing page visitors
  * 
- * Rate limited by Cloudflare (configure in wrangler.toml or Cloudflare dashboard)
+ * Actions:
+ * - 'register': Create a new visitor (Lead Capture)
+ * - 'chat': Send message and get AI response (History Persistence)
+ * 
+ * Rate limited by Cloudflare
  */
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
@@ -21,33 +27,76 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   try {
-    const payload = await request.json() as { 
-      message: string; 
-      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
-    };
-    
-    const { message, history } = payload;
+    const db = drizzle(env.DB);
+    const payload = await request.json() as any;
+    const { action = 'chat' } = payload;
 
-    if (!message || typeof message !== 'string') {
-      return json({ error: 'Message is required' }, { status: 400 });
+    // ========================================================================
+    // 1. REGISTER VISITOR (Lead Capture)
+    // ========================================================================
+    if (action === 'register') {
+      const { name, phone } = payload;
+      
+      if (!name || !phone) {
+        return json({ error: 'Name and Phone are required' }, { status: 400 });
+      }
+
+      const result = await db.insert(visitors).values({
+        name,
+        phone,
+      }).returning({ id: visitors.id });
+
+      return json({ success: true, visitorId: result[0].id });
     }
 
-    // Limit message length to prevent abuse
-    if (message.length > 1000) {
-      return json({ error: 'Message too long (max 1000 characters)' }, { status: 400 });
+    // ========================================================================
+    // 2. CHAT REQUEST
+    // ========================================================================
+    if (action === 'chat') {
+      const { message, visitorId, history } = payload;
+
+      if (!visitorId) {
+        return json({ error: 'Visitor ID required. Please refresh and register.' }, { status: 401 });
+      }
+
+      if (!message || typeof message !== 'string') {
+        return json({ error: 'Message is required' }, { status: 400 });
+      }
+
+      // Limit message length
+      if (message.length > 1000) {
+        return json({ error: 'Message too long (max 1000 characters)' }, { status: 400 });
+      }
+
+      // 1. Save User Message
+      await db.insert(visitorMessages).values({
+        visitorId,
+        role: 'user',
+        content: message
+      });
+
+      // 2. Generate AI Response
+      const trimmedHistory = history?.slice(-6) || [];
+      
+      const ai = createAIService(apiKey, {
+        model: env.AI_MODEL,
+        baseUrl: env.AI_BASE_URL,
+      });
+
+      const responseText = await ai.chatWithVisitor(message, { history: trimmedHistory });
+
+      // 3. Save Assistant Message
+      await db.insert(visitorMessages).values({
+        visitorId,
+        role: 'assistant',
+        content: responseText
+      });
+
+      return json({ success: true, response: responseText });
     }
 
-    // Limit history to last 6 messages
-    const trimmedHistory = history?.slice(-6) || [];
+    return json({ error: 'Invalid action' }, { status: 400 });
 
-    const ai = createAIService(apiKey, {
-      model: env.AI_MODEL,
-      baseUrl: env.AI_BASE_URL,
-    });
-
-    const response = await ai.chatWithVisitor(message, { history: trimmedHistory });
-
-    return json({ success: true, response });
   } catch (error: any) {
     console.error('[Ozzyl AI] Error:', error);
     return json({ error: 'দুঃখিত, সাময়িক সমস্যা হয়েছে। আবার চেষ্টা করুন।' }, { status: 500 });

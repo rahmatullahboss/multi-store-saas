@@ -43,6 +43,8 @@ import { PricingSection } from '~/components/PricingSection'; // Keep for refere
 import { FinalCTA } from '~/components/FinalCTA';
 import { FAQSection } from '~/components/FAQSection';
 import { LightFloatingOrbs, LightHeroGradient, LightShimmerText } from '~/components/LightThemeEffects';
+import { MarketingHeader } from '~/components/MarketingHeader';
+
 import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 import type { MarketingStats } from '~/routes/api.marketing-stats';
 
@@ -257,122 +259,7 @@ export function MarketingLanding() {
     return (
       <div className="min-h-screen bg-[#0A0A0F] overflow-hidden">
         {/* Dark Mode Floating Header */}
-        <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
-                  <Store className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-bold text-xl text-white hidden sm:block">
-                  Multi-Store
-                </span>
-              </Link>
-              
-              <div className="flex items-center gap-3">
-                <Link 
-                  to="/pricing" 
-                  className="hidden md:block text-white/60 hover:text-[#00875F] font-medium text-sm px-3 py-2 transition"
-                >
-                  প্রাইসিং
-                </Link>
-                <Link 
-                  to="/tutorials" 
-                  className="hidden md:block text-white/60 hover:text-[#00875F] font-medium text-sm px-3 py-2 transition"
-                >
-                  টিউটোরিয়াল
-                </Link>
-                {/* Language toggle hidden for MVP - system preserved for future
-                <button
-                  onClick={toggleLang}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 rounded-xl text-sm font-medium transition text-white/80 border border-[#006A4E]/30"
-                >
-                  <Globe className="w-4 h-4" />
-                  {lang === 'en' ? 'বাংলা' : 'EN'}
-                </button>
-                */}
-                <Link 
-                  to="/auth/login" 
-                  className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
-                >
-                  লগইন
-                </Link>
-                <MagneticButton>
-                  <Link 
-                    to="/auth/register" 
-                    className="hidden sm:inline-block px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
-                  >
-                    ফ্রি স্টোর তৈরি করুন
-                  </Link>
-                </MagneticButton>
-                {/* Mobile Menu Button */}
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="sm:hidden flex items-center justify-center w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition"
-                  aria-label="Toggle menu"
-                >
-                  {isMobileMenuOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
-                </button>
-              </div>
-            </div>
-            
-            {/* Mobile Dropdown Menu */}
-            {isMobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="sm:hidden mt-4 pt-4 border-t border-white/10"
-              >
-                <div className="flex flex-col gap-2">
-                  <Link 
-                    to="/pricing" 
-                    className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    প্রাইসিং
-                  </Link>
-                  <Link 
-                    to="/tutorials" 
-                    className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    টিউটোরিয়াল
-                  </Link>
-                  <Link 
-                    to="/about" 
-                    className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    আমাদের সম্পর্কে
-                  </Link>
-                  <Link 
-                    to="/contact" 
-                    className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    যোগাযোগ
-                  </Link>
-                  <div className="border-t border-white/10 my-2" />
-                  <Link 
-                    to="/auth/login" 
-                    className="text-white/70 hover:text-white font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    লগইন
-                  </Link>
-                  <Link 
-                    to="/auth/register" 
-                    className="px-4 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-semibold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    ফ্রি স্টোর তৈরি করুন
-                  </Link>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </header>
+        <MarketingHeader />
 
         {/* Award-Winning Bangladesh Hero - Bangla Native */}
         <AwardWinningHero totalUsers={marketingStats?.totalUsers} />

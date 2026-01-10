@@ -9,6 +9,7 @@ import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
+import { MarketingHeader } from '~/components/MarketingHeader';
 import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
@@ -20,28 +21,8 @@ export default function RefundPolicyPage() {
   return (
     <div className="min-h-screen bg-[#0A0A0F] overflow-hidden">
       {/* Header */}
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
-                <Store className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl text-white hidden sm:block">
-                Multi-Store
-              </span>
-            </Link>
-            
-            <Link 
-              to="/" 
-              className="flex items-center gap-2 text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              হোমে ফিরে যান
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Header */}
+      <MarketingHeader />
 
       {/* Content */}
       <main className="pt-28 pb-16 px-4">

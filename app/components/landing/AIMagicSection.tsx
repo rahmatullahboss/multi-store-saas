@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Palette, ShoppingBag, Moon, Sun, MessageSquare, Bell, ArrowRight, Smartphone, CreditCard } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export function AIMagicSection() {
+  const { t } = useTranslation();
   const [isNight, setIsNight] = useState(true);
   const [step, setStep] = useState(0); // 0: Idle, 1: Chat, 2: Order, 3: Day/Notification
 
@@ -55,7 +57,7 @@ export function AIMagicSection() {
             🤖 AI + 🎨 Builder = <span className="bg-gradient-to-r from-emerald-400 to-purple-400 bg-clip-text text-transparent">Magic ✨</span>
           </h2>
           <p className="text-lg text-white/60 max-w-2xl mx-auto">
-            AI এবং Builder একসাথে — অসাধারণ Experience. আপনি স্টোর বানান, AI বিক্রি করে।
+            {t('landingMagic_title')}
           </p>
         </div>
 
@@ -65,8 +67,8 @@ export function AIMagicSection() {
            <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10">
               <div className="p-2 bg-purple-500/20 rounded-lg"><Palette className="w-5 h-5 text-purple-400" /></div>
               <div className="text-left">
-                <div className="text-xs text-white/40 font-bold uppercase">Step 1</div>
-                <div className="font-bold text-white">BUILD</div>
+                <div className="text-xs text-white/40 font-bold uppercase">{t('landingMagic_step1')}</div>
+                <div className="font-bold text-white">{t('landingMagic_build')}</div>
               </div>
            </div>
            
@@ -76,8 +78,8 @@ export function AIMagicSection() {
            <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
               <div className="p-2 bg-emerald-500/20 rounded-lg"><Bot className="w-5 h-5 text-emerald-400" /></div>
               <div className="text-left">
-                <div className="text-xs text-emerald-400/60 font-bold uppercase">Step 2</div>
-                <div className="font-bold text-white">AUTOMATE</div>
+                <div className="text-xs text-emerald-400/60 font-bold uppercase">{t('landingMagic_step2')}</div>
+                <div className="font-bold text-white">{t('landingMagic_automate')}</div>
               </div>
            </div>
 
@@ -87,8 +89,8 @@ export function AIMagicSection() {
            <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10">
               <div className="p-2 bg-blue-500/20 rounded-lg"><ShoppingBag className="w-5 h-5 text-blue-400" /></div>
               <div className="text-left">
-                <div className="text-xs text-white/40 font-bold uppercase">Step 3</div>
-                <div className="font-bold text-white">SELL</div>
+                <div className="text-xs text-white/40 font-bold uppercase">{t('landingMagic_step3')}</div>
+                <div className="font-bold text-white">{t('landingMagic_sell')}</div>
               </div>
            </div>
         </div>
@@ -122,14 +124,14 @@ export function AIMagicSection() {
                        {isNight ? '02:00 AM' : '08:00 AM'}
                     </motion.div>
                     <div className="text-xs text-white/50 font-medium">
-                       {isNight ? 'আপনি ঘুমাচ্ছেন 😴' : 'সুপ্রভাত! আপনি উঠেছেন ☀️'}
+                       {isNight ? t('landingMagic_sleeping') : t('landingMagic_morning')}
                     </div>
                  </div>
               </div>
               
               <div className="flex items-center gap-4">
                  <div className="text-right">
-                    <div className="text-xs text-white/40 uppercase">Total Sales</div>
+                    <div className="text-xs text-white/40 uppercase">{t('landingMagic_totalSales')}</div>
                     <motion.div 
                        key={step >= 2 ? 'sales-up' : 'sales-flat'}
                        animate={{ scale: step >= 2 ? [1, 1.2, 1] : 1, color: step >= 2 ? '#34D399' : '#ffffff' }}
@@ -154,7 +156,7 @@ export function AIMagicSection() {
                     <div className="flex-1 bg-[#1a1f1d] rounded-2xl overflow-hidden relative flex flex-col p-4 space-y-4 pt-10">
                        <div className="absolute top-0 inset-x-0 h-10 bg-[#151917] border-b border-white/5 flex items-center px-4 gap-2">
                           <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] font-bold text-black border border-white/10">AI</div>
-                          <span className="text-[10px] text-emerald-400">Online • Auto-Reply</span>
+                          <span className="text-[10px] text-emerald-400">{t('landingMagic_chatOnline')}</span>
                        </div>
 
                        <AnimatePresence>
@@ -165,7 +167,7 @@ export function AIMagicSection() {
                              animate={{ opacity: 1, x: 0, scale: 1 }}
                              className="self-start bg-white/10 text-white text-xs p-3 rounded-2xl rounded-tl-none max-w-[85%]"
                            >
-                             এই Jacket টা XL এ আছে?
+                             {t('landingMagic_chatUserMsg')}
                            </motion.div>
                          )}
 
@@ -178,7 +180,7 @@ export function AIMagicSection() {
                                transition={{ delay: 0.5 }}
                                className="self-end bg-emerald-600/20 border border-emerald-500/20 text-white text-xs p-3 rounded-2xl rounded-tr-none max-w-[90%]"
                              >
-                               হ্যাঁ, XL available! দাম <span className="text-emerald-400 font-bold">৳2,499</span>. অর্ডার কনফার্ম করব?
+                               {t('landingMagic_chatAiMsg')}
                              </motion.div>
                              
                              <motion.div
@@ -193,7 +195,7 @@ export function AIMagicSection() {
                                 <div className="p-2 border-t border-white/5">
                                    <div className="text-[10px] text-white/70 font-bold">Premium Jacket</div>
                                    <div className="text-[10px] text-white/40">Size: XL • Black</div>
-                                   <div className="mt-2 text-center bg-emerald-500 text-black text-[10px] font-bold py-1 rounded">Confirmed</div>
+                                   <div className="mt-2 text-center bg-emerald-500 text-black text-[10px] font-bold py-1 rounded">{t('landingMagic_productConfirmed')}</div>
                                 </div>
                              </motion.div>
                            </>
@@ -230,11 +232,11 @@ export function AIMagicSection() {
                                       <div className="w-5 h-5 bg-[#006A4E] rounded-md flex items-center justify-center">
                                          <Bell className="w-3 h-3 text-white" />
                                       </div>
-                                      <span className="text-xs font-bold uppercase tracking-wide opacity-70">OZZYL • Now</span>
+                                      <span className="text-xs font-bold uppercase tracking-wide opacity-70">{t('landingMagic_notificationTitle')}</span>
                                    </div>
-                                   <div className="font-bold text-sm">৳2,499 Sale while you slept! 🎉</div>
+                                   <div className="font-bold text-sm">{t('landingMagic_notificationBody')}</div>
                                    <p className="text-xs text-gray-600 mt-1">
-                                      Your Agent confirmed order #ORD-12345 for Premium Jacket (XL).
+                                      {t('landingMagic_notificationDesc')}
                                    </p>
                                 </motion.div>
                               )}
@@ -257,7 +259,7 @@ export function AIMagicSection() {
                  animate={{ opacity: 1 }}
                  className="inline-block px-6 py-2 bg-black/60 backdrop-blur border border-white/10 rounded-full text-white/80 text-sm font-medium"
               >
-                 {isNight ? '💡 আপনি ঘুমান, AI কাস্টমার হ্যান্ডেল করে...' : '🎉 সকালবেলা সেলস রিপোর্ট দেখুন!'}
+                 {isNight ? t('landingMagic_captionSleepAi') : t('landingMagic_captionMorningReport')}
               </motion.div>
            </div>
 

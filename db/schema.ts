@@ -1291,3 +1291,33 @@ export const webhooksRelations = relations(webhooks, ({ one }) => ({
 
 export type Webhook = typeof webhooks.$inferSelect;
 export type NewWebhook = typeof webhooks.$inferInsert;
+// ============================================================================
+// VISITOR CHAT & LEAD CAPTURE
+// ============================================================================
+export const visitors = sqliteTable('visitors', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  phone: text('phone').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const visitorMessages = sqliteTable('visitor_messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  visitorId: integer('visitor_id').notNull().references(() => visitors.id, { onDelete: 'cascade' }),
+  role: text('role').$type<'user' | 'assistant'>().notNull(),
+  content: text('content').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('visitor_messages_visitor_id_idx').on(table.visitorId),
+]);
+
+export const visitorsRelations = relations(visitors, ({ many }) => ({
+  messages: many(visitorMessages),
+}));
+
+export const visitorMessagesRelations = relations(visitorMessages, ({ one }) => ({
+  visitor: one(visitors, {
+    fields: [visitorMessages.visitorId],
+    references: [visitors.id],
+  }),
+}));
