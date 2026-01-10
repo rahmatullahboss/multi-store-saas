@@ -31,6 +31,8 @@ const QUICK_SUGGESTIONS = [
 
 export function OzzylAIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showGreeting, setShowGreeting] = useState(false);
+  const [hasShownGreeting, setHasShownGreeting] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -46,6 +48,29 @@ export function OzzylAIChatWidget() {
   
   const isLoading = fetcher.state !== 'idle';
 
+  // Show greeting popup once on page load, then auto-hide
+  useEffect(() => {
+    if (!hasShownGreeting && !isOpen) {
+      const showTimer = setTimeout(() => {
+        setShowGreeting(true);
+        setHasShownGreeting(true);
+      }, 1500); // Show after 1.5s
+
+      return () => clearTimeout(showTimer);
+    }
+  }, [hasShownGreeting, isOpen]);
+
+  // Auto-hide greeting after 5 seconds
+  useEffect(() => {
+    if (showGreeting) {
+      const hideTimer = setTimeout(() => {
+        setShowGreeting(false);
+      }, 5000);
+
+      return () => clearTimeout(hideTimer);
+    }
+  }, [showGreeting]);
+
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,6 +79,7 @@ export function OzzylAIChatWidget() {
   // Focus input when opened
   useEffect(() => {
     if (isOpen) {
+      setShowGreeting(false); // Hide greeting when chat opens
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
@@ -77,7 +103,7 @@ export function OzzylAIChatWidget() {
           {
             id: Date.now().toString(),
             role: 'assistant',
-            content: data.error || 'দুঃখিত, একটু সমস্যা হয়েছে। আবার চেষ্টা করুন।'
+            content: data.error || 'দুঃখিত, একটু সমস্যা হয়েছে। আবার চেষ্টা করুন।'
           }
         ]);
       }
@@ -119,30 +145,63 @@ export function OzzylAIChatWidget() {
 
   return (
     <>
-      {/* Floating Chat Button */}
+      {/* Floating Chat Button with Brand Logo */}
       <AnimatePresence>
         {!isOpen && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-2xl shadow-2xl shadow-[#006A4E]/40 flex items-center justify-center group hover:scale-105 transition-transform"
-          >
-            {/* Pulse ring */}
-            <span className="absolute inset-0 rounded-2xl bg-[#006A4E] animate-ping opacity-20" />
-            
-            {/* Icon */}
-            <div className="relative">
-              <MessageSquare className="w-7 h-7 text-white" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse" />
-            </div>
-            
-            {/* Tooltip */}
-            <span className="absolute right-full mr-3 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Ozzyl AI তে জিজ্ঞেস করুন
-            </span>
-          </motion.button>
+          <>
+            {/* Greeting Popup */}
+            <AnimatePresence>
+              {showGreeting && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                  className="fixed bottom-24 right-6 z-50 max-w-[280px] bg-white rounded-2xl shadow-2xl p-4 cursor-pointer"
+                  onClick={() => setIsOpen(true)}
+                >
+                  <div className="flex items-start gap-3">
+                    <img 
+                      src="/ozzyl-logo-small.png" 
+                      alt="Ozzyl" 
+                      className="w-8 h-8 rounded-lg"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Ozzyl AI</p>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        👋 আসসালামু আলাইকুম! কিভাবে সাহায্য করতে পারি?
+                      </p>
+                    </div>
+                  </div>
+                  {/* Arrow pointing to button */}
+                  <div className="absolute -bottom-2 right-8 w-4 h-4 bg-white transform rotate-45 shadow-lg" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Main Button */}
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ 
+                scale: 1, 
+                opacity: 1,
+                y: hasShownGreeting ? 0 : [0, -8, 0] // Single bounce only on first show
+              }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ 
+                y: { delay: 1.5, duration: 0.4, ease: "easeOut" }
+              }}
+              onClick={() => setIsOpen(true)}
+              className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform border-2 border-[#006A4E]/20"
+            >
+              <img 
+                src="/ozzyl-logo-small.png" 
+                alt="Ozzyl AI" 
+                className="w-10 h-10 rounded-full"
+              />
+              {/* Online indicator */}
+              <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+            </motion.button>
+          </>
         )}
       </AnimatePresence>
 
