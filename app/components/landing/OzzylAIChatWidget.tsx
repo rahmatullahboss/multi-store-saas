@@ -191,12 +191,12 @@ export function OzzylAIChatWidget() {
                 y: { delay: 1.5, duration: 0.4, ease: "easeOut" }
               }}
               onClick={() => setIsOpen(true)}
-              className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-white rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform border-2 border-[#006A4E]/20"
+              className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform border-2 border-[#006A4E]/20 overflow-hidden"
             >
               <img 
                 src="/ozzyl-logo-small.png" 
                 alt="Ozzyl AI" 
-                className="w-14 h-14 rounded-full"
+                className="w-14 h-14"
               />
               {/* Online indicator */}
               <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
