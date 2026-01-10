@@ -18,6 +18,7 @@ import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
 import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
 import MagicGenerateModal from "./MagicGenerateModal";
+import AiChatWidget from "./AiChatWidget";
 import { toast } from 'sonner';
 
 interface GrapesEditorProps {
@@ -31,7 +32,74 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
   const [aiDesignMode, setAiDesignMode] = useState<'full-page' | 'section-design'>('full-page');
   const [selectedComponentData, setSelectedComponentData] = useState<string | null>(null);
-  
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // AI Command Execution
+  const handleExecuteAiCommand = (command: any) => {
+    if (!editor) return;
+    
+    // Determine Target
+    let target = editor.getSelected();
+    if (command.target === 'wrapper' || !target) {
+        target = editor.getWrapper();
+    }
+
+    try {
+        switch (command.action) {
+            case 'update_style':
+                if (command.value) {
+                    target.addStyle(command.value);
+                    toast.success('Style updated!');
+                }
+                break;
+            
+            case 'update_content':
+                if (command.value) {
+                    // Check if it's an input or has components
+                    if (target.components().length === 0) {
+                        target.set('content', command.value);
+                    } else {
+                        // Try to find a text node or just append? 
+                        // Safer to replace content if it's a simple text block
+                         target.set('content', command.value);
+                    }
+                    toast.success('Content updated!');
+                }
+                break;
+            
+            case 'add_component':
+                if (command.value) {
+                    // Add AFTER selected, or append to wrapper
+                    if (target === editor.getWrapper()) {
+                        editor.addComponents(command.value);
+                    } else {
+                        // Insert after
+                        const collection = target.collection;
+                        const index = target.index();
+                        collection.add(command.value, { at: index + 1 });
+                    }
+                    toast.success('Component added!');
+                }
+                break;
+            
+            case 'remove_component':
+                target.remove();
+                toast.success('Component removed!');
+                break;
+                
+            case 'update_trait':
+                 if (command.value) {
+                    target.addAttributes(command.value);
+                    toast.success('Attributes updated!');
+                 }
+                 break;
+        }
+    } catch (e) {
+        console.error('AI Command Execution Failed:', e);
+        toast.error('Failed to execute AI command.');
+    }
+  };
+
   // Page Configurations (Featured Product, WhatsApp, etc.)
   const [pageConfig, setPageConfig] = useState<{
     featuredProductId?: number;
@@ -373,6 +441,14 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
         initialData={selectedComponentData || undefined}
         isLocked={isAiLocked}
       />
+      
+      <AiChatWidget 
+          editor={editor}
+          isOpen={isChatOpen}
+          onToggle={() => setIsChatOpen(!isChatOpen)}
+          onExecuteCommand={handleExecuteAiCommand}
+          isLocked={isAiLocked}
+      />
 
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {
@@ -412,3 +488,5 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
     </div>
   );
 }
+
+

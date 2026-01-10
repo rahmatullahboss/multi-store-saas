@@ -49,7 +49,7 @@ import {
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { ChatWidget } from '~/components/ai/ChatWidget';
+import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
 import { useState } from 'react';
 import type { TranslationKey } from '~/utils/i18n';
 
@@ -589,14 +589,11 @@ export default function AppLayout() {
         </main>
       </div>
 
-      {/* AI Co-pilot Widget - Temporarily disabled */}
-      {/* {store.planType !== 'free' && (
-        <ChatWidget 
-          mode="merchant" 
-          storeId={store.id}
-          accentColor="#10b981"
-        />
-      )} */}
+      {/* AI Co-pilot Widget */}
+      <DashboardChatWidget 
+        userName={user.name || undefined}
+        storeName={store.name}
+      />
     </div>
   );
 }

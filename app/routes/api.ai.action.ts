@@ -30,7 +30,9 @@ type ActionType =
   | 'GENERATE_ELEMENTOR_PAGE' 
   | 'EDIT_ELEMENTOR_SECTION'
   | 'GENERATE_GRAPESJS_PAGE'
-  | 'DESIGN_CUSTOM_SECTION';
+  | 'GENERATE_GRAPESJS_PAGE'
+  | 'DESIGN_CUSTOM_SECTION'
+  | 'CHAT_COMMAND';
 
 interface ActionPayload {
   action: ActionType;
@@ -52,6 +54,13 @@ interface ActionPayload {
   // ELEMENTOR
   prompt?: string;
   currentHtml?: string;
+  // CHAT_COMMAND
+  context?: {
+    selectedTagName?: string;
+    selectedContent?: string;
+    selectedClasses?: string[];
+    selectedAttributes?: Record<string, any>;
+  };
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -261,6 +270,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.designCustomSection(payload.prompt, payload.currentHtml);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        return json({ success: true, data: result });
+      }
+
+      case 'CHAT_COMMAND': {
+        if (!payload.editPrompt) {
+          return json({ error: 'User prompt required' }, { status: 400 });
+        }
+
+        const result = await ai.commandGrapesJs(
+          payload.editPrompt,
+          payload.context || {}
+        );
         await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
         return json({ success: true, data: result });
       }

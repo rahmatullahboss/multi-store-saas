@@ -760,6 +760,81 @@ export async function generateGrapesJsPage(
 }
 
 // ============================================================================
+// GRAPESJS CHAT COMMAND GENERATION
+// ============================================================================
+export const GrapesJsCommandSchema = z.object({
+  action: z.enum([
+    'update_style', 
+    'update_content', 
+    'add_component', 
+    'remove_component', 
+    'update_trait',
+    'general_advice'
+  ]).describe("The action to perform on the editor"),
+  target: z.enum(['selected', 'wrapper']).optional().default('selected').describe("The target element (selected component or the entire page wrapper)"),
+  value: z.any().describe("The data required for the action (CSS object for style, HTML string for add_component, text for update_content)"),
+  message: z.string().describe("A short, friendly message to the user explaining what the AI did"),
+});
+
+export type GrapesJsCommandResult = z.infer<typeof GrapesJsCommandSchema>;
+
+export async function commandGrapesJs(
+  apiKey: string,
+  userPrompt: string,
+  context: {
+    selectedTagName?: string;
+    selectedContent?: string;
+    selectedClasses?: string[];
+    selectedAttributes?: Record<string, any>;
+  },
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<GrapesJsCommandResult> {
+  const systemPrompt = `You are an expert GrapesJS Loop Controller. Your job is to translate natural language user requests into JSON commands that the GrapesJS editor can execute.
+
+You have access to the currently selected component's context.
+
+### Available Actions:
+1. **update_style**: Return a CSS object in "value". Use camelCase properties (e.g., { backgroundColor: 'red', fontSize: '20px' }).
+2. **update_content**: Return the new text string in "value". Used for changing text inside elements.
+3. **add_component**: Return an HTML string in "value". Appends this HTML *after* the selected component (or inside, if it's a container and the intent is to add inside).
+4. **remove_component**: Set "value" to true. Deletes the selected component.
+5. **update_trait**: Return an object of traits in "value" (e.g., { href: 'https://...' }).
+6. **general_advice**: If the request is a question or cannot be acted upon, explain why or answer the question in "message". Set "value" to null.
+
+### Rules:
+- If the user wants to change the look, use 'update_style'.
+- If the user wants to change the text, use 'update_content'.
+- If the user wants to add a section, button, or element, use 'add_component'.
+- If the user asks to "delete this", use 'remove_component'.
+- **CRITICAL**: Use Tailwind CSS classes in 'add_component' HTML strings if possible, but for 'update_style', use raw CSS properties.
+- **CRITICAL**: Return ONLY JSON.
+
+### Output Format:
+{
+  "action": "update_style",
+  "target": "selected",
+  "value": { "color": "#ff0000" },
+  "message": "I've changed the text color to red for you."
+}`;
+
+  const fullUserPrompt = `
+Context - Selected Component:
+- Tag: ${context.selectedTagName || 'none'}
+- Content Preview: ${context.selectedContent ? context.selectedContent.substring(0, 100) + '...' : 'none'}
+- Classes: ${context.selectedClasses?.join(', ') || 'none'}
+
+User Request: "${userPrompt}"
+
+Generate GrapesJS API Command JSON:`;
+
+  const response = await callAI(apiKey, systemPrompt, fullUserPrompt, model, baseUrl);
+  const parsed = extractJSON(response);
+  return GrapesJsCommandSchema.parse(parsed);
+}
+
+
+// ============================================================================
 // ELEMENTOR SECTION EDITING
 // ============================================================================
 export const ElementorEditSchema = z.object({
@@ -856,6 +931,83 @@ Return ONLY the JSON. No markdown, no code fences.`;
 }
 
 // ============================================================================
+// CHATBOT: RAG & SYSTEM KNOWLEDGE
+// ============================================================================
+
+export async function chatWithMerchant(
+  apiKey: string,
+  userMessage: string,
+  storeId: number,
+  context: {
+    storeName: string;
+    userName: string;
+    planType?: string;
+    pageContext?: string; // Which page they are on (e.g., "Settings > Shipping")
+  },
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<string> {
+  // Simplified RAG: We inject knowledge about the system
+  const systemKnowledge = `
+    MultiStore SaaS Platform Knowledge Base:
+    - **Stores**: Merchants can create online stores with custom domains.
+    - **Products**: Supports variants, inventory tracking, and logical categories.
+    - **Orders**: Tracks status (pending, shipped, delivered), payment status, and courier tracking (Pathao, RedX).
+    - **Shipping**: Configurable zones (Inside Dhaka, Outside Dhaka) with different rates.
+    - **Payments**: Supports Manual (bKash/Nagad send money) and Automated (Stripe, SSLCommerz).
+    - **Marketing**: Email campaigns, discount codes, and upsells are available.
+    - **Themes**: GrapesJS builder for custom landing pages.
+  `;
+
+  const systemPrompt = `You are a helpful AI Assistant for a Merchant on the MultiStore SaaS platform.
+  
+  Your goal is to help the merchant (${context.userName} from store "${context.storeName}") manage their business.
+  
+  ### Context
+  - Store ID: ${storeId}
+  - Plan: ${context.planType || 'Free'}
+  - Current Page: ${context.pageContext || 'Dashboard'}
+
+  ### Knowledge Base
+  ${systemKnowledge}
+
+  ### Rules
+  1. **Helpfulness**: Be concise, friendly, and professional.
+  2. **Data Safety**: You CANNOT access data from other stores. If asked about global stats, say you can only see their store.
+  3. **Capabilities**: You can explain how to use features or answer questions about *their* store if you had access (currently answering based on general knowledge).
+  4. **Strictness**: If asked to generate code or SQL, refuse politely. You are a business assistant.
+  
+  User Question: "${userMessage}"
+  
+  Answer:`;
+
+  return callAI(apiKey, systemPrompt, userMessage, model, baseUrl);
+}
+
+export async function chatWithSuperAdmin(
+  apiKey: string,
+  userMessage: string,
+  context: {
+    userId: number;
+    userName: string;
+  },
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<string> {
+  const systemPrompt = `You are the Super Admin Assistant.
+  You have high-level privileges and can discuss system-wide health, revenue, and user growth.
+  
+  User: ${context.userName} (Super Admin)
+  
+  Rules:
+  1. Be professional and concise.
+  2. You can discuss sensitive platform metrics.
+  `;
+
+  return callAI(apiKey, systemPrompt, userMessage, model, baseUrl);
+}
+
+// ============================================================================
 // EXPORT: AI Service Factory
 // ============================================================================
 export function createAIService(apiKey: string, options?: { model?: string, baseUrl?: string }) {
@@ -895,5 +1047,14 @@ export function createAIService(apiKey: string, options?: { model?: string, base
     
     designCustomSection: (prompt: string, currentHtml?: string) =>
       designCustomSection(apiKey, prompt, currentHtml, options?.model, options?.baseUrl),
+
+    commandGrapesJs: (prompt: string, context: any) =>
+      commandGrapesJs(apiKey, prompt, context, options?.model, options?.baseUrl),
+
+    chatWithMerchant: (message: string, storeId: number, context: any) =>
+      chatWithMerchant(apiKey, message, storeId, context, options?.model, options?.baseUrl),
+
+    chatWithSuperAdmin: (message: string, context: any) =>
+      chatWithSuperAdmin(apiKey, message, context, options?.model, options?.baseUrl),
   };
 }

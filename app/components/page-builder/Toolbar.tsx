@@ -109,19 +109,33 @@ export default function EditorToolbar({ isAiLocked = false }: { isAiLocked?: boo
     try {
       if (!codeContent.trim()) return;
 
-      // Robust extraction for full HTML documents
       let htmlToApply = codeContent;
       let cssToApply = '';
+      let bodyAttrs: Record<string, string> = {};
+      let bodyClasses: string[] = [];
+      let isFullDocument = false;
 
       // Check if it's a full document
-      if (codeContent.includes('<body') || codeContent.includes('<style')) {
+      if (codeContent.includes('<body') || codeContent.includes('<html')) {
+        isFullDocument = true;
         const doc = new DOMParser().parseFromString(codeContent, 'text/html');
         
-        // Extract body content
-        const bodyContent = doc.body.innerHTML;
-        if (bodyContent) htmlToApply = bodyContent;
+        // 1. Extract Body Content & Attributes
+        if (doc.body) {
+          htmlToApply = doc.body.innerHTML;
+          
+          // Capture Body Classes
+          doc.body.classList.forEach(cls => bodyClasses.push(cls));
+          
+          // Capture Body Attributes (style, id, data-*, etc.)
+          Array.from(doc.body.attributes).forEach(attr => {
+            if (attr.name !== 'class') {
+              bodyAttrs[attr.name] = attr.value;
+            }
+          });
+        }
 
-        // Extract and combine style blocks
+        // 2. Extract and combine style blocks
         const styles = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
         if (styles) cssToApply = styles;
       }
@@ -131,9 +145,65 @@ export default function EditorToolbar({ isAiLocked = false }: { isAiLocked?: boo
         if (cssToApply) editor.addStyle(cssToApply);
         toast.success('Element updated successfully');
       } else {
+        // === Full Page Update ===
+        
+        // 0. CRITICAL: Remove theme overrides from canvas iframe for clean import
+        if (isFullDocument) {
+          try {
+            const frame = editor.Canvas.getFrameEl();
+            if (frame && frame.contentDocument) {
+              const canvasDoc = frame.contentDocument;
+              
+              // Remove theme-variables-style
+              const themeStyle = canvasDoc.getElementById('theme-variables-style');
+              if (themeStyle) themeStyle.remove();
+            }
+          } catch (e) {
+            console.warn('Could not access canvas iframe:', e);
+          }
+          
+          // Clear existing GrapesJS CSS rules
+          const cssComposer = editor.CssComposer;
+          if (cssComposer) cssComposer.clear();
+        }
+        
+        // 1. Set Components (Content)
         editor.setComponents(htmlToApply);
+        
+        // 2. Add Styles (Global CSS)
         if (cssToApply) editor.addStyle(cssToApply);
-        toast.success('Page updated successfully');
+
+        // 3. Apply Body/HTML Attributes to Wrapper
+        const wrapper = editor.getWrapper();
+        if (wrapper) {
+            // A. Clear and apply classes
+            if (isFullDocument) wrapper.setClass([]);
+            if (bodyClasses.length > 0) wrapper.addClass(bodyClasses); 
+            
+            // B. Apply Attributes (ID, data-*, etc.)
+            Object.entries(bodyAttrs).forEach(([key, value]) => {
+                if (key !== 'style') wrapper.addAttributes({ [key]: value });
+            });
+
+            // C. Apply Body Inline Styles
+            if (bodyAttrs['style']) {
+                const styleObj: Record<string, string> = {};
+                bodyAttrs['style'].split(';').forEach(rule => {
+                    const parts = rule.split(':');
+                    if (parts.length >= 2) {
+                        const prop = parts[0].trim();
+                        const val = parts.slice(1).join(':').trim();
+                        if (prop && val) styleObj[prop] = val;
+                    }
+                });
+                wrapper.addStyle(styleObj);
+            }
+            
+            // D. Ensure Wrapper covers full height
+            wrapper.addStyle({ 'min-height': '100vh', 'overflow-x': 'hidden' });
+        }
+
+        toast.success('Page imported successfully!');
       }
       setIsCodeModalOpen(false);
     } catch (error) {
