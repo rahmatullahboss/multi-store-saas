@@ -1,9 +1,40 @@
-import { BlocksProvider, StylesProvider, TraitsProvider, SelectorsProvider, LayersProvider } from '@grapesjs/react';
-import { useState } from 'react';
+import { BlocksProvider, SelectorsProvider, useEditor } from '@grapesjs/react';
+import { useState, useEffect, useRef } from 'react';
 import { Box, Palette, Settings2, Layers } from 'lucide-react';
 
 export default function SidebarPanel() {
   const [activeTab, setActiveTab] = useState<'elements' | 'styles' | 'layers'>('elements');
+  const editor = useEditor();
+  
+  const traitsContainerRef = useRef<HTMLDivElement>(null);
+  const stylesContainerRef = useRef<HTMLDivElement>(null);
+  const layersContainerRef = useRef<HTMLDivElement>(null);
+
+  // Render GrapesJS built-in managers into our containers
+  useEffect(() => {
+    if (!editor) return;
+
+    // Render Traits Manager
+    if (traitsContainerRef.current && activeTab === 'styles') {
+      const traitsEl = editor.TraitManager.render();
+      traitsContainerRef.current.innerHTML = '';
+      traitsContainerRef.current.appendChild(traitsEl);
+    }
+
+    // Render Style Manager
+    if (stylesContainerRef.current && activeTab === 'styles') {
+      const stylesEl = editor.StyleManager.render();
+      stylesContainerRef.current.innerHTML = '';
+      stylesContainerRef.current.appendChild(stylesEl);
+    }
+
+    // Render Layers
+    if (layersContainerRef.current && activeTab === 'layers') {
+      const layersEl = editor.LayerManager.render();
+      layersContainerRef.current.innerHTML = '';
+      layersContainerRef.current.appendChild(layersEl);
+    }
+  }, [editor, activeTab]);
 
   return (
     <>
@@ -26,6 +57,103 @@ export default function SidebarPanel() {
         .custom-scrollbar {
           scrollbar-width: auto;
           scrollbar-color: #3b82f6 #f1f5f9;
+        }
+        
+        /* GrapesJS Style Manager Overrides */
+        .gjs-sm-sector {
+          background: transparent !important;
+          border: none !important;
+        }
+        .gjs-sm-sector-title {
+          background: #f8fafc !important;
+          color: #1e293b !important;
+          font-size: 11px !important;
+          font-weight: 700 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+          border-radius: 8px !important;
+          margin-bottom: 8px !important;
+          padding: 10px 12px !important;
+        }
+        .gjs-sm-property {
+          margin: 8px 0 !important;
+        }
+        .gjs-sm-property .gjs-sm-label {
+          color: #64748b !important;
+          font-size: 10px !important;
+          font-weight: 600 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+        }
+        .gjs-sm-property .gjs-field {
+          background: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 8px !important;
+        }
+        .gjs-sm-property .gjs-field input,
+        .gjs-sm-property .gjs-field select {
+          color: #1e293b !important;
+          font-size: 12px !important;
+          background: transparent !important;
+        }
+        .gjs-sm-property .gjs-field:focus-within {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        }
+        
+        /* Trait Manager Overrides */
+        .gjs-trt-traits {
+          padding: 0 !important;
+        }
+        .gjs-trt-trait {
+          padding: 8px 0 !important;
+          border-bottom: 1px solid #f1f5f9 !important;
+        }
+        .gjs-trt-trait:last-child {
+          border-bottom: none !important;
+        }
+        .gjs-trt-trait .gjs-label {
+          color: #64748b !important;
+          font-size: 10px !important;
+          font-weight: 600 !important;
+          text-transform: uppercase !important;
+        }
+        .gjs-trt-trait .gjs-field {
+          background: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 8px !important;
+        }
+        .gjs-trt-trait .gjs-field input,
+        .gjs-trt-trait .gjs-field select {
+          color: #1e293b !important;
+          font-size: 12px !important;
+          padding: 8px 10px !important;
+        }
+        
+        /* Layer Manager Overrides */
+        .gjs-layers {
+          background: transparent !important;
+        }
+        .gjs-layer {
+          background: #f8fafc !important;
+          border-radius: 8px !important;
+          margin: 4px 0 !important;
+          border: 1px solid #e2e8f0 !important;
+        }
+        .gjs-layer:hover {
+          border-color: #3b82f6 !important;
+        }
+        .gjs-layer.gjs-selected {
+          background: #eff6ff !important;
+          border-color: #3b82f6 !important;
+        }
+        .gjs-layer-title {
+          color: #1e293b !important;
+          font-size: 11px !important;
+          font-weight: 500 !important;
+        }
+        .gjs-layer-vis {
+          color: #64748b !important;
         }
       `}} />
 
@@ -134,54 +262,18 @@ export default function SidebarPanel() {
 
               {/* Traits Manager */}
               <div className="p-4 border-b border-gray-50">
-                 <TraitsProvider>
-                    {({ traits }) => (
-                       <div className="space-y-4">
-                          <div className="flex items-center gap-2 mb-2">
-                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Element Attributes</span>
-                          </div>
-                          {traits.map(trait => (
-                             <div key={trait.getId()} className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">{trait.getLabel()}</label>
-                                <div className="gjs-trait-input-container bg-gray-50/50 rounded-lg border border-gray-100 overflow-hidden">
-                                   <div ref={el => { if (el && (trait as any).getElement) el.appendChild((trait as any).getElement()) }} className="text-[11px] font-medium p-1" />
-                                </div>
-                             </div>
-                          ))}
-                          {traits.length === 0 && <p className="text-[10px] text-gray-300 font-medium italic text-center py-2">No attributes for this element</p>}
-                       </div>
-                    )}
-                 </TraitsProvider>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Element Attributes</span>
+                </div>
+                <div ref={traitsContainerRef} className="gjs-traits-wrap" />
               </div>
 
               {/* Style Manager */}
               <div className="p-4">
-                 <StylesProvider>
-                    {({ sectors }) => (
-                       <div className="space-y-6">
-                          <div className="flex items-center gap-2 mb-2">
-                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Visual Styling</span>
-                          </div>
-                          {sectors.map(sector => (
-                             <div key={sector.getId()} className="space-y-3 mb-6 bg-gray-50/30 p-3 rounded-2xl border border-gray-100/50">
-                                <h4 className="text-[11px] font-black text-gray-800 flex items-center justify-between uppercase tracking-tighter">
-                                   {sector.getName()}
-                                   <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
-                                </h4>
-                                <div className="grid grid-cols-1 gap-4 px-1">
-                                   {sector.getProperties().map(prop => (
-                                      <div key={prop.getId()} className="space-y-1.5">
-                                         <label className="text-[10px] font-bold text-gray-400 uppercase leading-none tracking-tight">{prop.getLabel()}</label>
-                                         <div ref={el => { if (el && (prop as any).getElement) el.appendChild((prop as any).getElement()) }} className="gjs-sm-property-input" />
-                                      </div>
-                                   ))}
-                                </div>
-                             </div>
-                          ))}
-                          {sectors.length === 0 && <p className="text-[10px] text-gray-300 font-medium italic text-center py-10">Select an element to edit style</p>}
-                       </div>
-                    )}
-                 </StylesProvider>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Visual Styling</span>
+                </div>
+                <div ref={stylesContainerRef} className="gjs-styles-wrap" />
               </div>
             </div>
           ) : (
@@ -190,22 +282,7 @@ export default function SidebarPanel() {
                   <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Layer Structure</h3>
                   <p className="text-[9px] text-gray-300 font-bold">Manage element hierarchy</p>
                </div>
-               <LayersProvider>
-                  {(props: any) => (
-                     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-                        <div ref={el => { 
-                          if (el && props.Layers) {
-                            // In @grapesjs/react, we usually build the layers UI
-                            // But if we want to inject Gjs default, we can try to get it from editor
-                            el.appendChild(props.Layers.getElement());
-                          }
-                        }} className="gjs-layers-container min-h-[200px] p-2" />
-                        <p className="p-4 text-center text-[10px] text-gray-400 font-medium italic">
-                          Layers view is active. Use this to reorder elements.
-                        </p>
-                     </div>
-                  )}
-               </LayersProvider>
+               <div ref={layersContainerRef} className="gjs-layers-wrap min-h-[200px]" />
             </div>
           )}
         </div>

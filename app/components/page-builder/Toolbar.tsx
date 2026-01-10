@@ -240,6 +240,7 @@ export default function EditorToolbar() {
         <div className="w-[1px] h-6 bg-gray-200 mx-1" />
 
         <button 
+          onClick={() => editor.runCommand('core:preview')}
           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition"
         >
           <Eye size={14} />

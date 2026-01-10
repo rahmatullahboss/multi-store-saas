@@ -257,12 +257,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
       default:
         return json({ error: `Unknown action: ${actionType}` }, { status: 400 });
     }
-  } catch (error) {
-    console.error('[AI Action] Error:', error);
+  } catch (error: any) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[AI Action] Error Message:', errorMessage);
+    
+    // Safely log full error object if possible
+    try {
+      console.error('[AI Action] Full Error:', JSON.stringify(error, null, 2));
+    } catch (e) {
+      console.error('[AI Action] Could not stringify error object');
+    }
+
     return json(
       { 
         error: 'AI generation failed. Please try again.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: errorMessage
       },
       { status: 500 }
     );
