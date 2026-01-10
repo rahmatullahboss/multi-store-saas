@@ -74,7 +74,15 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                   <ArrowLeft className="w-4 h-4" />
                   হোমে ফিরে যান
                 </Link>
-                 <MagneticButton>
+                 {/* Language Toggle */}
+              <button
+                onClick={toggleLang}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F5F7] hover:bg-[#EBEDF0] rounded-xl text-sm font-medium transition text-[#475569] border border-[#EBEDF0]"
+                title={lang === 'en' ? 'Switch to Bengali' : 'ইংরেজিতে পরিবর্তন করুন'}
+              >
+                <Globe className="w-4 h-4" />
+                {lang === 'en' ? 'EN' : 'BN'}
+              </button>   <MagneticButton>
                   <Link 
                     to="/auth/register" 
                     className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"

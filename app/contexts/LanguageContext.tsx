@@ -7,7 +7,7 @@
 
 import { createContext, useContext, useMemo, useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from '@remix-run/react';
-import { LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type Language, type TranslationKey, type LanguageConfig, t as i18nCustomT } from '~/utils/i18n';
+import { LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type Language, type TranslationKey, type LanguageConfig, t as i18nCustomT } from '~/utils/i18n/index';
 import type { SupportedLocale, SupportedCurrency } from '~/utils/formatPrice';
 import { useTranslation as useI18NextTranslation } from 'react-i18next';
 

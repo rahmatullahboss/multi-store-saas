@@ -7,6 +7,7 @@ import { agents, conversations, messages } from 'db/schema_agent';
 import { eq, desc, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
+import { getStoreStats } from '~/services/analytics.server';
 import type { PlanType } from '~/utils/plans.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -249,11 +250,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
          }));
        }
 
+       // Fetch Store Stats
+       const analytics = await getStoreStats(db, user.storeId);
+
        response = await ai.chatWithMerchant(message, user.storeId, {
          storeName: store.name,
          userName: user.name || 'Merchant',
          planType: store.planType,
          history, // Pass history
+         analytics, // Pass real-time stats
          ...clientContext
        });
 

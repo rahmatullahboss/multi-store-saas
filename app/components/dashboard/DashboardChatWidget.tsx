@@ -4,6 +4,7 @@ import { useFetcher, useLocation } from '@remix-run/react';
 import { Send, Sparkles, Loader2, Bot, User, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
+import ChatInsightCard, { InsightData } from './ChatInsightCard';
 
 interface DashboardChatWidgetProps {
   userName?: string;
@@ -90,6 +91,26 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
       }
     }
   }, [fetcher.state, fetcher.data]);
+
+  // Helper to render content (JSON or Text)
+  const renderMessageContent = (content: string) => {
+    try {
+      // Try to find JSON block if it's wrapped in markdown code fence
+      const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : content;
+      
+      // Attempt parse
+      if (jsonString.trim().startsWith('{')) {
+          const parsed = JSON.parse(jsonString);
+          if (parsed.type === 'insight_card' && parsed.data) {
+              return <ChatInsightCard data={parsed.data} />;
+          }
+      }
+    } catch (e) {
+      // Not JSON, render as text
+    }
+    return content;
+  };
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -200,7 +221,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
                     ? 'bg-gray-900 text-white rounded-tr-sm' 
                     : 'bg-white text-gray-700 border border-gray-100 rounded-tl-sm'
                 }`}>
-                {msg.content}
+                  {renderMessageContent(msg.content)}
                 </div>
             </div>
             ))}

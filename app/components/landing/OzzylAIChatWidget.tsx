@@ -46,6 +46,22 @@ export function OzzylAIChatWidget() {
       content: t('landingOzzylChat_initialMsg')
     }
   ]);
+
+  // Update initial message when language changes
+  useEffect(() => {
+    setMessages(prev => {
+      // Only update if the first message is the initial greeting and hasn't been deleted
+      if (prev.length > 0 && prev[0].id === '1' && prev[0].role === 'assistant') {
+        const newMessages = [...prev];
+        newMessages[0] = {
+          ...newMessages[0],
+          content: t('landingOzzylChat_initialMsg')
+        };
+        return newMessages;
+      }
+      return prev;
+    });
+  }, [t]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);

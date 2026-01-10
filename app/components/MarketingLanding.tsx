@@ -456,15 +456,15 @@ export function MarketingLanding() {
               >
                 <Moon className="w-4 h-4" />
               </button>
-              {/* Language toggle hidden for MVP - system preserved for future
+              {/* Language Toggle */}
               <button
                 onClick={toggleLang}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(0,106,78,0.06)] hover:bg-[rgba(0,106,78,0.1)] rounded-xl text-sm font-medium transition text-[#006A4E] border border-[rgba(0,106,78,0.12)]"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 text-[#00875F] rounded-xl text-sm font-medium transition border border-[#006A4E]/20"
+                title={lang === 'en' ? 'Switch to Bengali' : 'ইংরেজিতে পরিবর্তন করুন'}
               >
                 <Globe className="w-4 h-4" />
-                {lang === 'en' ? 'বাংলা' : 'EN'}
+                {lang === 'en' ? 'EN' : 'BN'}
               </button>
-              */}
               <Link 
                 to="/auth/login" 
                 className="hidden sm:block text-[#475569] hover:text-[#0F172A] font-medium text-sm px-4 py-2 transition"

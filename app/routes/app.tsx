@@ -51,7 +51,7 @@ import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
 import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
 import { useState } from 'react';
-import type { TranslationKey } from '~/utils/i18n';
+import type { TranslationKey } from '~/utils/i18n/index';
 
 
 export const meta: MetaFunction = () => {

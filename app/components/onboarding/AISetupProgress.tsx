@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 import { Store, Sparkles, Package, Palette, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
-import type { TranslationKey } from '~/utils/i18n';
+import type { TranslationKey } from '~/utils/i18n/index';
 
 interface AISetupProgressProps {
   isGenerating: boolean;
