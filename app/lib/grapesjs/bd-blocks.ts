@@ -7,7 +7,32 @@ import type { Editor } from 'grapesjs';
 export const bdBlocksPlugin = (editor: Editor) => {
   const { Blocks } = editor;
 
-  // 1. Hero Section
+  // 0. Header
+  Blocks.add('bd-header', {
+    label: 'Header / Navbar',
+    category: 'BD Landing',
+    content: `
+      <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+           <div class="font-black text-2xl text-primary flex items-center gap-2">
+             <span class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center">S</span>
+             STORE
+           </div>
+           
+           <nav class="hidden md:flex items-center gap-8 font-medium text-gray-600">
+             <a href="#features" class="hover:text-primary transition">ফিচার</a>
+             <a href="#reviews" class="hover:text-primary transition">রিভিউ</a>
+             <a href="#faq" class="hover:text-primary transition">প্রশ্নোত্তৰ</a>
+           </nav>
+           
+           <a href="#order" class="bg-gray-900 text-white font-bold px-6 py-3 rounded-xl hover:bg-gray-800 transition">অর্ডার করুন</a>
+        </div>
+      </header>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="6" rx="1"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="16" x2="22" y2="16"/><line x1="2" y1="20" x2="22" y2="20"/></svg>',
+  });
+
+  // 1. Hero Section (Classic)
   Blocks.add('bd-hero', {
     label: 'Hero Section',
     category: 'BD Landing',
@@ -20,11 +45,103 @@ export const bdBlocksPlugin = (editor: Editor) => {
           <div class="mb-10">
             <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80" alt="Product" class="mx-auto rounded-2xl shadow-2xl max-w-full h-auto" />
           </div>
-          <button class="bg-primary text-white text-xl font-bold px-12 py-5 rounded-full shadow-lg hover:opacity-90 transition transform hover:scale-105">অর্ডার করতে এখানে ক্লিক করুন</button>
+          <a href="#order" class="inline-block bg-primary text-white text-xl font-bold px-12 py-5 rounded-full shadow-lg hover:opacity-90 transition transform hover:scale-105">অর্ডার করতে এখানে ক্লিক করুন</a>
         </div>
       </section>
     `,
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12"><rect width="20" height="14" x="2" y="5" rx="2" stroke="currentColor"/><path d="M7 10h10M7 14h5" stroke="currentColor" stroke-linecap="round"/></svg>',
+  });
+
+  // 1.1 Hero Section (Modern Split)
+  Blocks.add('bd-hero-modern', {
+    label: 'Hero Modern',
+    category: 'BD Landing',
+    content: `
+      <section class="py-12 md:py-20 bg-gray-50 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="order-2 md:order-1 text-center md:text-left">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mb-6">
+                <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                নতুন কালেকশন ২০২৫
+              </div>
+              <h1 class="text-4xl md:text-6xl font-black text-gray-900 leading-tight mb-6">
+                আপনার স্টাইলের নতুন <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">সংজ্ঞা</span>
+              </h1>
+              <p class="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0">
+                সেরা মানের মেটেরিয়াল এবং আধুনিক ডিজাইনের সংমিশ্রণ। আজই অর্ডার করুন এবং উপভোগ করুন বিশেষ ছাড়।
+              </p>
+              <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <a href="#order" class="px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition transform hover:-translate-y-1 shadow-lg">
+                  এখনই কিনুন
+                </a>
+                <a href="#features" class="px-8 py-4 bg-white text-gray-900 border-2 border-gray-200 font-bold rounded-xl hover:bg-gray-50 transition">
+                  বিস্তারিত দেখুন
+                </a>
+              </div>
+              <div class="mt-10 flex items-center justify-center md:justify-start gap-6 text-gray-500 text-sm font-medium">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                  ফ্রি ডেলিভারি
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                  অরিজিনাল পণ্য
+                </div>
+              </div>
+            </div>
+            <div class="order-1 md:order-2 relative">
+              <div class="absolute inset-0 bg-gradient-to-tr from-blue-200 to-purple-200 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+              <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop" alt="Product" class="relative w-full h-auto rounded-3xl shadow-2xl transform hover:scale-[1.02] transition duration-500" />
+              <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl hidden md:block animate-bounce" style="animation-duration: 3s;">
+                <div class="flex items-center gap-3">
+                  <div class="flex -space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 border-2 border-white"></div>
+                    <div class="w-10 h-10 rounded-full bg-gray-300 border-2 border-white"></div>
+                    <div class="w-10 h-10 rounded-full bg-gray-400 border-2 border-white"></div>
+                  </div>
+                  <div class="text-xs font-bold">
+                    <span class="block text-lg">১০০০+</span>
+                    হ্যাপি কাস্টমার
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>',
+  });
+
+  // 1.2 Hero Section (Video/Dark)
+  Blocks.add('bd-hero-video', {
+    label: 'Hero Video',
+    category: 'BD Landing',
+    content: `
+      <section class="relative py-24 md:py-32 px-6 flex items-center justify-center overflow-hidden bg-gray-900 text-white">
+        <!-- Background Image/Video Placeholder -->
+        <div class="absolute inset-0 z-0">
+          <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2000&auto=format&fit=crop" class="w-full h-full object-cover opacity-30" alt="Background" />
+          <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-gray-900"></div>
+        </div>
+        
+        <div class="relative z-10 max-w-4xl mx-auto text-center">
+          <h1 class="text-4xl md:text-6xl font-black mb-6 tracking-tight">আপনার গেমিং অভিজ্ঞতা<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500">নেক্সট লেভেলে নিয়ে যান</span></h1>
+          <p class="text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto font-light">আল্ট্রা লো ল্যাটেন্সি এবং ক্রিস্টাল ক্লিয়ার সাউন্ড। প্রফেশনাল গেমারদের প্রথম পছন্দ।</p>
+          <div class="flex flex-col sm:flex-row gap-5 justify-center">
+             <a href="#order" class="px-10 py-5 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-pink-500/30 hover:scale-105 transition-all">
+               অর্ডার করুন - ১২৫০৳
+             </a>
+             <button class="px-10 py-5 bg-white/10 backdrop-blur-md text-white border border-white/20 font-bold text-lg rounded-full hover:bg-white/20 transition-all flex items-center justify-center gap-3">
+               <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+               ভিডিও দেখুন
+             </button>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M10 9l5 3-5 3V9z"/></svg>',
   });
 
   // 2. Trust Badges
@@ -61,21 +178,21 @@ export const bdBlocksPlugin = (editor: Editor) => {
     label: 'Order Form',
     category: 'BD Landing',
     content: `
-      <section class="py-12 bg-white px-6">
+      <section id="order" class="py-12 bg-white px-6">
         <div class="max-w-xl mx-auto bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-xl">
           <h2 class="text-2xl font-bold text-center text-gray-900 mb-8 underline decoration-primary decoration-4 underline-offset-8">অর্ডার করতে নিচের ফর্মটি পূরণ করুন</h2>
-          <form class="space-y-5">
+          <form action="/api/create-order" method="POST" class="space-y-5">
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-2">আপনার নাম *</label>
-              <input type="text" placeholder="পুরো নাম লিখুন" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none" required />
+              <input type="text" name="customer_name" placeholder="পুরো নাম লিখুন" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none" required />
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-2">মোবাইল নাম্বার *</label>
-              <input type="tel" placeholder="01XXXXXXXXX" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none" required />
+              <input type="tel" name="phone" placeholder="01XXXXXXXXX" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none" required />
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-2">সম্পূর্ণ ঠিকানা *</label>
-              <textarea placeholder="গ্রাম/মহল্লা, থানা, জেলা লিখুন" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none h-24" required></textarea>
+              <textarea name="address" placeholder="গ্রাম/মহল্লা, থানা, জেলা লিখুন" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none h-24" required></textarea>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                <div class="flex justify-between font-bold text-lg">
@@ -154,18 +271,18 @@ export const bdBlocksPlugin = (editor: Editor) => {
           <div class="bg-gray-50 p-6 md:p-8 rounded-3xl border-2 border-primary/30 shadow-2xl relative overflow-hidden">
              <div class="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-4 py-1 rounded-bl-xl">POPULAR</div>
              <h2 class="text-2xl font-black text-gray-900 mb-6 text-center">অর্ডার কনফার্ম করতে তথ্য দিন</h2>
-             <form class="space-y-4">
+             <form action="/api/create-order" method="POST" class="space-y-4">
                <div>
                   <label class="block text-xs font-bold text-gray-500 uppercase mb-1">আপনার নাম</label>
-                  <input type="text" placeholder="এখানে নাম লিখুন" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" />
+                  <input type="text" name="customer_name" placeholder="এখানে নাম লিখুন" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" />
                </div>
                <div>
                   <label class="block text-xs font-bold text-gray-500 uppercase mb-1">মোবাইল নাম্বার</label>
-                  <input type="tel" placeholder="017XXXXXXXX" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" />
+                  <input type="tel" name="phone" placeholder="017XXXXXXXX" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" />
                </div>
                <div>
                   <label class="block text-xs font-bold text-gray-500 uppercase mb-1">ঠিকানা</label>
-                  <textarea placeholder="বাসা নং, রোড নং, এলাকা..." class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition h-20"></textarea>
+                  <textarea name="address" placeholder="বাসা নং, রোড নং, এলাকা..." class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition h-20"></textarea>
                </div>
                
                <div class="bg-white p-3 rounded-xl border border-dashed border-gray-300">
@@ -183,7 +300,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
                   </div>
                </div>
 
-               <button type="button" class="w-full bg-gray-900 text-white text-xl font-bold py-4 rounded-xl shadow-lg hover:bg-gray-800 hover:scale-[1.02] active:scale-95 transition-all">অর্ডার কনফার্ম করুন</button>
+               <button type="submit" class="w-full bg-gray-900 text-white text-xl font-bold py-4 rounded-xl shadow-lg hover:bg-gray-800 hover:scale-[1.02] active:scale-95 transition-all">অর্ডার কনফার্ম করুন</button>
              </form>
           </div>
         </div>
@@ -223,6 +340,63 @@ export const bdBlocksPlugin = (editor: Editor) => {
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-blue-500" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>',
   });
 
+  // 7.1 Feature List (Zigzag)
+  Blocks.add('bd-features-zigzag', {
+    label: 'Feature Zigzag',
+    category: 'BD Landing',
+    content: `
+      <section class="py-16 bg-white overflow-hidden">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">কেন আমরাই সেরা?</h2>
+            <div class="w-24 h-1 bg-primary mx-auto rounded-full"></div>
+          </div>
+          
+          <!-- Item 1 -->
+          <div class="flex flex-col md:flex-row items-center gap-10 mb-20">
+            <div class="w-full md:w-1/2">
+              <div class="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white transform rotate-2 hover:rotate-0 transition duration-500">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80" alt="Feature" class="w-full hover:scale-110 transition duration-700" />
+              </div>
+            </div>
+            <div class="w-full md:w-1/2 md:pl-10">
+              <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl mb-6 text-blue-600">🎧</div>
+              <h3 class="text-2xl font-bold text-gray-900 mb-4">ক্রিস্টাল ক্লিয়ার সাউন্ড</h3>
+              <p class="text-gray-600 text-lg leading-relaxed mb-6">
+                আমাদের হেডফোনে ব্যবহার করা হয়েছে অত্যাধুনিক নয়েজ ক্যান্সলেশন প্রযুক্তি যা আপনাকে দিবে এক দারুণ অভিজ্ঞতা। বাইরের শব্দ একদমই কানে আসবে না।
+              </p>
+              <ul class="space-y-3">
+                <li class="flex items-center gap-3 text-gray-700 font-medium"><span class="text-green-500 text-xl">✓</span> অ্যাক্টিভ নয়েজ ক্যান্সলেশন</li>
+                <li class="flex items-center gap-3 text-gray-700 font-medium"><span class="text-green-500 text-xl">✓</span> ডিপ বেস টেকনোলজি</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="flex flex-col md:flex-row-reverse items-center gap-10">
+             <div class="w-full md:w-1/2">
+              <div class="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white transform -rotate-2 hover:rotate-0 transition duration-500">
+                <img src="https://images.unsplash.com/photo-1572569028738-411a0977d4aa?w=800&q=80" alt="Feature" class="w-full hover:scale-110 transition duration-700" />
+              </div>
+            </div>
+            <div class="w-full md:w-1/2 md:pr-10 text-left md:text-right">
+              <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-3xl mb-6 text-purple-600 ml-0 md:ml-auto">🔋</div>
+              <h3 class="text-2xl font-bold text-gray-900 mb-4">লং লাস্টিং ব্যাটারি</h3>
+              <p class="text-gray-600 text-lg leading-relaxed mb-6">
+                একবার চার্জ দিলে টানা ৪০ ঘণ্টা পর্যন্ত ব্যবহার করতে পারবেন। তাই চার্জ শেষ হয়ে যাওয়ার কোনো ভয় নেই। ট্রাভেলের জন্য বেস্ট চয়েস।
+              </p>
+              <ul class="space-y-3 flex flex-col items-start md:items-end">
+                <li class="flex items-center gap-3 text-gray-700 font-medium"><span class="text-green-500 text-xl">✓</span> ৪০ ঘণ্টা প্লেব্যাক টাইম</li>
+                <li class="flex items-center gap-3 text-gray-700 font-medium"><span class="text-green-500 text-xl">✓</span> ফাস্ট চার্জিং সাপোর্ট</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="8" height="6" rx="1"/><rect x="14" y="14" width="8" height="6" rx="1"/><path d="M2 14h8M14 4h8"/></svg>',
+  });
+
   // 8. Mobile Sticky Footer
   Blocks.add('bd-sticky-footer', {
     label: 'Mobile Sticky Footer',
@@ -233,13 +407,78 @@ export const bdBlocksPlugin = (editor: Editor) => {
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
             কল করুন
          </a>
-         <button onclick="document.querySelector('form').scrollIntoView({behavior: 'smooth'})" class="flex-1 bg-primary text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg active:scale-95 transition animate-pulse">
+         <a href="#order" class="flex-1 bg-primary text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg active:scale-95 transition animate-pulse">
             অর্ডার করুন
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-         </button>
+         </a>
       </div>
     `,
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-emerald-600" stroke-width="1.5"><rect x="4" y="16" width="16" height="6" rx="2" /><path d="M12 4v4m0 4v4" stroke="currentColor" stroke-dasharray="2 2" /></svg>',
+  });
+
+  // 10.1 Testimonial Marquee (Scrolling)
+  Blocks.add('bd-testimonials-marquee', {
+    label: 'Testimonial Scroll',
+    category: 'High Conversion',
+    content: `
+      <section class="py-16 bg-slate-900 overflow-hidden">
+         <div class="text-center mb-10 px-4">
+            <h2 class="text-3xl font-bold text-white mb-2">বিশ্বাস ও ভালোবাসার গল্প</h2>
+            <p class="text-slate-400">আমাদের ৫০০০+ হ্যাপি কাস্টমারদের কিছু মতামত</p>
+         </div>
+         
+         <div class="relative w-full">
+            <div class="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-900 to-transparent z-10"></div>
+            <div class="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-900 to-transparent z-10"></div>
+            
+            <div class="flex gap-6 animate-[scroll_20s_linear_infinite] hover:[animation-play-state:paused] w-max px-6">
+               <!-- Card 1 -->
+               <div class="w-80 p-6 bg-slate-800 rounded-xl border border-slate-700 flex-shrink-0">
+                  <div class="flex text-yellow-400 mb-4">★★★★★</div>
+                  <p class="text-slate-300 mb-6 italic">"প্রোডাক্ট টি হাতে পেয়ে আমি খুবই খুশি। ছবিতে যেমন দেখেছি বাস্তবে ঠিক তেমনই।"</p>
+                  <div class="flex items-center gap-3">
+                     <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">R</div>
+                     <div><div class="font-bold text-white">Rakib Hasan</div><div class="text-xs text-slate-500">Dhaka</div></div>
+                  </div>
+               </div>
+               <!-- Card 2 -->
+               <div class="w-80 p-6 bg-slate-800 rounded-xl border border-slate-700 flex-shrink-0">
+                  <div class="flex text-yellow-400 mb-4">★★★★★</div>
+                  <p class="text-slate-300 mb-6 italic">"খুবই ফাস্ট ডেলিভারি পেয়েছি। ধন্যবাদ সেলারকে।"</p>
+                  <div class="flex items-center gap-3">
+                     <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">S</div>
+                     <div><div class="font-bold text-white">Sumaiya Akter</div><div class="text-xs text-slate-500">Chittagong</div></div>
+                  </div>
+               </div>
+               <!-- Card 3 -->
+               <div class="w-80 p-6 bg-slate-800 rounded-xl border border-slate-700 flex-shrink-0">
+                  <div class="flex text-yellow-400 mb-4">★★★★★</div>
+                  <p class="text-slate-300 mb-6 italic">"কম দামে এত ভালো জিনিস পাবো আশা করিনি। বেস্ট ডিল!"</p>
+                  <div class="flex items-center gap-3">
+                     <div class="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">J</div>
+                     <div><div class="font-bold text-white">Jamil Ahmed</div><div class="text-xs text-slate-500">Sylhet</div></div>
+                  </div>
+               </div>
+               <!-- Duplicate for loop effect -->
+               <div class="w-80 p-6 bg-slate-800 rounded-xl border border-slate-700 flex-shrink-0">
+                  <div class="flex text-yellow-400 mb-4">★★★★★</div>
+                  <p class="text-slate-300 mb-6 italic">"প্রোডাক্ট টি হাতে পেয়ে আমি খুবই খুশি। ছবিতে যেমন দেখেছি বাস্তবে ঠিক তেমনই।"</p>
+                  <div class="flex items-center gap-3">
+                     <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">R</div>
+                     <div><div class="font-bold text-white">Rakib Hasan</div><div class="text-xs text-slate-500">Dhaka</div></div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <style>
+           @keyframes scroll {
+             from { transform: translateX(0); }
+             to { transform: translateX(-50%); }
+           }
+         </style>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><path d="M12 4v16M4 12h16"/><path d="M18 12l-4-4m4 4l-4 4"/></svg>',
   });
 
   // 9. FAQ Accordion
@@ -718,10 +957,38 @@ export const bdBlocksPlugin = (editor: Editor) => {
       <div class="bg-gradient-to-r from-primary to-secondary p-8 rounded-2xl text-center text-white">
         <h2 class="text-2xl font-bold mb-3">এখনই অর্ডার করুন!</h2>
         <p class="text-white/80 mb-6">সীমিত সময়ের অফার। মিস করবেন না!</p>
-        <button class="bg-white text-gray-900 font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-gray-100 transition">অর্ডার করুন</button>
+        <a href="#order" class="inline-block bg-white text-gray-900 font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-gray-100 transition">অর্ডার করুন</a>
       </div>
     `,
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-indigo-500" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 10v4M10 12h4"/></svg>',
+  });
+  // 17. Simple Footer
+  Blocks.add('bd-footer-simple', {
+    label: 'Simple Footer',
+    category: 'Basic',
+    content: `
+      <footer class="bg-white border-t border-gray-100 py-12 px-4">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+           <div class="text-center md:text-left">
+              <div class="font-black text-xl text-gray-900 mb-2">YOUR STORE</div>
+              <p class="text-gray-500 text-sm">© 2024 All rights reserved.</p>
+           </div>
+           
+           <div class="flex gap-4">
+              <a href="#" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-blue-500 hover:text-white transition">f</a>
+              <a href="#" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-pink-500 hover:text-white transition">i</a>
+              <a href="#" class="w-10 h-10 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition">y</a>
+           </div>
+           
+           <div class="flex gap-6 text-sm font-medium text-gray-600">
+              <a href="#" class="hover:text-primary">Terms</a>
+              <a href="#" class="hover:text-primary">Privacy</a>
+              <a href="#" class="hover:text-primary">Refund Policy</a>
+           </div>
+        </div>
+      </footer>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="16" width="20" height="6" rx="1"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="8" y1="8" x2="16" y2="8"/></svg>',
   });
 };
 

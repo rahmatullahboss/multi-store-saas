@@ -6,12 +6,127 @@
 
 import type { EditorConfig } from 'grapesjs';
 
+// Helper: Compress Image using Canvas (Browser-side)
+const compressImage = async (file: File): Promise<File> => {
+  // If not an image, return original
+  if (!file.type.startsWith('image/')) return file;
+  
+  // USER REQUEST: Compress ALL images to WebP (no size check)
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      // Max dimensions (Full HD is enough for web)
+      const MAX_WIDTH = 1920;
+      const MAX_HEIGHT = 1920;
+      
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        resolve(file); // Fail safe
+        return;
+      }
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Compress to WebP with 80% quality (Retains transparency + Small Size)
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(url);
+        if (blob) {
+          const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+          const compressedFile = new File([blob], `${originalName}.webp`, {
+            type: 'image/webp',
+            lastModified: Date.now(),
+          });
+          console.log(`Converted to WebP: ${(file.size / 1024).toFixed(2)}KB -> ${(compressedFile.size / 1024).toFixed(2)}KB`);
+          resolve(compressedFile);
+        } else {
+          resolve(file);
+        }
+      }, 'image/webp', 0.8);
+    };
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    
+    img.src = url;
+  });
+};
+
 export const getGrapesConfig = (container: HTMLElement, pageId?: string): any => {
   return {
     container,
     fromElement: false,
     height: '100%',
     width: 'auto',
+    
+    // ASSET MANAGER (Custom Upload Handler)
+    assetManager: {
+      upload: '/api/upload-image', // Fallback URL
+      uploadName: 'file',
+      autoAdd: true,
+      embedAsBase64: false, // CRITICAL: Disable base64
+      
+      // Custom upload handler for R2 + Compression
+      uploadFile: async (e: any) => {
+        const files = e.dataTransfer ? e.dataTransfer.files : e.target.files;
+        const uploadedAssets = [];
+
+        for (const file of files) {
+           try {
+             // 1. Compress Client Side
+             const compressedFile = await compressImage(file);
+             
+             // 2. Upload to R2 API
+             const formData = new FormData();
+             formData.append('file', compressedFile);
+             
+             const response = await fetch('/api/upload-image', {
+               method: 'POST',
+               body: formData
+             });
+             
+             const data = await response.json() as { success: boolean, url: string, error?: string };
+             
+             if (data.success && data.url) {
+               uploadedAssets.push(data.url);
+             } else {
+               console.error('Upload Failed:', data.error);
+               alert('Upload failed: ' + (data.error || 'Unknown error'));
+             }
+           } catch (err) {
+             console.error('Upload Error:', err);
+             alert('Upload error. Check console.');
+           }
+        }
+        
+        return uploadedAssets; // Return array of URLs to GrapesJS
+      }
+    },
+
     storageManager: {
       type: 'remote',
       stepsBeforeSave: 3,
@@ -152,11 +267,11 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string): any =>
       pages: [
         {
           name: 'Home',
-          component: `
+          components: `
             <div class="p-10 text-center font-sans">
               <h1 class="text-4xl font-bold text-gray-800 mb-4">স্বাগতম আপনার নতুন ল্যান্ডিং পেজে!</h1>
               <p class="text-lg text-gray-600 mb-8">এখান থেকে আপনি আপনার পছন্দের ডিজাইন তৈরি করতে পারবেন। বাম দিকের ব্লকগুলো টেনে এখানে আনুন।</p>
-              <button class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 transition">অর্ডার করুন</button>
+              <a href="#order" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 transition inline-block">অর্ডার করুন</a>
             </div>
           `,
         },

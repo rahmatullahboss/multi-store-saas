@@ -618,6 +618,7 @@ Your goal is to generate a world-class, high-converting landing page for the Ban
 3. Product Showcase: Describe the product features and benefits clearly.
 4. Social Proof: Include realistic testimonials with Bengali names (e.g., সাদমান কবির, তানজিনা আক্তার).
 5. Professional Order Form: Include a section with a form to "Order Now".
+6. Link CTAs: Ensure all "Order Now" or primary call-to-action buttons use <a> tags with href="#order" instead of <button>.
 
 ### CSS Rule:
 - Return any custom CSS needed (e.g., animations or specific fonts) in the "css" field.
@@ -775,6 +776,8 @@ Your task is to EDIT the provided HTML component based on the user's request.
 4. If the user asks for text changes, ensure the tone matches the context.
 5. If the user asks for design changes, use modern, premium aesthetics.
 6. Use 'Hind Siliguri' for Bengali text.
+7. CRITICAL: When adding or modifying CTA buttons, ALWAYS use <a> tags with href="#order" to link to the order form.
+8. CRITICAL: If asked to "Connect to Backend" or fix order form: Set <form> action="/api/create-order" method="POST", and inputs name="customer_name", name="phone", name="address".
 
 ### Output Format:
 Your response MUST be valid JSON:

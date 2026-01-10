@@ -74,10 +74,80 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const pageId = new URL(request.url).searchParams.get('id');
     const publish = new URL(request.url).searchParams.get('publish') === 'true';
 
-    // Extract GrapesJS data
-    const projectData = JSON.stringify(data);
-    const html = data['html'] || '';
-    const css = data['css'] || '';
+    // ========================================================================
+    // PROCESS IMAGES: Move from 'temp/' to 'uploads/' on Save
+    // ========================================================================
+    const r2 = context.cloudflare.env.R2;
+    // Remove trailing slash from env URL if present for regex matching
+    const r2UrlClean = context.cloudflare.env.R2_PUBLIC_URL?.replace(/\/$/, '');
+    
+    let finalHtml = data['html'] || '';
+    let finalCss = data['css'] || '';
+    let finalProjectDataStr = JSON.stringify(data);
+
+    if (r2 && r2UrlClean) {
+       // Regex to find all temp images:  .../temp/filename.ext
+       // We match strictly on the specific R2 URL prefix + /temp/
+       const tempRegex = new RegExp(`${r2UrlClean}/temp/([^"']+)`, 'g');
+       
+       // Collect all unique temp files used in the content
+       const usedTempFiles = new Set<string>();
+       
+       const addMatches = (str: string) => {
+         const matches = [...str.matchAll(tempRegex)];
+         matches.forEach(m => usedTempFiles.add(m[1]));
+       };
+       
+       addMatches(finalHtml);
+       addMatches(finalProjectDataStr);
+       
+       if (usedTempFiles.size > 0) {
+         console.log(`Processing ${usedTempFiles.size} temp images for permanent storage...`);
+         
+         const movePromises = Array.from(usedTempFiles).map(async (filename) => {
+            const tempKey = `temp/${filename}`;
+            const permKey = `uploads/${filename}`;
+            
+            try {
+               // 1. Get Temp Object
+               const obj = await r2.get(tempKey);
+               if (obj) {
+                  // 2. Copy to Permanent (Put with body from Get)
+                  await r2.put(permKey, obj.body, {
+                     httpMetadata: obj.httpMetadata,
+                     customMetadata: obj.customMetadata
+                  });
+                  // 3. Delete Temp
+                  // Note: In production, you might delay deletion or rely on lifecycle, 
+                  // but user explicitly asked to "delete if not saved". 
+                  // Here we delete "if saved and moved". 
+                  // Unsaved ones remain in temp for Lifecycle cleanup.
+                  await r2.delete(tempKey);
+               }
+            } catch (err) {
+               console.error(`Failed to move image ${filename}:`, err);
+            }
+         });
+         
+         // Wait for all moves
+         await Promise.all(movePromises);
+         
+         // Replace URLs in content
+         finalHtml = finalHtml.replaceAll(`${r2UrlClean}/temp/`, `${r2UrlClean}/uploads/`);
+         finalProjectDataStr = finalProjectDataStr.replaceAll(`${r2UrlClean}/temp/`, `${r2UrlClean}/uploads/`);
+         
+         // Update data object with new URLs for re-parsing
+         const updatedData = JSON.parse(finalProjectDataStr);
+         finalProjectDataStr = JSON.stringify(updatedData); // Ensure consistency
+       }
+    }
+    
+    // ========================================================================
+
+    // Extract GrapesJS data (updated)
+    const projectData = finalProjectDataStr;
+    const html = finalHtml;
+    const css = finalCss;
 
     if (!pageId) {
       // Create new page
