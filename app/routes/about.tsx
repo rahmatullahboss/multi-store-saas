@@ -11,6 +11,7 @@ import { Store, Heart, Rocket, Users, Globe, Target, Zap, ArrowRight, Check, Spa
 import { useLanguage } from '~/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
   { title: 'আমাদের সম্পর্কে - Multi-Store | বাংলাদেশী ই-কমার্স প্ল্যাটফর্ম' },
@@ -360,6 +361,7 @@ export default function AboutPage() {
       </section>
 
       <MarketingFooter />
+      <OzzylAIChatWidget />
     </div>
   );
 }

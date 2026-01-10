@@ -11,6 +11,7 @@ import { Store, Play, BookOpen, Package, ShoppingCart, Truck, CreditCard, Settin
 import { useLanguage } from '~/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
   { title: 'টিউটোরিয়াল - Multi-Store | নতুন মার্চেন্টদের জন্য গাইড' },
@@ -367,6 +368,7 @@ export default function TutorialsPage() {
       </section>
 
       <MarketingFooter />
+      <OzzylAIChatWidget />
     </div>
   );
 }

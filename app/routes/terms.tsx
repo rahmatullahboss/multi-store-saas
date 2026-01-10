@@ -9,6 +9,7 @@ import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
   { title: 'শর্তাবলী - Multi-Store SaaS' },
@@ -166,6 +167,7 @@ export default function TermsPage() {
       </main>
 
       <MarketingFooter />
+      <OzzylAIChatWidget />
     </div>
   );
 }

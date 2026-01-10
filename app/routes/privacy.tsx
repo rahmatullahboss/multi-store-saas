@@ -10,6 +10,7 @@ import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
   { title: 'গোপনীয়তা নীতি - Multi-Store SaaS' },
@@ -145,6 +146,7 @@ export default function PrivacyPolicyPage() {
       </main>
 
       <MarketingFooter />
+      <OzzylAIChatWidget />
     </div>
   );
 }

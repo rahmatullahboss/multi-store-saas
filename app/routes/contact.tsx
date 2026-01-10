@@ -11,6 +11,7 @@ import { Store, Phone, Mail, MessageCircle, MapPin, Clock, ArrowRight, Globe, Se
 import { useLanguage } from '~/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
   { title: 'যোগাযোগ করুন - Multi-Store | সাপোর্ট ও হেল্প' },
@@ -284,6 +285,7 @@ export default function ContactPage() {
       </section>
 
       <MarketingFooter />
+      <OzzylAIChatWidget />
     </div>
   );
 }

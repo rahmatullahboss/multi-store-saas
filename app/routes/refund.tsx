@@ -9,6 +9,7 @@ import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
   { title: 'রিফান্ড নীতি - Multi-Store SaaS' },
@@ -146,6 +147,7 @@ export default function RefundPolicyPage() {
       </main>
 
       <MarketingFooter />
+      <OzzylAIChatWidget />
     </div>
   );
 }
