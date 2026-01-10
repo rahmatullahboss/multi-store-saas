@@ -268,7 +268,7 @@ export function OzzylAIChatWidget() {
                 y: { delay: 1.5, duration: 0.4, ease: "easeOut" }
               }}
               onClick={() => setIsOpen(true)}
-              className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300 group"
+              className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300 group"
               style={{
                 background: 'linear-gradient(135deg, #00875F 0%, #006A4E 50%, #004D38 100%)',
                 boxShadow: '0 0 30px rgba(0, 135, 95, 0.5), 0 8px 25px -5px rgba(0, 0, 0, 0.4)'
@@ -278,11 +278,14 @@ export function OzzylAIChatWidget() {
               <span className="absolute inset-0 rounded-full bg-white/10 animate-ping opacity-30" />
               {/* Inner glow */}
               <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-50" />
-              <img 
-                src="/ozzyl-logo-small.png" 
-                alt="Ozzyl AI" 
-                className="w-10 h-10 relative z-10 object-contain drop-shadow-lg"
-              />
+              {/* Dark circle behind logo for contrast */}
+              <div className="w-10 h-10 rounded-full bg-[#0A0F0D] flex items-center justify-center relative z-10 shadow-inner">
+                <img 
+                  src="/ozzyl-logo-small.png" 
+                  alt="Ozzyl AI" 
+                  className="w-7 h-7 object-contain"
+                />
+              </div>
               {/* Online indicator */}
               <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white z-20 animate-pulse" />
             </motion.button>
