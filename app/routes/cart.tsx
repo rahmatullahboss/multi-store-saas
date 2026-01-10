@@ -19,6 +19,7 @@ import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazP
 import { BDShopPageWrapper, BDSHOP_THEME } from '~/components/store-layouts/BDShopPageWrapper';
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from '~/components/store-layouts/GhorerBazarPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -63,6 +64,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     theme,
     socialLinks,
     businessInfo,
+    themeConfig, // Return theme config to check for cart sections
   });
 }
 
@@ -105,7 +107,8 @@ export default function Cart() {
     storeTemplateId, 
     theme,
     socialLinks,
-    businessInfo 
+    businessInfo,
+    themeConfig 
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { t } = useTranslation();
@@ -137,7 +140,7 @@ export default function Cart() {
   };
 
   // Cart content that will be wrapped by the appropriate wrapper
-  const cartContent = (
+  let cartContent = (
     <>
       {/* Breadcrumb */}
       <nav className="border-b border-gray-200 bg-white">
@@ -296,6 +299,30 @@ export default function Cart() {
         {cartContent}
       </DarazPageWrapper>
     );
+  // CHECK FOR DYNAMIC SECTIONS
+  if (themeConfig?.cartSections && themeConfig.cartSections.length > 0) {
+    const sectionProps = {
+        theme: isDaraz ? DARAZ_THEME : (theme || {}),
+        storeId,
+        currency,
+        storeName,
+        businessInfo,
+        socialLinks,
+        store: {
+          name: storeName,
+          currency: currency,
+          email: businessInfo?.email,
+          phone: businessInfo?.phone,
+          address: businessInfo?.address
+        }
+    };
+    
+    cartContent = (
+      <SectionRenderer 
+        sections={themeConfig?.cartSections || []}
+        {...sectionProps}
+      />
+    );
   }
 
   return (
@@ -312,4 +339,5 @@ export default function Cart() {
       {cartContent}
     </StorePageWrapper>
   );
+}
 }

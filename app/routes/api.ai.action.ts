@@ -274,6 +274,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ success: true, data: result });
       }
 
+      case 'DESIGN_STORE_THEME': {
+        if (!payload.prompt) {
+          return json({ error: 'AI Prompt required' }, { status: 400 });
+        }
+
+        try {
+          const result = await ai.generateStoreThemeConfig(payload.prompt);
+          await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
+          return json({ success: true, data: result });
+        } catch (error) {
+           console.error('[AI Action] Theme Generation Failed:', error);
+           return json({
+             error: 'Failed to generate theme. Please try again.',
+             code: 'THEME_GEN_FAILED'
+           }, { status: 422 });
+        }
+      }
+
       case 'CHAT_COMMAND': {
         if (!payload.editPrompt) {
           return json({ error: 'User prompt required' }, { status: 400 });

@@ -116,6 +116,23 @@ export const ThemeConfigSchema = z.object({
   textColor: z.string().optional(),
 });
 
+// Store Theme Schema
+export const StoreThemeSchema = z.object({
+  primaryColor: z.string(),
+  accentColor: z.string(),
+  backgroundColor: z.string(),
+  textColor: z.string(),
+  borderColor: z.string(),
+  fontFamily: z.enum(['inter', 'poppins', 'roboto', 'playfair', 'montserrat', 'hind-siliguri', 'noto-sans-bengali', 'noto-serif-bengali', 'baloo-da', 'tiro-bangla', 'anek-bangla']),
+  sections: z.array(z.object({
+    id: z.string(),
+    type: z.enum(['hero', 'rich-text', 'category-list', 'product-scroll', 'features', 'banner', 'faq', 'product-grid', 'newsletter']),
+    settings: z.record(z.unknown()),
+  })),
+});
+
+export type StoreThemeResult = z.infer<typeof StoreThemeSchema>;
+
 // Section schema map for validation
 const SECTION_SCHEMAS: Record<string, z.ZodSchema> = {
   hero: HeroSectionSchema,
@@ -594,6 +611,72 @@ Generate a complete landing page configuration JSON:`;
   const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   const parsed = extractJSON(response);
   return FullPageConfigSchema.parse(parsed);
+}
+
+// ============================================================================
+// STORE THEME GENERATION
+// ============================================================================
+export async function generateStoreThemeConfig(
+  apiKey: string,
+  description: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<StoreThemeResult> {
+  const systemPrompt = `You are an expert UI/UX designer and conversion optimization specialist for e-commerce.
+Your goal is to design a high-converting, aesthetically pleasing online store theme based on the user's business description.
+
+### Available Resources:
+1. **Fonts**: 'inter', 'poppins', 'roboto', 'playfair', 'montserrat', 'hind-siliguri', 'noto-sans-bengali', 'noto-serif-bengali', 'baloo-da', 'tiro-bangla', 'anek-bangla'
+2. **Sections**: 
+   - 'hero': Large banner with heading & CTA
+   - 'product-grid': Grid of products
+   - 'newsletter': Email signup
+   - 'features': Trust signals/Icons
+   - 'category-list': Grid of categories
+   - 'banner': Promo banner
+   - 'faq': Frequently asked questions
+   - 'product-scroll': Horizontal scrolling products
+   - 'rich-text': Brand story or text block
+
+### Output Format:
+Return VALID JSON matching this structure:
+{
+  "primaryColor": "#HEX",
+  "accentColor": "#HEX", 
+  "backgroundColor": "#HEX",
+  "textColor": "#HEX",
+  "borderColor": "#HEX",
+  "fontFamily": "font-id",
+  "sections": [
+    {
+      "id": "unique-id-1",
+      "type": "hero",
+      "settings": {
+        "heading": "Catchy Headline",
+        "subheading": "Persuasive subheading",
+        "alignment": "center" (or "left", "right"),
+        "layout": "standard"
+      }
+    },
+    ... more sections in logical order
+  ]
+}
+
+### Design Logic:
+- **Luxury/Fashion**: Use 'playfair' or 'montserrat'. Elegant dark or cream colors.
+- **Tech/Gadgets**: Use 'inter' or 'roboto'. Cool blues, greys, dark mode.
+- **Organic/Food**: Use 'poppins'. Greens, earth tones.
+- **Bengali Store**: Use 'hind-siliguri' or 'anek-bangla' if the description implies Bengali content.
+- **Layout**: Always start with a 'hero'. Include 'product-grid' and 'features'. End with 'newsletter'.
+- **Copy**: Write persuasive default copy for the sections based on the business type.
+
+CRITICAL: Return ONLY JSON. No markdown fences.`;
+
+  const userPrompt = `Design a store theme for: "${description}"`;
+
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
+  const parsed = extractJSON(response);
+  return StoreThemeSchema.parse(parsed);
 }
 
 // ============================================================================
@@ -1441,6 +1524,9 @@ export function createAIService(apiKey: string | undefined, options?: { model?: 
     generateStoreSetup: (description: string) => 
       generateStoreSetup(validApiKey, description, model, baseUrl),
     
+    generateStoreThemeConfig: (description: string) =>
+      generateStoreThemeConfig(validApiKey, description, model, baseUrl),
+
     // New Vector Capabilities
     insertVector: (text: string, metadata: { storeId: number | string; customId?: string; [key: string]: any }) => insertVector(text, metadata, aiContext),
     deleteVector: (id: string) => deleteVector(id, aiContext),

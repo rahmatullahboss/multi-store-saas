@@ -15,23 +15,22 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { stores } from '@db/schema';
+import { stores, products, marketplaceThemes } from '@db/schema';
 import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, type TypographySettings, parseSocialLinks } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { 
-  Loader2, CheckCircle, ArrowLeft, Save, 
-  Palette, Settings, ExternalLink, Sparkles,
-  Smartphone, Tablet, Monitor, ChevronDown, ChevronRight,
-  Layout, Image as ImageIcon, User, Code, Type, Phone, Mail, MapPin, 
-  Facebook, Instagram, MessageCircle, Store, Menu, ShoppingCart, Search, Plus, Trash2, Rows,
-  Undo2, Redo2, GripVertical, PlusCircle
+  ArrowLeft, Monitor, Smartphone, Tablet, Save, Plus, Trash2, GripVertical, 
+  Undo2, Redo2, ExternalLink, Sparkles, AlertCircle, CheckCircle2,
+  Layout, Type, Image as ImageIcon, Palette, Menu, Settings, Database, Loader2,
+  Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Store, ShoppingCart, Search, Rows, PlusCircle, CheckCircle, Code, User, ChevronDown, ChevronRight, Wand2
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
 import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { StoreSection, DEFAULT_SECTIONS, SECTION_REGISTRY, SectionSettings } from '~/components/store-sections/registry';
+import { StoreAIAssistant } from '~/components/store-builder/StoreAIAssistant';
 
 // dnd-kit imports
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -110,10 +109,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw redirect('/auth/login');
   }
 
-  const db = drizzle(context.cloudflare.env.DB);
+  const db = drizzle(context.cloudflare.env.DB, { schema: { stores, products } });
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   
   if (!store[0]) throw new Response('Store not found', { status: 404 });
+
+  // Fetch a demo product for preview
+  const demoProduct = await db.query.products.findFirst({
+    where: (products, { eq }) => eq(products.storeId, storeId),
+    columns: { id: true }
+  });
   
   const themeConfig = parseThemeConfig(store[0].themeConfig as string | null) || defaultThemeConfig;
   const templates = getAllStoreTemplates();
@@ -137,6 +142,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       category: t.category,
     })),
     saasDomain,
+    demoProductId: demoProduct?.id
   });
 }
 
@@ -176,6 +182,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
   let sections: any[] = [];
   try {
     sections = JSON.parse(sectionsJson);
+  } catch { /* ignore */ }
+
+  const productSectionsJson = formData.get('productSections') as string || '[]';
+  let productSections: any[] = [];
+  try {
+    productSections = JSON.parse(productSectionsJson);
   } catch { /* ignore */ }
   
   const fontFamily = formData.get('fontFamily') as string || 'inter';
@@ -248,6 +260,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     floatingCallEnabled,
     floatingCallNumber: floatingCallNumber || undefined,
     sections: sections.length > 0 ? sections : undefined,
+    productSections: productSections.length > 0 ? productSections : undefined,
   };
 
   await db.update(stores).set({ 
@@ -259,7 +272,40 @@ export async function action({ request, context }: ActionFunctionArgs) {
     updatedAt: new Date() 
   }).where(eq(stores.id, storeId));
 
+  // Handle explicit marketplace publishing
+  const publishToMarketplace = formData.get('publishToMarketplace') === 'true';
+  
+  if (publishToMarketplace) {
+    try {
+      const marketplaceEntry = await db.select().from(marketplaceThemes).where(eq(marketplaceThemes.createdBy, storeId)).limit(1);
+      
+      if (marketplaceEntry.length > 0) {
+        await db.update(marketplaceThemes).set({
+          name: `${store[0].name}'s Custom Theme`,
+          config: JSON.stringify(updatedConfig),
+          updatedAt: new Date(),
+          status: 'approved', // Auto-approve for now as per user request
+        }).where(eq(marketplaceThemes.createdBy, storeId));
+      } else {
+        await db.insert(marketplaceThemes).values({
+          name: `${store[0].name}'s Custom Theme`,
+          description: `Submitted theme from ${store[0].name}`,
+          config: JSON.stringify(updatedConfig),
+          createdBy: storeId,
+          authorName: store[0].name,
+          status: 'approved', // Auto-approve for now
+          isPublic: true,
+        });
+      }
+      return json({ success: true, message: 'Theme published to marketplace!' });
+    } catch (err) {
+      console.error('Failed to publish to marketplace:', err);
+      return json({ success: false, error: 'Failed to publish to marketplace' });
+    }
+  }
+
   return json({ success: true, message: 'Changes saved!' });
+
 }
 
 // ============================================================================
@@ -315,6 +361,7 @@ export default function StoreLiveEditor() {
   
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
 
   // State
   const [selectedTemplateId, setSelectedTemplateId] = useState(themeConfig.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID);
@@ -372,7 +419,30 @@ export default function StoreLiveEditor() {
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   
   // Sections state
-  const [sections, setSections] = useState<StoreSection[]>((themeConfig as any).sections || DEFAULT_SECTIONS);
+  const { demoProductId } = useLoaderData<typeof loader>();
+  
+  // Page State
+  const [currentPage, setCurrentPage] = useState<'home' | 'product'>('home');
+  
+  // Sections state - defined separately for Home and Product pages
+  const [homeSections, setHomeSections] = useState<StoreSection[]>((themeConfig as any).sections || DEFAULT_SECTIONS);
+  const [productSections, setProductSections] = useState<StoreSection[]>((themeConfig as any).productSections || [
+    { id: 'p-header', type: 'product-header', settings: {} },
+    { id: 'p-gallery', type: 'product-gallery', settings: {} },
+    { id: 'p-info', type: 'product-info', settings: {} },
+    { id: 'p-reviews', type: 'product-reviews', settings: {} },
+  ]);
+
+  // Active sections proxy
+  const sections = currentPage === 'home' ? homeSections : productSections;
+  const setSections = (newSections: StoreSection[] | ((prev: StoreSection[]) => StoreSection[])) => {
+    if (currentPage === 'home') {
+      setHomeSections(newSections);
+    } else {
+      setProductSections(newSections);
+    }
+  };
+
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
   // Accordion state
@@ -577,115 +647,155 @@ export default function StoreLiveEditor() {
       iframeRef.current.contentWindow.postMessage({
         type: 'STORE_PREVIEW_UPDATE',
         config: {
-          storeTemplateId: selectedTemplateId,
-          primaryColor,
-          accentColor,
-          fontFamily,
-          bannerUrl,
-          bannerText,
-          announcement: announcementText ? { text: announcementText, link: announcementLink } : undefined,
           customCSS,
-          sections,
+          sections: homeSections,
+          productSections: productSections,
         },
       }, '*');
     }
-  }, [iframeReady, selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, sections]);
+  }, [iframeReady, selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, homeSections, productSections]); // Depend on both section lists
 
 
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
+  const previewUrl = currentPage === 'home' 
+    ? storeUrl 
+    : (demoProductId ? `${storeUrl}/products/${demoProductId}` : storeUrl);
+
+  const handlePublish = () => {
+    if (confirm('Are you sure you want to publish this theme to the marketplace? It will be reviewed by admins before appearing public.')) {
+      const form = document.getElementById('editor-form') as HTMLFormElement;
+      if (form) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'publishToMarketplace';
+        input.value = 'true';
+        form.appendChild(input);
+        form.requestSubmit();
+        // Remove input after submit to avoid republishing on next save
+        setTimeout(() => input.remove(), 100);
+      }
+    }
+  };
+
+  const handleAIApplyConfig = (config: any) => {
+    if (config.primaryColor) setPrimaryColor(config.primaryColor);
+    if (config.accentColor) setAccentColor(config.accentColor);
+    if (config.backgroundColor) setBackgroundColor(config.backgroundColor);
+    if (config.textColor) setTextColor(config.textColor);
+    if (config.borderColor) setBorderColor(config.borderColor);
+    if (config.fontFamily) setFontFamily(config.fontFamily);
+    
+    if (config.sections && Array.isArray(config.sections)) {
+      const newSections = config.sections.map((s: any) => {
+        const def = SECTION_REGISTRY[s.type];
+        return {
+          id: s.id || `${s.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: s.type,
+          settings: { ...def?.defaultSettings, ...s.settings }
+        };
+      });
+      // AI primarily designs the Home page layout
+      setHomeSections(newSections);
+    }
+  };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 flex-shrink-0 z-20">
-        <div className="px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/app/store-design"
-              className="p-2 hover:bg-gray-100 rounded-lg transition"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </Link>
-            <div>
-              <h1 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                Store Live Editor
-              </h1>
-              <p className="text-xs text-gray-500">{store.name}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* Undo/Redo Buttons (Phase 1) */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              <button
-                type="button"
-                onClick={handleUndo}
-                disabled={!canUndo}
-                className={`p-2 rounded-md transition ${canUndo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
-                title="Undo (Ctrl+Z)"
-              >
-                <Undo2 className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleRedo}
-                disabled={!canRedo}
-                className={`p-2 rounded-md transition ${canRedo ? 'text-gray-600 hover:bg-white hover:shadow-sm' : 'text-gray-300 cursor-not-allowed'}`}
-                title="Redo (Ctrl+Shift+Z)"
-              >
-                <Redo2 className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Device Toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              <button
-                type="button"
-                onClick={() => setPreviewDevice('mobile')}
-                className={`p-2 rounded-md transition ${previewDevice === 'mobile' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="Mobile (430px)"
-              >
-                <Smartphone className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewDevice('tablet')}
-                className={`p-2 rounded-md transition ${previewDevice === 'tablet' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="Tablet (768px)"
-              >
-                <Tablet className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewDevice('desktop')}
-                className={`p-2 rounded-md transition ${previewDevice === 'desktop' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
-                title="Desktop (1200px)"
-              >
-                <Monitor className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Open in New Tab */}
-            <a
-              href={storeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-              title="Open in new tab"
-            >
-              <ExternalLink className="w-5 h-5" />
-            </a>
-            
-            {/* Save Button - Form wraps the whole sidebar */}
-          </div>
+    <div className="flex flex-col h-screen bg-white">
+      {/* Top Bar */}
+      <div className="h-16 px-4 bg-white border-b border-gray-200 flex items-center justify-between shrink-0 z-40 relative shadow-sm">
+        <div className="flex items-center gap-4">
+          <Link to="/app/store-design" className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-gray-900 group">
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          </Link>
+          <div className="h-6 w-px bg-gray-200" />
+          <h1 className="font-bold text-gray-900 flex items-center gap-2">
+            <Layout className="w-5 h-5 text-indigo-600" />
+            Store Live Editor
+          </h1>
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-full border border-indigo-100">
+            <Sparkles size={12} />
+            Visual Builder
+          </span>
         </div>
-      </header>
+
+        {/* Device Toggles */}
+        <div className="hidden md:flex bg-gray-100/50 p-1 rounded-lg border border-gray-200">
+          {[
+            { id: 'desktop', icon: Monitor },
+            { id: 'tablet', icon: Tablet },
+            { id: 'mobile', icon: Smartphone }
+          ].map((device) => (
+            <button
+              key={device.id}
+              onClick={() => setPreviewDevice(device.id as any)}
+              className={`p-2 rounded-md transition-all ${
+                previewDevice === device.id
+                  ? 'bg-white shadow-sm text-indigo-600'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-200/50'
+              }`}
+            >
+              <device.icon size={18} />
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Undo/Redo */}
+          <div className="hidden sm:flex items-center gap-1 mr-2 border-r border-gray-200 pr-4">
+            <button 
+              onClick={handleUndo} 
+              disabled={!canUndo}
+              className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent transition"
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo2 size={18} />
+            </button>
+            <button 
+              onClick={handleRedo}
+              disabled={!canRedo}
+              className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent transition"
+              title="Redo (Ctrl+Y)"
+            >
+              <Redo2 size={18} />
+            </button>
+          </div>
+
+          <button
+            onClick={handlePublish}
+            disabled={isSubmitting}
+            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 shadow-sm"
+          >
+             <Sparkles size={16} className="text-amber-500" />
+             Publish to Marketplace
+          </button>
+
+          <button
+            onClick={() => setIsAIAssistantOpen(!isAIAssistantOpen)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm ${
+              isAIAssistantOpen 
+                ? 'bg-violet-600 text-white shadow-violet-200' 
+                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+             <Wand2 size={16} className={isAIAssistantOpen ? "text-white" : "text-violet-600"} />
+             <span className="hidden sm:inline">AI Designer</span>
+          </button>
+
+          <button
+            onClick={() => (document.getElementById('editor-form') as HTMLFormElement)?.requestSubmit()}
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-semibold shadow-lg shadow-gray-200 transition-all disabled:opacity-50 active:scale-95"
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>Save Changes</span>
+          </button>
+        </div>
+      </div>
 
       {/* Main Content - Split Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Editing Controls */}
-        <Form method="post" className="hidden md:flex md:flex-col w-80 bg-white border-r border-gray-200 flex-shrink-0">
+        <Form id="editor-form" method="post" className="hidden md:flex md:flex-col w-80 bg-white border-r border-gray-200 flex-shrink-0">
           <div className="flex-1 overflow-y-auto">
             {/* Hidden inputs for form submission */}
             <input type="hidden" name="storeTemplateId" value={selectedTemplateId} />
@@ -724,10 +834,11 @@ export default function StoreLiveEditor() {
             <input type="hidden" name="floatingCallNumber" value={floatingCallNumber} />
 
             {/* SECTIONS LIST */}
-            <input type="hidden" name="sections" value={JSON.stringify(sections)} />
+            <input type="hidden" name="sections" value={JSON.stringify(homeSections)} />
+            <input type="hidden" name="productSections" value={JSON.stringify(productSections)} />
             
             <AccordionSection
-              title="Sections"
+              title={currentPage === 'home' ? "Sections (Home)" : "Sections (Product)"}
               icon={Rows}
               isOpen={openSection === 'sections'}
               onToggle={() => setOpenSection(openSection === 'sections' ? '' : 'sections')}
@@ -764,7 +875,12 @@ export default function StoreLiveEditor() {
                 
                 {/* Add Section Dropdown */}
                 <div className="hidden group-hover:block absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 shadow-lg rounded mt-1 p-2">
-                  {Object.values(SECTION_REGISTRY).map(def => (
+                  {Object.values(SECTION_REGISTRY)
+                    .filter(def => {
+                      if (!def.allowedPages) return true; // Default to all if not specified
+                      return def.allowedPages.includes(currentPage as any);
+                    })
+                    .map(def => (
                     <button
                       key={def.type}
                       type="button"
@@ -789,91 +905,204 @@ export default function StoreLiveEditor() {
                     if (!section) return null;
                     
                     return (
-                      <div className="space-y-3">
-                        {/* Heading */}
-                        <div>
-                          <label className="block text-xs text-gray-500 mb-1">Heading</label>
-                          <input 
-                            type="text" 
-                            className="w-full text-sm border border-gray-300 rounded p-1.5"
-                            value={section.settings.heading || ''}
-                            onChange={(e) => updateSectionSettings(section.id, { heading: e.target.value })}
-                          />
-                        </div>
-                        
-                        {/* Subheading */}
-                        <div>
-                          <label className="block text-xs text-gray-500 mb-1">Subheading</label>
-                          <textarea 
-                            className="w-full text-sm border border-gray-300 rounded p-1.5"
-                            rows={2}
-                            value={section.settings.subheading || ''}
-                            onChange={(e) => updateSectionSettings(section.id, { subheading: e.target.value })}
-                          />
-                        </div>
+                      <div className="space-y-4">
+                        {/* Generic Settings Renderer */}
+                        {(() => {
+                          const definition = SECTION_REGISTRY[section.type];
+                          const defaultSettings = definition.defaultSettings;
+                          
+                          return Object.entries(defaultSettings).map(([key, defaultValue]) => {
+                             const value = section.settings[key] ?? defaultValue;
+                             const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()); // camelCase to Title Case
+                             
+                             // Skip complex objects for now unless specific handlers exist
+                             if (typeof defaultValue === 'object' && defaultValue !== null && key !== 'primaryAction') return null;
 
-                        {/* Padding */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Top Padding</label>
-                            <select 
-                              className="w-full text-xs border border-gray-300 rounded p-1"
-                              value={section.settings.paddingTop || 'medium'}
-                              onChange={(e) => updateSectionSettings(section.id, { paddingTop: e.target.value as any })}
-                            >
-                              <option value="none">None</option>
-                              <option value="small">Small</option>
-                              <option value="medium">Medium</option>
-                              <option value="large">Large</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Bottom Padding</label>
-                            <select 
-                              className="w-full text-xs border border-gray-300 rounded p-1"
-                              value={section.settings.paddingBottom || 'medium'}
-                              onChange={(e) => updateSectionSettings(section.id, { paddingBottom: e.target.value as any })}
-                            >
-                              <option value="none">None</option>
-                              <option value="small">Small</option>
-                              <option value="medium">Medium</option>
-                              <option value="large">Large</option>
-                            </select>
-                          </div>
-                        </div>
+                             return (
+                               <div key={key} className="relative">
+                                  <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center justify-between">
+                                    {label}
+                                    {/* Binding Indicator in Label */}
+                                    {section.settings.bindings?.[key] && (
+                                      <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                        <Database size={8} />
+                                        Bound
+                                      </span>
+                                    )}
+                                  </label>
 
-                        {/* Product Grid Props */}
-                        {section.type === 'product-grid' && (
-                           <div>
-                            <label className="block text-xs text-gray-500 mb-1">Product Count</label>
-                            <input 
-                              type="number" 
-                              className="w-full text-sm border border-gray-300 rounded p-1.5"
-                              value={section.settings.productCount || 8}
-                              onChange={(e) => updateSectionSettings(section.id, { productCount: parseInt(e.target.value) })}
-                            />
-                          </div>
-                        )}
-                        
-                        {/* Hero Section Props */}
-                         {section.type === 'hero' && (
-                           <div>
-                            <label className="block text-xs text-gray-500 mb-1">Button Label</label>
-                            <input 
-                              type="text" 
-                              className="w-full text-sm border border-gray-300 rounded p-1.5"
-                              value={section.settings.primaryAction?.label || ''}
-                              onChange={(e) => updateSectionSettings(section.id, { 
-                                primaryAction: { ...section.settings.primaryAction, label: e.target.value, url: section.settings.primaryAction?.url || '' } 
-                              })}
-                            />
-                          </div>
-                        )}
+                                  <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                       {/* PADDING DROPDOWNS */}
+                                       {(key === 'paddingTop' || key === 'paddingBottom') ? (
+                                         <select
+                                            className="w-full text-xs border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-purple-500"
+                                            value={value?.toString()}
+                                            onChange={(e) => updateSectionSettings(section.id, { [key]: e.target.value })}
+                                            disabled={!!section.settings.bindings?.[key]}
+                                          >
+                                            <option value="none">None</option>
+                                            <option value="small">Small</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="large">Large</option>
+                                          </select>
+                                       ) : 
+                                       /* LONG TEXT AREAS */
+                                       (key === 'subheading' || key === 'description' || key === 'content' || key === 'text') ? (
+                                          <textarea 
+                                            className="w-full text-sm border border-gray-300 rounded p-1.5 min-h-[80px] focus:ring-2 focus:ring-purple-500"
+                                            rows={3}
+                                            value={value?.toString() || ''}
+                                            onChange={(e) => updateSectionSettings(section.id, { [key]: e.target.value })}
+                                            disabled={!!section.settings.bindings?.[key]}
+                                          />
+                                       ) :
+                                       /* ACTION BUTTON OBJECT (Special Case) */
+                                       (key === 'primaryAction') ? (
+                                          <div className="space-y-2 border border-gray-100 p-2 rounded bg-gray-50">
+                                            <input 
+                                              type="text"
+                                              placeholder="Label"
+                                              className="w-full text-xs border border-gray-300 rounded p-1 mb-1"
+                                              value={(value as any)?.label || ''}
+                                              onChange={(e) => updateSectionSettings(section.id, { 
+                                                [key]: { ...(value as any), label: e.target.value } 
+                                              })}
+                                            />
+                                            <input 
+                                              type="text"
+                                              placeholder="URL"
+                                              className="w-full text-xs border border-gray-300 rounded p-1"
+                                              value={(value as any)?.url || ''}
+                                              onChange={(e) => updateSectionSettings(section.id, { 
+                                                [key]: { ...(value as any), url: e.target.value } 
+                                              })}
+                                            />
+                                          </div>
+                                       ) :
+                                       /* STANDARD INPUTS (Text/Number) */
+                                       (
+                                          <input 
+                                            type={typeof defaultValue === 'number' ? 'number' : 'text'} 
+                                            className="w-full text-sm border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-purple-500"
+                                            value={value?.toString() || ''}
+                                            onChange={(e) => updateSectionSettings(section.id, { [key]: typeof defaultValue === 'number' ? parseFloat(e.target.value) : e.target.value })}
+                                            disabled={!!section.settings.bindings?.[key]}
+                                          />
+                                       )}
+                                    </div>
+
+                                    {/* DATA BINDING TRIGGER BUTTON */}
+                                    {/* Only show for string/number types that are definitely bindable */}
+                                    {['string', 'number'].includes(typeof defaultValue) && key !== 'id' && key !== 'type' && !['paddingTop', 'paddingBottom'].includes(key) && (
+                                      <div className="relative group/binding">
+                                        <button
+                                          type="button"
+                                          className={`p-2 rounded border transition-colors ${
+                                            section.settings.bindings?.[key] 
+                                              ? 'border-purple-300 bg-purple-50 text-purple-600' 
+                                              : 'border-gray-300 text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                                          }`}
+                                          title="Connect Dynamic Data"
+                                        >
+                                          <Database size={14} />
+                                        </button>
+
+                                        {/* BINDING DROPDOWN MENU */}
+                                        <div className="hidden group-hover/binding:block absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 overflow-hidden">
+                                           <div className="text-[10px] font-bold text-gray-400 px-3 py-2 bg-gray-50 border-b border-gray-100">
+                                             CONNECT "{label.toUpperCase()}" TO...
+                                           </div>
+                                           
+                                           <div className="max-h-60 overflow-y-auto p-1">
+                                             {/* Product Sources */}
+                                             {currentPage === 'product' && (
+                                                <div className="mb-2">
+                                                  <div className="px-2 py-1 text-[10px] font-semibold text-gray-500">PRODUCT</div>
+                                                  {[
+                                                    { field: 'title', label: 'Title' },
+                                                    { field: 'price', label: 'Price' },
+                                                    { field: 'compareAtPrice', label: 'Compare Price' },
+                                                    { field: 'vendor', label: 'Vendor' },
+                                                    { field: 'description', label: 'Description' }
+                                                  ].map(src => (
+                                                    <button
+                                                      key={src.field}
+                                                      type="button"
+                                                      onClick={() => {
+                                                        const newBindings = { ...(section.settings.bindings || {}) };
+                                                        newBindings[key] = { source: 'product', field: src.field };
+                                                        updateSectionSettings(section.id, { bindings: newBindings });
+                                                        // Update visual value to placeholder
+                                                        updateSectionSettings(section.id, { [key]: `{{ product.${src.field} }}` });
+                                                      }}
+                                                      className="w-full text-left px-2 py-1.5 text-xs text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded flex items-center gap-2"
+                                                    >
+                                                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                                                      {src.label}
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                             )}
+
+                                             {/* Global Store Sources */}
+                                             <div>
+                                                <div className="px-2 py-1 text-[10px] font-semibold text-gray-500">STORE</div>
+                                                  {[
+                                                    { field: 'name', label: 'Store Name' },
+                                                    { field: 'currency', label: 'Currency' },
+                                                    { field: 'email', label: 'Support Email' }
+                                                  ].map(src => (
+                                                    <button
+                                                      key={src.field}
+                                                      type="button"
+                                                      onClick={() => {
+                                                        const newBindings = { ...(section.settings.bindings || {}) };
+                                                        newBindings[key] = { source: 'store', field: src.field };
+                                                        updateSectionSettings(section.id, { bindings: newBindings });
+                                                        updateSectionSettings(section.id, { [key]: `{{ store.${src.field} }}` });
+                                                      }}
+                                                      className="w-full text-left px-2 py-1.5 text-xs text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded flex items-center gap-2"
+                                                    >
+                                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                                      {src.label}
+                                                    </button>
+                                                  ))}
+                                             </div>
+
+                                             {/* Disconnect Option */}
+                                             {section.settings.bindings?.[key] && (
+                                               <div className="border-t border-gray-100 mt-1 pt-1">
+                                                 <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      const newBindings = { ...(section.settings.bindings || {}) };
+                                                      delete newBindings[key];
+                                                      updateSectionSettings(section.id, { bindings: newBindings });
+                                                      // Reset to default value or empty
+                                                      updateSectionSettings(section.id, { [key]: defaultValue });
+                                                    }}
+                                                    className="w-full text-left px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded flex items-center gap-2"
+                                                  >
+                                                    <Trash2 size={12} />
+                                                    Disconnect
+                                                  </button>
+                                               </div>
+                                             )}
+                                           </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                               </div>
+                             );
+                          });
+                        })()}
 
                         <button 
                           type="button" 
                           onClick={() => setSelectedSectionId(null)}
-                          className="text-xs text-gray-500 underline mt-2"
+                          className="w-full text-center text-xs text-gray-500 hover:underline mt-4 pt-2 border-t border-gray-100"
                         >
                           Close Settings
                         </button>
@@ -1187,7 +1416,7 @@ export default function StoreLiveEditor() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+880 1XXX-XXXXXX"
+                    placeholder="017XXXXXXXX"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
@@ -1200,7 +1429,7 @@ export default function StoreLiveEditor() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="support@store.com"
+                    placeholder="support@yourstore.com"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
@@ -1565,7 +1794,7 @@ export default function StoreLiveEditor() {
             >
               <iframe
                 ref={iframeRef}
-                src="/store-preview-frame"
+                src={previewUrl}
                 className="w-full h-full border-0"
                 title="Store Preview"
               />
@@ -1582,6 +1811,13 @@ export default function StoreLiveEditor() {
           </div>
         </main>
       </div>
+      
+      <StoreAIAssistant 
+        isOpen={isAIAssistantOpen} 
+        onClose={() => setIsAIAssistantOpen(false)} 
+        onApplyConfig={handleAIApplyConfig}
+      />
     </div>
   );
 }
+

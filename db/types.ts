@@ -177,7 +177,10 @@ export interface ThemeConfig {
   floatingCallEnabled?: boolean;
   floatingCallNumber?: string;
   // Visual Editor Sections
-  sections?: any[]; // StoreSections structure
+  sections?: any[]; // StoreSections structure for Home Page
+  productSections?: any[];
+  collectionSections?: any[];
+  cartSections?: any[]; // StoreSections structure for Product Details Page
 }
 
 // Social media links configuration

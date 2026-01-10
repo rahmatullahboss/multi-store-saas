@@ -259,32 +259,34 @@ export default function StoreDesignPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <Store className="w-7 h-7 text-purple-600" />
-            {t('storeDesign')}
-          </h1>
-          <p className="text-gray-600 mt-1">{t('storeDesignSubtitle')}</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('storeDesignTitle')}</h1>
+          <p className="text-gray-500 mt-1">{t('storeDesignDesc')}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
-            to="/store-live-editor"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition"
+            to="/app/theme-store"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all text-sm uppercase tracking-wider"
           >
-            <Sparkles className="w-4 h-4" />
-            {t('liveEditor')}
+            <Sparkles size={16} />
+            Browse Theme Store
           </Link>
-          {storeMode === 'store' && (
-            <Link
-              to={storeUrl}
-              target="_blank"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition"
-            >
-              <ExternalLink className="w-4 h-4" />
-              {t('viewStore')}
-            </Link>
-          )}
+          <Link
+            to={`https://${storeSubdomain}.ozzyl.io`}
+            target="_blank"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-200 font-semibold shadow-sm hover:bg-gray-50 transition-all text-sm"
+          >
+            <Eye size={16} />
+            {t('viewLiveStore')}
+          </Link>
+          <Link
+            to="/store-live-editor"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all text-sm"
+          >
+            <Layout size={16} />
+            {t('openLiveEditor')}
+          </Link>
         </div>
       </div>
 

@@ -224,6 +224,13 @@ export function GhorerBazarTemplate({
               categories={categories}
               storeId={storeId}
               currency={currency}
+              store={{
+                name: storeName,
+                email: businessInfo?.email,
+                phone: businessInfo?.phone,
+                address: businessInfo?.address,
+                currency: currency
+              }}
             />
           );
         })}

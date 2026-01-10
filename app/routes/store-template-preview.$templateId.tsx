@@ -493,8 +493,8 @@ export default function StoreTemplatePreview() {
         <div className="w-px h-6 bg-gray-700" />
         
         {/* Apply Button */}
-        <Form method="post" action="/app/store-design">
-          <input type="hidden" name="intent" value="select-template" />
+        <Form method="post" action="/app/theme-store">
+         {/* <input type="hidden" name="intent" value="select-template" /> --> Not needed for theme-store action */}
           <input type="hidden" name="templateId" value={templateId} />
           <button
             type="submit"

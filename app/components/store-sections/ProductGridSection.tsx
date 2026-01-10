@@ -9,16 +9,57 @@ import { AddToCartButton } from '~/components/AddToCartButton';
 interface ProductGridSectionProps {
   settings: SectionSettings;
   theme: any;
-  products: any[];
-  currency: string;
-  storeId: number;
+  products?: any[]; // Allow generic products to be passed (e.g. from Collection loader)
+  currency?: string;
+  storeId?: number; // storeId is now optional as it might not always be passed
 }
 
-export default function ProductGridSection({ settings, theme, products, currency, storeId }: ProductGridSectionProps) {
+export function ProductGridSection({ settings, theme, products: passedProducts, currency = 'BDT', storeId }: ProductGridSectionProps) {
   const { t } = useTranslation();
   const formatPrice = useFormatPrice();
   
-  const displayProducts = products.slice(0, settings.productCount || 8);
+  // Use passed products if available (dynamic collection), otherwise use demo/fallback
+  const displayProducts = passedProducts || settings.products || [
+    {
+      id: 1,
+      title: 'Premium Wireless Headphones',
+      price: 15000,
+      compareAtPrice: 18000,
+      imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+      category: 'Electronics'
+    },
+    {
+      id: 2,
+      title: 'Ergonomic Office Chair',
+      price: 25000,
+      compareAtPrice: 32000,
+      imageUrl: 'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=800&q=80',
+      category: 'Furniture'
+    },
+    {
+      id: 3,
+      title: 'Smart Fitness Watch',
+      price: 8500,
+      compareAtPrice: 12000,
+      imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
+      category: 'Electronics'
+    },
+    {
+      id: 4,
+      title: 'Minimalist Desk Lamp',
+      price: 3500,
+      compareAtPrice: 4500,
+      imageUrl: 'https://images.unsplash.com/photo-1507473888900-52e1ad147f72?w=800&q=80',
+      category: 'Decor'
+    }
+  ];
+
+  // If passedProducts are used, we might want to respect the limit from settings
+  // But usually collection pages show paginated results. For now, let's just slice if explicitly set.
+  // Ideally, pagination should be handled by the loader/parent.
+  const limit = typeof settings.productCount === 'number' ? settings.productCount : 12;
+  const productsToShow = passedProducts ? displayProducts : displayProducts.slice(0, limit);
+
   const paddingTop = settings.paddingTop === 'large' ? 'py-20' : settings.paddingTop === 'medium' ? 'py-12' : settings.paddingTop === 'small' ? 'py-8' : 'pt-0';
   const paddingBottom = settings.paddingBottom === 'large' ? 'pb-20' : settings.paddingBottom === 'medium' ? 'pb-12' : settings.paddingBottom === 'small' ? 'pb-8' : 'pb-0';
 

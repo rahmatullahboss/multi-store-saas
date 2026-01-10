@@ -39,7 +39,8 @@ import {
   BarChart3,
   BookOpen,
   History,
-  MessageCircle
+  MessageCircle,
+  Palette
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -98,6 +99,7 @@ const navItems = [
   { to: '/admin/storage', label: 'Storage', icon: HardDrive },
   { to: '/admin/marketing', label: 'Marketing', icon: Ticket },
   { to: '/admin/broadcasts', label: 'Broadcasts', icon: Radio },
+  { to: '/admin/marketplace-themes', label: 'Theme Marketplace', icon: Palette },
   { to: '/admin/team', label: 'Team & Access', icon: Users },
   { to: '/admin/visitor-chats', label: 'Visitor Chats', icon: MessageCircle },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: History },

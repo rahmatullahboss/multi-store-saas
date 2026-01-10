@@ -82,5 +82,9 @@
 
 - [x] **New Section Architecture**: Replaced hardcoded templates with dynamic `SectionRenderer`.
 - [x] **Visual Section Editor**: Drag-and-drop management in `store-live-editor.tsx`.
-- [x] **Theme Refactoring**: Ported 6 templates (`LuxeBoutique`, `TechModern`, `ArtisanMarket`, `BDShop`, `Daraz`, `GhorerBazar`) to the new system.
+- [x] **Theme Refactoring for Existing Templates**: Ported 6 templates (`LuxeBoutique`, `TechModern`, `ArtisanMarket`, `BDShop`, `Daraz`, `GhorerBazar`) to the new system.
+- [x] **Theme Marketplace & Automated Submission**
+  - [x] Automated theme submission from Live Editor
+  - [x] Admin Theme Management (Approve/Reject/Remove)
+  - [x] Merchant Theme Store to browse and apply community themes
 - [x] **Theme Centralization**: Standardized brand colors across all refactored themes.

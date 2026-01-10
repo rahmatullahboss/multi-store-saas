@@ -1345,3 +1345,27 @@ export const visitorMessagesRelations = relations(visitorMessages, ({ one }) => 
     references: [visitors.id],
   }),
 }));
+
+// ============================================================================
+// MARKETPLACE THEMES TABLE - Shared community themes
+// ============================================================================
+export const marketplaceThemes = sqliteTable('marketplace_themes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  description: text('description'),
+  thumbnail: text('thumbnail'),
+  config: text('config').notNull(), // JSON: ThemeConfig
+  createdBy: integer('created_by').references(() => stores.id, { onDelete: 'set null' }),
+  authorName: text('author_name'),
+  status: text('status').$type<'pending' | 'approved' | 'rejected'>().default('pending'),
+  isPublic: integer('is_public', { mode: 'boolean' }).default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const marketplaceThemesRelations = relations(marketplaceThemes, ({ one }) => ({
+  creator: one(stores, {
+    fields: [marketplaceThemes.createdBy],
+    references: [stores.id],
+  }),
+}));

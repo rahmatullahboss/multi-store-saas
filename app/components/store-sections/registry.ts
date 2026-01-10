@@ -16,7 +16,18 @@ export type SectionType =
   | 'category-list'
   | 'product-scroll'
   | 'banner'
-  | 'faq';
+  | 'faq'
+  | 'product-header'
+  | 'product-gallery'
+  | 'product-info'
+  | 'product-info'
+  | 'product-reviews'
+  | 'product-description'
+  | 'product-description'
+  | 'related-products'
+  | 'collection-header'
+  | 'cart-items'
+  | 'cart-summary';
 
 export interface SectionAction {
   label: string;
@@ -49,7 +60,16 @@ export interface SectionSettings {
   collectionId?: string; // For compatibility
   collection?: string; // Category ID or Name
   productCount?: number;
+  products?: any[]; // For manual product selection or overrides
+  primaryColor?: string;
+  secondaryColor?: string;
   autoplay?: boolean;
+
+  // Data Binding (Metafields)
+  bindings?: Record<string, { 
+    source: 'product' | 'store'; 
+    field: string; 
+  }>;
   
   // New props
   mode?: string; // e.g. 'flash-sale'
@@ -72,6 +92,7 @@ export interface SectionDefinition {
   description: string;
   defaultSettings: SectionSettings;
   component: ComponentType<any>;
+  allowedPages?: ('home' | 'product' | 'collection' | 'page' | 'cart')[];
 }
 
 
@@ -79,7 +100,7 @@ export interface SectionDefinition {
 // REGISTRY
 // ============================================================================
 import HeroSection from './HeroSection';
-import ProductGridSection from './ProductGridSection';
+import { ProductGridSection } from './ProductGridSection';
 import NewsletterSection from './NewsletterSection';
 import CategorySection from './CategorySection';
 import ProductScrollSection from './ProductScrollSection';
@@ -88,8 +109,16 @@ import BannerSection from './BannerSection';
 import FAQSection from './FAQSection';
 
 import RichTextSection from './RichTextSection';
-
-import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText } from 'lucide-react';
+import { ProductHeaderSection } from './ProductHeaderSection';
+import { ProductGallerySection } from './ProductGallerySection';
+import { ProductInfoSection } from './ProductInfoSection';
+import { ProductReviewsSection } from './ProductReviewsSection';
+import { ProductDescriptionSection } from './ProductDescriptionSection';
+import { RelatedProductsSection } from './RelatedProductsSection';
+import { CollectionHeaderSection } from './CollectionHeaderSection';
+import { CartItemsSection } from './CartItemsSection';
+import { CartSummarySection } from './CartSummarySection';
+import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText, Type, ImageIcon, Info, MessageSquare, Calculator } from 'lucide-react';
 
 // We will populate this as we implement components
 export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
@@ -105,7 +134,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       alignment: 'center',
       layout: 'standard',
     },
-    component: HeroSection
+    component: HeroSection,
+    allowedPages: ['home']
   },
   'rich-text': {
     type: 'rich-text',
@@ -117,7 +147,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       text: 'Share your brand story here.',
       alignment: 'center'
     },
-    component: RichTextSection
+    component: RichTextSection,
+    allowedPages: ['home', 'product', 'collection']
   },
   'category-list': {
     type: 'category-list',
@@ -129,7 +160,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       layout: 'grid', // grid, tabs, pills, scroll
       limit: 8
     },
-    component: CategorySection
+    component: CategorySection,
+    allowedPages: ['home']
   },
   'product-scroll': {
     type: 'product-scroll',
@@ -141,7 +173,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       limit: 10,
       mode: 'default' // default, flash-sale
     },
-    component: ProductScrollSection
+    component: ProductScrollSection,
+    allowedPages: ['home', 'product', 'collection']
   },
   'features': {
     type: 'features',
@@ -152,7 +185,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       heading: 'Why Choose Us',
       backgroundColor: 'white'
     },
-    component: FeaturesSection
+    component: FeaturesSection,
+    allowedPages: ['home', 'product']
   },
   'banner': {
     type: 'banner',
@@ -164,7 +198,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       subheading: 'Limited time only',
       primaryAction: { label: 'Learn More', url: '#' }
     },
-    component: BannerSection
+    component: BannerSection,
+    allowedPages: ['home', 'collection']
   },
   'faq': {
     type: 'faq',
@@ -174,7 +209,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     defaultSettings: {
       heading: 'Frequently Asked Questions',
     },
-    component: FAQSection
+    component: FAQSection,
+    allowedPages: ['home', 'product']
   },
   'product-grid': {
     type: 'product-grid',
@@ -187,7 +223,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       paddingTop: 'large',
       paddingBottom: 'large'
     },
-    component: ProductGridSection
+    component: ProductGridSection,
+    allowedPages: ['home', 'collection']
   },
   'newsletter': {
     type: 'newsletter',
@@ -201,7 +238,89 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       paddingTop: 'medium',
       paddingBottom: 'medium'
     },
-    component: NewsletterSection
+    component: NewsletterSection,
+    allowedPages: ['home']
+  },
+  'product-header': {
+    type: 'product-header',
+    name: 'Product Header',
+    icon: 'Type',
+    description: 'Breadcrumbs and navigation (Product Page Only).',
+    defaultSettings: { paddingBottom: 'small' },
+    component: ProductHeaderSection,
+    allowedPages: ['product']
+  },
+  'product-gallery': {
+    type: 'product-gallery',
+    name: 'Product Gallery',
+    icon: 'ImageIcon',
+    description: 'Product images and thumbnails (Product Page Only).',
+    defaultSettings: {},
+    component: ProductGallerySection,
+    allowedPages: ['product']
+  },
+  'product-info': {
+    type: 'product-info',
+    name: 'Product Info',
+    icon: 'Info',
+    description: 'Title, Price, and Buy Button (Product Page Only).',
+    defaultSettings: { paddingTop: 'large', paddingBottom: 'large' },
+    component: ProductInfoSection,
+    allowedPages: ['product']
+  },
+  'product-reviews': {
+    type: 'product-reviews',
+    name: 'Product Reviews',
+    icon: 'MessageSquare',
+    description: 'Review list and form (Product Page Only).',
+    defaultSettings: { paddingTop: 'large' },
+    component: ProductReviewsSection,
+    allowedPages: ['product']
+  },
+  'product-description': {
+    type: 'product-description',
+    name: 'Product Description',
+    icon: 'FileText',
+    description: 'Detailed product description text.',
+    defaultSettings: { paddingTop: 'medium', paddingBottom: 'medium' },
+    component: ProductDescriptionSection,
+    allowedPages: ['product']
+  },
+  'related-products': {
+    type: 'related-products',
+    name: 'Related Products',
+    icon: 'Grid3X3',
+    description: 'Recommendations for similar products.',
+    defaultSettings: { heading: 'You Might Also Like', productCount: 4, paddingTop: 'large' },
+    component: RelatedProductsSection,
+    allowedPages: ['product']
+  },
+  'collection-header': {
+    type: 'collection-header',
+    name: 'Collection Header',
+    icon: 'Type',
+    description: 'Title and description for the collection.',
+    defaultSettings: { alignment: 'center', paddingTop: 'medium', paddingBottom: 'medium' },
+    component: CollectionHeaderSection,
+    allowedPages: ['collection']
+  },
+  'cart-items': {
+    type: 'cart-items',
+    name: 'Cart Items',
+    icon: 'ShoppingBag',
+    description: 'List of items in the cart.',
+    defaultSettings: { heading: 'Your Cart' },
+    component: CartItemsSection,
+    allowedPages: ['cart']
+  },
+  'cart-summary': {
+    type: 'cart-summary',
+    name: 'Order Summary',
+    icon: 'Calculator',
+    description: 'Cart totals and checkout button.',
+    defaultSettings: {},
+    component: CartSummarySection,
+    allowedPages: ['cart']
   }
 };
 
