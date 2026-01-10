@@ -1,17 +1,19 @@
 import { BlocksProvider, SelectorsProvider, useEditorMaybe } from '@grapesjs/react';
 import { useState, useEffect, useRef } from 'react';
-import { Box, Palette, Settings2, Layers, PaintBucket } from 'lucide-react';
+import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import ThemePanel from './ThemePanel';
+import TemplatesPanel from './TemplatesPanel';
 
 interface SidebarPanelProps {
   themeConfig?: any;
   onThemeChange?: (config: any) => void;
+  onLoadTemplate?: (templateId: string) => void;
 }
 
-export default function SidebarPanel({ themeConfig, onThemeChange }: SidebarPanelProps) {
-  const t = useTranslation();
-  const [activeTab, setActiveTab] = useState<'elements' | 'styles' | 'layers' | 'theme'>('elements');
+export default function SidebarPanel({ themeConfig, onThemeChange, onLoadTemplate }: SidebarPanelProps) {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<'templates' | 'elements' | 'styles' | 'layers' | 'theme'>('templates');
   const editor = useEditorMaybe();
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
@@ -200,6 +202,15 @@ export default function SidebarPanel({ themeConfig, onThemeChange }: SidebarPane
       <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64 shadow-sm min-h-0">
         {/* Tab Switcher */}
         <div className="flex border-b border-gray-100 bg-gray-50/50 p-1 gap-1">
+           {/* Templates Tab */}
+           <button 
+             onClick={() => setActiveTab('templates')}
+             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'templates' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             title="Templates"
+           >
+              <LayoutTemplate size={14} strokeWidth={2.5} />
+              <span className="sr-only">Templates</span>
+           </button>
            <button 
              onClick={() => setActiveTab('elements')}
              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'elements' ? 'bg-white text-emerald-600 shadow-sm border border-emerald-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
