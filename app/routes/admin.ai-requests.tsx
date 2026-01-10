@@ -11,7 +11,6 @@
  */
 
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
@@ -36,7 +35,6 @@ import {
 import { getStoreAIUsage } from '~/lib/rateLimit.server';
 import { 
   getBulkUsageStats, 
-  activePlans,
   STORE_AI_DAILY_LIMITS, 
   AI_PLAN_LIMITS, 
   type PlanType,

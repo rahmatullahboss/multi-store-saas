@@ -16,11 +16,27 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
 import { getSession } from '~/services/auth.server';
-import { canUseAI, type PlanType } from '~/utils/plans.server';
+import { canUseAI, type PlanType, type AIPlanType } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 
-// ... (Action types remain unchanged) ...
+// Define Payload Type
+interface ActionPayload {
+  action: string;
+  description?: string;
+  productInfo?: any;
+  style?: string;
+  businessDescription?: string;
+  sectionName?: string;
+  currentData?: any;
+  editPrompt?: string;
+  fieldType?: string;
+  currentText?: string;
+  keywords?: string;
+  prompt?: string;
+  currentHtml?: string;
+  context?: any;
+}
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { env } = context.cloudflare;
@@ -37,7 +53,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Get store and check plan
   const storeResult = await db
-    .select({ planType: stores.planType })
+    .select({ 
+      planType: stores.planType,
+      aiPlan: stores.aiPlan
+    })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
@@ -48,18 +67,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // Check User Role for Super Admin Bypass
-  const userResult = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
-  const userRole = userResult[0]?.role;
+  let userRole = 'user';
+  if (userId) {
+      const userResult = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+      userRole = userResult[0]?.role || 'user';
+  }
 
   const planType = (store.planType as PlanType) || 'free';
+  const aiPlan = (store.aiPlan as AIPlanType) || null;
 
   // Check rate limit (Skip for Super Admin)
   if (userRole !== 'super_admin') {
-    const rateCheck = await checkAIRateLimit(env.AI_RATE_LIMIT, storeId, planType);
+    const rateCheck = await checkAIRateLimit(
+        env.AI_RATE_LIMIT, 
+        env.DB,
+        storeId, 
+        planType,
+        aiPlan
+    );
+
     if (!rateCheck.allowed) {
+      const msg = rateCheck.type === 'daily' 
+          ? `Daily AI trial limit reached (${rateCheck.limit}). Upgrade to an AI Plan!`
+          : `Monthly AI plan limit reached (${rateCheck.limit}). Upgrade your plan.`;
+
       return json(
         { 
-          error: `Daily AI limit reached (${rateCheck.limit} requests). ${planType === 'free' ? 'Upgrade to get more requests!' : 'Try again tomorrow.'}`,
+          error: msg,
           code: 'RATE_LIMIT_EXCEEDED',
           remaining: rateCheck.remaining,
           limit: rateCheck.limit,
@@ -110,7 +144,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
         const result = await ai.generateStoreSetup(payload.description);
         // Increment usage after successful call
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
         return json({ success: true, data: result });
       }
 
@@ -123,7 +157,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           payload.productInfo,
           payload.style
         );
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
         return json({ success: true, data: result });
       }
 
@@ -134,7 +168,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
         try {
           const result = await ai.generateFullPage(payload.businessDescription);
-          await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+          await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
           return json({ success: true, data: result });
         } catch (genError) {
           // Specific handling for JSON parsing failures
@@ -161,7 +195,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             payload.currentData || {},
             payload.editPrompt
           );
-          await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+          await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
           return json({ success: true, data: result });
         } catch (editError) {
           // Specific handling for JSON parsing failures
@@ -196,7 +230,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           payload.currentText || '',
           payload.keywords
         );
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
         return json({ success: true, data: result });
       }
 
@@ -206,7 +240,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.generateElementorPage(payload.prompt);
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
         return json({ success: true, data: result });
       }
 
@@ -216,7 +250,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.editElementorSection(payload.currentHtml, payload.prompt);
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
         return json({ success: true, data: result });
       }
 
@@ -226,7 +260,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.generateGrapesJsPage(payload.prompt);
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
         return json({ success: true, data: result });
       }
 
@@ -236,7 +270,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const result = await ai.designCustomSection(payload.prompt, payload.currentHtml);
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
         return json({ success: true, data: result });
       }
 
@@ -249,7 +283,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           payload.editPrompt,
           payload.context || {}
         );
-        await incrementAIUsage(env.AI_RATE_LIMIT, storeId);
+        await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
         return json({ success: true, data: result });
       }
 
