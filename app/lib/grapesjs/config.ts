@@ -315,6 +315,11 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
           width: '', 
         },
         {
+          name: 'Tablet',
+          width: '768px',
+          widthMedia: '1024px',
+        },
+        {
           name: 'Mobile',
           width: '375px',
           widthMedia: '480px',

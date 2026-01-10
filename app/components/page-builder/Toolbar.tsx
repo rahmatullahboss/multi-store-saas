@@ -3,6 +3,7 @@ import { useEditorMaybe } from '@grapesjs/react';
 import { 
   Monitor, 
   Smartphone, 
+  Tablet,
   Undo, 
   Redo, 
   Eye, 
@@ -18,6 +19,7 @@ import {
   Layout
 } from 'lucide-react';
 import { toast } from 'sonner';
+import CodeEditor from './CodeEditor';
 
 export default function EditorToolbar({ 
   isAiLocked = false,
@@ -134,9 +136,15 @@ export default function EditorToolbar({
           });
         }
 
-        // 2. Extract and combine style blocks
-        const styles = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
-        if (styles) cssToApply = styles;
+        // 2. Extract and combine style blocks & stylesheet links
+      const styles = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
+      
+      // Capture external stylesheets
+      const links = Array.from(doc.querySelectorAll('link[rel="stylesheet"]')).map(link => link.outerHTML).join('');
+      
+      if (styles) cssToApply = styles;
+      if (links) htmlToApply += links; // Append links to valid HTML body so GrapesJS parses them
+
       }
 
       if (selectedComponent) {
@@ -252,6 +260,13 @@ export default function EditorToolbar({
           title="Desktop View"
         >
           <Monitor size={18} className="text-gray-500 group-hover:text-emerald-600" />
+        </button>
+        <button 
+          onClick={() => handleDeviceChange('Tablet')}
+          className="p-2 hover:bg-gray-100 rounded-lg transition group"
+          title="Tablet View"
+        >
+          <Tablet size={18} className="text-gray-500 group-hover:text-emerald-600" />
         </button>
         <button 
           onClick={() => handleDeviceChange('Mobile')}
@@ -399,12 +414,10 @@ export default function EditorToolbar({
               </div>
 
               <div className="flex-1 relative bg-[#1e1e1e]">
-                 <textarea 
-                    autoFocus
+                 <CodeEditor 
                     value={codeContent}
-                    onChange={(e) => setCodeContent(e.target.value)}
-                    className="w-full h-full p-4 bg-transparent text-gray-300 font-mono text-xs leading-relaxed outline-none resize-none custom-scrollbar"
-                    spellCheck={false}
+                    onChange={(val) => setCodeContent(val || '')}
+                    language="html"
                  />
               </div>
               
