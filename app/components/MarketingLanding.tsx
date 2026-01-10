@@ -661,6 +661,7 @@ export function MarketingLanding() {
       <ProblemSolutionSection />
       <AIShowcaseSection />
       <DragDropBuilderShowcase />
+      <EditorModeComparison />
       <BentoFeaturesSection />
       <InfrastructureSection />
       <SpeedComparison />

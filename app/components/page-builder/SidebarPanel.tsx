@@ -5,6 +5,7 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
 import PageSettingsPanel from './PageSettingsPanel';
+import StateSelector from './StateSelector';
 
 interface SidebarPanelProps {
   themeConfig?: any;
@@ -327,6 +328,9 @@ export default function SidebarPanel({
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {activeDesignSubTab === 'styles' && (
                   <div className="p-4 space-y-6">
+                    {/* State Selector (Normal/Hover/Focus/Active) */}
+                    <StateSelector />
+                    
                     {/* Selectors Manager */}
                     <div className="bg-blue-50/30 rounded-2xl p-4 border border-blue-50">
                       <SelectorsProvider>
