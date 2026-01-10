@@ -1,11 +1,17 @@
 import { BlocksProvider, SelectorsProvider, useEditorMaybe } from '@grapesjs/react';
 import { useState, useEffect, useRef } from 'react';
-import { Box, Palette, Settings2, Layers } from 'lucide-react';
+import { Box, Palette, Settings2, Layers, PaintBucket } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import ThemePanel from './ThemePanel';
 
-export default function SidebarPanel() {
-  const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'elements' | 'styles' | 'layers'>('elements');
+interface SidebarPanelProps {
+  themeConfig?: any;
+  onThemeChange?: (config: any) => void;
+}
+
+export default function SidebarPanel({ themeConfig, onThemeChange }: SidebarPanelProps) {
+  const t = useTranslation();
+  const [activeTab, setActiveTab] = useState<'elements' | 'styles' | 'layers' | 'theme'>('elements');
   const editor = useEditorMaybe();
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
@@ -175,6 +181,7 @@ export default function SidebarPanel() {
         }
         .gjs-layer:hover {
           border-color: #3b82f6 !important;
+          border-width: 1px;
         }
         .gjs-layer.gjs-selected {
           background: #eff6ff !important;
@@ -196,23 +203,36 @@ export default function SidebarPanel() {
            <button 
              onClick={() => setActiveTab('elements')}
              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'elements' ? 'bg-white text-emerald-600 shadow-sm border border-emerald-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             title="Add Elements"
            >
               <Box size={14} strokeWidth={2.5} />
-              {t('pageBuilderElements').toUpperCase()}
+              <span className="sr-only">Elements</span>
            </button>
            <button 
              onClick={() => setActiveTab('styles')}
              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'styles' ? 'bg-white text-blue-600 shadow-sm border border-blue-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             title="Style Editor"
            >
               <Palette size={14} strokeWidth={2.5} />
-              {t('pageBuilderStyle').toUpperCase()}
+              <span className="sr-only">Styles</span>
            </button>
            <button 
              onClick={() => setActiveTab('layers')}
              className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'layers' ? 'bg-white text-purple-600 shadow-sm border border-purple-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             title="Layers"
            >
               <Layers size={14} strokeWidth={2.5} />
-              {t('pageBuilderLayers').toUpperCase()}
+              <span className="sr-only">Layers</span>
+           </button>
+           
+           {/* New Theme Tab */}
+           <button 
+             onClick={() => setActiveTab('theme')}
+             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-black transition-all ${activeTab === 'theme' ? 'bg-white text-pink-600 shadow-sm border border-pink-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+             title="Global Theme"
+           >
+              <PaintBucket size={14} strokeWidth={2.5} />
+              <span className="sr-only">Theme</span>
            </button>
         </div>
 
@@ -230,7 +250,7 @@ export default function SidebarPanel() {
                 return (
                   <div className="absolute inset-0 overflow-y-auto p-4 space-y-6 custom-scrollbar animate-in fade-in duration-300">
                     <div className="mb-2">
-                       <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">{t('pageBuilderComponents')}</h3>
+                       <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">Components</h3>
                     </div>
                     {Object.entries(categories).map(([catLabel, catBlocks]) => (
                       <div key={catLabel}>
@@ -274,7 +294,7 @@ export default function SidebarPanel() {
                     <div className="space-y-2">
                        <div className="flex items-center gap-2 mb-2">
                           <Settings2 size={12} className="text-blue-600" />
-                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest active-selectors-label">{t('pageBuilderActiveSelectors')}</span>
+                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest active-selectors-label">Active Selectors</span>
                        </div>
                        <div className="flex flex-wrap gap-2">
                           {props.selectors.map(sel => (
@@ -284,7 +304,7 @@ export default function SidebarPanel() {
                           ))}
                           {props.selectors.length === 0 && (
                             <div className="py-2 px-3 bg-gray-50 rounded-lg border border-dashed border-gray-200 w-full text-center">
-                               <p className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">{t('pageBuilderSelectElement')}</p>
+                               <p className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Select an element to customize</p>
                             </div>
                           )}
                        </div>
@@ -296,7 +316,7 @@ export default function SidebarPanel() {
               {/* Traits Manager */}
               <div className="p-4 border-b border-gray-50">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('pageBuilderElementAttributes')}</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Element Attributes</span>
                 </div>
                 <div ref={traitsContainerRef} className="gjs-traits-wrap" />
               </div>
@@ -304,19 +324,23 @@ export default function SidebarPanel() {
               {/* Style Manager */}
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('pageBuilderVisualStyling')}</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Visual Styling</span>
                 </div>
                 <div ref={stylesContainerRef} className="gjs-styles-wrap" />
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'layers' ? (
             <div className="absolute inset-0 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300 p-4">
                <div className="mb-4">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('pageBuilderLayerStructure')}</h3>
-                  <p className="text-[9px] text-gray-300 font-bold">{t('pageBuilderManageHierarchy')}</p>
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Layer Structure</h3>
+                  <p className="text-[9px] text-gray-300 font-bold">Manage element hierarchy</p>
                </div>
                <div ref={layersContainerRef} className="gjs-layers-wrap min-h-[200px]" />
             </div>
+          ) : (
+             themeConfig && onThemeChange && (
+               <ThemePanel config={themeConfig} onChange={onThemeChange} />
+             )
           )}
         </div>
       </div>

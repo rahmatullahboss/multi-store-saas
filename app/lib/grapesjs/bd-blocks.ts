@@ -20,7 +20,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
           <div class="mb-10">
             <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80" alt="Product" class="mx-auto rounded-2xl shadow-2xl max-w-full h-auto" />
           </div>
-          <button class="bg-emerald-600 text-white text-xl font-bold px-12 py-5 rounded-full shadow-lg hover:bg-emerald-700 transition transform hover:scale-105">অর্ডার করতে এখানে ক্লিক করুন</button>
+          <button class="bg-primary text-white text-xl font-bold px-12 py-5 rounded-full shadow-lg hover:opacity-90 transition transform hover:scale-105">অর্ডার করতে এখানে ক্লিক করুন</button>
         </div>
       </section>
     `,
@@ -63,27 +63,27 @@ export const bdBlocksPlugin = (editor: Editor) => {
     content: `
       <section class="py-12 bg-white px-6">
         <div class="max-w-xl mx-auto bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-xl">
-          <h2 class="text-2xl font-bold text-center text-gray-900 mb-8 underline decoration-emerald-500 decoration-4 underline-offset-8">অর্ডার করতে নিচের ফর্মটি পূরণ করুন</h2>
+          <h2 class="text-2xl font-bold text-center text-gray-900 mb-8 underline decoration-primary decoration-4 underline-offset-8">অর্ডার করতে নিচের ফর্মটি পূরণ করুন</h2>
           <form class="space-y-5">
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-2">আপনার নাম *</label>
-              <input type="text" placeholder="পুরো নাম লিখুন" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none" required />
+              <input type="text" placeholder="পুরো নাম লিখুন" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none" required />
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-2">মোবাইল নাম্বার *</label>
-              <input type="tel" placeholder="01XXXXXXXXX" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none" required />
+              <input type="tel" placeholder="01XXXXXXXXX" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none" required />
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-2">সম্পূর্ণ ঠিকানা *</label>
-              <textarea placeholder="গ্রাম/মহল্লা, থানা, জেলা লিখুন" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none h-24" required></textarea>
+              <textarea placeholder="গ্রাম/মহল্লা, থানা, জেলা লিখুন" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none h-24" required></textarea>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                <div class="flex justify-between font-bold text-lg">
                  <span>সর্বমোট মূল্য:</span>
-                 <span class="text-emerald-600">৳ ১৯৫০</span>
+                 <span class="text-primary">৳ ১৯৫০</span>
                </div>
             </div>
-            <button type="submit" class="w-full bg-emerald-600 text-white text-xl font-extrabold py-5 rounded-2xl shadow-lg hover:bg-emerald-700 transition">অর্ডার কনফার্ম করুন</button>
+            <button type="submit" class="w-full bg-primary text-white text-xl font-extrabold py-5 rounded-2xl shadow-lg hover:opacity-90 transition">অর্ডার কনফার্ম করুন</button>
           </form>
         </div>
       </section>
@@ -97,7 +97,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
     category: 'High Conversion',
     content: `
       <div class="py-8 px-6 text-center">
-        <a href="tel:01XXXXXXXXX" class="inline-flex items-center gap-3 bg-blue-600 text-white text-2xl font-black px-10 py-5 rounded-2xl shadow-[0_10px_30px_rgba(37,99,235,0.4)] hover:shadow-none hover:translate-y-1 transition-all duration-300">
+        <a href="tel:01XXXXXXXXX" class="inline-flex items-center gap-3 bg-secondary text-white text-2xl font-black px-10 py-5 rounded-2xl shadow-xl hover:shadow-none hover:translate-y-1 transition-all duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
           এখনই কল করুন
         </a>
@@ -136,36 +136,36 @@ export const bdBlocksPlugin = (editor: Editor) => {
             <h3 class="text-2xl font-bold text-gray-900 border-b pb-2">প্যাকেজে যা যা থাকছে:</h3>
             <ul class="space-y-3">
               <li class="flex items-center gap-3 text-lg font-medium text-gray-700">
-                <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                <span class="w-6 h-6 bg-emerald-100 text-primary rounded-full flex items-center justify-center text-xs">✓</span>
                 মিনিমাম ১ বছর ওয়ারেন্টি
               </li>
               <li class="flex items-center gap-3 text-lg font-medium text-gray-700">
-                <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                <span class="w-6 h-6 bg-emerald-100 text-primary rounded-full flex items-center justify-center text-xs">✓</span>
                 ৭ দিনের মানি ব্যাক গ্যারান্টি
               </li>
               <li class="flex items-center gap-3 text-lg font-medium text-gray-700">
-                <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                <span class="w-6 h-6 bg-emerald-100 text-primary rounded-full flex items-center justify-center text-xs">✓</span>
                 ফ্রি ডেলিভারি (সীমিত সময়ের জন্য)
               </li>
             </ul>
           </div>
           
           <!-- Right: Order Form -->
-          <div class="bg-gray-50 p-6 md:p-8 rounded-3xl border-2 border-emerald-500/30 shadow-2xl relative overflow-hidden">
-             <div class="absolute top-0 right-0 bg-emerald-500 text-white text-xs font-bold px-4 py-1 rounded-bl-xl">POPULAR</div>
+          <div class="bg-gray-50 p-6 md:p-8 rounded-3xl border-2 border-primary/30 shadow-2xl relative overflow-hidden">
+             <div class="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-4 py-1 rounded-bl-xl">POPULAR</div>
              <h2 class="text-2xl font-black text-gray-900 mb-6 text-center">অর্ডার কনফার্ম করতে তথ্য দিন</h2>
              <form class="space-y-4">
                <div>
                   <label class="block text-xs font-bold text-gray-500 uppercase mb-1">আপনার নাম</label>
-                  <input type="text" placeholder="এখানে নাম লিখুন" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition" />
+                  <input type="text" placeholder="এখানে নাম লিখুন" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" />
                </div>
                <div>
                   <label class="block text-xs font-bold text-gray-500 uppercase mb-1">মোবাইল নাম্বার</label>
-                  <input type="tel" placeholder="017XXXXXXXX" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition" />
+                  <input type="tel" placeholder="017XXXXXXXX" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition" />
                </div>
                <div>
                   <label class="block text-xs font-bold text-gray-500 uppercase mb-1">ঠিকানা</label>
-                  <textarea placeholder="বাসা নং, রোড নং, এলাকা..." class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition h-20"></textarea>
+                  <textarea placeholder="বাসা নং, রোড নং, এলাকা..." class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition h-20"></textarea>
                </div>
                
                <div class="bg-white p-3 rounded-xl border border-dashed border-gray-300">
@@ -173,7 +173,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
                      <span class="text-sm font-bold text-gray-500">প্রোডাক্টের নাম</span>
                      <span class="text-sm font-bold text-gray-900">৳৯৫০</span>
                   </div>
-                  <div class="flex justify-between items-center text-emerald-600">
+                  <div class="flex justify-between items-center text-primary">
                      <span class="text-xs font-bold uppercase">ডেলিভারি চার্জ</span>
                      <span class="text-xs font-bold">ফ্রি</span>
                   </div>
@@ -229,11 +229,11 @@ export const bdBlocksPlugin = (editor: Editor) => {
     category: 'High Conversion',
     content: `
       <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] flex gap-3 md:hidden z-50">
-         <a href="tel:01XXXXXXXXX" class="flex-1 bg-blue-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg active:scale-95 transition">
+         <a href="tel:01XXXXXXXXX" class="flex-1 bg-secondary text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg active:scale-95 transition">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
             কল করুন
          </a>
-         <button onclick="document.querySelector('form').scrollIntoView({behavior: 'smooth'})" class="flex-1 bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg active:scale-95 transition animate-pulse">
+         <button onclick="document.querySelector('form').scrollIntoView({behavior: 'smooth'})" class="flex-1 bg-primary text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg active:scale-95 transition animate-pulse">
             অর্ডার করুন
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
          </button>
@@ -304,7 +304,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
                  <div class="text-yellow-400 text-2xl mb-3">★★★★★</div>
                  <p class="text-gray-600 font-medium italic mb-6">"প্রোডাক্টটি খুবই ভালো। ডেলিভারি খুব ফাস্ট পেয়েছি। সেলারের ব্যবহারও চমৎকার।"</p>
                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center font-bold text-emerald-700">R</div>
+                    <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center font-bold text-primary">R</div>
                     <div>
                        <h4 class="font-bold text-gray-900 text-sm">রহিম মিয়া</h4>
                        <p class="text-xs text-gray-500">ঢাকা</p>
@@ -315,7 +315,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
                  <div class="text-yellow-400 text-2xl mb-3">★★★★★</div>
                  <p class="text-gray-600 font-medium italic mb-6">"অরিজিনাল প্রোডাক্ট পেয়েছি। ধন্যবাদ!"</p>
                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-700">S</div>
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-secondary">S</div>
                     <div>
                        <h4 class="font-bold text-gray-900 text-sm">সোহেল রানা</h4>
                        <p class="text-xs text-gray-500">চট্টগ্রাম</p>
@@ -367,8 +367,8 @@ export const bdBlocksPlugin = (editor: Editor) => {
                  </ul>
               </div>
               <div class="bg-emerald-50 p-6 rounded-3xl border-2 border-emerald-200 text-center relative shadow-lg transform scale-105">
-                 <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">BEST CHOICE</div>
-                 <h3 class="text-xl font-bold text-emerald-700 mb-4">আমাদের প্রিমিয়াম পণ্য</h3>
+                 <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase">BEST CHOICE</div>
+                 <h3 class="text-xl font-bold text-primary mb-4">আমাদের প্রিমিয়াম পণ্য</h3>
                  <ul class="space-y-3 text-sm font-bold text-gray-800">
                     <li class="flex flex-col items-center gap-1">
                        <span class="text-2xl">✅</span>
@@ -500,20 +500,20 @@ export const bdBlocksPlugin = (editor: Editor) => {
                  </ul>
               </div>
               <div class="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 shadow-xl transform md:-translate-y-4">
-                 <h3 class="text-xl font-bold text-emerald-700 mb-6 flex items-center gap-2">
+                 <h3 class="text-xl font-bold text-primary mb-6 flex items-center gap-2">
                     <span class="bg-emerald-200 p-1 rounded">✅</span> আমাদের সমাধান
                  </h3>
                  <ul class="space-y-4">
                     <li class="flex gap-3 text-gray-800 font-medium">
-                       <span class="text-emerald-600 font-bold">✔</span>
+                       <span class="text-primary font-bold">✔</span>
                        ১০০% প্রিমিয়াম কোয়ালিটি নিশ্চিত করি
                     </li>
                     <li class="flex gap-3 text-gray-800 font-medium">
-                       <span class="text-emerald-600 font-bold">✔</span>
+                       <span class="text-primary font-bold">✔</span>
                        সরাসরি ইম্পোর্টার থেকে কম দামে কেনা
                     </li>
                     <li class="flex gap-3 text-gray-800 font-medium">
-                       <span class="text-emerald-600 font-bold">✔</span>
+                       <span class="text-primary font-bold">✔</span>
                        ১ বছরের ফুল রিপ্লেসমেন্ট গ্যারান্টি
                     </li>
                  </ul>

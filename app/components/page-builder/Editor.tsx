@@ -4,7 +4,7 @@
  * A React wrapper for the GrapesJS editor core.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import GjsEditor, { Canvas } from '@grapesjs/react';
 import grapesjs from 'grapesjs';
 import gjsBlocksBasic from 'grapesjs-blocks-basic';
@@ -27,6 +27,14 @@ interface GrapesEditorProps {
 export default function GrapesEditor({ pageId }: GrapesEditorProps) {
   const [editor, setEditor] = (useState<any>)(null);
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
+  
+  // Global Theme State
+  const [themeConfig, setThemeConfig] = useState({
+    primaryColor: '#059669', // emerald-600
+    secondaryColor: '#2563eb', // blue-600
+    fontHeading: 'Hind Siliguri',
+    fontBody: 'Hind Siliguri',
+  });
 
   const onEditor = (editorInstance: any) => {
     console.log('Editor loaded', editorInstance);
@@ -46,6 +54,9 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
           setIsMagicModalOpen(true);
       },
     });
+
+    // Initial Theme Injection
+    updateCanvasTheme(editorInstance, themeConfig);
   };
 
   const handleMagicGenerate = (data: any) => {
@@ -80,6 +91,54 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
 
     toast.success("Page generated successfully!");
   };
+  
+  // Inject Dynamic Tailwind Config when Theme Changes
+  useEffect(() => {
+    if (editor) {
+      updateCanvasTheme(editor, themeConfig);
+    }
+  }, [themeConfig, editor]);
+
+  const updateCanvasTheme = (editor: any, config: any) => {
+    const frame = editor.Canvas.getFrameEl();
+    if (!frame) return;
+
+    const doc = frame.contentDocument;
+    if (!doc) return;
+
+    // Remove existing config script if any
+    const existingScript = doc.getElementById('tailwind-config-script');
+    if (existingScript) existingScript.remove();
+
+    // Create new config script
+    const script = doc.createElement('script');
+    script.id = 'tailwind-config-script';
+    script.innerHTML = `
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '${config.primaryColor}',
+              secondary: '${config.secondaryColor}',
+            },
+            fontFamily: {
+              heading: ['"${config.fontHeading}"', 'sans-serif'],
+              body: ['"${config.fontBody}"', 'sans-serif'],
+            }
+          }
+        }
+      }
+    `;
+    
+    // Inject into head
+    doc.head.appendChild(script);
+    
+    // Force refresh might be needed or just wait for Tailwind Play to observe
+    // Tailwind Play CDN usually watches DOM, but config changes might require re-init
+    // A simple hack to force style re-calc is to add/remove a class from body
+    doc.body.classList.add('theme-updating');
+    setTimeout(() => doc.body.classList.remove('theme-updating'), 10);
+  };
 
   return (
     <div className="h-full w-full flex flex-col bg-white">
@@ -104,7 +163,10 @@ export default function GrapesEditor({ pageId }: GrapesEditorProps) {
           <div className="flex flex-1 overflow-hidden min-h-0">
             {/* Unified Left Sidebar: Blocks + Customization */}
             <div className="h-full overflow-hidden flex-shrink-0">
-              <SidebarPanel />
+            <SidebarPanel 
+                themeConfig={themeConfig} 
+                onThemeChange={setThemeConfig} 
+            />
             </div>
 
             {/* Main Area: Canvas */}
