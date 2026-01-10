@@ -64,3 +64,195 @@ export async function sendPasswordResetEmail(
     };
   }
 }
+
+/**
+ * Send Low Stock Alert to Merchant
+ */
+export async function sendLowStockAlert(
+  apiKey: string,
+  merchantEmail: string,
+  storeName: string,
+  products: { name: string; stock: number }[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!apiKey) {
+    console.warn('[email.server] API Key missing');
+    return { success: false, error: 'API Key missing' };
+  }
+
+  try {
+    const resend = new Resend(apiKey);
+    
+    // Construct product list HTML
+    const productRows = products.map(p => `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 8px;">${p.name}</td>
+        <td style="padding: 8px; color: #DC2626; font-weight: bold;">${p.stock}</td>
+      </tr>
+    `).join('');
+
+    const { data, error } = await resend.emails.send({
+      from: 'Multi-Store SaaS <system@digitalcare.site>',
+      to: [merchantEmail],
+      subject: `[Alert] Low Stock Warning - ${storeName}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #DC2626;">Low Stock Alert</h2>
+          <p>The following products in <strong>${storeName}</strong> are running low on inventory:</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+              <tr style="background-color: #f3f4f6; text-align: left;">
+                <th style="padding: 8px;">Product</th>
+                <th style="padding: 8px;">Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productRows}
+            </tbody>
+          </table>
+          
+          <p>Please login to your dashboard to restock these items.</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error('[email.server] Resend API error:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[email.server] Unexpected error sending low stock alert:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+
+interface SendCampaignEmailParams {
+  email: string;
+  subject: string;
+  content: string;
+  storeName: string;
+  unsubscribeUrl: string;
+}
+
+interface SendOrderConfirmationParams {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  total: number;
+  currency: string;
+  items: { title: string; quantity: number; price: number }[];
+  shippingAddress: string;
+  paymentMethod: string;
+}
+
+interface SendNewOrderAlertParams {
+  merchantEmail: string;
+  storeName: string;
+  orderNumber: string;
+  customerName: string;
+  total: number;
+  currency: string;
+  itemCount: number;
+}
+
+/**
+ * Factory to create email service with methods
+ */
+export function createEmailService(apiKey: string) {
+  const resend = new Resend(apiKey);
+  const fromEmail = 'Multi-Store SaaS <system@digitalcare.site>';
+
+  return {
+    async sendCampaignEmail({ email, subject, content, storeName, unsubscribeUrl }: SendCampaignEmailParams) {
+      return resend.emails.send({
+        from: fromEmail,
+        to: [email],
+        subject,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            ${content}
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #666;">
+              <p>Sent by ${storeName}</p>
+              <a href="${unsubscribeUrl}" style="color: #666;">Unsubscribe</a>
+            </div>
+          </div>
+        `,
+      });
+    },
+
+    async sendOrderConfirmation({ orderNumber, customerName, customerEmail, total, currency, items, shippingAddress, paymentMethod }: SendOrderConfirmationParams) {
+      const itemsHtml = items.map(item => `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 8px;">${item.title} <span style="color: #666;">x${item.quantity}</span></td>
+          <td style="padding: 8px; text-align: right;">${currency} ${item.price * item.quantity}</td>
+        </tr>
+      `).join('');
+
+      return resend.emails.send({
+        from: fromEmail,
+        to: [customerEmail],
+        subject: `Order Confirmation #${orderNumber}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #10B981;">Order Confirmed!</h1>
+            <p>Hi ${customerName},</p>
+            <p>Thank you for your order. We have received it and will process it shortly.</p>
+            
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">Order #${orderNumber}</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                ${itemsHtml}
+                <tr>
+                  <td style="padding: 8px; font-weight: bold;">Total</td>
+                  <td style="padding: 8px; text-align: right; font-weight: bold;">${currency} ${total}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <strong>Date:</strong> ${new Date().toLocaleDateString()}<br>
+              <strong>Payment:</strong> ${paymentMethod}<br>
+              <strong>Shipping:</strong> ${shippingAddress}
+            </div>
+
+            <p>If you have any questions, please reply to this email.</p>
+          </div>
+        `,
+      });
+    },
+
+    async sendNewOrderAlert({ merchantEmail, storeName, orderNumber, customerName, total, currency, itemCount }: SendNewOrderAlertParams) {
+       return resend.emails.send({
+        from: fromEmail,
+        to: [merchantEmail],
+        subject: `[New Order] #${orderNumber} - ${currency} ${total}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563EB;">New Order Received via ${storeName}</h2>
+            <p>You have received a new order from <strong>${customerName}</strong>.</p>
+            
+            <div style="background: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dbeafe;">
+              <p style="font-size: 24px; font-weight: bold; margin: 0;">${currency} ${total}</p>
+              <p style="margin: 5px 0 0;">Order #${orderNumber} • ${itemCount} items</p>
+            </div>
+
+            <p>
+              <a href="https://digitalcare.site/admin/orders/${orderNumber}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                View Order
+              </a>
+            </p>
+          </div>
+        `,
+      });
+    },
+
+    async sendLowStockAlert({ merchantEmail, storeName, products }: { merchantEmail: string; storeName: string; products: { name: string; stock: number }[] }) {
+      return sendLowStockAlert(apiKey, merchantEmail, storeName, products);
+    }
+  };
+}
