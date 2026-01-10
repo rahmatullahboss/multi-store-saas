@@ -524,4 +524,204 @@ export const bdBlocksPlugin = (editor: Editor) => {
     `,
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-red-500" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
   });
+
+  // ========================================
+  // BASIC BUILDING BLOCKS (Elementor-style)
+  // ========================================
+
+  // Section Container
+  Blocks.add('basic-section', {
+    label: 'Section',
+    category: 'Basic',
+    content: `
+      <section class="py-12 px-4 bg-white">
+        <div class="max-w-6xl mx-auto">
+          <!-- Add your content here -->
+        </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/></svg>',
+  });
+
+  // Container/Div
+  Blocks.add('basic-container', {
+    label: 'Container',
+    category: 'Basic',
+    content: `
+      <div class="p-6 bg-gray-50 rounded-xl">
+        <!-- Container content -->
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="4 2"/></svg>',
+  });
+
+  // Flex Row
+  Blocks.add('basic-flex-row', {
+    label: 'Flex Row',
+    category: 'Basic',
+    content: `
+      <div class="flex gap-4 p-4">
+        <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center">Column 1</div>
+        <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center">Column 2</div>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="9" height="12" rx="1"/><rect x="13" y="6" width="9" height="12" rx="1"/></svg>',
+  });
+
+  // Grid Layout
+  Blocks.add('basic-grid', {
+    label: 'Grid 3x1',
+    category: 'Basic',
+    content: `
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
+        <div class="p-6 bg-gray-100 rounded-xl text-center">Item 1</div>
+        <div class="p-6 bg-gray-100 rounded-xl text-center">Item 2</div>
+        <div class="p-6 bg-gray-100 rounded-xl text-center">Item 3</div>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="6" height="16" rx="1"/><rect x="9" y="4" width="6" height="16" rx="1"/><rect x="16" y="4" width="6" height="16" rx="1"/></svg>',
+  });
+
+  // Heading
+  Blocks.add('basic-heading', {
+    label: 'Heading',
+    category: 'Basic',
+    content: `<h2 class="text-3xl font-bold text-gray-900 mb-4">Your Heading Here</h2>`,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h12M4 18h8"/></svg>',
+  });
+
+  // Paragraph
+  Blocks.add('basic-paragraph', {
+    label: 'Paragraph',
+    category: 'Basic',
+    content: `<p class="text-lg text-gray-600 leading-relaxed">এখানে আপনার টেক্সট লিখুন। এটি একটি প্যারাগ্রাফ ব্লক যা আপনি যেকোনো জায়গায় ব্যবহার করতে পারবেন।</p>`,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 10h16M4 14h12M4 18h8"/></svg>',
+  });
+
+  // Button
+  Blocks.add('basic-button', {
+    label: 'Button',
+    category: 'Basic',
+    content: `<button class="bg-primary text-white font-bold px-8 py-4 rounded-xl shadow-lg hover:opacity-90 transition">Click Here</button>`,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="3" y="8" width="18" height="8" rx="4"/><path d="M8 12h8"/></svg>',
+  });
+
+  // Image
+  Blocks.add('basic-image', {
+    label: 'Image',
+    category: 'Basic',
+    content: `<img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80" alt="Image" class="w-full h-auto rounded-xl shadow-lg" />`,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>',
+  });
+
+  // Icon Box
+  Blocks.add('basic-icon-box', {
+    label: 'Icon Box',
+    category: 'Basic',
+    content: `
+      <div class="flex flex-col items-center text-center p-6">
+        <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-3xl mb-4">🚀</div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Feature Title</h3>
+        <p class="text-gray-600">Short description about this feature goes here.</p>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20h16M8 16h8"/></svg>',
+  });
+
+  // Custom HTML Block
+  Blocks.add('basic-html', {
+    label: 'Custom HTML',
+    category: 'Basic',
+    content: `
+      <div class="p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+        <p class="text-center text-gray-500 text-sm">
+          <!-- Paste your custom HTML here -->
+          Custom HTML Block - Edit in code view
+        </p>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>',
+  });
+
+  // Spacer
+  Blocks.add('basic-spacer', {
+    label: 'Spacer',
+    category: 'Basic',
+    content: `<div class="h-16" aria-hidden="true"></div>`,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><path d="M12 4v16M4 12h16" stroke-dasharray="2 2"/></svg>',
+  });
+
+  // Divider
+  Blocks.add('basic-divider', {
+    label: 'Divider',
+    category: 'Basic',
+    content: `<hr class="my-8 border-t border-gray-200" />`,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="2"><path d="M4 12h16"/></svg>',
+  });
+
+  // Card
+  Blocks.add('basic-card', {
+    label: 'Card',
+    category: 'Basic',
+    content: `
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80" alt="Card image" class="w-full h-48 object-cover" />
+        <div class="p-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Card Title</h3>
+          <p class="text-gray-600 mb-4">Card description goes here. You can customize this card.</p>
+          <button class="bg-primary text-white font-bold px-6 py-2 rounded-lg hover:opacity-90 transition">Learn More</button>
+        </div>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>',
+  });
+
+  // Testimonial Card
+  Blocks.add('basic-testimonial', {
+    label: 'Testimonial',
+    category: 'Basic',
+    content: `
+      <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+        <div class="text-yellow-400 text-xl mb-3">★★★★★</div>
+        <p class="text-gray-700 italic mb-4">"এই প্রোডাক্টটি অসাধারণ! আমি খুবই সন্তুষ্ট।"</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">R</div>
+          <div>
+            <h4 class="font-bold text-gray-900">রহিম আহমেদ</h4>
+            <p class="text-sm text-gray-500">ঢাকা</p>
+          </div>
+        </div>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-yellow-500" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+  });
+
+  // Price Box
+  Blocks.add('basic-price', {
+    label: 'Price Box',
+    category: 'Basic',
+    content: `
+      <div class="bg-white p-6 rounded-2xl border-2 border-primary shadow-xl text-center">
+        <div class="text-sm text-gray-500 line-through mb-1">৳ ২,৯৯০</div>
+        <div class="text-4xl font-black text-primary mb-2">৳ ১,৯৯০</div>
+        <div class="text-sm text-emerald-600 font-bold">৩৩% ছাড়!</div>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-emerald-500" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  });
+
+  // CTA Banner
+  Blocks.add('basic-cta', {
+    label: 'CTA Banner',
+    category: 'Basic',
+    content: `
+      <div class="bg-gradient-to-r from-primary to-secondary p-8 rounded-2xl text-center text-white">
+        <h2 class="text-2xl font-bold mb-3">এখনই অর্ডার করুন!</h2>
+        <p class="text-white/80 mb-6">সীমিত সময়ের অফার। মিস করবেন না!</p>
+        <button class="bg-white text-gray-900 font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-gray-100 transition">অর্ডার করুন</button>
+      </div>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-indigo-500" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 10v4M10 12h4"/></svg>',
+  });
 };
+
