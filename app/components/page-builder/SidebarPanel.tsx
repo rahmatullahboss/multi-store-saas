@@ -59,6 +59,37 @@ export default function SidebarPanel() {
           scrollbar-color: #3b82f6 #f1f5f9;
         }
         
+        /* === FORCE LIGHT MODE FOR ALL GRAPES UI === */
+        .gjs-one-bg {
+          background-color: #ffffff !important;
+        }
+        .gjs-two-color {
+          color: #1e293b !important;
+        }
+        .gjs-three-bg {
+          background-color: #f8fafc !important;
+        }
+        .gjs-four-color,
+        .gjs-four-color-h:hover {
+          color: #3b82f6 !important;
+        }
+        
+        /* Base GrapesJS panels */
+        .gjs-pn-panel,
+        .gjs-pn-views-container,
+        .gjs-cv-canvas {
+          background-color: #ffffff !important;
+        }
+        
+        /* All buttons and controls */
+        .gjs-pn-btn {
+          color: #64748b !important;
+        }
+        .gjs-pn-btn:hover,
+        .gjs-pn-active {
+          color: #3b82f6 !important;
+        }
+        
         /* GrapesJS Style Manager Overrides */
         .gjs-sm-sector {
           background: transparent !important;
