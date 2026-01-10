@@ -282,7 +282,7 @@ export function OzzylAIChatWidget() {
               <img 
                 src="/ozzyl-logo-small.png" 
                 alt="Ozzyl AI" 
-                className="w-12 h-12 relative z-10 object-contain"
+                className="w-14 h-14 relative z-10 object-contain"
                 style={{ filter: 'brightness(0) invert(0)' }}
               />
               {/* Online indicator */}
