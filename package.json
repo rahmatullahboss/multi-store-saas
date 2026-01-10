@@ -23,6 +23,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@grapesjs/react": "^2.0.0",
+    "@monaco-editor/react": "^4.7.0",
     "@openrouter/ai-sdk-provider": "^1.5.4",
     "@remix-run/cloudflare": "^2.15.0",
     "@remix-run/cloudflare-pages": "^2.15.0",

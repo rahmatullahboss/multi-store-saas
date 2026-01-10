@@ -25,12 +25,49 @@ import {
   Smartphone, Tablet, Monitor, ChevronDown, ChevronRight,
   Layout, Image as ImageIcon, User, Code, Type, Phone, Mail, MapPin, 
   Facebook, Instagram, MessageCircle, Store, Menu, ShoppingCart, Search, Plus, Trash2, Rows,
-  Undo2, Redo2
+  Undo2, Redo2, GripVertical, PlusCircle
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
 import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { StoreSection, DEFAULT_SECTIONS, SECTION_REGISTRY, SectionSettings } from '~/components/store-sections/registry';
+
+// dnd-kit imports
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Sortable Item Component
+function SortableSectionItem({ section, onSelect, onDelete, isActive }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: section.id });
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const SectionIcon = SECTION_REGISTRY[section.type]?.icon === 'ShoppingBag' ? ShoppingCart :
+                      SECTION_REGISTRY[section.type]?.icon === 'Mail' ? Mail :
+                      Layout;
+
+  return (
+    <div ref={setNodeRef} style={style} className={`flex items-center gap-2 p-2 bg-white rounded border mb-2 group ${isActive ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'}`}>
+      <button {...attributes} {...listeners} className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-4 h-4" />
+      </button>
+      <button onClick={() => onSelect(section.id)} className="flex-1 text-left flex items-center gap-2 overflow-hidden">
+        <SectionIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+        <span className="text-sm font-medium truncate">{section.settings.heading || SECTION_REGISTRY[section.type]?.name}</span>
+      </button>
+      <button onClick={() => onDelete(section.id)} className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+
 
 export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Multi-Store SaaS' }];
 
@@ -134,6 +171,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     typography = JSON.parse(typographyJson);
   } catch { /* ignore */ }
+
+  const sectionsJson = formData.get('sections') as string || '[]';
+  let sections: any[] = [];
+  try {
+    sections = JSON.parse(sectionsJson);
+  } catch { /* ignore */ }
   
   const fontFamily = formData.get('fontFamily') as string || 'inter';
   const bannerUrl = formData.get('bannerUrl') as string || '';
@@ -177,6 +220,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     storeTemplateId,
     primaryColor,
     accentColor,
+    // Add sections to updated config
+    sections: [], // Will be overwritten by ...currentConfig if we don't handle it, but wait:
+    // We are putting this in updatedConfig, so we need to capture it from form data or specialized parsing.
+    // The code block below 'sections' input is hidden JSON string.
+    
+    // ... currentConfig merges existing sections. We need to overwrite if present.
+
     // Extended colors (Phase 1)
     backgroundColor: backgroundColor || undefined,
     textColor: textColor || undefined,
@@ -193,12 +243,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     footerDescription,
     copyrightText,
     footerColumns,
-    // Floating contact buttons
     floatingWhatsappEnabled,
     floatingWhatsappNumber: floatingWhatsappNumber || undefined,
     floatingWhatsappMessage: floatingWhatsappMessage || undefined,
     floatingCallEnabled,
     floatingCallNumber: floatingCallNumber || undefined,
+    sections: sections.length > 0 ? sections : undefined,
   };
 
   await db.update(stores).set({ 
@@ -322,8 +372,59 @@ export default function StoreLiveEditor() {
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   
+  // Sections state
+  const [sections, setSections] = useState<StoreSection[]>((themeConfig as any).sections || DEFAULT_SECTIONS);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+
   // Accordion state
-  const [openSection, setOpenSection] = useState<string>('template');
+  const [openSection, setOpenSection] = useState<string>('sections');
+
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setSections((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over?.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const addSection = (type: string) => {
+    const def = SECTION_REGISTRY[type];
+    if (!def) return;
+    
+    const newSection: StoreSection = {
+      id: `${type}-${Date.now()}`,
+      type: def.type,
+      settings: { ...def.defaultSettings }
+    };
+    
+    setSections([...sections, newSection]);
+    setSelectedSectionId(newSection.id);
+  };
+
+  const updateSectionSettings = (id: string, newSettings: Partial<SectionSettings>) => {
+    setSections(sections.map(s => 
+      s.id === id ? { ...s, settings: { ...s.settings, ...newSettings } } : s
+    ));
+  };
+
+  const removeSection = (id: string) => {
+    if (confirm('Are you sure you want to remove this section?')) {
+      setSections(sections.filter(s => s.id !== id));
+      if (selectedSectionId === id) setSelectedSectionId(null);
+    }
+  };
+
 
   // Iframe ref for postMessage communication
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -360,7 +461,9 @@ export default function StoreLiveEditor() {
     footerDescription,
     copyrightText,
     footerColumns,
-  }), [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns]);
+    sections,
+  }), [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, sections]);
+
 
   const initialSnapshot = useRef(createStateSnapshot());
   
@@ -402,6 +505,7 @@ export default function StoreLiveEditor() {
     setFooterDescription(snapshot.footerDescription);
     setCopyrightText(snapshot.copyrightText);
     setFooterColumns(snapshot.footerColumns);
+    setSections(snapshot.sections);
   }, []);
 
   // Track state changes for history
@@ -444,7 +548,8 @@ export default function StoreLiveEditor() {
       return;
     }
     setHasChanges(true);
-  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, floatingCallNumber]);
+  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, floatingCallNumber, sections]);
+
 
   // Show success message
   useEffect(() => {
@@ -481,10 +586,12 @@ export default function StoreLiveEditor() {
           bannerText,
           announcement: announcementText ? { text: announcementText, link: announcementLink } : undefined,
           customCSS,
+          sections,
         },
       }, '*');
     }
-  }, [iframeReady, selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS]);
+  }, [iframeReady, selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, sections]);
+
 
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
 
@@ -616,6 +723,168 @@ export default function StoreLiveEditor() {
             <input type="hidden" name="floatingWhatsappMessage" value={floatingWhatsappMessage} />
             <input type="hidden" name="floatingCallEnabled" value={floatingCallEnabled.toString()} />
             <input type="hidden" name="floatingCallNumber" value={floatingCallNumber} />
+
+            {/* SECTIONS LIST */}
+            <input type="hidden" name="sections" value={JSON.stringify(sections)} />
+            
+            <AccordionSection
+              title="Sections"
+              icon={Rows}
+              isOpen={openSection === 'sections'}
+              onToggle={() => setOpenSection(openSection === 'sections' ? '' : 'sections')}
+            >
+              <DndContext 
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext 
+                  items={sections.map(s => s.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="mb-4">
+                    {sections.map(section => (
+                      <SortableSectionItem
+                        key={section.id}
+                        section={section}
+                        onSelect={setSelectedSectionId}
+                        onDelete={removeSection}
+                        isActive={selectedSectionId === section.id}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+
+              {/* Add Section Button */}
+              <div className="relative group">
+                <button type="button" className="w-full flex items-center justify-center gap-2 p-2 border border-dashed border-gray-300 rounded hover:border-purple-500 hover:text-purple-600 transition">
+                  <PlusCircle className="w-4 h-4" />
+                  <span className="text-sm">Add Section</span>
+                </button>
+                
+                {/* Add Section Dropdown */}
+                <div className="hidden group-hover:block absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 shadow-lg rounded mt-1 p-2">
+                  {Object.values(SECTION_REGISTRY).map(def => (
+                    <button
+                      key={def.type}
+                      type="button"
+                      onClick={() => addSection(def.type)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center gap-2"
+                    >
+                      <Plus className="w-3 h-3" />
+                      {def.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* SECTION EDITING FORM */}
+              {selectedSectionId && (
+                <div className="mt-6 border-t border-gray-200 pt-4">
+                  <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">
+                    Editing: {sections.find(s => s.id === selectedSectionId)?.settings.heading || 'Section'}
+                  </h4>
+                  {(() => {
+                    const section = sections.find(s => s.id === selectedSectionId);
+                    if (!section) return null;
+                    
+                    return (
+                      <div className="space-y-3">
+                        {/* Heading */}
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Heading</label>
+                          <input 
+                            type="text" 
+                            className="w-full text-sm border border-gray-300 rounded p-1.5"
+                            value={section.settings.heading || ''}
+                            onChange={(e) => updateSectionSettings(section.id, { heading: e.target.value })}
+                          />
+                        </div>
+                        
+                        {/* Subheading */}
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Subheading</label>
+                          <textarea 
+                            className="w-full text-sm border border-gray-300 rounded p-1.5"
+                            rows={2}
+                            value={section.settings.subheading || ''}
+                            onChange={(e) => updateSectionSettings(section.id, { subheading: e.target.value })}
+                          />
+                        </div>
+
+                        {/* Padding */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">Top Padding</label>
+                            <select 
+                              className="w-full text-xs border border-gray-300 rounded p-1"
+                              value={section.settings.paddingTop || 'medium'}
+                              onChange={(e) => updateSectionSettings(section.id, { paddingTop: e.target.value as any })}
+                            >
+                              <option value="none">None</option>
+                              <option value="small">Small</option>
+                              <option value="medium">Medium</option>
+                              <option value="large">Large</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">Bottom Padding</label>
+                            <select 
+                              className="w-full text-xs border border-gray-300 rounded p-1"
+                              value={section.settings.paddingBottom || 'medium'}
+                              onChange={(e) => updateSectionSettings(section.id, { paddingBottom: e.target.value as any })}
+                            >
+                              <option value="none">None</option>
+                              <option value="small">Small</option>
+                              <option value="medium">Medium</option>
+                              <option value="large">Large</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Product Grid Props */}
+                        {section.type === 'product-grid' && (
+                           <div>
+                            <label className="block text-xs text-gray-500 mb-1">Product Count</label>
+                            <input 
+                              type="number" 
+                              className="w-full text-sm border border-gray-300 rounded p-1.5"
+                              value={section.settings.productCount || 8}
+                              onChange={(e) => updateSectionSettings(section.id, { productCount: parseInt(e.target.value) })}
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Hero Section Props */}
+                         {section.type === 'hero' && (
+                           <div>
+                            <label className="block text-xs text-gray-500 mb-1">Button Label</label>
+                            <input 
+                              type="text" 
+                              className="w-full text-sm border border-gray-300 rounded p-1.5"
+                              value={section.settings.primaryAction?.label || ''}
+                              onChange={(e) => updateSectionSettings(section.id, { 
+                                primaryAction: { ...section.settings.primaryAction, label: e.target.value, url: section.settings.primaryAction?.url || '' } 
+                              })}
+                            />
+                          </div>
+                        )}
+
+                        <button 
+                          type="button" 
+                          onClick={() => setSelectedSectionId(null)}
+                          className="text-xs text-gray-500 underline mt-2"
+                        >
+                          Close Settings
+                        </button>
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+
+            </AccordionSection>
 
             {/* Template Section */}
             <AccordionSection

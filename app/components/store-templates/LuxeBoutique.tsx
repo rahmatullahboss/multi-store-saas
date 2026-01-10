@@ -11,6 +11,7 @@ import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
+import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 
 // ============================================================================
@@ -207,61 +208,24 @@ export function LuxeBoutiqueTemplate({
         <div className="h-0.5" style={{ backgroundColor: THEME.accent }} />
       </header>
 
-      {/* ==================== HERO SECTION ==================== */}
-      <section className="relative h-[50vh] lg:h-[60vh] overflow-hidden">
-        {config?.bannerUrl ? (
-          <img 
-            src={config.bannerUrl} 
-            alt="Store Banner" 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <div 
-            className="absolute inset-0"
-            style={{ 
-              background: `linear-gradient(135deg, ${THEME.primary} 0%, #2d2d2d 100%)`
-            }}
-          />
-        )}
+      {/* ==================== DYNAMIC SECTIONS ==================== */}
+      {(config?.sections ?? DEFAULT_SECTIONS).map((section: any) => {
+        const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+        if (!SectionComponent) return null;
         
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/40" />
-        
-        {/* Content */}
-        <div className="relative h-full flex items-center justify-center text-center px-4">
-          <div>
-            <h1 
-              className="text-4xl sm:text-5xl lg:text-6xl font-semibold mb-4 text-white"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              {config?.bannerText || `Welcome to ${storeName}`}
-            </h1>
-            <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
-              Discover our curated collection of exceptional products
-            </p>
-            <Link
-              to="/#products"
-              className="inline-flex items-center gap-2 px-8 py-3 text-sm font-medium uppercase tracking-wider transition-all"
-              style={{ 
-                backgroundColor: 'transparent',
-                color: 'white',
-                border: `2px solid ${THEME.accent}`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = THEME.accent;
-                e.currentTarget.style.color = THEME.primary;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = 'white';
-              }}
-            >
-              {t('buyNow')}
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
+        return (
+          <SectionComponent
+            key={section.id}
+            settings={section.settings}
+            theme={THEME}
+            products={products}
+            categories={categories}
+            storeId={storeId}
+            currency={currency}
+          />
+        );
+      })}
+
 
       {/* ==================== CATEGORY PILLS (Mobile) ==================== */}
       {validCategories.length > 0 && (
@@ -296,74 +260,7 @@ export function LuxeBoutiqueTemplate({
         </div>
       )}
 
-      {/* ==================== PRODUCTS GRID ==================== */}
-      <section id="products" className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Title */}
-          <div className="text-center mb-12">
-            <h2 
-              className="text-3xl lg:text-4xl font-semibold mb-3"
-              style={{ fontFamily: "'Playfair Display', serif", color: THEME.primary }}
-            >
-              {currentCategory || 'Our Collection'}
-            </h2>
-            <div className="w-16 h-0.5 mx-auto" style={{ backgroundColor: THEME.accent }} />
-          </div>
 
-          {/* Products Grid */}
-          {products.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-8">
-              {products.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  storeId={storeId}
-                  currency={currency}
-                  formatPrice={formatPrice}
-                  isPreview={isPreview}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-lg" style={{ color: THEME.muted }}>
-                No products found in this category.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ==================== FOOTER ==================== */}
-      <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
-        {/* Newsletter */}
-        <div className="border-b border-white/10 py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 
-              className="text-2xl font-semibold mb-3"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              Join Our Newsletter
-            </h3>
-            <p className="text-white/70 mb-6 max-w-md mx-auto">
-              Subscribe to receive updates, access to exclusive deals, and more.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-[#c9a961]"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 font-medium uppercase text-sm tracking-wider transition-colors"
-                style={{ backgroundColor: THEME.accent, color: THEME.primary }}
-              >
-                Subscribe
-              </button>
-            </form>
-          </div>
-        </div>
 
         {/* Main Footer */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -455,99 +352,4 @@ export function LuxeBoutiqueTemplate({
 // ============================================================================
 // PRODUCT CARD COMPONENT
 // ============================================================================
-interface ProductCardProps {
-  product: StoreTemplateProps['products'][0];
-  storeId: number;
-  currency: string;
-  formatPrice: (price: number) => string;
-  isPreview?: boolean;
-}
 
-function ProductCard({ product, storeId, currency, formatPrice, isPreview }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
-  const discountPercent = hasDiscount 
-    ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
-    : 0;
-
-  return (
-    <div 
-      className="group relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Image Container */}
-      <Link to={`/product/${product.id}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-100">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <span className="text-4xl">📦</span>
-          </div>
-        )}
-
-        {/* Discount Badge */}
-        {hasDiscount && (
-          <div 
-            className="absolute top-3 left-3 px-2 py-1 text-xs font-medium"
-            style={{ backgroundColor: THEME.accent, color: THEME.primary }}
-          >
-            -{discountPercent}%
-          </div>
-        )}
-
-        {/* Quick Add Button - Shows on Hover */}
-        <div 
-          className="absolute inset-x-0 bottom-0 p-3 transition-all duration-300"
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transform: isHovered ? 'translateY(0)' : 'translateY(100%)',
-          }}
-        >
-          <AddToCartButton
-            productId={product.id}
-            storeId={storeId}
-            className="w-full py-3 text-sm font-medium uppercase tracking-wider transition-colors"
-            style={{ backgroundColor: THEME.primary, color: 'white' }}
-            isPreview={isPreview}
-          >
-            Add to Bag
-          </AddToCartButton>
-        </div>
-      </Link>
-
-      {/* Wishlist Button */}
-      <button 
-        className="absolute top-3 right-3 p-2 rounded-full bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-      >
-        <Heart className="w-4 h-4" style={{ color: THEME.text }} />
-      </button>
-
-      {/* Product Info */}
-      <div className="mt-4 text-center">
-        <Link to={`/product/${product.id}`}>
-          <h3 
-            className="text-sm font-medium mb-1 hover:underline"
-            style={{ color: THEME.text }}
-          >
-            {product.title}
-          </h3>
-        </Link>
-        <div className="flex items-center justify-center gap-2">
-          <span className="font-medium" style={{ color: THEME.primary }}>
-            {formatPrice(product.price)}
-          </span>
-          {hasDiscount && (
-            <span className="text-sm line-through" style={{ color: THEME.muted }}>
-              {formatPrice(product.compareAtPrice!)}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}

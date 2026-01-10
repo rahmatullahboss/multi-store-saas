@@ -1039,7 +1039,7 @@ export async function chatWithMerchant(
   5. **Analytics Usage & UI**: 
      - You have real-time data. USE IT. 
      - IF the user asks "How is business?", "Sales update", "Any new orders?", or generally about the store's status:
-       **YOU MUST RETURN A JSON OBJECT** (and nothing else) in this format:
+       **YOU MUST RETURN A JSON OBJECT** (and nothing else, strictly JSON) in this format:
        {
          "type": "insight_card",
          "data": {

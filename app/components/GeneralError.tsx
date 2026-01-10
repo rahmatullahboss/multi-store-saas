@@ -8,7 +8,7 @@
  */
 
 import { isRouteErrorResponse } from '@remix-run/react';
-import { AlertTriangle, Home, RefreshCw, Store, Search } from 'lucide-react';
+import { AlertTriangle, Home, RefreshCw, Store, Search, LogIn, UserPlus } from 'lucide-react';
 
 interface GeneralErrorProps {
   error: unknown;
@@ -187,13 +187,32 @@ export function StoreNotFoundError() {
         </p>
         
         {/* CTA */}
-        <a
-          href="/"
-          className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <Home className="w-4 h-4" />
-          Browse Available Stores
-        </a>
+        {/* CTA */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors w-full sm:w-auto"
+          >
+            <Home className="w-4 h-4" />
+            Browse Available Stores
+          </a>
+          
+          <a
+            href="/auth/login"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-white/20 text-white font-medium rounded-lg hover:bg-white/10 transition-colors w-full sm:w-auto"
+          >
+            <LogIn className="w-4 h-4" />
+            Login
+          </a>
+
+          <a
+            href="/auth/register"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors w-full sm:w-auto"
+          >
+            <UserPlus className="w-4 h-4" />
+            Register
+          </a>
+        </div>
       </div>
     </div>
   );

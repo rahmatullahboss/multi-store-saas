@@ -217,4 +217,16 @@ export const common = {
   tryAgainBtn: 'Try Again',
   changesApplied: 'Changes applied successfully',
   somethingWentWrong: 'Something went wrong!',
+
+  // Password Reset
+  forgotPassword: 'Forgot Password?',
+  enterEmailForReset: 'Enter your email address and we will send you a link to reset your password.',
+  sendResetLink: 'Send Reset Link',
+  backToLogin: 'Back to Login',
+  resetPassword: 'Reset Password',
+  enterNewPassword: 'Enter a new password for your account.',
+  newPassword: 'New Password',
+  confirmPassword: 'Confirm Password',
+  passwordResetSuccess: 'Password Reset Successful',
+  loginNow: 'Login Now',
 };

@@ -217,4 +217,16 @@ export const common = {
   tryAgainBtn: 'আবার চেষ্টা করুন',
   changesApplied: 'পরিবর্তনগুলো সফলভাবে প্রয়োগ করা হয়েছে',
   somethingWentWrong: 'কিছু ভুল হয়েছে!',
+
+  // Password Reset
+  forgotPassword: 'পাসওয়ার্ড ভুলে গেছেন?',
+  enterEmailForReset: 'আপনার ইমেল ঠিকানা লিখুন এবং আমরা আপনাকে পাসওয়ার্ড রিসেট করার একটি লিঙ্ক পাঠাব।',
+  sendResetLink: 'রিসেট লিঙ্ক পাঠান',
+  backToLogin: 'লগইনে ফিরে যান',
+  resetPassword: 'পাসওয়ার্ড রিসেট করুন',
+  enterNewPassword: 'আপনার অ্যাকাাউন্টের জন্য একটি নতুন পাসওয়ার্ড লিখুন।',
+  newPassword: 'নতুন পাসওয়ার্ড',
+  confirmPassword: 'পাসওয়ার্ড নিশ্চিত করুন',
+  passwordResetSuccess: 'পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে',
+  loginNow: 'এখন লগইন করুন',
 };

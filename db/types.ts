@@ -176,6 +176,8 @@ export interface ThemeConfig {
   floatingWhatsappMessage?: string;
   floatingCallEnabled?: boolean;
   floatingCallNumber?: string;
+  // Visual Editor Sections
+  sections?: any[]; // StoreSections structure
 }
 
 // Social media links configuration

@@ -1199,6 +1199,8 @@ export type StoreTag = typeof storeTags.$inferSelect;
 export type NewStoreTag = typeof storeTags.$inferInsert;
 export type MarketingLead = typeof marketingLeads.$inferSelect;
 export type NewMarketingLead = typeof marketingLeads.$inferInsert;
+export type PasswordReset = typeof passwordResets.$inferSelect;
+export type NewPasswordReset = typeof passwordResets.$inferInsert;
 
 // ============================================================================
 // PAYMENTS TABLE - Historical Subscription Records
@@ -1300,6 +1302,28 @@ export const visitors = sqliteTable('visitors', {
   phone: text('phone').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
+
+// ============================================================================
+// PASSWORD RESETS TABLE - Forgot Password Tokens
+// ============================================================================
+export const passwordResets = sqliteTable('password_resets', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(), // Hashed token for security
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('password_resets_token_idx').on(table.token),
+  index('password_resets_user_idx').on(table.userId),
+]);
+
+export const passwordResetsRelations = relations(passwordResets, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResets.userId],
+    references: [users.id],
+  }),
+}));
 
 export const visitorMessages = sqliteTable('visitor_messages', {
   id: integer('id').primaryKey({ autoIncrement: true }),

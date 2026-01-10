@@ -96,6 +96,8 @@ export const landing = {
   landingSocialProof_instantResponseTrust: 'Instant Response = Trust',
   landingSocialProof_poweredBy: 'POWERED BY',
   landingSocialProof_bestTech: "World's best AI Technology — in Bengali",
+  landingSocialProof_noSupportNeeded: 'No Customer Support staff needed',
+  landingSocialProof_allThree: '(All 3 included)',
 
   landingConversion_stockOut: 'Stock Out!',
   landingConversion_onlyStockLeft: 'Only {stock} left! Order fast!',

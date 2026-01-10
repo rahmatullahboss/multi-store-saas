@@ -96,6 +96,8 @@ export const landing = {
   landingSocialProof_instantResponseTrust: 'তাত্ক্ষণিক উত্তর = বিশ্বাস',
   landingSocialProof_poweredBy: 'পাওয়ারড বাই',
   landingSocialProof_bestTech: 'বিশ্বের সেরা AI প্রযুক্তি — বাংলায়',
+  landingSocialProof_noSupportNeeded: 'কাস্টমার সাপোর্ট স্টাফের প্রয়োজন নেই',
+  landingSocialProof_allThree: '(সব ৩টি আছে)',
 
   landingConversion_stockOut: 'স্টক শেষ!',
   landingConversion_onlyStockLeft: 'মাত্র {stock} টি বাকি! দ্রুত অর্ডার করুন!',

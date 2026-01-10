@@ -204,6 +204,13 @@
       "when": 1768058506894,
       "tag": "0028_cute_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1768065987133,
+      "tag": "0029_right_vermin",
+      "breakpoints": true
     }
   ]
 }

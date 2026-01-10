@@ -44,6 +44,7 @@ declare global {
     AI: any; // Cloudflare Workers AI
     VECTORIZE: VectorizeIndex;
     MIMO_API_KEY?: string; // XiaoMi MiMo API Key
+    ENVIRONMENT?: 'development' | 'production' | 'staging';
   }
 }
 

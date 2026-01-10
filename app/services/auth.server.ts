@@ -10,9 +10,10 @@
 import { createCookieSessionStorage, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { users, stores, adminRoles } from '@db/schema';
+import { users, stores, adminRoles, passwordResets } from '@db/schema';
 import { Authenticator } from 'remix-auth';
 import { GoogleStrategy } from 'remix-auth-google';
+import { sendPasswordResetEmail } from './email.server';
 
 // Helper types for permissions
 export type AdminPermission = 'canSuspend' | 'canDelete' | 'canBilling' | 'canImpersonate' | 'canManageTeam';
@@ -353,6 +354,117 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
       errorCode: 'UNKNOWN_ERROR',
       errorDetails: errorMessage,
     };
+  }
+}
+
+/**
+ * Request a password reset
+ * Generates a token and sends an email
+ */
+export async function requestPasswordReset(email: string, db: D1Database, env: Env): Promise<{ success: boolean; error?: string }> {
+  try {
+    const drizzleDb = drizzle(db);
+    
+    // Check if user exists
+    const userResult = await drizzleDb
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase()))
+      .limit(1);
+      
+    if (!userResult || userResult.length === 0) {
+      // Security: Don't reveal if user exists. Pretend success.
+      // Log for debugging/audit
+      console.log('[auth.server] Password reset requested for non-existent email:', email);
+      return { success: true };
+    }
+    
+    const user = userResult[0];
+    
+    // Generate secure token (random 32 bytes hex)
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+      
+    // Expiry: 1 hour from now
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    
+    // Save to DB
+    await drizzleDb.insert(passwordResets).values({
+      userId: user.id,
+      token,
+      expiresAt,
+    });
+    
+    console.log('[auth.server] Created password reset token for user:', user.id);
+    
+    // Send email
+    const emailResult = await sendPasswordResetEmail(email.toLowerCase(), token, env);
+    
+    if (!emailResult.success) {
+      console.error('[auth.server] Failed to send reset email:', emailResult.error);
+      return { success: false, error: 'Failed to send email. Please try again later.' };
+    }
+    
+    return { success: true };
+    
+  } catch (error) {
+    console.error('[auth.server] Error requesting password reset:', error);
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
+/**
+ * Reset password using a valid token
+ */
+export async function resetPassword(token: string, newPassword: string, db: D1Database): Promise<{ success: boolean; error?: string }> {
+  try {
+    const drizzleDb = drizzle(db);
+    const now = new Date();
+    
+    // Verify token
+    const resetRecord = await drizzleDb
+      .select()
+      .from(passwordResets)
+      .where(eq(passwordResets.token, token))
+      .limit(1);
+      
+    if (!resetRecord || resetRecord.length === 0) {
+      return { success: false, error: 'Invalid or expired password reset link.' };
+    }
+    
+    const reset = resetRecord[0];
+    
+    // Check expiration
+    if (reset.expiresAt < now) {
+      return { success: false, error: 'This password reset link has expired.' };
+    }
+    
+    // Check if already used (if we track usedAt, though implementation below deletes it)
+    if (reset.usedAt) {
+      return { success: false, error: 'This link has already been used.' };
+    }
+    
+    // Hash new password
+    const passwordHash = await hashPassword(newPassword);
+    
+    // Update user password
+    await drizzleDb.update(users)
+      .set({ passwordHash })
+      .where(eq(users.id, reset.userId));
+      
+    // Mark token as used or delete it
+    // Deleting is cleaner for single-use tokens
+    await drizzleDb.delete(passwordResets)
+      .where(eq(passwordResets.id, reset.id));
+      
+    console.log('[auth.server] Password successfully reset for user:', reset.userId);
+    
+    return { success: true };
+    
+  } catch (error) {
+    console.error('[auth.server] Error resetting password:', error);
+    return { success: false, error: 'Failed to reset password. Please try again.' };
   }
 }
 
