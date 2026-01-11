@@ -5,7 +5,7 @@
  * Use it for mocking global dependencies or setting up test utilities.
  */
 
-import { vi } from 'vitest';
+import { vi, afterEach } from 'vitest';
 
 // Mock environment variables for tests
 process.env.NODE_ENV = 'test';
