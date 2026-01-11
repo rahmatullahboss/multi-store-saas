@@ -15,7 +15,7 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions } from '@db/schema';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers } from '@db/schema';
 import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { sendPushNotification } from '~/services/push.server';
@@ -419,6 +419,79 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
         throw orderError;
     }
+
+    // ============================================================================
+    // CUSTOMER CREATION/UPDATE (For Segmentation & Marketing)
+    // ============================================================================
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        // Check if customer exists (by phone or email)
+        const existingCustomer = await db.select({ id: customers.id, totalOrders: customers.totalOrders, totalSpent: customers.totalSpent })
+          .from(customers)
+          .where(
+            and(
+              eq(customers.storeId, input.store_id),
+              or(
+                eq(customers.phone, input.phone),
+                input.customer_email ? eq(customers.email, input.customer_email) : undefined
+              )
+            )
+          )
+          .limit(1);
+        
+        if (existingCustomer.length > 0) {
+          // UPDATE existing customer stats
+          const customer = existingCustomer[0];
+          const newTotalOrders = (customer.totalOrders || 0) + 1;
+          const newTotalSpent = (customer.totalSpent || 0) + total;
+          
+          // Determine new segment
+          let newSegment: 'vip' | 'regular' = 'regular';
+          if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
+            newSegment = 'vip';
+          }
+          
+          await db.update(customers)
+            .set({
+              totalOrders: newTotalOrders,
+              totalSpent: newTotalSpent,
+              lastOrderAt: now,
+              segment: newSegment,
+              name: input.customer_name,
+              address: input.address,
+              updatedAt: now,
+            })
+            .where(eq(customers.id, customer.id));
+          
+          // Link customer to order
+          await db.update(orders)
+            .set({ customerId: customer.id })
+            .where(eq(orders.id, orderId!));
+            
+        } else {
+          // CREATE new customer
+          const [newCustomer] = await db.insert(customers).values({
+            storeId: input.store_id,
+            email: input.customer_email || `${input.phone}@phone.local`, // Use phone as email fallback
+            name: input.customer_name,
+            phone: input.phone,
+            address: input.address,
+            totalOrders: 1,
+            totalSpent: total,
+            lastOrderAt: now,
+            segment: 'regular', // First order = regular
+          }).returning({ id: customers.id });
+          
+          // Link customer to order
+          await db.update(orders)
+            .set({ customerId: newCustomer.id })
+            .where(eq(orders.id, orderId!));
+        }
+      } catch (customerError) {
+        console.error('Customer creation/update failed:', customerError);
+        // Non-blocking - order already created
+      }
+    })());
 
     // ============================================================================
     // NOTIFICATIONS & TRACKING (Non-blocking)
