@@ -658,9 +658,8 @@ export default function StoreLiveEditor() {
 
 
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
-  const previewUrl = currentPage === 'home' 
-    ? storeUrl 
-    : (demoProductId ? `${storeUrl}/products/${demoProductId}` : storeUrl);
+  // Points to internal preview frame for better reliability and real-time updates
+  const previewUrl = `/store-preview-frame?storeId=${store.id}${demoProductId ? `&demoProductId=${demoProductId}` : ''}`;
 
   const handlePublish = () => {
     if (confirm('Are you sure you want to publish this theme to the marketplace? It will be reviewed by admins before appearing public.')) {

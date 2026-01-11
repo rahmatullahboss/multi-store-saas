@@ -10,6 +10,165 @@ import { useState, useRef } from 'react';
 import { Menu, X, Search, ShoppingCart, ChevronRight, ChevronLeft, Shirt, Watch, Laptop, ShoppingBag, Sparkles, LayoutGrid } from 'lucide-react';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { StoreTemplateProps } from '~/templates/store-registry';
+import { getSectionDefinition } from '~/components/store-sections/registry';
+
+// Define ModernProductCard component (Custom for this theme)
+function ModernProductCard({ product, storeId, currency, formatPrice, theme }: any) {
+  const primaryColor = theme.primary || '#f59e0b';
+  
+  const getDiscountPercentage = (price: number, compareAtPrice: number | null) => {
+    if (!compareAtPrice || compareAtPrice <= price) return 0;
+    return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
+  };
+
+  const discount = getDiscountPercentage(product.price, product.compareAtPrice);
+
+  return (
+    <article
+      className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-amber-500/60"
+    >
+      <Link to={`/products/${product.id}`} className="block">
+        {/* Product Image */}
+        <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+              <ShoppingBag className="w-12 h-12 text-gray-300 dark:text-gray-500" />
+            </div>
+          )}
+
+          {/* Discount Badge */}
+          {discount > 0 && (
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
+              <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 shadow-md text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded">
+                -{discount}% OFF
+              </span>
+            </div>
+          )}
+
+          {/* Category Badge */}
+          {product.category && (
+            <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
+              <span className="bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1 rounded">
+                {product.category}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Card Content */}
+        <div className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
+          <h3 className="text-sm sm:text-lg font-semibold sm:font-bold leading-tight line-clamp-2">
+            {product.title}
+          </h3>
+          <p className="hidden sm:block text-gray-500 dark:text-gray-400 text-sm leading-relaxed line-clamp-2">
+            {product.description}
+          </p>
+        </div>
+      </Link>
+
+      {/* Footer with Price and Button */}
+      <div className="p-1.5 sm:p-3 pt-0 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg sm:text-xl font-bold" style={{ color: primaryColor }}>
+              {formatPrice(product.price)}
+            </span>
+            {product.compareAtPrice && product.compareAtPrice > product.price && (
+              <span className="text-xs sm:text-sm text-gray-400 line-through">
+                {formatPrice(product.compareAtPrice)}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2">
+          <AddToCartButton 
+            productId={product.id}
+            storeId={storeId}
+            className="w-full px-3 py-2 rounded-lg text-sm font-medium border transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+            style={{ borderColor: primaryColor, color: primaryColor }}
+          >
+            Add to Cart
+          </AddToCartButton>
+          
+          <AddToCartButton 
+            productId={product.id}
+            storeId={storeId}
+            mode="buy_now"
+            className="w-full px-3 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: primaryColor }}
+          >
+            Order Now
+          </AddToCartButton>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+const DEFAULT_MODERN_SECTIONS = [
+  {
+    id: 'hero',
+    type: 'modern-hero',
+    settings: {
+      heading: 'Premium Quality Products',
+      subheading: 'Discover our amazing collection with the best quality and prices.',
+      primaryAction: { label: 'Shop Now', url: '/products' },
+      secondaryAction: { label: 'Browse Categories', url: '/about' },
+      badge: 'New Collection'
+    }
+  },
+  {
+    id: 'category-list',
+    type: 'category-list',
+    settings: {
+      layout: 'pills',
+      limit: 6
+    }
+  },
+  {
+    id: 'new-arrivals',
+    type: 'product-grid',
+    settings: {
+      heading: 'New Arrivals',
+      productCount: 8,
+      paddingTop: 'large',
+      paddingBottom: 'large'
+    }
+  },
+  {
+    id: 'trending',
+    type: 'product-scroll',
+    settings: {
+      heading: 'Trending Now',
+      limit: 8
+    }
+  },
+  {
+    id: 'newsletter',
+    type: 'newsletter',
+    settings: {
+      heading: 'Stay Updated',
+      subheading: 'Subscribe to get special offers, free giveaways, and updates.'
+    }
+  },
+  {
+    id: 'features',
+    type: 'modern-features',
+    settings: {
+      heading: 'Why Choose Us?',
+      subheading: "We're committed to providing the best shopping experience"
+    }
+  }
+];
+
 
 export function ModernPremiumTemplate({
   storeName,
@@ -25,8 +184,6 @@ export function ModernPremiumTemplate({
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const trendingRef = useRef<HTMLDivElement>(null);
-  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -36,29 +193,8 @@ export function ModernPremiumTemplate({
 
   const primaryColor = config?.primaryColor || '#f59e0b';
   const accentColor = config?.accentColor || '#f59e0b';
-  const bannerUrl = config?.bannerUrl;
-  const bannerText = config?.bannerText;
   
-  // Get products for different sections
-  const featuredProducts = products.slice(0, 8);
-  const trendingProducts = products.slice(0, 4);
 
-  // Calculate discount percentage
-  const getDiscountPercentage = (price: number, compareAtPrice: number | null) => {
-    if (!compareAtPrice || compareAtPrice <= price) return 0;
-    return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
-  };
-
-  // Scroll trending section
-  const scrollTrending = (direction: 'left' | 'right') => {
-    if (trendingRef.current) {
-      const scrollAmount = 340;
-      trendingRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  };
 
   // Category icons mapping
   const getCategoryIcon = (category: string | null, index: number) => {
@@ -234,6 +370,8 @@ export function ModernPremiumTemplate({
             categories={categories}
             currentCategory={currentCategory}
             storeId={storeId}
+            currency={currency}
+            formatPrice={formatPrice}
             ProductCardComponent={productCardComponent}
           />
         );

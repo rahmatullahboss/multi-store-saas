@@ -6,7 +6,7 @@
  */
 
 import { Link } from '@remix-run/react';
-import { ShoppingBag, Search, Menu, X, Heart, ChevronRight, Instagram, Facebook, Mail } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Heart, ChevronRight, Instagram, Facebook, Mail, Home as HomeIcon, Grid3X3, User, Phone, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
@@ -56,7 +56,7 @@ export function LuxeBoutiqueTemplate({
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: THEME.background, fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: THEME.background, fontFamily: "'Inter', sans-serif" }}>
       {/* Google Fonts */}
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
@@ -354,6 +354,67 @@ export function LuxeBoutiqueTemplate({
           </div>
         </div>
       </footer>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
+        <div className="flex items-center justify-around h-14">
+          <Link to="/" className="flex flex-col items-center gap-0.5 py-1 px-3">
+            <HomeIcon className="w-5 h-5" style={{ color: !currentCategory ? THEME.accent : THEME.muted }} />
+            <span className="text-[10px] font-medium" style={{ color: !currentCategory ? THEME.accent : THEME.muted }}>Home</span>
+          </Link>
+          <button 
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-0.5 py-1 px-3"
+          >
+            <Grid3X3 className="w-5 h-5" style={{ color: THEME.muted }} />
+            <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Shop</span>
+          </button>
+          <Link to="/cart" className="flex flex-col items-center gap-0.5 py-1 px-3 relative">
+            <ShoppingCart className="w-5 h-5" style={{ color: THEME.muted }} />
+            <span 
+              className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold"
+              style={{ backgroundColor: THEME.accent, color: THEME.primary }}
+            >
+              0
+            </span>
+            <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Bag</span>
+          </Link>
+          {!isPreview && (
+            <Link to="/auth/login" className="flex flex-col items-center gap-0.5 py-1 px-3">
+              <User className="w-5 h-5" style={{ color: THEME.muted }} />
+              <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Account</span>
+            </Link>
+          )}
+        </div>
+      </nav>
+
+      {/* Floating Contact Buttons */}
+      {!isPreview && (
+        <>
+          {config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber && (
+            <a
+              href={`https://wa.me/${config.floatingWhatsappNumber.replace(/\D/g, '').replace(/^01/, '8801')}?text=${encodeURIComponent(config.floatingWhatsappMessage || `Hello ${storeName}, I'd like to know...`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="fixed bottom-20 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+              title="Message on WhatsApp"
+            >
+              <MessageCircle className="h-7 w-7 text-white" />
+              <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25" />
+            </a>
+          )}
+          {config?.floatingCallEnabled && config?.floatingCallNumber && (
+            <a
+              href={`tel:${config.floatingCallNumber}`}
+              className={`fixed bottom-20 md:bottom-8 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
+              title="Call us"
+            >
+              <Phone className="h-7 w-7 text-white" />
+              <span className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-25" />
+            </a>
+          )}
+        </>
+      )}
     </div>
   );
 }

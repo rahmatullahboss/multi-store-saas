@@ -26,7 +26,9 @@ import {
   Instagram,
   ShoppingBag,
   Plus,
-  Minus
+  Minus,
+  Grid3X3,
+  Home as HomeIcon
 } from 'lucide-react';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { StoreTemplateProps } from '~/templates/store-registry';
@@ -65,7 +67,7 @@ export function GhorerBazarTemplate({
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: GHORER_BAZAR_THEME.background }}>
+    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: GHORER_BAZAR_THEME.background }}>
       {/* Top Bar - Orange */}
       <div 
         className="text-white text-center py-2 text-sm"
@@ -357,7 +359,40 @@ export function GhorerBazarTemplate({
         </div>
       </footer>
 
-      {/* Floating Contact Buttons from Config */}
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
+        <div className="flex items-center justify-around h-14">
+          <Link to="/" className="flex flex-col items-center gap-0.5 py-1 px-3">
+            <HomeIcon className="w-5 h-5" style={{ color: !currentCategory ? primary : GHORER_BAZAR_THEME.muted }} />
+            <span className="text-[10px] font-medium" style={{ color: !currentCategory ? primary : GHORER_BAZAR_THEME.muted }}>হোম</span>
+          </Link>
+          <button 
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-0.5 py-1 px-3"
+          >
+            <Grid3X3 className="w-5 h-5" style={{ color: GHORER_BAZAR_THEME.muted }} />
+            <span className="text-[10px] font-medium" style={{ color: GHORER_BAZAR_THEME.muted }}>ক্যাটেগরি</span>
+          </button>
+          <Link to="/cart" className="flex flex-col items-center gap-0.5 py-1 px-3 relative">
+            <ShoppingCart className="w-5 h-5" style={{ color: GHORER_BAZAR_THEME.muted }} />
+            <span 
+              className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+              style={{ backgroundColor: accent }}
+            >
+              0
+            </span>
+            <span className="text-[10px] font-medium" style={{ color: GHORER_BAZAR_THEME.muted }}>কার্ট</span>
+          </Link>
+          {!isPreview && (
+            <Link to="/auth/login" className="flex flex-col items-center gap-0.5 py-1 px-3">
+              <User className="w-5 h-5" style={{ color: GHORER_BAZAR_THEME.muted }} />
+              <span className="text-[10px] font-medium" style={{ color: GHORER_BAZAR_THEME.muted }}>অ্যাকাউন্ট</span>
+            </Link>
+          )}
+        </div>
+      </nav>
+
+      {/* Floating Contact Buttons from Config - Above bottom nav on mobile */}
       {!isPreview && (
         <>
           {config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber && (
@@ -365,7 +400,7 @@ export function GhorerBazarTemplate({
               href={`https://wa.me/${config.floatingWhatsappNumber.replace(/\D/g, '').replace(/^01/, '8801')}?text=${encodeURIComponent(config.floatingWhatsappMessage || `হ্যালো ${storeName}, আমি জানতে চাই...`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="fixed bottom-20 right-4 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+              className="fixed bottom-20 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
               title="WhatsApp এ মেসেজ করুন"
             >
               <MessageCircle className="h-7 w-7 text-white" />
@@ -375,7 +410,7 @@ export function GhorerBazarTemplate({
           {config?.floatingCallEnabled && config?.floatingCallNumber && (
             <a
               href={`tel:${config.floatingCallNumber}`}
-              className={`fixed bottom-20 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-50 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
+              className={`fixed bottom-20 md:bottom-8 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
               title="কল করুন"
             >
               <Phone className="h-7 w-7 text-white" />
@@ -388,7 +423,7 @@ export function GhorerBazarTemplate({
               href={`https://wa.me/${socialLinks.whatsapp.replace(/\D/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="fixed bottom-20 right-4 w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition z-50"
+              className="fixed bottom-20 md:bottom-8 right-4 w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition z-40"
             >
               <MessageCircle className="h-7 w-7" />
             </a>
