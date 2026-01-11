@@ -1506,6 +1506,151 @@ Visitor এর প্রশ্ন: "${userMessage}"
 }
 
 // ============================================================================
+// STORE EDITOR NATURAL LANGUAGE COMMANDS
+// ============================================================================
+
+/**
+ * Schema for Store Editor Commands
+ * Supports granular actions for natural language store editing
+ */
+export const StoreEditorCommandSchema = z.object({
+  action: z.enum([
+    'update_colors',      // Change theme colors (primary, accent, background, text)
+    'update_font',        // Change font family
+    'add_section',        // Add new section at specific position
+    'remove_section',     // Remove section by ID or type
+    'update_section',     // Edit section settings (heading, subheading, etc.)
+    'reorder_sections',   // Move section up/down
+    'update_header',      // Edit header settings
+    'update_footer',      // Edit footer settings
+    'apply_preset',       // Apply a color/theme preset
+    'general_response'    // Can't perform action, explain why
+  ]),
+  target: z.string().optional(),      // Section ID, type, or 'first'/'last'
+  position: z.enum(['before', 'after', 'first', 'last']).optional(), // For add_section
+  value: z.any(),                     // Action-specific data
+  message: z.string(),                // User-friendly message (Bengali/English)
+  confidence: z.number().min(0).max(1), // AI confidence (0-1)
+  requiresConfirmation: z.boolean().optional(), // If true, show confirmation before applying
+});
+
+export type StoreEditorCommandResult = z.infer<typeof StoreEditorCommandSchema>;
+
+/**
+ * Available Section Types for AI Reference
+ */
+const AVAILABLE_SECTIONS = [
+  'hero', 'modern-hero', 'product-grid', 'newsletter', 'rich-text', 
+  'features', 'modern-features', 'video', 'testimonials', 'category-list',
+  'product-scroll', 'banner', 'faq'
+];
+
+/**
+ * Color Presets for AI Reference
+ */
+const COLOR_PRESETS = {
+  'indigo': { primary: '#6366f1', accent: '#f59e0b', bg: '#f9fafb', text: '#111827' },
+  'emerald': { primary: '#10b981', accent: '#f472b6', bg: '#ecfdf5', text: '#064e3b' },
+  'rose': { primary: '#f43f5e', accent: '#8b5cf6', bg: '#fff1f2', text: '#4c1d1d' },
+  'amber': { primary: '#f59e0b', accent: '#3b82f6', bg: '#fffbeb', text: '#78350f' },
+  'sky': { primary: '#0ea5e9', accent: '#f97316', bg: '#f0f9ff', text: '#0c4a6e' },
+  'dark': { primary: '#8b5cf6', accent: '#f59e0b', bg: '#1f2937', text: '#f9fafb' },
+  'ghorer-bazar': { primary: '#F28C38', accent: '#FF6B35', bg: '#FFF8F0', text: '#2D2D2D' },
+  'daraz': { primary: '#F85606', accent: '#FFB400', bg: '#FAFAFA', text: '#212121' },
+};
+
+/**
+ * Command Store Editor - Natural Language to JSON Actions
+ * Supports Bengali and English commands
+ */
+export async function commandStoreEditor(
+  apiKey: string,
+  userPrompt: string,
+  context: {
+    sections: Array<{ id: string; type: string; settings: any }>;
+    currentColors: { primary: string; accent: string; background: string; text: string };
+    currentFont: string;
+    storeName: string;
+  },
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<StoreEditorCommandResult> {
+  const systemPrompt = `You are an expert Store Theme Editor AI for a Bangladeshi e-commerce platform.
+Your task is to translate natural language commands (Bengali or English) into JSON actions.
+
+### Current Store State:
+- Store Name: ${context.storeName}
+- Primary Color: ${context.currentColors.primary}
+- Accent Color: ${context.currentColors.accent}
+- Background: ${context.currentColors.background}
+- Text Color: ${context.currentColors.text}
+- Font: ${context.currentFont}
+- Sections (in order): ${context.sections.map((s, i) => `${i+1}. ${s.type} (ID: ${s.id})`).join(', ')}
+
+### Available Section Types:
+${AVAILABLE_SECTIONS.join(', ')}
+
+### Color Presets:
+${Object.entries(COLOR_PRESETS).map(([name, colors]) => `- ${name}: primary=${colors.primary}`).join('\n')}
+
+### Available Actions:
+1. **update_colors**: Change colors. value = { primaryColor?, accentColor?, backgroundColor?, textColor? }
+2. **update_font**: Change font. value = font_id (inter, poppins, hind-siliguri, etc.)
+3. **add_section**: Add section. value = { type, settings? }, position = 'first'/'last'/'after', target = section_id
+4. **remove_section**: Remove section. target = section_id or section_type (matches first found)
+5. **update_section**: Edit section. target = section_id/type, value = { heading?, subheading?, ... }
+6. **reorder_sections**: Move section. target = section_id, value = 'up'/'down'/'first'/'last'
+7. **update_header**: Edit header. value = { layout?, showSearch?, showCart? }
+8. **update_footer**: Edit footer. value = { description?, copyrightText? }
+9. **apply_preset**: Apply theme preset. value = preset_name (indigo, emerald, daraz, etc.)
+10. **general_response**: Cannot act. message = explanation
+
+### Rules:
+1. **Language Detection**: If user speaks Bengali/Banglish, respond in Bengali. Otherwise English.
+2. **Intent Matching**: Map user intent to the most appropriate action.
+   - "রঙ পরিবর্তন" / "change color" → update_colors
+   - "নতুন সেকশন" / "add section" → add_section
+   - "ডিলিট করো" / "delete/remove" → remove_section
+   - "হেডিং পরিবর্তন" / "change heading" → update_section
+   - "উপরে নাও" / "move up" → reorder_sections
+3. **Confidence Scoring**:
+   - 1.0: Exact match, no ambiguity
+   - 0.8-0.9: High confidence, minor inference
+   - 0.5-0.7: Moderate confidence, some guessing
+   - <0.5: Low confidence, need clarification (set requiresConfirmation=true)
+4. **Section Targeting**:
+   - "হিরো সেকশন" → Find section with type='hero' or type='modern-hero'
+   - "প্রথম সেকশন" → First section (index 0)
+   - "শেষ সেকশন" → Last section
+5. **Color Parsing**:
+   - "লাল" / "red" → #ef4444
+   - "নীল" / "blue" → #3b82f6
+   - "সবুজ" / "green" → #10b981
+   - "বেগুনি" / "purple" → #8b5cf6
+   - "কমলা" / "orange" → #f97316
+
+### Output Format (STRICT JSON):
+{
+  "action": "update_colors",
+  "target": null,
+  "value": { "primaryColor": "#ef4444" },
+  "message": "প্রাইমারি কালার লাল করে দিলাম! 🎨",
+  "confidence": 0.95,
+  "requiresConfirmation": false
+}
+
+CRITICAL: Return ONLY valid JSON. No markdown, no explanation outside JSON.`;
+
+  const fullUserPrompt = `User Command: "${userPrompt}"
+
+Generate the Store Editor Command JSON:`;
+
+  const response = await callAI(apiKey, systemPrompt, fullUserPrompt, model, baseUrl);
+  const parsed = extractJSON(response);
+  return StoreEditorCommandSchema.parse(parsed);
+}
+
+// ============================================================================
 // EXPORT: AI Service Factory
 // ============================================================================
 export function createAIService(apiKey: string | undefined, options?: { model?: string, baseUrl?: string, context?: any }) {
@@ -1570,5 +1715,14 @@ export function createAIService(apiKey: string | undefined, options?: { model?: 
 
     chatWithVisitor: (message: string, context: any = {}) =>
       chatWithVisitor(validApiKey, message, context, options?.model, options?.baseUrl),
+
+    // Store Editor Natural Language Commands
+    commandStoreEditor: (prompt: string, context: { 
+      sections: Array<{ id: string; type: string; settings: any }>;
+      currentColors: { primary: string; accent: string; background: string; text: string };
+      currentFont: string;
+      storeName: string;
+    }) =>
+      commandStoreEditor(validApiKey, prompt, context, options?.model, options?.baseUrl),
   };
 }

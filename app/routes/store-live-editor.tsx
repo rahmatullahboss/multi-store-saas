@@ -706,6 +706,146 @@ export default function StoreLiveEditor() {
     }
   };
 
+  // Handle granular AI commands
+  const handleAICommand = (command: any) => {
+    switch (command.action) {
+      case 'update_colors':
+        if (command.value?.primaryColor) setPrimaryColor(command.value.primaryColor);
+        if (command.value?.accentColor) setAccentColor(command.value.accentColor);
+        if (command.value?.backgroundColor) setBackgroundColor(command.value.backgroundColor);
+        if (command.value?.textColor) setTextColor(command.value.textColor);
+        break;
+
+      case 'update_font':
+        if (command.value) setFontFamily(command.value);
+        break;
+
+      case 'add_section': {
+        if (!command.value?.type) break;
+        const def = SECTION_REGISTRY[command.value.type];
+        if (!def) break;
+        
+        const newSection: StoreSection = {
+          id: `${command.value.type}-${Date.now()}`,
+          type: def.type,
+          settings: { ...def.defaultSettings, ...(command.value.settings || {}) }
+        };
+        
+        if (command.position === 'first') {
+          setHomeSections([newSection, ...homeSections]);
+        } else {
+          setHomeSections([...homeSections, newSection]);
+        }
+        setSelectedSectionId(newSection.id);
+        break;
+      }
+
+      case 'remove_section': {
+        const targetId = command.target;
+        if (!targetId) break;
+        
+        // Find by ID first, then by type
+        let found = homeSections.find(s => s.id === targetId);
+        if (!found) {
+          found = homeSections.find(s => s.type === targetId || s.type.includes(targetId));
+        }
+        if (found) {
+          setHomeSections(homeSections.filter(s => s.id !== found!.id));
+          if (selectedSectionId === found.id) setSelectedSectionId(null);
+        }
+        break;
+      }
+
+      case 'update_section': {
+        const targetId = command.target;
+        if (!targetId || !command.value) break;
+        
+        // Find by ID or type
+        const section = homeSections.find(s => s.id === targetId) || 
+                        homeSections.find(s => s.type === targetId || s.type.includes(targetId));
+        if (section) {
+          setHomeSections(homeSections.map(s => 
+            s.id === section.id 
+              ? { ...s, settings: { ...s.settings, ...command.value } }
+              : s
+          ));
+        }
+        break;
+      }
+
+      case 'reorder_sections': {
+        const targetId = command.target;
+        const direction = command.value;
+        if (!targetId || !direction) break;
+        
+        const section = homeSections.find(s => s.id === targetId) ||
+                        homeSections.find(s => s.type === targetId);
+        if (!section) break;
+        
+        const idx = homeSections.findIndex(s => s.id === section.id);
+        if (idx === -1) break;
+        
+        let newIdx = idx;
+        if (direction === 'up' && idx > 0) newIdx = idx - 1;
+        else if (direction === 'down' && idx < homeSections.length - 1) newIdx = idx + 1;
+        else if (direction === 'first') newIdx = 0;
+        else if (direction === 'last') newIdx = homeSections.length - 1;
+        
+        if (newIdx !== idx) {
+          const newSections = [...homeSections];
+          newSections.splice(idx, 1);
+          newSections.splice(newIdx, 0, section);
+          setHomeSections(newSections);
+        }
+        break;
+      }
+
+      case 'update_header':
+        if (command.value?.layout) setHeaderLayout(command.value.layout);
+        if (command.value?.showSearch !== undefined) setHeaderShowSearch(command.value.showSearch);
+        if (command.value?.showCart !== undefined) setHeaderShowCart(command.value.showCart);
+        break;
+
+      case 'update_footer':
+        if (command.value?.description) setFooterDescription(command.value.description);
+        if (command.value?.copyrightText) setCopyrightText(command.value.copyrightText);
+        break;
+
+      case 'apply_preset': {
+        const presets: Record<string, any> = {
+          'indigo': { primary: '#6366f1', accent: '#f59e0b', bg: '#f9fafb', text: '#111827' },
+          'emerald': { primary: '#10b981', accent: '#f472b6', bg: '#ecfdf5', text: '#064e3b' },
+          'rose': { primary: '#f43f5e', accent: '#8b5cf6', bg: '#fff1f2', text: '#4c1d1d' },
+          'amber': { primary: '#f59e0b', accent: '#3b82f6', bg: '#fffbeb', text: '#78350f' },
+          'sky': { primary: '#0ea5e9', accent: '#f97316', bg: '#f0f9ff', text: '#0c4a6e' },
+          'dark': { primary: '#8b5cf6', accent: '#f59e0b', bg: '#1f2937', text: '#f9fafb' },
+          'ghorer-bazar': { primary: '#F28C38', accent: '#FF6B35', bg: '#FFF8F0', text: '#2D2D2D' },
+          'daraz': { primary: '#F85606', accent: '#FFB400', bg: '#FAFAFA', text: '#212121' },
+        };
+        const presetName = typeof command.value === 'string' ? command.value.toLowerCase() : '';
+        const preset = presets[presetName];
+        if (preset) {
+          setPrimaryColor(preset.primary);
+          setAccentColor(preset.accent);
+          setBackgroundColor(preset.bg);
+          setTextColor(preset.text);
+        }
+        break;
+      }
+
+      default:
+        console.log('[AI Command] Unknown action:', command.action);
+    }
+  };
+
+  // Build context for AI Assistant
+  const storeContext = {
+    sections: homeSections.map(s => ({ id: s.id, type: s.type, settings: s.settings })),
+    currentColors: { primary: primaryColor, accent: accentColor, background: backgroundColor, text: textColor },
+    currentFont: fontFamily,
+    storeName: store.name
+  };
+
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* Top Bar */}
@@ -1896,6 +2036,8 @@ export default function StoreLiveEditor() {
         isOpen={isAIAssistantOpen} 
         onClose={() => setIsAIAssistantOpen(false)} 
         onApplyConfig={handleAIApplyConfig}
+        onApplyCommand={handleAICommand}
+        storeContext={storeContext}
       />
     </div>
   );

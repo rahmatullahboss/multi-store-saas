@@ -305,6 +305,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ success: true, data: result });
       }
 
+      case 'STORE_EDITOR_COMMAND': {
+        if (!payload.editPrompt) {
+          return json({ error: 'User prompt required' }, { status: 400 });
+        }
+
+        // Validate context is provided
+        if (!payload.context?.sections || !payload.context?.currentColors) {
+          return json({ error: 'Store context required (sections, currentColors)' }, { status: 400 });
+        }
+
+        try {
+          const result = await ai.commandStoreEditor(
+            payload.editPrompt,
+            {
+              sections: payload.context.sections || [],
+              currentColors: payload.context.currentColors || { primary: '#6366f1', accent: '#f59e0b', background: '#f9fafb', text: '#111827' },
+              currentFont: payload.context.currentFont || 'inter',
+              storeName: payload.context.storeName || 'My Store'
+            }
+          );
+          await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
+          return json({ success: true, data: result });
+        } catch (cmdError) {
+          console.error('[AI Action] Store Editor Command Failed:', cmdError);
+          return json({
+            error: 'Failed to process command. Try rephrasing.',
+            code: 'STORE_COMMAND_FAILED'
+          }, { status: 422 });
+        }
+      }
+
       default:
         return json({ error: `Unknown action: ${actionType}` }, { status: 400 });
     }
