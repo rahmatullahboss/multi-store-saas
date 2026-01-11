@@ -328,7 +328,7 @@ export function OzzylAIChatWidget() {
                 <div className="relative">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#006A4E] to-[#004D38] p-0.5 shadow-lg shadow-[#006A4E]/20">
                     <img 
-                      src="/ozzyl-logo-small.png" 
+                      src="/ozzyl-logo-small-black.png" 
                       alt="Ozzyl" 
                       className="w-full h-full rounded-[10px] object-cover"
                     />
