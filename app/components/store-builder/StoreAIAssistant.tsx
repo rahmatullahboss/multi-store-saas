@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
-import { Send, Sparkles, X, Loader2, Wand2, Palette, Type, Plus, ArrowUp, ArrowDown, Trash2, RotateCcw, Check, AlertCircle } from 'lucide-react';
+import { Send, Sparkles, X, Loader2, Check, AlertCircle, HelpCircle, MessageSquare, Lightbulb, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  action?: any; // AI command result for preview
+  action?: any;
 }
 
 interface StoreContext {
@@ -24,14 +24,71 @@ interface StoreAIAssistantProps {
   storeContext?: StoreContext;
 }
 
-// Quick action suggestions
-const QUICK_ACTIONS = [
-  { label: '🎨 রঙ পরিবর্তন', prompt: 'থিম এর রঙ পরিবর্তন করো' },
-  { label: '📦 সেকশন যোগ', prompt: 'নতুন একটা ব্যানার সেকশন যোগ করো' },
-  { label: '✨ প্রিমিয়াম লুক', prompt: 'স্টোরটাকে প্রিমিয়াম লুক দাও' },
-  { label: '🌙 ডার্ক মোড', prompt: 'ডার্ক থিম প্রিসেট অ্যাপ্লাই করো' },
+// ============================================================================
+// TUTORIAL & EXAMPLES DATA
+// ============================================================================
+const EXAMPLE_CATEGORIES = [
+  {
+    title: '🎨 থিম ও রঙ',
+    icon: '🎨',
+    examples: [
+      { label: 'প্রাইমারি কালার লাল করো', description: 'মূল রঙ পরিবর্তন' },
+      { label: 'ডার্ক থিম অ্যাপ্লাই করো', description: 'থিম প্রিসেট' },
+      { label: 'ব্যাকগ্রাউন্ড সাদা করো', description: 'পেছনের রঙ' },
+      { label: 'ফন্ট Hind Siliguri করো', description: 'বাংলা ফন্ট' },
+    ]
+  },
+  {
+    title: '📦 সেকশন ম্যানেজমেন্ট',
+    icon: '📦',
+    examples: [
+      { label: 'নতুন ব্যানার সেকশন যোগ করো', description: 'সেকশন যোগ' },
+      { label: 'নিউজলেটার সেকশন ডিলিট করো', description: 'সেকশন মুছে ফেলা' },
+      { label: 'হিরো সেকশনের হেডিং পরিবর্তন করো', description: 'টেক্সট এডিট' },
+      { label: 'প্রোডাক্ট গ্রিড উপরে নাও', description: 'সেকশন সাজানো' },
+    ]
+  },
+  {
+    title: '📞 স্টোর ইনফো',
+    icon: '📞',
+    examples: [
+      { label: 'ফোন নাম্বার ০১৭১২৩৪৫৬৭৮ সেট করো', description: 'ফোন যোগ' },
+      { label: 'ইমেইল: info@mystore.com', description: 'ইমেইল সেট' },
+      { label: 'ফেসবুক লিংক: fb.com/mystore', description: 'সোশ্যাল মিডিয়া' },
+      { label: 'হোয়াটসঅ্যাপ বাটন চালু করো', description: 'ফ্লোটিং বাটন' },
+    ]
+  },
+  {
+    title: '📢 এনাউন্সমেন্ট',
+    icon: '📢',
+    examples: [
+      { label: 'এনাউন্সমেন্টে লেখো: ফ্রি ডেলিভারি!', description: 'প্রমো ব্যানার' },
+      { label: 'এনাউন্সমেন্ট বন্ধ করো', description: 'ব্যানার লুকানো' },
+    ]
+  },
+  {
+    title: '⚙️ অ্যাডভান্সড',
+    icon: '⚙️',
+    examples: [
+      { label: 'চেকআউট ওয়ান-পেজ করো', description: 'চেকআউট স্টাইল' },
+      { label: 'হেডিং সাইজ বড় করো', description: 'টাইপোগ্রাফি' },
+      { label: 'Custom CSS: .hero { padding: 2rem; }', description: 'কাস্টম কোড' },
+      { label: 'স্টোরটাকে প্রিমিয়াম লুক দাও', description: 'সম্পূর্ণ ডিজাইন' },
+    ]
+  },
 ];
 
+const TIPS = [
+  '💡 বাংলা বা English যেকোনো ভাষায় কমান্ড দিতে পারবেন',
+  '💡 নির্দিষ্ট সেকশন বলতে তার নাম বলুন, যেমন "হিরো সেকশন"',
+  '💡 রঙের জন্য নাম (লাল, নীল) বা হেক্স কোড (#ff0000) দুটোই চলবে',
+  '💡 "প্রিমিয়াম লুক দাও" বললে AI সম্পূর্ণ থিম ডিজাইন করে দেবে',
+  '💡 AI বুঝতে না পারলে আবার অন্যভাবে বলুন',
+];
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
 export function StoreAIAssistant({ 
   isOpen, 
   onClose, 
@@ -42,15 +99,16 @@ export function StoreAIAssistant({
   const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'assistant', 
-      content: 'আমি আপনার স্টোর ডিজাইনে সাহায্য করতে পারি! 🎨\n\nবাংলা বা English এ বলুন কী পরিবর্তন করতে চান। যেমন:\n• "হিরো সেকশনের রঙ লাল করো"\n• "একটা নিউজলেটার সেকশন যোগ করো"\n• "থিম ডার্ক করো"' 
+      content: 'আমি আপনার স্টোর ডিজাইনে সাহায্য করতে পারি! 🎨\n\nবাংলা বা English এ বলুন কী পরিবর্তন করতে চান।\n\n👇 নিচে "সাহায্য" ট্যাবে উদাহরণ ও টিপস দেখুন!' 
     }
   ]);
   const [input, setInput] = useState('');
   const [pendingCommand, setPendingCommand] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'chat' | 'help'>('chat');
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Separate fetchers for different actions
   const commandFetcher = useFetcher<any>();
   const themeFetcher = useFetcher<any>();
   
@@ -60,19 +118,15 @@ export function StoreAIAssistant({
     themeFetcher.state === 'submitting' ||
     themeFetcher.state === 'loading';
 
-  // Scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle command response
   useEffect(() => {
     if (commandFetcher.data?.success && commandFetcher.data?.data) {
       const command = commandFetcher.data.data;
       
-      // Check confidence
       if (command.confidence < 0.7 || command.requiresConfirmation) {
-        // Low confidence - ask for confirmation
         setPendingCommand(command);
         setMessages(prev => [...prev, { 
           role: 'assistant', 
@@ -80,7 +134,6 @@ export function StoreAIAssistant({
           action: command
         }]);
       } else {
-        // High confidence - apply directly
         applyCommand(command);
         setMessages(prev => [...prev, { 
           role: 'assistant', 
@@ -92,12 +145,11 @@ export function StoreAIAssistant({
     } else if (commandFetcher.data?.error) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: `❌ দুঃখিত, একটা সমস্যা হয়েছে: ${commandFetcher.data.error}` 
+        content: `❌ দুঃখিত: ${commandFetcher.data.error}` 
       }]);
     }
   }, [commandFetcher.data]);
 
-  // Handle theme design response (for full theme generation)
   useEffect(() => {
     if (themeFetcher.data?.success && themeFetcher.data?.data) {
       const config = themeFetcher.data.data;
@@ -115,14 +167,11 @@ export function StoreAIAssistant({
     }
   }, [themeFetcher.data]);
 
-  // Apply command to editor
   const applyCommand = (command: any) => {
     if (onApplyCommand) {
       onApplyCommand(command);
     } else {
-      // Fallback: Convert command to config format for legacy support
       const config: any = {};
-      
       switch (command.action) {
         case 'update_colors':
           if (command.value.primaryColor) config.primaryColor = command.value.primaryColor;
@@ -134,21 +183,17 @@ export function StoreAIAssistant({
           config.fontFamily = command.value;
           break;
         case 'apply_preset':
-          // Presets are handled in the value
           if (typeof command.value === 'object') {
             Object.assign(config, command.value);
           }
           break;
-        // Other cases handled by onApplyCommand
       }
-      
       if (Object.keys(config).length > 0) {
         onApplyConfig(config);
       }
     }
   };
 
-  // Confirm pending command
   const confirmCommand = () => {
     if (pendingCommand) {
       applyCommand(pendingCommand);
@@ -160,7 +205,6 @@ export function StoreAIAssistant({
     }
   };
 
-  // Cancel pending command
   const cancelCommand = () => {
     setMessages(prev => [...prev, { 
       role: 'assistant', 
@@ -169,16 +213,11 @@ export function StoreAIAssistant({
     setPendingCommand(null);
   };
 
-  // Detect if command is for full theme generation
   const isFullThemeRequest = (text: string): boolean => {
     const patterns = [
-      /ডিজাইন কর/i,
-      /theme.*generate/i,
-      /full.*design/i,
-      /store.*build/i,
-      /complete.*look/i,
-      /সম্পূর্ণ.*ডিজাইন/i,
-      /নতুন.*থিম/i,
+      /ডিজাইন কর/i, /theme.*generate/i, /full.*design/i,
+      /store.*build/i, /complete.*look/i, /সম্পূর্ণ.*ডিজাইন/i,
+      /নতুন.*থিম/i, /প্রিমিয়াম.*লুক/i
     ];
     return patterns.some(p => p.test(text));
   };
@@ -186,28 +225,16 @@ export function StoreAIAssistant({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-
-    // Add user message
+    setActiveTab('chat');
     setMessages(prev => [...prev, { role: 'user', content: input }]);
     
     const userInput = input.trim();
-
-    // Check if it's a full theme request or granular command
     if (isFullThemeRequest(userInput)) {
-      // Use full theme generation
       themeFetcher.submit(
-        { 
-          action: 'DESIGN_STORE_THEME',
-          prompt: userInput 
-        },
-        { 
-          method: 'POST', 
-          action: '/api/ai/action', 
-          encType: 'application/json' 
-        }
+        JSON.stringify({ action: 'DESIGN_STORE_THEME', prompt: userInput }),
+        { method: 'POST', action: '/api/ai/action', encType: 'application/json' }
       );
     } else {
-      // Use granular command system
       commandFetcher.submit(
         JSON.stringify({ 
           action: 'STORE_EDITOR_COMMAND',
@@ -219,18 +246,14 @@ export function StoreAIAssistant({
             storeName: 'My Store'
           }
         }),
-        { 
-          method: 'POST', 
-          action: '/api/ai/action', 
-          encType: 'application/json' 
-        }
+        { method: 'POST', action: '/api/ai/action', encType: 'application/json' }
       );
     }
   };
 
-  // Handle quick action click
-  const handleQuickAction = (prompt: string) => {
-    setInput(prompt);
+  const handleExampleClick = (example: string) => {
+    setInput(example);
+    setActiveTab('chat');
     inputRef.current?.focus();
   };
 
@@ -238,7 +261,6 @@ export function StoreAIAssistant({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop on mobile only */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -247,13 +269,12 @@ export function StoreAIAssistant({
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
           />
 
-          {/* Sidebar */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 bottom-0 w-full md:w-[400px] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200"
+            className="fixed right-0 top-0 bottom-0 w-full md:w-[420px] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200"
           >
             {/* Header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
@@ -261,90 +282,145 @@ export function StoreAIAssistant({
                 <Sparkles className="w-5 h-5" />
                 <h2 className="font-semibold text-lg">AI ডিজাইনার</h2>
               </div>
-              <button 
-                onClick={onClose}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-              >
+              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Quick Actions */}
-            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-              <p className="text-xs text-gray-500 mb-2">দ্রুত অ্যাকশন:</p>
-              <div className="flex flex-wrap gap-2">
-                {QUICK_ACTIONS.map((action, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleQuickAction(action.prompt)}
-                    className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full hover:border-violet-300 hover:bg-violet-50 transition-colors"
-                  >
-                    {action.label}
-                  </button>
-                ))}
-              </div>
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                  activeTab === 'chat' 
+                    ? 'text-violet-600 border-b-2 border-violet-600 bg-violet-50' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                চ্যাট
+              </button>
+              <button
+                onClick={() => setActiveTab('help')}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                  activeTab === 'help' 
+                    ? 'text-violet-600 border-b-2 border-violet-600 bg-violet-50' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <HelpCircle className="w-4 h-4" />
+                সাহায্য ও উদাহরণ
+              </button>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-              {messages.map((msg, idx) => (
-                <div 
-                  key={idx} 
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div 
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
-                      msg.role === 'user' 
-                        ? 'bg-violet-600 text-white rounded-br-none' 
-                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
-
-              {/* Pending Command Confirmation */}
-              {pendingCommand && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-amber-800">নিশ্চিত করুন</p>
-                      <p className="text-xs text-amber-600 mt-1">
-                        Action: {pendingCommand.action}
-                        {pendingCommand.target && ` → ${pendingCommand.target}`}
-                      </p>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              {activeTab === 'chat' ? (
+                <div className="p-4 space-y-4 bg-gray-50 min-h-full">
+                  {messages.map((msg, idx) => (
+                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
+                        msg.role === 'user' 
+                          ? 'bg-violet-600 text-white rounded-br-none' 
+                          : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'
+                      }`}>
+                        {msg.content}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={confirmCommand}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      <Check className="w-4 h-4" />
-                      হ্যাঁ, প্রয়োগ করো
-                    </button>
-                    <button
-                      onClick={cancelCommand}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                      বাতিল
-                    </button>
-                  </div>
-                </div>
-              )}
+                  ))}
 
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-violet-600" />
-                    <span className="text-sm text-gray-500">চিন্তা করছি...</span>
+                  {pendingCommand && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-amber-800">নিশ্চিত করুন</p>
+                          <p className="text-xs text-amber-600 mt-1">
+                            Action: {pendingCommand.action}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={confirmCommand} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                          <Check className="w-4 h-4" /> হ্যাঁ
+                        </button>
+                        <button onClick={cancelCommand} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                          <X className="w-4 h-4" /> না
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-violet-600" />
+                        <span className="text-sm text-gray-500">চিন্তা করছি...</span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              ) : (
+                <div className="p-4 space-y-4">
+                  {/* Tips */}
+                  <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl p-4 border border-violet-100">
+                    <div className="flex items-center gap-2 text-violet-700 font-medium mb-3">
+                      <Lightbulb className="w-4 h-4" />
+                      টিপস
+                    </div>
+                    <ul className="space-y-2">
+                      {TIPS.map((tip, idx) => (
+                        <li key={idx} className="text-sm text-gray-600">{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Example Categories */}
+                  <div className="space-y-2">
+                    <h3 className="font-medium text-gray-700 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      উদাহরণ কমান্ড (ক্লিক করে ব্যবহার করুন)
+                    </h3>
+                    
+                    {EXAMPLE_CATEGORIES.map((cat) => (
+                      <div key={cat.title} className="border border-gray-200 rounded-lg overflow-hidden">
+                        <button
+                          onClick={() => setExpandedCategory(expandedCategory === cat.title ? null : cat.title)}
+                          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                        >
+                          <span className="font-medium text-gray-800">{cat.title}</span>
+                          <ChevronRight className={`w-4 h-4 text-gray-500 transition-transform ${expandedCategory === cat.title ? 'rotate-90' : ''}`} />
+                        </button>
+                        
+                        <AnimatePresence>
+                          {expandedCategory === cat.title && (
+                            <motion.div
+                              initial={{ height: 0 }}
+                              animate={{ height: 'auto' }}
+                              exit={{ height: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="p-2 space-y-1 bg-white">
+                                {cat.examples.map((ex, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => handleExampleClick(ex.label)}
+                                    className="w-full text-left p-2 rounded-lg hover:bg-violet-50 group transition-colors"
+                                  >
+                                    <p className="text-sm text-gray-800 group-hover:text-violet-700">{ex.label}</p>
+                                    <p className="text-xs text-gray-500">{ex.description}</p>
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
@@ -367,9 +443,6 @@ export function StoreAIAssistant({
                   <Send className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-xs text-center text-gray-400 mt-2">
-                AI পরামর্শ। প্রকাশের আগে রিভিউ করুন।
-              </p>
             </form>
           </motion.div>
         </>

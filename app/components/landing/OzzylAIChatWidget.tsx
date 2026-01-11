@@ -18,6 +18,7 @@ import { useFetcher } from '@remix-run/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, ArrowRight, Phone, MessageCircle } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { AIResponseRendererDark } from '~/components/ui/AIResponseRenderer';
 
 interface Message {
   id: string;
@@ -450,12 +451,16 @@ export function OzzylAIChatWidget() {
                         </div>
                         
                         {/* Message bubble */}
-                        <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-[13px] sm:text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${
+                        <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-[13px] sm:text-sm leading-relaxed shadow-sm ${
                             msg.role === 'user'
                             ? 'bg-gradient-to-br from-[#006A4E] to-[#005740] text-white rounded-tr-sm'
-                            : 'bg-white/10 text-white/90 border border-white/5 rounded-tl-sm backdrop-blur-sm'
+                            : 'bg-white/10 border border-white/5 rounded-tl-sm backdrop-blur-sm'
                         }`}>
-                            {msg.content}
+                            {msg.role === 'user' ? (
+                              <span className="whitespace-pre-wrap">{msg.content}</span>
+                            ) : (
+                              <AIResponseRendererDark response={msg.content} />
+                            )}
                         </div>
                         </motion.div>
                     ))}

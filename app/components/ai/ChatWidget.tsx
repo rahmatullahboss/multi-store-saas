@@ -16,6 +16,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useFetcher } from '@remix-run/react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { MessageCircle, X, Send, Loader2, User, Bot } from 'lucide-react';
+import { AIResponseRenderer } from '~/components/ui/AIResponseRenderer';
 
 // ============================================================================
 // TYPES
@@ -279,9 +280,11 @@ export function ChatWidget({
                       : 'bg-white rounded-tl-none'
                   }`}
                 >
-                  <p className={`text-sm ${msg.role === 'user' ? 'text-white' : 'text-gray-700'}`}>
-                    {msg.content}
-                  </p>
+                  {msg.role === 'user' ? (
+                    <p className="text-sm text-white">{msg.content}</p>
+                  ) : (
+                    <AIResponseRenderer response={msg.content} />
+                  )}
                 </div>
               </div>
             ))}
