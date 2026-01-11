@@ -527,18 +527,18 @@ export default function BillingPage() {
             {/* AI Tiers Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                    { id: 'lite', name: 'Lite', limit: 500, price: '৳500', desc: 'Starter AI', popular: false },
-                    { id: 'standard', name: 'Standard', limit: 1200, price: '৳1,000', desc: 'Growing stores', popular: true },
-                    { id: 'pro', name: 'Pro', limit: 3000, price: '৳2,000', desc: 'High volume', popular: false }
+                    { id: 'lite', name: 'Lite', nameBn: 'লাইট', limit: 500, price: '৳৫০০', desc: 'Starter AI', popular: false },
+                    { id: 'standard', name: 'Standard', nameBn: 'স্ট্যান্ডার্ড', limit: 1200, price: '৳১,০০০', desc: 'Growing stores', popular: true },
+                    { id: 'pro', name: 'Pro', nameBn: 'প্রো', limit: 3000, price: '৳২,০০০', desc: 'High volume', popular: false }
                 ].map((tier) => {
                     const isSelected = aiPlan === tier.id && isCustomerAiEnabled;
                     return (
                         <div key={tier.id} className={`relative border rounded-lg p-4 flex flex-col ${isSelected ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
-                              {tier.popular && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-orange-500 text-white text-[10px] uppercase font-bold rounded-full">Popular</span>}
+                              {tier.popular && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-orange-500 text-white text-[10px] uppercase font-bold rounded-full">{lang === 'bn' ? 'জনপ্রিয়' : 'Popular'}</span>}
                               
                               <div className="flex justify-between items-start mb-2">
                                   <div>
-                                      <h4 className="font-bold text-gray-900">{tier.name}</h4>
+                                      <h4 className="font-bold text-gray-900">{lang === 'bn' ? (tier as any).nameBn : tier.name}</h4>
                                       <div className="text-xs text-gray-500">{t(`ai${tier.id.charAt(0).toUpperCase() + tier.id.slice(1)}Desc`)}</div>
                                   </div>
                                   <div className="text-right">
