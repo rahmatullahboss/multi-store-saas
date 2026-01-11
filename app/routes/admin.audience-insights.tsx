@@ -115,7 +115,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const trendingProducts = await db
     .select({
       productId: orderItems.productId,
-      productName: products.name,
+      productName: products.title,
       storeName: stores.name,
       soldCount: sql<number>`SUM(${orderItems.quantity})`.as('sold_count'),
       revenue: sql<number>`SUM(${orderItems.price} * ${orderItems.quantity})`.as('revenue'),
@@ -142,7 +142,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       vipCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id} AND segment = 'vip')`.as('vip_count'),
     })
     .from(stores)
-    .where(sql`${stores.status} = 'active'`)
+    .where(eq(stores.isActive, true))
     .orderBy(sql`revenue DESC`)
     .limit(15);
 
