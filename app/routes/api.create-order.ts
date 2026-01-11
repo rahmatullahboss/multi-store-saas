@@ -433,6 +433,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
             items: finalOrderItems.map(i => ({ title: i.title, quantity: i.quantity, price: i.unitPrice })),
             shippingAddress: input.address,
             paymentMethod: input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
+            storeName: storeData.name,
+            storeLogo: storeData.logo || undefined,
+            primaryColor: (storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor) || undefined
           })
         );
       }

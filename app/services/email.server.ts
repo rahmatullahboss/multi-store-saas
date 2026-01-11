@@ -185,43 +185,85 @@ export function createEmailService(apiKey: string) {
       });
     },
 
-    async sendOrderConfirmation({ orderNumber, customerName, customerEmail, total, currency, items, shippingAddress, paymentMethod }: SendOrderConfirmationParams) {
+    async sendOrderConfirmation({ orderNumber, customerName, customerEmail, total, currency, items, shippingAddress, paymentMethod, storeLogo, primaryColor, storeName }: SendOrderConfirmationParams & { storeLogo?: string, primaryColor?: string, storeName: string }) {
       const itemsHtml = items.map(item => `
         <tr style="border-bottom: 1px solid #eee;">
-          <td style="padding: 8px;">${item.title} <span style="color: #666;">x${item.quantity}</span></td>
-          <td style="padding: 8px; text-align: right;">${currency} ${item.price * item.quantity}</td>
+          <td style="padding: 12px 0;">
+            <div style="font-weight: 500; color: #333;">${item.title}</div>
+            <div style="color: #666; font-size: 13px;">Qty: ${item.quantity}</div>
+          </td>
+          <td style="padding: 12px 0; text-align: right; font-weight: 500; color: #333;">${currency} ${item.price * item.quantity}</td>
         </tr>
       `).join('');
+
+      const themeColor = primaryColor || '#10B981'; // Default green if no brand color
 
       return resend.emails.send({
         from: fromEmail,
         to: [customerEmail],
-        subject: `Order Confirmation #${orderNumber}`,
+        subject: `Order Confirmation #${orderNumber} - ${storeName}`,
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #10B981;">Order Confirmed!</h1>
-            <p>Hi ${customerName},</p>
-            <p>Thank you for your order. We have received it and will process it shortly.</p>
-            
-            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0;">Order #${orderNumber}</h3>
-              <table style="width: 100%; border-collapse: collapse;">
-                ${itemsHtml}
-                <tr>
-                  <td style="padding: 8px; font-weight: bold;">Total</td>
-                  <td style="padding: 8px; text-align: right; font-weight: bold;">${currency} ${total}</td>
-                </tr>
-              </table>
-            </div>
+          <!DOCTYPE html>
+          <html>
+          <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 0; margin: 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+              
+              <!-- Header -->
+              <div style="text-align: center; padding: 40px 40px 30px; border-bottom: 1px solid #f3f4f6;">
+                ${storeLogo ? `<img src="${storeLogo}" alt="${storeName}" style="height: 40px; margin-bottom: 20px; object-fit: contain;">` : `<h2 style="margin: 0 0 20px; color: ${themeColor}; font-size: 24px;">${storeName}</h2>`}
+                <h1 style="color: #111827; font-size: 24px; font-weight: bold; margin: 0;">Thanks for your order!</h1>
+                <p style="color: #6B7280; font-size: 16px; margin-top: 8px;">Order #${orderNumber}</p>
+              </div>
 
-            <div style="margin-bottom: 20px;">
-              <strong>Date:</strong> ${new Date().toLocaleDateString()}<br>
-              <strong>Payment:</strong> ${paymentMethod}<br>
-              <strong>Shipping:</strong> ${shippingAddress}
-            </div>
+              <!-- Content -->
+              <div style="padding: 40px;">
+                <p style="color: #374151; font-size: 16px; margin-top: 0;">Hi ${customerName},</p>
+                <p style="color: #374151; font-size: 16px; line-height: 1.5;">We've received your order and are getting it ready! We'll notify you when it's on its way.</p>
 
-            <p>If you have any questions, please reply to this email.</p>
-          </div>
+                <!-- Order Summary -->
+                <div style="margin-top: 32px;">
+                  <h3 style="color: #111827; font-size: 18px; font-weight: 600; margin-bottom: 16px;">Order Summary</h3>
+                  <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+                    ${itemsHtml}
+                    <tr>
+                      <td style="padding-top: 20px; border-top: 2px solid #eee; font-weight: bold; color: #111827;">Total</td>
+                      <td style="padding-top: 20px; border-top: 2px solid #eee; text-align: right; font-weight: bold; color: ${themeColor}; font-size: 18px;">${currency} ${total}</td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- Details Grid -->
+                <div style="margin-top: 32px; padding: 24px; background-color: #f9fafb; border-radius: 8px;">
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding-bottom: 16px; vertical-align: top; width: 50%;">
+                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #6B7280; margin-bottom: 4px;">Shipping Address</div>
+                        <div style="color: #111827; font-size: 14px; line-height: 1.4;">${shippingAddress}</div>
+                      </td>
+                      <td style="padding-bottom: 16px; vertical-align: top; width: 50%;">
+                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #6B7280; margin-bottom: 4px;">Payment Method</div>
+                        <div style="color: #111827; font-size: 14px; line-height: 1.4;">${paymentMethod}</div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- CTA -->
+                <div style="text-align: center; margin-top: 40px;">
+                  <a href="https://${storeName.toLowerCase().replace(/\s+/g, '')}.digitalcare.site" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; font-weight: 600; padding: 12px 32px; border-radius: 8px; text-decoration: none;">Visit Store</a>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #f3f4f6;">
+                <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
+                  Sent with ❤️ by ${storeName}<br>
+                  If you have any questions, reply to this email.
+                </p>
+              </div>
+            </div>
+          </body>
+          </html>
         `,
       });
     },

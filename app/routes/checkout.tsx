@@ -78,7 +78,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .limit(3);
   
   // Fetch details for bump products
-  let bumpProducts = [];
+  let bumpProducts: any[] = [];
   if (bumps.length > 0) {
     const bumpProductIds = bumps.map(b => b.bumpProductId);
     const pResults = await db.select().from(products)
@@ -110,6 +110,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     manualPaymentConfig,
     bumpProducts,
     facebookPixelId: storeData.facebookPixelId,
+    themeConfig,
   });
 }
 
@@ -146,7 +147,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function Checkout() {
   const { 
     storeId, storeName, logo, currency, storeTemplateId, theme, 
-    socialLinks, businessInfo, shippingConfig, manualPaymentConfig, bumpProducts, facebookPixelId 
+    socialLinks, businessInfo, shippingConfig, manualPaymentConfig, bumpProducts, facebookPixelId,
+    themeConfig
   } = useLoaderData<typeof loader>();
   
   const fetcher = useFetcher();
