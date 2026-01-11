@@ -8,7 +8,7 @@
  */
 
 import { Link } from '@remix-run/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 
@@ -29,6 +29,7 @@ export function StoreHeader({
 }: StoreHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [count, setCount] = useState(cartCount);
 
   // Determine if this is a dark theme
   const isDarkTheme = templateId === 'modern-premium' || templateId === 'tech-modern';
@@ -41,6 +42,31 @@ export function StoreHeader({
   const textColor = isDarkTheme ? 'text-white' : 'text-gray-900';
   const mutedColor = isDarkTheme ? 'text-gray-400' : 'text-gray-500';
   const hoverBg = isDarkTheme ? 'hover:bg-gray-800' : 'hover:bg-gray-100';
+
+  // Sync cart count with localStorage and events
+  useEffect(() => {
+    const updateCount = () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const total = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+        setCount(total);
+      } catch (e) {
+        console.error('Failed to parse cart', e);
+      }
+    };
+
+    // Initial load
+    updateCount();
+
+    // Listeners
+    window.addEventListener('storage', updateCount);
+    window.addEventListener('cart-updated', updateCount);
+    
+    return () => {
+      window.removeEventListener('storage', updateCount);
+      window.removeEventListener('cart-updated', updateCount);
+    };
+  }, []);
 
   return (
     <header className={`sticky top-0 z-50 w-full border-b ${headerBg} backdrop-blur supports-[backdrop-filter]:bg-opacity-60`}>
@@ -123,9 +149,8 @@ export function StoreHeader({
             <span 
               className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
               style={{ backgroundColor: theme.primary }}
-              id="cart-count"
             >
-              {cartCount}
+              {count}
             </span>
           </Link>
         </div>

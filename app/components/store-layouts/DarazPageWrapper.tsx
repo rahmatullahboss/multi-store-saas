@@ -8,7 +8,7 @@
 
 import type { ReactNode } from 'react';
 import { Link } from '@remix-run/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Menu, X, Search, ShoppingCart, Heart, User, 
   ChevronRight, Headphones, ShoppingBag 
@@ -46,6 +46,32 @@ export function DarazPageWrapper({
 }: DarazPageWrapperProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [count, setCount] = useState(0);
+
+  // Sync cart count with localStorage and events
+  useEffect(() => {
+    const updateCount = () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const total = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+        setCount(total);
+      } catch (e) {
+        console.error('Failed to parse cart', e);
+      }
+    };
+
+    // Initial load
+    updateCount();
+
+    // Listeners
+    window.addEventListener('storage', updateCount);
+    window.addEventListener('cart-updated', updateCount);
+    
+    return () => {
+      window.removeEventListener('storage', updateCount);
+      window.removeEventListener('cart-updated', updateCount);
+    };
+  }, []);
   
   const featuredCategories = categories.filter(Boolean).slice(0, 8);
 
@@ -125,9 +151,8 @@ export function DarazPageWrapper({
               <span 
                 className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 h-4 w-4 md:h-5 md:w-5 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold"
                 style={{ backgroundColor: '#FFD700', color: DARAZ_TEXT }}
-                id="cart-count"
               >
-                0
+                {count}
               </span>
             </Link>
             <button className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition">

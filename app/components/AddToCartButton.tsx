@@ -133,13 +133,6 @@ export function AddToCartButton({
 
 // Helper to update cart count in header (client-side)
 function updateLocalCart(productId: number, quantity: number, storeId?: number) {
-  // Update the cart badge count
-  const cartBadge = document.getElementById('cart-count');
-  if (cartBadge) {
-    const currentCount = parseInt(cartBadge.textContent || '0', 10);
-    cartBadge.textContent = String(currentCount + quantity);
-  }
-  
   // Store in localStorage for persistence
   try {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -148,10 +141,16 @@ function updateLocalCart(productId: number, quantity: number, storeId?: number) 
     if (existingIndex >= 0) {
       cart[existingIndex].quantity += quantity;
     } else {
-      cart.push({ productId, quantity, storeId }); // Added storeId to persisted data
+      cart.push({ productId, quantity, storeId });
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Dispatch custom event for real-time UI updates
+    window.dispatchEvent(new Event('cart-updated'));
+    // Also dispatch storage event for cross-tab or strict listeners
+    window.dispatchEvent(new Event('storage'));
+    
   } catch (e) {
     console.error('Failed to update local cart:', e);
   }
