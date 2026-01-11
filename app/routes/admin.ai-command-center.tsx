@@ -44,6 +44,7 @@ import {
   PieChart,
   LineChart,
 } from 'lucide-react';
+import { AIResponseRenderer } from '~/components/ui/AIResponseRenderer';
 
 // Time periods for comparison
 const getDateRange = (days: number) => {
@@ -313,10 +314,16 @@ CURRENT PLATFORM DATA:
 RULES:
 1. Answer in Bangla when asked in Bangla, English otherwise
 2. Be concise and actionable
-3. Provide specific recommendations based on data
-4. Use numbers and percentages
-5. Suggest concrete actions for improvement
-6. NO MARKDOWN FORMATTING - plain text only`;
+3. Use numbers and percentages
+(See structured format below)
+
+## STRUCTURED RESPONSE FORMAT (MANDATORY):
+For data-heavy answers, return a JSON object:
+1. 'insight_cards' (Stats): { "type": "insight_cards", "data": [{ "title": "Revenue", "value": "৳50k", "trend": 10, "color": "green", "icon": "sales" }] }
+2. 'alert' (Warnings): { "type": "alert", "data": { "severity": "warning", "title": "Churn Risk", "message": "High churn detected" } }
+3. 'mixed' (Text + Cards): { "type": "mixed", "items": [{ "type": "text", "data": "Analysis:" }, { "type": "insight_cards", "data": [...] }] }
+
+Use plain text only for simple greetings.`;
 
   try {
     const response = await callAIWithSystemPrompt(
@@ -523,7 +530,9 @@ export default function AICommandCenter() {
                     <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <Brain className="w-4 h-4 text-white" />
                     </div>
-                    <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{aiResponse}</p>
+                    <div className="flex-1">
+                      <AIResponseRenderer response={aiResponse || ''} />
+                    </div>
                   </div>
                 )}
               </div>

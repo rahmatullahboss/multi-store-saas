@@ -228,17 +228,9 @@ For simple questions or explanations, use plain text:
 - If the user asks for data not shown in the stats (e.g. "last year's sales"), say "I don't have access to that data yet."
 - Do NOT guess. Accuracy is more important than being helpful.
 
-## CRITICAL FORMATTING RULES (MOST IMPORTANT!)
-- NEVER use markdown formatting: NO **, NO ##, NO ###, NO -, NO *, NO __
-- Use emojis for structure: ✅ ❌ 📦 💰 📊 🚀
-- Use line breaks (new lines) to separate points
-- Write plain readable text, NOT formatted text
-- Example good format:
-  ✅ প্রথম পয়েন্ট
-  ✅ দ্বিতীয় পয়েন্ট
-  ✅ তৃতীয় পয়েন্ট
-- Example BAD format (DO NOT USE):
-  **Bold text** or ## Heading or - list item`;
+## FORMATTING:
+- Response MUST be a valid JSON object as defined above.
+- Do NOT return plain text outside the JSON.`;
 }
 
 function getCustomerSystemPrompt(
@@ -278,11 +270,17 @@ ${productList || 'No specific products found. Ask what they are looking for!'}
 - Do NOT invent products, prices, or features.
 - If asked about stock/colors not listed, say "Please check the website for details."
 
-## FORMATTING RULES (CRITICAL!)
-- NEVER use markdown: NO **, NO ##, NO ###, NO -, NO *
-- Use emojis for lists: ✅ 📦 🚚 💰
-- Use new lines to separate points
-- Write plain readable text only`;
+## STRUCTURED RESPONSE FORMAT (MANDATORY):
+Return JSON object:
+1. 'insight_cards' (Products): 
+   \`{ "type": "insight_cards", "data": [{ "title": "Product A", "value": "৳500", "icon": "products", "color": "blue" }] }\`
+2. 'text' (Simple Answer):
+   \`{ "type": "text", "content": "Sure, here are some items." }\`
+3. 'mixed' (Text + Cards):
+   \`{ "type": "mixed", "items": [{ "type": "text", "data": "Recommending:" }, { "type": "insight_cards", "data": [...] }] }\`
+
+## FORMATTING:
+- Response MUST be valid JSON. No Markdown.`;
 }
 
 // ============================================================================
@@ -368,15 +366,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 - Do NOT promise features that are not listed.
 - If asked about custom development or unrelated services, say "I can only help with Ozzyl platform questions."
 
-## FORMATTING RULES (CRITICAL!)
-- NEVER use markdown: NO **, NO ##, NO ###, NO -, NO *, NO __
-- Use emojis for lists: ✅ 📦 🚚 💰 🎯 🚀
-- Use new lines to separate points
-- Write plain readable text only
-- Example format:
-  ✅ ফ্রি প্ল্যান উপলব্ধ
-  ✅ ক্যাশ অন ডেলিভারি সাপোর্ট
-  ✅ ১০ মিনিটে স্টোর রেডি`;
+## STRUCTURED RESPONSE FORMAT (MANDATORY):
+Return JSON object:
+1. 'insight_cards' (Features): 
+   \`{ "type": "insight_cards", "data": [{ "title": "Free Plan", "value": "৳0", "icon": "sales", "color": "green" }] }\`
+2. 'action_chips' (Signup):
+   \`{ "type": "action_chips", "data": [{ "label": "Start Free", "url": "/register" }] }\`
+3. 'text' (Simple Answer):
+   \`{ "type": "text", "content": "Yes, we have free plan." }\`
+
+## FORMATTING:
+- Response MUST be valid JSON. No Markdown.`;
 
     try {
       const responseText = await callAIWithSystemPrompt(
