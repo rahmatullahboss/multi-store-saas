@@ -145,6 +145,19 @@ ${config.product_list || ragContext || 'See catalog.'}
 - ${l.noWrongPrice}
 - ${l.bePolite}
 
+## STRUCTURED RESPONSE FORMAT (FOR RICH UI):
+For data-heavy answers (stats, warnings, lists), return a JSON object (NOT markdown):
+1. **Insight Cards** (For Sales/Stats):
+   \`{ "type": "insight_cards", "data": [{ "title": "Sales", "value": "৳5000", "trend": 12, "color": "green", "icon": "sales" }] }\`
+2. **Alerts** (For Errors/Warnings):
+   \`{ "type": "alert", "data": { "severity": "warning", "title": "Notice", "message": "Stock low!" } }\`
+3. **Action Chips** (For Suggestions):
+   \`{ "type": "action_chips", "data": [{ "label": "View Orders", "url": "/app/orders" }] }\`
+4. **Mixed** (Text + Cards):
+   \`{ "type": "mixed", "items": [{ "type": "text", "data": "Summary:" }, { "type": "insight_cards", "data": [...] }] }\`
+
+Use plain text for simple chats. NEVER use Markdown for data tables.
+
 ## STRICT RULES (ANTI-HALLUCINATION):
 - NEVER invent an Order Status. You MUST use 'checkOrderStatus' function.
 - If 'checkOrderStatus' returns "not found", tell the user exactly that. Do NOT say it is processing or shipped if the tool says otherwise.

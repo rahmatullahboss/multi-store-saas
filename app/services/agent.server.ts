@@ -245,7 +245,28 @@ async function executeToolCall(
        };
        if (bnStatus[order.status]) statusText = bnStatus[order.status];
 
-       return `📦 অর্ডার #${order.id} এর বর্তমান অবস্থা: **${statusText}**\n💰 মোট বিল: ৳${order.total}\n📅 তারিখ: ${new Date(order.createdAt).toLocaleDateString()}`;
+       // Return structured JSON for Rich UI
+       const responseData = {
+           type: 'mixed',
+           items: [
+               {
+                   type: 'insight_card',
+                   data: {
+                       title: `Order #${order.id}`,
+                       value: statusText,
+                       trend: 0,
+                       color: ['delivered', 'completed'].includes(order.status) ? 'green' : order.status === 'cancelled' ? 'red' : 'blue',
+                       icon: 'orders'
+                   }
+               },
+               {
+                   type: 'text',
+                   data: `💰 মোট বিল: ৳${order.total}\n📅 তারিখ: ${new Date(order.createdAt).toLocaleDateString()}`
+               }
+           ]
+       };
+
+       return JSON.stringify(responseData);
     }
 
     // 2. LEAD COLLECTION
