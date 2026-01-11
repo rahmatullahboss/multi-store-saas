@@ -1539,6 +1539,14 @@ export async function chatWithVisitor(
 
 ---
 
+## ⛔ STRICT KNOWLEDGE RULES (ANTI-HALLUCINATION)
+- **ONLY** use the information provided in this prompt (Pricing, Features, Company Info).
+- **DO NOT** make up features that are not listed here.
+- If asked about a feature not listed (e.g. "Do you have POS?", "Do you have mobile app?"), say "Currently we don't have that feature, but we are working on it."
+- **Accuracy** is more important than being helpful. Do not guess.
+
+---
+
 ## 💰 প্রাইসিং (BDT)
 
 ### Free Plan (৳০/মাস)
