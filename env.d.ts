@@ -46,6 +46,8 @@ declare global {
     MIMO_API_KEY?: string; // XiaoMi MiMo API Key
     ENVIRONMENT?: 'development' | 'production' | 'staging';
     SENTRY_DSN?: string;
+    // Master Facebook Pixel for platform-wide audience aggregation
+    MASTER_FACEBOOK_PIXEL_ID?: string;
   }
 }
 

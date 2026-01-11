@@ -3,14 +3,26 @@
  * 
  * Injects Facebook Pixel tracking code into the page head.
  * Use this in storefront layouts to enable tracking.
+ * 
+ * Supports dual-pixel mode:
+ * - Merchant pixel: For individual store tracking
+ * - Master pixel: For platform-wide audience aggregation
  */
 
 interface FacebookPixelProps {
   pixelId: string | null | undefined;
+  masterPixelId?: string | null;
 }
 
-export function FacebookPixelScript({ pixelId }: FacebookPixelProps) {
-  if (!pixelId) return null;
+export function FacebookPixelScript({ pixelId, masterPixelId }: FacebookPixelProps) {
+  // At least one pixel must be present
+  if (!pixelId && !masterPixelId) return null;
+
+  // Build pixel initialization code
+  const pixelInitCode = [
+    pixelId ? `fbq('init', '${pixelId}');` : '',
+    masterPixelId ? `fbq('init', '${masterPixelId}');` : '',
+  ].filter(Boolean).join('\n            ');
 
   return (
     <>
@@ -26,24 +38,25 @@ export function FacebookPixelScript({ pixelId }: FacebookPixelProps) {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${pixelId}');
+            ${pixelInitCode}
             fbq('track', 'PageView');
           `,
         }}
       />
-      {/* Noscript fallback */}
+      {/* Noscript fallback - use primary pixel (merchant or master) */}
       <noscript>
         <img
           height="1"
           width="1"
           style={{ display: 'none' }}
-          src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
+          src={`https://www.facebook.com/tr?id=${pixelId || masterPixelId}&ev=PageView&noscript=1`}
           alt=""
         />
       </noscript>
     </>
   );
 }
+
 
 /**
  * Track custom Facebook Pixel events

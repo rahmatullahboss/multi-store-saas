@@ -102,3 +102,11 @@
 - [x] **Credit Ledger & History**: Added detailed transaction logging and merchant history UI.
 - [x] **Admin Credit Oversight**: Enabled Super Admin monitoring of store credit balances.
 - [x] **Sustainable Pricing**: Launched credit packages aligned with a 1:1 BDT-to-Credit ratio.
+
+### Phase 12: AI-Powered Customer Segmentation & Remarketing (Completed)
+
+- [x] **Master Pixel Setup**: Dual-pixel tracking for platform-wide audience aggregation
+- [x] **Customer Segmentation Schema**: VIP, Churn Risk, Window Shopper, New, Regular segments
+- [x] **AI Marketing Message Generator**: Personalized SMS/Email content in Bangla & English
+- [x] **Merchant AI Campaigns Page**: Segment visualization and one-click campaign creation
+- [x] **Super Admin Audience Insights**: Platform-wide customer analytics dashboard

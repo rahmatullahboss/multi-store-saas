@@ -63,12 +63,14 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     ENV: {
       VAPID_PUBLIC_KEY: context.cloudflare.env.VAPID_PUBLIC_KEY,
       SENTRY_DSN: context.cloudflare.env.SENTRY_DSN,
-    }
+    },
+    // Master Pixel for platform-wide audience aggregation
+    masterPixelId: context.cloudflare.env.MASTER_FACEBOOK_PIXEL_ID || null,
   });
 }
 
 export default function App() {
-  const { store, ENV, locale } = useLoaderData<typeof loader>();
+  const { store, ENV, locale, masterPixelId } = useLoaderData<typeof loader>();
   useChangeLanguage(locale);
 
   return (
@@ -92,21 +94,25 @@ export default function App() {
           />
         )}
         
-        {/* Facebook Pixel - Conversion Tracking */}
-        {store.facebookPixelId && (
+        {/* Facebook Pixel - Conversion Tracking (Merchant + Master Pixel) */}
+        {(store.facebookPixelId || masterPixelId) && (
           <script
-            dangerouslySetInnerHTML={{ __html: getFacebookPixelInitScript(store.facebookPixelId) }}
+            dangerouslySetInnerHTML={{ 
+              __html: store.facebookPixelId 
+                ? getFacebookPixelInitScript(store.facebookPixelId, masterPixelId)
+                : getFacebookPixelInitScript(masterPixelId!, null) // Only master pixel if no merchant pixel
+            }}
           />
         )}
         
         {/* Facebook Pixel - Noscript Fallback */}
-        {store.facebookPixelId && (
+        {(store.facebookPixelId || masterPixelId) && (
           <noscript>
             <img 
               height="1" 
               width="1" 
               style={{ display: 'none' }}
-              src={`https://www.facebook.com/tr?id=${store.facebookPixelId}&ev=PageView&noscript=1`}
+              src={`https://www.facebook.com/tr?id=${store.facebookPixelId || masterPixelId}&ev=PageView&noscript=1`}
               alt=""
             />
           </noscript>

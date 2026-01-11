@@ -176,11 +176,22 @@ export const customers = sqliteTable('customers', {
   // Fraud check cache
   riskScore: integer('risk_score'), // 0-100 (higher = more risky)
   riskCheckedAt: integer('risk_checked_at', { mode: 'timestamp' }), // Last check time
+  
+  // === SEGMENTATION FIELDS (AI Marketing) ===
+  totalOrders: integer('total_orders').default(0), // Auto-calculated from orders
+  totalSpent: real('total_spent').default(0), // Auto-calculated from orders total
+  lastOrderAt: integer('last_order_at', { mode: 'timestamp' }), // Last purchase date
+  // Segment: vip (>3 orders OR >10k spent), churn_risk (>60 days inactive), 
+  // window_shopper (has abandoned carts, 0 orders), new (0 orders), regular (default)
+  segment: text('segment').$type<'vip' | 'churn_risk' | 'window_shopper' | 'new' | 'regular'>().default('new'),
+  tags: text('tags'), // JSON array for manual tagging ["high-value", "repeat-buyer"]
+  
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('customers_store_id_idx').on(table.storeId),
   index('customers_email_idx').on(table.storeId, table.email),
+  index('customers_segment_idx').on(table.storeId, table.segment),
 ]);
 
 // ============================================================================
