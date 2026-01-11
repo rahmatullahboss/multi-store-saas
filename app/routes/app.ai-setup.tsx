@@ -6,7 +6,7 @@
  */
 
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { Form, useActionData, useNavigation } from '@remix-run/react';
+import { Form, useActionData, useNavigation, useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
@@ -45,7 +45,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const planType = (store.planType as PlanType) || 'free';
   const hasAIAccess = canUseAI(planType);
 
-  return json({ hasAIAccess, planType, storeName: store.name, aiCredits: store.aiCredits || 0 });
+  // Pass credit cost from server to client
+  return json({ 
+    hasAIAccess, 
+    planType, 
+    storeName: store.name, 
+    aiCredits: store.aiCredits || 0,
+    setupCreditCost: CREDIT_COSTS.SETUP_STORE
+  });
 }
 
 // Action: Process AI generation
@@ -190,6 +197,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
 // Component
 export default function AISetupPage() {
+  const { setupCreditCost } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
@@ -269,7 +277,7 @@ export default function AISetupPage() {
                 )}
               </button>
               <p className="mt-4 text-center text-purple-300 text-sm">
-                 খরচ: {CREDIT_COSTS.SETUP_STORE} ক্রেডিট
+                 খরচ: {setupCreditCost} ক্রেডিট
               </p>
             </div>
           </Form>
