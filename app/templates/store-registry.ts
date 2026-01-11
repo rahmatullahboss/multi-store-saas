@@ -167,6 +167,17 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#1C1C1E',
     footerText: '#FAFAFA',
   },
+  'eclipse': {
+    primary: '#030712',
+    accent: '#8B5CF6',
+    background: '#030712',
+    text: '#F9FAFB',
+    muted: '#9CA3AF',
+    cardBg: '#111827',
+    headerBg: 'rgba(3, 7, 18, 0.7)',
+    footerBg: '#000000',
+    footerText: '#F9FAFB',
+  },
 };
 
 // ============================================================================
@@ -180,6 +191,7 @@ import { DarazTemplate } from '~/components/store-templates/DarazTemplate';
 import { BDShopTemplate } from '~/components/store-templates/BDShopTemplate';
 import { GhorerBazarTemplate } from '~/components/store-templates/GhorerBazarTemplate';
 import { NovaLuxTemplate } from '~/components/store-templates/NovaLuxTemplate';
+import { EclipseTemplate } from '~/components/store-templates/EclipseTemplate';
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -288,6 +300,19 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'DM Sans',
     },
     component: NovaLuxTemplate,
+  },
+  {
+    id: 'eclipse',
+    name: 'Eclipse Future',
+    description: 'A futuristic dark-mode template with neon accents, bento layouts, and spotlight interactions. The cutting edge of 2025.',
+    thumbnail: '/templates/eclipse.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['eclipse'],
+    fonts: {
+      heading: 'Space Grotesk',
+      body: 'Inter',
+    },
+    component: EclipseTemplate,
   },
 ];
 
