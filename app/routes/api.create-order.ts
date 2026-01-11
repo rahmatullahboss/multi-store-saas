@@ -351,6 +351,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ success: false, error: stockError instanceof Error ? stockError.message : 'Inventory Error' }, { status: 400 });
     }
 
+    // Check if this is the first order (for celebration email)
+    const existingOrderCheck = await db.select({ id: orders.id }).from(orders).where(eq(orders.storeId, input.store_id)).limit(1);
+    const isFirstOrder = existingOrderCheck.length === 0;
+
     // 2. CREATE ORDER
     let orderId: number | undefined;
     try {
@@ -441,7 +445,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
       
       // Merchant Alert
-       const merchantUser = await db.select({ email: users.email }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
+       const merchantUser = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
        if (merchantUser.length > 0 && merchantUser[0].email) {
          context.cloudflare.ctx.waitUntil(
            emailService.sendNewOrderAlert({
@@ -454,6 +458,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
              itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
            })
          );
+
+         // Fire Celebration Email if it's the First Sale!
+         if (isFirstOrder) {
+            context.cloudflare.ctx.waitUntil(
+                emailService.sendFirstSaleCelebration({
+                    merchantEmail: merchantUser[0].email,
+                    merchantName: merchantUser[0].name || 'Merchant',
+                    storeName: storeData.name,
+                    orderNumber,
+                    amount: `${storeData.currency || 'BDT'} ${total}`
+                })
+            );
+         }
        }
     }
 

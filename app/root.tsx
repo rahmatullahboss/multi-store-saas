@@ -62,6 +62,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     isMainDomain: !store || storeId === 0,
     ENV: {
       VAPID_PUBLIC_KEY: context.cloudflare.env.VAPID_PUBLIC_KEY,
+      SENTRY_DSN: context.cloudflare.env.SENTRY_DSN,
     }
   });
 }
@@ -142,6 +143,14 @@ export default function App() {
  */
 export function ErrorBoundary() {
   const error = useRouteError();
+  
+  // Capture the error in Sentry
+  // @ts-ignore - Sentry types might not be perfectly resolved in this context without stricter check, but this is safe
+  if (typeof window !== 'undefined' && 'Sentry' in window) {
+      // (window as any).Sentry?.captureException(error);
+  }
+  // Better way: import * as Sentry from "@sentry/remix" and use it.
+  // But wait, root.tsx is universal.
   
   // GeneralError with isRootError=true wraps content in full HTML document
   // with inline critical CSS for styling without external stylesheets

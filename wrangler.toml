@@ -66,6 +66,9 @@ AI_BASE_URL = "https://api.xiaomimimo.com/v1"  # OpenAI-compatible API endpoint
 # PUSH NOTIFICATIONS (VAPID)
 VAPID_PUBLIC_KEY = "BDl0oSQqYgSjUMZxblMeN1nhfndIyhlAKDujKvNfQyo4gMGVlvKs2aInkK9-PiflVUSDxmPPyienIPQlHMZPwJU"
 
+# Sentry DSN
+SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"
+
 # ============================================================================
 # DEVELOPMENT SETTINGS
 # ============================================================================

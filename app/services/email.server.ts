@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { getFirstSaleCelebrationHtml } from './email-templates.server';
 // Env is globally declared
 
 /**
@@ -295,6 +296,22 @@ export function createEmailService(apiKey: string) {
 
     async sendLowStockAlert({ merchantEmail, storeName, products }: { merchantEmail: string; storeName: string; products: { name: string; stock: number }[] }) {
       return sendLowStockAlert(apiKey, merchantEmail, storeName, products);
+    },
+
+    async sendFirstSaleCelebration({ merchantEmail, merchantName, storeName, orderNumber, amount }: { merchantEmail: string, merchantName: string, storeName: string, orderNumber: string, amount: string }) {
+      const html = getFirstSaleCelebrationHtml({
+        merchantName,
+        storeName,
+        orderNumber, // e.g. "1001"
+        amount, // e.g. "৳1,250"
+      });
+
+      return resend.emails.send({
+        from: fromEmail,
+        to: [merchantEmail],
+        subject: `🎉 Your First Sale! You're in Business!`,
+        html,
+      });
     }
   };
 }

@@ -29,6 +29,7 @@ import {
   Bot
 } from 'lucide-react';
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
+import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { getUsageStats } from '~/utils/plans.server';
@@ -222,6 +223,11 @@ export default function DashboardPage() {
           </a>
         </div>
       </div>
+
+      {/* First Sale Checklist (Only if 0 orders) */}
+      {stats.orders === 0 && (
+         <FirstSaleChecklist productCount={stats.products} storeUrl={storeUrl} />
+      )}
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

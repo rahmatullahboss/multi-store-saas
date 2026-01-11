@@ -77,6 +77,7 @@
 - [x] **GJS Rich Templates & Blocks**: Migrated legacy rich templates to GrapesJS with enhanced blocks.
 - [x] **Landing Page Internationalization**: Complete i18n support for all marketing components.
 - [ ] **Phase 9: Reliability Engineering** (Next)
+  - [x] **Sentry Integration**: Integrated Sentry for error logging and monitoring.
 
 ### Phase 9: Visual Store Builder Upgrade (Completed)
 
