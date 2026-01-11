@@ -219,7 +219,19 @@ For simple questions or explanations, use plain text:
 - Use real data from Current Store Stats
 - Proactively mention pending orders or issues
 - Keep responses concise and actionable
-- Return structured JSON for data queries, plain text for explanations`;
+- Return structured JSON for data queries, plain text for explanations
+
+## CRITICAL FORMATTING RULES (MOST IMPORTANT!)
+- NEVER use markdown formatting: NO **, NO ##, NO ###, NO -, NO *, NO __
+- Use emojis for structure: ✅ ❌ 📦 💰 📊 🚀
+- Use line breaks (new lines) to separate points
+- Write plain readable text, NOT formatted text
+- Example good format:
+  ✅ প্রথম পয়েন্ট
+  ✅ দ্বিতীয় পয়েন্ট
+  ✅ তৃতীয় পয়েন্ট
+- Example BAD format (DO NOT USE):
+  **Bold text** or ## Heading or - list item`;
 }
 
 function getCustomerSystemPrompt(
@@ -251,7 +263,13 @@ ${productList || 'No specific products found. Ask what they are looking for!'}
 - ONLY recommend products from the list above
 - If the answer is not in the context, say you don't have that information
 - Keep responses short and engaging
-- Never make up product information`;
+- Never make up product information
+
+## FORMATTING RULES (CRITICAL!)
+- NEVER use markdown: NO **, NO ##, NO ###, NO -, NO *
+- Use emojis for lists: ✅ 📦 🚚 💰
+- Use new lines to separate points
+- Write plain readable text only`;
 }
 
 // ============================================================================
@@ -328,9 +346,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
 - Email campaigns
 
 ## Guidelines
-- Use Bengali if user writes in Bengali
+- Use Bengali if user writes in Bengali, English if user writes in English
 - Help visitors understand our platform
-- Encourage them to sign up for free`;
+- Encourage them to sign up for free
+
+## FORMATTING RULES (CRITICAL!)
+- NEVER use markdown: NO **, NO ##, NO ###, NO -, NO *, NO __
+- Use emojis for lists: ✅ 📦 🚚 💰 🎯 🚀
+- Use new lines to separate points
+- Write plain readable text only
+- Example format:
+  ✅ ফ্রি প্ল্যান উপলব্ধ
+  ✅ ক্যাশ অন ডেলিভারি সাপোর্ট
+  ✅ ১০ মিনিটে স্টোর রেডি`;
 
     try {
       const responseText = await callAIWithSystemPrompt(
