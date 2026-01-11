@@ -1369,3 +1369,43 @@ export const marketplaceThemesRelations = relations(marketplaceThemes, ({ one })
     references: [stores.id],
   }),
 }));
+
+// ============================================================================
+// STORE THEMES TABLE - User's installed/purchased theme collection
+// ============================================================================
+export const storeThemes = sqliteTable('store_themes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  
+  // Source: either a system template ID or a marketplace theme ID
+  templateId: text('template_id'), // e.g., 'luxe-boutique', 'tech-modern' (from STORE_TEMPLATES)
+  marketplaceThemeId: integer('marketplace_theme_id').references(() => marketplaceThemes.id, { onDelete: 'set null' }),
+  
+  // Saved config snapshot (allows customization without losing original)
+  name: text('name').notNull(), // User's name for this theme (e.g., "My Custom Luxe")
+  config: text('config').notNull(), // JSON: Full ThemeConfig snapshot
+  thumbnail: text('thumbnail'), // Custom screenshot or original thumbnail
+  
+  // Status
+  isActive: integer('is_active', { mode: 'boolean' }).default(false), // Currently applied theme
+  
+  // Timestamps
+  installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('store_themes_store_id_idx').on(table.storeId),
+  index('store_themes_active_idx').on(table.storeId, table.isActive),
+]);
+
+export const storeThemesRelations = relations(storeThemes, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeThemes.storeId],
+    references: [stores.id],
+  }),
+  marketplaceTheme: one(marketplaceThemes, {
+    fields: [storeThemes.marketplaceThemeId],
+    references: [marketplaceThemes.id],
+  }),
+}));
+

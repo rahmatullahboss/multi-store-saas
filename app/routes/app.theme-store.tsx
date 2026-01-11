@@ -9,8 +9,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json, redirect } from '@remix-run/cloudflare';
 import { useLoaderData, useNavigation, useActionData, Form, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores } from '@db/schema';
-import { eq } from 'drizzle-orm';
+import { stores, storeThemes } from '@db/schema';
+import { eq, and } from 'drizzle-orm';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { 
   Palette, Layout, Image as ImageIcon, CheckCircle2, 
@@ -49,48 +49,60 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Theme not found in registry' }, { status: 404 });
   }
 
-  // 2. Fetch current store config to preserve business info
-  const currentStore = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
-  const currentConfig = currentStore[0]?.themeConfig 
-    ? JSON.parse(currentStore[0].themeConfig as string) 
-    : defaultThemeConfig;
-
-  // 3. Construct NEW ThemeConfig based on template defaults
-  // We resetting visuals (colors, fonts) to match the new theme
+  // 2. Build ThemeConfig from template defaults
   const newThemeConfig: ThemeConfig = {
-    ...currentConfig, // Keep non-visual settings (if any exist in config)
-    
-    // OVERRIDE visual settings with Template Defaults
     storeTemplateId: template.id,
     primaryColor: template.theme.primary,
     accentColor: template.theme.accent,
     backgroundColor: template.theme.background,
     textColor: template.theme.text,
-    
-    // We optionally unset custom overrides
-    fontFamily: template.fonts.body.split(',')[0].toLowerCase().replace(' ', '-'), // Rough mapping
-    
-    // Crucial: Reset section configuration? 
-    // Usually, you might want to keep content, but different themes have different section needs.
-    // For V1, let's keep the content sections if they exist, or let the renderer handle defaults.
-    // If we want a "fresh start", we might clear `sections`. 
-    // Let's NOT clear `sections` yet, so user doesn't lose data. 
-    // The `SectionRenderer` uses `storeTemplateId` layout but renders mapped sections.
-    // However, if the user wants the "Look" of the new theme, they expect the home page to change.
-    // IMPORTANT: Our templates currently use `config.sections` to render DYNAMIC home pages.
-    // If `config.sections` is empty, they might fall back to hardcoded.
-    // If it's populated with "Luxe" sections, and we switch to "Tech", it might look weird.
-    // Best practice: When installing a theme, we usually generate a default `sections` array for that theme.
-    // Since we don't have that generator function yet, we will rely on the template to handle existing sections nicely.
+    sections: [], // Fresh sections (template default will be used)
   };
 
-  // 4. Update Database
+  // 3. Check if this theme is already in user's collection
+  const existingTheme = await db
+    .select()
+    .from(storeThemes)
+    .where(and(eq(storeThemes.storeId, storeId), eq(storeThemes.templateId, template.id)))
+    .limit(1);
+
+  // 4. Deactivate all current themes for this store
+  await db
+    .update(storeThemes)
+    .set({ isActive: false })
+    .where(eq(storeThemes.storeId, storeId));
+
+  if (existingTheme.length > 0) {
+    // Theme already in collection - just activate it
+    await db
+      .update(storeThemes)
+      .set({ 
+        isActive: true, 
+        lastUsedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(storeThemes.id, existingTheme[0].id));
+  } else {
+    // 5. Add theme to user's collection
+    await db.insert(storeThemes).values({
+      storeId,
+      templateId: template.id,
+      name: template.name,
+      config: JSON.stringify(newThemeConfig),
+      thumbnail: template.thumbnail,
+      isActive: true,
+      installedAt: new Date(),
+      lastUsedAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  // 6. Apply theme to store (for immediate use)
   await db
     .update(stores)
     .set({
       themeConfig: JSON.stringify(newThemeConfig),
-      storeTemplateId: template.id, // Explicit column update
-      fontFamily: template.fonts.body, // Update font column
+      fontFamily: template.fonts.body,
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
