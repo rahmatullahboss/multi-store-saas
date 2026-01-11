@@ -143,7 +143,7 @@ export function AIShowcaseSection() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.3 }}
-                className="bg-[#111] border border-white/10 rounded-3xl relative overflow-hidden group min-h-[600px] flex shadow-2xl"
+                className="bg-[#111] border border-white/10 rounded-3xl relative overflow-hidden group min-h-[600px] h-auto flex shadow-2xl"
               >
                  {/** 
                   * Tab 1: VISITOR AI 
@@ -152,7 +152,7 @@ export function AIShowcaseSection() {
                  {activeTab === 0 && (
                    <div className="w-full h-full flex flex-col lg:flex-row">
                       {/* Left: Features */}
-                      <div className="w-full lg:w-5/12 p-8 lg:p-12 border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col justify-center relative bg-gradient-to-b from-blue-900/10 to-transparent">
+                      <div className="w-full lg:w-5/12 p-6 md:p-8 lg:p-12 border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col justify-center relative bg-gradient-to-b from-blue-900/10 to-transparent">
                           <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">{t('landingShowcase_visitorTitle')}</h3>
                           <p className="text-lg text-blue-300 mb-8">{t('landingShowcase_visitor_askAi')}</p>
                           
@@ -190,8 +190,8 @@ export function AIShowcaseSection() {
                       </div>
 
                       {/* Right: Chat Demo */}
-                      <div className="w-full lg:w-7/12 p-8 lg:p-12 bg-[#0d1210] relative flex items-center justify-center">
-                          <div className="w-full max-w-md bg-[#151a18] rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col h-[500px]">
+                      <div className="w-full lg:w-7/12 p-4 md:p-8 lg:p-12 bg-[#0d1210] relative flex items-center justify-center">
+                          <div className="w-full max-w-md bg-[#151a18] rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col h-[400px] md:h-[500px]">
                             {/* Chat Header */}
                             <div className="p-4 border-b border-white/5 bg-[#1a1f1d] flex items-center gap-3">
                               <div className="relative">
@@ -310,9 +310,9 @@ export function AIShowcaseSection() {
                       </div>
                       
                       {/* Content Area */}
-                      <div className="flex flex-1 overflow-hidden relative">
+                      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden relative h-full">
                          {/* Main Dashboard (Left) */}
-                         <div className="flex-1 p-6 lg:p-8 overflow-hidden opacity-50 lg:opacity-100 transition-opacity">
+                         <div className="flex-1 p-4 lg:p-8 overflow-y-auto lg:overflow-hidden opacity-100 transition-opacity">
                             <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                                <BarChart3 className="w-6 h-6 text-white/50" /> 
                                {t('landingShowcase_merchant_dashboard')}
@@ -350,7 +350,7 @@ export function AIShowcaseSection() {
                            initial={{ x: 100, opacity: 0 }}
                            animate={{ x: 0, opacity: 1 }}
                            transition={{ type: 'spring', damping: 20, delay: 0.5 }}
-                           className="w-full lg:w-96 bg-[#151a18] border-l border-emerald-500/20 shadow-[-20px_0_50px_rgba(0,0,0,0.5)] flex flex-col absolute right-0 inset-y-0 z-20"
+                           className="w-full lg:w-96 bg-[#151a18] border-t lg:border-t-0 lg:border-l border-emerald-500/20 shadow-[-20px_0_50px_rgba(0,0,0,0.5)] flex flex-col relative lg:absolute lg:right-0 lg:inset-y-0 z-20 h-[400px] lg:h-auto"
                          >
                             <div className="p-4 border-b border-white/5 flex items-center gap-2 bg-emerald-900/10">
                                <Sparkles className="w-4 h-4 text-emerald-400" />
@@ -426,8 +426,8 @@ export function AIShowcaseSection() {
                       </div>
 
                       {/* Store Content */}
-                      <div className="flex-1 bg-gray-50 p-6">
-                         <div className="grid grid-cols-3 gap-4">
+                      <div className="flex-1 bg-gray-50 p-4 md:p-6 pb-24 md:pb-6">
+                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                             {[
                                { name: 'T-Shirt', price: '৳899', color: 'bg-blue-100', icon: Shirt },
                                { name: 'Jeans', price: '৳1,499', color: 'bg-indigo-100', icon: Package }, // using Package as Jeans placeholder
@@ -449,7 +449,7 @@ export function AIShowcaseSection() {
                         initial={{ opacity: 0, y: 50, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{ delay: 0.5, type: 'spring' }}
-                        className="absolute bottom-6 right-6 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col z-20"
+                        className="absolute bottom-4 right-4 w-[calc(100%-32px)] md:w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col z-20"
                       >
                          <div className="bg-indigo-600 p-3 flex items-center gap-2 text-white">
                             <Bot className="w-5 h-5" />
@@ -481,9 +481,9 @@ export function AIShowcaseSection() {
                                   </div>
                                </div>
                                <p>{t('landingShowcase_customer_addToCartMsg')}</p>
-                               <div className="mt-2 flex gap-2">
-                                  <button className="px-3 py-1 bg-indigo-600 text-white rounded-full text-[10px]">{t('landingShowcase_customer_yes')}</button>
-                                  <button className="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-[10px]">{t('landingShowcase_customer_otherColor')}</button>
+                               <div className="mt-2 flex flex-wrap gap-2">
+                                  <button className="px-3 py-1 bg-indigo-600 text-white rounded-full text-[10px] whitespace-nowrap">{t('landingShowcase_customer_yes')}</button>
+                                  <button className="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-[10px] whitespace-nowrap">{t('landingShowcase_customer_otherColor')}</button>
                                 </div>
                             </motion.div>
                          </div>
