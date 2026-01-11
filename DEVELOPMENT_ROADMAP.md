@@ -57,7 +57,7 @@
 - [x] **Push Notifications**: Mobile app or PWA notifications for new orders (VAPID Backed).
 - [x] **Mobile Admin App**: React Native or Capacitor wrapper (Initialized).
 
-### Phase 8: Enterprise Features
+### Phase 8: Enterprise Features (Completed)
 
 - [x] **Audit Trails**: Detailed logs for all sensitive actions (Expanded).
 - [x] **SSO**: Single Sign-On for enterprise merchants (Google OAuth).
@@ -66,6 +66,24 @@
 - [x] **Ozzyl AI Chatbot**: Premium dark glassmorphism chatbot for marketing pages.
 - [x] **Lead Capture & Chat History**: Mandatory Name/Phone registration and persistent message logging.
 - [x] **Marketing Header Standardization**: Unified header component across all marketing pages.
+- [x] **Loyalty Database Schema**: Added tables for points, tiers, and transactions.
+
+### Phase 14: Advanced Marketing & Loyalty (Priority: Research Paper) 🚀
+
+- [ ] **Loyalty Logic Core**:
+  - [ ] Implement Tier-based Multipliers (Bronze 1x, Silver 1.2x, etc.).
+  - [ ] Implement Referral Point System.
+  - [ ] Tier Upgrade Notifications.
+- [ ] **Omnichannel Messaging**:
+  - [ ] **SSL Wireless Integration**: Replace simulator with real API.
+  - [ ] **Meta Cloud API**: Replace simulator with real WhatsApp API.
+  - [ ] **Smart Triggers**:
+    - [ ] Abandoned Cart (1 hour delay).
+    - [ ] Win-back (30 days inactivity).
+    - [ ] Review Request (3 days post-delivery).
+- [ ] **Predictive AI**:
+  - [ ] Churn Probability Calculation (based on order frequency).
+  - [ ] Customer LTV Forecasting.
 
 ---
 
@@ -118,3 +136,24 @@
 - [x] **AI Agent Logic**: Multi-channel support (Web, WhatsApp, Messenger) with credit deduction.
 - [x] **Deep Integration**: AI tools for Order Status Check, Tracking, and Lead Collection.
 - [x] **Webhook Hander**: Unified webhook for Meta (WhatsApp/Messenger) events.
+
+### Phase 14: Loyalty & Advanced Lifecycle Automations (Completed) 💎
+
+- [x] **Loyalty Points System**: Customers earn points on every purchase (1 pt / 100 BDT).
+- [x] **Tiered Membership**: Automated tiers (Bronze, Silver, Gold, Platinum) based on total spend.
+- [x] **Referral System**: Built-in tracking for customer referrals and rewards.
+- [x] **Lifecycle Automations**:
+  - **Win-back SMS**: Auto-trigger for customers inactive for 30+ days.
+  - **Review Request**: Auto-trigger 3 days after order delivery.
+- [x] **Predictive Analytics**:
+  - **CLV Calculation**: Customer Lifetime Value estimation.
+  - **Product Recommendations**: AI-driven "Frequently Bought Together" logic.
+  - **Next Purchase Prediction**: Forecasted date for next order.
+
+### Phase 15: Advanced Marketing Integrations (Planned) 🚧
+
+- [ ] **SMS Gateway Integration**: Native integration with SSL Wireless / BulkSMS BD for real SMS delivery.
+- [ ] **WhatsApp Business API**: Direct integration for official Template Messages (Order Confirm, Shipping).
+- [ ] **Catalog Sync**: Sync Product Catalog with WhatsApp/Facebook Shops.
+- [ ] **Smart Discount Rules**: Time-based (Flash Sale) and Behavior-based (Cart Abandonment) dynamic discounts.
+- [ ] **A/B Testing**: Split testing framework for marketing subject lines and offers.

@@ -14,7 +14,6 @@
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
-import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers } from '@db/schema';
 import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
@@ -23,6 +22,8 @@ import { dispatchWebhook } from '~/services/webhook.server';
 import { checkUsageLimit } from '~/utils/plans.server';
 import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
 import { sendPurchaseEvent } from '~/services/facebook-capi.server';
+import { createDb } from '~/lib/db.server';
+import { sendSmartNotification } from '~/services/messaging.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -77,7 +78,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: false, error: 'Method not allowed' }, { status: 405 });
   }
 
-  const db = drizzle(context.cloudflare.env.DB);
+  const db = createDb(context.cloudflare.env.DB);
 
   try {
     // Parse request body
@@ -546,6 +547,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
          }
        }
     }
+
+    // Smart Notification (WhatsApp / SMS) - Marketing Research Feature
+    context.cloudflare.ctx.waitUntil(
+      sendSmartNotification(db, orderId!, input.store_id, 'ORDER_CONFIRMATION', {
+        phone: input.phone,
+        customerName: input.customer_name,
+        amount: total,
+        currency: storeData.currency || 'BDT',
+        orderNumber: orderNumber,
+        itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0)
+      }).catch(e => console.error('[Messaging] Notification failed:', e))
+    );
 
     // Push Notifications
     context.cloudflare.ctx.waitUntil((async () => {

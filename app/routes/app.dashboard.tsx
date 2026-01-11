@@ -33,7 +33,8 @@ import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { getUsageStats } from '~/utils/plans.server';
-import { getStoreStats } from '~/services/analytics.server';
+import { getStoreStats, getRevenueForecast, getPredictedCLV } from '~/services/analytics.server';
+import { GrowthOpportunitiesCard } from '~/components/dashboard/GrowthOpportunitiesCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Multi-Store SaaS' }];
@@ -57,7 +58,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const store = storeResult[0];
 
   // Fetch store stats using shared service
-  const statsResult = await getStoreStats(db, storeId);
+  const [statsResult, forecast, clv] = await Promise.all([
+    getStoreStats(db, storeId),
+    getRevenueForecast(db, storeId),
+    getPredictedCLV(db, storeId)
+  ]);
   const { 
       products: productCount, 
       lowStock: lowStockCount, 
@@ -155,6 +160,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     },
     salesData,
     actionItems,
+    forecast,
+    clv,
     recentOrders: recentOrders.map(o => ({
       ...o,
       createdAt: o.createdAt?.toISOString() || new Date().toISOString(),
@@ -173,6 +180,8 @@ export default function DashboardPage() {
     stats, 
     salesData, 
     actionItems,
+    forecast,
+    clv,
     recentOrders 
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
@@ -309,10 +318,15 @@ export default function DashboardPage() {
           <SalesChart data={salesData} currency={currency} />
         </div>
 
-        {/* Action Items */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('actionItems')}</h2>
-          <ActionItems items={actionItems} />
+        {/* Growth Opportunities & Action Items */}
+        <div className="space-y-6">
+            <GrowthOpportunitiesCard forecast={forecast} clv={clv} currency={currency} />
+            
+            {/* Action Items */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('actionItems')}</h2>
+              <ActionItems items={actionItems} />
+            </div>
         </div>
       </div>
 

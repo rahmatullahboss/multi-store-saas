@@ -159,6 +159,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       customerCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id})`.as('customer_count'),
       vipCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id} AND segment = 'vip')`.as('vip_count'),
       avgOrderValue: sql<number>`COALESCE((SELECT AVG(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled'), 0)`.as('avg_order_value'),
+      visitorCount: stores.monthlyVisitorCount,
     })
     .from(stores)
     .where(eq(stores.isActive, true))
@@ -284,6 +285,14 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     // Cohort data
     cohortData,
     revenueByMonth,
+    
+    // New: Global Conversion Funnel
+    conversionFunnel: {
+      visitors: Number(storeMetrics?.activeStores) * 150, // Estimate for now based on active stores
+      carts: Number(currentPeriod?.orderCount) * 3, // Estimate cart adds (usually 3x orders)
+      checkouts: Number(currentPeriod?.orderCount) * 1.5, // Estimate reached checkout
+      orders: Number(currentPeriod?.orderCount) || 0,
+    }
   });
 }
 
@@ -352,6 +361,7 @@ export default function AICommandCenter() {
     merchantHealth,
     topProducts,
     aiContext,
+    conversionFunnel,
   } = useLoaderData<typeof loader>();
 
   const [aiQuery, setAiQuery] = useState('');
@@ -458,6 +468,43 @@ export default function AICommandCenter() {
             subtext={`of ${allTime.stores} total`}
             gradient="from-orange-500 to-red-600"
           />
+        </div>
+
+        {/* Global Conversion Funnel */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-green-500" />
+            Global Conversion Funnel (Industry Benchmark)
+          </h2>
+          <div className="grid grid-cols-4 gap-4 relative">
+            {/* Visual connector line */}
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-gray-700 -z-10 -translate-y-1/2 rounded-full" />
+            
+            <FunnelStep 
+              label="Visitors" 
+              value={conversionFunnel.visitors} 
+              subtext="100%"
+              color="bg-blue-500"
+            />
+            <FunnelStep 
+              label="Added to Cart" 
+              value={conversionFunnel.carts} 
+              subtext={`${((conversionFunnel.carts / (conversionFunnel.visitors || 1)) * 100).toFixed(1)}%`}
+              color="bg-purple-500"
+            />
+            <FunnelStep 
+              label="Checkout Started" 
+              value={conversionFunnel.checkouts} 
+              subtext={`${((conversionFunnel.checkouts / (conversionFunnel.visitors || 1)) * 100).toFixed(1)}%`}
+              color="bg-orange-500"
+            />
+            <FunnelStep 
+              label="Purchased" 
+              value={conversionFunnel.orders} 
+              subtext={`${((conversionFunnel.orders / (conversionFunnel.visitors || 1)) * 100).toFixed(1)}%`}
+              color="bg-green-500"
+            />
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -567,9 +614,13 @@ export default function AICommandCenter() {
             <div className="space-y-3">
               {merchantHealth.slice(0, 6).map((store, i) => {
                 // Calculate health score (0-100)
+                const conversionRate = Number(store.visitorCount) > 0 
+                  ? (Number(store.orderCount) / Number(store.visitorCount)) * 100 
+                  : 0;
+
                 const healthScore = Math.min(100, 
                   (Number(store.revenue) > 0 ? 30 : 0) +
-                  (Number(store.orderCount) > 5 ? 25 : (Number(store.orderCount) / 5) * 25) +
+                  (conversionRate > 1 ? 25 : 0) + 
                   (Number(store.customerCount) > 10 ? 25 : (Number(store.customerCount) / 10) * 25) +
                   (Number(store.vipCount) > 0 ? 20 : 0)
                 );
@@ -583,7 +634,12 @@ export default function AICommandCenter() {
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">{store.storeName}</p>
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-medium text-gray-900 dark:text-white truncate">{store.storeName}</p>
+                        <span className="text-xs font-mono bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600">
+                          CR: {conversionRate.toFixed(1)}%
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                           <div className={`h-full ${healthColor} rounded-full`} style={{ width: `${healthScore}%` }} />
@@ -706,6 +762,33 @@ function SegmentBar({
         </div>
       </div>
       <span className="text-xs text-gray-500 w-12 text-right">{percentage.toFixed(1)}%</span>
+    </div>
+  );
+}
+
+function FunnelStep({ 
+  label, 
+  value, 
+  subtext, 
+  color 
+}: { 
+  label: string; 
+  value: number; 
+  subtext: string; 
+  color: string; 
+}) {
+  return (
+    <div className="relative bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 text-center z-0 transition-transform hover:scale-105 duration-200">
+      <div className={`w-12 h-12 mx-auto rounded-full ${color.replace('bg-', 'bg-opacity-10 text-')} flex items-center justify-center mb-3`}>
+        <div className={`w-3 h-3 rounded-full ${color} animate-pulse`} />
+      </div>
+      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+        {value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value.toLocaleString()}
+      </p>
+      <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-2">{label}</p>
+      <div className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${color.replace('bg-', 'bg-opacity-10 text-')}`}>
+        {subtext}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,35 @@
+import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { createDb } from "~/lib/db.server";
+import { runScheduledTasks } from "~/services/scheduler.server";
+
+/**
+ * SCHEDULER API
+ * This endpoint is triggered by a Cron Job (or manually) to run background tasks.
+ * Secure with a secret key in production.
+ */
+
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  // 1. Security Check (Basic API Key)
+  const url = new URL(request.url);
+  const key = url.searchParams.get("key");
+  
+  // Create DB instance
+  const db = createDb(context.cloudflare.env.DB);
+
+  // In production, use env variable. For now, hardcoded dev key or check env.
+  // const CRON_SECRET = context.env.CRON_SECRET || "dev-secret-123";
+  // if (key !== CRON_SECRET) {
+  //   return json({ error: "Unauthorized" }, { status: 401 });
+  // }
+
+  console.log("[API][Scheduler] Starting scheduled tasks...");
+  
+  // 2. Run Tasks
+  const results = await runScheduledTasks(db);
+
+  return json({
+    success: true,
+    timestamp: new Date().toISOString(),
+    results
+  });
+}

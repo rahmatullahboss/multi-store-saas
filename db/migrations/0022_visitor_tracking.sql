@@ -1,3 +1,3 @@
 -- Add visitor tracking columns to stores table for usage limit enforcement
-ALTER TABLE stores ADD COLUMN monthly_visitor_count INTEGER DEFAULT 0;
-ALTER TABLE stores ADD COLUMN visitor_count_reset_at INTEGER;
+-- ALTER TABLE stores ADD COLUMN monthly_visitor_count INTEGER DEFAULT 0;
+-- ALTER TABLE stores ADD COLUMN visitor_count_reset_at INTEGER;

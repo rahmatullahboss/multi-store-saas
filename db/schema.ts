@@ -186,6 +186,11 @@ export const customers = sqliteTable('customers', {
   segment: text('segment').$type<'vip' | 'churn_risk' | 'window_shopper' | 'new' | 'regular'>().default('new'),
   tags: text('tags'), // JSON array for manual tagging ["high-value", "repeat-buyer"]
   
+  // === LOYALTY FIELDS (Phase 10) ===
+  loyaltyPoints: integer('loyalty_points').default(0),
+  loyaltyTier: text('loyalty_tier').$type<'bronze' | 'silver' | 'gold' | 'platinum'>().default('bronze'),
+  referredBy: integer('referred_by'), // ID of existing customer who referred this user
+  
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
@@ -222,6 +227,10 @@ export const orders = sqliteTable('orders', {
   shipping: real('shipping').default(0),
   total: real('total').notNull(),
   notes: text('notes'),
+  // Marketing Automation (Phase 11)
+  reviewRequestSent: integer('review_request_sent', { mode: 'boolean' }).default(false),
+  reviewRequestSentAt: integer('review_request_sent_at', { mode: 'timestamp' }),
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
@@ -1580,3 +1589,32 @@ export const leadsDataRelations = relations(leadsData, ({ one }) => ({
   }),
 }));
 
+
+// ============================================================================
+// LOYALTY TRANSACTIONS - History of points earned/redeemed
+// ============================================================================
+export const loyaltyTransactions = sqliteTable('loyalty_transactions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
+  
+  points: integer('points').notNull(), // Positive = Earned, Negative = Redeemed
+  type: text('type').$type<'purchase' | 'referral' | 'signup' | 'redemption' | 'manual_adjustment'>().notNull(),
+  description: text('description'), // "Order #1234", "Referral Bonus"
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('loyalty_tx_customer_idx').on(table.customerId),
+  index('loyalty_tx_store_idx').on(table.storeId),
+]);
+
+export const loyaltyTransactionsRelations = relations(loyaltyTransactions, ({ one }) => ({
+  store: one(stores, {
+    fields: [loyaltyTransactions.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [loyaltyTransactions.customerId],
+    references: [customers.id],
+  }),
+}));
