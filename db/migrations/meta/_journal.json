@@ -260,6 +260,13 @@
       "when": 1768151668832,
       "tag": "0036_add_merchant_ai_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1768156971204,
+      "tag": "0037_fix_ab_tests_schema",
+      "breakpoints": true
     }
   ]
 }

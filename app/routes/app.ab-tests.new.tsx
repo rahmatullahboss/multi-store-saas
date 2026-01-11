@@ -8,25 +8,19 @@
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, Form, Link, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { abTests, abTestVariants, products, stores } from '@db/schema';
+import { abTests, abTestVariants, stores } from '@db/schema';
 import { eq } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { useState } from 'react';
 import { ArrowLeft, Plus, Trash2, Copy, Percent } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context as unknown as Env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
 
   const db = drizzle(context.cloudflare.env.DB);
-
-  // Fetch products for linking
-  const allProducts = await db
-    .select({ id: products.id, title: products.title })
-    .from(products)
-    .where(eq(products.storeId, storeId));
 
   // Get current landing config from store
   const store = await db
@@ -36,13 +30,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(1);
 
   return json({ 
-    products: allProducts,
     currentLandingConfig: store[0]?.landingConfig || null,
   });
 }
 
+function slugify(text: string) {
+  return text.toString().toLowerCase()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start of text
+    .replace(/-+$/, '');            // Trim - from end of text
+}
+
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context as unknown as Env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -51,7 +53,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   const name = formData.get('name') as string;
-  const productId = formData.get('productId') ? Number(formData.get('productId')) : null;
+  // productId removed
   
   // Variants data from form
   const variantNames = formData.getAll('variantName') as string[];
@@ -62,12 +64,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: false, error: 'নাম এবং কমপক্ষে ২টি ভ্যারিয়েন্ট প্রয়োজন' }, { status: 400 });
   }
 
+  const testKey = slugify(name) + '-' + Date.now().toString(36);
+
   // Create test
   const testResult = await db.insert(abTests).values({
     storeId,
-    productId,
     name,
-    status: 'draft',
+    testKey,
+    status: 'paused', // Schema doesn't support 'draft'
+    // We must populate variantA and variantB because they are notNull in schema
+    // But we are using abTestVariants table.
+    // We'll put placeholders or the first two variant names.
+    variantA: variantNames[0] || 'A',
+    variantB: variantNames[1] || 'B',
   }).returning({ id: abTests.id });
 
   const testId = testResult[0].id;
@@ -88,7 +97,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function NewABTestPage() {
-  const { products, currentLandingConfig } = useLoaderData<typeof loader>();
+  const { currentLandingConfig } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
@@ -158,21 +167,6 @@ export default function NewABTestPage() {
                 placeholder="যেমন: হেডলাইন টেস্ট ১"
                 className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
               />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                প্রোডাক্ট (ঐচ্ছিক)
-              </label>
-              <select
-                name="productId"
-                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
-              >
-                <option value="">সব ল্যান্ডিং পেজ</option>
-                {products.map(p => (
-                  <option key={p.id} value={p.id}>{p.title}</option>
-                ))}
-              </select>
             </div>
           </div>
         </div>

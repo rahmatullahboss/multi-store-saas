@@ -1,6 +1,6 @@
 import type { Database } from "../lib/db.server";
 import { abandonedCarts, stores, customers, orders } from "../../db/schema";
-import { eq, and, lt, isNull, not, like } from "drizzle-orm";
+import { eq, and, lt, gt, isNull, not, like } from "drizzle-orm";
 import { sendSmartNotification } from "./messaging.server";
 
 /**
@@ -9,7 +9,7 @@ import { sendSmartNotification } from "./messaging.server";
  * Now includes Lifecycle Marketing (Win-back, Review Requests).
  */
 
-export async function runScheduledTasks(db: Database) {
+export async function runScheduledTasks(db: Database, env: Env) {
   const results = {
     abandonedCarts: 0,
     winbackCampaigns: 0,
@@ -18,9 +18,9 @@ export async function runScheduledTasks(db: Database) {
   };
 
   try {
-    results.abandonedCarts = await processAbandonedCarts(db);
-    results.winbackCampaigns = await processWinbackCampaigns(db);
-    results.reviewRequests = await processReviewRequests(db);
+    results.abandonedCarts = await processAbandonedCarts(db, env);
+    results.winbackCampaigns = await processWinbackCampaigns(db, env);
+    results.reviewRequests = await processReviewRequests(db, env);
   } catch (error: any) {
     console.error("[Scheduler] Error running tasks:", error);
     results.errors.push(error.message);
@@ -31,15 +31,17 @@ export async function runScheduledTasks(db: Database) {
 
 // === ABANDONED CART RECOVERY ===
 
-async function processAbandonedCarts(db: Database) {
-  // 1. Find carts abandoned > 1 hour ago AND not yet recovered/notified
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago
+async function processAbandonedCarts(db: Database, env: Env) {
+  // 1. Find carts abandoned > 1 hour ago AND < 24 hours ago (to avoid spamming old carts)
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   
   const targetCarts = await db.query.abandonedCarts.findMany({
     where: and(
       eq(abandonedCarts.status, 'abandoned'),
       eq(abandonedCarts.recoveryEmailSent, false),
-      lt(abandonedCarts.abandonedAt, oneHourAgo) // older than 1 hour
+      lt(abandonedCarts.abandonedAt, oneHourAgo), // older than 1 hour
+      gt(abandonedCarts.abandonedAt, twentyFourHoursAgo) // newer than 24 hours
     ),
     with: {
       store: true // Get store name/details
@@ -54,7 +56,7 @@ async function processAbandonedCarts(db: Database) {
 
     try {
       // 2. Send Smart Notification (WhatsApp -> SMS)
-      await sendSmartNotification(db, 0, cart.storeId, 'ABANDONED_CART', {
+      await sendSmartNotification(db, env, 0, cart.storeId, 'ABANDONED_CART', {
         phone: cart.customerPhone,
         customerName: cart.customerName || 'Guest',
         cartUrl: `https://${cart.store.subdomain}.digitalcare.site/checkout?recovery=${cart.sessionId}`,
@@ -80,7 +82,7 @@ async function processAbandonedCarts(db: Database) {
 }
 
 // === WIN-BACK CAMPAIGN (30 Days Inactive) ===
-async function processWinbackCampaigns(db: Database) {
+async function processWinbackCampaigns(db: Database, env: Env) {
   // Find customers who haven't ordered in 30 days and haven't received winback msg
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   
@@ -95,7 +97,7 @@ async function processWinbackCampaigns(db: Database) {
       if (!customer.phone) continue;
 
       try {
-        await sendSmartNotification(db, customer.id, customer.storeId, 'WINBACK_OFFER', { 
+        await sendSmartNotification(db, env, customer.id, customer.storeId, 'WINBACK_OFFER', { 
             phone: customer.phone,
             customerName: customer.name 
         });
@@ -116,7 +118,8 @@ async function processWinbackCampaigns(db: Database) {
 }
 
 // === REVIEW REQUESTS (3 Days After Delivery) ===
-async function processReviewRequests(db: Database) {
+// === review REQUESTS (3 Days After Delivery) ===
+async function processReviewRequests(db: Database, env: Env) {
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
   
   const recentDeliveries = await db.select().from(orders).where(and(
@@ -130,7 +133,7 @@ async function processReviewRequests(db: Database) {
        if (!order.customerPhone) continue;
 
        try {
-           await sendSmartNotification(db, 0, order.storeId, 'REVIEW_REQUEST', { 
+           await sendSmartNotification(db, env, 0, order.storeId, 'REVIEW_REQUEST', { 
                phone: order.customerPhone,
                customerName: order.customerName,
                reviewUrl: `https://store.com/orders/${order.orderNumber}/review` // Placeholder

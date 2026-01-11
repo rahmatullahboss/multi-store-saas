@@ -302,10 +302,12 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
         'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Galada&family=Tiro+Bangla&family=Mina:wght@400;700&family=Atma:wght@300;400;500;600;700&display=swap',
         // Animation CSS for entrance effects
         '/animations.css',
+        'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', // Swiper CSS
       ],
       scripts: [
         // Tailwind Play CDN for JIT (editor only)
-        'https://cdn.tailwindcss.com'
+        'https://cdn.tailwindcss.com',
+        'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', // Swiper JS
       ],
     },
     deviceManager: {

@@ -1,4 +1,4 @@
-CREATE TABLE `credit_usage_logs` (
+CREATE TABLE IF NOT EXISTS `credit_usage_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`amount` integer NOT NULL,

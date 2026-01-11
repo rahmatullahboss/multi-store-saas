@@ -48,6 +48,14 @@ declare global {
     SENTRY_DSN?: string;
     // Master Facebook Pixel for platform-wide audience aggregation
     MASTER_FACEBOOK_PIXEL_ID?: string;
+
+    // SMS Gateway (SSL Wireless)
+    SSL_SMS_API_TOKEN?: string;
+    SSL_SMS_SID?: string;
+    SSL_SMS_DOMAIN?: string;
+
+    // WhatsApp Cloud API
+    META_WHATSAPP_TOKEN?: string;
   }
 }
 

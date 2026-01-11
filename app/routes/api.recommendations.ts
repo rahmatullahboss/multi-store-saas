@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { createDb } from "~/lib/db.server";
-import { getRelatedProducts } from "~/services/recommendations.server";
+import { getRecommendedProducts } from "~/services/productRecommendations.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -18,7 +18,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   try {
-    const products = await getRelatedProducts(createDb(context.cloudflare.env.DB), storeId, parseInt(productId));
+    const products = await getRecommendedProducts(createDb(context.cloudflare.env.DB), storeId, parseInt(productId));
     return json({ success: true, products });
   } catch (error: any) {
     console.error("[API][Recommendations] Error:", error);

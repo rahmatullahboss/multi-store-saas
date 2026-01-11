@@ -550,7 +550,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Smart Notification (WhatsApp / SMS) - Marketing Research Feature
     context.cloudflare.ctx.waitUntil(
-      sendSmartNotification(db, orderId!, input.store_id, 'ORDER_CONFIRMATION', {
+      sendSmartNotification(db, context.cloudflare.env, orderId!, input.store_id, 'ORDER_CONFIRMATION', {
         phone: input.phone,
         customerName: input.customer_name,
         amount: total,

@@ -1,4 +1,4 @@
-CREATE TABLE `store_themes` (
+CREATE TABLE IF NOT EXISTS `store_themes` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`template_id` text,
@@ -14,5 +14,5 @@ CREATE TABLE `store_themes` (
 	FOREIGN KEY (`marketplace_theme_id`) REFERENCES `marketplace_themes`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `store_themes_store_id_idx` ON `store_themes` (`store_id`);--> statement-breakpoint
-CREATE INDEX `store_themes_active_idx` ON `store_themes` (`store_id`,`is_active`);
+CREATE INDEX IF NOT EXISTS `store_themes_store_id_idx` ON `store_themes` (`store_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `store_themes_active_idx` ON `store_themes` (`store_id`,`is_active`);

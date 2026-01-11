@@ -80,7 +80,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   let redirectTo = '/app/dashboard';
   if (user.role === 'super_admin') {
       redirectTo = '/admin/dashboard';
-  } else if (!user.storeId && user.role !== 'super_admin') {
+  } else if (!user.storeId && (user.role as string) !== 'super_admin') {
       // Should not happen for merchant, but maybe support staff?
       redirectTo = '/'; 
   }

@@ -6,6 +6,7 @@ import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
 import PageSettingsPanel from './PageSettingsPanel';
 import StateSelector from './StateSelector';
+import StyleControls from './StyleControls';
 
 interface SidebarPanelProps {
   themeConfig?: any;
@@ -13,6 +14,8 @@ interface SidebarPanelProps {
   pageConfig?: any;
   onPageConfigChange?: (config: any) => void;
   onLoadTemplate?: (templateId: string) => void;
+  activeTab: 'widgets' | 'design' | 'structure' | 'settings';
+  onTabChange: (tab: 'widgets' | 'design' | 'structure' | 'settings') => void;
 }
 
 export default function SidebarPanel({ 
@@ -20,11 +23,14 @@ export default function SidebarPanel({
   onThemeChange, 
   pageConfig,
   onPageConfigChange,
-  onLoadTemplate 
+  onLoadTemplate,
+  activeTab,
+  onTabChange
 }: SidebarPanelProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
+  // const [activeTab, setActiveTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets'); // Lifted up
   const [activeDesignSubTab, setActiveDesignSubTab] = useState<'styles' | 'theme' | 'templates'>('styles');
+
   const editor = useEditorMaybe();
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
@@ -244,28 +250,28 @@ export default function SidebarPanel({
         {/* Tab Switcher - Elementor Style */}
         <div className="flex border-b border-gray-100 bg-gray-50/80 p-1.5 gap-1.5">
            <button 
-             onClick={() => setActiveTab('widgets')}
+             onClick={() => onTabChange('widgets')}
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'widgets' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50 shadow-indigo-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Box size={16} strokeWidth={2.5} />
               {t('widgets')}
            </button>
            <button 
-             onClick={() => setActiveTab('design')}
+             onClick={() => onTabChange('design')}
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'design' ? 'bg-white text-blue-600 shadow-sm border border-blue-50 shadow-blue-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Palette size={16} strokeWidth={2.5} />
               {t('design')}
            </button>
            <button 
-             onClick={() => setActiveTab('structure')}
+             onClick={() => onTabChange('structure')}
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'structure' ? 'bg-white text-purple-600 shadow-sm border border-purple-50 shadow-purple-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Layers size={16} strokeWidth={2.5} />
               {t('structure')}
            </button>
            <button 
-             onClick={() => setActiveTab('settings')}
+             onClick={() => onTabChange('settings')}
              className={`p-2 rounded-xl text-gray-400 hover:text-orange-600 hover:bg-orange-50 transition-all ${activeTab === 'settings' ? 'bg-orange-50 text-orange-600 shadow-sm' : ''}`}
              title={t('settings')}
            >
@@ -390,10 +396,10 @@ export default function SidebarPanel({
                       <div ref={traitsContainerRef} className="gjs-traits-wrap" />
                     </div>
 
-                    {/* Style Manager */}
+                    {/* Style Manager - Custom "Elementor-like" Controls */}
                     <div className="space-y-4 pb-10">
                       <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">{t('visualStyle')}</h4>
-                      <div ref={stylesContainerRef} className="gjs-styles-wrap" />
+                      {editor && <StyleControls editor={editor} />}
                     </div>
                   </div>
                 )}

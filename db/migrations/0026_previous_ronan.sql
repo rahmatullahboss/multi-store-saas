@@ -1,4 +1,4 @@
-CREATE TABLE `landing_pages` (
+CREATE TABLE IF NOT EXISTS `landing_pages` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`name` text NOT NULL,
@@ -13,9 +13,9 @@ CREATE TABLE `landing_pages` (
 	FOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `landing_pages_store_id_idx` ON `landing_pages` (`store_id`);--> statement-breakpoint
-CREATE INDEX `landing_pages_slug_idx` ON `landing_pages` (`store_id`,`slug`);--> statement-breakpoint
-CREATE TABLE `agents` (
+CREATE INDEX IF NOT EXISTS `landing_pages_store_id_idx` ON `landing_pages` (`store_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `landing_pages_slug_idx` ON `landing_pages` (`store_id`,`slug`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `agents` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`name` text NOT NULL,
@@ -28,8 +28,8 @@ CREATE TABLE `agents` (
 	FOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `agents_store_id_idx` ON `agents` (`store_id`);--> statement-breakpoint
-CREATE TABLE `conversations` (
+CREATE INDEX IF NOT EXISTS `agents_store_id_idx` ON `agents` (`store_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `conversations` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`agent_id` integer NOT NULL,
 	`customer_phone` text,
@@ -42,10 +42,10 @@ CREATE TABLE `conversations` (
 	FOREIGN KEY (`agent_id`) REFERENCES `agents`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `conversations_agent_id_idx` ON `conversations` (`agent_id`);--> statement-breakpoint
-CREATE INDEX `conversations_phone_idx` ON `conversations` (`customer_phone`);--> statement-breakpoint
-CREATE INDEX `conversations_session_idx` ON `conversations` (`session_id`);--> statement-breakpoint
-CREATE TABLE `faqs` (
+CREATE INDEX IF NOT EXISTS `conversations_agent_id_idx` ON `conversations` (`agent_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `conversations_phone_idx` ON `conversations` (`customer_phone`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `conversations_session_idx` ON `conversations` (`session_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `faqs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`agent_id` integer NOT NULL,
 	`question` text NOT NULL,
@@ -55,8 +55,8 @@ CREATE TABLE `faqs` (
 	FOREIGN KEY (`agent_id`) REFERENCES `agents`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `faqs_agent_id_idx` ON `faqs` (`agent_id`);--> statement-breakpoint
-CREATE TABLE `knowledge_sources` (
+CREATE INDEX IF NOT EXISTS `faqs_agent_id_idx` ON `faqs` (`agent_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `knowledge_sources` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`agent_id` integer NOT NULL,
 	`name` text NOT NULL,
@@ -69,8 +69,8 @@ CREATE TABLE `knowledge_sources` (
 	FOREIGN KEY (`agent_id`) REFERENCES `agents`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `knowledge_sources_agent_id_idx` ON `knowledge_sources` (`agent_id`);--> statement-breakpoint
-CREATE TABLE `leads_data` (
+CREATE INDEX IF NOT EXISTS `knowledge_sources_agent_id_idx` ON `knowledge_sources` (`agent_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `leads_data` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`conversation_id` integer NOT NULL,
 	`key` text NOT NULL,
@@ -79,8 +79,8 @@ CREATE TABLE `leads_data` (
 	FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `leads_data_conversation_id_idx` ON `leads_data` (`conversation_id`);--> statement-breakpoint
-CREATE TABLE `messages` (
+CREATE INDEX IF NOT EXISTS `leads_data_conversation_id_idx` ON `leads_data` (`conversation_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `messages` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`conversation_id` integer NOT NULL,
 	`role` text NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE `messages` (
 	FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `messages_conversation_id_idx` ON `messages` (`conversation_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `messages_conversation_id_idx` ON `messages` (`conversation_id`);--> statement-breakpoint
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
 CREATE TABLE `__new_admin_audit_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -114,4 +114,4 @@ PRAGMA foreign_keys=ON;--> statement-breakpoint
 CREATE INDEX `admin_audit_logs_store_idx` ON `admin_audit_logs` (`store_id`);--> statement-breakpoint
 CREATE INDEX `admin_audit_logs_actor_idx` ON `admin_audit_logs` (`actor_id`);--> statement-breakpoint
 CREATE INDEX `admin_audit_logs_action_idx` ON `admin_audit_logs` (`store_id`,`action`);--> statement-breakpoint
-ALTER TABLE `stores` ADD `landing_config_draft` text;
+-- ALTER TABLE `stores` ADD `landing_config_draft` text;

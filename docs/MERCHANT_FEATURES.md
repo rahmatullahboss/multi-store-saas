@@ -43,9 +43,20 @@ _Automate customer engagement._
 
 ### 2.1 Messaging Automation (System Logic by default)
 
-- **Abandoned Cart Recovery**: Triggered by time-delay logic (Cron Jobs).
+- **Abandoned Cart Recovery**: Automatically finds carts abandoned >1 hour ago (check interval: scheduler job). Recovery link sent via WhatsApp (Priority) or SMS.
+- **Win-Back Campaigns**: Automated targeted offers to customers inactive for 30+ days.
 - **Order Confirmation**: Triggered by order creation events.
-- **Cost**: SMS/WhatsApp gateway fees apply, but **NO AI Cost** unless "AI Message Generation" is explicitly used.
+- **Cost**: SMS/WhatsApp gateway fees apply (SSL Wireless / Meta Cloud API), but **NO AI Cost** unless "AI Message Generation" is explicitly used.
+
+### 2.2 Loyalty & Retention (System Logic - Free)
+
+- **Tiered Loyalty Program**:
+  - **Bronze**: 1x Points (Base).
+  - **Silver (Spent > 10k)**: 1.2x Points.
+  - **Gold (Spent > 50k)**: 1.5x Points.
+  - **Platinum (Spent > 100k)**: 2x Points.
+- **Referral System**: Bonus points awarded to referrers when their friends make a first purchase.
+- **Cost**: **$0**. Built-in logic engine.
 
 ### 2.2 AI Co-Pilot & Assistant (AI Powered - Paid) 🤖
 

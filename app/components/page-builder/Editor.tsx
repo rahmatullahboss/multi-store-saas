@@ -12,9 +12,15 @@ import gjsForms from 'grapesjs-plugin-forms';
 
 // Important: Import GrapesJS CSS
 import 'grapesjs/dist/css/grapes.min.css';
+import '~/styles/grapesjs-overrides.css';
+import '~/styles/grapesjs-navigator.css'; // Custom Navigator Styles
 import { getGrapesConfig } from '~/lib/grapesjs/config';
 import { bdBlocksPlugin } from '~/lib/grapesjs/bd-blocks';
 import { animationPlugin } from '~/lib/grapesjs/animation-plugin';
+import swiperPlugin from '~/lib/grapesjs/plugins/slider';
+import productLoopPlugin from '~/lib/grapesjs/plugins/product-loop';
+import shapeDividersPlugin from '~/lib/grapesjs/plugins/shape-dividers';
+import popupPlugin from '~/lib/grapesjs/plugins/popup';
 import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
 import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
@@ -22,6 +28,7 @@ import MagicGenerateModal from "./MagicGenerateModal";
 import BlockLibraryModal from "./BlockLibraryModal";
 import AiChatWidget from "./AiChatWidget";
 import { toast } from 'sonner';
+import ContextMenu from './ContextMenu';
 
 interface GrapesEditorProps {
   pageId?: string;
@@ -330,9 +337,43 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
     fontBody: 'Hind Siliguri',
   });
 
+  // Context Menu State
+  const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
+  
+  // Custom Event Listener for Tab Switching from Context Menu
+  useEffect(() => {
+    const handleTabSwitch = (e: CustomEvent) => {
+        // This is caught by SidebarPanel ideally, or we can pass a prop if we hoist state
+        // Since SidebarPanel manages its own state locally, we might need to hoist `activeTab` to `GrapesEditor`.
+        // For now, we will dispatch it to window and let SidebarPanel listen, OR hoist the state.
+        // Hoisting state is cleaner.
+    };
+    // window.addEventListener('switch-sidebar-tab', handleTabSwitch as any);
+    // return () => window.removeEventListener('switch-sidebar-tab', handleTabSwitch as any);
+  }, []);
+
   const onEditor = (editorInstance: any) => {
     console.log('Editor loaded', editorInstance);
     setEditor(editorInstance);
+
+    // Disable default context menu and show custom one
+    editorInstance.on('load', () => {
+        const body = editorInstance.Canvas.getBody();
+        body.addEventListener('contextmenu', (e: MouseEvent) => {
+            e.preventDefault();
+            // Calculate absolute position based on iframe offset
+            const canvasOffset = editorInstance.Canvas.getElement().getBoundingClientRect();
+            setContextMenuPos({
+                x: canvasOffset.left + e.clientX,
+                y: canvasOffset.top + e.clientY
+            });
+            // Select component under cursor if not selected
+            const target = editorInstance.getSelected();
+            if (!target) {
+                // editorInstance.select(e.target); // This is tricky with iframe coordinates, let Grapes handle selection mostly
+            }
+        });
+    });
 
     // 1. Initial Data Loading (pageConfig)
     editorInstance.on('storage:load', (res: any) => {
@@ -601,6 +642,20 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
     // Inject into head
     doc.head.appendChild(style);
   };
+  
+  // State for Controlling Tabs via Context Menu
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
+
+  useEffect(() => {
+      // Listen for the custom event
+      const handleTabSwitch = (e: CustomEvent) => {
+          if (e.detail) {
+              setActiveSidebarTab(e.detail);
+          }
+      };
+      window.addEventListener('switch-sidebar-tab', handleTabSwitch as any);
+      return () => window.removeEventListener('switch-sidebar-tab', handleTabSwitch as any);
+  }, []);
 
   return (
     <div className="h-full w-full flex flex-col bg-white">
@@ -618,6 +673,10 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
           gjsForms as any,
           bdBlocksPlugin as any, // Our custom blocks
           animationPlugin as any, // Animation traits for all components
+          swiperPlugin as any, // New Slider Plugin
+          productLoopPlugin as any, // Product Loop Plugin
+          shapeDividersPlugin as any, // Shape Dividers
+          popupPlugin as any, // Popup Builder
         ]}
         onEditor={onEditor}
       >
@@ -632,14 +691,31 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
                 pageConfig={pageConfig}
                 onPageConfigChange={setPageConfig}
                 onLoadTemplate={handleLoadTemplate}
+                activeTab={activeSidebarTab}
+                onTabChange={setActiveSidebarTab}
             />
             </div>
 
             {/* Main Area: Canvas */}
-            <div className="flex-1 bg-gray-100 flex items-center justify-center overflow-hidden relative">
+            <div 
+                className="flex-1 bg-gray-100 flex items-center justify-center overflow-hidden relative"
+                onContextMenu={(e) => {
+                  e.preventDefault(); 
+                  // Fallback if not caught by iframe
+                }}
+            >
                 <div className="w-full h-full shadow-lg relative bg-white">
                     <Canvas className="h-full w-full" />
                 </div>
+                
+                {/* Custom Context Menu */}
+                {contextMenuPos && (
+                  <ContextMenu 
+                    editor={editor} 
+                    position={contextMenuPos} 
+                    onClose={() => setContextMenuPos(null)} 
+                  />
+                )}
             </div>
           </div>
         </div>

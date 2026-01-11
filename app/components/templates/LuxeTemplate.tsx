@@ -132,7 +132,7 @@ export function LuxeTemplate({
         division: formData.division,
         quantity: formData.quantity,
         bump_ids: selectedBumpIds.length > 0 ? selectedBumpIds : undefined,
-      },
+      } as any,
       { method: 'POST', action: '/api/create-order', encType: 'application/json' }
     );
   };
@@ -140,8 +140,9 @@ export function LuxeTemplate({
   // Redirect on Success - Check for upsell URL first
   useEffect(() => {
     if (fetcher.data?.success && fetcher.data?.orderId) {
-      if (fetcher.data?.upsellUrl) {
-        window.location.href = fetcher.data.upsellUrl;
+      const data = fetcher.data as any;
+      if (data?.upsellUrl) {
+        window.location.href = data.upsellUrl;
       } else {
         window.location.href = `/thank-you/${fetcher.data.orderId}`;
       }

@@ -449,6 +449,7 @@ export const discounts = sqliteTable('discounts', {
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
   code: text('code').notNull(),
   type: text('type').$type<'percentage' | 'fixed'>().default('percentage'),
+  ruleType: text('rule_type').$type<'standard' | 'segment' | 'behavior'>().default('standard'), // Changed for Advanced Rules
   value: real('value').notNull(), // Percentage (0-100) or fixed amount
   minOrderAmount: real('min_order_amount'), // Minimum order to apply
   maxDiscountAmount: real('max_discount_amount'), // Cap for percentage discounts
@@ -839,17 +840,25 @@ export const upsellTokensRelations = relations(upsellTokens, ({ one }) => ({
 export const abTests = sqliteTable('ab_tests', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }), // For landing page tests
   name: text('name').notNull(),
-  status: text('status').$type<'draft' | 'running' | 'paused' | 'completed'>().default('draft'),
-  winningVariantId: integer('winning_variant_id'),
+  testKey: text('test_key').notNull(),
+  variantA: text('variant_a').notNull(),
+  variantB: text('variant_b').notNull(),
+  trafficSplit: integer('traffic_split').default(50),
+  status: text('status').$type<'active' | 'paused' | 'concluded'>().default('active'),
+  viewsA: integer('views_a').default(0),
+  conversionsA: integer('conversions_a').default(0),
+  viewsB: integer('views_b').default(0),
+  conversionsB: integer('conversions_b').default(0),
+  winner: text('winner'), // 'A' or 'B'
   startedAt: integer('started_at', { mode: 'timestamp' }),
   endedAt: integer('ended_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
-  index('ab_tests_store_idx').on(table.storeId),
+  index('ab_tests_store_key_idx').on(table.storeId, table.testKey),
   index('ab_tests_status_idx').on(table.storeId, table.status),
 ]);
+
 
 // ============================================================================
 // PUSH SUBSCRIPTIONS TABLE - Web Push Notifications
@@ -881,17 +890,7 @@ export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one })
 
 
 
-export const abTestsRelations = relations(abTests, ({ one, many }) => ({
-  store: one(stores, {
-    fields: [abTests.storeId],
-    references: [stores.id],
-  }),
-  product: one(products, {
-    fields: [abTests.productId],
-    references: [products.id],
-  }),
-  variants: many(abTestVariants),
-}));
+
 
 // ============================================================================
 // A/B TEST VARIANTS TABLE - Individual test variants
@@ -1616,5 +1615,39 @@ export const loyaltyTransactionsRelations = relations(loyaltyTransactions, ({ on
   customer: one(customers, {
     fields: [loyaltyTransactions.customerId],
     references: [customers.id],
+  }),
+}));
+// ============================================================================
+// A/B TESTS TABLE - Split testing framework
+// ============================================================================
+
+
+// ============================================================================
+// PRODUCT RECOMMENDATIONS CACHE TABLE - Pre-calculated recommendations
+// ============================================================================
+export const productRecommendations = sqliteTable('product_recommendations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  sourceProductId: integer('source_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  recommendedProductId: integer('recommended_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  score: real('score').default(0), // Relevance score
+  reason: text('reason').default('similar_category'), // 'bought_together', 'similar_category'
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('prod_recs_source_idx').on(table.storeId, table.sourceProductId),
+]);
+
+export const productRecommendationsRelations = relations(productRecommendations, ({ one }) => ({
+  store: one(stores, {
+    fields: [productRecommendations.storeId],
+    references: [stores.id],
+  }),
+  sourceProduct: one(products, {
+    fields: [productRecommendations.sourceProductId],
+    references: [products.id],
+  }),
+  recommendedProduct: one(products, {
+    fields: [productRecommendations.recommendedProductId],
+    references: [products.id],
   }),
 }));

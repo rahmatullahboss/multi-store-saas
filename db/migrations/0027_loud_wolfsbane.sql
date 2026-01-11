@@ -1,1 +1,1 @@
-ALTER TABLE `stores` ADD `ai_plan` text;
+-- ALTER TABLE `stores` ADD `ai_plan` text;

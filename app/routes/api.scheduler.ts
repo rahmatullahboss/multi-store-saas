@@ -17,15 +17,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
 
   // In production, use env variable. For now, hardcoded dev key or check env.
-  // const CRON_SECRET = context.env.CRON_SECRET || "dev-secret-123";
-  // if (key !== CRON_SECRET) {
-  //   return json({ error: "Unauthorized" }, { status: 401 });
-  // }
+  const env = context.cloudflare.env as any;
+  const CRON_SECRET = env.CRON_SECRET || "dev-secret-123";
+  if (key !== CRON_SECRET) {
+    return json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   console.log("[API][Scheduler] Starting scheduled tasks...");
   
   // 2. Run Tasks
-  const results = await runScheduledTasks(db);
+  const results = await runScheduledTasks(db, env);
 
   return json({
     success: true,

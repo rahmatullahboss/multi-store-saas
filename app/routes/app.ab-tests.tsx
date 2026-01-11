@@ -8,14 +8,14 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, Link, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { abTests, abTestVariants, products } from '@db/schema';
+import { abTests, abTestVariants } from '@db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { calculateSignificance } from '~/utils/ab-testing.server';
 import { Plus, Play, Pause, BarChart3, Trash2, Trophy, Eye, TrendingUp, CheckCircle } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context as unknown as Env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -66,16 +66,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         }
       }
 
-      // Get product name if linked
-      let productName = null;
-      if (test.productId) {
-        const product = await db
-          .select({ title: products.title })
-          .from(products)
-          .where(eq(products.id, test.productId))
-          .limit(1);
-        productName = product[0]?.title;
-      }
+      // No productId linking anymore
 
       return {
         ...test,
@@ -89,7 +80,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           bestVariantName: bestVariant?.name,
           significance,
         },
-        productName,
       };
     })
   );
@@ -98,7 +88,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context as unknown as Env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -110,7 +100,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (intent === 'start') {
     await db.update(abTests)
-      .set({ status: 'running', startedAt: new Date() })
+      .set({ status: 'active', startedAt: new Date() })
       .where(and(eq(abTests.id, testId), eq(abTests.storeId, storeId)));
     return json({ success: true });
   }
@@ -125,7 +115,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (intent === 'complete') {
     const winningVariantId = Number(formData.get('winningVariantId'));
     await db.update(abTests)
-      .set({ status: 'completed', endedAt: new Date(), winningVariantId })
+      // Remove winningVariantId because schema doesn't have it
+      .set({ status: 'concluded', endedAt: new Date() }) 
       .where(and(eq(abTests.id, testId), eq(abTests.storeId, storeId)));
     return json({ success: true });
   }
@@ -146,13 +137,14 @@ export default function ABTestsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'running':
+      case 'active':
         return <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full">চলমান</span>;
       case 'paused':
         return <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-full">বিরতি</span>;
-      case 'completed':
+      case 'concluded':
         return <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-full">সম্পন্ন</span>;
       default:
+        // Treat others as draft/paused
         return <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full">খসড়া</span>;
     }
   };
@@ -188,7 +180,7 @@ export default function ABTestsPage() {
           <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-500 dark:text-gray-400">চলমান</p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {tests.filter(t => t.status === 'running').length}
+              {tests.filter(t => t.status === 'active').length}
             </p>
           </div>
           <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -234,7 +226,7 @@ export default function ABTestsPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    {getStatusBadge(test.status || 'draft')}
+                    {getStatusBadge(test.status || 'paused')}
                     {test.stats.significance.significant && (
                       <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full">
                         <CheckCircle size={12} />
@@ -248,12 +240,6 @@ export default function ABTestsPage() {
                       {test.name}
                     </h3>
                   </Link>
-                  
-                  {test.productName && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      প্রোডাক্ট: {test.productName}
-                    </p>
-                  )}
 
                   {/* Variants Summary */}
                   <div className="flex flex-wrap gap-3 mt-3">
@@ -299,7 +285,7 @@ export default function ABTestsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  {test.status === 'draft' && (
+                  {(test.status === 'paused' || test.status === null) && ( // Fallback to paused check
                     <Form method="post">
                       <input type="hidden" name="intent" value="start" />
                       <input type="hidden" name="testId" value={test.id} />
@@ -313,7 +299,7 @@ export default function ABTestsPage() {
                     </Form>
                   )}
                   
-                  {test.status === 'running' && (
+                  {test.status === 'active' && (
                     <Form method="post">
                       <input type="hidden" name="intent" value="pause" />
                       <input type="hidden" name="testId" value={test.id} />

@@ -1,1 +1,1 @@
-ALTER TABLE `marketplace_themes` ADD `status` text DEFAULT 'pending';
+-- ALTER TABLE `marketplace_themes` ADD `status` text DEFAULT 'pending';

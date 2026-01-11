@@ -52,6 +52,8 @@ Merchants have access to a powerful dashboard to manage their e-commerce busines
   - **Revenue Projection**: AI models (Linear Regression) analyze last 30 days of sales to forecast revenue for the next 7-30 days. Helps in inventory planning.
 - **Customer Lifetime Value (CLV)**:
   - **Prediction**: Estimates how much a customer is likely to spend over their lifetime based on Average Order Value (AOV) and Purchase Frequency.
+  - **Churn Risk Detection**: Analyzes customer purchase frequency gaps. If `time_since_last_order > 3 * average_frequency`, flags as "High Risk".
+  - **Next Purchase Prediction**: Estimates the specific date a customer is likely to buy again based on their personal historical intervals.
 - **Dynamic Recommendations**:
   - **"People also bought" Logic**: Automatically suggests related products by analyzing order history patterns (Collaborative Filtering).
 

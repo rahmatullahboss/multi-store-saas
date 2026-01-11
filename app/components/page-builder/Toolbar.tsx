@@ -284,12 +284,24 @@ export default function EditorToolbar({
         >
           <Undo size={16} className="text-gray-500 group-hover:text-emerald-600" />
         </button>
-        <button 
+      <button 
           onClick={() => editor.UndoManager.redo()}
           className="p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
           title={t('redo')}
         >
           <Redo size={16} className="text-gray-500 group-hover:text-emerald-600" />
+        </button>
+        <div className="w-[1px] h-6 bg-gray-200 mx-1" />
+        <button 
+          onClick={() => {
+            if (confirm(t('confirmClearCanvas') || 'Are you sure you want to clear the canvas?')) {
+              editor.DomComponents.clear();
+            }
+          }}
+          className="p-2 hover:bg-red-50 rounded-lg transition group"
+          title={t('clearCanvas') || 'Clear Canvas'}
+        >
+          <Trash2 size={16} className="text-gray-500 group-hover:text-red-600" />
         </button>
       </div>
 

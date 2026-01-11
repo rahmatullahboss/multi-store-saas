@@ -56,20 +56,20 @@ export function createVisitorCookie(visitorId: string): string {
 export async function getVisitorVariant(
   d1: D1Database,
   storeId: number,
-  productId: number | null,
+  testKey: string,
   visitorId: string
 ): Promise<VisitorAssignment | null> {
   const db = drizzle(d1);
   
-  // Find running tests for this store/product
+  // Find running tests for this store/testKey
   const runningTests = await db
     .select()
     .from(abTests)
     .where(
       and(
         eq(abTests.storeId, storeId),
-        eq(abTests.status, 'running'),
-        productId ? eq(abTests.productId, productId) : undefined
+        eq(abTests.status, 'active'), // Schema uses 'active'
+        eq(abTests.testKey, testKey)
       )
     )
     .limit(1);
@@ -169,7 +169,7 @@ export async function getVisitorVariant(
 export async function trackABConversion(
   d1: D1Database,
   storeId: number,
-  productId: number | null,
+  testKey: string,
   visitorId: string,
   orderAmount: number
 ): Promise<void> {
@@ -182,8 +182,8 @@ export async function trackABConversion(
     .where(
       and(
         eq(abTests.storeId, storeId),
-        eq(abTests.status, 'running'),
-        productId ? eq(abTests.productId, productId) : undefined
+        eq(abTests.status, 'active'),
+        eq(abTests.testKey, testKey)
       )
     )
     .limit(1);

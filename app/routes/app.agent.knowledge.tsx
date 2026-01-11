@@ -42,7 +42,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const env = context.cloudflare.env as unknown as RouteEnv;
-  const storeId = await getStoreId(request, env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
     if (!storeId) throw new Response('Unauthorized', { status: 401 });
     const db = drizzle(env.DB, { schema });
 

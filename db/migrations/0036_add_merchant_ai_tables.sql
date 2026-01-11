@@ -1,4 +1,4 @@
-CREATE TABLE `ai_conversations` (
+CREATE TABLE IF NOT EXISTS `ai_conversations` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`agent_id` integer NOT NULL,
 	`store_id` integer NOT NULL,
@@ -16,9 +16,9 @@ CREATE TABLE `ai_conversations` (
 	FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `ai_conversations_agent_idx` ON `ai_conversations` (`agent_id`);--> statement-breakpoint
-CREATE INDEX `ai_conversations_store_idx` ON `ai_conversations` (`store_id`);--> statement-breakpoint
-CREATE INDEX `ai_conversations_customer_idx` ON `ai_conversations` (`customer_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `ai_conversations_agent_idx` ON `ai_conversations` (`agent_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `ai_conversations_store_idx` ON `ai_conversations` (`store_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `ai_conversations_customer_idx` ON `ai_conversations` (`customer_id`);--> statement-breakpoint
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
 CREATE TABLE `__new_leads_data` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,

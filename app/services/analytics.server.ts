@@ -1,6 +1,6 @@
 import type { Database } from "../lib/db.server";
-import { orders, products, stores, abandonedCarts } from "../../db/schema";
-import { eq, and, gte, sql, count, desc } from "drizzle-orm";
+import { orders, products, stores, abandonedCarts, customers } from "../../db/schema";
+import { eq, and, gte, lt, sql, count, desc } from "drizzle-orm";
 
 /**
  * ANALYTICS SERVICE
@@ -165,4 +165,63 @@ export async function getPredictedCLV(db: Database, storeId: number) {
         avgOrderValue,
         purchaseFrequency
     };
+}
+
+/**
+ * Identify customers at risk of churning
+ * Risk is High if checking time > 3x average purchase frequency
+ */
+export async function calculateChurnRisk(db: Database, storeId: number) {
+    // Default heuristic: 30 days frequency
+    const averageFrequencyDays = 30; 
+    const thresholdDays = 3 * averageFrequencyDays; // 90 days
+
+    const thresholdDate = new Date();
+    thresholdDate.setDate(thresholdDate.getDate() - thresholdDays);
+
+    const atRiskCustomers = await db.select({
+        id: customers.id,
+        name: customers.name,
+        email: customers.email,
+        phone: customers.phone,
+        lastOrderAt: customers.lastOrderAt,
+        totalSpent: customers.totalSpent
+    })
+    .from(customers)
+    .where(and(
+        eq(customers.storeId, storeId),
+        lt(customers.lastOrderAt, thresholdDate)
+    ))
+    .limit(50);
+
+    return atRiskCustomers.map(c => ({
+        ...c,
+        churnProbability: 100, // Conceptually high risk
+        riskLabel: 'High'
+    }));
+}
+
+/**
+ * Predict next likely purchase date for a customer
+ * Based on average gap between their past orders
+ */
+export function predictNextPurchaseDate(customerOrders: any[]) { // Using any[] for flexibility, expects { createdAt: Date }
+    if (!customerOrders || customerOrders.length < 2) return null;
+
+    // Ensure sorted desc (newest first)
+    const sorted = [...customerOrders].sort((a,b) => (new Date(b.createdAt).getTime()) - (new Date(a.createdAt).getTime()));
+    
+    let totalGapMs = 0;
+    for (let i = 0; i < sorted.length - 1; i++) {
+        const d1 = new Date(sorted[i].createdAt).getTime();
+        const d2 = new Date(sorted[i+1].createdAt).getTime();
+        totalGapMs += (d1 - d2); 
+    }
+    
+    const avgGapMs = totalGapMs / (sorted.length - 1);
+    
+    const lastOrderTime = new Date(sorted[0].createdAt).getTime();
+    const nextPurchaseTime = lastOrderTime + avgGapMs;
+    
+    return new Date(nextPurchaseTime);
 }

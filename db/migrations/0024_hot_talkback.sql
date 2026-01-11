@@ -1,4 +1,4 @@
-CREATE TABLE `api_keys` (
+CREATE TABLE IF NOT EXISTS `api_keys` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`name` text NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE `api_keys` (
 	FOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE `system_logs` (
+CREATE TABLE IF NOT EXISTS `system_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`level` text NOT NULL,
 	`message` text NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE `system_logs` (
 	`created_at` integer
 );
 --> statement-breakpoint
-CREATE TABLE `webhooks` (
+CREATE TABLE IF NOT EXISTS `webhooks` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`url` text NOT NULL,

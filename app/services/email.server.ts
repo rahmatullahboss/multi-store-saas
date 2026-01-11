@@ -172,6 +172,13 @@ interface SendShippingUpdateParams {
   trackingUrl?: string;
 }
 
+interface SendStaffInviteParams {
+  email: string;
+  inviteLink: string;
+  storeName: string;
+  invitedBy: string;
+}
+
 /**
  * Factory to create email service with methods
  */
@@ -195,6 +202,29 @@ export function createEmailService(apiKey: string) {
               <p>Sent by ${storeName}</p>
               <a href="${unsubscribeUrl}" style="color: #666;">Unsubscribe</a>
             </div>
+          </div>
+        `,
+      });
+    },
+
+    async sendStaffInvite({ email, inviteLink, storeName, invitedBy }: SendStaffInviteParams) {
+      return resend.emails.send({
+        from: fromEmail,
+        to: [email],
+        subject: `You've been invited to join ${storeName}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Join the team at ${storeName}</h2>
+            <p><strong>${invitedBy}</strong> has invited you to join their store staff.</p>
+            <p>Click the button below to accept the invitation and set up your account:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${inviteLink}" style="background-color: #10B981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Accept Invitation
+              </a>
+            </div>
+            <p>Or copy this link:</p>
+            <p><a href="${inviteLink}">${inviteLink}</a></p>
+            <p style="color: #666; font-size: 12px;">This invitation will expire in 24 hours.</p>
           </div>
         `,
       });

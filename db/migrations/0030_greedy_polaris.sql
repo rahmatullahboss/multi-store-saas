@@ -1,4 +1,4 @@
-CREATE TABLE `marketplace_themes` (
+CREATE TABLE IF NOT EXISTS `marketplace_themes` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`description` text,

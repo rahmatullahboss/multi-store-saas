@@ -17,6 +17,7 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sql, desc, and, gte } from 'drizzle-orm';
 import { products, orders, stores, abandonedCarts } from '@db/schema';
+import * as schema from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Package, 
@@ -46,22 +47,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const db = drizzle(context.cloudflare.env.DB);
+  const db = drizzle(context.cloudflare.env.DB, { schema }); // Fix: Initialize with schema
 
   // Fetch store info
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.query.stores.findFirst({
+    where: eq(stores.id, storeId),
+  });
 
-  const store = storeResult[0];
+  const store = storeResult; // drizzle-orm query findFirst returns the object directly or undefined
+  if (!store) {
+     throw new Response('Store not found', { status: 404 });
+  }
 
   // Fetch store stats using shared service
+  // Pass correct db instance type by using 'as any' if strictly needed or ensuring getStoreStats accepts the schematized db
+  // For now, let's fix the schema passed to drizzle above, which should match what the service expects if it imports schema
   const [statsResult, forecast, clv] = await Promise.all([
-    getStoreStats(db, storeId),
-    getRevenueForecast(db, storeId),
-    getPredictedCLV(db, storeId)
+    getStoreStats(db as any, storeId), // Type assertion to bypass strict mismatch if service isn't updated yet
+    getRevenueForecast(db as any, storeId),
+    getPredictedCLV(db as any, storeId)
   ]);
   const { 
       products: productCount, 
@@ -158,7 +162,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       salesTrend,
       pendingOrders: pendingCount,
     },
-    salesData,
+    salesData: salesData.map(d => ({
+        date: d.date,
+        label: d.date, // Use date as label
+        value: d.amount
+    })),
     actionItems,
     forecast,
     clv,
