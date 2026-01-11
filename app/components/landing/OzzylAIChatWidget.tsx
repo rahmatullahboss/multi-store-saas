@@ -294,12 +294,11 @@ export function OzzylAIChatWidget() {
               <span className="absolute inset-0 rounded-full bg-white/10 animate-ping opacity-30" />
               {/* Inner glow */}
               <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-50" />
-              {/* Logo with dark filter for contrast */}
+              {/* Logo */}
               <img 
-                src="/ozzyl-logo-small.png" 
+                src="/ozzyl-logo-small-black.png" 
                 alt="Ozzyl AI" 
                 className="w-14 h-14 relative z-10 object-contain"
-                style={{ filter: 'brightness(0)' }}
               />
               {/* Online indicator */}
               <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white z-20 animate-pulse" />
