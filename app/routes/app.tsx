@@ -53,6 +53,11 @@ import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
 import { useState } from 'react';
 import type { TranslationKey } from '~/utils/i18n/index';
 
+// Custom Ozzyl Icon Component (for nav)
+const OzzylIcon = ({ className }: { className?: string }) => (
+  <img src="/ozzyl-logo-small.png" alt="" className={className || 'w-5 h-5'} />
+);
+
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Multi-Store SaaS' }];
@@ -264,7 +269,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarMarketing',
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail, isPaidOnly: true },
-      { to: '/app/agent', labelKey: 'navAgent', icon: Sparkles },
+      { to: '/app/agent', labelKey: 'navAgent', icon: OzzylIcon as any },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail, isPaidOnly: true },
       { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, isPaidOnly: true },
     ],
