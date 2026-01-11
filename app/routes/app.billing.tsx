@@ -510,16 +510,16 @@ export default function BillingPage() {
       {/* Add-ons Section */}
       {planType !== 'free' && (
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Add-ons</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{t('addOns')}</h2>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-center gap-4 mb-6">
                   <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
                     <Bot className="w-6 h-6 text-orange-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 text-lg">AI Sales Agent</h3>
+                    <h3 className="font-bold text-gray-900 text-lg">{t('aiSalesAgent')}</h3>
                     <p className="text-gray-500 text-sm">
-                      24/7 Customer Support & Sales. Select a tier based on your usage needs.
+                      {t('aiAgentBillingDesc')}
                     </p>
                   </div>
             </div>
@@ -539,22 +539,22 @@ export default function BillingPage() {
                               <div className="flex justify-between items-start mb-2">
                                   <div>
                                       <h4 className="font-bold text-gray-900">{tier.name}</h4>
-                                      <div className="text-xs text-gray-500">{tier.desc}</div>
+                                      <div className="text-xs text-gray-500">{t(`ai${tier.id.charAt(0).toUpperCase() + tier.id.slice(1)}Desc`)}</div>
                                   </div>
                                   <div className="text-right">
                                       <div className="font-bold text-gray-900">{tier.price}</div>
-                                      <div className="text-xs text-gray-500">/mo</div>
+                                      <div className="text-xs text-gray-500">/{lang === 'bn' ? 'মাস' : 'mo'}</div>
                                   </div>
                               </div>
                               
                               <div className="mt-2 mb-4 text-sm font-medium text-gray-700">
-                                <span className="text-orange-600">{tier.limit.toLocaleString()}</span> messages/mo
+                                <span className="text-orange-600">{tier.limit.toLocaleString()}</span> {t('messagesPerMo')}
                               </div>
 
                               <div className="mt-auto">
                                   {isSelected ? (
                                       <div className="w-full py-2 text-center text-sm font-medium text-orange-700 bg-orange-100 rounded-md flex items-center justify-center gap-2">
-                                          <Check className="w-4 h-4" /> Active
+                                          <Check className="w-4 h-4" /> {t('activeLabel')}
                                       </div>
                                   ) : (
                                       <fetcher.Form method="post">
@@ -568,7 +568,7 @@ export default function BillingPage() {
                                                     : 'bg-white border border-orange-200 text-orange-600 hover:bg-orange-50'
                                             }`}
                                           >
-                                            {isCustomerAiEnabled ? 'Switch' : 'Select'}
+                                            {isCustomerAiEnabled ? t('switch') : t('select')}
                                           </button>
                                       </fetcher.Form>
                                   )}
@@ -584,7 +584,7 @@ export default function BillingPage() {
                       <fetcher.Form method="post">
                         <input type="hidden" name="action" value="disable_ai_agent" />
                         <button className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1">
-                            Turn off AI Agent
+                            {t('turnOffAiAgent')}
                         </button>
                       </fetcher.Form>
                 </div>
@@ -611,12 +611,10 @@ export default function BillingPage() {
                         <div className="bg-white border border-orange-200 rounded-lg p-6 text-center">
                             <Clock className="w-12 h-12 text-orange-500 mx-auto mb-4" />
                             <h4 className="font-bold text-gray-900">
-                                {lang === 'bn' ? 'ভেরিফিকেশন চলছে' : 'Verification in Progress'}
+                                {t('verificationInProgress')}
                             </h4>
                             <p className="text-sm text-gray-600 mt-2 max-w-sm mx-auto">
-                                {lang === 'bn' 
-                                    ? `আমরা আপনার পেমেন্ট ভেরিফাই করছি (TRX ID: ${paymentTransactionId})। সম্পন্ন হলে আপনি একটি কনফার্মেশন পাবেন।` 
-                                    : `We are verifying your payment (TRX ID: ${paymentTransactionId}). You will receive a notification once activated.`}
+                                {t('verificationDesc', { trxId: paymentTransactionId })}
                             </p>
                         </div>
                     ) : (
@@ -624,7 +622,7 @@ export default function BillingPage() {
                             {/* Payment Number */}
                             <div className="bg-white rounded-lg p-4 border border-orange-100 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">Send Money To</p>
+                                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">{t('sendMoneyTo')}</p>
                                     <span className="text-xl font-mono font-bold text-orange-600">01739416661</span>
                                 </div>
                                 <button
@@ -634,7 +632,7 @@ export default function BillingPage() {
                                     }}
                                     className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-medium rounded-lg transition flex items-center gap-1"
                                 >
-                                    <Copy className="w-4 h-4" /> Copy
+                                    <Copy className="w-4 h-4" /> {t('copy')}
                                 </button>
                             </div>
 
@@ -673,7 +671,7 @@ export default function BillingPage() {
                                     disabled={fetcher.state !== 'idle'}
                                 >
                                     {fetcher.state !== 'idle' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                                    {lang === 'bn' ? 'পেমেন্ট সাবমিট করুন' : 'Submit Payment'}
+                                    {t('submitPayment')}
                                 </button>
                             </fetcher.Form>
                         </div>
