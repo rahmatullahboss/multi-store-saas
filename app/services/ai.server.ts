@@ -183,6 +183,31 @@ export const ThemeConfigSchema = z.object({
   accentColor: z.string().optional(),
   backgroundColor: z.string().optional(),
   textColor: z.string().optional(),
+  // New Sales & Marketing Fields
+  flashSale: z.object({
+    isActive: z.boolean(),
+    text: z.string().optional(),
+    endTime: z.string().optional(), // ISO date string
+    backgroundColor: z.string().optional(),
+    textColor: z.string().optional(),
+  }).optional(),
+  trustBadges: z.object({
+    showPaymentIcons: z.boolean(),
+    showGuaranteeSeals: z.boolean(),
+    customText: z.string().optional(),
+  }).optional(),
+  marketingPopup: z.object({
+    isActive: z.boolean(),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    delay: z.number().optional(), // in seconds
+    offerCode: z.string().optional(),
+  }).optional(),
+  seo: z.object({
+    metaTitle: z.string().optional(),
+    metaDescription: z.string().optional(),
+    ogImage: z.string().optional(),
+  }).optional(),
 });
 
 // Store Theme Schema
@@ -195,9 +220,28 @@ export const StoreThemeSchema = z.object({
   fontFamily: z.enum(['inter', 'poppins', 'roboto', 'playfair', 'montserrat', 'hind-siliguri', 'noto-sans-bengali', 'noto-serif-bengali', 'baloo-da', 'tiro-bangla', 'anek-bangla']),
   sections: z.array(z.object({
     id: z.string(),
-    type: z.enum(['hero', 'rich-text', 'category-list', 'product-scroll', 'features', 'banner', 'faq', 'product-grid', 'newsletter']),
+    type: z.enum(['hero', 'rich-text', 'category-list', 'product-scroll', 'features', 'banner', 'faq', 'product-grid', 'newsletter', 'modern-hero', 'modern-features', 'video', 'testimonials', 'flash-sale', 'trust-badge', 'countdown']),
     settings: z.record(z.unknown()),
   })),
+  // New Global Settings
+  flashSale: z.object({
+    isActive: z.boolean(),
+    text: z.string().optional(),
+    endTime: z.string().optional(),
+  }).optional(),
+  trustBadges: z.object({
+    showPaymentIcons: z.boolean(),
+    showGuaranteeSeals: z.boolean(),
+  }).optional(),
+  marketingPopup: z.object({
+    isActive: z.boolean(),
+    title: z.string().optional(),
+    description: z.string().optional(),
+  }).optional(),
+  seo: z.object({
+    metaTitle: z.string().optional(),
+    metaDescription: z.string().optional(),
+  }).optional(),
 });
 
 export type StoreThemeResult = z.infer<typeof StoreThemeSchema>;
@@ -1733,77 +1777,58 @@ Visitor এর প্রশ্ন: "${userMessage}"
  * Schema for Store Editor Commands
  * Supports ALL editable fields for Lovable-like editing experience
  */
+// Store Editor Natural Language Commands - WORLD CLASS (30+ Actions)
 export const StoreEditorCommandSchema = z.object({
   action: z.enum([
-    // Theme & Colors
-    'update_colors',      // Change theme colors (primary, accent, background, text, border)
-    'update_font',        // Change font family
-    'apply_preset',       // Apply a color/theme preset
+    // Theme & Colors (Existing)
+    'update_colors', 'update_font', 'apply_preset',
     
-    // Sections
-    'add_section',        // Add new section at specific position
-    'remove_section',     // Remove section by ID or type
-    'update_section',     // Edit section settings (heading, subheading, etc.)
-    'reorder_sections',   // Move section up/down
+    // Sections (Existing)
+    'add_section', 'remove_section', 'update_section', 'reorder_sections',
     
-    // Header & Footer
-    'update_header',      // Edit header settings (layout, search, cart)
-    'update_footer',      // Edit footer settings (description, copyright, columns)
+    // Header & Footer (Existing)
+    'update_header', 'update_footer',
     
-    // Announcement & Banner
-    'update_announcement', // Edit announcement bar (text, link)
-    'update_banner',       // Edit banner (url, text)
+    // Announcement & Banner (Existing)
+    'update_announcement', 'update_banner',
     
-    // Store Info
-    'update_logo',         // Change logo URL
-    'update_business_info', // Edit phone, email, address
-    'update_social_links',  // Edit Facebook, Instagram, WhatsApp links
+    // Store Info (Existing)
+    'update_logo', 'update_business_info', 'update_social_links',
     
-    // Advanced Settings
-    'update_floating_buttons', // WhatsApp/Call floating buttons
-    'update_checkout',         // Checkout style (standard, minimal, one_page)
-    'update_typography',       // Heading size, body size, line height, letter spacing
-    'update_custom_css',       // Custom CSS code
+    // Advanced UI (Existing)
+    'update_floating_buttons', 'update_checkout', 'update_typography', 'update_custom_css',
+    
+    // NEW: Sales & Marketing (Business Growth)
+    'setup_flash_sale',       // Banner + Timer + Colors
+    'add_trust_badges',       // Payment icons, guarantee seals
+    'add_marketing_popup',    // Email collection/Offer popup
+    'create_policy_pages',    // Privacy, Terms, Refund pages
+    'optimize_seo',           // Meta title, description
+    
+    // NEW: Content & Navigation
+    'update_navigation',             // Add menu items (New Arrivals, Sale)
+    'generate_product_description',  // AI-generated product copy
+    'setup_blog',                    // Create/update blog section
+    
+    // NEW: Visual Polish
+    'apply_modern_card_style',       // Update product card design
+    'add_video_section',             // Add YouTube/video section
     
     // Fallback
-    'general_response'    // Can't perform action, explain why
+    'general_response'
   ]),
-  target: z.string().optional(),      // Section ID, type, or 'first'/'last'
-  position: z.enum(['before', 'after', 'first', 'last']).optional(), // For add_section
-  value: z.any(),                     // Action-specific data
-  message: z.string(),                // User-friendly message (Bengali/English)
-  confidence: z.number().min(0).max(1), // AI confidence (0-1)
-  requiresConfirmation: z.boolean().optional(), // If true, show confirmation before applying
+  target: z.string().optional(),
+  position: z.enum(['before', 'after', 'first', 'last']).optional(),
+  value: z.any(),
+  message: z.string(),
+  confidence: z.number().min(0).max(1),
+  requiresConfirmation: z.boolean().optional(),
 });
 
 export type StoreEditorCommandResult = z.infer<typeof StoreEditorCommandSchema>;
 
 /**
- * Available Section Types for AI Reference
- */
-const AVAILABLE_SECTIONS = [
-  'hero', 'modern-hero', 'product-grid', 'newsletter', 'rich-text', 
-  'features', 'modern-features', 'video', 'testimonials', 'category-list',
-  'product-scroll', 'banner', 'faq'
-];
-
-/**
- * Color Presets for AI Reference
- */
-const COLOR_PRESETS = {
-  'indigo': { primary: '#6366f1', accent: '#f59e0b', bg: '#f9fafb', text: '#111827' },
-  'emerald': { primary: '#10b981', accent: '#f472b6', bg: '#ecfdf5', text: '#064e3b' },
-  'rose': { primary: '#f43f5e', accent: '#8b5cf6', bg: '#fff1f2', text: '#4c1d1d' },
-  'amber': { primary: '#f59e0b', accent: '#3b82f6', bg: '#fffbeb', text: '#78350f' },
-  'sky': { primary: '#0ea5e9', accent: '#f97316', bg: '#f0f9ff', text: '#0c4a6e' },
-  'dark': { primary: '#8b5cf6', accent: '#f59e0b', bg: '#1f2937', text: '#f9fafb' },
-  'ghorer-bazar': { primary: '#F28C38', accent: '#FF6B35', bg: '#FFF8F0', text: '#2D2D2D' },
-  'daraz': { primary: '#F85606', accent: '#FFB400', bg: '#FAFAFA', text: '#212121' },
-};
-
-/**
  * Command Store Editor - Natural Language to JSON Actions
- * Supports Bengali and English commands
  */
 export async function commandStoreEditor(
   apiKey: string,
@@ -1817,103 +1842,71 @@ export async function commandStoreEditor(
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<StoreEditorCommandResult> {
-  const systemPrompt = `You are an expert Store Theme Editor AI for a Bangladeshi e-commerce platform.
-Your task is to translate natural language commands (Bengali or English) into JSON actions.
+  const systemPrompt = `You are an expert Store Editor AI. Your goal is to help merchants build a "World-Class" online store.
+Translate natural language commands (Bengali/English) into JSON actions.
 
-### Current Store State:
-- Store Name: ${context.storeName}
-- Primary Color: ${context.currentColors.primary}
-- Accent Color: ${context.currentColors.accent}
-- Background: ${context.currentColors.background}
-- Text Color: ${context.currentColors.text}
-- Font: ${context.currentFont}
-- Sections (in order): ${context.sections.map((s, i) => `${i+1}. ${s.type} (ID: ${s.id})`).join(', ')}
+### Available Actions (30 total - covering Design, Sales, Marketing):
 
-### Available Section Types:
-${AVAILABLE_SECTIONS.join(', ')}
+#### 🎨 Design & Theme
+1. **update_colors**: value = { primaryColor?, accentColor?, ... }
+2. **update_font**: value = font_id
+3. **apply_preset**: value = preset_name
+4. **update_typography**: value = { headingSize, bodySize }
+5. **update_custom_css**: value = css_string
+6. **apply_modern_card_style**: value = 'minimal' | 'bordered' | 'shadow'
 
-### Color Presets:
-${Object.entries(COLOR_PRESETS).map(([name, colors]) => `- ${name}: primary=${colors.primary}`).join('\n')}
+#### 🏗️ Structure & Layout
+7. **add_section**: value = { type: 'hero'|'features'|'testimonials'|'flash-sale'|'trust-badge'|'video' }
+8. **remove_section**: target = id/type
+9. **update_section**: target = id/type, value = settings
+10. **reorder_sections**: target = id, value = 'up'/'down'
+11. **update_header**: value = { layout, showSearch }
+12. **update_footer**: value = { copyrightText, description }
+13. **update_navigation**: value = { items: [{ label, url }] } - Add 'New Arrivals', 'Sale' etc.
 
-### Available Actions (20 total - covers EVERYTHING in the editor):
+#### 📢 Marketing & Sales (Growth Tools)
+14. **setup_flash_sale**: value = { text, endTime, backgroundColor } - Creates urgency
+15. **add_trust_badges**: value = { showPaymentIcons: true, showGuarantee: true } - Builds trust
+16. **add_marketing_popup**: value = { title, description, offerCode } - Collects leads
+17. **update_announcement**: value = { text, link } - Top bar notification
+18. **update_banner**: value = { text, url } - Hero banner
+19. **optimize_seo**: value = { metaTitle, metaDescription } - Improve Google ranking
 
-#### Theme & Colors
-1. **update_colors**: value = { primaryColor?, accentColor?, backgroundColor?, textColor?, borderColor? }
-2. **update_font**: value = font_id (inter, poppins, roboto, playfair, montserrat, hind-siliguri, noto-sans-bengali, baloo-da)
-3. **apply_preset**: value = preset_name (indigo, emerald, rose, amber, sky, dark, ghorer-bazar, daraz)
+#### 📝 Content & Info
+20. **update_logo**: value = url
+21. **update_business_info**: value = { phone, email }
+22. **update_social_links**: value = { facebook, instagram }
+23. **create_policy_pages**: value = { privacy: true, terms: true }
+24. **generate_product_description**: value = { productName, tone }
+25. **setup_blog**: value = { title, posts: 3 }
 
-#### Sections
-4. **add_section**: value = { type, settings? }, position = 'first'/'last', target = section_id
-5. **remove_section**: target = section_id or section_type
-6. **update_section**: target = section_id/type, value = { heading?, subheading?, text?, image?, ... }
-7. **reorder_sections**: target = section_id, value = 'up'/'down'/'first'/'last'
-
-#### Header & Footer
-8. **update_header**: value = { layout: 'centered'|'left-logo'|'minimal', showSearch?: boolean, showCart?: boolean }
-9. **update_footer**: value = { description?, copyrightText?, columns?: [{ title, links: [{ label, url }] }] }
-
-#### Announcement & Banner
-10. **update_announcement**: value = { text, link? }
-11. **update_banner**: value = { url?, text? }
-
-#### Store Info
-12. **update_logo**: value = logo_url_string
-13. **update_business_info**: value = { phone?, email?, address? }
-14. **update_social_links**: value = { facebook?, instagram?, whatsapp? }
-
-#### Advanced Settings
-15. **update_floating_buttons**: value = { whatsappEnabled?, whatsappNumber?, whatsappMessage?, callEnabled?, callNumber? }
-16. **update_checkout**: value = 'standard' | 'minimal' | 'one_page'
-17. **update_typography**: value = { headingSize?: 'small'|'medium'|'large', bodySize?, lineHeight?, letterSpacing? }
-18. **update_custom_css**: value = css_string
-
-#### Fallback
-19. **general_response**: Cannot act. message = explanation
+#### ⚙️ Advanced
+26. **update_floating_buttons**: value = { whatsappEnabled, callEnabled }
+27. **update_checkout**: value = 'one_page' | 'standard'
 
 ### Rules:
-1. **Language Detection**: If user speaks Bengali/Banglish/Hindi/any language, respond in that language. Be flexible.
-2. **Intent Matching**: Map user intent to the most appropriate action.
-   - "রঙ পরিবর্তন" / "change color" → update_colors
-   - "নতুন সেকশন" / "add section" → add_section
-   - "ফোন নম্বর" / "phone number" → update_business_info
-   - "ফেসবুক লিংক" / "social" → update_social_links
-   - "এনাউন্সমেন্ট" / "announcement" / "প্রমো" → update_announcement
-   - "লোগো পরিবর্তন" / "change logo" → update_logo
-   - "CSS যোগ করো" / "custom css" → update_custom_css
-   - "চেকআউট" / "checkout style" → update_checkout
-3. **Confidence Scoring**:
-   - 1.0: Exact match, no ambiguity
-   - 0.8-0.9: High confidence, minor inference
-   - 0.5-0.7: Moderate confidence, some guessing
-   - <0.5: Low confidence, need clarification (set requiresConfirmation=true)
-4. **Section Targeting**:
-   - "হিরো সেকশন" → Find section with type='hero' or type='modern-hero'
-   - "প্রথম সেকশন" → First section (index 0)
-   - "শেষ সেকশন" → Last section
-5. **Color Parsing**:
-   - "লাল" / "red" → #ef4444
-   - "নীল" / "blue" → #3b82f6
-   - "সবুজ" / "green" → #10b981
-   - "বেগুনি" / "purple" → #8b5cf6
-   - "কমলা" / "orange" → #f97316
-   - "কালো" / "black" → #000000
-   - "সাদা" / "white" → #ffffff
+1. **Language**: Respond in the same language as the user (Bengali/English).
+2. **Flash Sale Intent**: "Flash Sale" or "Offer" -> setup_flash_sale.
+3. **Trust Intent**: "Trusted korbe kivabe" or "Trust badges" -> add_trust_badges.
+4. **Popup Intent**: "Email collect" or "Popup" -> add_marketing_popup.
+5. **SEO Intent**: "Google ranking" or "SEO" -> optimize_seo.
 
-### Output Format (STRICT JSON):
+### Output Format:
 {
-  "action": "update_colors",
-  "target": null,
-  "value": { "primaryColor": "#ef4444" },
-  "message": "প্রাইমারি কালার লাল করে দিলাম! 🎨",
-  "confidence": 0.95,
-  "requiresConfirmation": false
+  "action": "setup_flash_sale",
+  "target": "header",
+  "value": { "text": "🔥 50% OFF Ends Soon!", "endTime": "2025-12-31" },
+  "message": "Flash Sale সেটআপ করে দিয়েছি! এখন ভিজিটররা তাড়া অনুভব করবে। 🔥",
+  "confidence": 0.95
 }
 
-CRITICAL: Return ONLY valid JSON. No markdown, no explanation outside JSON.`;
+CRITICAL: Return ONLY valid JSON.`;
 
-  const fullUserPrompt = `User Command: "${userPrompt}"
+  const fullUserPrompt = `
+Current Store: ${context.storeName}
+User Command: "${userPrompt}"
 
-Generate the Store Editor Command JSON:`;
+Generate Store Editor Command JSON:`;
 
   const response = await callAI(apiKey, systemPrompt, fullUserPrompt, model, baseUrl);
   const parsed = extractJSON(response);
