@@ -30,6 +30,75 @@ const EMBEDDING_MODEL = '@cf/baai/bge-base-en-v1.5';
 const DEFAULT_MODEL = 'google/gemini-2.0-flash-001';
 const DEFAULT_BASE_URL = 'https://openrouter.ai/api/v1';
 
+// Export config for use in other files
+export const AI_CONFIG = {
+  defaultModel: DEFAULT_MODEL,
+  defaultBaseUrl: DEFAULT_BASE_URL,
+};
+
+// ============================================================================
+// EXPORTED: Generic AI Call Function for unified usage across app
+// ============================================================================
+/**
+ * Unified AI call function - use this across all routes for consistency.
+ * Model can be changed via environment variables.
+ */
+export async function callAIWithSystemPrompt(
+  apiKey: string,
+  systemPrompt: string,
+  userMessage: string,
+  options?: {
+    model?: string;
+    baseUrl?: string;
+  }
+): Promise<string> {
+  const model = options?.model || DEFAULT_MODEL;
+  const baseUrl = options?.baseUrl || DEFAULT_BASE_URL;
+  
+  console.log(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
+  
+  try {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[AI] API Error ${response.status}:`, errorText);
+      throw new Error(`AI API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json() as { 
+      choices: Array<{ message: { content: string } }>;
+      usage?: { total_tokens: number };
+    };
+    
+    const content = data.choices?.[0]?.message?.content;
+    console.log(`[AI] Response received. Length: ${content?.length || 0}${data.usage ? `, Tokens: ${data.usage.total_tokens}` : ''}`);
+    
+    if (!content) {
+      console.error('[AI] Empty response from AI');
+      throw new Error('No response from AI');
+    }
+
+    return content;
+  } catch (error) {
+    console.error('[AI] Error in callAIWithSystemPrompt:', error);
+    throw error;
+  }
+}
+
 // ============================================================================
 // ZOD SCHEMAS - Structured AI Output Validation
 // ============================================================================

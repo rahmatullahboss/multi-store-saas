@@ -13,8 +13,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, like, or, and, sql } from 'drizzle-orm';
 import { stores, products, orders } from '@db/schema';
 import { getSession } from '~/services/auth.server';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { generateText } from 'ai';
+import { callAIWithSystemPrompt } from '~/services/ai.server';
 
 // ============================================================================
 // TYPES
@@ -334,14 +333,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 - Encourage them to sign up for free`;
 
     try {
-      const openrouter = createOpenRouter({ apiKey });
-      const result = await generateText({
-        model: openrouter('xiaomi/mimo-v2-flash:free'),
-        system: saasSystemPrompt,
-        prompt: message,
-      });
+      const responseText = await callAIWithSystemPrompt(
+        apiKey,
+        saasSystemPrompt,
+        message,
+        { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
+      );
 
-      return json({ success: true, response: result.text, context: 'marketing' });
+      return json({ success: true, response: responseText, context: 'marketing' });
     } catch (error) {
       console.error('[AI Chat] Marketing error:', error);
       return json({ error: 'AI service error' }, { status: 500 });
@@ -385,14 +384,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Step 4: Generate response
     try {
-      const openrouter = createOpenRouter({ apiKey });
-      const result = await generateText({
-        model: openrouter('xiaomi/mimo-v2-flash:free'),
-        system: systemPrompt,
-        prompt: message,
-      });
+      const responseText = await callAIWithSystemPrompt(
+        apiKey,
+        systemPrompt,
+        message,
+        { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
+      );
 
-      return json({ success: true, response: result.text, context: 'merchant' });
+      return json({ success: true, response: responseText, context: 'merchant' });
     } catch (error) {
       console.error('[AI Chat] Merchant error:', error);
       return json({ error: 'AI service error' }, { status: 500 });
@@ -423,14 +422,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Step 4: Generate response
     try {
-      const openrouter = createOpenRouter({ apiKey });
-      const result = await generateText({
-        model: openrouter('xiaomi/mimo-v2-flash:free'),
-        system: systemPrompt,
-        prompt: message,
-      });
+      const responseText = await callAIWithSystemPrompt(
+        apiKey,
+        systemPrompt,
+        message,
+        { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
+      );
 
-      return json({ success: true, response: result.text, context: 'customer' });
+      return json({ success: true, response: responseText, context: 'customer' });
     } catch (error) {
       console.error('[AI Chat] Customer error:', error);
       return json({ error: 'AI service error' }, { status: 500 });
