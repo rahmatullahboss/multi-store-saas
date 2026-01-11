@@ -833,6 +833,67 @@ export default function StoreLiveEditor() {
         break;
       }
 
+      // ============ NEW ACTIONS ============
+
+      case 'update_announcement':
+        if (command.value?.text !== undefined) setAnnouncementText(command.value.text);
+        if (command.value?.link !== undefined) setAnnouncementLink(command.value.link);
+        break;
+
+      case 'update_banner':
+        if (command.value?.url !== undefined) setBannerUrl(command.value.url);
+        if (command.value?.text !== undefined) setBannerText(command.value.text);
+        break;
+
+      case 'update_logo':
+        if (typeof command.value === 'string') setLogo(command.value);
+        break;
+
+      case 'update_business_info':
+        if (command.value?.phone !== undefined) setPhone(command.value.phone);
+        if (command.value?.email !== undefined) setEmail(command.value.email);
+        if (command.value?.address !== undefined) setAddress(command.value.address);
+        break;
+
+      case 'update_social_links':
+        if (command.value?.facebook !== undefined) setFacebook(command.value.facebook);
+        if (command.value?.instagram !== undefined) setInstagram(command.value.instagram);
+        if (command.value?.whatsapp !== undefined) setWhatsapp(command.value.whatsapp);
+        break;
+
+      case 'update_floating_buttons':
+        if (command.value?.whatsappEnabled !== undefined) setFloatingWhatsappEnabled(command.value.whatsappEnabled);
+        if (command.value?.whatsappNumber !== undefined) setFloatingWhatsappNumber(command.value.whatsappNumber);
+        if (command.value?.whatsappMessage !== undefined) setFloatingWhatsappMessage(command.value.whatsappMessage);
+        if (command.value?.callEnabled !== undefined) setFloatingCallEnabled(command.value.callEnabled);
+        if (command.value?.callNumber !== undefined) setFloatingCallNumber(command.value.callNumber);
+        break;
+
+      case 'update_checkout':
+        if (command.value === 'standard' || command.value === 'minimal' || command.value === 'one_page') {
+          setCheckoutStyle(command.value);
+        }
+        break;
+
+      case 'update_typography':
+        setTypography(prev => ({
+          ...prev,
+          ...(command.value?.headingSize && { headingSize: command.value.headingSize }),
+          ...(command.value?.bodySize && { bodySize: command.value.bodySize }),
+          ...(command.value?.lineHeight && { lineHeight: command.value.lineHeight }),
+          ...(command.value?.letterSpacing && { letterSpacing: command.value.letterSpacing }),
+        }));
+        break;
+
+      case 'update_custom_css':
+        if (typeof command.value === 'string') setCustomCSS(command.value);
+        break;
+
+      case 'general_response':
+        // This is just a message, no action needed
+        console.log('[AI] General response:', command.message);
+        break;
+
       default:
         console.log('[AI Command] Unknown action:', command.action);
     }

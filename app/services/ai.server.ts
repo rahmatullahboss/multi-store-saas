@@ -1511,19 +1511,41 @@ Visitor এর প্রশ্ন: "${userMessage}"
 
 /**
  * Schema for Store Editor Commands
- * Supports granular actions for natural language store editing
+ * Supports ALL editable fields for Lovable-like editing experience
  */
 export const StoreEditorCommandSchema = z.object({
   action: z.enum([
-    'update_colors',      // Change theme colors (primary, accent, background, text)
+    // Theme & Colors
+    'update_colors',      // Change theme colors (primary, accent, background, text, border)
     'update_font',        // Change font family
+    'apply_preset',       // Apply a color/theme preset
+    
+    // Sections
     'add_section',        // Add new section at specific position
     'remove_section',     // Remove section by ID or type
     'update_section',     // Edit section settings (heading, subheading, etc.)
     'reorder_sections',   // Move section up/down
-    'update_header',      // Edit header settings
-    'update_footer',      // Edit footer settings
-    'apply_preset',       // Apply a color/theme preset
+    
+    // Header & Footer
+    'update_header',      // Edit header settings (layout, search, cart)
+    'update_footer',      // Edit footer settings (description, copyright, columns)
+    
+    // Announcement & Banner
+    'update_announcement', // Edit announcement bar (text, link)
+    'update_banner',       // Edit banner (url, text)
+    
+    // Store Info
+    'update_logo',         // Change logo URL
+    'update_business_info', // Edit phone, email, address
+    'update_social_links',  // Edit Facebook, Instagram, WhatsApp links
+    
+    // Advanced Settings
+    'update_floating_buttons', // WhatsApp/Call floating buttons
+    'update_checkout',         // Checkout style (standard, minimal, one_page)
+    'update_typography',       // Heading size, body size, line height, letter spacing
+    'update_custom_css',       // Custom CSS code
+    
+    // Fallback
     'general_response'    // Can't perform action, explain why
   ]),
   target: z.string().optional(),      // Section ID, type, or 'first'/'last'
@@ -1593,26 +1615,52 @@ ${AVAILABLE_SECTIONS.join(', ')}
 ### Color Presets:
 ${Object.entries(COLOR_PRESETS).map(([name, colors]) => `- ${name}: primary=${colors.primary}`).join('\n')}
 
-### Available Actions:
-1. **update_colors**: Change colors. value = { primaryColor?, accentColor?, backgroundColor?, textColor? }
-2. **update_font**: Change font. value = font_id (inter, poppins, hind-siliguri, etc.)
-3. **add_section**: Add section. value = { type, settings? }, position = 'first'/'last'/'after', target = section_id
-4. **remove_section**: Remove section. target = section_id or section_type (matches first found)
-5. **update_section**: Edit section. target = section_id/type, value = { heading?, subheading?, ... }
-6. **reorder_sections**: Move section. target = section_id, value = 'up'/'down'/'first'/'last'
-7. **update_header**: Edit header. value = { layout?, showSearch?, showCart? }
-8. **update_footer**: Edit footer. value = { description?, copyrightText? }
-9. **apply_preset**: Apply theme preset. value = preset_name (indigo, emerald, daraz, etc.)
-10. **general_response**: Cannot act. message = explanation
+### Available Actions (20 total - covers EVERYTHING in the editor):
+
+#### Theme & Colors
+1. **update_colors**: value = { primaryColor?, accentColor?, backgroundColor?, textColor?, borderColor? }
+2. **update_font**: value = font_id (inter, poppins, roboto, playfair, montserrat, hind-siliguri, noto-sans-bengali, baloo-da)
+3. **apply_preset**: value = preset_name (indigo, emerald, rose, amber, sky, dark, ghorer-bazar, daraz)
+
+#### Sections
+4. **add_section**: value = { type, settings? }, position = 'first'/'last', target = section_id
+5. **remove_section**: target = section_id or section_type
+6. **update_section**: target = section_id/type, value = { heading?, subheading?, text?, image?, ... }
+7. **reorder_sections**: target = section_id, value = 'up'/'down'/'first'/'last'
+
+#### Header & Footer
+8. **update_header**: value = { layout: 'centered'|'left-logo'|'minimal', showSearch?: boolean, showCart?: boolean }
+9. **update_footer**: value = { description?, copyrightText?, columns?: [{ title, links: [{ label, url }] }] }
+
+#### Announcement & Banner
+10. **update_announcement**: value = { text, link? }
+11. **update_banner**: value = { url?, text? }
+
+#### Store Info
+12. **update_logo**: value = logo_url_string
+13. **update_business_info**: value = { phone?, email?, address? }
+14. **update_social_links**: value = { facebook?, instagram?, whatsapp? }
+
+#### Advanced Settings
+15. **update_floating_buttons**: value = { whatsappEnabled?, whatsappNumber?, whatsappMessage?, callEnabled?, callNumber? }
+16. **update_checkout**: value = 'standard' | 'minimal' | 'one_page'
+17. **update_typography**: value = { headingSize?: 'small'|'medium'|'large', bodySize?, lineHeight?, letterSpacing? }
+18. **update_custom_css**: value = css_string
+
+#### Fallback
+19. **general_response**: Cannot act. message = explanation
 
 ### Rules:
-1. **Language Detection**: If user speaks Bengali/Banglish, respond in Bengali. Otherwise English.
+1. **Language Detection**: If user speaks Bengali/Banglish/Hindi/any language, respond in that language. Be flexible.
 2. **Intent Matching**: Map user intent to the most appropriate action.
    - "রঙ পরিবর্তন" / "change color" → update_colors
    - "নতুন সেকশন" / "add section" → add_section
-   - "ডিলিট করো" / "delete/remove" → remove_section
-   - "হেডিং পরিবর্তন" / "change heading" → update_section
-   - "উপরে নাও" / "move up" → reorder_sections
+   - "ফোন নম্বর" / "phone number" → update_business_info
+   - "ফেসবুক লিংক" / "social" → update_social_links
+   - "এনাউন্সমেন্ট" / "announcement" / "প্রমো" → update_announcement
+   - "লোগো পরিবর্তন" / "change logo" → update_logo
+   - "CSS যোগ করো" / "custom css" → update_custom_css
+   - "চেকআউট" / "checkout style" → update_checkout
 3. **Confidence Scoring**:
    - 1.0: Exact match, no ambiguity
    - 0.8-0.9: High confidence, minor inference
@@ -1628,6 +1676,8 @@ ${Object.entries(COLOR_PRESETS).map(([name, colors]) => `- ${name}: primary=${co
    - "সবুজ" / "green" → #10b981
    - "বেগুনি" / "purple" → #8b5cf6
    - "কমলা" / "orange" → #f97316
+   - "কালো" / "black" → #000000
+   - "সাদা" / "white" → #ffffff
 
 ### Output Format (STRICT JSON):
 {
