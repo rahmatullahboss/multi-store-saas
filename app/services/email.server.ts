@@ -384,6 +384,43 @@ export function createEmailService(apiKey: string) {
           </div>
         `,
       });
+    },
+
+    async sendSubscriptionApprovalEmail({ email, storeName, planName, startDate, endDate }: { email: string; storeName: string; planName: string; startDate: Date; endDate: Date }) {
+      const formatDate = (date: Date) => date.toLocaleDateString('en-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+      
+      return resend.emails.send({
+        from: fromEmail,
+        to: [email],
+        subject: `🎉 Subscription Approved - ${storeName}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #10B981, #059669); border-radius: 12px 12px 0 0;">
+              <h1 style="color: white; margin: 0;">Subscription Approved! 🎉</h1>
+            </div>
+            
+            <div style="padding: 30px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+              <p style="font-size: 16px; color: #374151;">Great news! Your subscription for <strong>${storeName}</strong> has been approved.</p>
+              
+              <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+                <p style="margin: 0; font-size: 14px; color: #166534;"><strong>Plan:</strong> ${planName}</p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #166534;"><strong>Start Date:</strong> ${formatDate(startDate)}</p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #166534;"><strong>End Date:</strong> ${formatDate(endDate)}</p>
+              </div>
+              
+              <p style="color: #6b7280;">You now have full access to all ${planName} features. Start growing your business today!</p>
+              
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://digitalcare.site/app" style="display: inline-block; padding: 12px 30px; background: #10B981; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Go to Dashboard</a>
+              </div>
+            </div>
+            
+            <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #9ca3af;">
+              Questions? Reply to this email or contact our support team.
+            </p>
+          </div>
+        `,
+      });
     }
   };
 }

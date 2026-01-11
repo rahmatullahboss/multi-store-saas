@@ -183,6 +183,7 @@ export function LandingPageTemplate({
     success: boolean;
     orderId?: number;
     orderNumber?: string;
+    upsellUrl?: string;
     error?: string;
     details?: Record<string, string[]>;
   }>();
@@ -328,22 +329,26 @@ export function LandingPageTemplate({
       return;
     }
     
+    const submitData = new FormData();
+    submitData.set('store_id', String(storeId));
+    submitData.set('product_id', String(product.id));
+    submitData.set('customer_name', formData.customer_name);
+    submitData.set('phone', formData.phone);
+    submitData.set('address', formData.address);
+    submitData.set('division', formData.division);
+    submitData.set('quantity', String(formData.quantity));
+    if (selectedVariantId) {
+      submitData.set('variant_id', String(selectedVariantId));
+    }
+    if (selectedBumpIds.length > 0) {
+      submitData.set('bump_ids', JSON.stringify(selectedBumpIds));
+    }
+    
     fetcher.submit(
-      {
-        store_id: storeId,
-        product_id: product.id,
-        customer_name: formData.customer_name,
-        phone: formData.phone,
-        address: formData.address,
-        division: formData.division,
-        quantity: formData.quantity,
-        variant_id: selectedVariantId,
-        bump_ids: selectedBumpIds.length > 0 ? selectedBumpIds : undefined,
-      },
+      submitData,
       {
         method: 'POST',
         action: '/api/create-order',
-        encType: 'application/json',
       }
     );
   };

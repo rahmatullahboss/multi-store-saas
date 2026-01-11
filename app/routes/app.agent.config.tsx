@@ -50,7 +50,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         await db.insert(schema.agents).values({
             storeId,
             name,
-            type: 'ecommerce',
             agentSettings,
             isActive
         });

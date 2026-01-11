@@ -203,10 +203,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const baseUrl = new URL(request.url).origin;
         await emailService.sendStaffInvite({
           email: email.toLowerCase(),
-          inviterName: currentUser[0].name || currentUser[0].email,
+          inviteLink: `${baseUrl}/invite/${token}`,
           storeName: store.name,
-          role: role || 'staff',
-          inviteUrl: `${baseUrl}/invite/${token}`,
+          invitedBy: currentUser[0].name || currentUser[0].email,
         });
       }
 

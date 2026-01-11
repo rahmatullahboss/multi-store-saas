@@ -6,13 +6,14 @@ import { users, stores } from 'db/schema';
 import { agents, conversations, messages } from 'db/schema_agent';
 import { eq, desc, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
+import { createDb } from '~/lib/db.server';
 import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
 import { getStoreStats } from '~/services/analytics.server';
 import type { PlanType, AIPlanType } from '~/utils/plans.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
-  const db = drizzle(env.DB);
+  const db = createDb(env.DB);
   const session = await getSession(request, env);
   const userId = session.get('userId');
 
@@ -73,7 +74,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const { env } = context.cloudflare;
-  const db = drizzle(env.DB);
+  const db = createDb(env.DB);
   const session = await getSession(request, env);
   const userId = session.get('userId');
 
