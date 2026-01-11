@@ -806,5 +806,16 @@ export const dashboard = {
   scrapeDesc: 'We will scrape the text content from this page.',
   confirmDelete: 'Are you sure?',
   dragDrop: 'or drag and drop',
-  fileLimit: 'TXT, MD, PDF, DOC, DOCX up to 5MB',
+  fileLimit: 'TXT, MD, PDF, DOC, DOCX (max 5MB)',
+  
+  // AI Chat Widget
+  dashboardChat_title: 'Ozzyl AI Assistant',
+  dashboardChat_online: 'Online',
+  dashboardChat_welcome: 'Hey {{userName}}! I\'m Ozzyl, your AI business assistant. How can I help you grow your store today?',
+  dashboardChat_unlockTitle: 'Unlock Ozzyl AI',
+  dashboardChat_unlockDesc: 'Get business insights, automated responses, and smart suggestions with our Pro plan.',
+  dashboardChat_upgradePro: 'Upgrade to Pro',
+  dashboardChat_maybeLater: 'Maybe later',
+  dashboardChat_thinking: 'Ozzyl is thinking...',
+  dashboardChat_askAnything: 'Ask anything about your store...',
 };
