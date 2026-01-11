@@ -796,4 +796,15 @@ export const dashboard = {
   confirmDelete: 'আপনি কি নিশ্চিত?',
   dragDrop: 'অথবা ড্র্যাগ অ্যান্ড ড্রপ করুন',
   fileLimit: 'TXT, MD, PDF, DOC, DOCX (সর্বোচ্চ ৫MB)',
+  
+  // AI Chat Widget
+  dashboardChat_title: 'Ozzyl AI অ্যাসিস্ট্যান্ট',
+  dashboardChat_online: 'অনলাইন',
+  dashboardChat_welcome: 'হে {{userName}}! আমি ওজিল, আপনার AI বিজনেস অ্যাসিস্ট্যান্ট। আজ আপনার স্টোর বড় করতে আমি কীভাবে সাহায্য করতে পারি?',
+  dashboardChat_unlockTitle: 'Ozzyl AI আনলক করুন',
+  dashboardChat_unlockDesc: 'আমাদের প্রো প্ল্যানের সাথে বিজনেস ইনসাইট, স্বয়ংক্রিয় রেসপন্স এবং স্মার্ট পরামর্শ পান।',
+  dashboardChat_upgradePro: 'প্রো-তে আপগ্রেড করুন',
+  dashboardChat_maybeLater: 'পরে হবে',
+  dashboardChat_thinking: 'Ozzyl ভাবছে...',
+  dashboardChat_askAnything: 'আপনার স্টোর সম্পর্কে যেকোনো কিছু জিজ্ঞাসা করুন...',
 };
