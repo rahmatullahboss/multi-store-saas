@@ -500,6 +500,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
           
           // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
           await addLoyaltyPoints(db, newCustomer.id, input.store_id, total, `First Order ${orderNumber}`);
+          
+          // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
+          dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
+            customerId: newCustomer.id,
+            email: input.customer_email || null,
+            phone: input.phone,
+            name: input.customer_name,
+            firstOrderNumber: orderNumber,
+          }).catch(e => console.error('[Webhook] customer.created failed:', e));
         }
         
         // ========== FIRE AUTOMATION TRIGGERS ==========
