@@ -29,51 +29,53 @@ interface StoreAIAssistantProps {
 // ============================================================================
 const EXAMPLE_CATEGORIES = [
   {
-    title: '🎨 থিম ও রঙ',
+    title: '📢 Marketing & Sales (NEW!)',
+    icon: '🚀',
+    examples: [
+      { label: 'Flash Sale সেটআপ করো', description: 'Urgency ব্যানার + টাইমার' },
+      { label: 'Trust badge যোগ করো', description: 'পেমেন্ট আইকন ও গ্যারান্টি' },
+      { label: 'Marketing popup অন করো', description: 'ইমেইল কালেকশন পপআপ' },
+      { label: 'SEO অপটিমাইজ করো', description: 'Google র‍্যাংকিং বৃদ্ধি' },
+      { label: 'Policy pages তৈরি করো', description: 'Privacy & Terms পেজ' },
+    ]
+  },
+  {
+    title: '🎨 থিম ও ডিজাইন',
     icon: '🎨',
     examples: [
-      { label: 'প্রাইমারি কালার লাল করো', description: 'মূল রঙ পরিবর্তন' },
-      { label: 'ডার্ক থিম অ্যাপ্লাই করো', description: 'থিম প্রিসেট' },
-      { label: 'ব্যাকগ্রাউন্ড সাদা করো', description: 'পেছনের রঙ' },
+      { label: 'মডার্ন কার্ড স্টাইল দাও', description: 'প্রোডাক্ট ডিজাইন' },
+      { label: 'ডার্ক থিম অ্যাপ্লাই করো', description: 'কালার প্রিসেট' },
+      { label: 'প্রাইমারি কালার #FF5722 করো', description: 'ব্র্যান্ড কালার' },
       { label: 'ফন্ট Hind Siliguri করো', description: 'বাংলা ফন্ট' },
     ]
   },
   {
-    title: '📦 সেকশন ম্যানেজমেন্ট',
+    title: '📦 সেকশন ও লেআউট',
     icon: '📦',
     examples: [
-      { label: 'নতুন ব্যানার সেকশন যোগ করো', description: 'সেকশন যোগ' },
-      { label: 'নিউজলেটার সেকশন ডিলিট করো', description: 'সেকশন মুছে ফেলা' },
-      { label: 'হিরো সেকশনের হেডিং পরিবর্তন করো', description: 'টেক্সট এডিট' },
-      { label: 'প্রোডাক্ট গ্রিড উপরে নাও', description: 'সেকশন সাজানো' },
+      { label: 'হিরো সেকশন যোগ করো', description: 'মেইন ব্যানার' },
+      { label: 'টেস্টিংমোনিয়াল সেকশন দাও', description: 'কাস্টমার রিভিউ' },
+      { label: 'প্রোডাক্ট গ্রিড উপরে নাও', description: 'সেকশন রি-অর্ডার' },
+      { label: 'ফুটার আপডেট করো', description: 'ফুটার এডিট' },
     ]
   },
   {
-    title: '📞 স্টোর ইনফো',
+    title: '📞 ইনফো ও সোশ্যাল',
     icon: '📞',
     examples: [
-      { label: 'ফোন নাম্বার ০১৭১২৩৪৫৬৭৮ সেট করো', description: 'ফোন যোগ' },
-      { label: 'ইমেইল: info@mystore.com', description: 'ইমেইল সেট' },
-      { label: 'ফেসবুক লিংক: fb.com/mystore', description: 'সোশ্যাল মিডিয়া' },
-      { label: 'হোয়াটসঅ্যাপ বাটন চালু করো', description: 'ফ্লোটিং বাটন' },
-    ]
-  },
-  {
-    title: '📢 এনাউন্সমেন্ট',
-    icon: '📢',
-    examples: [
-      { label: 'এনাউন্সমেন্টে লেখো: ফ্রি ডেলিভারি!', description: 'প্রমো ব্যানার' },
-      { label: 'এনাউন্সমেন্ট বন্ধ করো', description: 'ব্যানার লুকানো' },
+      { label: 'ফোন: 01712345678', description: 'বিজনেস ইনফো' },
+      { label: 'হোয়াটসঅ্যাপ বাটন অন করো', description: 'কাস্টমার চ্যাট' },
+      { label: 'সোশ্যাল লিংক আপডেট করো', description: 'FB/Insta লিংক' },
     ]
   },
   {
     title: '⚙️ অ্যাডভান্সড',
     icon: '⚙️',
     examples: [
-      { label: 'চেকআউট ওয়ান-পেজ করো', description: 'চেকআউট স্টাইল' },
-      { label: 'হেডিং সাইজ বড় করো', description: 'টাইপোগ্রাফি' },
-      { label: 'Custom CSS: .hero { padding: 2rem; }', description: 'কাস্টম কোড' },
-      { label: 'স্টোরটাকে প্রিমিয়াম লুক দাও', description: 'সম্পূর্ণ ডিজাইন' },
+      { label: 'চেকআউট ওয়ান-পেজ করো', description: 'ফাস্ট চেকআউট' },
+      { label: 'ন্যাভিগেশনে "New Arrival" যোগ করো', description: 'মেনু এডিট' },
+      { label: 'লোগো আপডেট করো', description: 'ব্র্যান্ডিং' },
+      { label: 'Custom CSS যোগ করো', description: 'কোড এডিট' },
     ]
   },
 ];
