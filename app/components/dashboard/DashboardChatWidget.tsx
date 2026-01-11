@@ -140,7 +140,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
         className="fixed bottom-6 right-6 w-14 h-14 bg-black text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform duration-200 z-[100] group border border-gray-800"
       >
         <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 to-teal-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        <Bot className="relative z-10 w-6 h-6" />
+        <img src="/ozzyl-logo-small.png" alt="Ozzyl AI" className="relative z-10 w-6 h-6" />
         
         {isLocked && (
              <div className="absolute -top-1 -right-1 bg-gray-900 border border-white/20 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm z-20">
@@ -158,7 +158,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
         <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white shadow-lg relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 to-teal-600 opacity-20" />
-                <Bot size={16} className="relative z-10" />
+                <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="relative z-10 w-4 h-4" />
             </div>
             <div>
                 <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
       {isLocked ? (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-gray-50/50">
             <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                <Bot size={32} className="text-emerald-600" />
+                <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-black text-gray-900 mb-2">{t('dashboardChat_unlockTitle')}</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
@@ -213,7 +213,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${
                 msg.role === 'user' ? 'bg-gray-200' : 'bg-emerald-100 text-emerald-600'
                 }`}>
-                {msg.role === 'user' ? <User size={12} className="text-gray-500" /> : <Bot size={14} />}
+                {msg.role === 'user' ? <User size={12} className="text-gray-500" /> : <img src="/ozzyl-logo-small.png" alt="" className="w-3.5 h-3.5" />}
                 </div>
                 
                 <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm whitespace-pre-wrap ${
@@ -229,7 +229,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
             {fetcher.state !== 'idle' && (
             <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot size={14} className="text-emerald-400" />
+                    <img src="/ozzyl-logo-small.png" alt="" className="w-3.5 h-3.5" />
                 </div>
                 <div className="bg-white border border-gray-100 px-3 py-2 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin text-emerald-500" />
