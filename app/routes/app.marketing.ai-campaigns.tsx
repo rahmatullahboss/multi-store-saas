@@ -14,7 +14,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql } from 'drizzle-orm';
 import { customers, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { 
+import {
   Users, 
   Crown, 
   AlertTriangle, 
@@ -25,9 +25,11 @@ import {
   Send,
   Mail,
   MessageSquare,
-  ChevronRight
+  ChevronRight,
+  CheckCircle
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRevalidator } from '@remix-run/react';
 
 // Segment definitions
 const SEGMENTS = [
@@ -130,10 +132,18 @@ export default function AIMarketingCampaigns() {
   const [discountCode, setDiscountCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(10);
   
-  const recalculateFetcher = useFetcher();
+  const recalculateFetcher = useFetcher<{ success: boolean; segments?: Record<string, number> }>();
   const generateFetcher = useFetcher();
+  const revalidator = useRevalidator();
   
   const isBengali = defaultLanguage === 'bn';
+  
+  // Reload data when recalculation completes
+  useEffect(() => {
+    if (recalculateFetcher.data?.success) {
+      revalidator.revalidate();
+    }
+  }, [recalculateFetcher.data]);
   
   const handleRecalculate = () => {
     recalculateFetcher.submit(

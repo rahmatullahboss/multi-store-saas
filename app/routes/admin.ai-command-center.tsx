@@ -133,7 +133,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       lastOrderDate: sql<number>`(SELECT MAX(created_at) FROM orders WHERE store_id = ${stores.id})`.as('last_order'),
     })
     .from(stores)
-    .where(sql`${stores.status} = 'active'`)
+    .where(eq(stores.isActive, true))
     .having(sql`last_order < ${thirtyDaysAgo} OR last_order IS NULL`)
     .limit(10);
 
@@ -160,7 +160,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       avgOrderValue: sql<number>`COALESCE((SELECT AVG(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled'), 0)`.as('avg_order_value'),
     })
     .from(stores)
-    .where(sql`${stores.status} = 'active'`)
+    .where(eq(stores.isActive, true))
     .orderBy(sql`revenue DESC`)
     .limit(20);
 
@@ -171,7 +171,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const topProducts = await db
     .select({
       productId: orderItems.productId,
-      productName: products.name,
+      productName: products.title,
       storeName: stores.name,
       soldCount: sql<number>`SUM(${orderItems.quantity})`.as('sold_count'),
       revenue: sql<number>`SUM(${orderItems.price} * ${orderItems.quantity})`.as('revenue'),
@@ -182,6 +182,37 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     .groupBy(orderItems.productId)
     .orderBy(sql`sold_count DESC`)
     .limit(5);
+
+  // ============================================================
+  // COHORT ANALYSIS (Customer signup by month)
+  // ============================================================
+  
+  const cohortData = await db
+    .select({
+      month: sql<string>`strftime('%Y-%m', datetime(${customers.createdAt}, 'unixepoch'))`.as('month'),
+      signups: count().as('signups'),
+      withOrders: sql<number>`COUNT(CASE WHEN total_orders > 0 THEN 1 END)`.as('with_orders'),
+    })
+    .from(customers)
+    .groupBy(sql`month`)
+    .orderBy(sql`month DESC`)
+    .limit(6);
+
+  // ============================================================
+  // REVENUE BY MONTH (Trend)
+  // ============================================================
+  
+  const revenueByMonth = await db
+    .select({
+      month: sql<string>`strftime('%Y-%m', datetime(${orders.createdAt}, 'unixepoch'))`.as('month'),
+      revenue: sql<number>`COALESCE(SUM(total), 0)`.as('revenue'),
+      orderCount: count().as('order_count'),
+    })
+    .from(orders)
+    .where(sql`${orders.status} != 'cancelled'`)
+    .groupBy(sql`month`)
+    .orderBy(sql`month DESC`)
+    .limit(6);
 
   // Calculate growth rates
   const currentRevenue = Number(currentPeriod?.revenue) || 0;
@@ -248,6 +279,10 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       activeStores: Number(storeMetrics?.activeStores) || 0,
       inactiveStoreCount: inactiveStores.length,
     },
+    
+    // Cohort data
+    cohortData,
+    revenueByMonth,
   });
 }
 
@@ -315,7 +350,7 @@ export default function AICommandCenter() {
   const [aiQuery, setAiQuery] = useState('');
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const aiFetcher = useFetcher();
+  const aiFetcher = useFetcher<{ success: boolean; response?: string }>();
 
   // Generate AI insights on load
   useEffect(() => {
