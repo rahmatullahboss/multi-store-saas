@@ -2,6 +2,7 @@ import type { Database } from "../lib/db.server";
 import { abandonedCarts, stores, customers, orders } from "../../db/schema";
 import { eq, and, lt, gt, isNull, not, like } from "drizzle-orm";
 import { sendSmartNotification } from "./messaging.server";
+import { triggerAutomation } from "./automation.server";
 
 /**
  * SCHEDULER SERVICE
@@ -63,6 +64,25 @@ async function processAbandonedCarts(db: Database, env: Env) {
         amount: cart.totalAmount,
         currency: cart.currency
       });
+      
+      // 2b. Also trigger email automation if customer has email
+      if (cart.customerEmail && !cart.customerEmail.includes('@phone.local')) {
+        await triggerAutomation(
+          env.DB,
+          'cart_abandoned',
+          {
+            storeId: cart.storeId,
+            customerEmail: cart.customerEmail,
+            customerName: cart.customerName || 'Guest',
+            metadata: {
+              cartUrl: `https://${cart.store.subdomain}.digitalcare.site/checkout?recovery=${cart.sessionId}`,
+              amount: cart.totalAmount,
+              currency: cart.currency,
+            }
+          },
+          env.RESEND_API_KEY
+        );
+      }
 
       // 3. Mark as sent
       await db.update(abandonedCarts)
