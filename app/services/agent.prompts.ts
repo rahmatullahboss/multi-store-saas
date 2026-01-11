@@ -183,4 +183,16 @@ export const ECOMMERCE_FUNCTION_DEFINITIONS = [
       required: ['key', 'value'],
     },
   },
+  {
+    name: 'checkOrderStatus',
+    description: 'Check the status of an existing order. Ask for Order ID if not provided.',
+    parameters: {
+      type: 'object',
+      properties: {
+        order_id: { type: 'string', description: 'The Order ID (e.g. 1205)' },
+        phone_number: { type: 'string', description: 'Customer phone number for verification (optional if already known)' },
+      },
+      required: ['order_id'],
+    },
+  },
 ];

@@ -110,3 +110,11 @@
 - [x] **AI Marketing Message Generator**: Personalized SMS/Email content in Bangla & English
 - [x] **Merchant AI Campaigns Page**: Segment visualization and one-click campaign creation
 - [x] **Super Admin Audience Insights**: Platform-wide customer analytics dashboard
+
+### Phase 13: Merchant AI & Automation (Completed) 🤖
+
+- [x] **Merchant AI Infrastructure**: Schema update (`agents`, `messages`, `conversations`).
+- [x] **Messaging Hub**: WhatsApp & Messenger configuration UI for merchants.
+- [x] **AI Agent Logic**: Multi-channel support (Web, WhatsApp, Messenger) with credit deduction.
+- [x] **Deep Integration**: AI tools for Order Status Check, Tracking, and Lead Collection.
+- [x] **Webhook Hander**: Unified webhook for Meta (WhatsApp/Messenger) events.

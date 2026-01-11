@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { buildEcommercePrompt, ECOMMERCE_FUNCTION_DEFINITIONS, type AgentConfig } from './agent.prompts';
 import { getRAGContext } from './rag.server';
@@ -155,16 +155,20 @@ export async function processMessage(
            name: tc.function.name,
            args: JSON.parse(tc.function.arguments)
        };
-       // Note: logic to execute tool call and save functionality result would go here
+       
+       // EXECUTE TOOL CALL
+       const toolResult = await executeToolCall(db, toolCallData, agent.storeId, conversationId);
+       responseText = toolResult; // Use tool result as the response text
     }
 
     await db.insert(schema.messages).values({
         conversationId,
         role: 'assistant',
-        content: responseText || (toolCallData ? `Calling ${toolCallData.name}...` : '...'),
+        content: responseText,
         functionName: toolCallData?.name, 
         functionArgs: toolCallData ? JSON.stringify(toolCallData.args) : null,
-        creditsUsed: 1, // DEDUCT 1 CREDIT
+        functionResult: toolCallData ? responseText : null,
+        creditsUsed: 1, 
     });
 
     // Log Credit Usage Transaction
@@ -185,6 +189,85 @@ export async function processMessage(
     console.error('AI Processing Exception:', error);
     return { text: 'Technical error occurred.' };
   }
+}
+
+// Helper: Execute Tool Function
+async function executeToolCall(
+    db: any, 
+    toolCall: { name: string, args: any }, 
+    storeId: number,
+    conversationId: number
+): Promise<string> {
+    
+    // 1. ORDER STATUS CHECK
+    if (toolCall.name === 'checkOrderStatus') {
+       const { order_id, phone_number } = toolCall.args;
+       
+       if (!order_id) return "দয়া করে অর্ডার আইডি দিন।";
+
+       // Clean order ID (remove #, ord_, etc)
+       const cleanOrderId = String(order_id).replace(/\D/g, ''); 
+       const orderIdInt = parseInt(cleanOrderId);
+
+       if (isNaN(orderIdInt)) return "ভুল অর্ডার আইডি ফরম্যাট।";
+
+       // Find order
+       const order = await db.query.orders.findFirst({
+           where: (orders: any, { eq, and }: any) => and(
+               eq(orders.id, orderIdInt),
+               eq(orders.storeId, storeId)
+           ),
+           with: {
+               customer: true
+           }
+       });
+
+       if (!order) return `দুঃখিত, #${cleanOrderId} অর্ডারটি খুঁজে পাওয়া যায়নি।`;
+
+       // Optional: Verify Phone if provided
+       if (phone_number && order.customer?.phone) {
+            // Check last 4 digits match
+            const p1 = phone_number.replace(/\D/g, '').slice(-4);
+            const p2 = order.customer.phone.replace(/\D/g, '').slice(-4);
+            if (p1 !== p2) {
+                 return "অর্ডারটি পাওয়া গেছে কিন্তু ফোন নম্বর মিলছে না। নিরাপত্তার জন্য সঠিক ফোন নম্বর দিন।";
+            }
+       }
+
+       let statusText = order.status;
+       const bnStatus: Record<string, string> = {
+           pending: 'পেন্ডিং (অপেক্ষা করুন)',
+           processing: 'প্রসেসিং হচ্ছে',
+           shipped: 'শিপ করা হয়েছে (কুরিয়ারে আছে)',
+           delivered: 'ডেলিভারি সম্পন্ন হয়েছে ✅',
+           cancelled: 'বাতিল করা হয়েছে ❌',
+           returned: 'রিটার্ন করা হয়েছে'
+       };
+       if (bnStatus[order.status]) statusText = bnStatus[order.status];
+
+       return `📦 অর্ডার #${order.id} এর বর্তমান অবস্থা: **${statusText}**\n💰 মোট বিল: ৳${order.total}\n📅 তারিখ: ${new Date(order.createdAt).toLocaleDateString()}`;
+    }
+
+    // 2. LEAD COLLECTION
+    if (toolCall.name === 'collectLead') {
+        const { key, value } = toolCall.args;
+        
+        await db.insert(schema.leadsData).values({
+            conversationId,
+            key,
+            value,
+            createdAt: new Date()
+        });
+        
+        return "তথ্য সেভ করা হয়েছে। ধন্যবাদ! আমরা শীঘ্রই যোগাযোগ করব।";
+    }
+
+    // 3. CREATE ORDER (Placeholder)
+    if (toolCall.name === 'createOrder') {
+        return "অর্ডার করার জন্য ধন্যবাদ! একজন প্রতিনিধি আপনাকে কল করে অর্ডারটি কনফার্ম করবেন।";
+    }
+
+    return "Function executed successfully.";
 }
 
 /**
