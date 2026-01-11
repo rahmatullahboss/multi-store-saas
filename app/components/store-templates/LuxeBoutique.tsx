@@ -12,6 +12,7 @@ import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
+import { useCartCount } from '~/hooks/useCartCount';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 
 // ============================================================================
@@ -51,6 +52,7 @@ export function LuxeBoutiqueTemplate({
   const [searchOpen, setSearchOpen] = useState(false);
   const formatPrice = useFormatPrice();
   const { t } = useTranslation();
+  const count = useCartCount();
 
   // Filter valid categories
   const validCategories = categories.filter((c): c is string => Boolean(c));
@@ -156,7 +158,7 @@ export function LuxeBoutiqueTemplate({
                   className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
                   style={{ backgroundColor: THEME.accent, color: THEME.primary }}
                 >
-                  0
+                  {count}
                 </span>
               </Link>
             </div>
@@ -375,7 +377,7 @@ export function LuxeBoutiqueTemplate({
               className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold"
               style={{ backgroundColor: THEME.accent, color: THEME.primary }}
             >
-              0
+              {count}
             </span>
             <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Bag</span>
           </Link>

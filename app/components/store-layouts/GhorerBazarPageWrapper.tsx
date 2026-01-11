@@ -7,8 +7,9 @@
  */
 
 import type { ReactNode } from 'react';
-import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
+import { useState } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { 
   Search, 
   ShoppingCart, 
@@ -56,32 +57,7 @@ export function GhorerBazarPageWrapper({
   pageTitle,
   showBreadcrumbBanner = false,
 }: GhorerBazarPageWrapperProps) {
-  const [count, setCount] = useState(cartCount);
-
-  // Sync cart count with localStorage and events
-  useEffect(() => {
-    const updateCount = () => {
-      try {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const total = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
-        setCount(total);
-      } catch (e) {
-        console.error('Failed to parse cart', e);
-      }
-    };
-
-    // Initial load
-    updateCount();
-
-    // Listeners
-    window.addEventListener('storage', updateCount);
-    window.addEventListener('cart-updated', updateCount);
-    
-    return () => {
-      window.removeEventListener('storage', updateCount);
-      window.removeEventListener('cart-updated', updateCount);
-    };
-  }, []);
+  const count = useCartCount();
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">

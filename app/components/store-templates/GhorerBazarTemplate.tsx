@@ -12,6 +12,7 @@
 
 import { Link } from '@remix-run/react';
 import { useState, useRef } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { 
   Search, 
   ShoppingCart, 
@@ -50,6 +51,7 @@ export function GhorerBazarTemplate({
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const count = useCartCount();
   
   // Theme colors from valid theme object
   const { primary, secondary, accent, headerBg, footerBg } = GHORER_BAZAR_THEME;
@@ -119,9 +121,8 @@ export function GhorerBazarTemplate({
                 <span 
                   className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
                   style={{ backgroundColor: accent }}
-                  id="cart-count"
                 >
-                  0
+                  {count}
                 </span>
               </Link>
             </div>
@@ -366,7 +367,7 @@ export function GhorerBazarTemplate({
             <HomeIcon className="w-5 h-5" style={{ color: !currentCategory ? primary : GHORER_BAZAR_THEME.muted }} />
             <span className="text-[10px] font-medium" style={{ color: !currentCategory ? primary : GHORER_BAZAR_THEME.muted }}>হোম</span>
           </Link>
-          <button 
+          <button
             onClick={() => setMobileMenuOpen(true)}
             className="flex flex-col items-center gap-0.5 py-1 px-3"
           >
@@ -375,11 +376,11 @@ export function GhorerBazarTemplate({
           </button>
           <Link to="/cart" className="flex flex-col items-center gap-0.5 py-1 px-3 relative">
             <ShoppingCart className="w-5 h-5" style={{ color: GHORER_BAZAR_THEME.muted }} />
-            <span 
+            <span
               className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
               style={{ backgroundColor: accent }}
             >
-              0
+              {count}
             </span>
             <span className="text-[10px] font-medium" style={{ color: GHORER_BAZAR_THEME.muted }}>কার্ট</span>
           </Link>

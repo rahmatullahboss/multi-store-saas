@@ -11,6 +11,7 @@
 
 import { Link, useSearchParams } from '@remix-run/react';
 import { useState } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { 
   Menu, X, Search, ShoppingCart, 
   Heart, User, ShoppingBag, Headphones, Grid3X3, ChevronRight 
@@ -36,6 +37,7 @@ export function DarazTemplate({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchParams] = useSearchParams();
+  const count = useCartCount();
 
 
   // Get products for different sections
@@ -122,9 +124,8 @@ export function DarazTemplate({
               <span 
                 className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{ backgroundColor: '#FFD700', color: DARAZ_THEME.text }}
-                id="cart-count"
               >
-                0
+                {count}
               </span>
             </Link>
             <button className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition">
@@ -341,7 +342,7 @@ export function DarazTemplate({
               className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
               style={{ backgroundColor: DARAZ_THEME.primary }}
             >
-              0
+              {count}
             </span>
             <span className="text-[10px] font-medium" style={{ color: DARAZ_THEME.muted }}>Cart</span>
           </Link>

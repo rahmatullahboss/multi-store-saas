@@ -89,3 +89,8 @@
   - [x] Admin Theme Management (Approve/Reject/Remove)
   - [x] Merchant Theme Store to browse and apply community themes
 - [x] **Theme Centralization**: Standardized brand colors across all refactored themes.
+
+### Phase 10: Technical Debt & Standardization (Ongoing)
+
+- [x] **Reactive Cart Logic**: Standardized `useCartCount` hook across all templates and headers.
+- [x] **Template Building Guide**: Created comprehensive documentation for future theme development.

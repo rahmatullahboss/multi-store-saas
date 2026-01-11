@@ -12,6 +12,7 @@ import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
+import { useCartCount } from '~/hooks/useCartCount';
 
 // ============================================================================
 // TECH MODERN THEME CONSTANTS
@@ -52,6 +53,7 @@ export function TechModernTemplate({
   const [searchQuery, setSearchQuery] = useState('');
   const formatPrice = useFormatPrice();
   const { t } = useTranslation();
+  const count = useCartCount();
 
   // Filter valid categories
   const validCategories = categories.filter((c): c is string => Boolean(c));
@@ -165,7 +167,7 @@ export function TechModernTemplate({
             >
               <ShoppingCart className="w-5 h-5" />
               <span className="hidden sm:inline">Cart</span>
-              <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">0</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{count}</span>
             </Link>
           </div>
         </div>
@@ -381,7 +383,7 @@ export function TechModernTemplate({
               className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
               style={{ backgroundColor: THEME.accent }}
             >
-              0
+              {count}
             </span>
             <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Cart</span>
           </Link>

@@ -14,6 +14,7 @@
 
 import { Link, useSearchParams } from '@remix-run/react';
 import { useState, useEffect } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { 
   Menu, X, Search, ShoppingCart, 
   Heart, User, ShoppingBag, 
@@ -46,6 +47,7 @@ export function BDShopTemplate({
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchParams] = useSearchParams();
+  const count = useCartCount();
 
   // Close drawers when clicking outside
   useEffect(() => {
@@ -158,9 +160,8 @@ export function BDShopTemplate({
             <span 
               className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
               style={{ backgroundColor: BDSHOP_THEME.accent }}
-              id="cart-count"
             >
-              0
+              {count}
             </span>
           </Link>
         </div>
@@ -461,7 +462,7 @@ export function BDShopTemplate({
               className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
               style={{ backgroundColor: BDSHOP_THEME.accent }}
             >
-              0
+              {count}
             </span>
             <span className="text-[10px] font-medium" style={{ color: BDSHOP_THEME.muted }}>Cart</span>
           </Link>

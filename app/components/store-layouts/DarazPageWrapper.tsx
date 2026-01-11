@@ -8,7 +8,8 @@
 
 import type { ReactNode } from 'react';
 import { Link } from '@remix-run/react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { 
   Menu, X, Search, ShoppingCart, Heart, User, 
   ChevronRight, Headphones, ShoppingBag 
@@ -46,32 +47,7 @@ export function DarazPageWrapper({
 }: DarazPageWrapperProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [count, setCount] = useState(0);
-
-  // Sync cart count with localStorage and events
-  useEffect(() => {
-    const updateCount = () => {
-      try {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const total = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
-        setCount(total);
-      } catch (e) {
-        console.error('Failed to parse cart', e);
-      }
-    };
-
-    // Initial load
-    updateCount();
-
-    // Listeners
-    window.addEventListener('storage', updateCount);
-    window.addEventListener('cart-updated', updateCount);
-    
-    return () => {
-      window.removeEventListener('storage', updateCount);
-      window.removeEventListener('cart-updated', updateCount);
-    };
-  }, []);
+  const count = useCartCount();
   
   const featuredCategories = categories.filter(Boolean).slice(0, 8);
 
