@@ -24,6 +24,8 @@ import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/sh
 import { sendPurchaseEvent } from '~/services/facebook-capi.server';
 import { createDb } from '~/lib/db.server';
 import { sendSmartNotification } from '~/services/messaging.server';
+import { addLoyaltyPoints } from '~/services/loyalty.server';
+import { triggerAutomation } from '~/services/automation.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -424,6 +426,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ============================================================================
     // CUSTOMER CREATION/UPDATE (For Segmentation & Marketing)
     // ============================================================================
+    let finalCustomerId: number | undefined;
+    
     context.cloudflare.ctx.waitUntil((async () => {
       try {
         // Check if customer exists (by phone or email)
@@ -443,6 +447,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (existingCustomer.length > 0) {
           // UPDATE existing customer stats
           const customer = existingCustomer[0];
+          finalCustomerId = customer.id;
           const newTotalOrders = (customer.totalOrders || 0) + 1;
           const newTotalSpent = (customer.totalSpent || 0) + total;
           
@@ -468,6 +473,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
           await db.update(orders)
             .set({ customerId: customer.id })
             .where(eq(orders.id, orderId!));
+          
+          // ========== LOYALTY POINTS INTEGRATION ==========
+          await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`);
             
         } else {
           // CREATE new customer
@@ -483,11 +491,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
             segment: 'regular', // First order = regular
           }).returning({ id: customers.id });
           
+          finalCustomerId = newCustomer.id;
+          
           // Link customer to order
           await db.update(orders)
             .set({ customerId: newCustomer.id })
             .where(eq(orders.id, orderId!));
+          
+          // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
+          await addLoyaltyPoints(db, newCustomer.id, input.store_id, total, `First Order ${orderNumber}`);
         }
+        
+        // ========== FIRE AUTOMATION TRIGGERS ==========
+        if (input.customer_email && !input.customer_email.includes('@phone.local')) {
+          await triggerAutomation(
+            context.cloudflare.env.DB,
+            'order_placed',
+            {
+              storeId: input.store_id,
+              customerEmail: input.customer_email,
+              customerName: input.customer_name,
+              metadata: {
+                orderNumber,
+                total,
+                currency: storeData.currency || 'BDT',
+                itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+              }
+            },
+            context.cloudflare.env.RESEND_API_KEY
+          );
+        }
+        
       } catch (customerError) {
         console.error('Customer creation/update failed:', customerError);
         // Non-blocking - order already created

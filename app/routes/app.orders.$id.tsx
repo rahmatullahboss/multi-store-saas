@@ -493,6 +493,27 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           status: status as 'shipped' | 'out_for_delivery' | 'delivered',
         })
       );
+      
+      // ========== FIRE AUTOMATION TRIGGER FOR DELIVERED ==========
+      if (status === 'delivered') {
+        const { triggerAutomation } = await import('~/services/automation.server');
+        context.cloudflare.ctx.waitUntil(
+          triggerAutomation(
+            context.cloudflare.env.DB,
+            'order_delivered',
+            {
+              storeId,
+              customerEmail: order.customerEmail,
+              customerName: order.customerName || 'Customer',
+              metadata: {
+                orderNumber: order.orderNumber,
+                total: order.total,
+              }
+            },
+            resendApiKey
+          )
+        );
+      }
     }
   }
 
