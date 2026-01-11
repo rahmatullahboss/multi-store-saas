@@ -48,8 +48,8 @@ export default function StateSelector() {
   };
 
   return (
-    <div className="flex items-center gap-1 p-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
-      <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mr-2">State:</span>
+    <div className="flex flex-wrap items-center gap-1 p-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+      <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mr-2 w-full sm:w-auto mb-1 sm:mb-0">State:</span>
       {STATES.map((state) => {
         const Icon = state.icon;
         const isActive = activeState === state.name;

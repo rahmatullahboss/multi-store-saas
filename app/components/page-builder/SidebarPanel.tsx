@@ -208,9 +208,39 @@ export default function SidebarPanel({
         .gjs-layer-vis {
           color: #64748b !important;
         }
+        
+        /* Style Manager Overflow Fixes */
+        .gjs-sm-sector {
+          min-width: 0 !important;
+          overflow: visible !important;
+        }
+        .gjs-sm-sector-title {
+          white-space: nowrap !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+        }
+        .gjs-sm-property .gjs-sm-label {
+          white-space: nowrap !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          min-width: 0 !important;
+          max-width: 90px !important;
+        }
+        .gjs-sm-composite .gjs-sm-properties {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 4px !important;
+        }
+        .gjs-sm-composite .gjs-sm-property {
+          min-width: 0 !important;
+          flex: 1 1 40% !important;
+        }
+        .gjs-sm-property .gjs-sm-icon {
+          display: none !important;
+        }
       `}} />
 
-      <div className="flex flex-col h-full bg-white border-r border-gray-200 w-72 shadow-sm min-h-0">
+      <div className="flex flex-col h-full bg-white border-r border-gray-200 w-80 shadow-sm min-h-0">
         {/* Tab Switcher - Elementor Style */}
         <div className="flex border-b border-gray-100 bg-gray-50/80 p-1.5 gap-1.5">
            <button 
