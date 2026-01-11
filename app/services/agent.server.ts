@@ -222,7 +222,7 @@ async function executeToolCall(
            }
        });
 
-       if (!order) return `দুঃখিত, #${cleanOrderId} অর্ডারটি খুঁজে পাওয়া যায়নি।`;
+       if (!order) return `SYSTEM: Order #${cleanOrderId} NOT FOUND. You MUST tell the user: "দুঃখিত, #${cleanOrderId} আইডি দিয়ে কোনো অর্ডার আমাদের সিস্টেমে নেই।" Do NOT make up any status.`;
 
        // Optional: Verify Phone if provided
        if (phone_number && order.customer?.phone) {

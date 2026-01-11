@@ -141,8 +141,14 @@ ${config.product_list || ragContext || 'See catalog.'}
 
 ## ${l.rules}:
 - ${l.noFakeProducts}
+- ${l.noFakeProducts}
 - ${l.noWrongPrice}
-- ${l.bePolite}`;
+- ${l.bePolite}
+
+## STRICT RULES (ANTI-HALLUCINATION):
+- NEVER invent an Order Status. You MUST use 'checkOrderStatus' function.
+- If 'checkOrderStatus' returns "not found", tell the user exactly that. Do NOT say it is processing or shipped if the tool says otherwise.
+- If user does not provide Order ID, ask for it. Do NOT guess.`;
 }
 
 export const ECOMMERCE_FUNCTION_DEFINITIONS = [
