@@ -138,6 +138,7 @@ interface SendCampaignEmailParams {
   content: string;
   storeName: string;
   unsubscribeUrl: string;
+  previewText?: string;
 }
 
 interface SendOrderConfirmationParams {
@@ -161,6 +162,16 @@ interface SendNewOrderAlertParams {
   itemCount: number;
 }
 
+interface SendShippingUpdateParams {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: string;
+  storeName: string;
+  status: 'shipped' | 'out_for_delivery' | 'delivered';
+  trackingNumber?: string;
+  trackingUrl?: string;
+}
+
 /**
  * Factory to create email service with methods
  */
@@ -169,12 +180,15 @@ export function createEmailService(apiKey: string) {
   const fromEmail = 'Multi-Store SaaS <system@digitalcare.site>';
 
   return {
-    async sendCampaignEmail({ email, subject, content, storeName, unsubscribeUrl }: SendCampaignEmailParams) {
+    async sendCampaignEmail({ email, subject, content, storeName, unsubscribeUrl, previewText }: SendCampaignEmailParams) {
       return resend.emails.send({
         from: fromEmail,
         to: [email],
         subject,
         html: `
+          <div style="display: none; max-height: 0px; overflow: hidden;">
+            ${previewText || ''}
+          </div>
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             ${content}
             <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #666;">
@@ -311,6 +325,34 @@ export function createEmailService(apiKey: string) {
         to: [merchantEmail],
         subject: `🎉 Your First Sale! You're in Business!`,
         html,
+      });
+    },
+
+    async sendShippingUpdate({ customerEmail, customerName, orderNumber, storeName, status, trackingNumber, trackingUrl }: SendShippingUpdateParams) {
+      const statusText = status === 'shipped' ? 'been shipped' : status === 'out_for_delivery' ? 'out for delivery' : 'been delivered';
+      const subject = status === 'delivered' ? `Order Delivered! #${orderNumber}` : `Shipping Update for Order #${orderNumber}`;
+
+      return resend.emails.send({
+        from: fromEmail,
+        to: [customerEmail],
+        subject: `${subject} - ${storeName}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Shipping Update</h2>
+            <p>Hi ${customerName},</p>
+            <p>Your order <strong>#${orderNumber}</strong> from <strong>${storeName}</strong> has ${statusText}.</p>
+            
+            ${trackingNumber ? `
+              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #666;">Tracking Number</p>
+                <p style="margin: 5px 0 0; font-size: 18px; font-weight: bold;">${trackingNumber}</p>
+                ${trackingUrl ? `<a href="${trackingUrl}" style="display: inline-block; margin-top: 10px; color: #10B981; font-weight: 600;">Track Order</a>` : ''}
+              </div>
+            ` : ''}
+
+            <p>Thank you for shopping with us!</p>
+          </div>
+        `,
       });
     }
   };

@@ -6,9 +6,11 @@ import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { Send, User, Bot, Trash2 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) throw new Response("Unauthorized", { status: 401 });
   const db = drizzle(context.cloudflare.env.DB, { schema });
 
   const agent = await db.query.agents.findFirst({
@@ -20,6 +22,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
 export default function AgentChatSimulator() {
   const { agent } = useLoaderData<typeof loader>();
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,16 +57,18 @@ export default function AgentChatSimulator() {
         }),
       });
 
-      const data = await res.json();
-      
-      if (data.text) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.text }]);
-      } else if (data.error) {
-         setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }]);
+      if (res.ok) {
+        const data = await res.json() as { text?: string, error?: string };
+        
+        if (data.text) {
+          setMessages(prev => [...prev, { role: 'assistant', content: data.text! }]);
+        } else if (data.error) {
+           setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }]);
+        }
       }
 
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error occurred.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: t('connectionError') }]);
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +79,7 @@ export default function AgentChatSimulator() {
   if (!agent) {
     return (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-            <p className="text-gray-500">Please configure your agent first.</p>
+            <p className="text-gray-500">{t('agentNotConfigured')}</p>
         </div>
     );
   }
@@ -88,17 +93,17 @@ export default function AgentChatSimulator() {
                     <Bot className="w-6 h-6 text-emerald-600" />
                 </div>
                 <div>
-                    <h3 className="font-medium text-gray-900">{agent.name} (Simulator)</h3>
+                    <h3 className="font-medium text-gray-900">{agent.name} ({t('simulator')})</h3>
                     <p className="text-xs text-green-600 flex items-center gap-1">
                         <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                        Online
+                        {t('online')}
                     </p>
                 </div>
             </div>
             <button 
                 onClick={clearChat}
                 className="text-gray-400 hover:text-red-500 transition p-2"
-                title="Clear Chat"
+                title={t('clearChat')}
             >
                 <Trash2 className="w-5 h-5" />
             </button>
@@ -109,7 +114,7 @@ export default function AgentChatSimulator() {
             {messages.length === 0 && (
                 <div className="text-center text-gray-400 mt-20">
                     <Bot className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                    <p>Start a conversation to test your agent.</p>
+                    <p>{t('testAgentDesc')}</p>
                 </div>
             )}
             
@@ -145,7 +150,7 @@ export default function AgentChatSimulator() {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type a message..."
+                    placeholder={t('typeMessage')}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
                     autoFocus
                 />

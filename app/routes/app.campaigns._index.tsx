@@ -143,7 +143,7 @@ export default function CampaignsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('campaigns')}</h1>
           <p className="text-gray-500 mt-1">
-            {lang === 'bn' ? 'মার্কেটিং ইমেিল ক্যাম্পেইন তৈরি ও পরিচালনা করুন' : 'Create and manage marketing email campaigns'}
+            {t('campaignsDescription')}
           </p>
         </div>
         <div className="flex gap-3">
@@ -152,14 +152,14 @@ export default function CampaignsPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition"
           >
             <Users className="w-4 h-4" />
-            Subscribers ({subscriberCount})
+            {t('navSubscribers')} ({subscriberCount})
           </Link>
           <Link
             to="/app/campaigns/new"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 font-medium transition"
           >
             <Plus className="w-4 h-4" />
-            New Campaign
+            {t('newCampaign')}
           </Link>
         </div>
       </div>
@@ -171,17 +171,17 @@ export default function CampaignsPage() {
             <Mail className="w-8 h-8 text-emerald-600" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No campaigns yet
+            {t('noCampaignsYet')}
           </h3>
           <p className="text-gray-500 mb-6 max-w-md mx-auto">
-            Start engaging with your customers by creating your first email campaign.
+            {t('startEngagingDesc')}
           </p>
           <Link
             to="/app/campaigns/new"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 font-medium transition"
           >
             <Plus className="w-4 h-4" />
-            Create Your First Campaign
+            {t('createYourFirstCampaign')}
           </Link>
         </div>
       ) : (
@@ -192,25 +192,25 @@ export default function CampaignsPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">
-                    Campaign
+                    {t('campaign')}
                   </th>
                   <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">
-                    Status
+                    {t('status')}
                   </th>
                   <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">
-                    Recipients
+                    {t('recipients')}
                   </th>
                   <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">
                     <div className="flex items-center gap-1">
                       <BarChart3 className="w-4 h-4" />
-                      Stats
+                      {t('stats')}
                     </div>
                   </th>
                   <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">
-                    Created
+                    {t('created')}
                   </th>
                   <th className="text-right py-3.5 px-4 text-sm font-semibold text-gray-900">
-                    Actions
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -301,7 +301,7 @@ export default function CampaignsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{subscriberCount}</p>
-              <p className="text-sm text-gray-500">Active Subscribers</p>
+              <p className="text-sm text-gray-500">{t('activeSubscribers')}</p>
             </div>
           </div>
         </div>
@@ -314,7 +314,7 @@ export default function CampaignsPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {campaigns.filter(c => c.status === 'sent').length}
               </p>
-              <p className="text-sm text-gray-500">Campaigns Sent</p>
+              <p className="text-sm text-gray-500">{t('campaignsSent')}</p>
             </div>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function CampaignsPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {campaigns.reduce((sum, c) => sum + (c.sentCount || 0), 0)}
               </p>
-              <p className="text-sm text-gray-500">Total Emails Sent</p>
+              <p className="text-sm text-gray-500">{t('totalEmailsSent')}</p>
             </div>
           </div>
         </div>

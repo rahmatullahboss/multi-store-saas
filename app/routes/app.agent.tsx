@@ -4,8 +4,10 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sql, gte } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
-import { Sparkles, MessageSquare, Settings, Book, Bot } from 'lucide-react';
+import { Sparkles, MessageSquare, Settings, Book, Bot, Zap, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { getUsageStats } from '~/utils/plans.server';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -16,13 +18,16 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   // Check if store has Agent enabled
   const store = await db.query.stores.findFirst({
     where: eq(schema.stores.id, storeId),
-    columns: { isCustomerAiEnabled: true }
+    columns: { isCustomerAiEnabled: true, aiPlan: true }
   });
 
   // Fetch Agent
   const agent = await db.query.agents.findFirst({
     where: eq(schema.agents.storeId, storeId)
   });
+
+  // Get Usage Stats
+  const usageStats = await getUsageStats(context.cloudflare.env.DB, storeId);
 
   // Calculate Metrics
   const [convCount] = await db.select({ count: count() })
@@ -41,23 +46,6 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   // Daily Stats (Last 7 Days)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-  const dailyStats = await db.select({
-      date: sql<string>`strftime('%Y-%m-%d', ${schema.conversations.createdAt} / 1000, 'unixepoch')`, // Adjust for timestamp storage (ms vs sec)
-      count: count()
-  })
-  .from(schema.conversations)
-  .where(
-      gte(schema.conversations.createdAt, sevenDaysAgo)
-  )
-    // Filter by agent: .where(and(gte..., eq(agentId...)))
-  // Note: D1 validation might fail if using complex sql inside where directly combined.
-  // Actually, let's keep it simple. If we use SQLite timestamp (integer ms), we need /1000.
-  // Assuming createdAt is integer (Date object stored as timestamp in Drizzle SQLite usually).
-  
-  // Correction: SQLite Drizzle `integer(..., { mode: 'timestamp' })` stores as Date object in JS, but integer (milliseconds) in DB? Or seconds?
-  // Usually milliseconds. Unixepoch takes seconds. So / 1000.
-  // Let's refine the query safely.
   
   const dailyDataRaw = await db.all(sql`
     SELECT 
@@ -73,25 +61,28 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   return json({ 
     agent, 
     isLocked: !store?.isCustomerAiEnabled,
+    aiPlan: store?.aiPlan,
     stats: {
         conversations: convCount?.count || 0,
         leads: leadsCount?.count || 0, 
         orders: ordersCount?.count || 0,
-        daily: dailyDataRaw
+        daily: dailyDataRaw,
+        usage: usageStats.aiMessages // { current, limit, percentage }
     }
   });
 };
 
 export default function AgentDashboard() {
-  const { agent, isLocked, stats } = useLoaderData<typeof loader>();
+  const { agent, isLocked, stats, aiPlan } = useLoaderData<typeof loader>();
   const location = useLocation();
+  const { t, lang } = useTranslation();
 
   const tabs = [
-    { name: 'Overview', to: '/app/agent', icon: Bot, exact: true },
-    { name: 'Inbox', to: '/app/agent/history', icon: MessageSquare },
-    { name: 'Configuration', to: '/app/agent/config', icon: Settings },
-    { name: 'Chat Simulator', to: '/app/agent/chat', icon: Sparkles },
-    { name: 'Knowledge Base', to: '/app/agent/knowledge', icon: Book },
+    { name: t('overview'), to: '/app/agent', icon: Bot, exact: true },
+    { name: t('inbox'), to: '/app/agent/history', icon: MessageSquare },
+    { name: t('configuration'), to: '/app/agent/config', icon: Settings },
+    { name: t('chatSimulator'), to: '/app/agent/chat', icon: Sparkles },
+    { name: t('knowledgeBase'), to: '/app/agent/knowledge', icon: Book },
   ];
 
   if (isLocked) {
@@ -120,12 +111,12 @@ export default function AgentDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Bot className="w-8 h-8 text-emerald-600" />
-            AI Agent Manager
+            {t('aiAgentManager')}
           </h1>
-          <p className="text-gray-500">Manage your virtual assistant and support automation.</p>
+          <p className="text-gray-500">{t('aiAgentDescription')}</p>
         </div>
         <div className={`px-3 py-1 rounded-full text-sm font-medium ${agent?.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-          {agent?.isActive ? 'Active' : 'Inactive'}
+          {agent?.isActive ? t('active') : t('inactive')}
         </div>
       </div>
 
@@ -160,25 +151,60 @@ export default function AgentDashboard() {
         {location.pathname === '/app/agent' ? (
              <div className="space-y-6">
                  {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {/* Usage Card */}
+                    <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <span className="text-gray-500 text-sm font-medium">{lang === 'bn' ? 'ম্যাসেজ লিমিট' : 'Message Usage'}</span>
+                                <div className="text-xs text-emerald-600 font-bold mt-1 uppercase">{aiPlan || 'Trial'} Plan</div>
+                            </div>
+                            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                                <Zap className="w-5 h-5 text-emerald-600" />
+                            </div>
+                        </div>
+                        <div className="mb-2">
+                             <div className="text-2xl font-bold text-gray-900">
+                                {stats.usage.current.toLocaleString()} 
+                                <span className="text-sm font-normal text-gray-400"> / {stats.usage.limit === Infinity ? '∞' : (stats.usage.limit === 0 && stats.usage.current > 0 ? 'Trial' : stats.usage.limit.toLocaleString())}</span>
+                             </div>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                    stats.usage.percentage >= 90 ? 'bg-red-500' : 
+                                    stats.usage.percentage >= 70 ? 'bg-amber-500' : 
+                                    'bg-emerald-500'
+                                }`}
+                                style={{ width: `${Math.min(stats.usage.percentage, 100)}%` }}
+                            />
+                        </div>
+                    </div>
+
                     <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-500 text-sm font-medium">Total Conversations</span>
-                            <MessageSquare className="w-5 h-5 text-blue-500" />
+                            <span className="text-gray-500 text-sm font-medium">{t('totalConversations')}</span>
+                            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                                <MessageSquare className="w-5 h-5 text-blue-500" />
+                            </div>
                         </div>
                         <div className="text-3xl font-bold text-gray-900">{stats?.conversations || 0}</div>
                     </div>
                     <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-500 text-sm font-medium">Leads Captured</span>
-                            <Sparkles className="w-5 h-5 text-amber-500" />
+                            <span className="text-gray-500 text-sm font-medium">{t('leadsCaptured')}</span>
+                            <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                                <Sparkles className="w-5 h-5 text-amber-500" />
+                            </div>
                         </div>
                         <div className="text-3xl font-bold text-gray-900">{stats?.leads || 0}</div>
                     </div>
                      <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-500 text-sm font-medium">Total Orders</span>
-                            <Bot className="w-5 h-5 text-emerald-500" />
+                            <span className="text-gray-500 text-sm font-medium">{t('totalOrders')}</span>
+                            <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                                <TrendingUp className="w-5 h-5 text-purple-500" />
+                            </div>
                         </div>
                         <div className="text-3xl font-bold text-gray-900">{stats?.orders || 0}</div>
                     </div>
@@ -186,7 +212,7 @@ export default function AgentDashboard() {
 
                 {/* Chart Section */}
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6">Activity Overview (Last 7 Days)</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-6">{t('activityOverview7Days')}</h3>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={stats?.daily && stats.daily.length > 0 ? stats.daily : [{date: 'Today', count: 0}]}>
@@ -203,12 +229,12 @@ export default function AgentDashboard() {
                 {/* Fallback if no agent is configured, though cards will show 0 */}
                 {!agent && (
                     <div className="text-center py-4">
-                        <p className="text-gray-500 mb-4">No active agent found.</p>
+                        <p className="text-gray-500 mb-4">{t('noActiveAgentFound')}</p>
                         <Link 
                             to="/app/agent/config" 
                             className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
                         >
-                            Setup Agent
+                            {t('setupAgent')}
                         </Link>
                     </div>
                 )}

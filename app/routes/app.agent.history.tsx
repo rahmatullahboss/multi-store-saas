@@ -5,6 +5,7 @@ import { eq, desc } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { Bot, User, Clock, Search, MessageSquare, ArrowLeft } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -58,11 +59,12 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 export default function AgentHistory() {
   const { conversations, selectedConversation, agent } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useTranslation();
 
   if (!agent) {
       return (
           <div className="text-center py-12">
-              <p className="text-gray-500">Agent not configured.</p>
+              <p className="text-gray-500">{t('agentNotConfigured')}</p>
           </div>
       );
   }
@@ -72,12 +74,12 @@ export default function AgentHistory() {
       {/* Sidebar: Conversation List */}
       <div className={`w-full md:w-1/3 border-r border-gray-200 bg-gray-50 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-gray-200 bg-white">
-            <h2 className="font-semibold text-gray-900 mb-2">Inbox</h2>
+            <h2 className="font-semibold text-gray-900 mb-2">{t('inbox')}</h2>
             <div className="relative">
                 <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                 <input 
                     type="text" 
-                    placeholder="Search customers..." 
+                    placeholder={t('searchCustomers')} 
                     className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                     disabled
                 />
@@ -88,7 +90,7 @@ export default function AgentHistory() {
             {conversations.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                     <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                    <p>No conversations yet</p>
+                    <p>{t('noConversationsYet')}</p>
                 </div>
             ) : (
                 conversations.map(conv => (
@@ -102,7 +104,7 @@ export default function AgentHistory() {
                     >
                         <div className="flex justify-between items-start mb-1">
                             <span className="font-medium text-gray-900 truncate pr-2">
-                                {conv.customerName || `Guest (${conv.id})`}
+                                {conv.customerName || `${t('guest')} (${conv.id})`}
                             </span>
                             <span className="text-xs text-gray-500 whitespace-nowrap">
                                 {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleDateString() : ''}
@@ -114,7 +116,7 @@ export default function AgentHistory() {
                             ) : (
                                 <span className="inline-block w-2 h-2 bg-gray-300 rounded-full"></span>
                             )}
-                            <span className="capitalize">{conv.status}</span>
+                            <span className="capitalize">{t(conv.status as any)}</span>
                         </div>
                     </div>
                 ))
@@ -139,10 +141,10 @@ export default function AgentHistory() {
                     </div>
                     <div>
                         <h3 className="font-semibold text-gray-900">
-                            {selectedConversation.customerName || 'Guest User'}
+                            {selectedConversation.customerName || t('guestUser')}
                         </h3>
                         <p className="text-xs text-gray-500">
-                           Started {new Date(selectedConversation.createdAt || new Date()).toLocaleDateString()}
+                           {t('started')} {new Date(selectedConversation.createdAt || new Date()).toLocaleDateString()}
                         </p>
                     </div>
                 </div>
@@ -175,7 +177,7 @@ export default function AgentHistory() {
 
                 {/* Footer (Read Only) */}
                 <div className="p-4 border-t border-gray-200 bg-white text-center text-xs text-gray-400">
-                    This is a read-only view of the AI conversation.
+                    {t('readOnlyView')}
                 </div>
             </>
         ) : (
@@ -183,7 +185,7 @@ export default function AgentHistory() {
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-gray-100">
                     <MessageSquare className="w-8 h-8 text-gray-300" />
                 </div>
-                <p>Select a conversation to view history</p>
+                <p>{t('selectConversation')}</p>
             </div>
         )}
       </div>

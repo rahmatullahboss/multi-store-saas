@@ -5,9 +5,11 @@ import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { Save } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) throw new Response("Unauthorized", { status: 401 });
   const db = drizzle(context.cloudflare.env.DB, { schema });
 
   const agent = await db.query.agents.findFirst({
@@ -19,6 +21,8 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) return json({ error: 'Unauthorized' }, { status: 401 });
+
   const db = drizzle(context.cloudflare.env.DB, { schema });
   const formData = await request.formData();
   
@@ -62,6 +66,7 @@ export default function AgentConfig() {
   const { agent } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const isSaving = navigation.state === 'submitting';
 
   const settings = agent?.agentSettings ? JSON.parse(agent.agentSettings) : {};
@@ -70,16 +75,16 @@ export default function AgentConfig() {
     <div className="max-w-3xl">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Agent Configuration</h2>
-            <p className="text-sm text-gray-500 mt-1">Customize how your AI assistant behaves and interacts with customers.</p>
+            <h2 className="text-lg font-medium text-gray-900">{t('agentConfiguration')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('agentConfigDesc')}</p>
         </div>
         
         <Form method="post" className="p-6 space-y-6">
             {/* Status */}
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                    <label className="font-medium text-gray-900">Agent Status</label>
-                    <p className="text-sm text-gray-500">Enable or disable the AI assistant on your store</p>
+                    <label className="font-medium text-gray-900">{t('agentStatus')}</label>
+                    <p className="text-sm text-gray-500">{t('agentStatusDesc')}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -94,11 +99,11 @@ export default function AgentConfig() {
 
             {/* Basic Info */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Agent Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('agentName')}</label>
                 <input 
                     type="text" 
                     name="name" 
-                    defaultValue={agent?.name || 'Sales Assistant'}
+                    defaultValue={agent?.name || t('defaultAgentName')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
                 />
             </div>
@@ -106,28 +111,28 @@ export default function AgentConfig() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  {/* Tone */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Communication Tone</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('communicationTone')}</label>
                     <select 
                         name="tone"
                         defaultValue={settings.tone || 'friendly'}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
                     >
-                        <option value="friendly">Friendly & Casual 😊</option>
-                        <option value="formal">Professional & Formal</option>
-                        <option value="urgent">Direct & Sales-focused</option>
+                        <option value="friendly">{t('friendlyCasual')}</option>
+                        <option value="formal">{t('professionalFormal')}</option>
+                        <option value="urgent">{t('directSales')}</option>
                     </select>
                 </div>
 
                 {/* Language */}
                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Primary Language</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('primaryLanguage')}</label>
                     <select 
                         name="language"
                         defaultValue={settings.language || 'bn'}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
                     >
-                        <option value="bn">Bengali (বাংলা)</option>
-                        <option value="en">English</option>
+                        <option value="bn">{t('bengali')}</option>
+                        <option value="en">{t('english')}</option>
                         {/* <option value="banglish">Banglish</option> */}
                     </select>
                 </div>
@@ -140,13 +145,13 @@ export default function AgentConfig() {
                     className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
                 >
                     <Save className="w-4 h-4" />
-                    {isSaving ? 'Saving...' : 'Save Configuration'}
+                    {isSaving ? t('saving') : t('saveConfiguration')}
                 </button>
             </div>
 
-            {actionData?.success && (
+            {actionData && 'success' in actionData && actionData.success && (
                 <div className="p-3 bg-emerald-50 text-emerald-700 rounded-lg text-sm text-center">
-                    Settings saved successfully!
+                    {t('settingsSaved')}
                 </div>
             )}
         </Form>

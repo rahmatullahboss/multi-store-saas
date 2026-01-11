@@ -8,9 +8,11 @@ import { requireUserId, getStoreId } from '~/services/auth.server';
 import { indexDocuments, deleteDocuments, chunkText, type VectorDocument, type Env as RagEnv } from '~/services/rag.server';
 import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, RefreshCw, FileText, Globe, Type, Upload, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // Extend Env to include R2 if strictly typed
-interface Env extends RagEnv {
+// Rename to RouteEnv to avoid naming collision with RagEnv
+interface RouteEnv extends RagEnv {
   DB: D1Database;
   R2: R2Bucket;
 }
@@ -39,7 +41,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
-  const env = context.cloudflare.env as Env;
+  const env = context.cloudflare.env as unknown as RouteEnv;
   const storeId = await getStoreId(request, env);
     if (!storeId) throw new Response('Unauthorized', { status: 401 });
     const db = drizzle(env.DB, { schema });
@@ -249,6 +251,7 @@ export default function KnowledgeBase() {
   const { sources, agentId } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const isSubmitting = navigation.state === 'submitting';
   
   const [modalOpen, setModalOpen] = useState(false);
@@ -262,16 +265,16 @@ export default function KnowledgeBase() {
   }, [actionData]);
 
   if (!agentId) {
-    return <div className="p-4">Please configure your agent first.</div>;
+    return <div className="p-4">{t('agentNotConfigured')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Knowledge Base</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('knowledgeBase')}</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Train your agent with custom data sources.
+            {t('trainAgentDesc')}
           </p>
         </div>
         <button
@@ -279,7 +282,7 @@ export default function KnowledgeBase() {
           className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Source
+          {t('addSource')}
         </button>
       </div>
 
@@ -288,19 +291,19 @@ export default function KnowledgeBase() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chunks</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Synced</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('source')}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('type')}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('status')}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('chunks')}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('lastSynced')}</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sources.length === 0 ? (
                 <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                        No knowledge sources found. Add one to get started.
+                        {t('noSourcesFound')}
                     </td>
                 </tr>
             ) : (
@@ -317,22 +320,22 @@ export default function KnowledgeBase() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
-                  {source.type}
+                  {t(source.type as any)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     {source.status === 'indexed' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle className="w-3 h-3" /> Indexed
+                            <CheckCircle className="w-3 h-3" /> {t('indexed')}
                         </span>
                     )}
                     {source.status === 'processing' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <Loader2 className="w-3 h-3 animate-spin" /> Processing
+                            <Loader2 className="w-3 h-3 animate-spin" /> {t('processing')}
                         </span>
                     )}
                     {source.status === 'failed' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <AlertCircle className="w-3 h-3" /> Failed
+                            <AlertCircle className="w-3 h-3" /> {t('failed')}
                         </span>
                     )}
                 </td>
@@ -375,14 +378,14 @@ export default function KnowledgeBase() {
 
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Add Knowledge Source</h3>
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">{t('addKnowledgeSource')}</h3>
                 
                 {/* Modal Tabs */}
                 <div className="flex border-b border-gray-200 mb-4">
                     {[
-                        { id: 'text', label: 'Manual Text', icon: Type },
-                        { id: 'website', label: 'Website', icon: Globe },
-                        { id: 'file', label: 'File Upload', icon: Upload },
+                        { id: 'text', label: t('manualText'), icon: Type },
+                        { id: 'website', label: t('website'), icon: Globe },
+                        { id: 'file', label: t('fileUpload'), icon: Upload },
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -401,20 +404,20 @@ export default function KnowledgeBase() {
                         <input type="hidden" name="intent" value="add_manual" />
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Title</label>
+                                <label className="block text-sm font-medium text-gray-700">{t('title')}</label>
                                 <input type="text" name="title" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2" placeholder="e.g. Return Policy" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Content</label>
-                                <textarea name="content" required rows={6} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2" placeholder="Enter the text content here..." />
+                                <label className="block text-sm font-medium text-gray-700">{t('content')}</label>
+                                <textarea name="content" required rows={6} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2" placeholder={t('enterContentPlaceholder')} />
                             </div>
                         </div>
                         <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                             <button type="submit" disabled={isSubmitting} className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none sm:col-start-2 sm:text-sm">
-                                {isSubmitting ? 'Processing...' : 'Add Text'}
+                                {isSubmitting ? t('processing') : t('addBtn')}
                             </button>
                             <button type="button" onClick={() => setModalOpen(false)} className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:col-start-1 sm:text-sm">
-                                Cancel
+                                {t('cancel')}
                             </button>
                         </div>
                     </Form>
@@ -432,10 +435,10 @@ export default function KnowledgeBase() {
                         </div>
                         <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                             <button type="submit" disabled={isSubmitting} className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none sm:col-start-2 sm:text-sm">
-                                {isSubmitting ? 'Scraping...' : 'Add Website'}
+                                {isSubmitting ? t('scraping') : t('addBtn')}
                             </button>
                             <button type="button" onClick={() => setModalOpen(false)} className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:col-start-1 sm:text-sm">
-                                Cancel
+                                {t('cancel')}
                             </button>
                         </div>
                     </Form>
@@ -452,17 +455,17 @@ export default function KnowledgeBase() {
                                         <span>Upload a file</span>
                                         <input id="file-upload" name="file" type="file" className="sr-only" required accept=".txt,.md,.pdf,.doc,.docx" />
                                     </label>
-                                    <p className="pl-1">or drag and drop</p>
+                                    <p className="pl-1">{t('dragDrop')}</p>
                                 </div>
-                                <p className="text-xs text-gray-500">TXT, MD, PDF, DOC up to 5MB</p>
+                                <p className="text-xs text-gray-500">{t('fileLimit')}</p>
                             </div>
                         </div>
                         <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                             <button type="submit" disabled={isSubmitting} className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none sm:col-start-2 sm:text-sm">
-                                {isSubmitting ? 'Uploading...' : 'Upload File'}
+                                {isSubmitting ? t('uploading') : t('uploadFile')}
                             </button>
                             <button type="button" onClick={() => setModalOpen(false)} className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:col-start-1 sm:text-sm">
-                                Cancel
+                                {t('cancel')}
                             </button>
                         </div>
                     </Form>

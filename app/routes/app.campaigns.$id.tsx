@@ -151,7 +151,7 @@ export async function action({ request, context, params }: ActionFunctionArgs) {
       previewText: campaign.previewText || undefined,
       unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(subscriber.email)}&store=${storeId}`,
     });
-    if (result.success) sentCount++;
+    if (!result.error) sentCount++;
   }
 
   // Mark as sent
@@ -206,7 +206,7 @@ export default function CampaignDetailPage() {
         </div>
         <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${status.bg} ${status.text}`}>
           <StatusIcon className="w-4 h-4" />
-          {(campaign.status || 'draft').charAt(0).toUpperCase() + (campaign.status || 'draft').slice(1)}
+          {t(campaign.status || 'draft')}
         </span>
       </div>
 
@@ -215,7 +215,7 @@ export default function CampaignDetailPage() {
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
           <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
           <p className="text-green-800">
-            Campaign sent successfully to {'sentCount' in actionData ? actionData.sentCount : 0} subscribers!
+            {t('campaignSentSuccess', { count: 'sentCount' in actionData ? actionData.sentCount : 0 })}
           </p>
         </div>
       )}
@@ -233,28 +233,28 @@ export default function CampaignDetailPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
               <Users className="w-4 h-4" />
-              Recipients
+              {t('recipients')}
             </div>
             <p className="text-2xl font-bold text-gray-900">{campaign.recipientCount}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
               <Send className="w-4 h-4" />
-              Sent
+              {t('sent')}
             </div>
             <p className="text-2xl font-bold text-green-600">{campaign.sentCount}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
               <Eye className="w-4 h-4" />
-              Opens
+              {t('opens')}
             </div>
             <p className="text-2xl font-bold text-blue-600">{campaign.openCount || 0}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
               <MousePointer className="w-4 h-4" />
-              Clicks
+              {t('clicks')}
             </div>
             <p className="text-2xl font-bold text-purple-600">{campaign.clickCount || 0}</p>
           </div>
@@ -268,13 +268,13 @@ export default function CampaignDetailPage() {
           
           <div className="space-y-4">
             <div>
-              <span className="text-sm text-gray-500">Subject:</span>
+              <span className="text-sm text-gray-500">{t('subjectLine')}:</span>
               <p className="font-medium text-gray-900">{campaign.subject}</p>
             </div>
             
             {campaign.previewText && (
               <div>
-                <span className="text-sm text-gray-500">Preview Text:</span>
+                <span className="text-sm text-gray-500">{t('previewText')}:</span>
                 <p className="text-gray-700">{campaign.previewText}</p>
               </div>
             )}
@@ -282,7 +282,7 @@ export default function CampaignDetailPage() {
         </div>
 
         <div className="p-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Preview</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-3">{t('preview')}</h3>
           <div 
             className="border border-gray-200 rounded-lg p-6 bg-gray-50"
             dangerouslySetInnerHTML={{ __html: campaign.content }}
@@ -294,7 +294,7 @@ export default function CampaignDetailPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-gray-500">Created:</span>
+            <span className="text-gray-500">{t('created')}:</span>
             <p className="font-medium text-gray-900">
               {campaign.createdAt 
                 ? new Date(campaign.createdAt).toLocaleString() 
@@ -303,7 +303,7 @@ export default function CampaignDetailPage() {
           </div>
           {campaign.sentAt && (
             <div>
-              <span className="text-gray-500">Sent:</span>
+              <span className="text-gray-500">{t('sent')}:</span>
               <p className="font-medium text-gray-900">
                 {new Date(campaign.sentAt).toLocaleString()}
               </p>
@@ -322,7 +322,7 @@ export default function CampaignDetailPage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
-              {isSending ? (lang === 'bn' ? 'পাঠানো হচ্ছে...' : 'Sending...') : `${t('sendTo')} ${subscriberCount} ${lang === 'bn' ? 'সাবস্ক্রাইবার' : 'subscribers'}`}
+              {isSending ? t('sending') : `${t('sendTo')} ${subscriberCount} ${t('subscribers')}`}
             </button>
           </Form>
         </div>
