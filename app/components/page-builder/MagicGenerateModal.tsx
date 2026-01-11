@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface MagicGenerateModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export default function MagicGenerateModal({
   initialData,
   isLocked = false
 }: MagicGenerateModalProps) {
+  const { t } = useTranslation();
   const [prompt, setPrompt] = useState('');
   const [step, setStep] = useState<'input' | 'generating' | 'preview' | 'success'>('input');
   const [generatedData, setGeneratedData] = useState<any>(null);
@@ -87,19 +89,19 @@ export default function MagicGenerateModal({
           </div>
 
           <h2 className="text-2xl font-black text-gray-900 mb-2">
-            {step === 'input' && (mode === 'section-design' ? 'Magic AI Editor' : 'Magic Page Generator')}
-            {step === 'generating' && 'Designing Your Request...'}
-            {step === 'preview' && 'Design Ready!'}
-            {step === 'success' && 'Applied Successfully!'}
+            {step === 'input' && (mode === 'section-design' ? t('magicAiEditor') : t('magicPageGenerator'))}
+            {step === 'generating' && t('designingRequest')}
+            {step === 'preview' && t('designReady')}
+            {step === 'success' && t('appliedSuccess')}
           </h2>
           
           <p className="text-gray-500 mb-8 max-w-sm mx-auto">
             {step === 'input' && (mode === 'section-design' 
-              ? 'Tell AI how to edit or design this section. (e.g. "Move this to right", "Make it dark gold")' 
-              : 'Describe your product, and AI will build a high-converting landing page.')}
-            {step === 'generating' && 'AI is generating high-quality HTML & Tailwind CSS...'}
-            {step === 'preview' && 'The AI has completed your design. Click Apply to update your page.'}
-            {step === 'success' && 'Your page has been updated. Loading editor changes...'}
+              ? t('describeEditHint') 
+              : t('describeProductHint'))}
+            {step === 'generating' && t('generatingHtml')}
+            {step === 'preview' && t('designCompletedHint')}
+            {step === 'success' && t('updatingEditorHint')}
           </p>
 
           {isLocked ? (
@@ -115,13 +117,13 @@ export default function MagicGenerateModal({
                     <Sparkles size={20} className="animate-pulse" />
                   </div>
                   <div>
-                    <span className="bg-gray-900 text-white text-[10px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase">Premium PRO</span>
-                    <h3 className="text-xl font-black text-gray-900 mt-1">Unlock Magic AI</h3>
+                    <span className="bg-gray-900 text-white text-[10px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase">{t('premiumPro')}</span>
+                    <h3 className="text-xl font-black text-gray-900 mt-1">{t('unlockMagicAi')}</h3>
                   </div>
                 </div>
 
                 <p className="text-sm text-gray-600 leading-relaxed mb-6 font-medium">
-                  Experience the future of landing page creation. Our AI models generate high-converting, mobile-perfect designs in seconds.
+                  {t('magicAiFutureDesc')}
                 </p>
 
                 <div className="grid grid-cols-1 gap-3 mb-2">
@@ -130,8 +132,8 @@ export default function MagicGenerateModal({
                       <CheckCircle size={12} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-900">Custom Section Redesign</p>
-                      <p className="text-[10px] text-gray-500">Edit colors, layouts, and copy instantly.</p>
+                      <p className="text-xs font-bold text-gray-900">{t('customSectionRedesign')}</p>
+                      <p className="text-[10px] text-gray-500">{t('editInstantly')}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 bg-white/50 rounded-xl border border-white">
@@ -139,8 +141,8 @@ export default function MagicGenerateModal({
                       <CheckCircle size={12} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-900">Landing Page Generation</p>
-                      <p className="text-[10px] text-gray-500">Full-page high-converting templates.</p>
+                      <p className="text-xs font-bold text-gray-900">{t('landingPageGeneration')}</p>
+                      <p className="text-[10px] text-gray-500">{t('fullPageTemplates')}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 bg-white/50 rounded-xl border border-white">
@@ -148,19 +150,19 @@ export default function MagicGenerateModal({
                       <CheckCircle size={12} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-900">Persuasive Bengali Marketing Copy</p>
-                      <p className="text-[10px] text-gray-500">Auto-generated for the BD market.</p>
+                      <p className="text-xs font-bold text-gray-900">{t('persuasiveCopy')}</p>
+                      <p className="text-[10px] text-gray-500">{t('autoGeneratedBdMarket')}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <a
+                   <a
                   href="/app/billing"
                   className="w-full bg-gray-900 text-white font-black text-lg py-5 rounded-2xl hover:bg-black transition shadow-xl shadow-gray-200 flex items-center justify-center gap-3 group"
                 >
-                  UPGRADE NOW
+                  {t('upgradeNow')}
                   <div className="bg-white/10 p-1 rounded-lg group-hover:bg-white/20 transition">
                     <Sparkles size={18} />
                   </div>
@@ -169,7 +171,7 @@ export default function MagicGenerateModal({
                   onClick={onClose}
                   className="w-full text-gray-400 font-bold text-sm py-2 hover:text-gray-600 transition tracking-wide"
                 >
-                  MAYBE LATER
+                  {t('dashboardChat_maybeLater')}
                 </button>
               </div>
             </div>
@@ -178,7 +180,7 @@ export default function MagicGenerateModal({
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder={mode === 'section-design' ? 'e.g. Center the headline and change all buttons to Emerald green.' : 'e.g. A premium honey brand...'}
+                placeholder={mode === 'section-design' ? t('describeEditHint') : t('describeProductHint')}
                 className="w-full px-4 py-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[120px] text-lg resize-none bg-gray-50 focus:bg-white transition"
                 autoFocus
                 onKeyDown={(e) => {
@@ -194,7 +196,7 @@ export default function MagicGenerateModal({
                 className="w-full bg-indigo-600 text-white font-bold text-lg py-4 rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
               >
                 <Sparkles size={20} />
-                {mode === 'section-design' ? 'Start AI Design' : 'Generate Full Page'}
+                {mode === 'section-design' ? t('startAiDesign') : t('generateFullPage')}
               </button>
             </div>
           )}
@@ -203,7 +205,7 @@ export default function MagicGenerateModal({
             <div className="py-8">
               <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto mb-4" />
               <div className="h-2 w-48 bg-gray-100 rounded-full mx-auto overflow-hidden text-sm font-bold text-indigo-600">
-                Processing magic...
+                {t('processingMagic')}
               </div>
             </div>
           )}
@@ -217,13 +219,13 @@ export default function MagicGenerateModal({
                 onClick={handleApply}
                 className="w-full bg-emerald-600 text-white font-bold text-lg py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"
               >
-                Apply Design to Page
+                {t('applyDesignToPage')}
               </button>
               <button
                 onClick={() => setStep('input')}
                 className="w-full bg-white text-gray-500 font-bold text-lg py-2 rounded-xl hover:bg-gray-50 transition"
               >
-                Try Again
+                {t('tryAgain')}
               </button>
             </div>
           )}
@@ -231,7 +233,7 @@ export default function MagicGenerateModal({
           {step === 'success' && (
             <div className="py-8 animate-in zoom-in duration-300 text-emerald-600 font-bold">
               <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-2" />
-              Everything is set!
+              {t('everythingSet')}
             </div>
           )}
         </div>

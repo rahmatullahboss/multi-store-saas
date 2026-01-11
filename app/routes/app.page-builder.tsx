@@ -24,7 +24,7 @@ export const meta: MetaFunction = () => {
 // ============================================================================
 // LOADER
 // ============================================================================
-export async function loader({ request, context }: LoaderFunctionArgs) {
+export async function loader({ request, context }: any) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
@@ -56,7 +56,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 // ACTION (Create Page)
 // ============================================================================
-export async function action({ request, context }: ActionFunctionArgs) {
+export async function action({ request, context }: any) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
@@ -79,6 +79,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function PageBuilderRoute() {
+  const { t, lang } = useTranslation();
   const { pages, planType } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const pageId = searchParams.get('id');
@@ -96,13 +97,13 @@ export default function PageBuilderRoute() {
                 onClick={() => setSearchParams({})}
                 className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 hover:text-white rounded-lg transition text-xs font-bold border border-gray-700"
               >
-                 ← EXIT EDITOR
+                 ← {t('exitEditor')}
               </button>
               <div className="h-4 w-[1px] bg-gray-700" />
               <div className="flex flex-col">
-                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest leading-none mb-1">Editing Page</span>
+                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest leading-none mb-1">{t('editingPage')}</span>
                  <h2 className="text-white text-xs font-bold leading-none truncate max-w-[200px]">
-                    {pages.find((p: any) => p.id.toString() === pageId)?.name || 'Loading...'}
+                    {pages.find((p: any) => p.id.toString() === pageId)?.name || (lang === 'bn' ? 'লোড হচ্ছে...' : 'Loading...')}
                  </h2>
               </div>
            </div>
@@ -110,7 +111,7 @@ export default function PageBuilderRoute() {
            <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full">
                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                 <span className="text-[10px] text-gray-400 font-bold uppercase">Auto-save Active</span>
+                 <span className="text-[10px] text-gray-400 font-bold uppercase">{t('autoSaveActive')}</span>
               </div>
            </div>
         </div>
@@ -123,7 +124,7 @@ export default function PageBuilderRoute() {
                     <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
                        <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                     </div>
-                    <p className="text-gray-400 font-medium">Booting Elementor Canvas...</p>
+                    <p className="text-gray-400 font-medium">{t('bootingCanvas')}</p>
                  </div>
               </div>
             }>
@@ -140,41 +141,41 @@ export default function PageBuilderRoute() {
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Elementor Builder (GrapesJS)</h1>
-          <p className="text-gray-500">Create beautiful, custom drag-and-drop pages easily.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('pageBuilderTitle')}</h1>
+          <p className="text-gray-500">{t('pageBuilderDesc')}</p>
         </div>
         <button 
           onClick={() => setIsCreating(true)}
           className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100"
         >
           <Plus size={20} />
-          Create New Page
+          {t('createNewPage')}
         </button>
       </div>
 
       {isCreating && (
         <div className="bg-white p-8 rounded-2xl shadow-xl border border-emerald-100 animate-in fade-in slide-in-from-top-4 duration-300">
-          <h3 className="text-lg font-bold mb-6 text-gray-900">New Page Details</h3>
+          <h3 className="text-lg font-bold mb-6 text-gray-900">{t('newPageDetails')}</h3>
           <Form method="post" className="space-y-6 max-w-xl" onSubmit={() => setIsCreating(false)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Internal Page Name</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">{t('internalPageName')}</label>
                 <input 
                   autoFocus
                   name="name" 
-                  placeholder="e.g., Summer Flash Sale" 
+                  placeholder={lang === 'bn' ? 'যেমন: ঈদ ক্যাশব্যাক অফার' : 'e.g., Summer Flash Sale'} 
                   required 
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">URL Slug</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">{t('urlSlug')}</label>
                 <input 
                   name="slug" 
                   placeholder="summer-offer" 
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition"
                 />
-                <p className="mt-1.5 text-[10px] text-gray-400 uppercase font-bold tracking-wider">Example: yourstore.com/p/summer-offer</p>
+                <p className="mt-1.5 text-[10px] text-gray-400 uppercase font-bold tracking-wider">{t('urlSlugHint')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 pt-2">
@@ -183,14 +184,14 @@ export default function PageBuilderRoute() {
                 disabled={navigation.state !== 'idle'}
                 className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition"
               >
-                {navigation.state === 'submitting' ? 'Creating...' : 'Start Building'}
+                {navigation.state === 'submitting' ? t('creating') : t('startBuilding')}
               </button>
               <button 
                 type="button"
                 onClick={() => setIsCreating(false)}
                 className="px-8 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </Form>
@@ -204,10 +205,10 @@ export default function PageBuilderRoute() {
              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center">
                 <FileText className="text-gray-300" size={32} />
              </div>
-             <div className="text-center">
-                <p className="text-gray-900 font-bold">No pages created yet</p>
-                <p className="text-gray-500 text-sm">Create your first advanced landing page today!</p>
-             </div>
+              <div className="text-center">
+                <p className="text-gray-900 font-bold">{t('noPagesCreated')}</p>
+                <p className="text-gray-500 text-sm">{t('noPagesDesc')}</p>
+              </div>
           </div>
         ) : (
           pages.map((page: any) => (
@@ -218,7 +219,7 @@ export default function PageBuilderRoute() {
                   </div>
                   <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold text-gray-500 uppercase">
                      {page.isPublished ? <Globe size={10} className="text-emerald-500" /> : <Lock size={10} />}
-                     {page.isPublished ? 'Live' : 'Draft'}
+                     {page.isPublished ? t('live') : t('draft')}
                   </div>
                </div>
                
@@ -230,7 +231,7 @@ export default function PageBuilderRoute() {
                      onClick={() => setSearchParams({ id: page.id.toString() })}
                      className="flex items-center justify-center gap-2 py-3 bg-gray-900 text-white text-xs font-bold rounded-xl hover:bg-gray-800 transition"
                   >
-                     EDIT PAGE
+                     {t('editPage')}
                   </button>
                   <a 
                      href={`/p/${page.slug}`} 
@@ -238,7 +239,7 @@ export default function PageBuilderRoute() {
                      rel="noreferrer"
                      className="flex items-center justify-center gap-2 py-3 bg-gray-50 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-100 transition"
                   >
-                     VIEW <ExternalLink size={12} />
+                     {t('view')} <ExternalLink size={12} />
                   </a>
                </div>
             </div>

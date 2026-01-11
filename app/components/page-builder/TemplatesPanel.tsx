@@ -22,8 +22,8 @@ export default function TemplatesPanel({ onLoadTemplate }: TemplatesPanelProps) 
   return (
     <div className="absolute inset-0 overflow-y-auto p-4 custom-scrollbar animate-in fade-in duration-300">
       <div className="mb-4">
-        <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Templates</h3>
-        <p className="text-[10px] text-gray-400">Select a ready-made template and customize</p>
+        <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">{t('templates')}</h3>
+        <p className="text-[10px] text-gray-400">{t('templatesSelectDesc')}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3">
@@ -76,7 +76,7 @@ export default function TemplatesPanel({ onLoadTemplate }: TemplatesPanelProps) 
                     className="w-full h-4 rounded mt-1 flex items-center justify-center"
                     style={{ backgroundColor: isHovered ? template.themeColors.primaryColor : template.themeColors.secondaryColor }}
                   >
-                    <span className="text-[8px] text-white font-bold">ORDER NOW</span>
+                    <span className="text-[8px] text-white font-bold">{t('orderNow')}</span>
                   </div>
                 </div>
 
@@ -113,7 +113,7 @@ export default function TemplatesPanel({ onLoadTemplate }: TemplatesPanelProps) 
                 
                 {/* Block Count */}
                 <div className="mt-1.5 text-[9px] text-gray-400 font-medium">
-                  {template.blocks.length} blocks • {template.category}
+                  {template.blocks.length} {t('blocks')} • {template.category}
                 </div>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function TemplatesPanel({ onLoadTemplate }: TemplatesPanelProps) 
       {/* Help Text */}
       <div className="mt-4 p-2.5 bg-blue-50 border border-blue-100 rounded-xl">
         <p className="text-[10px] text-blue-700 leading-relaxed">
-          <strong>Tip:</strong> Select a template to load it into the canvas. Then customize colors, fonts, and content to match your brand.
+          <strong>Tip:</strong> {t('templateTip')}
         </p>
       </div>
     </div>

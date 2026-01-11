@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Search, Layout, Sparkles, Box, Check } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface BlockLibraryModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface BlockLibraryModalProps {
 }
 
 export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibraryModalProps) {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [blocks, setBlocks] = useState<any[]>([]);
@@ -38,11 +40,11 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
 
   if (!isOpen) return null;
 
-  const categories = ['All', ...Array.from(new Set(blocks.map(b => b.getCategoryLabel() || 'Uncategorized')))];
+  const categories = [t('all'), ...Array.from(new Set(blocks.map(b => b.getCategoryLabel() || t('uncategorized'))))];
   
   const filteredBlocks = blocks.filter(block => {
     const matchesSearch = block.getLabel().toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === 'All' || block.getCategoryLabel() === activeCategory;
+    const matchesCategory = activeCategory === t('all') || block.getCategoryLabel() === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -57,8 +59,8 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
               <Layout size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-black text-gray-900 leading-tight">Block Library</h2>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Ready-made components for your page</p>
+              <h2 className="text-xl font-black text-gray-900 leading-tight">{t('blockLibrary')}</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('blockLibraryDesc')}</p>
             </div>
           </div>
 
@@ -67,7 +69,7 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input 
                 type="text" 
-                placeholder="Search blocks..." 
+                placeholder={t('searchBlocks')} 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition shadow-sm"
@@ -87,7 +89,7 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
           
           {/* Sidebar / Categories */}
           <div className="w-48 border-r border-gray-100 p-4 overflow-y-auto hidden md:block bg-gray-50/30">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-2">Categories</h3>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-2">{t('categories')}</h3>
             <div className="space-y-1">
               {categories.map(cat => (
                 <button
@@ -95,7 +97,7 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
                   onClick={() => setActiveCategory(cat)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                     activeCategory === cat 
-                      ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50 border-emerald-500/20' 
+                      ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50 shadow-indigo-100/10 transition-all scale-105 z-10' 
                       : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                   }`}
                 >
@@ -110,7 +112,7 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
             {filteredBlocks.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-20">
                 <Box size={48} className="text-gray-200 mb-4" />
-                <p className="text-gray-400 font-bold">No blocks found matching your criteria.</p>
+                <p className="text-gray-400 font-bold">{t('noBlocksFound')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -132,7 +134,7 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
                             onClick={() => handleInsert(block)}
                             className="bg-indigo-600 text-white font-black px-6 py-2.5 rounded-xl shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-indigo-700 active:scale-95"
                           >
-                            Insert Block
+                            {t('insertBlock')}
                           </button>
                        </div>
 
@@ -140,7 +142,7 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
                        {block.getCategoryLabel() === 'Premium Designs' && (
                          <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[9px] font-black tracking-widest uppercase shadow-lg">
                            <Sparkles size={8} />
-                           Premium
+                           {t('premiumBadge')}
                          </div>
                        )}
                     </div>
@@ -166,11 +168,11 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
         <div className="p-4 bg-slate-50 border-t border-gray-100 flex items-center justify-between px-8">
            <div className="text-[10px] text-gray-400 font-bold flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              {filteredBlocks.length} Blocks Available
+              {filteredBlocks.length} {t('blocksAvailable')}
            </div>
-           <p className="text-[10px] text-gray-400 font-bold">Tip: Blocks are automatically responsive and compatible with global theme.</p>
+           <p className="text-[10px] text-gray-400 font-bold">{t('blockLibraryTip')}</p>
         </div>
-      </div>
+       </div>
     </div>
   );
 }

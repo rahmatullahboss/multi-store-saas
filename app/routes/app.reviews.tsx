@@ -37,7 +37,7 @@ export const meta: MetaFunction = () => {
 // ============================================================================
 // LOADER
 // ============================================================================
-export async function loader({ request, context }: LoaderFunctionArgs) {
+export const loader = async ({ request, context }: any) => {
   await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   
@@ -102,16 +102,19 @@ function StarRating({ rating }: { rating: number }) {
 // ============================================================================
 // REVIEW ROW COMPONENT
 // ============================================================================
-function ReviewRow({ review }: { review: {
-  id: number;
-  productId: number | null;
-  customerName: string;
-  rating: number;
-  comment: string | null;
-  status: string | null;
-  createdAt: string | null;
-  productTitle: string | null;
-}}) {
+function ReviewRow({ review, t }: { 
+  review: {
+    id: number;
+    productId: number | null;
+    customerName: string;
+    rating: number;
+    comment: string | null;
+    status: string | null;
+    createdAt: string | null;
+    productTitle: string | null;
+  };
+  t: (key: any, options?: any) => string;
+}) {
   const fetcher = useFetcher();
   const isSubmitting = fetcher.state === 'submitting';
   
@@ -126,7 +129,7 @@ function ReviewRow({ review }: { review: {
     <tr className="hover:bg-gray-50">
       <td className="py-4 px-4">
         <span className="font-medium text-gray-900 line-clamp-1">
-          {review.productTitle || 'Unknown Product'}
+          {review.productTitle || t('unknownProduct')}
         </span>
       </td>
       <td className="py-4 px-4">
@@ -152,7 +155,7 @@ function ReviewRow({ review }: { review: {
               onClick={() => handleModerate('approved')}
               disabled={isSubmitting}
               className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition disabled:opacity-50"
-              title="Approve"
+              title={t('approve')}
             >
               <Check className="w-5 h-5" />
             </button>
@@ -160,7 +163,7 @@ function ReviewRow({ review }: { review: {
               onClick={() => handleModerate('rejected')}
               disabled={isSubmitting}
               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
-              title="Reject"
+              title={t('reject')}
             >
               <X className="w-5 h-5" />
             </button>
@@ -172,9 +175,9 @@ function ReviewRow({ review }: { review: {
               : 'bg-red-100 text-red-700'
           }`}>
             {review.status === 'approved' ? (
-              <><CheckCircle className="w-3 h-3" /> Approved</>
+              <><CheckCircle className="w-3 h-3" /> {t('approved')}</>
             ) : (
-              <><XCircle className="w-3 h-3" /> Rejected</>
+              <><XCircle className="w-3 h-3" /> {t('rejected')}</>
             )}
           </span>
         )}
@@ -205,9 +208,9 @@ export default function ReviewsPage() {
   const rejectedCount = allReviews.filter(r => r.status === 'rejected').length;
   
   const tabs = [
-    { id: 'pending', label: 'Pending', count: pendingCount, icon: Clock },
-    { id: 'published', label: 'Published', count: publishedCount, icon: CheckCircle },
-    { id: 'rejected', label: 'Rejected', count: rejectedCount, icon: XCircle },
+    { id: 'pending', label: t('pending'), count: pendingCount, icon: Clock },
+    { id: 'published', label: t('published'), count: publishedCount, icon: CheckCircle },
+    { id: 'rejected', label: t('rejected'), count: rejectedCount, icon: XCircle },
   ];
 
   return (
@@ -215,7 +218,7 @@ export default function ReviewsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('reviewsSection')}</h1>
-        <p className="text-gray-500 mt-1">{lang === 'bn' ? 'আপনার প্রোডাক্টের কাস্টমার রিভিউ ম্যানেজ করুন' : 'Manage customer reviews for your products'}</p>
+        <p className="text-gray-500 mt-1">{t('reviewsSectionDesc')}</p>
       </div>
 
       {/* Stats */}
@@ -223,21 +226,21 @@ export default function ReviewsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
             <Clock className="w-4 h-4 text-amber-500" />
-            Pending
+            {t('pending')}
           </div>
           <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
             <CheckCircle className="w-4 h-4 text-green-500" />
-            Published
+            {t('published')}
           </div>
           <p className="text-2xl font-bold text-green-600">{publishedCount}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
             <XCircle className="w-4 h-4 text-red-500" />
-            Rejected
+            {t('rejected')}
           </div>
           <p className="text-2xl font-bold text-red-600">{rejectedCount}</p>
         </div>
@@ -283,12 +286,12 @@ export default function ReviewsPage() {
               <MessageSquare className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No {activeTab} reviews
+              {t('noReviewsTitle', { status: t(activeTab) })}
             </h3>
             <p className="text-gray-500">
-              {activeTab === 'pending' 
-                ? 'New reviews from customers will appear here for moderation.'
-                : `Reviews you've ${activeTab === 'published' ? 'approved' : 'rejected'} will appear here.`
+              {activeTab === 'pending'
+                ? t('noReviewsPendingDesc')
+                : t('noReviewsOtherDesc', { status: t(activeTab) })
               }
             </p>
           </div>
@@ -297,17 +300,17 @@ export default function ReviewsPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">Product</th>
-                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">Customer</th>
-                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">Rating</th>
-                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">Comment</th>
-                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">Date</th>
-                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">Actions</th>
+                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">{t('product')}</th>
+                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">{t('customer')}</th>
+                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">{t('rating')}</th>
+                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">{t('comment')}</th>
+                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">{t('date')}</th>
+                  <th className="text-left py-3.5 px-4 text-sm font-semibold text-gray-900">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredReviews.map((review) => (
-                  <ReviewRow key={review.id} review={review} />
+                  <ReviewRow key={review.id} review={review} t={t} />
                 ))}
               </tbody>
             </table>

@@ -218,26 +218,26 @@ export default function SidebarPanel({
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'widgets' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50 shadow-indigo-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Box size={16} strokeWidth={2.5} />
-              WIDGETS
+              {t('widgets')}
            </button>
            <button 
              onClick={() => setActiveTab('design')}
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'design' ? 'bg-white text-blue-600 shadow-sm border border-blue-50 shadow-blue-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Palette size={16} strokeWidth={2.5} />
-              DESIGN
+              {t('design')}
            </button>
            <button 
              onClick={() => setActiveTab('structure')}
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'structure' ? 'bg-white text-purple-600 shadow-sm border border-purple-50 shadow-purple-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Layers size={16} strokeWidth={2.5} />
-              STRUCTURE
+              {t('structure')}
            </button>
            <button 
              onClick={() => setActiveTab('settings')}
              className={`p-2 rounded-xl text-gray-400 hover:text-orange-600 hover:bg-orange-50 transition-all ${activeTab === 'settings' ? 'bg-orange-50 text-orange-600 shadow-sm' : ''}`}
-             title="Settings"
+             title={t('settings')}
            >
               <Settings2 size={16} strokeWidth={2.5} />
            </button>
@@ -247,14 +247,14 @@ export default function SidebarPanel({
           {activeTab === 'widgets' && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in fade-in duration-300">
                <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Available Widgets</h3>
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('availableWidgets')}</h3>
                </div>
                <div className="flex-1 overflow-y-auto custom-scrollbar">
                 <BlocksProvider>
                   {({ blocks, dragStart, dragStop }) => {
                     const categories: Record<string, any[]> = {};
                     blocks.forEach((block) => {
-                      const cat = block.getCategoryLabel() || 'Uncategorized';
+                      const cat = block.getCategoryLabel() || t('uncategorized');
                       if (!categories[cat]) categories[cat] = [];
                       categories[cat].push(block);
                     });
@@ -307,21 +307,21 @@ export default function SidebarPanel({
                    className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'styles' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                  >
                     <Palette size={12} />
-                    STYLES
+                    {t('styles')}
                  </button>
                  <button 
                    onClick={() => setActiveDesignSubTab('theme')}
                    className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'theme' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                  >
                     <PaintBucket size={12} />
-                    THEME
+                    {t('theme')}
                  </button>
                  <button 
                    onClick={() => setActiveDesignSubTab('templates')}
                    className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'templates' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                  >
                     <LayoutTemplate size={12} />
-                    PRESETS
+                    {t('presets')}
                  </button>
               </div>
 
@@ -337,7 +337,7 @@ export default function SidebarPanel({
                         {(props) => (
                           <div className="space-y-3">
                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">Active Element</span>
+                                <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">{t('activeElement')}</span>
                              </div>
                              <div className="flex flex-wrap gap-2">
                                 {props.selectors.map(sel => (
@@ -346,7 +346,7 @@ export default function SidebarPanel({
                                   </span>
                                 ))}
                                 {props.selectors.length === 0 && (
-                                  <p className="text-gray-400 text-[10px] font-medium italic">Select an element to start styling</p>
+                                  <p className="text-gray-400 text-[10px] font-medium italic">{t('selectElementHint')}</p>
                                 )}
                              </div>
                           </div>
@@ -356,13 +356,13 @@ export default function SidebarPanel({
 
                     {/* Traits Manager */}
                     <div className="space-y-4">
-                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">Attributes</h4>
+                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">{t('attributes')}</h4>
                       <div ref={traitsContainerRef} className="gjs-traits-wrap" />
                     </div>
 
                     {/* Style Manager */}
                     <div className="space-y-4 pb-10">
-                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">Visual Style</h4>
+                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">{t('visualStyle')}</h4>
                       <div ref={stylesContainerRef} className="gjs-styles-wrap" />
                     </div>
                   </div>

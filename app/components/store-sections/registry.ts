@@ -36,6 +36,7 @@ export interface SectionAction {
 }
 
 export interface SectionSettings {
+  [key: string]: any;
   // Common
   paddingTop?: 'none' | 'small' | 'medium' | 'large';
   paddingBottom?: 'none' | 'small' | 'medium' | 'large';

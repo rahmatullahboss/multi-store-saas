@@ -42,7 +42,7 @@ export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store Sa
 // ============================================================================
 // LOADER - Fetch current store config
 // ============================================================================
-export async function loader({ request, context }: LoaderFunctionArgs) {
+export const loader = async ({ request, context }: any) => {
   await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
@@ -81,7 +81,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 // ACTION - Save store customization
 // ============================================================================
-export async function action({ request, context }: ActionFunctionArgs) {
+export const action = async ({ request, context }: any) => {
   await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
@@ -259,36 +259,36 @@ export default function StoreDesignPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('storeDesignTitle')}</h1>
-          <p className="text-gray-500 mt-1">{t('storeDesignDesc')}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            to="/app/theme-store"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all text-sm uppercase tracking-wider"
-          >
-            <Sparkles size={16} />
-            Browse Theme Store
-          </Link>
-          <Link
-            to={`https://${storeSubdomain}.ozzyl.io`}
-            target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-200 font-semibold shadow-sm hover:bg-gray-50 transition-all text-sm"
-          >
-            <Eye size={16} />
-            {t('viewLiveStore')}
-          </Link>
-          <Link
-            to="/store-live-editor"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all text-sm"
-          >
-            <Layout size={16} />
-            {t('openLiveEditor')}
-          </Link>
-        </div>
-      </div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('storeDesignTitle')}</h1>
+                <p className="text-gray-500 mt-1">{t('storeDesignDesc')}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/app/theme-store"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all text-sm uppercase tracking-wider"
+                >
+                  <Sparkles size={16} />
+                  {lang === 'bn' ? 'থিম স্টোর দেখুন' : 'Browse Theme Store'}
+                </Link>
+                <Link
+                  to={storeUrl}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-200 font-semibold shadow-sm hover:bg-gray-50 transition-all text-sm"
+                >
+                  <Eye size={16} />
+                  {t('viewLiveStore')}
+                </Link>
+                <Link
+                  to="/store-live-editor"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all text-sm"
+                >
+                  <Layout size={16} />
+                  {t('openLiveEditor')}
+                </Link>
+              </div>
+            </div>
 
       {/* Mode Warning */}
       {storeMode !== 'store' && (
@@ -321,14 +321,14 @@ export default function StoreDesignPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
-        {[
-          { id: 'templates', label: t('templates'), icon: Layout },
-          { id: 'theme', label: t('theme'), icon: Palette },
-          { id: 'banner', label: t('banner'), icon: Image },
-          { id: 'info', label: t('info'), icon: User },
-          { id: 'advanced', label: t('advanced'), icon: Code },
-        ].map((tab) => (
+            <div className="flex border-b border-gray-100 mb-8 overflow-x-auto no-scrollbar bg-white p-1 rounded-xl shadow-sm border border-gray-200">
+              {[
+                { id: 'templates', label: t('templates'), icon: Layout },
+                { id: 'theme', label: t('theme'), icon: Palette },
+                { id: 'banner', label: t('banner'), icon: Image },
+                { id: 'info', label: t('info'), icon: User },
+                { id: 'advanced', label: t('advanced'), icon: Settings },
+              ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
@@ -412,9 +412,9 @@ export default function StoreDesignPage() {
                     
                     {/* Active Badge */}
                     {isActive && (
-                      <div className="absolute top-3 right-3 bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                        <Check className="w-3 h-3" />
-                        {t('activeTemplate')}
+                      <div className="absolute top-4 right-4 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-in fade-in zoom-in duration-300">
+                        <Check size={12} strokeWidth={3} />
+                        {t('currentlyActive')}
                       </div>
                     )}
 
@@ -486,19 +486,19 @@ export default function StoreDesignPage() {
             <input type="hidden" name="intent" value="save-theme" />
             
             <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-purple-600" />
-                  {t('colorTheme')}
-                </h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  {t('colorThemeDesc')}
-                </p>
-              </div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                      <Palette size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{t('colorTheme')}</h3>
+                      <p className="text-sm text-gray-500">{t('colorThemeDesc')}</p>
+                    </div>
+                  </div>
 
-              {/* Color Presets */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">{t('quickPresets')}</label>
+                  {/* Color Presets */}
+                  <div className="mb-8">
+                    <label className="text-sm font-bold text-gray-700 mb-3 block uppercase tracking-wider">{t('quickPresets')}</label>
                 <div className="flex flex-wrap gap-3">
                   {colorPresets.map((preset) => (
                     <button
@@ -523,57 +523,59 @@ export default function StoreDesignPage() {
               </div>
 
               {/* Custom Colors */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('primaryColor')}</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      name="primaryColor"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="w-12 h-12 rounded-lg cursor-pointer border-0"
-                    />
-                    <input
-                      type="text"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
-                      placeholder="#6366f1"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                      <label className="text-sm font-bold text-gray-700 mb-1 block">{t('primaryColor')}</label>
+                      <p className="text-xs text-gray-500 mb-3">{t('primaryColorDesc')}</p>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          name="primaryColor"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="w-12 h-12 rounded-lg border-0 p-0 cursor-pointer shadow-sm"
+                        />
+                        <input
+                          type="text"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono"
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                      <label className="text-sm font-bold text-gray-700 mb-1 block">{t('accentColor')}</label>
+                      <p className="text-xs text-gray-500 mb-3">{t('accentColorDesc')}</p>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          name="accentColor"
+                          value={accentColor}
+                          onChange={(e) => setAccentColor(e.target.value)}
+                          className="w-12 h-12 rounded-lg border-0 p-0 cursor-pointer shadow-sm"
+                        />
+                        <input
+                          type="text"
+                          value={accentColor}
+                          onChange={(e) => setAccentColor(e.target.value)}
+                          className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{t('primaryColorDesc')}</p>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('accentColor')}</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      name="accentColor"
-                      value={accentColor}
-                      onChange={(e) => setAccentColor(e.target.value)}
-                      className="w-12 h-12 rounded-lg cursor-pointer border-0"
-                    />
-                    <input
-                      type="text"
-                      value={accentColor}
-                      onChange={(e) => setAccentColor(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
-                      placeholder="#f59e0b"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">{t('accentColorDesc')}</p>
-                </div>
-              </div>
-
-              {/* Font Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                  <Type className="w-4 h-4" />
-                  {t('fontFamily')}
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {/* Font Setting */}
+                  <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
+                        <Type size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">{t('fontFamily')}</h3>
+                        <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরের জন্য সেরা ফন্টটি বেছে নিন' : 'Choose the best font for your store.'}</p>
+                      </div>
+                    </div>
+ <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {FONT_OPTIONS.map((font) => (
                     <button
                       key={font.id}
@@ -624,14 +626,16 @@ export default function StoreDesignPage() {
 
               {/* Save Button */}
               <div className="flex justify-end pt-4 border-t">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50"
-                >
-                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {t('saveColors')}
-                </button>
+                  <button
+                    type="submit"
+                    name="intent"
+                    value="save-theme"
+                    disabled={isSubmitting}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-purple-600 text-white rounded-xl font-bold shadow-lg shadow-purple-600/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+                  >
+                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save size={18} />}
+                    {isSubmitting ? t('savingSettings') : t('saveColors')}
+                  </button>
               </div>
             </div>
           </Form>

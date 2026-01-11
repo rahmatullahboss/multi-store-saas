@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Settings2, Phone, ShoppingBag, Timer, Users, MessageSquare } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface PageConfig {
   featuredProductId?: number;
@@ -17,6 +18,7 @@ interface PageSettingsPanelProps {
 }
 
 export default function PageSettingsPanel({ config, onChange }: PageSettingsPanelProps) {
+  const { t, lang } = useTranslation();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -56,37 +58,37 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
   return (
     <div className="absolute inset-0 overflow-y-auto p-4 custom-scrollbar animate-in slide-in-from-right-4 duration-300 bg-white">
       <div className="mb-6">
-        <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Page Settings</h3>
-        <p className="text-[10px] text-gray-400">Configure global settings for this landing page.</p>
+        <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">{t('pageSettings')}</h3>
+        <p className="text-[10px] text-gray-400">{t('pageSettingsDesc')}</p>
       </div>
 
       {/* Featured Product Section */}
       <div className="space-y-4 mb-8">
         <h4 className="flex items-center gap-2 text-[10px] font-bold text-gray-800 uppercase border-b pb-2">
           <ShoppingBag size={12} className="text-blue-500" />
-          Featured Product
+          {t('featuredProduct')}
         </h4>
         
         <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Select Product</label>
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{t('selectProduct')}</label>
             <select
               value={config.featuredProductId || ''}
               onChange={(e) => handleProductChange(e.target.value)}
               className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-700 focus:ring-2 focus:ring-blue-100 outline-none bg-white transition-all shadow-sm"
               disabled={loading}
             >
-              <option value="">Choose a product...</option>
+              <option value="">{t('chooseProduct')}</option>
               {products.map(product => (
                 <option key={product.id} value={product.id}>{product.title}</option>
               ))}
             </select>
-            {loading && <p className="text-[9px] text-gray-400 animate-pulse">Loading store products...</p>}
+            {loading && <p className="text-[9px] text-gray-400 animate-pulse">{t('loadingProducts')}</p>}
           </div>
           
           <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
             <p className="text-[10px] text-blue-700 leading-relaxed italic">
-              * Smart blocks like Order Form will automatically use the selected product's name and price.
+              {t('smartBlockTip')}
             </p>
           </div>
         </div>
@@ -96,12 +98,12 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
       <div className="space-y-4 mb-8">
         <h4 className="flex items-center gap-2 text-[10px] font-bold text-gray-800 uppercase border-b pb-2">
           <MessageSquare size={12} className="text-emerald-500" />
-          WhatsApp Config
+          {t('whatsappConfig')}
         </h4>
         
         <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">WhatsApp Number</label>
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{t('phoneNumber')}</label>
             <div className="relative">
               <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -115,12 +117,12 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Default Message</label>
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{t('defaultMessage')}</label>
             <textarea
               value={config.whatsappMessage || ''}
               onChange={(e) => handleChange('whatsappMessage', e.target.value)}
               className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-600 focus:ring-2 focus:ring-emerald-100 outline-none bg-white transition-all shadow-sm min-h-[80px]"
-              placeholder="I want to order this product..."
+              placeholder={t('whatsappPlaceholder')}
             />
           </div>
         </div>
@@ -130,12 +132,12 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
       <div className="space-y-4 mb-8">
         <h4 className="flex items-center gap-2 text-[10px] font-bold text-gray-800 uppercase border-b pb-2">
           <Timer size={12} className="text-orange-500" />
-          Conversion Tools
+          {t('conversionTools')}
         </h4>
         
         <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Offer End Date</label>
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{t('offerEndDate')}</label>
             <input
               type="datetime-local"
               value={config.timerEndDate || ''}
@@ -146,7 +148,7 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
 
           <div className="flex flex-col gap-3 pt-2 border-t border-gray-100">
             <div className="flex items-center justify-between">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Social Proof Count</label>
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{t('socialProofCountLabel')}</label>
               <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">{config.socialProofCount || 0}</span>
             </div>
             <input
@@ -158,7 +160,7 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
               onChange={(e) => handleChange('socialProofCount', parseInt(e.target.value))}
               className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
             />
-            <p className="text-[9px] text-gray-400 italic">Simulate "X people bought this" or "Y items left"</p>
+            <p className="text-[9px] text-gray-400 italic">{t('socialProofHint')}</p>
           </div>
         </div>
       </div>

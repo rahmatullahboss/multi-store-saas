@@ -19,6 +19,7 @@ import {
   Layout
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '~/contexts/LanguageContext';
 import CodeEditor from './CodeEditor';
 
 export default function EditorToolbar({ 
@@ -28,6 +29,7 @@ export default function EditorToolbar({
   isAiLocked?: boolean,
   onOpenLibrary?: () => void 
 }) {
+  const { t } = useTranslation();
   const editor = useEditorMaybe();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
@@ -53,7 +55,7 @@ export default function EditorToolbar({
   if (!editor) {
     return (
       <div className="flex items-center justify-center px-4 py-2 bg-white border-b border-gray-200 h-12">
-        <p className="text-gray-400 text-xs font-medium">Loading editor...</p>
+        <p className="text-gray-400 text-xs font-medium">{t('loadingEditor')}</p>
       </div>
     );
   }
@@ -64,19 +66,19 @@ export default function EditorToolbar({
 
   const handleSave = async () => {
     try {
-      toast.loading('Saving draft...', { id: 'save-draft' });
+      toast.loading(t('savingDraft'), { id: 'save-draft' });
       await editor.store();
-      toast.success('Draft saved successfully!', { id: 'save-draft' });
+      toast.success(t('draftSaved'), { id: 'save-draft' });
     } catch (error) {
       console.error('Save draft error:', error);
-      toast.error('Failed to save draft', { id: 'save-draft' });
+      toast.error(t('saveDraftFailed'), { id: 'save-draft' });
     }
   };
 
 
   const handlePublish = async () => {
     try {
-      toast.loading('Publishing page...', { id: 'publish' });
+      toast.loading(t('publishingPage'), { id: 'publish' });
       
       // Set publishing flag on editor instance (read by storage:start:store hook in Editor.tsx)
       (editor as any).isPublishing = true;
@@ -86,11 +88,11 @@ export default function EditorToolbar({
       // Reset flag
       (editor as any).isPublishing = false;
       
-      toast.success('Page live and published!', { id: 'publish' });
+      toast.success(t('pagePublished'), { id: 'publish' });
     } catch (error) {
       console.error('Publish error:', error);
       (editor as any).isPublishing = false;
-      toast.error('Failed to publish page', { id: 'publish' });
+      toast.error(t('publishFailed'), { id: 'publish' });
     }
   };
 
@@ -150,7 +152,7 @@ export default function EditorToolbar({
       if (selectedComponent) {
         selectedComponent.replaceWith(htmlToApply);
         if (cssToApply) editor.addStyle(cssToApply);
-        toast.success('Element updated successfully');
+        toast.success(t('importSuccess'));
       } else {
         // === Full Page Update ===
         
@@ -207,15 +209,14 @@ export default function EditorToolbar({
             }
             
             // D. Ensure Wrapper covers full height
-            wrapper.addStyle({ 'min-height': '100vh', 'overflow-x': 'hidden' });
+            wrapper?.addStyle({ 'min-height': '100vh', 'overflow-x': 'hidden' });
         }
-
-        toast.success('Page imported successfully!');
+        toast.success(t('importSuccess'));
       }
       setIsCodeModalOpen(false);
     } catch (error) {
       console.error('Save code error:', error);
-      toast.error('Failed to apply changes. Check code syntax.');
+      toast.error(t('applyFailed'));
     }
   };
 
@@ -257,21 +258,21 @@ export default function EditorToolbar({
         <button 
           onClick={() => handleDeviceChange('Desktop')}
           className="p-2 hover:bg-gray-100 rounded-lg transition group"
-          title="Desktop View"
+          title={t('desktopView')}
         >
           <Monitor size={18} className="text-gray-500 group-hover:text-emerald-600" />
         </button>
         <button 
           onClick={() => handleDeviceChange('Tablet')}
           className="p-2 hover:bg-gray-100 rounded-lg transition group"
-          title="Tablet View"
+          title={t('tabletView')}
         >
           <Tablet size={18} className="text-gray-500 group-hover:text-emerald-600" />
         </button>
         <button 
           onClick={() => handleDeviceChange('Mobile')}
           className="p-2 hover:bg-gray-100 rounded-lg transition group"
-          title="Mobile View"
+          title={t('mobileView')}
         >
           <Smartphone size={18} className="text-gray-500 group-hover:text-emerald-600" />
         </button>
@@ -279,14 +280,14 @@ export default function EditorToolbar({
         <button 
           onClick={() => editor.UndoManager.undo()}
           className="p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
-          title="Undo"
+          title={t('undo')}
         >
           <Undo size={16} className="text-gray-500 group-hover:text-emerald-600" />
         </button>
         <button 
           onClick={() => editor.UndoManager.redo()}
           className="p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
-          title="Redo"
+          title={t('redo')}
         >
           <Redo size={16} className="text-gray-500 group-hover:text-emerald-600" />
         </button>
@@ -296,10 +297,10 @@ export default function EditorToolbar({
         <button 
           onClick={onOpenLibrary}
           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-white hover:border-indigo-500 hover:text-indigo-600 rounded-xl transition border shadow-sm group"
-          title="Browse Block Library"
+          title={t('addBlock')}
         >
           <Layout size={14} className="group-hover:scale-110 transition-transform" />
-          ADD BLOCK
+          {t('addBlock')}
         </button>
 
         <div className="w-[1px] h-6 bg-gray-200 mx-1" />
@@ -323,7 +324,7 @@ export default function EditorToolbar({
             ) : (
               <>
                 <Sparkles size={14} />
-                <span>MAGIC EDIT</span>
+                <span>{t('magicEdit')}</span>
               </>
             )}
           </button>
@@ -346,7 +347,7 @@ export default function EditorToolbar({
             ) : (
               <>
                 <Wand2 size={14} />
-                <span>MAGIC AI</span>
+                <span>{t('magicAi')}</span>
               </>
             )}
           </button>
@@ -357,10 +358,10 @@ export default function EditorToolbar({
         <button 
           onClick={handleOpenCode}
           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition border border-transparent hover:border-gray-200"
-          title={selectedComponent ? "View/Edit Element Code" : "View/Edit Page Code"}
+          title={selectedComponent ? t('editElementHtml') : t('editPageHtml')}
         >
           <Code size={14} />
-          CODE
+          {t('code')}
         </button>
 
         <button 
@@ -368,21 +369,21 @@ export default function EditorToolbar({
           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition"
         >
           <Eye size={14} />
-          PREVIEW
+          {t('preview')}
         </button>
         <button 
           onClick={handleSave}
           className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-md shadow-emerald-100"
         >
           <Save size={14} />
-          SAVE DRAFT
+          {t('saveDraft')}
         </button>
         <button 
           onClick={handlePublish}
           className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md shadow-blue-100"
         >
           <Send size={14} />
-          PUBLISH
+          {t('publish')}
         </button>
       </div>
 
@@ -398,7 +399,7 @@ export default function EditorToolbar({
                     </div>
                     <div>
                        <h3 className="text-sm font-bold text-gray-900">
-                         {selectedComponent ? 'Edit Element HTML' : 'Edit Page HTML'}
+                         {selectedComponent ? t('editElementHtml') : t('editPageHtml')}
                        </h3>
                        <p className="text-[10px] text-gray-500 font-medium font-mono">
                          {selectedComponent ? `<${selectedComponent.get('tagName') || 'div'}>` : '<body>'}
@@ -426,14 +427,14 @@ export default function EditorToolbar({
                    onClick={() => setIsCodeModalOpen(false)}
                    className="px-4 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition"
                 >
-                   CANCEL
+                   {t('cancel')}
                 </button>
                 <button 
                    onClick={handleSaveCode}
                    className="px-6 py-2.5 text-xs font-bold text-white bg-gray-900 hover:bg-black rounded-xl transition shadow-lg flex items-center gap-2"
                 >
                    <Check size={14} />
-                   APPLY CHANGES
+                   {t('applyChanges')}
                 </button>
               </div>
            </div>
