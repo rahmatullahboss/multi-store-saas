@@ -923,20 +923,115 @@ export async function generateGrapesJsPage(
 }
 
 // ============================================================================
-// GRAPESJS CHAT COMMAND GENERATION
+// GRAPESJS CHAT COMMAND GENERATION - WORLD-CLASS (30 Actions)
 // ============================================================================
+
+/**
+ * Section Templates for Smart Section Actions
+ */
+const SECTION_TEMPLATES = {
+  hero: `<section class="py-20 px-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white text-center">
+    <h1 class="text-5xl font-bold mb-4">Your Amazing Headline</h1>
+    <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">A compelling subheadline that explains your value proposition.</p>
+    <button class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-transform shadow-xl">Get Started Now</button>
+  </section>`,
+  
+  features: `<section class="py-16 px-6 bg-white">
+    <h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Why Choose Us</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div class="text-center p-6"><div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div><h3 class="font-bold text-xl mb-2">Fast & Easy</h3><p class="text-gray-600">Get started in minutes with our simple setup.</p></div>
+      <div class="text-center p-6"><div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">💰</div><h3 class="font-bold text-xl mb-2">Save Money</h3><p class="text-gray-600">Affordable pricing for businesses of all sizes.</p></div>
+      <div class="text-center p-6"><div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">⭐</div><h3 class="font-bold text-xl mb-2">Premium Quality</h3><p class="text-gray-600">Top-tier service that exceeds expectations.</p></div>
+    </div>
+  </section>`,
+  
+  pricing: `<section class="py-16 px-6 bg-gray-50">
+    <h2 class="text-3xl font-bold text-center mb-4 text-gray-900">Simple Pricing</h2>
+    <p class="text-gray-600 text-center mb-12">Choose the plan that's right for you</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"><h3 class="font-bold text-lg mb-2">Starter</h3><div class="text-4xl font-bold mb-4">$9<span class="text-lg text-gray-500">/mo</span></div><ul class="space-y-3 mb-8 text-gray-600"><li>✓ 5 Projects</li><li>✓ Basic Support</li><li>✓ 1GB Storage</li></ul><button class="w-full py-3 border-2 border-indigo-600 text-indigo-600 rounded-lg font-bold hover:bg-indigo-50">Start Free</button></div>
+      <div class="bg-indigo-600 text-white rounded-2xl p-8 shadow-xl transform scale-105"><h3 class="font-bold text-lg mb-2">Pro</h3><div class="text-4xl font-bold mb-4">$29<span class="text-lg opacity-70">/mo</span></div><ul class="space-y-3 mb-8 opacity-90"><li>✓ Unlimited Projects</li><li>✓ Priority Support</li><li>✓ 10GB Storage</li></ul><button class="w-full py-3 bg-white text-indigo-600 rounded-lg font-bold hover:bg-gray-100">Get Started</button></div>
+      <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"><h3 class="font-bold text-lg mb-2">Enterprise</h3><div class="text-4xl font-bold mb-4">$99<span class="text-lg text-gray-500">/mo</span></div><ul class="space-y-3 mb-8 text-gray-600"><li>✓ Everything in Pro</li><li>✓ Dedicated Support</li><li>✓ Unlimited Storage</li></ul><button class="w-full py-3 border-2 border-indigo-600 text-indigo-600 rounded-lg font-bold hover:bg-indigo-50">Contact Sales</button></div>
+    </div>
+  </section>`,
+  
+  testimonials: `<section class="py-16 px-6 bg-white">
+    <h2 class="text-3xl font-bold text-center mb-12 text-gray-900">What Our Customers Say</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div class="bg-gray-50 rounded-2xl p-6"><p class="text-gray-600 mb-4">"This product changed my business. Highly recommend!"</p><div class="flex items-center gap-3"><div class="w-10 h-10 bg-indigo-200 rounded-full"></div><div><p class="font-bold">Sarah J.</p><p class="text-sm text-gray-500">CEO, TechCo</p></div></div></div>
+      <div class="bg-gray-50 rounded-2xl p-6"><p class="text-gray-600 mb-4">"Best investment we've made. 5 stars!"</p><div class="flex items-center gap-3"><div class="w-10 h-10 bg-green-200 rounded-full"></div><div><p class="font-bold">Michael R.</p><p class="text-sm text-gray-500">Founder, StartupX</p></div></div></div>
+      <div class="bg-gray-50 rounded-2xl p-6"><p class="text-gray-600 mb-4">"Amazing customer support and product!"</p><div class="flex items-center gap-3"><div class="w-10 h-10 bg-purple-200 rounded-full"></div><div><p class="font-bold">Emily W.</p><p class="text-sm text-gray-500">Designer</p></div></div></div>
+    </div>
+  </section>`,
+  
+  faq: `<section class="py-16 px-6 bg-gray-50"><h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Frequently Asked Questions</h2><div class="max-w-3xl mx-auto space-y-4"><div class="bg-white rounded-xl p-6 shadow-sm"><h3 class="font-bold text-lg mb-2">How do I get started?</h3><p class="text-gray-600">Simply sign up and you can start using our platform immediately.</p></div><div class="bg-white rounded-xl p-6 shadow-sm"><h3 class="font-bold text-lg mb-2">Can I cancel anytime?</h3><p class="text-gray-600">Yes, you can cancel your subscription at any time with no questions asked.</p></div><div class="bg-white rounded-xl p-6 shadow-sm"><h3 class="font-bold text-lg mb-2">Do you offer refunds?</h3><p class="text-gray-600">We offer a 30-day money-back guarantee on all plans.</p></div></div></section>`,
+  
+  contact: `<section class="py-16 px-6 bg-white"><h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Get In Touch</h2><form class="max-w-xl mx-auto space-y-4"><input type="text" placeholder="Your Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/><input type="email" placeholder="Email Address" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/><textarea placeholder="Your Message" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></textarea><button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Send Message</button></form></section>`,
+  
+  footer: `<footer class="py-12 px-6 bg-gray-900 text-white"><div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8"><div><h3 class="font-bold text-lg mb-4">Company</h3><p class="text-gray-400 text-sm">Making the world a better place through technology.</p></div><div><h4 class="font-bold mb-4">Product</h4><ul class="space-y-2 text-gray-400 text-sm"><li><a href="#" class="hover:text-white">Features</a></li><li><a href="#" class="hover:text-white">Pricing</a></li><li><a href="#" class="hover:text-white">API</a></li></ul></div><div><h4 class="font-bold mb-4">Company</h4><ul class="space-y-2 text-gray-400 text-sm"><li><a href="#" class="hover:text-white">About</a></li><li><a href="#" class="hover:text-white">Careers</a></li><li><a href="#" class="hover:text-white">Contact</a></li></ul></div><div><h4 class="font-bold mb-4">Legal</h4><ul class="space-y-2 text-gray-400 text-sm"><li><a href="#" class="hover:text-white">Privacy</a></li><li><a href="#" class="hover:text-white">Terms</a></li></ul></div></div><div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">© 2025 Company. All rights reserved.</div></footer>`,
+  
+  cta_banner: `<section class="py-16 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center"><h2 class="text-3xl font-bold mb-4">Ready to Get Started?</h2><p class="text-xl opacity-90 mb-8">Join thousands of happy customers today.</p><button class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-transform shadow-xl">Start Free Trial</button></section>`,
+  
+  stats: `<section class="py-16 px-6 bg-indigo-600 text-white"><div class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center"><div><div class="text-4xl font-bold mb-2">10K+</div><p class="opacity-80">Customers</p></div><div><div class="text-4xl font-bold mb-2">50M+</div><p class="opacity-80">Transactions</p></div><div><div class="text-4xl font-bold mb-2">99.9%</div><p class="opacity-80">Uptime</p></div><div><div class="text-4xl font-bold mb-2">24/7</div><p class="opacity-80">Support</p></div></div></section>`,
+  
+  team: `<section class="py-16 px-6 bg-white"><h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Meet Our Team</h2><div class="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto"><div class="text-center"><div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div><h3 class="font-bold">John Doe</h3><p class="text-gray-500 text-sm">CEO</p></div><div class="text-center"><div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div><h3 class="font-bold">Jane Smith</h3><p class="text-gray-500 text-sm">CTO</p></div><div class="text-center"><div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div><h3 class="font-bold">Mike Johnson</h3><p class="text-gray-500 text-sm">Designer</p></div><div class="text-center"><div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div><h3 class="font-bold">Sarah Lee</h3><p class="text-gray-500 text-sm">Marketing</p></div></div></section>`,
+  
+  gallery: `<section class="py-16 px-6 bg-gray-50"><h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Gallery</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-6xl mx-auto"><div class="aspect-square bg-gray-200 rounded-xl"></div><div class="aspect-square bg-gray-300 rounded-xl"></div><div class="aspect-square bg-gray-200 rounded-xl"></div><div class="aspect-square bg-gray-300 rounded-xl"></div></div></section>`,
+  
+  logo_cloud: `<section class="py-12 px-6 bg-white"><p class="text-center text-gray-500 mb-8">Trusted by industry leaders</p><div class="flex flex-wrap justify-center items-center gap-8 max-w-4xl mx-auto"><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div></div></section>`,
+};
+
 export const GrapesJsCommandSchema = z.object({
   action: z.enum([
-    'update_style', 
-    'update_content', 
-    'add_component', 
-    'remove_component', 
+    // Design & Style (8)
+    'update_style',
+    'apply_color_scheme',
+    'apply_typography',
+    'add_animation',
+    'apply_glassmorphism',
+    'apply_gradient',
+    'add_shadow',
+    'make_responsive',
+    
+    // Content & Copy (5)
+    'update_content',
+    'generate_headline',
+    'generate_description',
+    'generate_cta',
+    'improve_copy',
+    
+    // Smart Sections (12)
+    'add_hero_section',
+    'add_features_section',
+    'add_pricing_table',
+    'add_testimonials',
+    'add_faq_section',
+    'add_contact_form',
+    'add_footer',
+    'add_cta_banner',
+    'add_image_gallery',
+    'add_team_section',
+    'add_stats_section',
+    'add_logo_cloud',
+    
+    // Generic Components
+    'add_component',
+    'remove_component',
     'update_trait',
+    
+    // Advanced
+    'update_layout',
+    'optimize_seo',
+    'add_custom_css',
+    'duplicate_section',
+    'reorder_sections',
+    
+    // Fallback
     'general_advice'
   ]).describe("The action to perform on the editor"),
-  target: z.enum(['selected', 'wrapper']).optional().default('selected').describe("The target element (selected component or the entire page wrapper)"),
-  value: z.any().describe("The data required for the action (CSS object for style, HTML string for add_component, text for update_content)"),
-  message: z.string().describe("A short, friendly message to the user explaining what the AI did"),
+  target: z.enum(['selected', 'wrapper']).optional().default('selected'),
+  value: z.any().describe("Action-specific data"),
+  message: z.string().describe("User-friendly message in Bengali/English"),
 });
 
 export type GrapesJsCommandResult = z.infer<typeof GrapesJsCommandSchema>;
@@ -949,47 +1044,95 @@ export async function commandGrapesJs(
     selectedContent?: string;
     selectedClasses?: string[];
     selectedAttributes?: Record<string, any>;
+    selectedStyles?: Record<string, any>;
   },
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<GrapesJsCommandResult> {
-  const systemPrompt = `You are an expert GrapesJS Loop Controller. Your job is to translate natural language user requests into JSON commands that the GrapesJS editor can execute.
+  const systemPrompt = `You are a WORLD-CLASS AI Page Builder for landing pages. You can translate natural language (Bengali/English) into JSON commands for the GrapesJS editor.
 
-You have access to the currently selected component's context.
+### Available Actions (30 total):
 
-### Available Actions:
-1. **update_style**: Return a CSS object in "value". Use camelCase properties (e.g., { backgroundColor: 'red', fontSize: '20px' }).
-2. **update_content**: Return the new text string in "value". Used for changing text inside elements.
-3. **add_component**: Return an HTML string in "value". Appends this HTML *after* the selected component (or inside, if it's a container and the intent is to add inside).
-4. **remove_component**: Set "value" to true. Deletes the selected component.
-5. **update_trait**: Return an object of traits in "value" (e.g., { href: 'https://...' }).
-6. **general_advice**: If the request is a question or cannot be acted upon, explain why or answer the question in "message". Set "value" to null.
+#### 🎨 Design & Style
+1. **update_style**: value = CSS object { backgroundColor: 'red', fontSize: '20px' }
+2. **apply_color_scheme**: value = { primary, secondary, accent, background, text }
+3. **apply_typography**: value = { headingFont, bodyFont, headingSize, bodySize }
+4. **add_animation**: value = animation_name (fadeIn, slideUp, bounceIn, pulse, etc.)
+5. **apply_glassmorphism**: value = true (adds backdrop-blur + transparency)
+6. **apply_gradient**: value = { from, to, direction } or preset name (sunset, ocean, forest)
+7. **add_shadow**: value = preset (sm, md, lg, xl, 2xl) or custom CSS
+8. **make_responsive**: value = { mobile, tablet, desktop } responsive adjustments
+
+#### 📝 Content & Copy (AI Generated)
+9. **update_content**: value = new text string
+10. **generate_headline**: value = { industry, tone } - AI generates compelling headline
+11. **generate_description**: value = { product, audience } - AI generates description
+12. **generate_cta**: value = { goal } - AI generates call-to-action text
+13. **improve_copy**: value = 'persuasive' | 'professional' | 'casual' - rewrites text
+
+#### 📦 Smart Sections (Pre-built Templates)
+14. **add_hero_section**: value = { headline?, subheadline?, ctaText? }
+15. **add_features_section**: value = { features?: [{ icon, title, desc }] }
+16. **add_pricing_table**: value = { tiers?: 3 }
+17. **add_testimonials**: value = { count?: 3 }
+18. **add_faq_section**: value = { questions?: [{ q, a }] }
+19. **add_contact_form**: value = { fields?: ['name', 'email', 'message'] }
+20. **add_footer**: value = { columns?: 4 }
+21. **add_cta_banner**: value = { text?, ctaText? }
+22. **add_image_gallery**: value = { columns?: 4 }
+23. **add_team_section**: value = { members?: 4 }
+24. **add_stats_section**: value = { stats?: [{ number, label }] }
+25. **add_logo_cloud**: value = { count?: 5 }
+
+#### 🧩 Generic Components
+26. **add_component**: value = HTML string (with Tailwind classes)
+27. **remove_component**: value = true
+28. **update_trait**: value = { href, src, alt, etc. }
+
+#### ⚙️ Advanced
+29. **update_layout**: value = { display, flexDirection, justifyContent, alignItems, gap }
+30. **add_custom_css**: value = raw CSS string
+31. **duplicate_section**: value = true
+32. **reorder_sections**: value = 'up' | 'down'
+33. **optimize_seo**: value = { title?, description?, keywords? }
+34. **general_advice**: Cannot act, explain in message
 
 ### Rules:
-- If the user wants to change the look, use 'update_style'.
-- If the user wants to change the text, use 'update_content'.
-- If the user wants to add a section, button, or element, use 'add_component'.
-- If the user asks to "delete this", use 'remove_component'.
-- **CRITICAL**: Use Tailwind CSS classes in 'add_component' HTML strings if possible, but for 'update_style', use raw CSS properties.
-- **CRITICAL**: Return ONLY JSON.
+1. **Language**: If user speaks Bengali/Banglish, respond in Bengali. Otherwise English.
+2. **Smart Sections**: When user asks for "pricing", "testimonials", etc., use the smart section actions.
+3. **CSS in update_style**: Use camelCase (backgroundColor, not background-color).
+4. **Tailwind in add_component**: Use Tailwind classes in HTML.
+5. **Creativity**: For copywriting actions, be creative and persuasive.
+
+### Color Presets:
+- sunset: from-orange-500 to-pink-500
+- ocean: from-blue-500 to-teal-400
+- forest: from-green-600 to-emerald-400
+- royal: from-indigo-600 to-purple-600
+- midnight: from-gray-900 to-black
+
+### Animation Presets:
+fadeIn, fadeInUp, fadeInDown, slideUp, slideDown, slideLeft, slideRight, bounceIn, pulse, shake
 
 ### Output Format:
 {
-  "action": "update_style",
-  "target": "selected",
-  "value": { "color": "#ff0000" },
-  "message": "I've changed the text color to red for you."
-}`;
+  "action": "add_hero_section",
+  "target": "wrapper",
+  "value": { "headline": "Welcome to Our Platform" },
+  "message": "হিরো সেকশন যোগ করে দিলাম! 🎉"
+}
 
-  const fullUserPrompt = `
-Context - Selected Component:
-- Tag: ${context.selectedTagName || 'none'}
-- Content Preview: ${context.selectedContent ? context.selectedContent.substring(0, 100) + '...' : 'none'}
+CRITICAL: Return ONLY valid JSON. No markdown.`;
+
+  const fullUserPrompt = `Context - Selected Component:
+- Tag: ${context.selectedTagName || 'none (no selection, will apply to page)'}
+- Content: ${context.selectedContent ? context.selectedContent.substring(0, 100) + '...' : 'none'}
 - Classes: ${context.selectedClasses?.join(', ') || 'none'}
+- Current Styles: ${context.selectedStyles ? JSON.stringify(context.selectedStyles).substring(0, 100) : 'none'}
 
 User Request: "${userPrompt}"
 
-Generate GrapesJS API Command JSON:`;
+Generate GrapesJS Command JSON:`;
 
   const response = await callAI(apiKey, systemPrompt, fullUserPrompt, model, baseUrl);
   const parsed = extractJSON(response);

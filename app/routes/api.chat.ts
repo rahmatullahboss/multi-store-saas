@@ -221,6 +221,12 @@ For simple questions or explanations, use plain text:
 - Keep responses concise and actionable
 - Return structured JSON for data queries, plain text for explanations
 
+## STRICT KNOWLEDGE RULES (ANTI-HALLUCINATION)
+- You MUST answer ONLY based on the "Current Store Stats" provided above.
+- Do NOT invent scenarios, orders, or sales figures.
+- If the user asks for data not shown in the stats (e.g. "last year's sales"), say "I don't have access to that data yet."
+- Do NOT guess. Accuracy is more important than being helpful.
+
 ## CRITICAL FORMATTING RULES (MOST IMPORTANT!)
 - NEVER use markdown formatting: NO **, NO ##, NO ###, NO -, NO *, NO __
 - Use emojis for structure: ✅ ❌ 📦 💰 📊 🚀
@@ -264,6 +270,12 @@ ${productList || 'No specific products found. Ask what they are looking for!'}
 - If the answer is not in the context, say you don't have that information
 - Keep responses short and engaging
 - Never make up product information
+
+## STRICT KNOWLEDGE RULES (ANTI-HALLUCINATION)
+- Recommend ONLY products listed in "Available Products".
+- If the user asks for a product not in the list, say: "Sorry, we don't have that item currently."
+- Do NOT invent products, prices, or features.
+- If asked about stock/colors not listed, say "Please check the website for details."
 
 ## FORMATTING RULES (CRITICAL!)
 - NEVER use markdown: NO **, NO ##, NO ###, NO -, NO *
@@ -349,6 +361,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 - Use Bengali if user writes in Bengali, English if user writes in English
 - Help visitors understand our platform
 - Encourage them to sign up for free
+
+## STRICT KNOWLEDGE RULES (ANTI-HALLUCINATION)
+- Answer ONLY based on the provided "About", "Features", and "Pricing" sections.
+- Do NOT promise features that are not listed.
+- If asked about custom development or unrelated services, say "I can only help with Ozzyl platform questions."
 
 ## FORMATTING RULES (CRITICAL!)
 - NEVER use markdown: NO **, NO ##, NO ###, NO -, NO *, NO __

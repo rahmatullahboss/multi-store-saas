@@ -20,56 +20,63 @@ interface Message {
 }
 
 // ============================================================================
-// TUTORIAL & EXAMPLES DATA FOR LANDING PAGE EDITOR
+// TUTORIAL & EXAMPLES DATA FOR LANDING PAGE EDITOR - WORLD-CLASS
 // ============================================================================
 const EXAMPLE_CATEGORIES = [
+  {
+    title: '📦 Smart Sections (NEW!)',
+    icon: '📦',
+    examples: [
+      { label: 'Hero section যোগ করো', description: 'Hero + CTA' },
+      { label: 'Pricing table যোগ করো', description: '3-tier pricing' },
+      { label: 'Testimonials যোগ করো', description: 'Customer reviews' },
+      { label: 'FAQ section যোগ করো', description: 'Questions & Answers' },
+      { label: 'Contact form যোগ করো', description: 'Email form' },
+      { label: 'Footer যোগ করো', description: '4-column footer' },
+      { label: 'Stats section যোগ করো', description: '10K+ customers' },
+      { label: 'Team section যোগ করো', description: 'Team members' },
+    ]
+  },
+  {
+    title: '🎨 Design Effects',
+    icon: '🎨',
+    examples: [
+      { label: 'Glassmorphism effect দাও', description: 'Glass blur' },
+      { label: 'Gradient background দাও', description: 'Color blend' },
+      { label: 'Shadow lg দাও', description: 'Drop shadow' },
+      { label: 'Animation fadeIn দাও', description: 'Fade effect' },
+      { label: 'Ocean gradient দাও', description: 'Blue → Teal' },
+    ]
+  },
+  {
+    title: '📝 AI Copywriting',
+    icon: '📝',
+    examples: [
+      { label: 'একটা catchy headline লেখো', description: 'AI headline' },
+      { label: 'CTA button text generate করো', description: 'AI CTA' },
+      { label: 'এই text টা persuasive করো', description: 'Improve copy' },
+      { label: 'Product description লেখো', description: 'AI description' },
+    ]
+  },
   {
     title: '🎨 স্টাইল পরিবর্তন',
     icon: '🎨',
     examples: [
-      { label: 'ব্যাকগ্রাউন্ড লাল করো', description: 'Background color change' },
-      { label: 'টেক্সট সাদা করো', description: 'Text color change' },
+      { label: 'ব্যাকগ্রাউন্ড লাল করো', description: 'Background color' },
+      { label: 'টেক্সট সাদা করো', description: 'Text color' },
       { label: 'Font size বড় করো', description: 'Typography' },
-      { label: 'Padding দ্বিগুণ করো', description: 'Spacing' },
-      { label: 'Border radius গোল করো', description: 'Rounded corners' },
+      { label: 'Border radius গোল করো', description: 'Rounded' },
     ]
   },
   {
-    title: '📝 কন্টেন্ট এডিট',
-    icon: '📝',
+    title: '⚙️ Advanced',
+    icon: '⚙️',
     examples: [
-      { label: 'হেডিং পরিবর্তন করো: নতুন টেক্সট', description: 'Text content' },
-      { label: 'Button এর টেক্সট: কিনুন এখনই', description: 'CTA button' },
-      { label: 'এই section এ একটা paragraph যোগ করো', description: 'Add content' },
-    ]
-  },
-  {
-    title: '➕ Component যোগ করা',
-    icon: '➕',
-    examples: [
-      { label: 'একটা CTA button যোগ করো', description: 'Button component' },
-      { label: 'Contact section যোগ করো', description: 'New section' },
-      { label: 'Image gallery বানাও', description: 'Gallery' },
-      { label: 'Testimonial section তৈরি করো', description: 'Social proof' },
-    ]
-  },
-  {
-    title: '🗑️ মুছে ফেলা ও সাজানো',
-    icon: '🗑️',
-    examples: [
-      { label: 'এই element ডিলিট করো', description: 'Remove selected' },
-      { label: 'সব কিছু center করো', description: 'Alignment' },
+      { label: 'এই element ডিলিট করো', description: 'Remove' },
+      { label: 'Section duplicate করো', description: 'Clone' },
+      { label: 'Section উপরে নাও', description: 'Reorder' },
+      { label: 'Custom CSS যোগ করো', description: 'Raw CSS' },
       { label: 'এটাকে flexbox দিয়ে সাজাও', description: 'Layout' },
-    ]
-  },
-  {
-    title: '💻 Advanced CSS',
-    icon: '💻',
-    examples: [
-      { label: 'Hover effect যোগ করো', description: 'Pseudo class' },
-      { label: 'Shadow যোগ করো', description: 'Box shadow' },
-      { label: 'Gradient background দাও', description: 'Gradients' },
-      { label: 'Animation যোগ করো', description: 'CSS animation' },
     ]
   },
 ];
@@ -126,12 +133,13 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
           onExecuteCommand(command);
         }
       } else if (fetcher.data?.error) {
+        const errorMessage = fetcher.data?.error || 'Unknown error';
         setMessages(prev => [
             ...prev, 
             { 
               id: Date.now().toString(), 
               role: 'assistant', 
-              content: `❌ ${fetcher.data.error}` 
+              content: `❌ ${errorMessage}` 
             }
           ]);
       }
