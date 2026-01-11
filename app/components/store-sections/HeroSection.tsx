@@ -143,7 +143,7 @@ export default function HeroSection({ settings, theme, categories = [] }: HeroSe
         <div className="max-w-2xl">
           {settings.heading && (
             <h1 
-              className="text-4xl sm:text-5xl lg:text-6xl font-semibold mb-4 text-white"
+              className="text-2xl sm:text-5xl lg:text-6xl font-semibold mb-4 text-white"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               {settings.heading}

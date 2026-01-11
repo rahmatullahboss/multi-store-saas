@@ -50,7 +50,7 @@ export function ProductGallerySection({ settings, product, theme }: ProductGalle
       
       {/* Thumbnail gallery */}
       {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
           {images.map((img, i) => (
             <button
               key={i}

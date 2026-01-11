@@ -154,7 +154,7 @@ export default function CategorySection({ settings, theme, categories }: Categor
   return (
     <section className="py-6 px-4 bg-white shadow-sm mb-4 rounded-lg max-w-7xl mx-auto">
       <h2 className="font-bold text-lg mb-4" style={{ color: theme.text }}>{settings.heading || 'Categories'}</h2>
-      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
         {validCategories.map((category) => {
           const Icon = getCategoryIcon(category);
           return (

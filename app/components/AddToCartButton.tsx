@@ -18,6 +18,7 @@ interface AddToCartButtonProps {
   style?: CSSProperties;
   children?: ReactNode;
   isPreview?: boolean; // When true, shows preview feedback instead of updating cart
+  mode?: 'add_to_cart' | 'buy_now'; // NEW: Support "Order Now"
   // For tracking events
   productName?: string;
   productPrice?: number;
@@ -33,6 +34,7 @@ export function AddToCartButton({
   style,
   children,
   isPreview = false,
+  mode = 'add_to_cart',
   productName,
   productPrice,
   currency = 'BDT',
@@ -45,8 +47,13 @@ export function AddToCartButton({
     
     // In preview mode, just show visual feedback without updating cart
     if (isPreview) {
-      setIsAdded(true);
-      setTimeout(() => setIsAdded(false), 2000);
+      if (mode === 'buy_now') {
+        setIsAdding(true); // Simulate processing
+        setTimeout(() => setIsAdding(false), 1000);
+      } else {
+        setIsAdded(true);
+        setTimeout(() => setIsAdded(false), 2000);
+      }
       return;
     }
     
@@ -65,6 +72,12 @@ export function AddToCartButton({
     // Update local cart in localStorage
     updateLocalCart(productId, 1, storeId);
     
+    if (mode === 'buy_now') {
+       // Redirect to cart/checkout immediately
+       window.location.href = '/cart';
+       return;
+    }
+
     // Show success state
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
@@ -135,7 +148,7 @@ function updateLocalCart(productId: number, quantity: number, storeId?: number) 
     if (existingIndex >= 0) {
       cart[existingIndex].quantity += quantity;
     } else {
-      cart.push({ productId, quantity });
+      cart.push({ productId, quantity, storeId }); // Added storeId to persisted data
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));

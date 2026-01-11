@@ -23,7 +23,7 @@ import {
   ArrowLeft, Monitor, Smartphone, Tablet, Save, Plus, Trash2, GripVertical, 
   Undo2, Redo2, ExternalLink, Sparkles, AlertCircle, CheckCircle2,
   Layout, Type, Image as ImageIcon, Palette, Menu, Settings, Database, Loader2,
-  Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Store, ShoppingCart, Search, Rows, PlusCircle, CheckCircle, Code, User, ChevronDown, ChevronRight, Wand2
+  Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Store, ShoppingCart, Search, Rows, PlusCircle, CheckCircle, Code, User, ChevronDown, ChevronRight, Wand2, X
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
@@ -417,6 +417,7 @@ export default function StoreLiveEditor() {
 
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   
   // Sections state
   const { demoProductId } = useLoaderData<typeof loader>();
@@ -710,16 +711,21 @@ export default function StoreLiveEditor() {
           <div className="h-6 w-px bg-gray-200" />
           <h1 className="font-bold text-gray-900 flex items-center gap-2">
             <Layout className="w-5 h-5 text-indigo-600" />
-            Store Live Editor
+            <span className="hidden sm:inline">Store Live Editor</span>
+            <span className="sm:hidden">Editor</span>
           </h1>
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-full border border-indigo-100">
-            <Sparkles size={12} />
-            Visual Builder
-          </span>
+          
+          {/* Mobile Menu Toggle */}
+          <button 
+            onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
+            className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Device Toggles */}
-        <div className="hidden md:flex bg-gray-100/50 p-1 rounded-lg border border-gray-200">
+        <div className="flex bg-gray-100/50 p-1 rounded-lg border border-gray-200">
           {[
             { id: 'desktop', icon: Monitor },
             { id: 'tablet', icon: Tablet },
@@ -766,7 +772,8 @@ export default function StoreLiveEditor() {
             className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 shadow-sm"
           >
              <Sparkles size={16} className="text-amber-500" />
-             Publish to Marketplace
+             <span className="hidden lg:inline">Publish to Marketplace</span>
+             <span className="lg:hidden">Publish</span>
           </button>
 
           <button
@@ -787,15 +794,30 @@ export default function StoreLiveEditor() {
             className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-semibold shadow-lg shadow-gray-200 transition-all disabled:opacity-50 active:scale-95"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>Save Changes</span>
+            <span className="hidden sm:inline">Save</span>
           </button>
         </div>
       </div>
 
       {/* Main Content - Split Layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar - Editing Controls */}
-        <Form id="editor-form" method="post" className="hidden md:flex md:flex-col w-80 bg-white border-r border-gray-200 flex-shrink-0">
+        <Form 
+          id="editor-form" 
+          method="post" 
+          className={`
+            fixed md:relative inset-y-0 left-0 z-30 w-80 bg-white border-r border-gray-200 flex-col flex-shrink-0 transition-transform duration-300 transform md:translate-x-0
+            ${isMobileDrawerOpen ? 'translate-x-0 shadow-2xl top-16' : '-translate-x-full'}
+            md:flex
+          `}
+        >
+          {/* Mobile Close Button */}
+          <div className="md:hidden flex justify-end p-2 border-b">
+             <button type="button" onClick={() => setIsMobileDrawerOpen(false)} className="p-2 text-gray-500">
+               <X className="w-5 h-5" />
+             </button>
+          </div>
+          
           <div className="flex-1 overflow-y-auto">
             {/* Hidden inputs for form submission */}
             <input type="hidden" name="storeTemplateId" value={selectedTemplateId} />
@@ -1810,6 +1832,14 @@ export default function StoreLiveEditor() {
             </div>
           </div>
         </main>
+        
+        {/* Mobile Drawer Backdrop */}
+        {isMobileDrawerOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-20 md:hidden"
+            onClick={() => setIsMobileDrawerOpen(false)}
+          />
+        )}
       </div>
       
       <StoreAIAssistant 

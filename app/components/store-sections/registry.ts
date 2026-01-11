@@ -7,10 +7,12 @@ import type { ComponentType } from 'react';
 
 export type SectionType = 
   | 'hero' 
+  | 'modern-hero'
   | 'product-grid' 
   | 'newsletter' 
   | 'rich-text' 
   | 'features' 
+  | 'modern-features'
   | 'video' 
   | 'testimonials'
   | 'category-list'
@@ -20,14 +22,13 @@ export type SectionType =
   | 'product-header'
   | 'product-gallery'
   | 'product-info'
-  | 'product-info'
   | 'product-reviews'
-  | 'product-description'
   | 'product-description'
   | 'related-products'
   | 'collection-header'
   | 'cart-items'
   | 'cart-summary';
+
 
 export interface SectionAction {
   label: string;
@@ -108,6 +109,9 @@ import ProductScrollSection from './ProductScrollSection';
 import FeaturesSection from './FeaturesSection';
 import BannerSection from './BannerSection';
 import FAQSection from './FAQSection';
+import ModernHeroSection from './ModernHeroSection';
+import ModernFeaturesSection from './ModernFeaturesSection';
+
 
 import RichTextSection from './RichTextSection';
 import { ProductHeaderSection } from './ProductHeaderSection';
@@ -136,6 +140,39 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       layout: 'standard',
     },
     component: HeroSection,
+    allowedPages: ['home']
+  },
+  'modern-hero': {
+    type: 'modern-hero',
+    name: 'Premium Hero',
+    icon: 'Layout',
+    description: 'Modern Premium Hero with floating product card.',
+    defaultSettings: {
+      heading: 'Premium Quality Products',
+      subheading: 'Discover our amazing collection...',
+      primaryAction: { label: 'Shop Now', url: '/products' },
+      secondaryAction: { label: 'Browse Categories', url: '/about' },
+      badge: 'New Collection',
+      image: '',
+    },
+    component: ModernHeroSection,
+    allowedPages: ['home']
+  },
+  'modern-features': {
+    type: 'modern-features',
+    name: 'Premium Features',
+    icon: 'Star',
+    description: 'Premium "Why Choose Us" section.',
+    defaultSettings: {
+      heading: 'Why Choose Us?',
+      subheading: "We're committed to providing the best shopping experience",
+      features: [
+        { icon: '✨', title: 'Premium Quality', description: 'Highest quality standards.' },
+        { icon: '⚡', title: 'Fast Delivery', description: '24-48 hours delivery.' },
+        { icon: '💬', title: '24/7 Support', description: 'Always ready to help.' },
+      ]
+    },
+    component: ModernFeaturesSection, // Fixed typo in previous step content
     allowedPages: ['home']
   },
   'rich-text': {

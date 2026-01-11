@@ -45,7 +45,7 @@ export function DarazTemplate({
   const featuredCategories = categories.filter(Boolean).slice(0, 12);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: DARAZ_THEME.background, fontFamily: "'Roboto', 'NotoSans', Arial, sans-serif" }}>
+    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: DARAZ_THEME.background, fontFamily: "'Roboto', 'NotoSans', Arial, sans-serif" }}>
       {/* Top Bar */}
       <div style={{ backgroundColor: DARAZ_THEME.topBarBg }} className="hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-9 text-xs text-white/90">
@@ -321,7 +321,40 @@ export function DarazTemplate({
         </div>
       </footer>
 
-      {/* Floating Contact Buttons */}
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
+        <div className="flex items-center justify-around h-14">
+          <Link to="/" className="flex flex-col items-center gap-0.5 py-1 px-3">
+            <ShoppingBag className="w-5 h-5" style={{ color: !currentCategory ? DARAZ_THEME.primary : DARAZ_THEME.muted }} />
+            <span className="text-[10px] font-medium" style={{ color: !currentCategory ? DARAZ_THEME.primary : DARAZ_THEME.muted }}>Home</span>
+          </Link>
+          <button 
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-0.5 py-1 px-3"
+          >
+            <Grid3X3 className="w-5 h-5" style={{ color: DARAZ_THEME.muted }} />
+            <span className="text-[10px] font-medium" style={{ color: DARAZ_THEME.muted }}>Categories</span>
+          </button>
+          <Link to="/cart" className="flex flex-col items-center gap-0.5 py-1 px-3 relative">
+            <ShoppingCart className="w-5 h-5" style={{ color: DARAZ_THEME.muted }} />
+            <span 
+              className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+              style={{ backgroundColor: DARAZ_THEME.primary }}
+            >
+              0
+            </span>
+            <span className="text-[10px] font-medium" style={{ color: DARAZ_THEME.muted }}>Cart</span>
+          </Link>
+          {!isPreview && (
+            <Link to="/auth/login" className="flex flex-col items-center gap-0.5 py-1 px-3">
+              <User className="w-5 h-5" style={{ color: DARAZ_THEME.muted }} />
+              <span className="text-[10px] font-medium" style={{ color: DARAZ_THEME.muted }}>Account</span>
+            </Link>
+          )}
+        </div>
+      </nav>
+
+      {/* Floating Contact Buttons - Positioned above bottom nav on mobile */}
       {!isPreview && (
         <>
           {config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber && (
@@ -329,7 +362,7 @@ export function DarazTemplate({
               href={`https://wa.me/${config.floatingWhatsappNumber.replace(/\D/g, '').replace(/^01/, '8801')}?text=${encodeURIComponent(config.floatingWhatsappMessage || `হ্যালো ${storeName}, আমি জানতে চাই...`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="fixed bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+              className="fixed bottom-20 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
               title="WhatsApp এ মেসেজ করুন"
             >
               <span className="text-white text-2xl">💬</span>
@@ -339,7 +372,7 @@ export function DarazTemplate({
           {config?.floatingCallEnabled && config?.floatingCallNumber && (
             <a
               href={`tel:${config.floatingCallNumber}`}
-              className={`fixed bottom-8 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
+              className={`fixed bottom-20 md:bottom-8 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
               title="কল করুন"
             >
               <span className="text-white text-2xl">📞</span>

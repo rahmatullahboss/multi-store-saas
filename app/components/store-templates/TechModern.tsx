@@ -266,6 +266,7 @@ export function TechModernTemplate({
               address: businessInfo?.address,
               currency: currency
             }}
+            ProductCardComponent={section.type === 'product-grid' ? TechProductCard : undefined}
           />
         );
       })}

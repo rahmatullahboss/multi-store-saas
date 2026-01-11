@@ -12,9 +12,10 @@ interface ProductGridSectionProps {
   products?: any[]; // Allow generic products to be passed (e.g. from Collection loader)
   currency?: string;
   storeId?: number; // storeId is now optional as it might not always be passed
+  ProductCardComponent?: React.ComponentType<any>;
 }
 
-export function ProductGridSection({ settings, theme, products: passedProducts, currency = 'BDT', storeId }: ProductGridSectionProps) {
+export function ProductGridSection({ settings, theme, products: passedProducts, currency = 'BDT', storeId, ProductCardComponent }: ProductGridSectionProps) {
   const { t } = useTranslation();
   const formatPrice = useFormatPrice();
   
@@ -88,14 +89,25 @@ export function ProductGridSection({ settings, theme, products: passedProducts, 
         {displayProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-8">
             {displayProducts.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                storeId={storeId}
-                currency={currency}
-                formatPrice={formatPrice}
-                theme={theme}
-              />
+              ProductCardComponent ? (
+                <ProductCardComponent 
+                  key={product.id} 
+                  product={product} 
+                  storeId={storeId}
+                  currency={currency}
+                  formatPrice={formatPrice}
+                  theme={theme}
+                />
+              ) : (
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  storeId={storeId}
+                  currency={currency}
+                  formatPrice={formatPrice}
+                  theme={theme}
+                />
+              )
             ))}
           </div>
         ) : (
@@ -147,18 +159,14 @@ function ProductCard({ product, storeId, currency, formatPrice, theme }: any) {
           </div>
         )}
 
-        {/* Quick Add Button - Shows on Hover */}
+        {/* Quick Add Button - Always visible on mobile, hover on desktop */}
         <div 
-          className="absolute inset-x-0 bottom-0 p-3 transition-all duration-300"
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transform: isHovered ? 'translateY(0)' : 'translateY(100%)',
-          }}
+          className="absolute inset-x-0 bottom-0 p-3 transition-all duration-300 md:opacity-0 md:translate-y-full md:group-hover:opacity-100 md:group-hover:translate-y-0"
         >
           <AddToCartButton
             productId={product.id}
             storeId={storeId}
-            className="w-full py-3 text-sm font-medium uppercase tracking-wider transition-colors"
+            className="w-full py-3 text-sm font-medium uppercase tracking-wider transition-colors shadow-lg"
             style={{ backgroundColor: theme.primary, color: 'white' }}
           >
             Add to Bag
@@ -166,11 +174,12 @@ function ProductCard({ product, storeId, currency, formatPrice, theme }: any) {
         </div>
       </Link>
 
-      {/* Wishlist Button */}
+      {/* Wishlist Button - Always visible on mobile, hover on desktop */}
       <button 
-        className="absolute top-3 right-3 p-2 rounded-full bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+        className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 shadow-md md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-white active:scale-95"
+        aria-label="Add to wishlist"
       >
-        <Heart className="w-4 h-4" style={{ color: theme.text }} />
+        <Heart className="w-5 h-5" style={{ color: theme.text }} />
       </button>
 
       {/* Product Info */}

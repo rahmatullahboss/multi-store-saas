@@ -70,13 +70,13 @@ export default function ProductScrollSection({ settings, theme, products, curren
             </div>
             
             {isFlashSale && (
-              <div className="flex items-center gap-1 text-white hidden sm:flex">
-                <span className="text-xs opacity-80 mr-1">Ending in:</span>
-                <span className="bg-white/20 px-2 py-1 rounded text-sm font-bold">{String(timeLeft.hours).padStart(2, '0')}</span>
-                <span>:</span>
-                <span className="bg-white/20 px-2 py-1 rounded text-sm font-bold">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                <span>:</span>
-                <span className="bg-white/20 px-2 py-1 rounded text-sm font-bold">{String(timeLeft.seconds).padStart(2, '0')}</span>
+              <div className="flex items-center gap-1 text-white scale-90 origin-left sm:scale-100">
+                <span className="text-[10px] sm:text-xs opacity-80 mr-1">Ending in:</span>
+                <span className="bg-white/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm font-bold">{String(timeLeft.hours).padStart(2, '0')}</span>
+                <span className="text-xs sm:text-sm">:</span>
+                <span className="bg-white/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm font-bold">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                <span className="text-xs sm:text-sm">:</span>
+                <span className="bg-white/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm font-bold">{String(timeLeft.seconds).padStart(2, '0')}</span>
               </div>
             )}
           </div>
