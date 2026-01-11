@@ -299,7 +299,7 @@ export function OzzylAIChatWidget() {
                 src="/ozzyl-logo-small.png" 
                 alt="Ozzyl AI" 
                 className="w-14 h-14 relative z-10 object-contain"
-                style={{ filter: 'brightness(0) invert(0)' }}
+                style={{ filter: 'brightness(0)' }}
               />
               {/* Online indicator */}
               <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white z-20 animate-pulse" />
