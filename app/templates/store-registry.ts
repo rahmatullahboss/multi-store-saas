@@ -178,6 +178,17 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#000000',
     footerText: '#F9FAFB',
   },
+  'aurora-minimal': {
+    primary: '#2C2C2C',
+    accent: '#E8C4C4',
+    background: '#FDFBF9',
+    text: '#2C2C2C',
+    muted: '#8E8E8E',
+    cardBg: '#FFFFFF',
+    headerBg: 'rgba(253, 251, 249, 0.85)',
+    footerBg: '#2C2C2C',
+    footerText: '#FDFBF9',
+  },
 };
 
 // ============================================================================
@@ -192,6 +203,7 @@ import { BDShopTemplate } from '~/components/store-templates/BDShopTemplate';
 import { GhorerBazarTemplate } from '~/components/store-templates/GhorerBazarTemplate';
 import { NovaLuxTemplate } from '~/components/store-templates/NovaLuxTemplate';
 import { EclipseTemplate } from '~/components/store-templates/EclipseTemplate';
+import { AuroraMinimalTemplate } from '~/components/store-templates/AuroraMinimalTemplate';
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -313,6 +325,19 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: EclipseTemplate,
+  },
+  {
+    id: 'aurora-minimal',
+    name: 'Aurora Minimal',
+    description: 'Ultra-premium minimalist design with warm rose and cool sage gradients, glassmorphism effects, and elegant animations. Perfect for luxury and lifestyle brands.',
+    thumbnail: '/templates/aurora-minimal.png',
+    category: 'luxury',
+    theme: STORE_TEMPLATE_THEMES['aurora-minimal'],
+    fonts: {
+      heading: 'Outfit',
+      body: 'Plus Jakarta Sans',
+    },
+    component: AuroraMinimalTemplate,
   },
 ];
 
