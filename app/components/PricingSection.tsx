@@ -566,7 +566,7 @@ export function PricingSection() {
             >
               সবার জন্য{' '}
               <span 
-                className="bg-clip-text text-transparent"
+                className="bg-clip-text text-transparent inline-block py-2"
                 style={{
                   backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
                 }}

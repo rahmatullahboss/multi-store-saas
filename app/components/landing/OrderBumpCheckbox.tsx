@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Gift, Sparkles } from 'lucide-react';
 import { OptimizedImage } from '~/components/OptimizedImage';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface OrderBumpProduct {
   id: number;
@@ -36,6 +37,7 @@ export function OrderBumpCheckbox({
   isSelected,
   onToggle,
 }: OrderBumpProps) {
+  const { t, lang } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
   
   // Calculate discounted price
@@ -47,7 +49,9 @@ export function OrderBumpCheckbox({
   
   const formatPrice = (price: number) => {
     if (currency === 'BDT' || currency === '৳') {
-      return `৳${price.toLocaleString('bn-BD')}`;
+      return lang === 'bn' 
+        ? `৳${price.toLocaleString('bn-BD')}` 
+        : `৳${price.toLocaleString('en-IN')}`;
     }
     return `${currency}${price.toFixed(2)}`;
   };
@@ -92,7 +96,7 @@ export function OrderBumpCheckbox({
           className="flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-xs font-bold text-white shadow-md"
         >
           <Gift className="h-3 w-3" />
-          <span>বিশেষ অফার</span>
+          <span>{t('landingOrderBump_specialOffer')}</span>
           <Sparkles className="h-3 w-3" />
         </motion.div>
       </div>
@@ -141,7 +145,7 @@ export function OrderBumpCheckbox({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-gray-900">
-              হ্যাঁ! আমি চাই:
+              {t('landingOrderBump_yesIWant')}
             </span>
             <span className="font-semibold text-amber-700">
               {bump.title}
@@ -166,14 +170,14 @@ export function OrderBumpCheckbox({
             </span>
             {bump.discount > 0 && (
               <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
-                {bump.discount}% ছাড়
+                {t('landingOrderBump_offDiscount', { discount: bump.discount })}
               </span>
             )}
           </div>
           
           {savings > 0 && (
             <p className="mt-1 text-xs text-emerald-600">
-              ✓ আপনি সাশ্রয় করছেন {formatPrice(savings)}
+              {t('landingOrderBump_youAreSaving', { savings: formatPrice(savings) })}
             </p>
           )}
         </div>
@@ -218,6 +222,7 @@ export function OrderBumpsContainer({
   selectedBumpIds,
   onSelectionChange,
 }: OrderBumpsContainerProps) {
+  const { t } = useTranslation();
   if (!bumps || bumps.length === 0) return null;
 
   const handleToggle = (bumpId: number, selected: boolean) => {
@@ -233,7 +238,7 @@ export function OrderBumpsContainer({
       <div className="flex items-center gap-2 text-amber-700">
         <Gift className="h-5 w-5" />
         <h3 className="font-semibold">
-          অর্ডারে যোগ করুন এবং সাশ্রয় করুন!
+          {t('landingOrderBump_addAndSave')}
         </h3>
       </div>
       

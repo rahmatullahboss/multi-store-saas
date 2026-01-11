@@ -123,16 +123,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 // ============================================================================
-// STATUS OPTIONS
+// STATUS OPTIONS (MOVE KEY TO TRANSLATION AT RENDER TIME)
 // ============================================================================
-const statusOptions = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'processing', label: 'Processing' },
-  { value: 'shipped', label: 'Shipped' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'cancelled', label: 'Cancelled' },
-];
+const statusOptionsKeys = [
+  { value: 'pending', labelKey: 'pending' },
+  { value: 'confirmed', labelKey: 'confirmed' },
+  { value: 'processing', labelKey: 'processingOrders' },
+  { value: 'shipped', labelKey: 'shippedOrders' },
+  { value: 'delivered', labelKey: 'deliveredOrders' },
+  { value: 'cancelled', labelKey: 'cancelledOrders' },
+] as const;
 
 // ============================================================================
 // MAIN COMPONENT
@@ -150,7 +150,7 @@ export default function DashboardOrdersPage() {
   const statusTabs = [
     { id: 'all', label: t('allOrders'), count: stats.total },
     { id: 'pending', label: t('pending'), count: stats.pending },
-    { id: 'confirmed', label: lang === 'bn' ? 'নিশ্চিত' : 'Confirmed', count: stats.confirmed },
+    { id: 'confirmed', label: t('confirmed'), count: stats.confirmed },
     { id: 'processing', label: t('processingOrders'), count: stats.processing },
     { id: 'shipped', label: t('shippedOrders'), count: stats.shipped },
     { id: 'delivered', label: t('deliveredOrders'), count: stats.delivered },
@@ -207,10 +207,10 @@ export default function DashboardOrdersPage() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    const agoText = lang === 'bn' ? 'আগে' : 'ago';
-    if (diffMins < 60) return `${diffMins} ${lang === 'bn' ? 'মিনিট' : 'min'} ${agoText}`;
-    if (diffHours < 24) return `${diffHours}${lang === 'bn' ? 'ঘন্টা' : 'h'} ${agoText}`;
-    if (diffDays < 7) return `${diffDays}${lang === 'bn' ? 'দিন' : 'd'} ${agoText}`;
+    const agoText = t('ago');
+    if (diffMins < 60) return `${diffMins} ${t('minShort')} ${agoText}`;
+    if (diffHours < 24) return `${diffHours}${t('hourShort')} ${agoText}`;
+    if (diffDays < 7) return `${diffDays}${t('dayShort')} ${agoText}`;
     
     return d.toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       month: 'short',
@@ -225,13 +225,13 @@ export default function DashboardOrdersPage() {
       {/* Header */}
       <PageHeader
         title={t('orders')}
-        description={lang === 'bn' ? 'কাস্টমার অর্ডার দেখুন ও ম্যানেজ করুন' : 'View and manage customer orders'}
+        description={t('manageCustomerOrders')}
       />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          label={lang === 'bn' ? 'মোট অর্ডার' : 'Total Orders'}
+          label={t('totalOrders')}
           value={stats.total}
           icon={<ShoppingCart className="w-5 h-5" />}
           color="blue"
@@ -261,7 +261,7 @@ export default function DashboardOrdersPage() {
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <SearchInput
-          placeholder={lang === 'bn' ? 'অর্ডার #, কাস্টমার, অথবা ফোন দিয়ে খুঁজুন...' : 'Search by order #, customer, or phone...'}
+          placeholder={t('searchByOrderHint')}
           value={searchQuery}
           onChange={setSearchQuery}
           className="w-full md:w-80"
@@ -282,17 +282,17 @@ export default function DashboardOrdersPage() {
         <div className="bg-white rounded-xl border border-gray-200">
           <EmptyState
             icon={<ShoppingCart className="w-10 h-10" />}
-            title={lang === 'bn' ? 'এখনো কোনো অর্ডার নেই' : 'No orders yet'}
-            description={lang === 'bn' ? 'কাস্টমাররা অর্ডার করলে এখানে দেখা যাবে।' : 'Orders will appear here when customers place them.'}
+            title={t('noOrdersYet')}
+            description={t('noOrdersDescription')}
             action={{
-              label: lang === 'bn' ? 'স্টোর দেখুন' : 'View Store',
+              label: t('viewStore'),
               href: '/',
             }}
           />
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">{lang === 'bn' ? 'কোনো অর্ডার আপনার ফিল্টারের সাথে মিলছে না।' : 'No orders match your filters.'}</p>
+          <p className="text-gray-500">{t('noOrdersMatchFilters')}</p>
           <button
             onClick={() => {
               setSearchQuery('');
@@ -300,7 +300,7 @@ export default function DashboardOrdersPage() {
             }}
             className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            {lang === 'bn' ? 'ফিল্টার সাফ করুন' : 'Clear filters'}
+            {t('clearFilters')}
           </button>
         </div>
       ) : (
@@ -311,22 +311,22 @@ export default function DashboardOrdersPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'অর্ডার' : 'Order'}
+                    {t('order')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'তারিখ' : 'Date'}
+                    {t('date')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'কাস্টমার' : 'Customer'}
+                    {t('customer')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'মোট' : 'Total'}
+                    {t('total')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'স্ট্যাটাস' : 'Status'}
+                    {t('status')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'অ্যাকশন' : 'Actions'}
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -373,7 +373,7 @@ export default function DashboardOrdersPage() {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
                       >
                         <Eye className="w-4 h-4" />
-                        {lang === 'bn' ? 'দেখুন' : 'View'}
+                        {t('view')}
                       </Link>
                     </td>
                   </tr>
@@ -424,6 +424,7 @@ export default function DashboardOrdersPage() {
 // STATUS DROPDOWN COMPONENT
 // ============================================================================
 function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
+  const { t } = useTranslation();
   const fetcher = useFetcher();
   const isUpdating = fetcher.state !== 'idle';
   
@@ -461,9 +462,9 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentSt
             transition-all
           `}
         >
-          {statusOptions.map((option) => (
+          {statusOptionsKeys.map((option) => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {t(option.labelKey)}
             </option>
           ))}
         </select>
@@ -482,42 +483,43 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentSt
 // STATUS BADGE COMPONENT
 // ============================================================================
 function StatusBadge({ status }: { status: string }) {
-  const configs: Record<string, { icon: typeof Clock; bg: string; text: string; label: string }> = {
+  const { t } = useTranslation();
+  const configs: Record<string, { icon: typeof Clock; bg: string; text: string; labelKey: string }> = {
     pending: { 
       icon: Clock, 
       bg: 'bg-yellow-100', 
       text: 'text-yellow-700', 
-      label: 'Pending' 
+      labelKey: 'pending' 
     },
     confirmed: { 
       icon: ThumbsUp, 
       bg: 'bg-cyan-100', 
       text: 'text-cyan-700', 
-      label: 'Confirmed' 
+      labelKey: 'confirmed' 
     },
     processing: { 
       icon: Package, 
       bg: 'bg-blue-100', 
       text: 'text-blue-700', 
-      label: 'Processing' 
+      labelKey: 'processingOrders' 
     },
     shipped: { 
       icon: Truck, 
       bg: 'bg-purple-100', 
       text: 'text-purple-700', 
-      label: 'Shipped' 
+      labelKey: 'shippedOrders' 
     },
     delivered: { 
       icon: CheckCircle, 
       bg: 'bg-emerald-100', 
       text: 'text-emerald-700', 
-      label: 'Delivered' 
+      labelKey: 'deliveredOrders' 
     },
     cancelled: { 
       icon: XCircle, 
       bg: 'bg-red-100', 
       text: 'text-red-700', 
-      label: 'Cancelled' 
+      labelKey: 'cancelledOrders' 
     },
   };
 
@@ -527,7 +529,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full ${config.bg} ${config.text}`}>
       <Icon className="w-3.5 h-3.5" />
-      {config.label}
+      {t(config.labelKey)}
     </span>
   );
 }

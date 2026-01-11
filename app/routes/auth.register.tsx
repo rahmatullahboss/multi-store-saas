@@ -11,6 +11,7 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, useActionData, useNavigation } from '@remix-run/react';
 import { Store, Globe } from 'lucide-react';
 import { register, createUserSession, getUserId } from '~/services/auth.server';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // Define ActionData type for proper TypeScript inference
 interface ActionData {
@@ -28,7 +29,7 @@ interface ActionData {
 }
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Register - Multi-Store SaaS' }];
+  return [{ title: 'Register' }];
 };
 
 // Redirect if already logged in, otherwise redirect to new onboarding wizard
@@ -54,7 +55,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const rateLimit = await checkAuthRateLimit(kv, clientIp, 'register');
     if (!rateLimit.allowed) {
       return json<ActionData>({ 
-        errors: { form: 'Too many registration attempts. Please try again in an hour.' },
+        errors: { form: 'tooManyAttempts' },
         errorCode: 'RATE_LIMITED'
       }, { status: 429 });
     }
@@ -68,7 +69,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     } catch (parseError) {
       console.error('[auth.register] Failed to parse form data:', parseError);
       return json<ActionData>({
-        errors: { form: 'Failed to process your request. Please try again.' },
+        errors: { form: 'failedProcessRequest' },
         errorCode: 'FORM_PARSE_ERROR'
       }, { status: 400 });
     }
@@ -84,16 +85,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Validation
     const errors: ActionData['errors'] = {};
     if (!name || name.length < 2) {
-      errors.name = 'Name must be at least 2 characters';
+      errors.name = 'nameMinLength';
     }
     if (!email || !email.includes('@')) {
-      errors.email = 'Valid email is required';
+      errors.email = 'validEmailRequired';
     }
     if (!password || password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+      errors.password = 'passwordMinLength6';
     }
     if (!storeName || storeName.length < 2) {
-      errors.storeName = 'Store name must be at least 2 characters';
+      errors.storeName = 'storeNameMinLength';
     }
     
     // Subdomain validation
@@ -102,10 +103,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       : storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30);
     
     if (!cleanSubdomain || cleanSubdomain.length < 2) {
-      errors.subdomain = 'Subdomain must be at least 2 characters';
+      errors.subdomain = 'subdomainMinLength';
     }
     if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(cleanSubdomain)) {
-      errors.subdomain = 'Subdomain must start and end with a letter or number';
+      errors.subdomain = 'subdomainInvalid';
     }
 
     if (Object.keys(errors).length > 0) {
@@ -117,7 +118,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!context.cloudflare?.env?.DB) {
       console.error('[auth.register] Database not available in context');
       return json<ActionData>({
-        errors: { form: 'Service temporarily unavailable. Please try again later.' },
+        errors: { form: 'serviceUnavailable' },
         subdomain: cleanSubdomain,
         errorCode: 'DB_UNAVAILABLE'
       }, { status: 503 });
@@ -140,7 +141,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('[auth.register] Register service threw an exception:', registerError);
       const errorMessage = registerError instanceof Error ? registerError.message : String(registerError);
       return json<ActionData>({
-        errors: { form: 'Registration failed unexpectedly. Please try again.' },
+        errors: { form: 'registrationFailed' },
         subdomain: cleanSubdomain,
         errorCode: 'REGISTER_EXCEPTION',
         errorDetails: errorMessage
@@ -160,7 +161,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!result.user) {
       console.error('[auth.register] Registration succeeded but no user returned');
       return json<ActionData>({
-        errors: { form: 'Registration failed. Please try again.' },
+        errors: { form: 'registrationFailedGeneric' },
         subdomain: cleanSubdomain,
         errorCode: 'NO_USER_RETURNED'
       }, { status: 500 });
@@ -169,7 +170,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!result.storeId) {
       console.error('[auth.register] Registration succeeded but no store ID returned');
       return json<ActionData>({
-        errors: { form: 'Store creation failed. Please try again.' },
+        errors: { form: 'storeCreationFailed' },
         subdomain: cleanSubdomain,
         errorCode: 'NO_STORE_RETURNED'
       }, { status: 500 });
@@ -188,7 +189,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('[auth.register] Failed to create session:', sessionError);
       const errorMessage = sessionError instanceof Error ? sessionError.message : String(sessionError);
       return json<ActionData>({
-        errors: { form: 'Account created but login failed. Please try logging in.' },
+        errors: { form: 'accountCreatedLoginFailed' },
         subdomain: cleanSubdomain,
         errorCode: 'SESSION_ERROR',
         errorDetails: errorMessage
@@ -206,7 +207,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
     
     return json<ActionData>({
-      errors: { form: 'An unexpected error occurred. Please try again.' },
+      errors: { form: 'failedProcessRequest' },
       errorCode: 'UNHANDLED_ERROR',
       errorDetails: errorMessage
     }, { status: 500 });
@@ -217,6 +218,7 @@ export default function RegisterPage() {
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t } = useTranslation();
   
   // State for live subdomain preview
   const [storeName, setStoreName] = useState('');
@@ -246,8 +248,8 @@ export default function RegisterPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl mb-4">
             <Store className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Multi-Store SaaS</h1>
-          <p className="text-gray-600 mt-2">Create your store in 30 seconds</p>
+          <h1 className="text-3xl font-bold text-gray-900">Digital Care</h1>
+          <p className="text-gray-600 mt-2">{t('createStoreIn30Sec')}</p>
         </div>
 
         {/* Register Form */}
@@ -256,7 +258,7 @@ export default function RegisterPage() {
             {/* Form Error */}
             {actionData?.errors?.form && (
               <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-sm">
-                <p className="font-medium">{actionData.errors.form}</p>
+                <p className="font-medium">{t(actionData.errors.form)}</p>
                 {actionData.errorCode && (
                   <p className="text-xs text-red-400 mt-1">Error Code: {actionData.errorCode}</p>
                 )}
@@ -266,7 +268,7 @@ export default function RegisterPage() {
             {/* Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Your Name
+                {t('fullNameLabel')}
               </label>
               <input
                 type="text"
@@ -274,17 +276,17 @@ export default function RegisterPage() {
                 name="name"
                 autoComplete="name"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                placeholder="John Doe"
+                placeholder={t('fullNamePlaceholder')}
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-red-500 text-sm mt-1">{t(actionData.errors.name)}</p>
               )}
             </div>
 
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                {t('emailAddress')}
               </label>
               <input
                 type="email"
@@ -295,14 +297,14 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
               />
               {actionData?.errors?.email && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.email}</p>
+                <p className="text-red-500 text-sm mt-1">{t(actionData.errors.email)}</p>
               )}
             </div>
 
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('password')}
               </label>
               <input
                 type="password"
@@ -313,14 +315,14 @@ export default function RegisterPage() {
                 placeholder="••••••••"
               />
               {actionData?.errors?.password && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.password}</p>
+                <p className="text-red-500 text-sm mt-1">{t(actionData.errors.password)}</p>
               )}
             </div>
 
             {/* Store Name */}
             <div>
               <label htmlFor="storeName" className="block text-sm font-medium text-gray-700 mb-1">
-                Store Name
+                {t('storeNameLabel')}
               </label>
               <input
                 type="text"
@@ -329,17 +331,17 @@ export default function RegisterPage() {
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                placeholder="My Awesome Store"
+                placeholder={t('storeNamePlaceholder')}
               />
               {actionData?.errors?.storeName && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.storeName}</p>
+                <p className="text-red-500 text-sm mt-1">{t(actionData.errors.storeName)}</p>
               )}
             </div>
 
             {/* Subdomain Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store URL
+                {t('storeUrlLabel')}
               </label>
               
               {/* Auto-generated subdomain preview */}
@@ -363,7 +365,7 @@ export default function RegisterPage() {
                   className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                 />
                 <label htmlFor="useCustomSubdomain" className="text-sm text-gray-600">
-                  Use custom subdomain
+                  {t('useCustomSubdomainLabel')}
                 </label>
               </div>
               
@@ -377,7 +379,7 @@ export default function RegisterPage() {
                     value={customSubdomain}
                     onChange={(e) => setCustomSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition pr-36"
-                    placeholder="yourstore"
+                    placeholder={t('subdomainPlaceholder')}
                     maxLength={30}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
@@ -392,11 +394,11 @@ export default function RegisterPage() {
               )}
               
               {actionData?.errors?.subdomain && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.subdomain}</p>
+                <p className="text-red-500 text-sm mt-1">{t(actionData.errors.subdomain)}</p>
               )}
               
               <p className="text-xs text-gray-500 mt-2">
-                Only lowercase letters, numbers, and hyphens allowed. This will be your store's URL.
+                {t('subdomainHint')}
               </p>
             </div>
 
@@ -406,16 +408,16 @@ export default function RegisterPage() {
               disabled={isSubmitting}
               className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Creating your store...' : 'Create Store'}
+              {isSubmitting ? t('creatingStoreBtn') : t('createStoreBtn')}
             </button>
           </Form>
 
           {/* Login Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Already have an account?{' '}
+              {t('alreadyHaveAccount')}{' '}
               <Link to="/auth/login" className="text-emerald-600 hover:underline font-medium">
-                Login here
+                {t('loginHere')}
               </Link>
             </p>
           </div>
@@ -423,7 +425,7 @@ export default function RegisterPage() {
         
         {/* Features */}
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>✓ Free to start · ✓ No credit card required · ✓ Setup in 30 seconds</p>
+          <p>✓ {t('freeToStart')} · ✓ {t('noCreditCardRequired')} · ✓ {t('setupIn30Seconds')}</p>
         </div>
       </div>
     </div>

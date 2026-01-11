@@ -99,9 +99,12 @@ export function LimitWarningBanner({ usage, planType }: LimitWarningBannerProps)
               </span>
             ))}
             {' '}ব্যবহার হয়েছে।
-            {hasExceeded 
+            {/* Only block orders if ORDER limit is exceeded */}
+            {usage.orders.percentage >= 100 
               ? ' নতুন অর্ডার গ্রহণ বন্ধ আছে।'
-              : ' আপগ্রেড করুন আরো সুবিধা পেতে।'
+              : usage.products.percentage >= 100
+                ? ' নতুন প্রোডাক্ট যোগ করা যাবে না। আপগ্রেড করুন।'
+                : ' আপগ্রেড করুন আরো সুবিধা পেতে।'
             }
           </p>
           

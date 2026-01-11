@@ -20,7 +20,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, Code2, AlertCircle
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
@@ -34,6 +34,7 @@ import {
   DEFAULT_SECTION_ORDER,
   LANDING_TEMPLATES 
 } from '~/components/landing-builder';
+import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
 import { getTemplateComponent } from '~/templates/registry';
 
 // Default features
@@ -90,7 +91,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
     .limit(50);
 
-  const landingConfig = parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;
+  // Load draft config if exists, otherwise fall back to published config
+  const draftConfig = parseLandingConfig(store.landingConfigDraft as string | null);
+  const publishedConfig = parseLandingConfig(store.landingConfig as string | null);
+  const landingConfig = draftConfig || publishedConfig || defaultLandingConfig;
+  
+  // Check if there are unpublished changes
+  const hasUnpublishedChanges = !!draftConfig && JSON.stringify(draftConfig) !== JSON.stringify(publishedConfig);
+  
   const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
 
   return json({
@@ -101,6 +109,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       mode: store.mode || 'landing',
       featuredProductId: store.featuredProductId,
       landingConfig,
+      hasUnpublishedChanges,
     },
     products: storeProducts,
     saasDomain,
@@ -118,6 +127,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const db = drizzle(context.cloudflare.env.DB);
+  
+  // Check intent: 'save_draft' (auto-save) or 'publish' (go live)
+  const intent = formData.get('intent') as string || 'save_draft';
 
   function safeJSONParse<T>(str: string | null, fallback: T): T {
     if (!str) return fallback;
@@ -231,17 +243,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
     landingLanguage,
   };
 
-  await db
-    .update(stores)
-    .set({
-      mode: storeMode,
-      featuredProductId: featuredProductId ? parseInt(featuredProductId) : null,
-      landingConfig: JSON.stringify(newConfig),
-      updatedAt: new Date(),
-    })
-    .where(eq(stores.id, storeId));
+  const configJson = JSON.stringify(newConfig);
 
-  return json({ success: true, message: 'Saved!' });
+  if (intent === 'publish') {
+    // PUBLISH: Save to both landingConfigDraft AND landingConfig (go live)
+    await db
+      .update(stores)
+      .set({
+        mode: storeMode,
+        featuredProductId: featuredProductId ? parseInt(featuredProductId) : null,
+        landingConfig: configJson,
+        landingConfigDraft: configJson,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+
+    return json({ success: true, message: 'Published!', published: true });
+  } else {
+    // SAVE DRAFT: Only save to landingConfigDraft (not visible to public)
+    await db
+      .update(stores)
+      .set({
+        mode: storeMode,
+        featuredProductId: featuredProductId ? parseInt(featuredProductId) : null,
+        landingConfigDraft: configJson,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+
+    return json({ success: true, message: 'Draft saved', published: false });
+  }
 }
 
 // ============================================================================
@@ -297,6 +328,13 @@ export default function LiveEditorPage() {
   
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Auto-save fetcher
+  const autoSaveFetcher = useFetcher<{ success?: boolean; message?: string; published?: boolean }>();
+  const isAutoSaving = autoSaveFetcher.state !== 'idle';
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(store.hasUnpublishedChanges || false);
+
 
   // State for landing config
   const [templateId, setTemplateId] = useState(store.landingConfig.templateId || 'modern-dark');
@@ -400,7 +438,35 @@ export default function LiveEditorPage() {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   
   // Image upload fetcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
+
+  // ============================================================================
+  // AI GENERATOR MODAL STATE
+  // ============================================================================
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  
+  // Handle AI generation response
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = actionData as any;
+    if (data?.success && data?.data?.aiGeneratedConfig) {
+      const aiConfig = data.data.aiGeneratedConfig;
+      
+      // Update all states with AI generated data
+      if (aiConfig.headline) setHeadline(aiConfig.headline);
+      if (aiConfig.subheadline) setSubheadline(aiConfig.subheadline);
+      if (aiConfig.ctaText) setCtaText(aiConfig.ctaText);
+      if (aiConfig.features) setFeatures(aiConfig.features);
+      if (aiConfig.testimonials) setTestimonials(aiConfig.testimonials);
+      if (aiConfig.primaryColor) setPrimaryColor(aiConfig.primaryColor);
+      if (aiConfig.accentColor) setAccentColor(aiConfig.accentColor);
+      
+      setIsAIModalOpen(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }
+  }, [actionData]);
 
   // ============================================================================
   // UNDO/REDO FUNCTIONALITY (Phase 1)
@@ -546,7 +612,91 @@ export default function LiveEditorPage() {
       return;
     }
     setHasChanges(true);
+    setHasUnpublishedChanges(true);
   }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage]);
+
+  // ============================================================================
+  // DEBOUNCED AUTO-SAVE (2 seconds after last change)
+  // ============================================================================
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    // Don't auto-save on initial load
+    if (initialLoadRef.current) return;
+    if (!hasChanges) return;
+    
+    // Clear previous timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    // Set new timeout for auto-save
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      setAutoSaveStatus('saving');
+      
+      const formData = new FormData();
+      formData.append('intent', 'save_draft');
+      formData.append('templateId', templateId);
+      formData.append('featuredProductId', featuredProductId);
+      formData.append('headline', headline);
+      formData.append('subheadline', subheadline);
+      formData.append('ctaText', ctaText);
+      formData.append('ctaSubtext', ctaSubtext);
+      formData.append('urgencyText', urgencyText);
+      formData.append('videoUrl', videoUrl);
+      formData.append('guaranteeText', guaranteeText);
+      formData.append('sectionOrder', JSON.stringify(sectionOrder));
+      formData.append('hiddenSections', JSON.stringify(hiddenSections));
+      formData.append('whatsappEnabled', whatsappEnabled.toString());
+      formData.append('whatsappNumber', whatsappNumber);
+      formData.append('whatsappMessage', whatsappMessage);
+      formData.append('callEnabled', callEnabled.toString());
+      formData.append('callNumber', callNumber);
+      formData.append('testimonials', JSON.stringify(testimonials));
+      formData.append('faq', JSON.stringify(faq));
+      formData.append('features', JSON.stringify(features));
+      formData.append('countdownEnabled', countdownEnabled.toString());
+      formData.append('countdownEndTime', countdownEndTime);
+      formData.append('showStockCounter', showStockCounter.toString());
+      formData.append('lowStockThreshold', lowStockThreshold.toString());
+      formData.append('showSocialProof', showSocialProof.toString());
+      formData.append('socialProofInterval', socialProofInterval.toString());
+      formData.append('primaryColor', primaryColor);
+      formData.append('accentColor', accentColor);
+      formData.append('backgroundColor', backgroundColor);
+      formData.append('textColor', textColor);
+      formData.append('borderColor', borderColor);
+      formData.append('typography', JSON.stringify(typography));
+      formData.append('storeMode', storeMode);
+      formData.append('galleryImages', JSON.stringify(galleryImages));
+      formData.append('benefits', JSON.stringify(benefits));
+      formData.append('comparison', JSON.stringify(comparison));
+      formData.append('socialProof', JSON.stringify(socialProof));
+      formData.append('orderFormVariant', orderFormVariant);
+      formData.append('customCSS', customCSS);
+      formData.append('fontFamily', fontFamily);
+      formData.append('landingLanguage', landingLanguage);
+      
+      autoSaveFetcher.submit(formData, { method: 'post' });
+    }, 2000); // 2 seconds debounce
+    
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, autoSaveFetcher]);
+
+  // Handle auto-save response
+  useEffect(() => {
+    if (autoSaveFetcher.data?.success && !autoSaveFetcher.data?.published) {
+      setAutoSaveStatus('saved');
+      setHasChanges(false);
+      // Reset status after 3 seconds
+      const timer = setTimeout(() => setAutoSaveStatus('idle'), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [autoSaveFetcher.data]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -560,11 +710,14 @@ export default function LiveEditorPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasChanges]);
 
-  // Show success message
+  // Show success message (for publish action)
   useEffect(() => {
     if (actionData && 'success' in actionData && actionData.success) {
       setShowSuccess(true);
       setHasChanges(false);
+      if ('published' in actionData && actionData.published) {
+        setHasUnpublishedChanges(false);
+      }
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
     }
@@ -795,6 +948,22 @@ export default function LiveEditorPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
+      {/* DEPRECATION BANNER */}
+      <div className="bg-amber-600 text-white px-4 py-2 flex items-center justify-between shadow-md z-50">
+        <div className="flex items-center gap-2 text-sm">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <p>
+            <span className="font-bold">Legacy Editor:</span> This editor is deprecated. Use the new <Link to="/app/page-builder" className="underline font-black hover:text-white/80">Landing Page Editor</Link> for better features.
+          </p>
+        </div>
+        <Link 
+          to="/app/page-builder" 
+          className="bg-white text-amber-700 px-3 py-1 rounded text-xs font-black hover:bg-amber-50 transition ml-4 whitespace-nowrap"
+        >
+          GO TO NEW EDITOR
+        </Link>
+      </div>
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 flex-shrink-0 z-20">
         <div className="px-4 h-14 flex items-center justify-between">
@@ -886,7 +1055,27 @@ export default function LiveEditorPage() {
               <ExternalLink className="w-5 h-5" />
             </a>
             
-            {/* Save Button */}
+            {/* Auto-Save Status Indicator */}
+            <div className="hidden sm:flex items-center gap-2 text-sm">
+              {isAutoSaving || autoSaveStatus === 'saving' ? (
+                <span className="flex items-center gap-1.5 text-gray-500">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  {language === 'bn' ? 'সেভ হচ্ছে...' : 'Saving...'}
+                </span>
+              ) : autoSaveStatus === 'saved' ? (
+                <span className="flex items-center gap-1.5 text-emerald-600">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  {language === 'bn' ? 'ড্রাফট সেভড' : 'Draft saved'}
+                </span>
+              ) : hasUnpublishedChanges ? (
+                <span className="flex items-center gap-1.5 text-amber-600">
+                  <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                  {language === 'bn' ? 'অপ্রকাশিত' : 'Unpublished'}
+                </span>
+              ) : null}
+            </div>
+            
+            {/* Publish Button */}
             <Form 
               method="post"
               onSubmit={(e) => {
@@ -895,6 +1084,7 @@ export default function LiveEditorPage() {
                 }
               }}
             >
+              <input type="hidden" name="intent" value="publish" />
               <input type="hidden" name="templateId" value={templateId} />
               <input type="hidden" name="featuredProductId" value={featuredProductId} />
               <input type="hidden" name="headline" value={headline} />
@@ -922,35 +1112,32 @@ export default function LiveEditorPage() {
               <input type="hidden" name="socialProofInterval" value={socialProofInterval.toString()} />
               <input type="hidden" name="primaryColor" value={primaryColor} />
               <input type="hidden" name="accentColor" value={accentColor} />
-              {/* Extended colors (Phase 1) */}
               <input type="hidden" name="backgroundColor" value={backgroundColor} />
               <input type="hidden" name="textColor" value={textColor} />
               <input type="hidden" name="borderColor" value={borderColor} />
-              {/* Typography (Phase 1) */}
               <input type="hidden" name="typography" value={JSON.stringify(typography)} />
               <input type="hidden" name="storeMode" value={storeMode} />
-              {/* New sections */}
               <input type="hidden" name="galleryImages" value={JSON.stringify(galleryImages)} />
               <input type="hidden" name="benefits" value={JSON.stringify(benefits)} />
               <input type="hidden" name="comparison" value={JSON.stringify(comparison)} />
               <input type="hidden" name="socialProof" value={JSON.stringify(socialProof)} />
-              {/* Order form layout */}
               <input type="hidden" name="orderFormVariant" value={orderFormVariant} />
-              {/* Custom CSS */}
               <input type="hidden" name="customCSS" value={customCSS} />
-              {/* Font Family */}
               <input type="hidden" name="fontFamily" value={fontFamily} />
-              {/* Landing Language */}
               <input type="hidden" name="landingLanguage" value={landingLanguage} />
               
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !hasUnpublishedChanges}
                 className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 font-medium rounded-lg transition ${
-                  hasChanges 
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                    : 'bg-gray-200 text-gray-600'
+                  hasUnpublishedChanges 
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/20' 
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 } disabled:opacity-50`}
+                title={hasUnpublishedChanges 
+                  ? (language === 'bn' ? 'লাইভ সাইটে প্রকাশ করুন' : 'Publish to live site')
+                  : (language === 'bn' ? 'সব পরিবর্তন প্রকাশিত' : 'All changes published')
+                }
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -960,9 +1147,11 @@ export default function LiveEditorPage() {
                   <Save className="w-4 h-4" />
                 )}
                 <span className="hidden sm:inline">
-                  {showSuccess ? (language === 'bn' ? 'সেভড!' : 'Saved!') : (language === 'bn' ? 'সেভ করুন' : 'Save')}
+                  {showSuccess 
+                    ? (language === 'bn' ? 'প্রকাশিত!' : 'Published!') 
+                    : (language === 'bn' ? 'প্রকাশ করুন' : 'Publish')
+                  }
                 </span>
-                {hasChanges && !showSuccess && <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
               </button>
             </Form>
           </div>
@@ -987,6 +1176,13 @@ export default function LiveEditorPage() {
             onClick={() => setMobileSidebarOpen(false)}
           />
         )}
+
+        {/* AI Generator Modal */}
+        <AIGeneratorModal 
+          isOpen={isAIModalOpen} 
+          onClose={() => setIsAIModalOpen(false)}
+          language={language as 'en' | 'bn'}
+        />
         
         {/* Left Sidebar - Editing Controls (Slide-out on mobile) */}
         <aside className={`
@@ -1011,7 +1207,11 @@ export default function LiveEditorPage() {
               <X className="w-5 h-5 text-gray-600" />
             </button>
           </div>
-          {/* Template Section */}
+          {/* Group 1: Design & Template */}
+          <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 uppercase tracking-wider text-[10px] font-bold text-gray-500">
+            {language === 'bn' ? 'ডিজাইন ও স্টাইল' : 'Design & Style'}
+          </div>
+
           <AccordionSection
             title={language === 'bn' ? 'টেমপ্লেট' : 'Template'}
             icon={Palette}
@@ -1044,9 +1244,78 @@ export default function LiveEditorPage() {
             </div>
           </AccordionSection>
 
-          {/* Content Section */}
           <AccordionSection
-            title={language === 'bn' ? 'লেখা ও টেক্সট' : 'Text & Copy'}
+            title={language === 'bn' ? 'রং ও স্টাইল' : 'Colors & Style'}
+            icon={Paintbrush}
+            isOpen={openSection === 'colors'}
+            onToggle={() => setOpenSection(openSection === 'colors' ? '' : 'colors')}
+          >
+            <div className="space-y-4">
+              {/* Primary Colors */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">
+                    {language === 'bn' ? 'প্রাইমারি' : 'Primary'}
+                  </label>
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="w-full h-8 rounded-lg cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">
+                    {language === 'bn' ? 'এক্সেন্ট' : 'Accent'}
+                  </label>
+                  <input
+                    type="color"
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    className="w-full h-8 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Advanced Colors */}
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">
+                  {language === 'bn' ? 'ব্যাকগ্রাউন্ড' : 'Background'}
+                </label>
+                <input
+                  type="color"
+                  value={backgroundColor}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  className="w-full h-8 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Typography */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'ফন্ট' : 'Font'}
+                </label>
+                <select
+                  value={fontFamily}
+                  onChange={(e) => setFontFamily(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="inter">Inter (Modern)</option>
+                  <option value="roboto">Roboto (Clean)</option>
+                  <option value="hind-siliguri">Hind Siliguri (Bengali)</option>
+                  <option value="tirobi">Tiro Bangla</option>
+                </select>
+              </div>
+            </div>
+          </AccordionSection>
+
+          {/* Group 2: Content */}
+          <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 uppercase tracking-wider text-[10px] font-bold text-gray-500 mt-2">
+            {language === 'bn' ? 'পেজ কন্টেন্ট' : 'Page Content'}
+          </div>
+
+          <AccordionSection
+            title={language === 'bn' ? 'প্রধান লেখা' : 'Main Text'}
             icon={Settings}
             isOpen={openSection === 'content'}
             onToggle={() => setOpenSection(openSection === 'content' ? '' : 'content')}
@@ -1055,23 +1324,22 @@ export default function LiveEditorPage() {
               {/* Featured Product */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'bn' ? 'ফিচার্ড প্রোডাক্ট' : 'Featured Product'}
+                  {language === 'bn' ? 'প্রোডাক্ট' : 'Product'}
                 </label>
                 <select
                   value={featuredProductId}
                   onChange={(e) => setFeaturedProductId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="">{language === 'bn' ? 'প্রোডাক্ট সিলেক্ট করুন' : 'Select a product'}</option>
+                  <option value="">{language === 'bn' ? 'সিলেক্ট করুন' : 'Select product'}</option>
                   {storeProducts.map((product) => (
                     <option key={product.id} value={product.id}>
-                      {product.title} - ৳{product.price}
+                      {product.title}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Headline */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'bn' ? 'হেডলাইন' : 'Headline'}
@@ -1080,58 +1348,26 @@ export default function LiveEditorPage() {
                   type="text"
                   value={headline}
                   onChange={(e) => setHeadline(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder={language === 'bn' ? 'আপনার হেডলাইন লিখুন' : 'Enter your headline'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
               </div>
 
-              {/* Subheadline */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'bn' ? 'সাবহেডলাইন' : 'Subheadline'}
-                </label>
-                <textarea
-                  value={subheadline}
-                  onChange={(e) => setSubheadline(e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder={language === 'bn' ? 'সাবহেডলাইন লিখুন' : 'Enter subheadline'}
-                />
-              </div>
-
-              {/* CTA Text */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'bn' ? 'CTA বাটন টেক্সট' : 'CTA Button Text'}
+                  {language === 'bn' ? 'বাটন টেক্সট' : 'Button Text'}
                 </label>
                 <input
                   type="text"
                   value={ctaText}
                   onChange={(e) => setCtaText(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder={language === 'bn' ? 'অর্ডার করুন' : 'Order Now'}
-                />
-              </div>
-
-              {/* Urgency Text */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'bn' ? 'আর্জেন্সি টেক্সট' : 'Urgency Text'}
-                </label>
-                <input
-                  type="text"
-                  value={urgencyText}
-                  onChange={(e) => setUrgencyText(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder={language === 'bn' ? 'সীমিত সময়ের অফার!' : 'Limited time offer!'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
               </div>
             </div>
           </AccordionSection>
 
-          {/* Sections Section */}
           <AccordionSection
-            title={language === 'bn' ? 'পেজ সাজান' : 'Page Sections'}
+            title={language === 'bn' ? 'সেকশন ও তথ্য' : 'Sections & Info'}
             icon={Layout}
             isOpen={openSection === 'sections'}
             onToggle={() => setOpenSection(openSection === 'sections' ? '' : 'sections')}
@@ -1147,7 +1383,6 @@ export default function LiveEditorPage() {
                   setHiddenSections([...hiddenSections, sectionId]);
                 }
               }}
-              // Content editing props
               features={features}
               onFeaturesChange={setFeatures}
               faq={faq}
@@ -1158,11 +1393,9 @@ export default function LiveEditorPage() {
               onVideoUrlChange={setVideoUrl}
               guaranteeText={guaranteeText}
               onGuaranteeTextChange={setGuaranteeText}
-              // Image upload handlers
               onTestimonialImageUpload={handleTestimonialImageUpload}
               onTestimonialImageRemove={handleRemoveTestimonialImage}
               uploadingIndex={uploadingIndex}
-              // New section props
               galleryImages={galleryImages}
               onGalleryImagesChange={setGalleryImages}
               benefits={benefits}
@@ -1171,23 +1404,62 @@ export default function LiveEditorPage() {
               onComparisonChange={setComparison}
               socialProof={socialProof}
               onSocialProofChange={setSocialProof}
-              // Order form layout
               orderFormVariant={orderFormVariant}
               onOrderFormVariantChange={setOrderFormVariant}
             />
-
-
           </AccordionSection>
 
-          {/* Conversion Section */}
+          {/* Group 3: Power-ups */}
+          <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 uppercase tracking-wider text-[10px] font-bold text-gray-500 mt-2">
+            {language === 'bn' ? 'পাওয়ার-আপস' : 'Power-ups'}
+          </div>
+
           <AccordionSection
-            title={language === 'bn' ? 'কনভার্শন' : 'Conversion'}
+            title={language === 'bn' ? 'হোয়াটসঅ্যাপ ও কল' : 'WhatsApp & Call'}
+            icon={MessageCircle}
+            isOpen={openSection === 'contact'}
+            onToggle={() => setOpenSection(openSection === 'contact' ? '' : 'contact')}
+          >
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={whatsappEnabled}
+                  onChange={(e) => setWhatsappEnabled(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 rounded"
+                />
+                <span className="text-sm text-gray-700">WhatsApp Button</span>
+              </label>
+
+              {whatsappEnabled && (
+                <input
+                  type="text"
+                  value={whatsappNumber}
+                  onChange={(e) => setWhatsappNumber(e.target.value)}
+                  placeholder="01XXXXXXXXX"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              )}
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={callEnabled}
+                  onChange={(e) => setCallEnabled(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 rounded"
+                />
+                <span className="text-sm text-gray-700">Call Button</span>
+              </label>
+            </div>
+          </AccordionSection>
+
+          <AccordionSection
+            title={language === 'bn' ? 'মার্কেটিং ও সেলস' : 'Marketing & Sales'}
             icon={TrendingUp}
             isOpen={openSection === 'conversion'}
             onToggle={() => setOpenSection(openSection === 'conversion' ? '' : 'conversion')}
           >
             <div className="space-y-4">
-              {/* Countdown */}
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -1201,20 +1473,14 @@ export default function LiveEditorPage() {
               </label>
 
               {countdownEnabled && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    {language === 'bn' ? 'শেষ সময়' : 'End Time'}
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={countdownEndTime}
-                    onChange={(e) => setCountdownEndTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                </div>
+                <input
+                  type="datetime-local"
+                  value={countdownEndTime}
+                  onChange={(e) => setCountdownEndTime(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
               )}
 
-              {/* Stock Counter */}
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -1227,376 +1493,44 @@ export default function LiveEditorPage() {
                 </span>
               </label>
 
-              {showStockCounter && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    {language === 'bn' ? 'লো স্টক থ্রেশহোল্ড' : 'Low Stock Threshold'}
-                  </label>
-                  <input
-                    type="number"
-                    value={lowStockThreshold}
-                    onChange={(e) => setLowStockThreshold(parseInt(e.target.value) || 10)}
-                    min={1}
-                    max={100}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                </div>
-              )}
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showSocialProof}
+                  onChange={(e) => setShowSocialProof(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 rounded"
+                />
+                <span className="text-sm text-gray-700">
+                  {language === 'bn' ? '👥 সোশ্যাল প্রুফ' : '👥 Social Proof'}
+                </span>
+              </label>
             </div>
           </AccordionSection>
 
-          {/* Theme & Typography Section (Phase 1 Enhanced) */}
+          {/* Group 4: Advanced */}
+          <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 uppercase tracking-wider text-[10px] font-bold text-gray-500 mt-2">
+            {language === 'bn' ? 'অ্যাডভান্সড' : 'Advanced'}
+          </div>
+
           <AccordionSection
-            title={language === 'bn' ? 'রং ও স্টাইল' : 'Colors & Style'}
-            icon={Paintbrush}
-            isOpen={openSection === 'colors'}
-            onToggle={() => setOpenSection(openSection === 'colors' ? '' : 'colors')}
+            title={language === 'bn' ? 'কাস্টম কোড' : 'Custom Code'}
+            icon={Code2}
+            isOpen={openSection === 'advanced'}
+            onToggle={() => setOpenSection(openSection === 'advanced' ? '' : 'advanced')}
           >
             <div className="space-y-4">
-              {/* Primary Colors */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    {language === 'bn' ? 'প্রাইমারি' : 'Primary'}
-                  </label>
-                  <input
-                    type="color"
-                    value={primaryColor || '#f97316'}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="w-full h-8 rounded border cursor-pointer"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    {language === 'bn' ? 'অ্যাকসেন্ট' : 'Accent'}
-                  </label>
-                  <input
-                    type="color"
-                    value={accentColor || '#d4af37'}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    className="w-full h-8 rounded border cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              {/* Extended Colors (Phase 1) */}
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-2">
-                  {language === 'bn' ? 'অতিরিক্ত রং' : 'Extended Colors'}
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-[10px] text-gray-500 mb-1">
-                      {language === 'bn' ? 'ব্যাকগ্রাউন্ড' : 'Background'}
-                    </label>
-                    <input
-                      type="color"
-                      value={backgroundColor}
-                      onChange={(e) => setBackgroundColor(e.target.value)}
-                      className="w-full h-7 rounded border cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-gray-500 mb-1">
-                      {language === 'bn' ? 'টেক্সট' : 'Text'}
-                    </label>
-                    <input
-                      type="color"
-                      value={textColor}
-                      onChange={(e) => setTextColor(e.target.value)}
-                      className="w-full h-7 rounded border cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-gray-500 mb-1">
-                      {language === 'bn' ? 'বর্ডার' : 'Border'}
-                    </label>
-                    <input
-                      type="color"
-                      value={borderColor}
-                      onChange={(e) => setBorderColor(e.target.value)}
-                      className="w-full h-7 rounded border cursor-pointer"
-                    />
-                  </div>
-                </div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Custom CSS
+                </label>
+                <textarea
+                  value={customCSS}
+                  onChange={(e) => setCustomCSS(e.target.value)}
+                  rows={5}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
+                  placeholder=".my-class { color: red; }"
+                />
               </div>
-
-              {/* Typography Settings (Phase 1) */}
-              <div className="border-t border-gray-200 pt-4">
-                <p className="text-xs font-medium text-gray-700 mb-3 flex items-center gap-1">
-                  <Type className="w-3 h-3" /> {language === 'bn' ? 'টাইপোগ্রাফি' : 'Typography'}
-                </p>
-                
-                {/* Heading Size */}
-                <div className="mb-3">
-                  <label className="block text-[10px] text-gray-500 mb-1">
-                    {language === 'bn' ? 'হেডিং সাইজ' : 'Heading Size'}
-                  </label>
-                  <div className="grid grid-cols-3 gap-1">
-                    {(['small', 'medium', 'large'] as const).map((size) => (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => setTypography({ ...typography, headingSize: size })}
-                        className={`px-2 py-1.5 text-xs rounded border transition ${
-                          typography.headingSize === size ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
-                        }`}
-                      >
-                        {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Body Size */}
-                <div className="mb-3">
-                  <label className="block text-[10px] text-gray-500 mb-1">
-                    {language === 'bn' ? 'বডি সাইজ' : 'Body Size'}
-                  </label>
-                  <div className="grid grid-cols-3 gap-1">
-                    {(['small', 'medium', 'large'] as const).map((size) => (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => setTypography({ ...typography, bodySize: size })}
-                        className={`px-2 py-1.5 text-xs rounded border transition ${
-                          typography.bodySize === size ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
-                        }`}
-                      >
-                        {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Line Height */}
-                <div className="mb-3">
-                  <label className="block text-[10px] text-gray-500 mb-1">
-                    {language === 'bn' ? 'লাইন হাইট' : 'Line Height'}
-                  </label>
-                  <div className="grid grid-cols-3 gap-1">
-                    {(['compact', 'normal', 'relaxed'] as const).map((height) => (
-                      <button
-                        key={height}
-                        type="button"
-                        onClick={() => setTypography({ ...typography, lineHeight: height })}
-                        className={`px-2 py-1.5 text-[10px] rounded border transition ${
-                          typography.lineHeight === height ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
-                        }`}
-                      >
-                        {height.charAt(0).toUpperCase() + height.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Letter Spacing */}
-                <div>
-                  <label className="block text-[10px] text-gray-500 mb-1">
-                    {language === 'bn' ? 'লেটার স্পেসিং' : 'Letter Spacing'}
-                  </label>
-                  <div className="grid grid-cols-3 gap-1">
-                    {(['tight', 'normal', 'wide'] as const).map((spacing) => (
-                      <button
-                        key={spacing}
-                        type="button"
-                        onClick={() => setTypography({ ...typography, letterSpacing: spacing })}
-                        className={`px-2 py-1.5 text-[10px] rounded border transition ${
-                          typography.letterSpacing === spacing ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600'
-                        }`}
-                      >
-                        {spacing.charAt(0).toUpperCase() + spacing.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </AccordionSection>
-
-          {/* WhatsApp Section */}
-          <AccordionSection
-            title="WhatsApp"
-            icon={MessageCircle}
-            isOpen={openSection === 'whatsapp'}
-            onToggle={() => setOpenSection(openSection === 'whatsapp' ? '' : 'whatsapp')}
-          >
-            <WhatsAppConfig
-              enabled={whatsappEnabled}
-              phoneNumber={whatsappNumber}
-              messageTemplate={whatsappMessage}
-              onEnabledChange={setWhatsappEnabled}
-              onPhoneChange={setWhatsappNumber}
-              onMessageChange={setWhatsappMessage}
-            />
-          </AccordionSection>
-
-          {/* Call Button Section */}
-          <AccordionSection
-            title={language === 'bn' ? 'কল বাটন' : 'Call Button'}
-            icon={Phone}
-            isOpen={openSection === 'call'}
-            onToggle={() => setOpenSection(openSection === 'call' ? '' : 'call')}
-          >
-            <div className="space-y-4">
-              {/* Enable Toggle */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900 text-sm">
-                    {language === 'bn' ? 'কল বাটন চালু করুন' : 'Enable Call Button'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {language === 'bn' ? 'ফ্লোটিং কল বাটন দেখান' : 'Show floating call button'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCallEnabled(!callEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    callEnabled ? 'bg-emerald-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      callEnabled ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-              
-              {/* Phone Number Input */}
-              {callEnabled && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'bn' ? 'ফোন নম্বর' : 'Phone Number'}
-                  </label>
-                  <input
-                    type="tel"
-                    value={callNumber}
-                    onChange={(e) => setCallNumber(e.target.value)}
-                    placeholder="01712345678"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {language === 'bn' ? 'গ্রাহকরা এই নম্বরে সরাসরি কল করতে পারবে' : 'Customers can directly call this number'}
-                  </p>
-                </div>
-              )}
-            </div>
-          </AccordionSection>
-
-          {/* Mode Section */}
-
-          <AccordionSection
-            title={language === 'bn' ? 'মোড' : 'Mode'}
-            icon={Settings}
-            isOpen={openSection === 'mode'}
-            onToggle={() => setOpenSection(openSection === 'mode' ? '' : 'mode')}
-          >
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setStoreMode('landing')}
-                className={`w-full p-3 rounded-lg border-2 text-left transition ${
-                  storeMode === 'landing'
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🎯</span>
-                  <span className="font-medium text-sm">
-                    {language === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'bn' ? 'একটি প্রোডাক্টে ফোকাস' : 'Single product focus'}
-                </p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setStoreMode('store')}
-                className={`w-full p-3 rounded-lg border-2 text-left transition ${
-                  storeMode === 'store'
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🏪</span>
-                  <span className="font-medium text-sm">
-                    {language === 'bn' ? 'ফুল স্টোর' : 'Full Store'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'bn' ? 'প্রোডাক্ট ক্যাটালগ সহ' : 'With product catalog'}
-                </p>
-              </button>
-            </div>
-          </AccordionSection>
-
-          {/* Font Picker Section */}
-          <AccordionSection
-            title={language === 'bn' ? 'ফন্ট' : 'Typography'}
-            icon={Settings}
-            isOpen={openSection === 'font'}
-            onToggle={() => setOpenSection(openSection === 'font' ? '' : 'font')}
-          >
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                // English Fonts
-                { id: 'inter', name: 'Inter', family: "'Inter', sans-serif", preview: 'Modern' },
-                { id: 'poppins', name: 'Poppins', family: "'Poppins', sans-serif", preview: 'Friendly' },
-                { id: 'roboto', name: 'Roboto', family: "'Roboto', sans-serif", preview: 'Classic' },
-                { id: 'playfair', name: 'Playfair', family: "'Playfair Display', serif", preview: 'Elegant' },
-                { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", preview: 'Bold' },
-                // Bengali Fonts
-                { id: 'hind-siliguri', name: 'Hind Siliguri', family: "'Hind Siliguri', sans-serif", preview: 'বাংলা UI' },
-                { id: 'noto-sans-bengali', name: 'Noto Sans Bengali', family: "'Noto Sans Bengali', sans-serif", preview: 'বাংলা Sans' },
-                { id: 'noto-serif-bengali', name: 'Noto Serif Bengali', family: "'Noto Serif Bengali', serif", preview: 'বাংলা Serif' },
-                { id: 'baloo-da', name: 'Baloo Da 2', family: "'Baloo Da 2', cursive", preview: 'বাংলা Display' },
-                { id: 'tiro-bangla', name: 'Tiro Bangla', family: "'Tiro Bangla', serif", preview: 'বাংলা Literary' },
-                { id: 'anek-bangla', name: 'Anek Bangla', family: "'Anek Bangla', sans-serif", preview: 'বাংলা Modern' },
-              ].map((font) => (
-                <button
-                  key={font.id}
-                  type="button"
-                  onClick={() => setFontFamily(font.id)}
-                  className={`p-2 rounded-lg border text-left transition ${
-                    fontFamily === font.id ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'
-                  }`}
-                >
-                  <span className="block text-sm font-medium text-gray-900" style={{ fontFamily: font.family }}>
-                    {font.name}
-                  </span>
-                  <span className="text-xs text-gray-500">{font.preview}</span>
-                </button>
-              ))}
-            </div>
-          </AccordionSection>
-
-          {/* Custom CSS Section */}
-          <AccordionSection
-            title={language === 'bn' ? 'কাস্টম CSS' : 'Custom CSS'}
-            icon={Settings}
-            isOpen={openSection === 'css'}
-            onToggle={() => setOpenSection(openSection === 'css' ? '' : 'css')}
-          >
-            <div className="space-y-3">
-              <textarea
-                value={customCSS}
-                onChange={(e) => setCustomCSS(e.target.value)}
-                placeholder="/* Your custom CSS */
-.hero { background: red; }
-.cta-button { border-radius: 20px; }"
-                rows={10}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-y"
-              />
-              <p className="text-xs text-gray-500">
-                {language === 'bn' 
-                  ? '⚠️ ভুল CSS লেআউট ভেঙে দিতে পারে' 
-                  : '⚠️ Invalid CSS may break layout'}
-              </p>
             </div>
           </AccordionSection>
         </aside>

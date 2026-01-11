@@ -140,6 +140,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
     console.log(`[AUTO-PUBLISH] First product created for store ${storeId}. Auto-set as featured and published.`);
   }
 
+  // ========================================================================
+  // AI AUTO-SYNC: Index new product in Vector Database
+  // ========================================================================
+  try {
+    const { createAIService } = await import('~/services/ai.server');
+    const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+      context: context.cloudflare.env 
+    });
+
+    const productText = `Product: ${title}\nCategory: ${category || 'Uncategorized'}\nPrice: ${price}\nDescription: ${description || ''}`;
+    
+    // Fire and forget (don't await to block UI)
+    context.cloudflare.ctx.waitUntil(
+      ai.insertVector(productText, {
+        storeId,
+        type: 'product',
+        productId: inserted.id,
+        title,
+        category: category || 'Uncategorized',
+        customId: `product-${inserted.id}` // Deterministic ID for upsert
+      })
+    );
+    console.log(`[AI SYNC] Queued vector insertion for product ${inserted.id}`);
+  } catch (err) {
+    console.error('[AI SYNC] Failed to init AI service:', err);
+  }
+
   return redirect('/app/products');
 }
 
@@ -293,7 +320,7 @@ export default function NewProductPage() {
           {t('backToProducts')}
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">{t('addNewProduct')}</h1>
-        <p className="text-gray-600">{lang === 'bn' ? 'নতুন প্রোডাক্ট তৈরি করতে বিস্তারিত তথ্য দিন' : 'Fill in the details to create a new product'}</p>
+        <p className="text-gray-600">{t('fillProductDetails')}</p>
       </div>
 
       {/* Form */}
@@ -345,9 +372,9 @@ export default function NewProductPage() {
                 <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
               )}
               <p className="text-sm text-gray-600">
-                {isUploading ? 'Uploading...' : (lang === 'bn' ? 'আপলোড করতে ক্লিক করুন অথবা ড্র্যাগ অ্যান্ড ড্রপ করুন' : 'Click to upload or drag and drop')}
+                {isUploading ? t('uploading') : t('uploadHint')}
               </p>
-              <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP up to 10MB</p>
+              <p className="text-xs text-gray-400 mt-1">{t('pngJpgWebp')}</p>
             </div>
           )}
 
@@ -378,7 +405,7 @@ export default function NewProductPage() {
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              placeholder={lang === 'bn' ? 'প্রোডাক্টের নাম লিখুন' : 'Enter product title'}
+              placeholder={t('enterProductTitle')}
             />
             {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.title && (
               <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).title}</p>
@@ -457,7 +484,7 @@ export default function NewProductPage() {
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-              placeholder={lang === 'bn' ? 'পণ্যের বিবরণ লিখুন...' : 'Describe your product...'}
+              placeholder={t('describeProduct')}
             />
           </div>
         </div>
@@ -474,8 +501,8 @@ export default function NewProductPage() {
                 <Search className="w-5 h-5 text-blue-600" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-gray-900">SEO Settings</h3>
-                <p className="text-xs text-gray-500">সার্চ ইঞ্জিন অপ্টিমাইজেশন (অটো-জেনারেটেড)</p>
+                <h3 className="font-semibold text-gray-900">{t('seoSettings')}</h3>
+                <p className="text-xs text-gray-500">{t('seoDescription')}</p>
               </div>
             </div>
             {seoExpanded ? (
@@ -489,21 +516,21 @@ export default function NewProductPage() {
             <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
               {/* Google Preview */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs text-gray-500 mb-2">Google Preview:</p>
+                <p className="text-xs text-gray-500 mb-2">{t('googlePreview')}</p>
                 <p className="text-sm text-emerald-700 truncate">yourstore.digitalcare.site/products/...</p>
                 <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
-                  {formSeoTitle || autoSeoTitle || 'প্রোডাক্ট টাইটেল'}
+                  {formSeoTitle || autoSeoTitle || t('productTitle')}
                 </h4>
                 <p className="text-sm text-gray-600 line-clamp-2">
-                  {formSeoDescription || autoSeoDescription || 'প্রোডাক্ট ডেসক্রিপশন এখানে দেখা যাবে...'}
+                  {formSeoDescription || autoSeoDescription || t('seoDescriptionPreview')}
                 </p>
               </div>
               
               {/* Meta Title */}
               <div>
                 <label htmlFor="seoTitle" className="block text-sm font-medium text-gray-700 mb-1">
-                  Meta Title
-                  <span className="text-xs text-gray-400 ml-2">(খালি থাকলে অটো-জেনারেট হবে)</span>
+                  {t('metaTitle')}
+                  <span className="text-xs text-gray-400 ml-2">({t('autoGenerateHint')})</span>
                 </label>
                 <input
                   type="text"
@@ -511,7 +538,7 @@ export default function NewProductPage() {
                   name="seoTitle"
                   value={formSeoTitle}
                   onChange={(e) => setFormSeoTitle(e.target.value)}
-                  placeholder={autoSeoTitle || 'প্রোডাক্ট টাইটেল থেকে নেওয়া হবে...'}
+                  placeholder={autoSeoTitle || t('autoTitleHint')}
                   maxLength={60}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 />
@@ -521,15 +548,15 @@ export default function NewProductPage() {
               {/* Meta Description */}
               <div>
                 <label htmlFor="seoDescription" className="block text-sm font-medium text-gray-700 mb-1">
-                  Meta Description
-                  <span className="text-xs text-gray-400 ml-2">(খালি থাকলে অটো-জেনারেট হবে)</span>
+                  {t('metaDescription')}
+                  <span className="text-xs text-gray-400 ml-2">({t('autoGenerateHint')})</span>
                 </label>
                 <textarea
                   id="seoDescription"
                   name="seoDescription"
                   value={formSeoDescription}
                   onChange={(e) => setFormSeoDescription(e.target.value)}
-                  placeholder={autoSeoDescription || 'প্রোডাক্ট ডেসক্রিপশন থেকে নেওয়া হবে...'}
+                  placeholder={autoSeoDescription || t('autoDescHint')}
                   maxLength={160}
                   rows={3}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
@@ -540,8 +567,8 @@ export default function NewProductPage() {
               {/* Keywords */}
               <div>
                 <label htmlFor="seoKeywords" className="block text-sm font-medium text-gray-700 mb-1">
-                  Keywords
-                  <span className="text-xs text-gray-400 ml-2">(কমা দিয়ে আলাদা করুন)</span>
+                  {t('keywords')}
+                  <span className="text-xs text-gray-400 ml-2">({t('commaSeparated')})</span>
                 </label>
                 <input
                   type="text"
@@ -549,7 +576,7 @@ export default function NewProductPage() {
                   name="seoKeywords"
                   value={formSeoKeywords}
                   onChange={(e) => setFormSeoKeywords(e.target.value)}
-                  placeholder="যেমন: t-shirt, cotton, casual wear"
+                  placeholder={t('keywordPlaceholder')}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 />
               </div>

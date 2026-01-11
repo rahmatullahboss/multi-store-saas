@@ -303,6 +303,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
 
+    return json({ success: true, message: 'Connected successfully!' });
+  }
+
+  if (intent === 'disconnect') {
+    // ... logic for disconnecting
+    
+    // Reset courier settings in store record too
+    await db
+      .update(stores)
+      .set({ 
+        courierSettings: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+
+    // Reset theme config courier settings
+    if (themeConfig.courier) {
+      themeConfig.courier = {
+        provider: null,
+        isConnected: false,
+      };
+      
+      await db
+      .update(stores)
+      .set({ 
+        themeConfig: JSON.stringify(themeConfig),
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+    }
+
     return json({ success: true, message: 'Courier disconnected!' });
   }
 
@@ -326,21 +357,21 @@ export default function CourierSettingsPage() {
       id: 'pathao', 
       name: 'Pathao Courier', 
       logo: '🚴', 
-      description: 'Fast delivery in Dhaka & major cities',
+      description: t('fastDeliveryDhaka'),
       signupUrl: 'https://merchant.pathao.com',
     },
     { 
       id: 'redx', 
       name: 'RedX', 
       logo: '📦', 
-      description: 'Nationwide coverage with COD',
+      description: t('nationwideCoverage'),
       signupUrl: 'https://redx.com.bd/merchant',
     },
     { 
       id: 'steadfast', 
       name: 'Steadfast Courier', 
       logo: '🚚', 
-      description: 'Affordable rates, all Bangladesh',
+      description: t('affordableRates'),
       signupUrl: 'https://steadfast.com.bd',
     },
   ];
@@ -358,7 +389,7 @@ export default function CourierSettingsPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('courierSettings')}</h1>
-            <p className="text-gray-600">{lang === 'bn' ? 'শিপমেন্ট ম্যানেজমেন্টের জন্য কুরিয়ার অ্যাকাউন্ট কানেক্ট করুন' : 'Connect your courier account for shipment management'}</p>
+            <p className="text-gray-600">{t('courierSettingsDesc')}</p>
           </div>
         </div>
       </div>
@@ -386,10 +417,10 @@ export default function CourierSettingsPage() {
             </div>
             <div>
               <p className="font-semibold text-emerald-800">
-                Connected to {providers.find(p => p.id === settings.provider)?.name}
+                {t('connectedTo')} {providers.find(p => p.id === settings.provider)?.name}
               </p>
               <p className="text-sm text-emerald-600">
-                You can now create shipments from the order details page
+                {t('canCreateShipments')}
               </p>
             </div>
           </div>
@@ -399,7 +430,7 @@ export default function CourierSettingsPage() {
               type="submit"
               className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
             >
-              Disconnect
+              {t('disconnect')}
             </button>
           </Form>
         </div>
@@ -407,7 +438,7 @@ export default function CourierSettingsPage() {
 
       {/* Provider Selection */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Courier Provider</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('selectCourierProvider')}</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {providers.map((provider) => (
@@ -431,7 +462,7 @@ export default function CourierSettingsPage() {
                 onClick={(e) => e.stopPropagation()}
                 className="inline-flex items-center gap-1 text-xs text-emerald-600 mt-2 hover:underline"
               >
-                Merchant Signup <ExternalLink className="w-3 h-3" />
+                {t('merchantSignup')} <ExternalLink className="w-3 h-3" />
               </a>
             </button>
           ))}
@@ -446,7 +477,7 @@ export default function CourierSettingsPage() {
           <div className="flex items-center gap-2 mb-6">
             <Key className="w-5 h-5 text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900">
-              {providers.find(p => p.id === selectedProvider)?.name} Credentials
+              {providers.find(p => p.id === selectedProvider)?.name} {t('credentials')}
             </h2>
           </div>
 
@@ -454,7 +485,7 @@ export default function CourierSettingsPage() {
           {selectedProvider === 'pathao' && (
             <div className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-                <p className="font-medium mb-1">📋 How to get Pathao credentials:</p>
+                <p className="font-medium mb-1">📋 {t('howToGetPathao')}</p>
                 <ol className="list-decimal list-inside space-y-1">
                   <li>Login to <a href="https://merchant.pathao.com" target="_blank" rel="noopener noreferrer" className="underline">merchant.pathao.com</a></li>
                   <li>Go to Settings → API Credentials</li>
@@ -465,7 +496,7 @@ export default function CourierSettingsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Client ID
+                    {t('clientId')}
                   </label>
                   <input
                     type="text"
@@ -477,7 +508,7 @@ export default function CourierSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Client Secret
+                    {t('clientSecret')}
                   </label>
                   <input
                     type="password"
@@ -489,7 +520,7 @@ export default function CourierSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Username (Email)
+                    {t('usernameEmail')}
                   </label>
                   <input
                     type="email"
@@ -501,7 +532,7 @@ export default function CourierSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
+                    {t('password')}
                   </label>
                   <input
                     type="password"
@@ -520,13 +551,13 @@ export default function CourierSettingsPage() {
             <div className="space-y-4">
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
                 <AlertCircle className="w-4 h-4 inline mr-1" />
-                RedX integration coming soon! Contact your RedX account manager for API credentials.
+                {t('redxComingSoon')}
               </div>
 
               <div className="grid grid-cols-2 gap-4 opacity-50">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    API Key
+                    {t('apiKey')}
                   </label>
                   <input
                     type="text"
@@ -537,7 +568,7 @@ export default function CourierSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Secret Key
+                    {t('secretKey')}
                   </label>
                   <input
                     type="password"
@@ -554,7 +585,7 @@ export default function CourierSettingsPage() {
           {selectedProvider === 'steadfast' && (
             <div className="space-y-4">
               <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-sm text-emerald-800">
-                <p className="font-medium mb-1">📋 How to get Steadfast credentials:</p>
+                <p className="font-medium mb-1">📋 {t('howToGetSteadfast')}</p>
                 <ol className="list-decimal list-inside space-y-1">
                   <li>Login to <a href="https://portal.packzy.com" target="_blank" rel="noopener noreferrer" className="underline">portal.packzy.com</a></li>
                   <li>Go to Settings → API Settings</li>
@@ -565,7 +596,7 @@ export default function CourierSettingsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    API Key
+                    {t('apiKey')}
                   </label>
                   <input
                     type="text"
@@ -577,7 +608,7 @@ export default function CourierSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Secret Key
+                    {t('secretKey')}
                   </label>
                   <input
                     type="password"
@@ -605,7 +636,7 @@ export default function CourierSettingsPage() {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Save Credentials
+              {t('saveCredentials')}
             </button>
 
             {settings.provider === selectedProvider && (
@@ -614,14 +645,14 @@ export default function CourierSettingsPage() {
                 name="intent"
                 value="test"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 transition"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-0 disabled:opacity-50 transition"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <TestTube className="w-4 h-4" />
                 )}
-                Test Connection
+                {t('testConnection')}
               </button>
             )}
           </div>
@@ -630,13 +661,13 @@ export default function CourierSettingsPage() {
 
       {/* Info Box */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-        <h3 className="font-semibold text-gray-900 mb-2">📦 How shipments work</h3>
+        <h3 className="font-semibold text-gray-900 mb-2">{t('howShipmentsWork')}</h3>
         <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600">
-          <li>Connect your courier account above</li>
-          <li>When an order is placed, go to Order Details</li>
-          <li>Click "Create Shipment" to book pickup with your courier</li>
-          <li>Tracking number will be saved automatically</li>
-          <li>Customer can track their order in real-time</li>
+          <li>{t('howShipmentsWork1')}</li>
+          <li>{t('howShipmentsWork2')}</li>
+          <li>{t('howShipmentsWork3')}</li>
+          <li>{t('howShipmentsWork4')}</li>
+          <li>{t('howShipmentsWork5')}</li>
         </ol>
       </div>
     </div>

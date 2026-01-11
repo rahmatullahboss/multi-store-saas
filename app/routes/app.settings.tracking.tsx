@@ -56,7 +56,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (pixelId && !/^\d{15,16}$/.test(pixelId)) {
     return json({ 
       success: false, 
-      error: 'Invalid Facebook Pixel ID format. It should be a 15-16 digit number.' 
+      error: 'invalidPixelId'
     }, { status: 400 });
   }
 
@@ -64,7 +64,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (gaId && !/^G-[A-Z0-9]{8,12}$/i.test(gaId)) {
     return json({ 
       success: false, 
-      error: 'Invalid GA4 Measurement ID format. It should be like G-XXXXXXXXXX.' 
+      error: 'invalidGaId'
     }, { status: 400 });
   }
 
@@ -79,7 +79,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     })
     .where(eq(stores.id, storeId));
 
-  return json({ success: true, message: 'Tracking settings saved successfully!' });
+  return json({ success: true, message: 'trackingSaved' });
 }
 
 export default function TrackingSettings() {
@@ -113,12 +113,10 @@ export default function TrackingSettings() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {lang === 'bn' ? 'ট্র্যাকিং ও অ্যানালিটিক্স' : 'Tracking & Analytics'}
+            {t('trackingAnalytics')}
           </h1>
           <p className="text-gray-500 mt-1">
-            {lang === 'bn' 
-              ? 'ফেসবুক পিক্সেল ও গুগল অ্যানালিটিক্স সেটআপ করে কাস্টমার ট্র্যাকিং সক্রিয় করুন।'
-              : 'Set up Facebook Pixel and Google Analytics to track customer behavior and conversions.'}
+            {t('trackingSetupDesc')}
           </p>
         </div>
       </div>
@@ -127,13 +125,13 @@ export default function TrackingSettings() {
       {fetcher.data?.success && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {fetcher.data.message}
+          {t(fetcher.data.message as any)}
         </div>
       )}
       {fetcher.data?.error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
-          {fetcher.data.error}
+          {t(fetcher.data.error as any)}
         </div>
       )}
 
@@ -152,8 +150,8 @@ export default function TrackingSettings() {
               </div>
               <p className="text-sm text-gray-500 mt-0.5">
                 {isFbConfigured 
-                  ? (lang === 'bn' ? 'সক্রিয় আছে' : 'Active')
-                  : (lang === 'bn' ? 'সেটআপ করা হয়নি' : 'Not configured')}
+                  ? t('active')
+                  : t('notConfigured')}
               </p>
             </div>
           </div>
@@ -172,8 +170,8 @@ export default function TrackingSettings() {
               </div>
               <p className="text-sm text-gray-500 mt-0.5">
                 {isGaConfigured 
-                  ? (lang === 'bn' ? 'সক্রিয় আছে' : 'Active')
-                  : (lang === 'bn' ? 'সেটআপ করা হয়নি' : 'Not configured')}
+                  ? t('active')
+                  : t('notConfigured')}
               </p>
             </div>
           </div>
@@ -206,7 +204,7 @@ export default function TrackingSettings() {
                     type="button"
                     onClick={() => setShowPixelId(!showPixelId)}
                     className="p-2 text-gray-400 hover:text-gray-600"
-                    title={showPixelId ? 'Hide' : 'Show'}
+                    title={showPixelId ? t('hide') : t('show')}
                   >
                     {showPixelId ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -215,7 +213,7 @@ export default function TrackingSettings() {
                       type="button"
                       onClick={() => handleCopy(store.facebookPixelId!, 'fb')}
                       className={`p-2 ${copiedField === 'fb' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'}`}
-                      title="Copy"
+                      title={t('copy')}
                     >
                       <Copy className="w-4 h-4" />
                     </button>
@@ -223,9 +221,7 @@ export default function TrackingSettings() {
                 </div>
               </div>
               <p className="mt-2 text-sm text-gray-500">
-                {lang === 'bn'
-                  ? '১৫-১৬ সংখ্যার Pixel ID। Facebook Events Manager থেকে পাবেন।'
-                  : '15-16 digit Pixel ID from Facebook Events Manager.'}
+                {t('fbPixelIdDesc')}
               </p>
             </div>
             <a
@@ -234,7 +230,7 @@ export default function TrackingSettings() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
-              {lang === 'bn' ? 'Events Manager খুলুন' : 'Open Events Manager'}
+              {t('openEventsManager')}
               <ExternalLink className="w-3 h-3" />
             </a>
 
@@ -244,7 +240,7 @@ export default function TrackingSettings() {
                 Conversion API Access Token
                 {isCapiConfigured && (
                   <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                    {lang === 'bn' ? 'সক্রিয়' : 'CAPI Active'}
+                    {t('capiActive')}
                   </span>
                 )}
               </label>
@@ -260,7 +256,7 @@ export default function TrackingSettings() {
                   type="button"
                   onClick={() => setShowAccessToken(!showAccessToken)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600"
-                  title={showAccessToken ? 'Hide' : 'Show'}
+                  title={showAccessToken ? t('hide') : t('show')}
                 >
                   {showAccessToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -269,44 +265,30 @@ export default function TrackingSettings() {
               {/* Simple Setup Instructions */}
               <div className="mt-3 bg-gray-50 rounded-lg p-4 text-sm text-gray-700 space-y-2">
                 <p className="font-medium text-gray-900">
-                  {lang === 'bn' ? 'কিভাবে পাবেন:' : 'How to get:'}
+                  {t('howToGet')}
                 </p>
                 <div className="space-y-1.5">
                   <p>
-                    {lang === 'bn' 
-                      ? '১. Facebook Business Manager → Events Manager এ যান'
-                      : '1. Go to Facebook Business Manager → Events Manager'}
+                    {t('capiStep1')}
                   </p>
                   <p>
-                    {lang === 'bn'
-                      ? '২. আপনার Pixel সিলেক্ট করুন'
-                      : '2. Select your Pixel'}
+                    {t('capiStep2')}
                   </p>
                   <p>
-                    {lang === 'bn'
-                      ? '৩. Settings ট্যাবে ক্লিক করুন'
-                      : '3. Click on Settings tab'}
+                    {t('capiStep3')}
                   </p>
                   <p>
-                    {lang === 'bn'
-                      ? '৪. "Conversions API" সেকশনে যান'
-                      : '4. Go to "Conversions API" section'}
+                    {t('capiStep4')}
                   </p>
                   <p>
-                    {lang === 'bn'
-                      ? '৫. "Generate Access Token" বাটনে ক্লিক করুন'
-                      : '5. Click "Generate Access Token" button'}
+                    {t('capiStep5')}
                   </p>
                   <p>
-                    {lang === 'bn'
-                      ? '৬. Token টি কপি করে এখানে পেস্ট করুন'
-                      : '6. Copy the token and paste it here'}
+                    {t('capiStep6')}
                   </p>
                 </div>
                 <p className="text-amber-600 text-xs mt-2">
-                  {lang === 'bn'
-                    ? '⚠️ এই Token গোপন রাখুন, কাউকে শেয়ার করবেন না।'
-                    : '⚠️ Keep this token secret, do not share with anyone.'}
+                  {t('capiSecretWarning')}
                 </p>
               </div>
 
@@ -314,9 +296,7 @@ export default function TrackingSettings() {
                 <div className="mt-3 flex items-start gap-2 text-amber-700 bg-amber-50 p-3 rounded-lg text-sm">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <p>
-                    {lang === 'bn'
-                      ? 'Access Token যোগ করলে iOS 14+ ও Ad Blocker এর ক্ষেত্রেও ভালো tracking পাবেন।'
-                      : 'Add Access Token for better tracking with iOS 14+ and ad blockers.'}
+                    {t('capiBenefit')}
                   </p>
                 </div>
               )}
@@ -348,7 +328,7 @@ export default function TrackingSettings() {
                     type="button"
                     onClick={() => setShowGaId(!showGaId)}
                     className="p-2 text-gray-400 hover:text-gray-600"
-                    title={showGaId ? 'Hide' : 'Show'}
+                    title={showGaId ? t('hide') : t('show')}
                   >
                     {showGaId ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -365,9 +345,7 @@ export default function TrackingSettings() {
                 </div>
               </div>
               <p className="mt-2 text-sm text-gray-500">
-                {lang === 'bn'
-                  ? 'GA4 Measurement ID (G-XXXXXXXXXX)। Google Analytics থেকে পাবেন।'
-                  : 'GA4 Measurement ID (G-XXXXXXXXXX) from Google Analytics.'}
+                {t('gaIdDesc')}
               </p>
             </div>
             <a
@@ -376,7 +354,7 @@ export default function TrackingSettings() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-800 text-sm font-medium"
             >
-              {lang === 'bn' ? 'Google Analytics খুলুন' : 'Open Google Analytics'}
+              {t('openGA')}
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
@@ -386,22 +364,22 @@ export default function TrackingSettings() {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
             <Info className="w-4 h-4" />
-            {lang === 'bn' ? 'যেসব ইভেন্ট ট্র্যাক হবে' : 'Events That Will Be Tracked'}
+            {t('eventsTracked')}
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
             {[
-              { event: 'PageView', bn: 'পেইজ ভিউ', desc: 'Every page load' },
-              { event: 'ViewContent', bn: 'প্রোডাক্ট ভিউ', desc: 'Product page' },
-              { event: 'AddToCart', bn: 'কার্টে যোগ', desc: 'Add to cart' },
-              { event: 'InitiateCheckout', bn: 'চেকআউট শুরু', desc: 'Checkout page' },
-              { event: 'Purchase', bn: 'অর্ডার সম্পন্ন', desc: 'Thank you page' },
-              { event: 'Lead', bn: 'লিড জেনারেশন', desc: 'Contact form' },
+              { event: 'PageView', bn: 'pageView', desc: 'everyPageLoad' },
+              { event: 'ViewContent', bn: 'viewContent', desc: 'productPage' },
+              { event: 'AddToCart', bn: 'addToCart', desc: 'addToCart' },
+              { event: 'InitiateCheckout', bn: 'initiateCheckout', desc: 'checkoutPage' },
+              { event: 'Purchase', bn: 'purchase', desc: 'thankYouPage' },
+              { event: 'Lead', bn: 'lead', desc: 'contactForm' },
             ].map(({ event, bn, desc }) => (
               <div key={event} className="flex items-center gap-2 text-gray-600">
                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <div>
-                  <span className="font-medium">{lang === 'bn' ? bn : event}</span>
-                  <span className="text-gray-400 text-xs ml-1">({desc})</span>
+                  <span className="font-medium">{t(bn as any)}</span>
+                  <span className="text-gray-400 text-xs ml-1">({t(desc as any)})</span>
                 </div>
               </div>
             ))}
@@ -415,12 +393,10 @@ export default function TrackingSettings() {
               <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
                 <h4 className="font-medium text-amber-800">
-                  {lang === 'bn' ? 'গুরুত্বপূর্ণ তথ্য' : 'Important Information'}
+                  {t('importantInfo')}
                 </h4>
                 <p className="text-sm text-amber-700 mt-1">
-                  {lang === 'bn'
-                    ? 'আপনার পিক্সেল ডেটা (অডিয়েন্স, কনভার্সন হিস্টরি) Facebook/Google এ সংরক্ষিত থাকে। আপনি যদি পিক্সেল সরিয়ে দেন বা প্ল্যাটফর্ম ছেড়ে যান, এই ডেটা হারাবেন। এই ডেটা এক্সপোর্ট বা ট্রান্সফার করা যায় না।'
-                    : 'Your pixel data (audiences, conversion history) is stored by Facebook/Google. If you disconnect your pixels or leave the platform, you will lose access to this valuable retargeting data. This data cannot be exported or transferred.'}
+                  {t('pixelWarning')}
                 </p>
               </div>
             </div>
@@ -436,8 +412,8 @@ export default function TrackingSettings() {
           >
             <Save className="w-4 h-4" />
             {isSaving 
-              ? (lang === 'bn' ? 'সেভ হচ্ছে...' : 'Saving...') 
-              : (lang === 'bn' ? 'সেটিংস সেভ করুন' : 'Save Settings')}
+              ? t('savingSettings') 
+              : t('saveSettings')}
           </button>
         </div>
       </fetcher.Form>

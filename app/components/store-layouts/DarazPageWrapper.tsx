@@ -9,6 +9,7 @@
 import type { ReactNode } from 'react';
 import { Link } from '@remix-run/react';
 import { useState } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { 
   Menu, X, Search, ShoppingCart, Heart, User, 
   ChevronRight, Headphones, ShoppingBag 
@@ -46,6 +47,7 @@ export function DarazPageWrapper({
 }: DarazPageWrapperProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const count = useCartCount();
   
   const featuredCategories = categories.filter(Boolean).slice(0, 8);
 
@@ -125,9 +127,8 @@ export function DarazPageWrapper({
               <span 
                 className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 h-4 w-4 md:h-5 md:w-5 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold"
                 style={{ backgroundColor: '#FFD700', color: DARAZ_TEXT }}
-                id="cart-count"
               >
-                0
+                {count}
               </span>
             </Link>
             <button className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition">

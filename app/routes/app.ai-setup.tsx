@@ -22,7 +22,7 @@ export const meta = () => [
 // Loader: Check plan access
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request, env);
   const storeId = session.get('storeId');
 
   if (!storeId) {
@@ -51,7 +51,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const { env } = context.cloudflare;
   const db = drizzle(env.DB);
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request, env);
   const storeId = session.get('storeId');
 
   if (!storeId) {
@@ -88,7 +88,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   try {
-    const ai = createAIService(apiKey);
+    // ========================================================================
+    // CHECK PRODUCT LIMIT BEFORE AI CREATION
+    // ========================================================================
+    const { checkUsageLimit } = await import('~/utils/plans.server');
+    const limitCheck = await checkUsageLimit(env.DB, storeId, 'product');
+    
+    if (!limitCheck.allowed) {
+      return json({ 
+        error: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.' 
+      }, { status: 403 });
+    }
+
+    const ai = createAIService(apiKey, {
+      model: env.AI_MODEL,
+      baseUrl: env.AI_BASE_URL
+    });
     
     // Step 1: Generate store setup
     const storeSetup = await ai.generateStoreSetup(description);

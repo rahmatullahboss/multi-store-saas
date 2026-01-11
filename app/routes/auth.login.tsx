@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { Form, Link, useActionData, useNavigation } from '@remix-run/react';
+import { Form, Link, useActionData, useNavigation, useSearchParams } from '@remix-run/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { login, createUserSession, getUserId } from '~/services/auth.server';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
@@ -118,6 +118,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         email,
         password,
         db: context.cloudflare.env.DB,
+        ip: clientIp,
+        userAgent: request.headers.get('User-Agent') || 'unknown',
+        env: context.cloudflare.env,
       });
       console.log('[auth.login] Login service returned:', result.error ? 'Error' : 'Success');
       if (result.errorCode) {
@@ -217,7 +220,15 @@ export default function LoginPage() {
   const errorCode = (actionData as { errorCode?: string } | undefined)?.errorCode;
   
   // Translation hook for reactive i18n
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const errorParam = searchParams.get('error');
+  
+  // Custom message for missing store
+  const storeNotFoundError = errorParam === 'store_not_found' 
+    ? (lang === 'bn' ? 'আপনার স্টোরটি খুঁজে পাওয়া যায়নি। দয়া করে এডমিনের সাথে যোগাযোগ করুন অথবা নতুন করে সাইন-আপ করুন।' 
+                   : 'Your store could not be found. Please contact support or sign up for a new account.')
+    : null;
   
   // Password visibility toggle
   const [showPassword, setShowPassword] = useState(false);
@@ -242,9 +253,9 @@ export default function LoginPage() {
 
           <Form method="post" className="space-y-6">
             {/* Form Error */}
-            {errors?.form && (
+            {(errors?.form || storeNotFoundError) && (
               <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-sm">
-                <p className="font-medium">{errors.form}</p>
+                <p className="font-medium">{errors?.form || storeNotFoundError}</p>
                 {errorCode && (
                   <p className="text-xs text-red-400 mt-1">Error Code: {errorCode}</p>
                 )}
@@ -271,9 +282,14 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                {t('password')}
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  {t('password')}
+                </label>
+                <Link to="/auth/forgot-password" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                  {t('forgotPassword') || 'Forgot Password?'}
+                </Link>
+              </div>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}

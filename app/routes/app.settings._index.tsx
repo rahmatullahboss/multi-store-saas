@@ -23,7 +23,7 @@ import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { fontOptions } from '~/lib/theme';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
-import { Store, Globe, Palette, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Type, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Eye, Trash2, AlertTriangle } from 'lucide-react';
+import { Store, Globe, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Trash2, AlertTriangle, Palette } from 'lucide-react';
 import { StoreDeleteWarningModal } from '~/components/StoreDeleteWarningModal';
 import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
@@ -31,7 +31,7 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Settings - Multi-Store SaaS' }];
+  return [{ title: 'Settings' }];
 };
 
 // ============================================================================
@@ -40,7 +40,7 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
+    throw new Response('Unauthorized', { status: 401 });
   }
 
   const db = drizzle(context.cloudflare.env.DB);
@@ -162,7 +162,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Validation
   if (!name || name.trim().length < 2) {
-    return json({ error: 'Store name must be at least 2 characters' }, { status: 400 });
+    return json({ error: 'storeNameMinLength' }, { status: 400 });
   }
 
   // ========================================================================
@@ -176,7 +176,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!canUseStoreMode(planType)) {
       console.warn(`[SECURITY] Free user (store ${storeId}) attempted to switch to store mode`);
       return json({ 
-        error: 'Full Store mode requires a paid plan. Please upgrade to unlock.' 
+        error: 'storeModeUpgradeRequired' 
       }, { status: 403 });
     }
   }
@@ -214,6 +214,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .set(updateData)
     .where(eq(stores.id, storeId));
 
+  // ========================================================================
+  // AI AUTO-SYNC: Update Vector Database
+  // ========================================================================
+  try {
+    const { createAIService } = await import('~/services/ai.server');
+    const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+        context: context.cloudflare.env 
+    });
+
+    const settingsText = `Store Settings:
+Name: ${updateData.name}
+Currency: ${updateData.currency}
+Domain: ${updateData.customDomain || 'Not set'}
+Business Phone: ${businessPhone}
+Business Email: ${businessEmail}
+Business Address: ${businessAddress}
+Social Media: Facebook: ${facebook}, Instagram: ${instagram}, WhatsApp: ${whatsapp}`;
+    
+    context.cloudflare.ctx.waitUntil(
+        ai.insertVector(settingsText, {
+            storeId,
+            type: 'settings',
+            title: 'General Settings',
+            customId: `settings-${storeId}` // Deterministic ID for upsert
+        })
+    );
+     console.log(`[AI SYNC] Queued vector update for settings-${storeId}`);
+  } catch (err) {
+    console.error('[AI SYNC] Failed to update settings vector:', err);
+  }
+
   return json({ success: true });
 }
 
@@ -228,24 +259,13 @@ const currencies = [
   { value: 'INR', label: '₹ INR - Indian Rupee' },
 ];
 
-// ============================================================================
-// THEMES (Preset themes - no drag & drop builder)
-// ============================================================================
-const themes = [
-  { value: 'default', label: 'Default', color: '#10b981', description: 'Clean emerald theme' },
-  { value: 'ocean', label: 'Ocean Blue', color: '#3b82f6', description: 'Professional blue theme' },
-  { value: 'sunset', label: 'Sunset', color: '#f59e0b', description: 'Warm orange theme' },
-  { value: 'rose', label: 'Rose', color: '#f43f5e', description: 'Bold pink theme' },
-  { value: 'purple', label: 'Purple', color: '#8b5cf6', description: 'Modern violet theme' },
-  { value: 'dark', label: 'Dark Mode', color: '#1f2937', description: 'Sleek dark theme' },
-];
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 export default function SettingsPage() {
   const { store, allowStoreMode, dataCounts } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<typeof action>() as { success?: boolean; error?: string } | undefined;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
@@ -288,7 +308,7 @@ export default function SettingsPage() {
 
   // Show success message
   useEffect(() => {
-    if (actionData && typeof actionData === 'object' && 'success' in actionData && (actionData as { success?: boolean }).success) {
+    if (actionData?.success) {
       setShowSuccess(true);
       const timer = setTimeout(() => setShowSuccess(false), 3000);
       return () => clearTimeout(timer);
@@ -411,21 +431,21 @@ export default function SettingsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('settings')}</h1>
-        <p className="text-gray-600">{lang === 'bn' ? 'আপনার স্টোর কনফিগারেশন ম্যানেজ করুন' : 'Manage your store configuration'}</p>
+        <p className="text-gray-600">{t('settingsSubtitle')}</p>
       </div>
 
-      {/* Success Message */}
+
       {showSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {lang === 'bn' ? 'সেটিংস সেভ হয়েছে!' : 'Settings saved successfully!'}
+          {t('settingsSaved')}
         </div>
       )}
 
       {/* Error Message */}
-      {actionData && typeof actionData === 'object' && 'error' in actionData && (actionData as { error?: string }).error && (
+      {actionData?.error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {(actionData as { error: string }).error}
+          {t(actionData.error as any)}
         </div>
       )}
 
@@ -441,15 +461,15 @@ export default function SettingsPage() {
               <Image className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'ব্র্যান্ডিং' : 'Branding'}</h2>
-              <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরের লোগো এবং ফ্যাভিকন' : 'Logo and favicon for your store'}</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('branding')}</h2>
+              <p className="text-sm text-gray-500">{t('brandingDesc')}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Logo Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{lang === 'bn' ? 'স্টোর লোগো' : 'Store Logo'}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('storeLogo')}</label>
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {logoPreview ? (
@@ -486,9 +506,9 @@ export default function SettingsPage() {
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
                   >
                     <Upload className="w-4 h-4" />
-                    {isUploadingLogo ? (lang === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...') : (lang === 'bn' ? 'আপলোড' : 'Upload')}
+                    {isUploadingLogo ? t('uploading') : t('uploadBtn')}
                   </button>
-                  <p className="text-xs text-gray-500 mt-1">{lang === 'bn' ? 'PNG, JPG। চারকোনা সবচেয়ে ভালো।' : 'PNG, JPG. Square works best.'}</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('logoHint')}</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -502,7 +522,7 @@ export default function SettingsPage() {
 
             {/* Favicon Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('favicon')}</label>
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {faviconPreview ? (
@@ -539,9 +559,9 @@ export default function SettingsPage() {
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
                   >
                     <Upload className="w-4 h-4" />
-                    {isUploadingFavicon ? (lang === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...') : (lang === 'bn' ? 'আপলোড' : 'Upload')}
+                    {isUploadingFavicon ? t('uploading') : t('uploadBtn')}
                   </button>
-                  <p className="text-xs text-gray-500 mt-1">32x32 or 16x16 PNG</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('faviconHint')}</p>
                 </div>
                 <input
                   ref={faviconInputRef}
@@ -562,8 +582,8 @@ export default function SettingsPage() {
               <Store className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'স্টোর তথ্য' : 'Store Information'}</h2>
-              <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোরের মৌলিক বিবরণ' : 'Basic details about your store'}</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('storeInformation')}</h2>
+              <p className="text-sm text-gray-500">{t('storeInformationDesc')}</p>
             </div>
           </div>
 
@@ -571,7 +591,7 @@ export default function SettingsPage() {
             {/* Store Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                {lang === 'bn' ? 'স্টোরের নাম' : 'Store Name'}
+                {t('storeNameLabel')}
               </label>
               <input
                 type="text"
@@ -585,7 +605,7 @@ export default function SettingsPage() {
             {/* Currency */}
             <div>
               <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                {lang === 'bn' ? 'মুদ্রা' : 'Currency'}
+                {t('storeCurrency')}
               </label>
               <select
                 id="currency"
@@ -620,10 +640,10 @@ export default function SettingsPage() {
 
             {/* Read-only info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-              <InfoItem label="Subdomain" value={`${store.subdomain}.digitalcare.site`} />
-              <InfoItem label="Current Plan" value={store.planType === 'free' ? 'Free' : store.planType.charAt(0).toUpperCase() + store.planType.slice(1)} />
+              <InfoItem label={t('subdomainLabel')} value={`${store.subdomain}.digitalcare.site`} />
+              <InfoItem label={t('currentPlanLabel')} value={t(store.planType)} />
               {store.customDomain && (
-                <InfoItem label="Custom Domain" value={store.customDomain} />
+                <InfoItem label={t('customDomainLabel')} value={store.customDomain} />
               )}
             </div>
           </div>
@@ -636,8 +656,8 @@ export default function SettingsPage() {
               <Layout className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{lang === 'bn' ? 'স্টোর মোড' : 'Store Mode'}</h2>
-              <p className="text-sm text-gray-500">{lang === 'bn' ? 'গ্রাহকদের কাছে আপনার স্টোর কীভাবে দেখাবে নির্বাচন করুন' : 'Choose how your store appears to customers'}</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('storeMode')}</h2>
+              <p className="text-sm text-gray-500">{t('storeModeDesc')}</p>
             </div>
           </div>
 
@@ -660,8 +680,8 @@ export default function SettingsPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-3">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{lang === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}</h3>
-                <p className="text-sm text-gray-500">{lang === 'bn' ? 'একটি প্রোডাক্টের উপর ফোকাস করে হাই-কনভার্টিং সেলস পেজ ডিজাইন।' : 'Single product focus with high-converting sales page design. Perfect for featured products.'}</p>
+                <h3 className="font-semibold text-gray-900 mb-1">{t('landingPage')}</h3>
+                <p className="text-sm text-gray-500">{t('landingPageDesc')}</p>
                 {storeMode === 'landing' && (
                   <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
                 )}
@@ -680,8 +700,8 @@ export default function SettingsPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-3">
                   <ShoppingBag className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{lang === 'bn' ? 'ফুল স্টোর' : 'Full Store'}</h3>
-                <p className="text-sm text-gray-500">{lang === 'bn' ? 'প্রোডাক্ট ক্যাটালগ, কার্ট, ক্যাটাগরি এবং চেকআউট সহ সম্পূর্ণ ই-কমার্স অভিজ্ঞতা।' : 'Complete e-commerce experience with product catalog, cart, categories, and checkout.'}</p>
+                <h3 className="font-semibold text-gray-900 mb-1">{t('fullStore')}</h3>
+                <p className="text-sm text-gray-500">{t('fullStoreDesc')}</p>
                 {storeMode === 'store' && (
                   <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
                 )}
@@ -696,10 +716,10 @@ export default function SettingsPage() {
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{lang === 'bn' ? 'ল্যান্ডিং পেজ মোড' : 'Landing Page Mode'}</h3>
-                  <p className="text-sm text-gray-500">{lang === 'bn' ? 'আপনার স্টোর একটি সিঙ্গেল প্রোডাক্ট সেলস পেজ দেখায়' : 'Your store displays a single product sales page'}</p>
+                  <h3 className="font-semibold text-gray-900">{t('landingPageMode')}</h3>
+                  <p className="text-sm text-gray-500">{t('landingPageModeActive')}</p>
                 </div>
-                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">{lang === 'bn' ? 'সক্রিয়' : 'Active'}</span>
+                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">{t('active')}</span>
               </div>
 
               {/* Upgrade Prompt for Full Store */}
@@ -713,8 +733,8 @@ export default function SettingsPage() {
                     <ShoppingBag className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-700">{lang === 'bn' ? 'ফুল স্টোর মোড' : 'Full Store Mode'}</h3>
-                    <p className="text-sm text-gray-500">{lang === 'bn' ? 'প্রোডাক্ট ক্যাটালগ, কার্ট ও ক্যাটাগরি আনলক করুন' : 'Unlock product catalog, cart & categories'}</p>
+                    <h3 className="font-semibold text-gray-700">{t('fullStoreMode')}</h3>
+                    <p className="text-sm text-gray-500">{t('fullStoreModeLocked')}</p>
                   </div>
                 </div>
               </div>
@@ -725,96 +745,10 @@ export default function SettingsPage() {
                 className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-lg shadow-amber-500/20"
               >
                 <Crown className="w-5 h-5" />
-                {lang === 'bn' ? 'ফুল স্টোর মোড আনলক করতে আপগ্রেড করুন' : 'Upgrade to Unlock Full Store Mode'}
+                {t('upgradeToUnlockFullStore')}
               </a>
             </div>
           )}
-        </div>
-        {/* Theme & Font Selection */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Palette className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">Theme & Typography</h2>
-                <p className="text-sm text-gray-500">Customize the look of your store</p>
-              </div>
-            </div>
-            {/* Preview Button */}
-            <button
-              type="button"
-              onClick={() => setShowPreview(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-indigo-600 transition shadow-md"
-            >
-              <Eye className="w-4 h-4" />
-              Preview Theme
-            </button>
-          </div>
-
-          {/* Theme Grid */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">Color Theme</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {themes.map((t) => (
-                <label
-                  key={t.value}
-                  className={`
-                    relative flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer transition
-                    ${selectedTheme === t.value ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}
-                  `}
-                  onClick={() => setSelectedTheme(t.value)}
-                >
-                  <input
-                    type="radio"
-                    name="theme"
-                    value={t.value}
-                    checked={selectedTheme === t.value}
-                    onChange={() => setSelectedTheme(t.value)}
-                    className="sr-only"
-                  />
-                  <div
-                    className="w-10 h-10 rounded-full mb-2 border-2 border-white shadow-md"
-                    style={{ backgroundColor: t.color }}
-                  />
-                  <span className="font-medium text-gray-900 text-sm">{t.label}</span>
-                  <span className="text-xs text-gray-500 text-center">{t.description}</span>
-                  {selectedTheme === t.value && (
-                    <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
-                  )}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Font Selection */}
-          <div>
-            <label htmlFor="fontFamily" className="block text-sm font-medium text-gray-700 mb-1">
-              <Type className="w-4 h-4 inline mr-1" /> Font Family
-            </label>
-            <select
-              id="fontFamily"
-              name="fontFamily"
-              value={selectedFont}
-              onChange={(e) => setSelectedFont(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
-            >
-              {fontOptions.map((font) => (
-                <option key={font.value} value={font.value} style={{ fontFamily: font.family }}>
-                  {font.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-500 mt-1">The font will be applied to your storefront.</p>
-          </div>
-
-          {/* Preview Tip */}
-          <div className="mt-4 p-3 bg-purple-50 border border-purple-100 rounded-lg">
-            <p className="text-sm text-purple-700">
-              💡 <strong>Tip:</strong> Click "Preview Theme" above to see how your store will look before saving!
-            </p>
-          </div>
         </div>
 
         {/* Theme Preview Modal */}
@@ -834,8 +768,8 @@ export default function SettingsPage() {
               <Instagram className="w-5 h-5 text-pink-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Social Media</h2>
-              <p className="text-sm text-gray-500">Connect your social profiles</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('socialMedia')}</h2>
+              <p className="text-sm text-gray-500">{t('connectSocialProfiles')}</p>
             </div>
           </div>
 
@@ -843,7 +777,7 @@ export default function SettingsPage() {
             {/* Facebook */}
             <div>
               <label htmlFor="facebook" className="block text-sm font-medium text-gray-700 mb-1">
-                <Facebook className="w-4 h-4 inline mr-1 text-blue-600" /> Facebook
+                <Facebook className="w-4 h-4 inline mr-1 text-blue-600" /> {t('facebookUrl')}
               </label>
               <input
                 type="url"
@@ -858,7 +792,7 @@ export default function SettingsPage() {
             {/* Instagram */}
             <div>
               <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 mb-1">
-                <Instagram className="w-4 h-4 inline mr-1 text-pink-600" /> Instagram
+                <Instagram className="w-4 h-4 inline mr-1 text-pink-600" /> {t('instagramUrl')}
               </label>
               <input
                 type="url"
@@ -873,7 +807,7 @@ export default function SettingsPage() {
             {/* WhatsApp */}
             <div>
               <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
-                <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" /> WhatsApp
+                <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" /> {t('whatsappNumber')}
               </label>
               <input
                 type="tel"
@@ -883,7 +817,7 @@ export default function SettingsPage() {
                 placeholder="+8801XXXXXXXXX"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              <p className="text-xs text-gray-500 mt-1">Include country code for WhatsApp link</p>
+              <p className="text-xs text-gray-500 mt-1">{t('whatsappCountryCodeHint')}</p>
             </div>
           </div>
         </div>
@@ -895,8 +829,8 @@ export default function SettingsPage() {
               <Phone className="w-5 h-5 text-orange-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Business Information</h2>
-              <p className="text-sm text-gray-500">Contact details for invoices and customers</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('businessInformation')}</h2>
+              <p className="text-sm text-gray-500">{t('contactDetailsInvoices')}</p>
             </div>
           </div>
 
@@ -904,7 +838,7 @@ export default function SettingsPage() {
             {/* Phone */}
             <div>
               <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                <Phone className="w-4 h-4 inline mr-1" /> Business Phone
+                <Phone className="w-4 h-4 inline mr-1" /> {t('businessPhoneLabel')}
               </label>
               <input
                 type="tel"
@@ -919,7 +853,7 @@ export default function SettingsPage() {
             {/* Email */}
             <div>
               <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                <Mail className="w-4 h-4 inline mr-1" /> Business Email
+                <Mail className="w-4 h-4 inline mr-1" /> {t('businessEmailLabel')}
               </label>
               <input
                 type="email"
@@ -934,7 +868,7 @@ export default function SettingsPage() {
             {/* Address */}
             <div>
               <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-1">
-                <MapPin className="w-4 h-4 inline mr-1" /> Business Address
+                <MapPin className="w-4 h-4 inline mr-1" /> {t('businessAddressLabel')}
               </label>
               <textarea
                 id="businessAddress"
@@ -955,15 +889,15 @@ export default function SettingsPage() {
               <Globe className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Custom Domain</h2>
-              <p className="text-sm text-gray-500">Connect your own domain</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('customDomain')}</h2>
+              <p className="text-sm text-gray-500">{t('connectOwnDomain')}</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {/* Current Domain Info */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600">Your store is currently accessible at:</p>
+              <p className="text-sm text-gray-600">{t('storeCurrentlyAt')}</p>
               <p className="font-medium text-gray-900 mt-1">
                 https://{store.subdomain}.digitalcare.site
               </p>
@@ -972,7 +906,7 @@ export default function SettingsPage() {
             {/* Custom Domain Input */}
             <div>
               <label htmlFor="customDomain" className="block text-sm font-medium text-gray-700 mb-1">
-                Custom Domain (optional)
+                {t('customDomainOptional')}
               </label>
               <input
                 type="text"
@@ -982,21 +916,21 @@ export default function SettingsPage() {
                 placeholder="mystore.com"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              <p className="text-xs text-gray-500 mt-1">Enter your domain without https://</p>
+              <p className="text-xs text-gray-500 mt-1">{t('enterDomainWithoutHttps')}</p>
             </div>
 
             {/* DNS Instructions */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">Setup Instructions:</h4>
+              <h4 className="font-medium text-blue-900">{t('setupInstructions')}</h4>
               <ol className="text-sm text-blue-800 space-y-2">
-                <li>1. Go to your domain registrar's DNS settings</li>
-                <li>2. Add a <strong>CNAME</strong> record:</li>
+                <li>1. {t('dnsStep1')}</li>
+                <li>2. {t('dnsStep2')}</li>
                 <li className="ml-4 font-mono text-xs bg-blue-100 p-2 rounded">
                   Name: @ or www<br />
                   Value: multi-store-saas.pages.dev
                 </li>
-                <li>3. Contact admin to add your domain in Cloudflare Dashboard</li>
-                <li>4. Wait for DNS propagation (up to 48 hours)</li>
+                <li>3. {t('dnsStep3')}</li>
+                <li>4. {t('dnsStep4')}</li>
               </ol>
             </div>
 
@@ -1014,7 +948,7 @@ export default function SettingsPage() {
 
         {/* Quick Links to Other Settings */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">More Settings</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('moreSettings')}</h2>
           <div className="grid grid-cols-2 gap-3">
             <a
               href="/app/settings/shipping"
@@ -1023,7 +957,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                 <Store className="w-4 h-4 text-emerald-600" />
               </div>
-              <span className="font-medium text-gray-700">Shipping Zones</span>
+              <span className="font-medium text-gray-700">{t('shippingZonesLink')}</span>
             </a>
             <a
               href="/app/settings/seo"
@@ -1032,7 +966,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Globe className="w-4 h-4 text-blue-600" />
               </div>
-              <span className="font-medium text-gray-700">SEO Settings</span>
+              <span className="font-medium text-gray-700">{t('seoSettingsLink')}</span>
             </a>
             <a
               href="/app/settings/team"
@@ -1041,7 +975,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Mail className="w-4 h-4 text-purple-600" />
               </div>
-              <span className="font-medium text-gray-700">Team Members</span>
+              <span className="font-medium text-gray-700">{t('teamMembersLink')}</span>
             </a>
             <a
               href="/app/settings/activity"
@@ -1050,7 +984,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
                 <Globe className="w-4 h-4 text-amber-600" />
               </div>
-              <span className="font-medium text-gray-700">Activity Log</span>
+              <span className="font-medium text-gray-700">{t('activityLogLink')}</span>
             </a>
             <a
               href="/app/settings/landing"
@@ -1059,7 +993,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
                 <Palette className="w-4 h-4 text-rose-600" />
               </div>
-              <span className="font-medium text-gray-700">Landing Mode</span>
+              <span className="font-medium text-gray-700">{t('landingModeLink')}</span>
             </a>
             <a
               href="/app/settings/courier"
@@ -1068,7 +1002,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Store className="w-4 h-4 text-purple-600" />
               </div>
-              <span className="font-medium text-gray-700">Courier API</span>
+              <span className="font-medium text-gray-700">{t('courierApiLink')}</span>
             </a>
             <a
               href="/app/settings/developer"
@@ -1077,7 +1011,7 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
                 <FileText className="w-4 h-4 text-slate-600" />
               </div>
-              <span className="font-medium text-gray-700">Developer API</span>
+              <span className="font-medium text-gray-700">{t('developerApiLink')}</span>
             </a>
           </div>
         </div>
@@ -1092,10 +1026,10 @@ export default function SettingsPage() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
+                {t('savingSettings')}
               </>
             ) : (
-              'Save Settings'
+              t('saveSettings')
             )}
           </button>
         </div>
@@ -1108,24 +1042,23 @@ export default function SettingsPage() {
               <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-red-800">Danger Zone</h2>
-              <p className="text-sm text-red-600">Irreversible actions</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('dangerZone')}</h2>
+              <p className="text-sm text-gray-500">{t('irreversibleActions')}</p>
             </div>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-red-100">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-gray-900">Delete Store</h3>
-                <p className="text-sm text-gray-500">Permanently delete this store and all its data</p>
+                <h3 className="font-semibold text-gray-900">{t('deleteStore')}</h3>
+                <p className="text-sm text-gray-500">{t('permanentlyDeleteStore')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(true)}
-                className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
               >
-                <Trash2 className="w-4 h-4" />
-                Delete Store
+                {t('delete')}
               </button>
             </div>
           </div>

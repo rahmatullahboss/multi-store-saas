@@ -49,6 +49,7 @@ export function MarketingFooter({ showStickyCTA = true }: MarketingFooterProps) 
               <ul className="space-y-2">
                 <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
                 <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
+                <li><a href="https://status.digitalcare.site" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#00875F] transition text-sm">সার্ভিস স্ট্যাটাস</a></li>
               </ul>
             </div>
             

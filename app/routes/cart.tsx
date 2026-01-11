@@ -6,6 +6,7 @@
  * Fires InitiateCheckout tracking event when proceeding to checkout.
  */
 
+import { useState, useEffect } from "react";
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, Link } from '@remix-run/react';
 import { eq, and, inArray } from 'drizzle-orm';
@@ -19,6 +20,7 @@ import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazP
 import { BDShopPageWrapper, BDSHOP_THEME } from '~/components/store-layouts/BDShopPageWrapper';
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from '~/components/store-layouts/GhorerBazarPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -63,6 +65,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     theme,
     socialLinks,
     businessInfo,
+    themeConfig, // Return theme config to check for cart sections
   });
 }
 
@@ -105,7 +108,8 @@ export default function Cart() {
     storeTemplateId, 
     theme,
     socialLinks,
-    businessInfo 
+    businessInfo,
+    themeConfig 
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { t } = useTranslation();
@@ -136,8 +140,61 @@ export default function Cart() {
     }).format(price);
   };
 
+  // Cart State Management
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load cart from localStorage
+  useEffect(() => {
+    const loadCart = () => {
+      try {
+        const saved = localStorage.getItem('cart');
+        if (saved) {
+          setCartItems(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error("Failed to load cart", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadCart();
+    // Listen for storage events (if updated from other tabs/components)
+    window.addEventListener('storage', loadCart);
+    // Custom event for same-tab updates
+    window.addEventListener('cart-updated', loadCart);
+    return () => {
+      window.removeEventListener('storage', loadCart);
+      window.removeEventListener('cart-updated', loadCart);
+    };
+  }, []);
+
+  const updateQuantity = (id: number, delta: number) => {
+    const newCart = cartItems.map(item => {
+      if (item.id === id) {
+        const newQty = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    });
+    setCartItems(newCart);
+    localStorage.setItem('cart', JSON.stringify(newCart));
+    window.dispatchEvent(new Event('cart-updated'));
+  };
+
+  const removeItem = (id: number) => {
+    const newCart = cartItems.filter(item => item.id !== id);
+    setCartItems(newCart);
+    localStorage.setItem('cart', JSON.stringify(newCart));
+    window.dispatchEvent(new Event('cart-updated'));
+  };
+
+  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const total = subtotal; // Add shipping later logic
+
   // Cart content that will be wrapped by the appropriate wrapper
-  const cartContent = (
+  let cartContent = (
     <>
       {/* Breadcrumb */}
       <nav className="border-b border-gray-200 bg-white">
@@ -154,28 +211,59 @@ export default function Cart() {
       <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 lg:py-12">
         <h1 className={`text-xl md:text-2xl lg:text-3xl font-bold ${textPrimary} mb-4 md:mb-8`}>{t('yourCart')}</h1>
         
-        {/* Cart items will be managed client-side and rendered here */}
-        <div id="cart-container" className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-3 md:space-y-4" id="cart-items">
-            {/* Empty Cart Placeholder - items loaded client-side from localStorage */}
-            <div className={`rounded-lg md:rounded-xl border ${cardBg} p-4 md:p-6 lg:p-8 text-center`}>
-              <div 
-                className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full flex items-center justify-center mb-3 md:mb-4"
-                style={{ backgroundColor: `${primaryColor}20` }}
-              >
-                <ShoppingBag className="w-6 h-6 md:w-8 md:h-8" style={{ color: primaryColor }} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+          {/* Cart Items List */}
+          <div className="lg:col-span-2 space-y-3 md:space-y-4">
+            {loading ? (
+              <div className="p-8 text-center text-gray-500">Loading cart...</div>
+            ) : cartItems.length === 0 ? (
+              /* Empty Cart Placeholder */
+              <div className={`rounded-lg md:rounded-xl border ${cardBg} p-4 md:p-6 lg:p-8 text-center`}>
+                <div 
+                  className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full flex items-center justify-center mb-3 md:mb-4"
+                  style={{ backgroundColor: `${primaryColor}20` }}
+                >
+                  <ShoppingBag className="w-6 h-6 md:w-8 md:h-8" style={{ color: primaryColor }} />
+                </div>
+                <p className={`text-base md:text-lg font-medium ${textPrimary} mb-2`}>{t('cartEmpty')}</p>
+                <p className={`${textMuted} text-sm md:text-base mb-4 md:mb-6`}>Add some products to get started!</p>
+                <Link 
+                  to="/" 
+                  className="inline-flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium text-white text-sm md:text-base transition hover:opacity-90"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {t('continueShopping')}
+                </Link>
               </div>
-              <p className={`text-base md:text-lg font-medium ${textPrimary} mb-2`}>{t('cartEmpty')}</p>
-              <p className={`${textMuted} text-sm md:text-base mb-4 md:mb-6`}>Add some products to get started!</p>
-              <Link 
-                to="/" 
-                className="inline-flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium text-white text-sm md:text-base transition hover:opacity-90"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {t('continueShopping')}
-              </Link>
-            </div>
+            ) : (
+              /* Mapped Cart Items */
+              cartItems.map((item) => (
+                <div key={item.id} className={`flex gap-4 p-4 rounded-lg border ${cardBg}`}>
+                  <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                     <img src={item.image || '/placeholder.png'} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className={`font-medium ${textPrimary} line-clamp-2`}>{item.name}</h3>
+                      {item.variant && <p className="text-sm text-gray-500 mt-1">{item.variant}</p>}
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                       <p className={`font-bold ${textPrimary}`}>{formatPrice(item.price)}</p>
+                       <div className="flex items-center gap-3">
+                         <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+                           <button onClick={() => updateQuantity(item.id, -1)} className="p-1 hover:bg-gray-100"><Minus className="w-4 h-4" /></button>
+                           <span className={`px-2 text-sm ${textPrimary}`}>{item.quantity}</span>
+                           <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:bg-gray-100"><Plus className="w-4 h-4" /></button>
+                         </div>
+                         <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 p-1">
+                           <Trash2 className="w-4 h-4" />
+                         </button>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
           
           {/* Order Summary */}
@@ -186,27 +274,26 @@ export default function Cart() {
               <div className="space-y-2 md:space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className={textMuted}>{t('subtotal')}</span>
-                  <span className={`font-medium ${textPrimary}`} id="cart-subtotal">{formatPrice(0)}</span>
+                  <span className={`font-medium ${textPrimary}`}>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className={textMuted}>{t('shipping')}</span>
                   <span className={textMuted}>Calculated at checkout</span>
                 </div>
-                <div className={`border-t ${borderColor} pt-2 md:pt-3 flex justify-between`}>
-                  <span className={`font-semibold ${textPrimary}`}>{t('total')}</span>
-                  <span className={`font-bold text-base md:text-lg`} style={{ color: primaryColor }} id="cart-total">{formatPrice(0)}</span>
-                </div>
+                {cartItems.length > 0 && (
+                   <div className={`border-t ${borderColor} pt-2 md:pt-3 flex justify-between`}>
+                     <span className={`font-semibold ${textPrimary}`}>{t('total')}</span>
+                     <span className={`font-bold text-base md:text-lg`} style={{ color: primaryColor }}>{formatPrice(total)}</span>
+                   </div>
+                )}
               </div>
               
               <Link 
                 to="/checkout"
-                className="w-full mt-4 md:mt-6 inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 rounded-lg font-bold text-white text-sm md:text-base transition hover:opacity-90"
+                className={`w-full mt-4 md:mt-6 inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 rounded-lg font-bold text-white text-sm md:text-base transition hover:opacity-90 ${cartItems.length === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                 style={{ backgroundColor: primaryColor }}
                 onClick={() => {
-                  // Fire InitiateCheckout tracking event (FB Pixel + GA4)
-                  // Note: value and numItems computed client-side from localStorage
-                  trackingEvents.initiateCheckout(0, 0, currency);
-                  console.log('[Tracking] InitiateCheckout event fired');
+                  trackingEvents.initiateCheckout(total, cartItems.length, currency);
                 }}
               >
                 {t('proceedToCheckout')}
@@ -228,21 +315,6 @@ export default function Cart() {
           </div>
         </div>
       </div>
-
-      {/* Client-side cart logic */}
-      <script dangerouslySetInnerHTML={{ __html: `
-        (function() {
-          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-          const cartCount = document.getElementById('cart-count');
-          
-          if (cartCount) {
-            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCount.textContent = total.toString();
-          }
-          
-          // More cart rendering logic would go here
-        })();
-      `}} />
     </>
   );
 
@@ -296,6 +368,30 @@ export default function Cart() {
         {cartContent}
       </DarazPageWrapper>
     );
+  // CHECK FOR DYNAMIC SECTIONS
+  if ((themeConfig?.cartSections?.length ?? 0) > 0) {
+    const sectionProps = {
+        theme: isDaraz ? DARAZ_THEME : (theme || {}),
+        storeId,
+        currency,
+        storeName,
+        businessInfo,
+        socialLinks,
+        store: {
+          name: storeName,
+          currency: currency,
+          email: businessInfo?.email,
+          phone: businessInfo?.phone,
+          address: businessInfo?.address
+        }
+    };
+    
+    cartContent = (
+      <SectionRenderer 
+        sections={themeConfig?.cartSections || []}
+        {...sectionProps}
+      />
+    );
   }
 
   return (
@@ -312,4 +408,5 @@ export default function Cart() {
       {cartContent}
     </StorePageWrapper>
   );
+}
 }

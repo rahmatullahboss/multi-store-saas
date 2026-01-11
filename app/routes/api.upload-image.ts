@@ -31,7 +31,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
-    const folder = formData.get('folder') as string || 'uploads';
+    const folder = formData.get('folder') as string || 'temp';
 
     if (!file) {
       return json({ error: 'No file provided' }, { status: 400 });

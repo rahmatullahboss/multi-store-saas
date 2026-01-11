@@ -49,9 +49,14 @@ import {
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { ChatWidget } from '~/components/ai/ChatWidget';
+import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
 import { useState } from 'react';
-import type { TranslationKey } from '~/utils/i18n';
+import type { TranslationKey } from '~/utils/i18n/index';
+
+// Custom Ozzyl Icon Component (for nav)
+const OzzylIcon = ({ className }: { className?: string }) => (
+  <img src="/ozzyl-logo-small.png" alt="" className={className || 'w-5 h-5'} />
+);
 
 
 export const meta: MetaFunction = () => {
@@ -134,7 +139,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     if (!store) {
       console.error('[app.loader] Store not found in database. StoreID:', storeId);
-      throw new Response('Your store could not be found. Please contact support.', { status: 404 });
+      
+      // CRITICAL: If store is deleted, session is invalid. Logout and redirect with info.
+      const session = await getSession(request, context.cloudflare.env);
+      const { destroySession } = await import('~/services/auth.server');
+      
+      throw redirect('/auth/login?error=store_not_found', {
+        headers: {
+          'Set-Cookie': await destroySession(session, context.cloudflare.env),
+        },
+      });
     }
 
     if (!user) {
@@ -255,6 +269,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarMarketing',
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail, isPaidOnly: true },
+      { to: '/app/agent', labelKey: 'navAgent', icon: OzzylIcon as any },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail, isPaidOnly: true },
       { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, isPaidOnly: true },
     ],
@@ -269,13 +284,14 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarSettings',
     items: [
-      { to: '/app/landing-builder', labelKey: 'navStoreEditor', icon: Rocket },
-      { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Sparkles },
+      { to: '/app/page-builder', labelKey: 'navPageBuilder' as any, icon: Rocket },
+      { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Palette },
       { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/billing', labelKey: 'navBilling', icon: CreditCard },
       { to: '/app/settings', labelKey: 'navAllSettings', icon: Settings },
+      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: AlertTriangle },
     ],
   },
 ];
@@ -343,11 +359,11 @@ export default function AppLayout() {
         <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between sticky top-0 z-[60]">
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5" />
-            <span className="font-bold">Shadow Mode Active: Viewing as {store.name}</span>
+            <span className="font-bold">{t('shadowModeActive')}: {t('viewingAs')} {store.name}</span>
           </div>
           <Form method="post" action="/admin/stop-impersonation">
             <button type="submit" className="bg-white text-red-600 px-3 py-1 rounded text-xs font-bold uppercase hover:bg-red-50 transition">
-              Exit
+              {t('exit')}
             </button>
           </Form>
         </div>
@@ -437,7 +453,7 @@ export default function AppLayout() {
                           <Icon className="w-5 h-5" />
                           <span className="flex-1">{t(item.labelKey)}</span>
                           <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium group-hover:bg-amber-200">
-                            আপগ্রেড
+                            {t('upgrade')}
                           </span>
                         </Link>
                       );
@@ -588,14 +604,12 @@ export default function AppLayout() {
         </main>
       </div>
 
-      {/* AI Co-pilot Widget - Temporarily disabled */}
-      {/* {store.planType !== 'free' && (
-        <ChatWidget 
-          mode="merchant" 
-          storeId={store.id}
-          accentColor="#10b981"
-        />
-      )} */}
+      {/* AI Co-pilot Widget */}
+      <DashboardChatWidget 
+        userName={user.name || undefined}
+        storeName={store.name}
+        isLocked={store.planType === 'free'}
+      />
     </div>
   );
 }

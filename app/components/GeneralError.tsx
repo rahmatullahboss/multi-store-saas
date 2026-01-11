@@ -8,7 +8,7 @@
  */
 
 import { isRouteErrorResponse } from '@remix-run/react';
-import { AlertTriangle, Home, RefreshCw, Store, Search } from 'lucide-react';
+import { AlertTriangle, Home, RefreshCw, Store, Search, LogIn, UserPlus, LogOut } from 'lucide-react';
 
 interface GeneralErrorProps {
   error: unknown;
@@ -187,13 +187,40 @@ export function StoreNotFoundError() {
         </p>
         
         {/* CTA */}
-        <a
-          href="/"
-          className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <Home className="w-4 h-4" />
-          Browse Available Stores
-        </a>
+        {/* CTA */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-gray-900 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-all active:scale-95 w-full sm:w-auto min-w-[160px]"
+          >
+            <Home className="w-4 h-4" />
+            Browse Stores
+          </a>
+          
+          <a
+            href="/auth/login"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white/10 border border-white/20 text-white text-sm font-semibold rounded-lg hover:bg-white/20 transition-all active:scale-95 w-full sm:w-auto min-w-[160px]"
+          >
+            <LogIn className="w-4 h-4" />
+            Login
+          </a>
+
+          <a
+            href="/auth/register"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-all active:scale-95 w-full sm:w-auto min-w-[160px]"
+          >
+            <UserPlus className="w-4 h-4" />
+            Register
+          </a>
+
+          <a
+            href="/auth/logout"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 border border-rose-500/50 text-rose-400 text-sm font-semibold rounded-lg hover:bg-rose-500/10 transition-all active:scale-95 w-full sm:w-auto min-w-[160px]"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -302,6 +329,7 @@ export function GeneralError({ error, isRootError = false }: GeneralErrorProps) 
             .p-4 { padding: 1rem; }
             .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
             .px-8 { padding-left: 2rem; padding-right: 2rem; }
+            .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
             .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
             .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
             .mb-1 { margin-bottom: 0.25rem; }
@@ -311,8 +339,10 @@ export function GeneralError({ error, isRootError = false }: GeneralErrorProps) 
             .mb-8 { margin-bottom: 2rem; }
             .mt-6 { margin-top: 1.5rem; }
             .gap-2 { gap: 0.5rem; }
+            .gap-3 { gap: 0.75rem; }
             .w-full { width: 100%; }
             .max-w-md { max-width: 28rem; }
+            .min-w-\[160px\] { min-width: 160px; }
             .w-4 { width: 1rem; }
             .h-4 { height: 1rem; }
             .w-8 { width: 2rem; }
@@ -328,6 +358,7 @@ export function GeneralError({ error, isRootError = false }: GeneralErrorProps) 
             .text-2xl { font-size: 1.5rem; line-height: 2rem; }
             .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
             .font-medium { font-weight: 500; }
+            .font-semibold { font-weight: 600; }
             .font-bold { font-weight: 700; }
             .uppercase { text-transform: uppercase; }
             .tracking-wider { letter-spacing: 0.05em; }
@@ -340,20 +371,31 @@ export function GeneralError({ error, isRootError = false }: GeneralErrorProps) 
             .text-gray-700 { color: rgb(55 65 81); }
             .text-gray-900 { color: rgb(17 24 39); }
             .text-yellow-400 { color: rgb(250 204 21); }
+            .text-rose-400 { color: rgb(248 113 113); }
             .bg-white { background-color: rgb(255 255 255); }
+            .bg-white\/10 { background-color: rgb(255 255 255 / 0.1); }
+            .hover\:bg-white\/20:hover { background-color: rgb(255 255 255 / 0.2); }
             .bg-gray-800 { background-color: rgb(31 41 55); }
             .bg-gray-900 { background-color: rgb(17 24 39); }
+            .bg-emerald-600 { background-color: rgb(5 150 105); }
+            .hover\:bg-emerald-700:hover { background-color: rgb(4 120 87); }
+            .border-rose-500\/50 { border-color: rgb(244 63 94 / 0.5); }
+            .hover\:bg-rose-500\/10:hover { background-color: rgb(244 63 94 / 0.1); }
             .rounded-lg { border-radius: 0.5rem; }
             .rounded-full { border-radius: 9999px; }
             .rounded-2xl { border-radius: 1rem; }
             .border { border-width: 1px; }
             .border-gray-300 { border-color: rgb(209 213 219); }
+            .border-white\/20 { border-color: rgb(255 255 255 / 0.2); }
             .border-gray-700 { border-color: rgb(55 65 81); }
             .shadow-xl { box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); }
             .overflow-hidden { overflow: hidden; }
             .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+            .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
             .transition-colors { transition-property: color, background-color, border-color; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+            .active\:scale-95:active { transform: scale(0.95); }
             .underline { text-decoration-line: underline; }
+            .flex-wrap { flex-wrap: wrap; }
             .bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)); }
             .bg-gradient-to-r { background-image: linear-gradient(to right, var(--tw-gradient-stops)); }
             .from-gray-50 { --tw-gradient-from: #f9fafb; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }

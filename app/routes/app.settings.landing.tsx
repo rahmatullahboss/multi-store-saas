@@ -176,7 +176,7 @@ export default function LandingSettingsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('landingSettings')}</h1>
-          <p className="text-gray-600">{lang === 'bn' ? 'আপনার সিঙ্গেল প্রোডাক্ট ল্যান্ডিং পেজ কনফিগার করুন' : 'Configure your single-product landing page'}</p>
+          <p className="text-gray-600">{t('landingSettingsDesc')}</p>
         </div>
       </div>
 
@@ -184,7 +184,7 @@ export default function LandingSettingsPage() {
       {showSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          Settings saved successfully!
+          {t('settingsSaved')}
         </div>
       )}
 
@@ -205,8 +205,8 @@ export default function LandingSettingsPage() {
               <Target className="w-5 h-5 text-rose-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Store Mode</h2>
-              <p className="text-sm text-gray-500">Choose how your store appears to visitors</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('storeMode')}</h2>
+              <p className="text-sm text-gray-500">{t('storeModeDesc')}</p>
             </div>
           </div>
 
@@ -225,8 +225,8 @@ export default function LandingSettingsPage() {
                 className="sr-only"
               />
               <span className="text-2xl mb-2">🏪</span>
-              <span className="font-semibold text-gray-900">Full Store</span>
-              <span className="text-sm text-gray-500">Product catalog with categories</span>
+              <span className="font-semibold text-gray-900">{t('fullStore')}</span>
+              <span className="text-sm text-gray-500">{t('fullStoreDesc')}</span>
               {mode === 'store' && (
                 <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
               )}
@@ -246,8 +246,8 @@ export default function LandingSettingsPage() {
                 className="sr-only"
               />
               <span className="text-2xl mb-2">🎯</span>
-              <span className="font-semibold text-gray-900">Landing Page</span>
-              <span className="text-sm text-gray-500">Single product focus</span>
+              <span className="font-semibold text-gray-900">{t('landingPage')}</span>
+              <span className="text-sm text-gray-500">{t('landingPageDesc')}</span>
               {mode === 'landing' && (
                 <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
               )}
@@ -265,8 +265,8 @@ export default function LandingSettingsPage() {
                   <Zap className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Featured Product</h2>
-                  <p className="text-sm text-gray-500">Select the product for your landing page</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('featuredProduct')}</h2>
+                  <p className="text-sm text-gray-500">{t('featuredProductDesc')}</p>
                 </div>
               </div>
 
@@ -276,7 +276,7 @@ export default function LandingSettingsPage() {
                   defaultValue={store.featuredProductId || ''}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
                 >
-                  <option value="">Select a product...</option>
+                  <option value="">{t('selectAProduct')}</option>
                   {storeProducts.map((product) => (
                     <option key={product.id} value={product.id}>
                       {product.title} - ৳{product.price}
@@ -285,13 +285,13 @@ export default function LandingSettingsPage() {
                 </select>
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  <p>No products found. Add products first.</p>
+                  <p>{t('noProductsFoundAddFirst')}</p>
                   <Link
                     to="/app/products/new"
                     className="inline-flex items-center gap-2 mt-4 text-emerald-600 hover:text-emerald-700"
                   >
                     <Plus className="w-4 h-4" />
-                    Add Product
+                    {t('addProduct')}
                   </Link>
                 </div>
               )}
@@ -304,15 +304,15 @@ export default function LandingSettingsPage() {
                   <MessageSquare className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Headlines & Copy</h2>
-                  <p className="text-sm text-gray-500">Compelling text for your landing page</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('headlinesCopy')}</h2>
+                  <p className="text-sm text-gray-500">{t('headlinesCopyDesc')}</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label htmlFor="headline" className="block text-sm font-medium text-gray-700 mb-1">
-                    Main Headline *
+                    {t('mainHeadline')} *
                   </label>
                   <input
                     type="text"
@@ -326,7 +326,7 @@ export default function LandingSettingsPage() {
 
                 <div>
                   <label htmlFor="subheadline" className="block text-sm font-medium text-gray-700 mb-1">
-                    Subheadline
+                    {t('subheadline')}
                   </label>
                   <input
                     type="text"
@@ -340,28 +340,28 @@ export default function LandingSettingsPage() {
 
                 <div>
                   <label htmlFor="urgencyText" className="block text-sm font-medium text-gray-700 mb-1">
-                    Urgency Text (Top Banner)
+                    {t('urgencyText')}
                   </label>
                   <input
                     type="text"
                     id="urgencyText"
                     name="urgencyText"
                     defaultValue={store.landingConfig?.urgencyText || ''}
-                    placeholder="🔥 Limited time offer - 50% OFF!"
+                    placeholder={String(t('urgencyTextPlaceholder'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="guaranteeText" className="block text-sm font-medium text-gray-700 mb-1">
-                    Guarantee Text
+                    {t('guaranteeText')}
                   </label>
                   <input
                     type="text"
                     id="guaranteeText"
                     name="guaranteeText"
                     defaultValue={store.landingConfig.guaranteeText || ''}
-                    placeholder="30-day money back guarantee"
+                    placeholder={String(t('guaranteeTextPlaceholder'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
@@ -375,14 +375,14 @@ export default function LandingSettingsPage() {
                   <Video className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Video Embed</h2>
-                  <p className="text-sm text-gray-500">Add a YouTube or Vimeo video</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('videoEmbed')}</h2>
+                  <p className="text-sm text-gray-500">{t('videoEmbedDesc')}</p>
                 </div>
               </div>
 
               <div>
                 <label htmlFor="videoUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                  Video URL
+                  {t('videoUrl')}
                 </label>
                 <input
                   type="url"
@@ -393,7 +393,7 @@ export default function LandingSettingsPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Supports YouTube and Vimeo URLs. The video will appear below the product.
+                  {t('videoUrlDesc')}
                 </p>
               </div>
             </div>
@@ -405,15 +405,15 @@ export default function LandingSettingsPage() {
                   <Play className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Call to Action</h2>
-                  <p className="text-sm text-gray-500">Customize your buy button</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('callToAction')}</h2>
+                  <p className="text-sm text-gray-500">{t('callToActionDesc')}</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label htmlFor="ctaText" className="block text-sm font-medium text-gray-700 mb-1">
-                    Button Text
+                    {t('buttonText')}
                   </label>
                   <input
                     type="text"
@@ -427,7 +427,7 @@ export default function LandingSettingsPage() {
 
                 <div>
                   <label htmlFor="ctaSubtext" className="block text-sm font-medium text-gray-700 mb-1">
-                    Button Subtext
+                    {t('buttonSubtext')}
                   </label>
                   <input
                     type="text"
@@ -441,7 +441,7 @@ export default function LandingSettingsPage() {
 
                 {/* Preview */}
                 <div className="pt-4 border-t border-gray-100">
-                  <p className="text-sm text-gray-500 mb-2">Preview:</p>
+                  <p className="text-sm text-gray-500 mb-2">{t('preview')}:</p>
                   <button
                     type="button"
                     className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl shadow-lg"
@@ -463,8 +463,8 @@ export default function LandingSettingsPage() {
                     <Users className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Testimonials</h2>
-                    <p className="text-sm text-gray-500">Add customer reviews</p>
+                    <h2 className="text-lg font-semibold text-gray-900">{t('testimonials')}</h2>
+                    <p className="text-sm text-gray-500">{t('testimonialsDesc')}</p>
                   </div>
                 </div>
                 <button
@@ -473,7 +473,7 @@ export default function LandingSettingsPage() {
                   className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
                 >
                   <Plus className="w-4 h-4" />
-                  Add
+                  {t('add')}
                 </button>
               </div>
 
@@ -487,13 +487,13 @@ export default function LandingSettingsPage() {
                             type="text"
                             value={testimonial.name}
                             onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
-                            placeholder="Customer name"
+                            placeholder={String(t('customerName'))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                           />
                           <textarea
                             value={testimonial.text}
                             onChange={(e) => updateTestimonial(index, 'text', e.target.value)}
-                            placeholder="Their review..."
+                            placeholder={String(t('theirReview'))}
                             rows={2}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
                           />
@@ -511,7 +511,7 @@ export default function LandingSettingsPage() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                    <p>No testimonials yet. Add customer reviews to build trust.</p>
+                    <p>{t('noTestimonialsYet')}</p>
                   </div>
                 )}
               </div>
@@ -529,10 +529,10 @@ export default function LandingSettingsPage() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
+                {t('savingSettings')}
               </>
             ) : (
-              'Save Settings'
+              t('saveSettings')
             )}
           </button>
         </div>

@@ -362,7 +362,7 @@ export default function LandingBuilderPage() {
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
 
   // Current tab
-  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp' | 'colors' | 'settings'>('template');
+  const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp' | 'colors'>('template');
 
   // Show success message and reset dirty state
   useEffect(() => {
@@ -732,7 +732,7 @@ export default function LandingBuilderPage() {
             { id: 'faq', icon: HelpCircle, label: 'FAQ', labelEn: 'FAQ' },
             { id: 'whatsapp', icon: MessageCircle, label: 'WA', labelEn: 'WA' },
             { id: 'colors', icon: Paintbrush, label: 'রং', labelEn: 'Color' },
-            { id: 'settings', icon: Settings, label: 'সেটিং', labelEn: 'Mode' },
+
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1654,89 +1654,7 @@ export default function LandingBuilderPage() {
               </div>
             )}
 
-            {/* Settings Tab Content */}
-            {activeTab === 'settings' && (
-              <div className="space-y-6">
-                {/* Store Mode Toggle */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                    {language === 'bn' ? 'স্টোর মোড' : 'Store Mode'}
-                  </h2>
-                  <p className="text-sm text-gray-500 mb-4">
-                    {language === 'bn' 
-                      ? 'আপনার স্টোর কীভাবে দেখাবে সেট করুন'
-                      : 'Choose how your store appears to customers'}
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Landing Mode */}
-                    <button
-                      type="button"
-                      onClick={() => setStoreMode('landing')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${
-                        storeMode === 'landing'
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-2xl">🎯</span>
-                        <span className={`font-semibold ${storeMode === 'landing' ? 'text-emerald-700' : 'text-gray-900'}`}>
-                          {language === 'bn' ? 'ল্যান্ডিং পেজ' : 'Landing Page'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        {language === 'bn' 
-                          ? 'একটি প্রোডাক্টে ফোকাস - অর্ডার ফর্ম সহ'
-                          : 'Single product focus with order form'}
-                      </p>
-                      {storeMode === 'landing' && (
-                        <span className="inline-block mt-2 px-2 py-1 bg-emerald-600 text-white text-xs rounded-full">
-                          ✓ {language === 'bn' ? 'সিলেক্টেড' : 'Selected'}
-                        </span>
-                      )}
-                    </button>
 
-                    {/* Full Store Mode */}
-                    <button
-                      type="button"
-                      onClick={() => setStoreMode('store')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${
-                        storeMode === 'store'
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-2xl">🏪</span>
-                        <span className={`font-semibold ${storeMode === 'store' ? 'text-emerald-700' : 'text-gray-900'}`}>
-                          {language === 'bn' ? 'ফুল স্টোর' : 'Full Store'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        {language === 'bn' 
-                          ? 'প্রোডাক্ট ক্যাটালগ সহ পূর্ণাঙ্গ স্টোর'
-                          : 'Complete store with product catalog'}
-                      </p>
-                      {storeMode === 'store' && (
-                        <span className="inline-block mt-2 px-2 py-1 bg-emerald-600 text-white text-xs rounded-full">
-                          ✓ {language === 'bn' ? 'সিলেক্টেড' : 'Selected'}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Premium Note */}
-                  <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-sm text-amber-800">
-                      ⚡ {language === 'bn' 
-                        ? 'ফুল স্টোর মোড Starter/Premium প্ল্যানে পাওয়া যায়'
-                        : 'Full Store mode available on Starter/Premium plans'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           </div>

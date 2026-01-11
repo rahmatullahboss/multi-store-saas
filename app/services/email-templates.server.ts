@@ -353,3 +353,59 @@ export function getSubscriptionApprovalHtml(data: {
     </html>
   `;
 }
+
+// ============================================================================
+// FIRST SALE CELEBRATION
+// ============================================================================
+export function getFirstSaleCelebrationHtml(data: {
+  merchantName: string;
+  storeName: string;
+  orderNumber: string;
+  amount: string;
+}) {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); padding: 40px 30px; border-radius: 12px 12px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 32px;">KA-CHING! 💰</h1>
+        <p style="color: white; opacity: 0.9; margin: 10px 0 0; font-size: 18px;">You just made your first sale!</p>
+      </div>
+      
+      <div style="background: white; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; text-align: center;">
+        <h2 style="font-size: 24px; color: #111827; margin-bottom: 20px;">Congratulations, ${data.merchantName}! 🎉</h2>
+        
+        <p style="font-size: 16px; color: #4B5563; margin-bottom: 30px;">
+          This is a huge milestone. The first sale is always the hardest, and you've done it!
+          Here are the details of your victory:
+        </p>
+        
+        <div style="background: #FFFBEB; padding: 25px; border-radius: 12px; margin: 0 auto 30px; display: inline-block; min-width: 250px; border: 2px dashed #F59E0B;">
+          <p style="font-size: 14px; color: #92400E; margin: 0 0 5px; text-transform: uppercase; font-weight: bold;">Order Amount</p>
+          <p style="font-size: 36px; font-weight: 800; color: #D97706; margin: 0;">${data.amount}</p>
+          <p style="font-size: 14px; color: #B45309; margin: 5px 0 0;">Order #${data.orderNumber}</p>
+        </div>
+        
+        <p style="font-size: 16px; color: #374151;">
+          Don't stop here! This is just the beginning of your empire.
+          Go fulfill this order and keep the momentum going! 🚀
+        </p>
+
+        <div style="margin-top: 40px;">
+          <a href="https://digitalcare.site/app/orders/${data.orderNumber}" style="display: inline-block; background: #000000; color: white; padding: 16px 36px; text-decoration: none; border-radius: 99px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            Fulfill My First Order
+          </a>
+        </div>
+      </div>
+      
+      <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px;">
+        Sent with ❤️ from Multi-Store SaaS Team
+      </p>
+    </body>
+    </html>
+  `;
+}

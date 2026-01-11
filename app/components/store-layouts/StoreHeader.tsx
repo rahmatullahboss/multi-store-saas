@@ -9,6 +9,7 @@
 
 import { Link } from '@remix-run/react';
 import { useState } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 
@@ -30,6 +31,7 @@ export function StoreHeader({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
+
   // Determine if this is a dark theme
   const isDarkTheme = templateId === 'modern-premium' || templateId === 'tech-modern';
   
@@ -41,6 +43,8 @@ export function StoreHeader({
   const textColor = isDarkTheme ? 'text-white' : 'text-gray-900';
   const mutedColor = isDarkTheme ? 'text-gray-400' : 'text-gray-500';
   const hoverBg = isDarkTheme ? 'hover:bg-gray-800' : 'hover:bg-gray-100';
+
+  const count = useCartCount();
 
   return (
     <header className={`sticky top-0 z-50 w-full border-b ${headerBg} backdrop-blur supports-[backdrop-filter]:bg-opacity-60`}>
@@ -123,9 +127,8 @@ export function StoreHeader({
             <span 
               className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
               style={{ backgroundColor: theme.primary }}
-              id="cart-count"
             >
-              {cartCount}
+              {count}
             </span>
           </Link>
         </div>

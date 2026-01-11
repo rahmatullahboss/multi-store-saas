@@ -83,7 +83,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const emailService = createEmailService(resendApiKey);
-  
+
   const emailResult = await emailService.sendLowStockAlert({
     merchantEmail,
     storeName,

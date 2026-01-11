@@ -160,10 +160,10 @@ export default function ActivityLogsPage() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return t('justNow');
+    if (diffMins < 60) return `${diffMins}${t('mAgo')}`;
+    if (diffHours < 24) return `${diffHours}${t('hAgo')}`;
+    if (diffDays < 7) return `${diffDays}${t('dAgo')}`;
     return formatDate(date);
   };
 
@@ -172,21 +172,21 @@ export default function ActivityLogsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('activityLogs')}</h1>
-        <p className="text-gray-600">{lang === 'bn' ? 'আপনার স্টোরের সকল কার্যক্রম ট্র্যাক করুন' : 'Track all actions in your store'}</p>
+        <p className="text-gray-600">{t('activityLogsDesc')}</p>
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex items-center gap-3 mb-4">
           <Filter className="w-5 h-5 text-gray-500" />
-          <span className="font-medium text-gray-700">Filters</span>
+          <span className="font-medium text-gray-700">{t('filters')}</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* User Filter */}
           <div>
             <label htmlFor="filterUser" className="block text-sm font-medium text-gray-700 mb-1">
-              Team Member
+              {t('teamMember')}
             </label>
             <select
               id="filterUser"
@@ -194,7 +194,7 @@ export default function ActivityLogsPage() {
               onChange={(e) => handleFilterChange('user', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
             >
-              <option value="">All Members</option>
+              <option value="">{t('allMembers')}</option>
               {teamMembers.map((member) => (
                 <option key={member.id} value={member.id}>
                   {member.name || member.email}
@@ -206,7 +206,7 @@ export default function ActivityLogsPage() {
           {/* Action Filter */}
           <div>
             <label htmlFor="filterAction" className="block text-sm font-medium text-gray-700 mb-1">
-              Action Type
+              {t('actionType')}
             </label>
             <select
               id="filterAction"
@@ -214,10 +214,10 @@ export default function ActivityLogsPage() {
               onChange={(e) => handleFilterChange('action', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
             >
-              <option value="">All Actions</option>
+              <option value="">{t('allActions')}</option>
               {uniqueActions.map((action) => (
                 <option key={action} value={action}>
-                  {getActionLabel(action)}
+                  {t(action as any)}
                 </option>
               ))}
             </select>
@@ -229,7 +229,7 @@ export default function ActivityLogsPage() {
             onClick={() => setSearchParams(new URLSearchParams())}
             className="mt-3 text-sm text-emerald-600 hover:text-emerald-700"
           >
-            Clear filters
+            {t('clearFilters')}
           </button>
         )}
       </div>
@@ -241,16 +241,16 @@ export default function ActivityLogsPage() {
             <Activity className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-            <p className="text-sm text-gray-500">{pagination.total} activities found</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('recentActivity')}</h2>
+            <p className="text-sm text-gray-500">{pagination.total} {t('activitiesFound')}</p>
           </div>
         </div>
 
         {logs.length === 0 ? (
           <div className="text-center py-12">
             <Activity className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No activity recorded yet</p>
-            <p className="text-sm text-gray-400 mt-1">Actions will appear here as they happen</p>
+            <p className="text-gray-500">{t('noActivityYet')}</p>
+            <p className="text-sm text-gray-400 mt-1">{t('actionsAppearHere')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -275,7 +275,7 @@ export default function ActivityLogsPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${getActionColor(log.action)}`}>
-                          {getActionLabel(log.action)}
+                          {t(log.action as any)}
                         </span>
                         {log.entityType && (
                           <span className="text-xs text-gray-500">
@@ -292,7 +292,7 @@ export default function ActivityLogsPage() {
                             <span>{log.user.name || log.user.email}</span>
                           </>
                         ) : (
-                          <span className="text-gray-400">System</span>
+                          <span className="text-gray-400">{t('system')}</span>
                         )}
                         <span className="text-gray-400">•</span>
                         <Clock className="w-4 h-4" />
@@ -322,7 +322,7 @@ export default function ActivityLogsPage() {
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                         <FileText className="w-3 h-3" />
-                        Details
+                        {t('details')}
                       </div>
                       <pre className="text-xs text-gray-700 bg-white p-3 rounded border border-gray-200 overflow-x-auto">
                         {JSON.stringify(log.parsedDetails, null, 2)}
@@ -342,7 +342,7 @@ export default function ActivityLogsPage() {
         {pagination.totalPages > 1 && (
           <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-500">
-              Page {pagination.page} of {pagination.totalPages}
+              {t('pageOf').replace('{page}', String(pagination.page)).replace('{total}', String(pagination.totalPages))}
             </p>
             <div className="flex gap-2">
               {pagination.page > 1 && (
@@ -353,7 +353,7 @@ export default function ActivityLogsPage() {
                   })}`}
                   className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Previous
+                  {t('previous')}
                 </Link>
               )}
               {pagination.page < pagination.totalPages && (
@@ -364,7 +364,7 @@ export default function ActivityLogsPage() {
                   })}`}
                   className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
                 >
-                  Next
+                  {t('next')}
                 </Link>
               )}
             </div>

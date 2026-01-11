@@ -1,41 +1,158 @@
+import { Resend } from 'resend';
+import { getFirstSaleCelebrationHtml } from './email-templates.server';
+// Env is globally declared
+
 /**
- * Email Service using Resend
- * 
- * Handles all transactional emails:
- * - Order confirmation (customer)
- * - New order alert (merchant)
- * - Shipping updates
- * - Low stock alerts
+ * Send a password reset email to the user
  */
+export async function sendPasswordResetEmail(
+  email: string,
+  token: string,
+  env: Env
+): Promise<{ success: boolean; error?: string }> {
+  if (!env.RESEND_API_KEY) {
+    console.warn('[email.server] RESEND_API_KEY is missing. Email not sent.');
+    // For local dev without API key, we log the token
+    if (env.ENVIRONMENT === 'development' || !env.ENVIRONMENT) {
+      console.log('=================================================================');
+      console.log(`[DEV] Password Reset Token for ${email}: ${token}`);
+      console.log(`[DEV] Link: ${env.SAAS_DOMAIN}/auth/reset-password?token=${token}`);
+      console.log('=================================================================');
+      return { success: true };
+    }
+    return { success: false, error: 'Email service configuration missing.' };
+  }
 
-// Note: Resend is imported dynamically to avoid SSR bundling issues with svix (CommonJS)
+  try {
+    const resend = new Resend(env.RESEND_API_KEY);
+    const resetLink = `${env.SAAS_DOMAIN}/auth/reset-password?token=${token}`;
 
-import { 
-  getOrderConfirmationHtml, 
-  getNewOrderAlertHtml, 
-  getShippingUpdateHtml, 
-  getLowStockAlertHtml, 
-  getStaffInviteHtml, 
-  getSubscriptionApprovalHtml 
-} from './email-templates.server';
+    const { data, error } = await resend.emails.send({
+      from: 'Multi-Store SaaS <system@digitalcare.site>', // Update with your verified domain
+      to: [email],
+      subject: 'Reset Your Password',
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Reset Your Password</h2>
+          <p>We received a request to reset the password for your account.</p>
+          <p>Click the button below to set a new password:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #10B981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+              Reset Password
+            </a>
+          </div>
+          <p>Or copy and paste this link into your browser:</p>
+          <p><a href="${resetLink}">${resetLink}</a></p>
+          <p style="color: #666; font-size: 12px; margin-top: 30px;">
+            If you didn't request this, you can safely ignore this email. The link will expire in 1 hour.
+          </p>
+        </div>
+      `,
+    });
 
-// Types for email service
-interface OrderEmailData {
+    if (error) {
+      console.error('[email.server] Resend API error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[email.server] Password reset email sent to:', email, 'ID:', data?.id);
+    return { success: true };
+  } catch (error) {
+    console.error('[email.server] Unexpected error sending email:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error sending email' 
+    };
+  }
+}
+
+/**
+ * Send Low Stock Alert to Merchant
+ */
+export async function sendLowStockAlert(
+  apiKey: string,
+  merchantEmail: string,
+  storeName: string,
+  products: { name: string; stock: number }[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!apiKey) {
+    console.warn('[email.server] API Key missing');
+    return { success: false, error: 'API Key missing' };
+  }
+
+  try {
+    const resend = new Resend(apiKey);
+    
+    // Construct product list HTML
+    const productRows = products.map(p => `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 8px;">${p.name}</td>
+        <td style="padding: 8px; color: #DC2626; font-weight: bold;">${p.stock}</td>
+      </tr>
+    `).join('');
+
+    const { data, error } = await resend.emails.send({
+      from: 'Multi-Store SaaS <system@digitalcare.site>',
+      to: [merchantEmail],
+      subject: `[Alert] Low Stock Warning - ${storeName}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #DC2626;">Low Stock Alert</h2>
+          <p>The following products in <strong>${storeName}</strong> are running low on inventory:</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+              <tr style="background-color: #f3f4f6; text-align: left;">
+                <th style="padding: 8px;">Product</th>
+                <th style="padding: 8px;">Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productRows}
+            </tbody>
+          </table>
+          
+          <p>Please login to your dashboard to restock these items.</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error('[email.server] Resend API error:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[email.server] Unexpected error sending low stock alert:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+
+interface SendCampaignEmailParams {
+  email: string;
+  subject: string;
+  content: string;
+  storeName: string;
+  unsubscribeUrl: string;
+  previewText?: string;
+}
+
+interface SendOrderConfirmationParams {
   orderNumber: string;
   customerName: string;
   customerEmail: string;
   total: number;
   currency: string;
-  items: Array<{
-    title: string;
-    quantity: number;
-    price: number;
-  }>;
-  shippingAddress?: string;
-  paymentMethod?: string;
+  items: { title: string; quantity: number; price: number }[];
+  shippingAddress: string;
+  paymentMethod: string;
 }
 
-interface MerchantEmailData {
+interface SendNewOrderAlertParams {
   merchantEmail: string;
   storeName: string;
   orderNumber: string;
@@ -45,259 +162,198 @@ interface MerchantEmailData {
   itemCount: number;
 }
 
-interface ShippingEmailData {
+interface SendShippingUpdateParams {
   customerEmail: string;
   customerName: string;
   orderNumber: string;
   storeName: string;
-  trackingNumber?: string;
-  courierName?: string;
   status: 'shipped' | 'out_for_delivery' | 'delivered';
-}
-
-interface LowStockEmailData {
-  merchantEmail: string;
-  storeName: string;
-  products: Array<{
-    name: string;
-    stock: number;
-  }>;
+  trackingNumber?: string;
+  trackingUrl?: string;
 }
 
 /**
- * Create email service with Resend API key
- * Uses dynamic import to avoid SSR bundling issues
+ * Factory to create email service with methods
  */
-export function createEmailService(apiKey: string, fromEmail?: string) {
-  const defaultFrom = fromEmail || 'Multi-Store SaaS <noreply@digitalcare.site>';
-  
-  // Lazy load resend to avoid SSR issues
-  const getResend = async () => {
-    const { Resend } = await import('resend');
-    return new Resend(apiKey);
-  };
+export function createEmailService(apiKey: string) {
+  const resend = new Resend(apiKey);
+  const fromEmail = 'Multi-Store SaaS <system@digitalcare.site>';
 
   return {
-    /**
-     * Send order confirmation email to customer
-     */
-    async sendOrderConfirmation(data: OrderEmailData): Promise<{ success: boolean; error?: string }> {
-      try {
-        const html = getOrderConfirmationHtml(data);
-        const resend = await getResend();
-        const { error } = await resend.emails.send({
-          from: defaultFrom,
-          to: data.customerEmail,
-          subject: `Order Confirmed! #${data.orderNumber}`,
-          html,
-        });
-
-        if (error) {
-          console.error('Email send error:', error);
-          return { success: false, error: error.message };
-        }
-
-        return { success: true };
-      } catch (err) {
-        console.error('Email service error:', err);
-        return { success: false, error: String(err) };
-      }
+    async sendCampaignEmail({ email, subject, content, storeName, unsubscribeUrl, previewText }: SendCampaignEmailParams) {
+      return resend.emails.send({
+        from: fromEmail,
+        to: [email],
+        subject,
+        html: `
+          <div style="display: none; max-height: 0px; overflow: hidden;">
+            ${previewText || ''}
+          </div>
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            ${content}
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #666;">
+              <p>Sent by ${storeName}</p>
+              <a href="${unsubscribeUrl}" style="color: #666;">Unsubscribe</a>
+            </div>
+          </div>
+        `,
+      });
     },
 
-    /**
-     * Send new order notification to merchant
-     */
-    async sendNewOrderAlert(data: MerchantEmailData): Promise<{ success: boolean; error?: string }> {
-      try {
-        const symbol = data.currency; // Passed to template logic if needed, actually template handles symbol lookup
-        const html = getNewOrderAlertHtml(data);
+    async sendOrderConfirmation({ orderNumber, customerName, customerEmail, total, currency, items, shippingAddress, paymentMethod, storeLogo, primaryColor, storeName }: SendOrderConfirmationParams & { storeLogo?: string, primaryColor?: string, storeName: string }) {
+      const itemsHtml = items.map(item => `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 12px 0;">
+            <div style="font-weight: 500; color: #333;">${item.title}</div>
+            <div style="color: #666; font-size: 13px;">Qty: ${item.quantity}</div>
+          </td>
+          <td style="padding: 12px 0; text-align: right; font-weight: 500; color: #333;">${currency} ${item.price * item.quantity}</td>
+        </tr>
+      `).join('');
 
-        const resend = await getResend();
-        const { error } = await resend.emails.send({
-          from: defaultFrom,
-          to: data.merchantEmail,
-          subject: `🛒 New Order #${data.orderNumber} - ${data.total}`, // Simplification, can improve subject formatting
-          html,
-        });
+      const themeColor = primaryColor || '#10B981'; // Default green if no brand color
 
-        if (error) {
-          return { success: false, error: error.message };
-        }
-
-        return { success: true };
-      } catch (err) {
-        return { success: false, error: String(err) };
-      }
-    },
-
-    /**
-     * Send shipping status update to customer
-     */
-    async sendShippingUpdate(data: ShippingEmailData): Promise<{ success: boolean; error?: string }> {
-      try {
-        const html = getShippingUpdateHtml(data);
-        const subjects: Record<string, string> = {
-            shipped: 'Your Order Has Shipped! 📦',
-            out_for_delivery: 'Out for Delivery! 🚚',
-            delivered: 'Order Delivered! ✅',
-        };
-
-        const resend = await getResend();
-        const { error } = await resend.emails.send({
-          from: defaultFrom,
-          to: data.customerEmail,
-          subject: `${subjects[data.status] || 'Order Update'} - Order #${data.orderNumber}`,
-          html,
-        });
-
-        if (error) {
-          return { success: false, error: error.message };
-        }
-
-        return { success: true };
-      } catch (err) {
-        return { success: false, error: String(err) };
-      }
-    },
-
-    /**
-     * Send low stock alert to merchant
-     */
-    async sendLowStockAlert(data: LowStockEmailData): Promise<{ success: boolean; error?: string }> {
-      try {
-        const html = getLowStockAlertHtml(data);
-        const resend = await getResend();
-        const { error } = await resend.emails.send({
-          from: defaultFrom,
-          to: data.merchantEmail,
-          subject: `⚠️ Low Stock Alert - ${data.products.length} products need attention`,
-          html,
-        });
-
-        if (error) {
-          return { success: false, error: error.message };
-        }
-
-        return { success: true };
-      } catch (err) {
-        return { success: false, error: String(err) };
-      }
-    },
-
-    /**
-     * Send staff invitation email
-     */
-    async sendStaffInvite(data: {
-      email: string;
-      inviterName: string;
-      storeName: string;
-      role: string;
-      inviteUrl: string;
-    }): Promise<{ success: boolean; error?: string }> {
-      try {
-        const html = getStaffInviteHtml(data);
-        const resend = await getResend();
-        const { error } = await resend.emails.send({
-          from: defaultFrom,
-          to: data.email,
-          subject: `You're invited to join ${data.storeName}`,
-          html,
-        });
-
-        if (error) {
-          return { success: false, error: error.message };
-        }
-
-        return { success: true };
-      } catch (err) {
-        return { success: false, error: String(err) };
-      }
-    },
-
-    /**
-     * Send campaign marketing email
-     */
-    async sendCampaignEmail(data: {
-      email: string;
-      subject: string;
-      content: string;
-      storeName: string;
-      previewText?: string;
-      unsubscribeUrl: string;
-    }): Promise<{ success: boolean; error?: string }> {
-      try {
-        // Campaign email content is dynamic and comes from user input, so we wrap it here locally
-        // or extract a wrapper template too. For now keeping wrapper here is fine or could extract 'getCampaignHtml'.
-        // Let's keep it simple and inline the wrapper here to avoid complexity with user content injection.
-        const html = `
+      return resend.emails.send({
+        from: fromEmail,
+        to: [customerEmail],
+        subject: `Order Confirmation #${orderNumber} - ${storeName}`,
+        html: `
           <!DOCTYPE html>
           <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            ${data.content}
-            
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-            
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">
-              You received this email from ${data.storeName}.<br>
-              <a href="${data.unsubscribeUrl}" style="color: #6b7280;">Unsubscribe</a>
-            </p>
+          <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 0; margin: 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+              
+              <!-- Header -->
+              <div style="text-align: center; padding: 40px 40px 30px; border-bottom: 1px solid #f3f4f6;">
+                ${storeLogo ? `<img src="${storeLogo}" alt="${storeName}" style="height: 40px; margin-bottom: 20px; object-fit: contain;">` : `<h2 style="margin: 0 0 20px; color: ${themeColor}; font-size: 24px;">${storeName}</h2>`}
+                <h1 style="color: #111827; font-size: 24px; font-weight: bold; margin: 0;">Thanks for your order!</h1>
+                <p style="color: #6B7280; font-size: 16px; margin-top: 8px;">Order #${orderNumber}</p>
+              </div>
+
+              <!-- Content -->
+              <div style="padding: 40px;">
+                <p style="color: #374151; font-size: 16px; margin-top: 0;">Hi ${customerName},</p>
+                <p style="color: #374151; font-size: 16px; line-height: 1.5;">We've received your order and are getting it ready! We'll notify you when it's on its way.</p>
+
+                <!-- Order Summary -->
+                <div style="margin-top: 32px;">
+                  <h3 style="color: #111827; font-size: 18px; font-weight: 600; margin-bottom: 16px;">Order Summary</h3>
+                  <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+                    ${itemsHtml}
+                    <tr>
+                      <td style="padding-top: 20px; border-top: 2px solid #eee; font-weight: bold; color: #111827;">Total</td>
+                      <td style="padding-top: 20px; border-top: 2px solid #eee; text-align: right; font-weight: bold; color: ${themeColor}; font-size: 18px;">${currency} ${total}</td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- Details Grid -->
+                <div style="margin-top: 32px; padding: 24px; background-color: #f9fafb; border-radius: 8px;">
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding-bottom: 16px; vertical-align: top; width: 50%;">
+                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #6B7280; margin-bottom: 4px;">Shipping Address</div>
+                        <div style="color: #111827; font-size: 14px; line-height: 1.4;">${shippingAddress}</div>
+                      </td>
+                      <td style="padding-bottom: 16px; vertical-align: top; width: 50%;">
+                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #6B7280; margin-bottom: 4px;">Payment Method</div>
+                        <div style="color: #111827; font-size: 14px; line-height: 1.4;">${paymentMethod}</div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- CTA -->
+                <div style="text-align: center; margin-top: 40px;">
+                  <a href="https://${storeName.toLowerCase().replace(/\s+/g, '')}.digitalcare.site" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; font-weight: 600; padding: 12px 32px; border-radius: 8px; text-decoration: none;">Visit Store</a>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #f3f4f6;">
+                <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
+                  Sent with ❤️ by ${storeName}<br>
+                  If you have any questions, reply to this email.
+                </p>
+              </div>
+            </div>
           </body>
           </html>
-        `;
-
-        const resend = await getResend();
-        const { error } = await resend.emails.send({
-          from: defaultFrom,
-          to: data.email,
-          subject: data.subject,
-          html,
-        });
-
-        if (error) {
-          return { success: false, error: error.message };
-        }
-
-        return { success: true };
-      } catch (err) {
-        return { success: false, error: String(err) };
-      }
+        `,
+      });
     },
 
-    /**
-     * Send subscription approval confirmation to store owner
-     */
-    async sendSubscriptionApprovalEmail(data: {
-      email: string;
-      storeName: string;
-      planName: string;
-      startDate: Date;
-      endDate: Date;
-    }): Promise<{ success: boolean; error?: string }> {
-      try {
-        const html = getSubscriptionApprovalHtml(data);
-        const resend = await getResend();
-        const { error } = await resend.emails.send({
-          from: defaultFrom,
-          to: data.email,
-          subject: `✅ Payment Approved - ${data.planName} Plan Activated!`,
-          html,
-        });
+    async sendNewOrderAlert({ merchantEmail, storeName, orderNumber, customerName, total, currency, itemCount }: SendNewOrderAlertParams) {
+       return resend.emails.send({
+        from: fromEmail,
+        to: [merchantEmail],
+        subject: `[New Order] #${orderNumber} - ${currency} ${total}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563EB;">New Order Received via ${storeName}</h2>
+            <p>You have received a new order from <strong>${customerName}</strong>.</p>
+            
+            <div style="background: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dbeafe;">
+              <p style="font-size: 24px; font-weight: bold; margin: 0;">${currency} ${total}</p>
+              <p style="margin: 5px 0 0;">Order #${orderNumber} • ${itemCount} items</p>
+            </div>
 
-        if (error) {
-          return { success: false, error: error.message };
-        }
-
-        return { success: true };
-      } catch (err) {
-        return { success: false, error: String(err) };
-      }
+            <p>
+              <a href="https://digitalcare.site/admin/orders/${orderNumber}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                View Order
+              </a>
+            </p>
+          </div>
+        `,
+      });
     },
+
+    async sendLowStockAlert({ merchantEmail, storeName, products }: { merchantEmail: string; storeName: string; products: { name: string; stock: number }[] }) {
+      return sendLowStockAlert(apiKey, merchantEmail, storeName, products);
+    },
+
+    async sendFirstSaleCelebration({ merchantEmail, merchantName, storeName, orderNumber, amount }: { merchantEmail: string, merchantName: string, storeName: string, orderNumber: string, amount: string }) {
+      const html = getFirstSaleCelebrationHtml({
+        merchantName,
+        storeName,
+        orderNumber, // e.g. "1001"
+        amount, // e.g. "৳1,250"
+      });
+
+      return resend.emails.send({
+        from: fromEmail,
+        to: [merchantEmail],
+        subject: `🎉 Your First Sale! You're in Business!`,
+        html,
+      });
+    },
+
+    async sendShippingUpdate({ customerEmail, customerName, orderNumber, storeName, status, trackingNumber, trackingUrl }: SendShippingUpdateParams) {
+      const statusText = status === 'shipped' ? 'been shipped' : status === 'out_for_delivery' ? 'out for delivery' : 'been delivered';
+      const subject = status === 'delivered' ? `Order Delivered! #${orderNumber}` : `Shipping Update for Order #${orderNumber}`;
+
+      return resend.emails.send({
+        from: fromEmail,
+        to: [customerEmail],
+        subject: `${subject} - ${storeName}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Shipping Update</h2>
+            <p>Hi ${customerName},</p>
+            <p>Your order <strong>#${orderNumber}</strong> from <strong>${storeName}</strong> has ${statusText}.</p>
+            
+            ${trackingNumber ? `
+              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #666;">Tracking Number</p>
+                <p style="margin: 5px 0 0; font-size: 18px; font-weight: bold;">${trackingNumber}</p>
+                ${trackingUrl ? `<a href="${trackingUrl}" style="display: inline-block; margin-top: 10px; color: #10B981; font-weight: 600;">Track Order</a>` : ''}
+              </div>
+            ` : ''}
+
+            <p>Thank you for shopping with us!</p>
+          </div>
+        `,
+      });
+    }
   };
 }
-
-// Export types
-export type EmailService = ReturnType<typeof createEmailService>;

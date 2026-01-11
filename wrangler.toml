@@ -35,6 +35,16 @@ bucket_name = "multi-store-saas-media"
 binding = "AI_RATE_LIMIT"
 id = "65513509a7a146d1b348548fb98a93cf"
 
+# Vectorize Database binding for AI RAG
+# Create first: wrangler vectorize create multi-store-saas-vectors --dimensions=1536 --metric=cosine
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "multi-store-saas-vectors"
+
+# Cloudflare Workers AI Binding
+[ai]
+binding = "AI"
+
 # ============================================================================
 # ENVIRONMENT VARIABLES
 # ============================================================================
@@ -43,13 +53,21 @@ SAAS_DOMAIN = "digitalcare.site"  # Custom domain for the SaaS
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"  # R2 bucket public URL
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"  # Only this email can impersonate users
 CLOUDFLARE_ZONE_ID = "YOUR_ZONE_ID_HERE"  # Zone ID from Cloudflare Dashboard (digitalcare.site)
+
+# AI CONFIGURATION (Xiaomi Mimo or any OpenAI-compatible provider)
+AI_MODEL = "mimo-v2-flash"  # Model ID for AI features
+AI_BASE_URL = "https://api.xiaomimimo.com/v1"  # OpenAI-compatible API endpoint
+
 # IMPORTANT: Sensitive API keys must be set in Cloudflare Dashboard for security
-# OPENROUTER_API_KEY - AI chatbot - SET IN DASHBOARD (secret, not here)
+# OPENROUTER_API_KEY - AI API key (Xiaomi Mimo or OpenRouter) - SET IN DASHBOARD (secret, not here)
 # RESEND_API_KEY - Email service - SET IN DASHBOARD (secret)
 # CLOUDFLARE_API_TOKEN - SSL certificates - SET IN DASHBOARD (secret)
 
 # PUSH NOTIFICATIONS (VAPID)
 VAPID_PUBLIC_KEY = "BDl0oSQqYgSjUMZxblMeN1nhfndIyhlAKDujKvNfQyo4gMGVlvKs2aInkK9-PiflVUSDxmPPyienIPQlHMZPwJU"
+
+# Sentry DSN
+SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"
 
 # ============================================================================
 # DEVELOPMENT SETTINGS

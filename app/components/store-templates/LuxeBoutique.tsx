@@ -6,11 +6,13 @@
  */
 
 import { Link } from '@remix-run/react';
-import { ShoppingBag, Search, Menu, X, Heart, ChevronRight, Instagram, Facebook, Mail } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Heart, ChevronRight, Instagram, Facebook, Mail, Home as HomeIcon, Grid3X3, User, Phone, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
+import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
+import { useCartCount } from '~/hooks/useCartCount';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 
 // ============================================================================
@@ -50,12 +52,13 @@ export function LuxeBoutiqueTemplate({
   const [searchOpen, setSearchOpen] = useState(false);
   const formatPrice = useFormatPrice();
   const { t } = useTranslation();
+  const count = useCartCount();
 
   // Filter valid categories
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: THEME.background, fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: THEME.background, fontFamily: "'Inter', sans-serif" }}>
       {/* Google Fonts */}
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
@@ -155,7 +158,7 @@ export function LuxeBoutiqueTemplate({
                   className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
                   style={{ backgroundColor: THEME.accent, color: THEME.primary }}
                 >
-                  0
+                  {count}
                 </span>
               </Link>
             </div>
@@ -207,61 +210,31 @@ export function LuxeBoutiqueTemplate({
         <div className="h-0.5" style={{ backgroundColor: THEME.accent }} />
       </header>
 
-      {/* ==================== HERO SECTION ==================== */}
-      <section className="relative h-[50vh] lg:h-[60vh] overflow-hidden">
-        {config?.bannerUrl ? (
-          <img 
-            src={config.bannerUrl} 
-            alt="Store Banner" 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <div 
-            className="absolute inset-0"
-            style={{ 
-              background: `linear-gradient(135deg, ${THEME.primary} 0%, #2d2d2d 100%)`
+      {/* ==================== DYNAMIC SECTIONS ==================== */}
+      {(config?.sections ?? DEFAULT_SECTIONS).map((section: any) => {
+        const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+        if (!SectionComponent) return null;
+        
+        return (
+          <SectionComponent
+            key={section.id}
+            settings={section.settings}
+            theme={THEME}
+            products={products}
+            categories={categories}
+            storeId={storeId}
+            currency={currency}
+            store={{
+              name: storeName,
+              email: businessInfo?.email,
+              phone: businessInfo?.phone,
+              address: businessInfo?.address,
+              currency: currency
             }}
           />
-        )}
-        
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/40" />
-        
-        {/* Content */}
-        <div className="relative h-full flex items-center justify-center text-center px-4">
-          <div>
-            <h1 
-              className="text-4xl sm:text-5xl lg:text-6xl font-semibold mb-4 text-white"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              {config?.bannerText || `Welcome to ${storeName}`}
-            </h1>
-            <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
-              Discover our curated collection of exceptional products
-            </p>
-            <Link
-              to="/#products"
-              className="inline-flex items-center gap-2 px-8 py-3 text-sm font-medium uppercase tracking-wider transition-all"
-              style={{ 
-                backgroundColor: 'transparent',
-                color: 'white',
-                border: `2px solid ${THEME.accent}`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = THEME.accent;
-                e.currentTarget.style.color = THEME.primary;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = 'white';
-              }}
-            >
-              {t('buyNow')}
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
+        );
+      })}
+
 
       {/* ==================== CATEGORY PILLS (Mobile) ==================== */}
       {validCategories.length > 0 && (
@@ -296,77 +269,12 @@ export function LuxeBoutiqueTemplate({
         </div>
       )}
 
-      {/* ==================== PRODUCTS GRID ==================== */}
-      <section id="products" className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Title */}
-          <div className="text-center mb-12">
-            <h2 
-              className="text-3xl lg:text-4xl font-semibold mb-3"
-              style={{ fontFamily: "'Playfair Display', serif", color: THEME.primary }}
-            >
-              {currentCategory || 'Our Collection'}
-            </h2>
-            <div className="w-16 h-0.5 mx-auto" style={{ backgroundColor: THEME.accent }} />
-          </div>
 
-          {/* Products Grid */}
-          {products.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-8">
-              {products.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  storeId={storeId}
-                  currency={currency}
-                  formatPrice={formatPrice}
-                  isPreview={isPreview}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-lg" style={{ color: THEME.muted }}>
-                No products found in this category.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
 
-      {/* ==================== FOOTER ==================== */}
-      <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
-        {/* Newsletter */}
-        <div className="border-b border-white/10 py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 
-              className="text-2xl font-semibold mb-3"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              Join Our Newsletter
-            </h3>
-            <p className="text-white/70 mb-6 max-w-md mx-auto">
-              Subscribe to receive updates, access to exclusive deals, and more.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-[#c9a961]"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 font-medium uppercase text-sm tracking-wider transition-colors"
-                style={{ backgroundColor: THEME.accent, color: THEME.primary }}
-              >
-                Subscribe
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {/* Main Footer */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Footer */}
+        <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
+          {/* Main Footer */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Brand */}
             <div>
@@ -448,6 +356,67 @@ export function LuxeBoutiqueTemplate({
           </div>
         </div>
       </footer>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
+        <div className="flex items-center justify-around h-14">
+          <Link to="/" className="flex flex-col items-center gap-0.5 py-1 px-3">
+            <HomeIcon className="w-5 h-5" style={{ color: !currentCategory ? THEME.accent : THEME.muted }} />
+            <span className="text-[10px] font-medium" style={{ color: !currentCategory ? THEME.accent : THEME.muted }}>Home</span>
+          </Link>
+          <button 
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-0.5 py-1 px-3"
+          >
+            <Grid3X3 className="w-5 h-5" style={{ color: THEME.muted }} />
+            <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Shop</span>
+          </button>
+          <Link to="/cart" className="flex flex-col items-center gap-0.5 py-1 px-3 relative">
+            <ShoppingCart className="w-5 h-5" style={{ color: THEME.muted }} />
+            <span 
+              className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold"
+              style={{ backgroundColor: THEME.accent, color: THEME.primary }}
+            >
+              {count}
+            </span>
+            <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Bag</span>
+          </Link>
+          {!isPreview && (
+            <Link to="/auth/login" className="flex flex-col items-center gap-0.5 py-1 px-3">
+              <User className="w-5 h-5" style={{ color: THEME.muted }} />
+              <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Account</span>
+            </Link>
+          )}
+        </div>
+      </nav>
+
+      {/* Floating Contact Buttons */}
+      {!isPreview && (
+        <>
+          {config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber && (
+            <a
+              href={`https://wa.me/${config.floatingWhatsappNumber.replace(/\D/g, '').replace(/^01/, '8801')}?text=${encodeURIComponent(config.floatingWhatsappMessage || `Hello ${storeName}, I'd like to know...`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="fixed bottom-20 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+              title="Message on WhatsApp"
+            >
+              <MessageCircle className="h-7 w-7 text-white" />
+              <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25" />
+            </a>
+          )}
+          {config?.floatingCallEnabled && config?.floatingCallNumber && (
+            <a
+              href={`tel:${config.floatingCallNumber}`}
+              className={`fixed bottom-20 md:bottom-8 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
+              title="Call us"
+            >
+              <Phone className="h-7 w-7 text-white" />
+              <span className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-25" />
+            </a>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -455,99 +424,4 @@ export function LuxeBoutiqueTemplate({
 // ============================================================================
 // PRODUCT CARD COMPONENT
 // ============================================================================
-interface ProductCardProps {
-  product: StoreTemplateProps['products'][0];
-  storeId: number;
-  currency: string;
-  formatPrice: (price: number) => string;
-  isPreview?: boolean;
-}
 
-function ProductCard({ product, storeId, currency, formatPrice, isPreview }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
-  const discountPercent = hasDiscount 
-    ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
-    : 0;
-
-  return (
-    <div 
-      className="group relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Image Container */}
-      <Link to={`/product/${product.id}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-100">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <span className="text-4xl">📦</span>
-          </div>
-        )}
-
-        {/* Discount Badge */}
-        {hasDiscount && (
-          <div 
-            className="absolute top-3 left-3 px-2 py-1 text-xs font-medium"
-            style={{ backgroundColor: THEME.accent, color: THEME.primary }}
-          >
-            -{discountPercent}%
-          </div>
-        )}
-
-        {/* Quick Add Button - Shows on Hover */}
-        <div 
-          className="absolute inset-x-0 bottom-0 p-3 transition-all duration-300"
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transform: isHovered ? 'translateY(0)' : 'translateY(100%)',
-          }}
-        >
-          <AddToCartButton
-            productId={product.id}
-            storeId={storeId}
-            className="w-full py-3 text-sm font-medium uppercase tracking-wider transition-colors"
-            style={{ backgroundColor: THEME.primary, color: 'white' }}
-            isPreview={isPreview}
-          >
-            Add to Bag
-          </AddToCartButton>
-        </div>
-      </Link>
-
-      {/* Wishlist Button */}
-      <button 
-        className="absolute top-3 right-3 p-2 rounded-full bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-      >
-        <Heart className="w-4 h-4" style={{ color: THEME.text }} />
-      </button>
-
-      {/* Product Info */}
-      <div className="mt-4 text-center">
-        <Link to={`/product/${product.id}`}>
-          <h3 
-            className="text-sm font-medium mb-1 hover:underline"
-            style={{ color: THEME.text }}
-          >
-            {product.title}
-          </h3>
-        </Link>
-        <div className="flex items-center justify-center gap-2">
-          <span className="font-medium" style={{ color: THEME.primary }}>
-            {formatPrice(product.price)}
-          </span>
-          {hasDiscount && (
-            <span className="text-sm line-through" style={{ color: THEME.muted }}>
-              {formatPrice(product.compareAtPrice!)}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}

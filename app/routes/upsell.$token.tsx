@@ -164,11 +164,14 @@ export default function UpsellPage() {
 
   // Handle fetcher responses
   useEffect(() => {
-    if (acceptFetcher.data?.success && acceptFetcher.data?.nextUrl) {
-      navigate(acceptFetcher.data.nextUrl);
+    const acceptData = acceptFetcher.data as any;
+    const declineData = declineFetcher.data as any;
+    
+    if (acceptData?.success && acceptData?.nextUrl) {
+      navigate(acceptData.nextUrl);
     }
-    if (declineFetcher.data?.success && declineFetcher.data?.nextUrl) {
-      navigate(declineFetcher.data.nextUrl);
+    if (declineData?.success && declineData?.nextUrl) {
+      navigate(declineData.nextUrl);
     }
   }, [acceptFetcher.data, declineFetcher.data, navigate]);
 

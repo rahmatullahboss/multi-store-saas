@@ -10,9 +10,169 @@ import { useState, useRef } from 'react';
 import { Menu, X, Search, ShoppingCart, ChevronRight, ChevronLeft, Shirt, Watch, Laptop, ShoppingBag, Sparkles, LayoutGrid } from 'lucide-react';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { StoreTemplateProps } from '~/templates/store-registry';
+import { getSectionDefinition } from '~/components/store-sections/registry';
+
+// Define ModernProductCard component (Custom for this theme)
+function ModernProductCard({ product, storeId, currency, formatPrice, theme }: any) {
+  const primaryColor = theme.primary || '#f59e0b';
+  
+  const getDiscountPercentage = (price: number, compareAtPrice: number | null) => {
+    if (!compareAtPrice || compareAtPrice <= price) return 0;
+    return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
+  };
+
+  const discount = getDiscountPercentage(product.price, product.compareAtPrice);
+
+  return (
+    <article
+      className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-amber-500/60"
+    >
+      <Link to={`/products/${product.id}`} className="block">
+        {/* Product Image */}
+        <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+              <ShoppingBag className="w-12 h-12 text-gray-300 dark:text-gray-500" />
+            </div>
+          )}
+
+          {/* Discount Badge */}
+          {discount > 0 && (
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
+              <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 shadow-md text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded">
+                -{discount}% OFF
+              </span>
+            </div>
+          )}
+
+          {/* Category Badge */}
+          {product.category && (
+            <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
+              <span className="bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1 rounded">
+                {product.category}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Card Content */}
+        <div className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
+          <h3 className="text-sm sm:text-lg font-semibold sm:font-bold leading-tight line-clamp-2">
+            {product.title}
+          </h3>
+          <p className="hidden sm:block text-gray-500 dark:text-gray-400 text-sm leading-relaxed line-clamp-2">
+            {product.description}
+          </p>
+        </div>
+      </Link>
+
+      {/* Footer with Price and Button */}
+      <div className="p-1.5 sm:p-3 pt-0 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg sm:text-xl font-bold" style={{ color: primaryColor }}>
+              {formatPrice(product.price)}
+            </span>
+            {product.compareAtPrice && product.compareAtPrice > product.price && (
+              <span className="text-xs sm:text-sm text-gray-400 line-through">
+                {formatPrice(product.compareAtPrice)}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2">
+          <AddToCartButton 
+            productId={product.id}
+            storeId={storeId}
+            className="w-full px-3 py-2 rounded-lg text-sm font-medium border transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+            style={{ borderColor: primaryColor, color: primaryColor }}
+          >
+            Add to Cart
+          </AddToCartButton>
+          
+          <AddToCartButton 
+            productId={product.id}
+            storeId={storeId}
+            mode="buy_now"
+            className="w-full px-3 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: primaryColor }}
+          >
+            Order Now
+          </AddToCartButton>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+const DEFAULT_MODERN_SECTIONS = [
+  {
+    id: 'hero',
+    type: 'modern-hero',
+    settings: {
+      heading: 'Premium Quality Products',
+      subheading: 'Discover our amazing collection with the best quality and prices.',
+      primaryAction: { label: 'Shop Now', url: '/products' },
+      secondaryAction: { label: 'Browse Categories', url: '/about' },
+      badge: 'New Collection'
+    }
+  },
+  {
+    id: 'category-list',
+    type: 'category-list',
+    settings: {
+      layout: 'pills',
+      limit: 6
+    }
+  },
+  {
+    id: 'new-arrivals',
+    type: 'product-grid',
+    settings: {
+      heading: 'New Arrivals',
+      productCount: 8,
+      paddingTop: 'large',
+      paddingBottom: 'large'
+    }
+  },
+  {
+    id: 'trending',
+    type: 'product-scroll',
+    settings: {
+      heading: 'Trending Now',
+      limit: 8
+    }
+  },
+  {
+    id: 'newsletter',
+    type: 'newsletter',
+    settings: {
+      heading: 'Stay Updated',
+      subheading: 'Subscribe to get special offers, free giveaways, and updates.'
+    }
+  },
+  {
+    id: 'features',
+    type: 'modern-features',
+    settings: {
+      heading: 'Why Choose Us?',
+      subheading: "We're committed to providing the best shopping experience"
+    }
+  }
+];
+
 
 export function ModernPremiumTemplate({
   storeName,
+  storeId,
   logo,
   products,
   categories,
@@ -24,8 +184,6 @@ export function ModernPremiumTemplate({
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const trendingRef = useRef<HTMLDivElement>(null);
-  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -35,29 +193,8 @@ export function ModernPremiumTemplate({
 
   const primaryColor = config?.primaryColor || '#f59e0b';
   const accentColor = config?.accentColor || '#f59e0b';
-  const bannerUrl = config?.bannerUrl;
-  const bannerText = config?.bannerText;
   
-  // Get products for different sections
-  const featuredProducts = products.slice(0, 8);
-  const trendingProducts = products.slice(0, 4);
 
-  // Calculate discount percentage
-  const getDiscountPercentage = (price: number, compareAtPrice: number | null) => {
-    if (!compareAtPrice || compareAtPrice <= price) return 0;
-    return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
-  };
-
-  // Scroll trending section
-  const scrollTrending = (direction: 'left' | 'right') => {
-    if (trendingRef.current) {
-      const scrollAmount = 340;
-      trendingRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  };
 
   // Category icons mapping
   const getCategoryIcon = (category: string | null, index: number) => {
@@ -211,457 +348,34 @@ export function ModernPremiumTemplate({
         )}
       </header>
 
-      {/* Hero Section */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-4 lg:px-10 py-6 lg:py-8">
-        <div className="relative overflow-hidden rounded-2xl min-h-[450px] sm:min-h-[550px] lg:min-h-[600px] flex items-center">
-          {/* Hero Background */}
-          {config?.bannerUrl ? (
-            <img
-              src={config.bannerUrl}
-              alt="Hero Banner"
-              className="absolute inset-0 w-full h-full object-cover object-center"
-            />
-          ) : (
-            <div 
-              className="absolute inset-0 w-full h-full bg-gradient-to-br"
-              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}99)` }}
-            />
-          )}
-          
-          {/* Gradient Overlay */}
-          <div 
-            className="absolute inset-0 w-full h-full"
-            style={{
-              background: 'linear-gradient(105deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)',
+      {/* Sections Loop */}
+      {(config?.sections ?? DEFAULT_MODERN_SECTIONS).map((section: any) => {
+        const SectionComponent = getSectionDefinition(section.type)?.component;
+        if (!SectionComponent) return null;
+
+        // Custom ProductCard for grids in this theme
+        const productCardComponent = section.type === 'product-grid' || section.type === 'product-scroll' 
+          ? ModernProductCard 
+          : undefined;
+
+        return (
+          <SectionComponent
+            key={section.id}
+            settings={section.settings}
+            theme={{
+              primary: primaryColor,
+              accent: accentColor,
             }}
+            products={products}
+            categories={categories}
+            currentCategory={currentCategory}
+            storeId={storeId}
+            currency={currency}
+            formatPrice={formatPrice}
+            ProductCardComponent={productCardComponent}
           />
-
-          {/* Content */}
-          <div className="relative z-10 w-full lg:w-2/3 px-6 lg:pl-16 flex flex-col items-start gap-4 sm:gap-6">
-            {/* Badge */}
-            <div 
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs sm:text-sm font-bold tracking-wide uppercase"
-              style={{ 
-                backgroundColor: `${primaryColor}30`, 
-                borderColor: `${primaryColor}50`,
-                color: primaryColor 
-              }}
-            >
-              <span 
-                className="w-2 h-2 rounded-full animate-pulse"
-                style={{ backgroundColor: primaryColor }}
-              />
-              New Collection
-            </div>
-
-            {/* Title */}
-            <h1 className="text-white text-4xl sm:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tighter">
-              {config?.bannerText || 'Premium'}
-              <br />
-              <span style={{ color: primaryColor }}>Quality</span>
-              <br />
-              Products
-            </h1>
-
-            {/* Description */}
-            <p className="text-gray-300 text-base sm:text-lg lg:text-xl max-w-md leading-relaxed">
-              Discover our amazing collection with the best quality and prices.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-3 sm:gap-4 mt-2 sm:mt-4">
-              <Link
-                to="/products"
-                className="h-11 sm:h-12 px-6 sm:px-8 rounded-full font-bold flex items-center gap-2 transition-all duration-200 hover:scale-105"
-                style={{ 
-                  backgroundColor: primaryColor, 
-                  color: 'white',
-                  boxShadow: `0 0 20px ${primaryColor}66`
-                }}
-              >
-                Shop Now
-                <ChevronRight className="h-4 w-4" />
-              </Link>
-              <Link
-                to="/about"
-                className="h-11 sm:h-12 px-6 sm:px-8 rounded-full font-bold bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all flex items-center"
-              >
-                Browse Categories
-              </Link>
-            </div>
-          </div>
-
-          {/* Floating Product Card (Desktop) */}
-          {featuredProducts[0] && (
-            <div className="absolute bottom-6 sm:bottom-10 right-6 sm:right-10 hidden lg:flex gap-4">
-              <div className="w-64 p-4 rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center gap-4">
-                {featuredProducts[0].imageUrl && (
-                  <div 
-                    className="w-16 h-16 rounded-lg bg-cover bg-center shrink-0"
-                    style={{ backgroundImage: `url(${featuredProducts[0].imageUrl})` }}
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-bold truncate">{featuredProducts[0].title}</p>
-                  <p className="text-xs font-bold" style={{ color: primaryColor }}>Best Seller</p>
-                </div>
-                <Link
-                  to={`/products/${featuredProducts[0].id}`}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:opacity-80 transition"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Category Chips */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 lg:px-10 py-4">
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          <Link
-            to="/"
-            className={`flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-5 sm:px-6 font-medium text-sm transition-all ${
-              !currentCategory
-                ? 'text-white'
-                : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white hover:border-amber-500'
-            }`}
-            style={!currentCategory ? { backgroundColor: primaryColor } : {}}
-          >
-            <LayoutGrid className="h-4 w-4" />
-            All
-          </Link>
-          {categories.filter(Boolean).slice(0, 5).map((category, index) => {
-            const Icon = getCategoryIcon(category, index + 1);
-            const isActive = currentCategory === category;
-            return (
-              <Link
-                key={category}
-                to={`?category=${encodeURIComponent(category!)}`}
-                className={`flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-5 sm:px-6 font-medium text-sm transition-all ${
-                  isActive
-                    ? 'text-white'
-                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white hover:border-amber-500'
-                }`}
-                style={isActive ? { backgroundColor: primaryColor } : {}}
-              >
-                <Icon className="h-4 w-4" />
-                {category}
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* New Arrivals Grid */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 lg:px-10 py-8 sm:py-12">
-        {/* Section Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 sm:w-2 h-6 sm:h-8 rounded-sm" style={{ backgroundColor: primaryColor }} />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
-              {currentCategory || 'New Arrivals'}
-            </h2>
-          </div>
-          <Link
-            to="/products"
-            className="text-gray-500 hover:text-gray-900 dark:hover:text-white flex items-center gap-1 text-sm font-medium transition-colors"
-          >
-            View All <ChevronRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        {/* Products Grid */}
-        {featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-            {featuredProducts.map((product, index) => {
-              const discount = getDiscountPercentage(product.price, product.compareAtPrice);
-              return (
-                <article
-                  key={product.id}
-                  className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-amber-500/60"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <Link to={`/products/${product.id}`} className="block">
-                    {/* Product Image */}
-                    <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
-                      {product.imageUrl ? (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.title}
-                          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700">
-                          <ShoppingBag className="w-12 h-12 text-gray-300 dark:text-gray-500" />
-                        </div>
-                      )}
-
-                      {/* Discount Badge */}
-                      {discount > 0 && (
-                        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
-                          <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 shadow-md text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded">
-                            -{discount}% OFF
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Category Badge */}
-                      {product.category && (
-                        <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
-                          <span className="bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1 rounded">
-                            {product.category}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Card Content */}
-                    <div className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
-                      <h3 className="text-sm sm:text-lg font-semibold sm:font-bold leading-tight line-clamp-2">
-                        {product.title}
-                      </h3>
-                      <p className="hidden sm:block text-gray-500 dark:text-gray-400 text-sm leading-relaxed line-clamp-2">
-                        {product.description}
-                      </p>
-                    </div>
-                  </Link>
-
-                  {/* Footer with Price and Button */}
-                  <div className="p-1.5 sm:p-3 pt-0 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg sm:text-xl font-bold" style={{ color: primaryColor }}>
-                        {formatPrice(product.price)}
-                      </span>
-                      {product.compareAtPrice && product.compareAtPrice > product.price && (
-                        <span className="text-xs sm:text-sm text-gray-400 line-through">
-                          {formatPrice(product.compareAtPrice)}
-                        </span>
-                      )}
-                    </div>
-                    <AddToCartButton 
-                      productId={product.id}
-                      className="!w-auto !m-0 px-3 py-2 rounded-lg text-sm"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div 
-              className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
-              style={{ backgroundColor: `${primaryColor}20` }}
-            >
-              <ShoppingBag className="w-8 h-8" style={{ color: primaryColor }} />
-            </div>
-            <h3 className="text-xl font-bold mb-2">Coming Soon!</h3>
-            <p className="text-gray-500">New products are on the way.</p>
-          </div>
-        )}
-
-        {/* View All Button */}
-        {featuredProducts.length > 0 && (
-          <div className="text-center pt-6 sm:pt-8">
-            <Link
-              to="/products"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-bold text-white transition hover:opacity-90"
-              style={{ backgroundColor: primaryColor }}
-            >
-              View All Products <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-        )}
-      </section>
-
-      {/* Promo Banner */}
-      {config?.collections && config.collections.length > 0 && (
-        <section className="relative z-10 max-w-7xl mx-auto px-4 lg:px-10 py-8">
-          <div className="relative overflow-hidden rounded-2xl" style={{ backgroundColor: primaryColor }}>
-            {/* Background Image */}
-            {config.collections[0].imageUrl && (
-              <div
-                className="absolute inset-0 bg-cover bg-center z-0"
-                style={{ backgroundImage: `url(${config.collections[0].imageUrl})` }}
-              />
-            )}
-            {/* Overlay */}
-            <div 
-              className="absolute inset-0 z-10"
-              style={{ background: `linear-gradient(to right, ${primaryColor}, ${primaryColor}ee, ${primaryColor}66)` }}
-            />
-
-            {/* Content */}
-            <div className="relative z-20 min-h-[400px] lg:min-h-[450px] flex items-center">
-              <div className="p-8 lg:p-16 max-w-lg">
-                <span className="text-white font-bold text-sm sm:text-lg mb-4 tracking-widest uppercase block">
-                  Limited Offer
-                </span>
-                <h2 className="text-white text-4xl sm:text-5xl lg:text-6xl font-black leading-[0.9] mb-4 sm:mb-6">
-                  Special
-                  <br />
-                  <span className="text-gray-900">Deals</span>
-                </h2>
-                <p className="text-white/90 text-base sm:text-xl font-medium mb-6 sm:mb-8 max-w-sm">
-                  Don't miss out on our exclusive offers. Limited time only!
-                </p>
-                <Link
-                  to={`/?category=${encodeURIComponent(config.collections[0].name)}`}
-                  className="inline-flex items-center gap-2 bg-white text-gray-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg hover:bg-gray-100 transition-colors"
-                >
-                  Shop Sale
-                  <ChevronRight className="h-5 w-5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Trending Products */}
-      {trendingProducts.length > 0 && (
-        <section className="relative z-10 max-w-7xl mx-auto px-4 lg:px-10 py-12 mb-8 lg:mb-12">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
-              Trending Now
-            </h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => scrollTrending('left')}
-                className="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:border-gray-400 transition"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => scrollTrending('right')}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white transition hover:opacity-90"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Horizontal Scroll Cards */}
-          <div
-            ref={trendingRef}
-            className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 snap-x scrollbar-hide"
-          >
-            {trendingProducts.map((product) => (
-              <div
-                key={product.id}
-                className="min-w-[280px] sm:min-w-[320px] md:min-w-[400px] snap-center bg-white dark:bg-gray-800 rounded-xl overflow-hidden flex flex-col md:flex-row group border border-gray-200 dark:border-gray-700 hover:border-amber-500/50 transition-colors"
-              >
-                {/* Image */}
-                <div className="w-full md:w-2/5 aspect-square md:aspect-auto min-h-[150px] relative">
-                  {product.imageUrl ? (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700">
-                      <ShoppingBag className="w-8 h-8 text-gray-300" />
-                    </div>
-                  )}
-                </div>
-                {/* Content */}
-                <div className="p-4 sm:p-6 flex flex-col justify-center flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: primaryColor }}>
-                      Trending
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-lg sm:text-xl mb-2">{product.title}</h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-                    {product.description}
-                  </p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="font-bold text-lg">{formatPrice(product.price)}</span>
-                    <Link
-                      to={`/products/${product.id}`}
-                      className="w-8 h-8 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center hover:opacity-80 transition"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Newsletter Section */}
-      <section className="relative z-10 py-16 bg-gray-900 dark:bg-gray-950">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Stay Updated</h2>
-          <p className="text-gray-400 text-lg mb-8">Subscribe to get special offers, free giveaways, and updates.</p>
-          <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input 
-              type="email" 
-              placeholder="Enter your email"
-              className="flex-1 px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-base"
-            />
-            <button 
-              type="submit"
-              className="px-8 py-4 rounded-xl font-semibold transition hover:opacity-90 active:scale-95 text-white"
-              style={{ backgroundColor: primaryColor }}
-            >
-              Subscribe
-            </button>
-          </form>
-        </div>
-      </section>
-
-      {/* Why Choose Us */}
-      <section className="relative z-10 py-16 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Us?</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">We're committed to providing the best shopping experience</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl">
-              <div 
-                className="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center text-3xl"
-                style={{ backgroundColor: `${primaryColor}20` }}
-              >
-                ✨
-              </div>
-              <h3 className="text-xl font-bold mb-3">Premium Quality</h3>
-              <p className="text-gray-600 dark:text-gray-400">We carefully select each product to ensure the highest quality standards.</p>
-            </div>
-            <div className="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl">
-              <div 
-                className="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center text-3xl"
-                style={{ backgroundColor: `${primaryColor}20` }}
-              >
-                ⚡
-              </div>
-              <h3 className="text-xl font-bold mb-3">Fast Delivery</h3>
-              <p className="text-gray-600 dark:text-gray-400">Quick and reliable delivery to your doorstep within 24-48 hours.</p>
-            </div>
-            <div className="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl">
-              <div 
-                className="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center text-3xl"
-                style={{ backgroundColor: `${primaryColor}20` }}
-              >
-                💬
-              </div>
-              <h3 className="text-xl font-bold mb-3">24/7 Support</h3>
-              <p className="text-gray-600 dark:text-gray-400">Our customer support team is always ready to help you.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+        );
+      })}
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">

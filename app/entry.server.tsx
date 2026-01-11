@@ -14,6 +14,7 @@ import Backend from "i18next-http-backend";
 import i18n from "./i18n"; // Config
 import i18next from "./services/i18n.server"; // Server instance
 import { resolve } from "node:path";
+import * as Sentry from "@sentry/remix";
 
 export default async function handleRequest(
   request: Request,
@@ -58,6 +59,13 @@ export default async function handleRequest(
       onError(error: unknown) {
         // Log streaming rendering errors from inside the shell
         console.error(error);
+        if (loadContext.cloudflare.env.SENTRY_DSN) {
+          Sentry.init({
+            dsn: loadContext.cloudflare.env.SENTRY_DSN,
+            tracesSampleRate: 1.0,
+          });
+          Sentry.captureException(error);
+        }
         responseStatusCode = 500;
       },
     }

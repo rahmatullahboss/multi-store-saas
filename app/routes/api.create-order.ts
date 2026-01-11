@@ -82,9 +82,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     // Parse request body
     const body = await request.json();
+
+    // Extend Schema for Cart Items
+    const CartItemSchema = z.object({
+      product_id: z.number().int().positive(),
+      quantity: z.number().int().min(1),
+      variant_id: z.number().int().optional(),
+    });
+
+    const ExtendedOrderSchema = OrderSchema.extend({
+      // Optional now because we might have cart_items
+      product_id: z.number().int().positive().optional(), 
+      quantity: z.number().int().min(1).max(99).default(1),
+      
+      cart_items: z.array(CartItemSchema).optional(),
+    }).refine(data => {
+        // Either product_id (single) OR cart_items (multi) must be present
+        return data.product_id || (data.cart_items && data.cart_items.length > 0);
+    }, {
+        message: "Either product_id or cart_items must be provided",
+        path: ["product_id"] // Attach error to product_id
+    });
     
     // Validate input
-    const parseResult = OrderSchema.safeParse(body);
+    const parseResult = ExtendedOrderSchema.safeParse(body);
     
     if (!parseResult.success) {
       const errors = parseResult.error.flatten();
@@ -98,7 +119,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
     }
 
-    const input: OrderInput = parseResult.data;
+    const input = parseResult.data;
+
+    // Normalize input to a list of items
+    let orderItemsData: { productId: number; quantity: number; variantId?: number }[] = [];
+    
+    if (input.cart_items && input.cart_items.length > 0) {
+        orderItemsData = input.cart_items.map(item => ({
+            productId: item.product_id,
+            quantity: item.quantity,
+            variantId: item.variant_id
+        }));
+    } else if (input.product_id) {
+        orderItemsData = [{
+            productId: input.product_id,
+            quantity: input.quantity,
+            variantId: input.variant_id
+        }];
+    }
 
     // Verify store exists and is active
     const storeResult = await db
@@ -134,102 +172,70 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
     }
 
-    // SECURITY: Fetch REAL product price and inventory from database
-    const product = await db
-      .select()
-      .from(products)
-      .where(
-        and(
-          eq(products.id, input.product_id),
-          eq(products.storeId, input.store_id),
-          eq(products.isPublished, true)
-        )
-      )
-      .limit(1);
-
-    if (product.length === 0) {
-      return json(
-        { success: false, error: 'প্রোডাক্ট পাওয়া যায়নি' },
-        { status: 404 }
-      );
-    }
-
-    // SECURITY: Calculate price on SERVER, never trust frontend
-    const productData = product[0];
-    let unitPrice = productData.price;
-    let variantInfo: string | null = null;
-    let variantIdToUpdate: number | null = null;
-    let isVariantStock = false;
-    
-    // Check Inventory (Product Level)
-    // If variants exist, we should rely on variant stock, but if not, fallback to product stock
-    let currentStock = productData.inventory || 0;
-
-    // If variant_id provided, fetch variant price and inventory
-    if (input.variant_id) {
-      const variant = await db
-        .select()
-        .from(productVariants)
-        .where(
-          and(
-            eq(productVariants.id, input.variant_id),
-            eq(productVariants.productId, productData.id)
-          )
-        )
-        .limit(1);
-      
-      if (variant.length > 0) {
-        unitPrice = variant[0].price || unitPrice; // Fallback to product price if variant has no specific price
-        currentStock = variant[0].inventory || 0;
-        variantInfo = [variant[0].option1Value, variant[0].option2Value]
-          .filter(Boolean)
-          .join(' - ');
-        variantIdToUpdate = variant[0].id;
-        isVariantStock = true;
-      }
-    }
-
-    // DEDUCT INVENTORY (Atomic Update)
-    let updateResult;
-
-    if (isVariantStock && variantIdToUpdate) {
-       updateResult = await db
-        .update(productVariants)
-        .set({ inventory: sql`${productVariants.inventory} - ${input.quantity}` })
-        .where(and(
-          eq(productVariants.id, variantIdToUpdate),
-          gte(productVariants.inventory, input.quantity) // Atomic check
-        ))
-        .returning({ id: productVariants.id });
-    } else {
-       updateResult = await db
-        .update(products)
-        .set({ inventory: sql`${products.inventory} - ${input.quantity}` })
-        .where(and(
-          eq(products.id, productData.id),
-          gte(products.inventory, input.quantity) // Atomic check
-        ))
-        .returning({ id: products.id });
-    }
-
-    // If no rows updated, it means stock changed between check and update -> OUT OF STOCK
-    if (updateResult.length === 0) {
-      return json(
-        { 
-          success: false, 
-          error: `দুঃখিত! এই পণ্যটি বর্তমানে স্টকে নেই (Order collision detected)` 
-        },
-        { status: 400 }
-      );
-    }
-    
-    const itemTotal = unitPrice * input.quantity;
-    let subtotal = itemTotal;
-    const tax = 0; // Can be calculated based on store settings
-    
     // ========================================================================
-    // PROCESS ORDER BUMPS - Add bump products if selected
+    // PROCESS ITEMS (Fetch Prices & Check Inventory)
     // ========================================================================
+    const productIds = orderItemsData.map(i => i.productId);
+    const dbProducts = await db.select().from(products)
+        .where(and(eq(products.storeId, input.store_id), inArray(products.id, productIds)));
+    
+    // Fetch variants if involved
+    const variantIds = orderItemsData.map(i => i.variantId).filter(Boolean) as number[];
+    let dbVariants: any[] = [];
+    if (variantIds.length > 0) {
+        dbVariants = await db.select().from(productVariants)
+            .where(inArray(productVariants.id, variantIds));
+    }
+
+    let subtotal = 0;
+    const finalOrderItems = [];
+
+    for (const item of orderItemsData) {
+        const product = dbProducts.find(p => p.id === item.productId);
+        if (!product || !product.isPublished) {
+             return json({ success: false, error: `Product ID ${item.productId} not found or unavailable` }, { status: 400 });
+        }
+
+        let unitPrice = product.price;
+        let variantInfo = null;
+        let currentStock = product.inventory || 0;
+        let isVariantStock = false;
+        let variantIdToUpdate = null;
+
+        if (item.variantId) {
+            const variant = dbVariants.find(v => v.id === item.variantId);
+            if (variant) {
+                unitPrice = variant.price || unitPrice;
+                currentStock = variant.inventory || 0;
+                variantInfo = [variant.option1Value, variant.option2Value].filter(Boolean).join(' - ');
+                variantIdToUpdate = variant.id;
+                isVariantStock = true;
+            }
+        }
+
+        // Check Stock
+        if (currentStock < item.quantity) {
+             return json({ success: false, error: `Stock unavailable for ${product.title}` }, { status: 400 });
+        }
+
+        // Add to list for atomic update later (or do optimistic check here)
+        finalOrderItems.push({
+            ...item,
+            title: variantInfo ? `${product.title} (${variantInfo})` : product.title,
+            variantTitle: variantInfo,
+            unitPrice,
+            total: unitPrice * item.quantity,
+            isVariantStock,
+            variantIdToUpdate,
+            product // keep ref
+        });
+
+        subtotal += unitPrice * item.quantity;
+    }
+    
+    // Handle Order Bumps (Only support bumps for the "first" main product logic or general logic?)
+    // Decision: Supports bumps only relative to the PRIMARY product if single, or just add them.
+    // Logic: Bumps are separate items.
     interface BumpItem {
       bumpId: number;
       productId: number;
@@ -240,7 +246,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const bumpItems: BumpItem[] = [];
     
     if (input.bump_ids && input.bump_ids.length > 0) {
-      // Fetch active bumps for this product
+       // Fetch active bumps based on IDs (we trust IDs belong to store)
+       // We only validate store_id
       const activeBumps = await db
         .select({
           id: orderBumps.id,
@@ -252,66 +259,47 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .where(
           and(
             eq(orderBumps.storeId, input.store_id),
-            eq(orderBumps.productId, input.product_id),
             eq(orderBumps.isActive, true),
             inArray(orderBumps.id, input.bump_ids)
           )
         );
       
       if (activeBumps.length > 0) {
-        // Fetch bump products prices
         const bumpProductIds = activeBumps.map(b => b.bumpProductId);
-        const bumpProducts = await db
-          .select({
-            id: products.id,
-            title: products.title,
-            price: products.price,
-          })
-          .from(products)
-          .where(
-            and(
-              eq(products.storeId, input.store_id),
-              inArray(products.id, bumpProductIds)
-            )
-          );
+        const bumpProducts = await db.select({id: products.id, title: products.title, price: products.price})
+          .from(products).where(and(eq(products.storeId, input.store_id), inArray(products.id, bumpProductIds)));
         
-        // Calculate discounted prices and add to subtotal
         for (const bump of activeBumps) {
           const bumpProduct = bumpProducts.find(p => p.id === bump.bumpProductId);
           if (bumpProduct) {
-            const originalPrice = bumpProduct.price;
             const discountValue = bump.discount ?? 0;
-            const discountedPrice = discountValue > 0 
-              ? originalPrice * (1 - discountValue / 100) 
-              : originalPrice;
+            const discountedPrice = discountValue > 0 ? bumpProduct.price * (1 - discountValue / 100) : bumpProduct.price;
             
             bumpItems.push({
               bumpId: bump.id,
               productId: bumpProduct.id,
               title: bump.title || bumpProduct.title,
-              price: originalPrice,
+              price: bumpProduct.price,
               discountedPrice,
             });
-            
             subtotal += discountedPrice;
           }
         }
         
-        // Update bump conversion stats (non-blocking)
+        // Update stats
         context.cloudflare.ctx.waitUntil(
-          Promise.all(input.bump_ids!.map(bumpId => 
-            context.cloudflare.env.DB.prepare(
-              'UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?'
-            ).bind(bumpId).run()
-          )).catch(e => console.error('Failed to update bump conversions:', e))
+            Promise.all(input.bump_ids!.map(bumpId => 
+              context.cloudflare.env.DB.prepare('UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?').bind(bumpId).run()
+            )).catch(e => console.error('Failed to update bump conversions:', e))
         );
       }
     }
     
-    // Calculate shipping based on store config and customer division
+    // Calculate shipping
     const shippingConfig = parseShippingConfig(storeData.shippingConfig as string | null);
     const shippingResult = calculateShipping(shippingConfig, input.division, subtotal);
     const shipping = shippingResult.cost;
+    const tax = 0;
     
     const total = subtotal + tax + shipping;
 
@@ -319,24 +307,68 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const orderNumber = generateOrderNumber();
     const now = new Date();
 
-    // Transaction-like safety via Manual Compensation
-    // Step 1: Insert order
-    let orderId: number | undefined;
-
+    // ========================================================================
+    // DATABASE TRANSACTION (Manual)
+    // ========================================================================
+    // 1. DEDUCT INVENTORY FIRST (Fail fast)
+    // We need to loop and update. If any fails, we must rollback previous ones.
+    // Since D1 doesn't have full ACID transactions across multiple calls easily without batch,
+    // we will optimistic-update and rollback if needed.
+    
+    const inventoryRollbacks: { type: 'product' | 'variant', id: number, qty: number }[] = [];
+    
     try {
-      const orderResult = await db
-        .insert(orders)
-        .values({
+        for (const item of finalOrderItems) {
+            let res;
+            if (item.isVariantStock && item.variantIdToUpdate) {
+                res = await db.update(productVariants)
+                    .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
+                    .where(and(eq(productVariants.id, item.variantIdToUpdate), gte(productVariants.inventory, item.quantity)))
+                    .returning({ id: productVariants.id });
+                if (res.length > 0) inventoryRollbacks.push({ type: 'variant', id: item.variantIdToUpdate, qty: item.quantity });
+            } else {
+                res = await db.update(products)
+                    .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
+                    .where(and(eq(products.id, item.product.id), gte(products.inventory, item.quantity)))
+                    .returning({ id: products.id });
+                if (res.length > 0) inventoryRollbacks.push({ type: 'product', id: item.product.id, qty: item.quantity });
+            }
+            
+            if (res.length === 0) {
+                throw new Error(`Stock unavailable for ${item.title}`);
+            }
+        }
+    } catch (stockError) {
+        // Rollback inventory
+        console.error('Stock deduction failed, rolling back:', stockError);
+        for (const rb of inventoryRollbacks) {
+            if (rb.type === 'variant') {
+                await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
+            } else {
+                await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
+            }
+        }
+        return json({ success: false, error: stockError instanceof Error ? stockError.message : 'Inventory Error' }, { status: 400 });
+    }
+
+    // Check if this is the first order (for celebration email)
+    const existingOrderCheck = await db.select({ id: orders.id }).from(orders).where(eq(orders.storeId, input.store_id)).limit(1);
+    const isFirstOrder = existingOrderCheck.length === 0;
+
+    // 2. CREATE ORDER
+    let orderId: number | undefined;
+    try {
+      const orderResult = await db.insert(orders).values({
           storeId: input.store_id,
           orderNumber,
           status: 'pending',
-          paymentStatus: 'pending', // Pending verification for manual payments too
+          paymentStatus: 'pending',
           paymentMethod: input.payment_method,
           transactionId: input.transaction_id || null,
           manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
           customerName: input.customer_name,
           customerPhone: input.phone,
-          customerEmail: input.customer_email || '', // Empty string instead of null for NOT NULL constraint
+          customerEmail: input.customer_email || '',
           shippingAddress: input.address,
           billingAddress: null,
           subtotal,
@@ -346,80 +378,54 @@ export async function action({ request, context }: ActionFunctionArgs) {
           notes: input.notes || null,
           createdAt: now,
           updatedAt: now,
-        })
-        .returning({ id: orders.id, orderNumber: orders.orderNumber });
+        }).returning({ id: orders.id });
 
       orderId = orderResult[0].id;
 
-      if (!orderId) {
-        throw new Error('Failed to generate order ID');
-      }
-
-      // Step 2: Insert order item (with variant info if applicable)
-      await db
-        .insert(orderItems)
-        .values({
-          orderId,
-          productId: productData.id,
-          variantId: variantIdToUpdate || null,
-          title: variantInfo ? `${productData.title} (${variantInfo})` : productData.title,
-          variantTitle: variantInfo || null,
-          quantity: input.quantity,
-          price: unitPrice,
-          total: itemTotal,
-        });
-      
-      // Step 3: Insert order items for bump products
-      if (bumpItems.length > 0) {
-        await db.insert(orderItems).values(
-          bumpItems.map(bump => ({
-            orderId: orderId as number,
-            productId: bump.productId,
-            title: `[Bump] ${bump.title}`,
-            quantity: 1,
-            price: bump.discountedPrice,
-            total: bump.discountedPrice,
+      // 3. INSERT ITEMS
+      await db.insert(orderItems).values([
+          ...finalOrderItems.map(item => ({
+              orderId: orderId!,
+              productId: item.productId,
+              variantId: item.variantId || null,
+              title: item.title,
+              variantTitle: item.variantTitle || null,
+              quantity: item.quantity,
+              price: item.unitPrice,
+              total: item.total
+          })),
+          ...bumpItems.map(bump => ({
+              orderId: orderId!,
+              productId: bump.productId,
+              title: `[Bump] ${bump.title}`,
+              quantity: 1,
+              price: bump.discountedPrice,
+              total: bump.discountedPrice
           }))
-        );
-      }
-    } catch (insertError) {
-      console.error('Order/Item insertion failed, executing rollback:', insertError);
-      
-      // ROLLBACK: Delete Order (if created)
-      if (orderId) {
-        try {
-          await db.delete(orders).where(eq(orders.id, orderId));
-          // Items cascade delete usually, but we haven't inserted them successfully if we are here mostly
-          // If using relation delete... but here manual delete is fine.
-        } catch (cleanupError) {
-          console.error('CRITICAL: Failed to delete partial order during rollback:', cleanupError);
-        }
-      }
+      ]);
 
-      // ROLLBACK: Restore Inventory via Increment
-      if (isVariantStock && variantIdToUpdate) {
-        await db
-          .update(productVariants)
-          .set({ inventory: sql`${productVariants.inventory} + ${input.quantity}` })
-          .where(eq(productVariants.id, variantIdToUpdate));
-      } else {
-        await db
-          .update(products)
-          .set({ inventory: sql`${products.inventory} + ${input.quantity}` })
-          .where(eq(products.id, productData.id));
-      }
-      throw insertError;
+    } catch (orderError) {
+        console.error('Order creation failed, rolling back inventory:', orderError);
+        // Rollback Order
+        if (orderId) await db.delete(orders).where(eq(orders.id, orderId));
+        
+        // Rollback Inventory
+        for (const rb of inventoryRollbacks) {
+            if (rb.type === 'variant') {
+                await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
+            } else {
+                await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
+            }
+        }
+        throw orderError;
     }
 
     // ============================================================================
-    // SEND EMAIL NOTIFICATIONS (non-blocking)
+    // NOTIFICATIONS & TRACKING (Non-blocking)
     // ============================================================================
     const resendApiKey = context.cloudflare.env.RESEND_API_KEY;
-    
     if (resendApiKey) {
       const emailService = createEmailService(resendApiKey);
-      
-      // Send order confirmation to customer (if email provided)
       if (input.customer_email) {
         context.cloudflare.ctx.waitUntil(
           emailService.sendOrderConfirmation({
@@ -428,189 +434,71 @@ export async function action({ request, context }: ActionFunctionArgs) {
             customerEmail: input.customer_email,
             total,
             currency: storeData.currency || 'BDT',
-            items: [{
-              title: productData.title,
-              quantity: input.quantity,
-              price: unitPrice,
-            }],
+            items: finalOrderItems.map(i => ({ title: i.title, quantity: i.quantity, price: i.unitPrice })),
             shippingAddress: input.address,
             paymentMethod: input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
-          })
-        );
-      }
-
-      // Send new order alert to merchant
-      const merchantUser = await db
-        .select({ email: users.email })
-        .from(users)
-        .where(eq(users.storeId, input.store_id))
-        .limit(1);
-
-      if (merchantUser.length > 0 && merchantUser[0].email) {
-        context.cloudflare.ctx.waitUntil(
-          emailService.sendNewOrderAlert({
-            merchantEmail: merchantUser[0].email,
             storeName: storeData.name,
-            orderNumber,
-            customerName: input.customer_name,
-            total,
-            currency: storeData.currency || 'BDT',
-            itemCount: input.quantity,
+            storeLogo: storeData.logo || undefined,
+            primaryColor: (storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor) || undefined
           })
         );
       }
-
-    // ============================================================================
-    // SEND PUSH NOTIFICATIONS (non-blocking)
-    // ============================================================================
-    context.cloudflare.ctx.waitUntil(
-      (async () => {
-        try {
-          // Get all subscriptions for this store (e.g. admin/staff)
-          // For now, we notify ALL subscribers of the store
-          const subscriptions = await db
-            .select()
-            .from(pushSubscriptions)
-            .where(eq(pushSubscriptions.storeId, input.store_id));
-
-          if (subscriptions.length > 0) {
-             const payload = {
-              title: `New Order: ${orderNumber}`,
-              body: `${input.customer_name} ordered ${input.quantity}x items. Total: ${storeData.currency || 'BDT'} ${total}`,
-              url: `/admin/orders/${orderNumber}`, // Link to admin order details
-            };
-
-            await Promise.all(
-              subscriptions.map(sub => 
-                sendPushNotification(
-                  { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-                  payload,
-                  context.cloudflare.env
-                )
-              )
-            );
-          }
-        } catch (e) {
-          console.error('Failed to send push notifications:', e);
-        }
-      })()
-    );
-
-    // ============================================================================
-    // DISPATCH WEBHOOKS (non-blocking) - order.created
-    // ============================================================================
-    context.cloudflare.ctx.waitUntil(
-      (async () => {
-        try {
-          await dispatchWebhook(
-            context.cloudflare.env,
-            input.store_id,
-            'order.created',
-            {
-              event: 'order.created',
-              orderId,
-              orderNumber,
-              total,
-              currency: storeData.currency || 'BDT',
-              status: 'pending',
-              customer: {
-                name: input.customer_name,
-                phone: input.phone,
-                email: input.customer_email
-              },
-              createdAt: new Date().toISOString(),
-            }
-          );
-        } catch (e) {
-          console.error('Failed to dispatch webhooks:', e);
-        }
-      })()
-    );
-    }
-
-    // ============================================================================
-    // MARK ABANDONED CART AS RECOVERED (non-blocking)
-    // ============================================================================
-    context.cloudflare.ctx.waitUntil(
-      (async () => {
-        try {
-          await db
-            .update(abandonedCarts)
-            .set({
-              status: 'recovered',
-              recoveredAt: now,
-            })
-            .where(
-              and(
-                eq(abandonedCarts.storeId, input.store_id),
-                eq(abandonedCarts.status, 'abandoned'),
-                or(
-                  eq(abandonedCarts.customerPhone, input.phone),
-                  input.customer_email ? eq(abandonedCarts.customerEmail, input.customer_email) : undefined
-                )
-              )
-            );
-        } catch (e) {
-          console.error('Failed to mark abandoned cart as recovered:', e);
-        }
-      })()
-    );
-
-    // ============================================================================
-    // CHECK FOR UPSELL OFFERS & GENERATE TOKEN
-    // ============================================================================
-    let upsellUrl: string | undefined;
-    
-    try {
-      // Check if there are active upsell offers for this product
-      const upsellOffer = await db
-        .select({
-          id: upsellOffers.id,
-          offerProductId: upsellOffers.offerProductId,
-          headline: upsellOffers.headline,
-        })
-        .from(upsellOffers)
-        .where(
-          and(
-            eq(upsellOffers.storeId, input.store_id),
-            eq(upsellOffers.productId, input.product_id),
-            eq(upsellOffers.isActive, true)
-          )
-        )
-        .orderBy(upsellOffers.displayOrder)
-        .limit(1);
       
-      if (upsellOffer.length > 0) {
-        // Generate unique token for upsell
-        const token = crypto.randomUUID();
-        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-        
-        await db.insert(upsellTokens).values({
-          orderId,
-          token,
-          offerId: upsellOffer[0].id,
-          expiresAt,
-        });
-        
-        upsellUrl = `/upsell/${token}`;
-        
-        // Increment upsell views (non-blocking)
-        context.cloudflare.ctx.waitUntil(
-          context.cloudflare.env.DB.prepare(
-            'UPDATE upsell_offers SET views = views + 1 WHERE id = ?'
-          ).bind(upsellOffer[0].id).run().catch(e => 
-            console.error('Failed to increment upsell views:', e)
-          )
-        );
-      }
-    } catch (e) {
-      console.error('Failed to check/create upsell offer:', e);
-      // Don't fail the order, just skip upsell
+      // Merchant Alert
+       const merchantUser = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
+       if (merchantUser.length > 0 && merchantUser[0].email) {
+         context.cloudflare.ctx.waitUntil(
+           emailService.sendNewOrderAlert({
+             merchantEmail: merchantUser[0].email,
+             storeName: storeData.name,
+             orderNumber,
+             customerName: input.customer_name,
+             total,
+             currency: storeData.currency || 'BDT',
+             itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+           })
+         );
+
+         // Fire Celebration Email if it's the First Sale!
+         if (isFirstOrder) {
+            context.cloudflare.ctx.waitUntil(
+                emailService.sendFirstSaleCelebration({
+                    merchantEmail: merchantUser[0].email,
+                    merchantName: merchantUser[0].name || 'Merchant',
+                    storeName: storeData.name,
+                    orderNumber,
+                    amount: `${storeData.currency || 'BDT'} ${total}`
+                })
+            );
+         }
+       }
     }
 
-    // ============================================================================
-    // FACEBOOK CONVERSION API - Server-side Purchase tracking (non-blocking)
-    // ============================================================================
+    // Push Notifications
+    context.cloudflare.ctx.waitUntil((async () => {
+        try {
+            const subscriptions = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.storeId, input.store_id));
+            if (subscriptions.length > 0) {
+                const payload = {
+                    title: `New Order: ${orderNumber}`,
+                    body: `${input.customer_name} - ${storeData.currency} ${total}`,
+                    url: `/admin/orders/${orderNumber}`,
+                };
+                await Promise.all(subscriptions.map(sub => sendPushNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload, context.cloudflare.env)));
+            }
+        } catch(e) { console.error('Push failed', e); }
+    })());
+
+    // Recover Abandoned Carts
+    context.cloudflare.ctx.waitUntil((async () => {
+        try {
+             await db.update(abandonedCarts).set({ status: 'recovered', recoveredAt: now })
+                .where(and(eq(abandonedCarts.storeId, input.store_id), eq(abandonedCarts.status, 'abandoned'), 
+                 or(eq(abandonedCarts.customerPhone, input.phone), input.customer_email ? eq(abandonedCarts.customerEmail, input.customer_email) : undefined)));
+        } catch(e) { console.error('Abandon update failed', e); }
+    })());
+
+    // FB CAPI
     if (storeData.facebookPixelId && storeData.facebookAccessToken) {
       context.cloudflare.ctx.waitUntil(
         sendPurchaseEvent({
@@ -623,14 +511,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
           customerEmail: input.customer_email,
           customerPhone: input.phone,
           customerName: input.customer_name,
-          items: [{
-            productId: productData.id,
-            title: productData.title,
-            quantity: input.quantity,
-            price: unitPrice,
-          }],
+          items: finalOrderItems.map(i => ({ productId: i.productId, title: i.title, quantity: i.quantity, price: i.unitPrice })),
         }).catch(e => console.error('[FB CAPI] Purchase event failed:', e))
       );
+    }
+    
+    // Check Upsell
+    let upsellUrl;
+    // ... Upsell logic can be complicated for multi-item (which product triggers it?). 
+    // Simplified: Check upsell for the FIRST product in loop.
+    if (finalOrderItems.length > 0) {
+       try {
+          const firstItem = finalOrderItems[0];
+          const upsellOffer = await db.select({ id: upsellOffers.id }).from(upsellOffers)
+            .where(and(eq(upsellOffers.storeId, input.store_id), eq(upsellOffers.productId, firstItem.productId), eq(upsellOffers.isActive, true)))
+            .orderBy(upsellOffers.displayOrder).limit(1);
+          
+          if (upsellOffer.length > 0) {
+             const token = crypto.randomUUID();
+             await db.insert(upsellTokens).values({ orderId: orderId!, token, offerId: upsellOffer[0].id, expiresAt: new Date(Date.now() + 15 * 60 * 1000) });
+             upsellUrl = `/upsell/${token}`;
+          }
+       } catch (e) {
+         console.error('Upsell check failed', e);
+       }
     }
 
     return json({
@@ -638,32 +542,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
       orderId,
       orderNumber,
       total,
-      upsellUrl, // If defined, client should redirect here instead of thank-you
-      message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে! শীঘ্রই আমরা আপনার সাথে যোগাযোগ করবো।',
+      upsellUrl,
+      message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে!',
     });
 
   } catch (error) {
-    // Enhanced error logging for debugging
-    const errorDetails = {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      type: error?.constructor?.name || typeof error,
-      timestamp: new Date().toISOString(),
-    };
-    
+    const errorDetails = { message: error instanceof Error ? error.message : 'Unknown error', timestamp: new Date().toISOString() };
     console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
-    console.error('Raw error:', error);
     
-    // TEMPORARILY return detailed error for debugging production issues
-    return json(
-      { 
-        success: false, 
-        error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
-        debug: errorDetails.message, // Show error details for debugging
-        debugType: errorDetails.type,
-      },
-      { status: 500 }
-    );
+    return json({ success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।', debug: errorDetails.message }, { status: 500 });
   }
 }
 

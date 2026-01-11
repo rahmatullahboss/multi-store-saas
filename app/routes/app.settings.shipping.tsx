@@ -152,7 +152,7 @@ export default function ShippingZonesPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('shippingZones')}</h1>
-            <p className="text-gray-600">{lang === 'bn' ? 'ডেলিভারি এরিয়া ও রেট সেটআপ করুন' : 'Set up delivery areas and rates'}</p>
+            <p className="text-gray-600">{t('shippingZonesSubtitle')}</p>
           </div>
         </div>
         {!showForm && (
@@ -161,7 +161,7 @@ export default function ShippingZonesPage() {
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
           >
             <Plus className="w-4 h-4" />
-            Add Zone
+            {t('addZone')}
           </button>
         )}
       </div>
@@ -170,7 +170,7 @@ export default function ShippingZonesPage() {
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {editingZone ? 'Edit Zone' : 'New Shipping Zone'}
+            {editingZone ? t('editZone') : t('newShippingZone')}
           </h2>
           <Form method="post" className="space-y-4">
             <input type="hidden" name="intent" value={editingZone ? 'update' : 'create'} />
@@ -179,13 +179,13 @@ export default function ShippingZonesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Zone Name *
+                  {t('zoneName')} *
                 </label>
                 <input
                   type="text"
                   name="name"
                   defaultValue={editingZone?.name || ''}
-                  placeholder="e.g., Dhaka City"
+                  placeholder={String(t('zoneNamePlaceholder'))}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   required
                 />
@@ -193,7 +193,7 @@ export default function ShippingZonesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Delivery Rate ({currency})
+                  {t('deliveryRate')} ({currency})
                 </label>
                 <input
                   type="number"
@@ -207,13 +207,13 @@ export default function ShippingZonesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Free Shipping Above ({currency})
+                  {t('freeShippingAbove')} ({currency})
                 </label>
                 <input
                   type="number"
                   name="freeAbove"
                   defaultValue={editingZone?.freeAbove || ''}
-                  placeholder="1000 (optional)"
+                  placeholder={String(t('freeAbovePlaceholder'))}
                   step="0.01"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
@@ -221,13 +221,13 @@ export default function ShippingZonesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Estimated Delivery Time
+                  {t('estimatedDeliveryTime')}
                 </label>
                 <input
                   type="text"
                   name="estimatedDays"
                   defaultValue={editingZone?.estimatedDays || ''}
-                  placeholder="2-3 days"
+                  placeholder={String(t('estimatedDaysPlaceholder'))}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
@@ -235,13 +235,13 @@ export default function ShippingZonesPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Regions/Districts (comma separated)
+                {t('regionsDistricts')}
               </label>
               <input
                 type="text"
                 name="regions"
                 defaultValue={editingZone?.regions || ''}
-                placeholder="Dhaka, Gazipur, Narayanganj"
+                placeholder={String(t('regionsPlaceholder'))}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             </div>
@@ -253,14 +253,14 @@ export default function ShippingZonesPage() {
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 flex items-center gap-2"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {editingZone ? 'Update Zone' : 'Create Zone'}
+                {editingZone ? t('updateZone') : t('createZone')}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </Form>
@@ -282,10 +282,10 @@ export default function ShippingZonesPage() {
                     <div className="flex items-center gap-3 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
                         <Truck className="w-3 h-3" />
-                        {zone.rate === 0 ? 'Free' : formatPrice(zone.rate)}
+                        {zone.rate === 0 ? t('free') : formatPrice(zone.rate)}
                       </span>
                       {zone.freeAbove && (
-                        <span>Free above {formatPrice(zone.freeAbove)}</span>
+                        <span>{t('freeAbove')} {formatPrice(zone.freeAbove)}</span>
                       )}
                       {zone.estimatedDays && (
                         <span>{zone.estimatedDays}</span>
@@ -307,7 +307,7 @@ export default function ShippingZonesPage() {
                       type="submit"
                       className="p-2 hover:bg-red-50 rounded-lg transition"
                       onClick={(e) => {
-                        if (!confirm('Delete this zone?')) e.preventDefault();
+                        if (!confirm(t('deleteZoneConfirm'))) e.preventDefault();
                       }}
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
@@ -320,12 +320,12 @@ export default function ShippingZonesPage() {
         ) : (
           <div className="p-12 text-center">
             <Truck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">No shipping zones yet</p>
+            <p className="text-gray-500 mb-4">{t('noShippingZones')}</p>
             <button
               onClick={() => setShowForm(true)}
               className="text-emerald-600 hover:underline"
             >
-              Add your first zone
+              {t('addFirstZone')}
             </button>
           </div>
         )}

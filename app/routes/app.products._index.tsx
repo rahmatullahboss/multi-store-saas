@@ -62,6 +62,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const lowStockCount = storeProducts.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5).length;
   const outOfStockCount = storeProducts.filter(p => (p.inventory || 0) <= 0).length;
 
+  // Check product limit for the plan
+  const { checkUsageLimit } = await import('~/utils/plans.server');
+  const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
+
   return json({
     products: storeProducts,
     currency: store.currency || 'BDT',
@@ -78,6 +82,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       lowStock: lowStockCount,
       outOfStock: outOfStockCount,
     },
+    // Product limit info
+    canAddProduct: limitCheck.allowed,
+    productLimitMessage: limitCheck.error?.message || null,
   });
 }
 
@@ -119,7 +126,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ProductsIndexPage() {
-  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, storeMode } = useLoaderData<typeof loader>();
+  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, storeMode, canAddProduct, productLimitMessage } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
@@ -235,15 +242,36 @@ export default function ProductsIndexPage() {
 
   return (
     <div className="space-y-6">
+      {/* Product Limit Warning */}
+      {!canAddProduct && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-amber-800 font-medium">
+              {t('productLimitReached')}
+            </p>
+            <p className="text-amber-700 text-sm mt-1">
+              {productLimitMessage || t('productLimitDesc')}
+            </p>
+            <Link 
+              to="/app/billing" 
+              className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:text-amber-900 mt-2"
+            >
+              {t('upgradePlan')} →
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <PageHeader
         title={t('products')}
-        description={t('noProducts') ? t('noProducts').replace('No products yet', 'Manage your product catalog') : 'Manage your product catalog'}
-        primaryAction={{
+        description={t('manageProductCatalog')}
+        primaryAction={canAddProduct ? {
           label: t('addProduct'),
           href: '/app/products/new',
           icon: <Plus className="w-4 h-4" />,
-        }}
+        } : undefined}
       />
 
       {/* Stats Cards */}
@@ -279,7 +307,7 @@ export default function ProductsIndexPage() {
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <SearchInput
-          placeholder={lang === 'bn' ? 'নাম, SKU অথবা ক্যাটাগরি দিয়ে খুঁজুন...' : 'Search by name, SKU, or category...'}
+          placeholder={t('searchByProductHint') || t('searchByOrderNumber')}
           value={searchQuery}
           onChange={setSearchQuery}
           className="w-full md:w-80"
@@ -299,10 +327,7 @@ export default function ProductsIndexPage() {
       {selectedIds.size > 0 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <span className="text-emerald-800 font-medium">
-            {lang === 'bn' 
-              ? `${selectedIds.size}টি প্রোডাক্ট নির্বাচিত`
-              : `${selectedIds.size} product${selectedIds.size > 1 ? 's' : ''} selected`
-            }
+            {selectedIds.size} {t('productsSelected')}
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <Form method="post" className="inline">
@@ -316,7 +341,7 @@ export default function ProductsIndexPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
-                <Eye className="w-4 h-4" /> {lang === 'bn' ? 'পাবলিশ' : 'Publish'}
+                <Eye className="w-4 h-4" /> {t('publish')}
               </button>
             </Form>
             <Form method="post" className="inline">
@@ -330,7 +355,7 @@ export default function ProductsIndexPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
-                <EyeOff className="w-4 h-4" /> {lang === 'bn' ? 'আনপাবলিশ' : 'Unpublish'}
+                <EyeOff className="w-4 h-4" /> {t('unpublish')}
               </button>
             </Form>
             <Form method="post" className="inline" onSubmit={(e) => {
@@ -348,14 +373,14 @@ export default function ProductsIndexPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
               >
-                <Trash2 className="w-4 h-4" /> {lang === 'bn' ? 'ডিলিট' : 'Delete'}
+                <Trash2 className="w-4 h-4" /> {t('delete')}
               </button>
             </Form>
             <button
               onClick={clearSelection}
               className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
             >
-              {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -366,13 +391,13 @@ export default function ProductsIndexPage() {
         <div className="bg-white rounded-xl border border-gray-200">
           <EmptyState
             icon={<Package className="w-10 h-10" />}
-            title={lang === 'bn' ? 'কোনো প্রোডাক্ট নেই' : 'No products yet'}
-            description={lang === 'bn' ? 'আপনার প্রথম প্রোডাক্ট যোগ করে শুরু করুন।' : 'Get started by adding your first product to your store.'}
-            action={{
-              label: lang === 'bn' ? 'প্রথম প্রোডাক্ট যোগ করুন' : 'Add Your First Product',
+            title={t('noProductsFound')}
+            description={t('clearSearch')}
+            action={canAddProduct ? {
+              label: t('addNewProduct'),
               href: '/app/products/new',
               icon: <Plus className="w-4 h-4" />,
-            }}
+            } : undefined}
           />
         </div>
       ) : filteredProducts.length === 0 ? (
@@ -403,23 +428,26 @@ export default function ProductsIndexPage() {
                       className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'প্রোডাক্ট' : 'Product'}
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {t('product')}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'মূল্য' : 'Price'}
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {t('status')}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'স্টক' : 'Stock'}
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {t('stock')}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'ক্যাটাগরি' : 'Category'}
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {t('price')}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'স্ট্যাটাস' : 'Status'}
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {t('category')}
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {lang === 'bn' ? 'অ্যাকশন' : 'Actions'}
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {t('sales7d')}
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -510,7 +538,7 @@ export default function ProductsIndexPage() {
                           {copiedProductId === product.id ? (
                             <>
                               <Check className="w-4 h-4" />
-                              Copied!
+                              {t('adLinkCopied')}
                             </>
                           ) : (
                             <>

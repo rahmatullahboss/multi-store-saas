@@ -11,6 +11,9 @@ const i18next = new RemixI18Next({
   detection: {
     supportedLanguages: i18n.supportedLngs,
     fallbackLanguage: i18n.fallbackLng,
+    // Order of detection: query param -> cookie -> session
+    // We explicitly exclude 'header' to force Bengali as default for new users regardless of their browser settings
+    order: ["searchParams", "cookie", "session"],
   },
   // This is the configuration for i18next used
   // when translating messages server-side only

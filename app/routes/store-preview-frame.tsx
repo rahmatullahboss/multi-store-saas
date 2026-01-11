@@ -146,6 +146,9 @@ export default function StorePreviewFrame() {
 
   return (
     <>
+      {/* Viewport Meta for Mobile Responsiveness */}
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
       {/* Inject custom CSS */}
       {mergedConfig.customCSS && (
         <style dangerouslySetInnerHTML={{ __html: mergedConfig.customCSS }} />

@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { ScrollReveal, MagneticButton } from '~/components/animations';
 import { Store, Menu, X } from 'lucide-react';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
+import { MarketingHeader } from '~/components/MarketingHeader';
 
 // ============================================================================
 // META
@@ -92,6 +94,8 @@ interface PricingPlan {
   price: number;
   priceDisplay: string;
   description: string;
+  aiFeatures?: string[];
+  editorFeatures?: string[];
   features: { text: string; highlighted?: boolean }[];
   limits: {
     products: string;
@@ -113,22 +117,22 @@ const pricingPlans: PricingPlan[] = [
     price: 0,
     priceDisplay: '৳০',
     description: 'ট্রায়ালের জন্য পারফেক্ট',
+    editorFeatures: ['Simple Mode', 'Pro Mode (Drag & Drop)'],
     features: [
       { text: '১টি Product' },
       { text: '৫০ Orders/মাস' },
-      { text: '১০,০০০ Visitors/মাস' },
+      { text: 'সীমাহীন Visitors*' },
       { text: 'Single Landing Page' },
-      { text: 'Live Visual Editor' },
       { text: 'Bangla Support' },
     ],
     limits: {
       products: '১',
       orders: '৫০/মাস',
-      visitors: '১০,০০০/মাস',
+      visitors: 'সীমাহীন',
       storage: '১০০ MB',
       staff: '১ জন',
     },
-    ctaText: 'ফ্রি শুরু করুন',
+    ctaText: 'শুরু করুন',
     ctaLink: '/auth/register',
   },
   {
@@ -138,25 +142,25 @@ const pricingPlans: PricingPlan[] = [
     price: 499,
     priceDisplay: '৳৪৯৯',
     description: 'বাড়তে থাকা ব্যবসার জন্য',
+    aiFeatures: ['Visitor AI', 'Merchant AI'],
+    editorFeatures: ['Simple Mode', 'Pro Mode'],
     features: [
       { text: '৫০টি Product' },
-      { text: '৫০০ Orders/মাস' },
-      { text: '১ লাখ Visitors/মাস' },
-      { text: 'Full E-commerce Store', highlighted: true },
       { text: 'Custom Domain', highlighted: true },
       { text: 'Facebook Pixel' },
+      { text: '৫০০ Orders/মাস' },
+      { text: 'Full E-commerce Store' },
       { text: '২ জন Team Member' },
-      { text: 'সব Free Features' },
     ],
     limits: {
       products: '৫০',
       orders: '৫০০/মাস',
-      visitors: '১,০০,০০০/মাস',
+      visitors: 'সীমাহীন',
       storage: '৫০০ MB',
       staff: '২ জন',
     },
     isPopular: true,
-    ctaText: 'Starter নিন',
+    ctaText: 'Upgrade করুন',
     ctaLink: '/auth/register?plan=starter',
   },
   {
@@ -166,25 +170,25 @@ const pricingPlans: PricingPlan[] = [
     price: 1999,
     priceDisplay: '৳১,৯৯৯',
     description: 'সিরিয়াস ব্যবসার জন্য',
+    aiFeatures: ['Visitor AI', 'Merchant AI', 'Customer AI'],
+    editorFeatures: ['Simple Mode', 'Pro Mode'],
     features: [
-      { text: '২০০টি Product' },
-      { text: '৩,০০০ Orders/মাস' },
-      { text: '৬ লাখ Visitors/মাস' },
       { text: 'Facebook CAPI', highlighted: true },
       { text: 'Priority Support', highlighted: true },
+      { text: '২০০টি Product' },
+      { text: '৩,০০০ Orders/মাস' },
       { text: '২ GB Storage' },
       { text: '৫ জন Team Member' },
-      { text: '০% Platform Fee (আপাতত ফ্রি)' },
-      { text: 'সব Starter Features' },
+      { text: '০% Platform Fee' },
     ],
     limits: {
       products: '২০০',
       orders: '৩,০০০/মাস',
-      visitors: '৬,০০,০০০/মাস',
+      visitors: 'সীমাহীন',
       storage: '২ GB',
       staff: '৫ জন',
     },
-    ctaText: 'Premium নিন',
+    ctaText: 'Upgrade করুন',
     ctaLink: '/auth/register?plan=premium',
   },
 ];
@@ -193,13 +197,13 @@ const pricingPlans: PricingPlan[] = [
 // COMPARISON DATA
 // ============================================================================
 const comparisonFeatures = [
+  { name: 'Visitor AI', free: '❌', starter: '✅', premium: '✅', business: '✅' },
+  { name: 'Merchant AI', free: '❌', starter: '✅', premium: '✅', business: '✅' },
+  { name: 'Customer AI', free: '❌', starter: '❌', premium: '✅', business: '✅' },
+  { name: 'Editor Mode', free: 'Simple + Pro', starter: 'Simple + Pro', premium: 'Simple + Pro', business: 'Custom' },
   { name: 'Max Products', free: '১', starter: '৫০', premium: '২০০', business: 'Unlimited' },
   { name: 'Monthly Orders', free: '৫০', starter: '৫০০', premium: '৩,০০০', business: 'Unlimited' },
-  { name: 'Monthly Visitors', free: '১০K', starter: '১০০K', premium: '৬০০K', business: 'Unlimited' },
-  { name: 'Storage', free: '১০০ MB', starter: '৫০০ MB', premium: '২ GB', business: 'Unlimited' },
-  { name: 'Team Members', free: '১', starter: '২', premium: '৫', business: 'Unlimited' },
   { name: 'Custom Domain', free: '❌', starter: '✅', premium: '✅', business: '✅' },
-  { name: 'Full Store Mode', free: '❌', starter: '✅', premium: '✅', business: '✅' },
   { name: 'Facebook CAPI', free: '❌', starter: '❌', premium: '✅', business: '✅' },
   { name: 'Priority Support', free: '❌', starter: '❌', premium: '✅', business: '✅' },
   { name: 'Platform Fee', free: '০%', starter: '০%', premium: '০%', business: '০%' },
@@ -260,7 +264,7 @@ const PricingCard = ({ plan, index }: { plan: PricingPlan; index: number }) => {
       )}
       
       <motion.div
-        className={`relative h-full rounded-3xl p-6 md:p-8 ${
+        className={`relative h-full rounded-3xl p-6 md:p-8 flex flex-col ${
           plan.isPopular 
             ? 'bg-gradient-to-br from-[#006A4E] to-[#00875F] text-white shadow-2xl shadow-[#006A4E]/40' 
             : 'bg-white/[0.03] backdrop-blur-xl border border-white/10'
@@ -313,39 +317,69 @@ const PricingCard = ({ plan, index }: { plan: PricingPlan; index: number }) => {
           </p>
         </div>
 
-        {/* Features */}
-        <ul className="space-y-3 mb-6">
-          {plan.features.map((feature, i) => (
-            <motion.li
-              key={i}
-              className="flex items-center gap-3"
-              initial={{ opacity: 0, x: -10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 + i * 0.05 }}
-            >
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                plan.isPopular 
-                  ? 'bg-white/20' 
-                  : feature.highlighted
-                    ? 'bg-[#006A4E]/30'
-                    : 'bg-white/10'
-              }`}>
-                <Check className={`w-3 h-3 ${
-                  plan.isPopular ? 'text-white' : feature.highlighted ? 'text-[#006A4E]' : 'text-white/60'
-                }`} />
-              </div>
-              <span className={`text-sm ${
-                plan.isPopular ? 'text-white/90' : feature.highlighted ? 'text-white font-medium' : 'text-white/60'
-              }`}>
-                {feature.text}
-              </span>
-            </motion.li>
-          ))}
-        </ul>
+        {/* Features Container */}
+        <div className="space-y-6 mb-8 flex-grow">
+          
+          {/* AI Features Section */}
+          {(plan.aiFeatures && plan.aiFeatures.length > 0) && (
+            <div>
+               <div className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-2">
+                 <Zap className="w-3 h-3" /> 🤖 AI Features:
+               </div>
+               <div className="h-px bg-white/10 mb-3" />
+               <ul className="space-y-2">
+                 {plan.aiFeatures.map((feat, i) => (
+                   <li key={i} className="flex items-center gap-2 text-sm text-white font-medium">
+                     <Check className="w-4 h-4 text-emerald-400" />
+                     {feat}
+                   </li>
+                 ))}
+               </ul>
+            </div>
+          )}
+
+          {/* Editor Features Section */}
+          {plan.editorFeatures && (
+            <div>
+               <div className={`text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${plan.isPopular ? 'text-white/80' : 'text-blue-400'}`}>
+                 <BarChart3 className="w-3 h-3" /> 🎨 Editor:
+               </div>
+               <div className="h-px bg-white/10 mb-3" />
+               <ul className="space-y-2">
+                 {plan.editorFeatures.map((feat, i) => (
+                   <li key={i} className={`flex items-center gap-2 text-sm ${plan.isPopular ? 'text-white/90' : 'text-white/70'}`}>
+                     <Check className={`w-4 h-4 ${plan.isPopular ? 'text-white' : 'text-blue-400'}`} />
+                     {feat}
+                   </li>
+                 ))}
+               </ul>
+            </div>
+          )}
+
+          {/* General Features Section */}
+          <div>
+            <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${plan.isPopular ? 'text-white/80' : 'text-white/40'}`}>
+               General:
+            </div>
+            <div className="h-px bg-white/10 mb-3" />
+            <ul className="space-y-2">
+              {plan.features.map((feature, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${feature.highlighted ? 'bg-emerald-500/20' : 'bg-white/10'}`}>
+                    <Check className={`w-3 h-3 ${feature.highlighted ? 'text-emerald-400' : 'text-white/50'}`} />
+                  </div>
+                  <span className={`text-sm ${feature.highlighted ? 'text-white font-medium' : 'text-white/60'}`}>
+                    {feature.text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+        </div>
 
         {/* CTA Button */}
-        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="mt-auto">
           <Link
             to={plan.ctaLink}
             className={`block w-full py-4 text-center font-bold rounded-xl transition-all ${
@@ -357,6 +391,7 @@ const PricingCard = ({ plan, index }: { plan: PricingPlan; index: number }) => {
             {plan.ctaText}
           </Link>
         </motion.div>
+
       </motion.div>
     </motion.div>
   );
@@ -393,23 +428,28 @@ const BusinessPlanCard = () => {
                   <Crown className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">Business Plan</h3>
-                  <p className="text-white/60 text-sm">বড় ব্যবসার জন্য Custom Solution</p>
+                  <h3 className="text-2xl font-bold text-white">Enterprise AI Plan</h3>
+                  <p className="text-white/60 text-sm">আমরা আপনার জন্য Design করে দেব!</p>
                 </div>
               </div>
               
-              <div className="flex flex-wrap gap-3 mt-4">
-                {[
-                  'Unlimited Products',
-                  'Unlimited Orders',
-                  'Unlimited Visitors',
-                  'Dedicated Support',
-                  'Custom Integration',
-                ].map((feature, i) => (
-                  <span key={i} className="px-3 py-1 bg-white/10 rounded-full text-sm text-white/80">
-                    {feature}
-                  </span>
-                ))}
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#8B5CF6]" /> 
+                  <span className="text-white/90">Custom AI Training</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <Check className="w-4 h-4 text-[#8B5CF6]" />
+                   <span className="text-white/90">We Design For You</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <Check className="w-4 h-4 text-[#8B5CF6]" />
+                   <span className="text-white/90">Unlimited Everything</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <Check className="w-4 h-4 text-[#8B5CF6]" />
+                   <span className="text-white/90">Priority Onboarding</span>
+                </div>
               </div>
             </div>
             
@@ -714,85 +754,7 @@ export default function PricingPage() {
       `}</style>
 
       {/* Header */}
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
-                <Store className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl text-white hidden sm:block">
-                Multi-Store
-              </span>
-            </Link>
-            
-            <div className="flex items-center gap-3">
-              <Link 
-                to="/tutorials" 
-                className="hidden md:block text-white/60 hover:text-[#00875F] font-medium text-sm px-3 py-2 transition"
-              >
-                টিউটোরিয়াল
-              </Link>
-              <Link 
-                to="/auth/login" 
-                className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
-              >
-                লগইন
-              </Link>
-              <MagneticButton>
-                <Link 
-                  to="/auth/register" 
-                  className="hidden sm:inline-block px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
-                >
-                  ফ্রি শুরু করুন
-                </Link>
-              </MagneticButton>
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="sm:hidden flex items-center justify-center w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition"
-                aria-label="Toggle menu"
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
-              </button>
-            </div>
-          </div>
-          
-          {/* Mobile Dropdown Menu */}
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="sm:hidden mt-4 pt-4 border-t border-white/10"
-            >
-              <div className="flex flex-col gap-2">
-                <Link 
-                  to="/tutorials" 
-                  className="text-white/70 hover:text-[#00875F] font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  টিউটোরিয়াল
-                </Link>
-                <Link 
-                  to="/auth/login" 
-                  className="text-white/70 hover:text-white font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  লগইন
-                </Link>
-                <Link 
-                  to="/auth/register" 
-                  className="px-4 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-semibold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  ফ্রি শুরু করুন
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </header>
+      <MarketingHeader />
 
       <main className="pt-24 pb-16">
         {/* Hero Section */}
@@ -812,7 +774,7 @@ export default function PricingPage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
               সবার জন্য{' '}
               <span 
-                className="bg-clip-text text-transparent"
+                className="bg-clip-text text-transparent inline-block py-2"
                 style={{
                   backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
                 }}
@@ -935,6 +897,7 @@ export default function PricingPage() {
           </div>
         </div>
       </footer>
+      <OzzylAIChatWidget />
     </div>
   );
 }

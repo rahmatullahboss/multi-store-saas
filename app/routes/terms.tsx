@@ -9,6 +9,8 @@ import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
+import { MarketingHeader } from '~/components/MarketingHeader';
+import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
   { title: 'শর্তাবলী - Multi-Store SaaS' },
@@ -19,28 +21,8 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#0A0A0F] overflow-hidden">
       {/* Header */}
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
-                <Store className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl text-white hidden sm:block">
-                Multi-Store
-              </span>
-            </Link>
-            
-            <Link 
-              to="/" 
-              className="flex items-center gap-2 text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              হোমে ফিরে যান
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Header */}
+      <MarketingHeader />
 
       {/* Content */}
       <main className="pt-28 pb-16 px-4">
@@ -118,6 +100,23 @@ export default function TermsPage() {
               </section>
 
               <section>
+                <h2 className="text-xl font-bold text-white mb-3">সীমাহীন ভিজিটর* (Fair Use Policy)</h2>
+                <p className="leading-relaxed mb-3">
+                  সকল প্ল্যানে "সীমাহীন ভিজিটর*" নিম্নলিখিত শর্ত সাপেক্ষে:
+                </p>
+                <ul className="list-disc list-inside space-y-2">
+                  <li>স্বাভাবিক অনলাইন স্টোর ভিজিটর - কোনো সংখ্যা সীমা নেই</li>
+                  <li>অস্বাভাবিক ট্রাফিক প্যাটার্ন (যেমন: বট, স্প্যাম, অতিরিক্ত অটোমেটেড রিকোয়েস্ট) মনিটর করা হয়</li>
+                  <li>অর্ডার অনুপাতে অস্বাভাবিক বেশি ভিজিটর হলে আমরা যোগাযোগ করব</li>
+                  <li>আমাদের সার্ভার ও অন্যান্য ব্যবহারকারীদের সুরক্ষার জন্য অতিরিক্ত ব্যবস্থা নেওয়া হতে পারে</li>
+                  <li>Fair Use Policy লঙ্ঘন হলে স্টোর সাময়িকভাবে বন্ধ করা হতে পারে</li>
+                </ul>
+                <p className="mt-3 text-sm text-white/50">
+                  * স্বাভাবিক ই-কমার্স ব্যবহারের জন্য কোনো সীমাবদ্ধতা নেই। শর্ত প্রযোজ্য।
+                </p>
+              </section>
+
+              <section>
                 <h2 className="text-xl font-bold text-white mb-3">সার্ভিস পরিবর্তন</h2>
                 <p className="leading-relaxed">
                   আমরা যেকোনো সময় প্ল্যাটফর্মের ফিচার, প্রাইসিং বা শর্তাবলী পরিবর্তন করার অধিকার রাখি। 
@@ -149,6 +148,7 @@ export default function TermsPage() {
       </main>
 
       <MarketingFooter />
+      <OzzylAIChatWidget />
     </div>
   );
 }

@@ -142,7 +142,9 @@ export interface ThemeConfig {
   borderColor?: string;     // Border/divider color
   // Typography Settings (Phase 1)
   typography?: TypographySettings;
+  fontFamily?: string; // Global font family
   storeTemplateId?: string; // Selected store template ID
+  checkoutStyle?: 'standard' | 'minimal' | 'one_page'; // Checkout Layout Style
   bannerUrl?: string;
   bannerText?: string;
   collections?: {
@@ -170,6 +172,17 @@ export interface ThemeConfig {
   }>;
   footerDescription?: string;
   copyrightText?: string;
+  // Floating Contact Buttons
+  floatingWhatsappEnabled?: boolean;
+  floatingWhatsappNumber?: string;
+  floatingWhatsappMessage?: string;
+  floatingCallEnabled?: boolean;
+  floatingCallNumber?: string;
+  // Visual Editor Sections
+  sections?: any[]; // StoreSections structure for Home Page
+  productSections?: any[];
+  collectionSections?: any[];
+  cartSections?: any[]; // StoreSections structure for Product Details Page
 }
 
 // Social media links configuration
@@ -258,7 +271,85 @@ export const defaultLandingConfig: LandingConfig = {
 };
 
 // Default theme config for new stores
+// Default theme config for new stores (Rich Preset)
 export const defaultThemeConfig: ThemeConfig = {
-  primaryColor: "#6366f1",
-  accentColor: "#f59e0b",
+  primaryColor: "#4f46e5", // Indigo-600 (More professional than 500)
+  accentColor: "#f59e0b",  // Amber-500
+  backgroundColor: "#ffffff",
+  textColor: "#1f2937",    // Gray-800
+  borderColor: "#e5e7eb",  // Gray-200
+  fontFamily: 'inter',
+  typography: {
+    headingSize: 'medium',
+    bodySize: 'medium',
+    lineHeight: 'normal',
+    letterSpacing: 'normal'
+  },
+  checkoutStyle: 'standard',
+  headerLayout: 'centered', // Modern default
+  headerShowSearch: true,
+  headerShowCart: true,
+  bannerText: "Free delivery inside Dhaka on orders over 2000 BDT! 🚚",
+  
+  // Day 1 Ready Content:
+  sections: [
+    {
+      id: 'default-hero',
+      type: 'hero',
+      settings: {
+        title: 'Premium Quality, Delivered.',
+        subtitle: 'Experience the best shopping experience with our curated collection of authentic products.',
+        buttonText: 'Shop All Products',
+        buttonLink: '/products',
+        align: 'center',
+        overlayOpacity: 50,
+        height: 'large',
+        image: '' // Fallback to gray placeholder in component if empty
+      }
+    },
+    {
+        id: 'default-features',
+        type: 'features',
+        settings: {
+            title: 'Why Shop With Us?',
+            columns: 3,
+            features: [
+                { icon: 'ShieldCheck', title: '100% Authentic', description: 'Original products guaranteed.' },
+                { icon: 'Truck', title: 'Fast Delivery', description: '24H delivery inside Dhaka.' },
+                { icon: 'Headphones', title: 'Support 24/7', description: 'Always here to help you.' }
+            ]
+        }
+    },
+    {
+      id: 'default-products',
+      type: 'product-grid',
+      settings: {
+        title: 'New Arrivals',
+        collectionId: 'all',
+        limit: 8,
+        columns: 4,
+        showViewAll: true
+      }
+    }
+  ],
+  footerDescription: "Your trusted destination for quality products. We prioritize customer satisfaction above all else.",
+  footerColumns: [
+    {
+      title: "Shop",
+      links: [
+        { label: "All Products", url: "/products" },
+        { label: "New Arrivals", url: "/products?sort=newest" },
+        { label: "Top Sellers", url: "/products?sort=best_selling" }
+      ]
+    },
+    {
+      title: "Company",
+      links: [
+        { label: "About Us", url: "/pages/about" },
+        { label: "Contact", url: "/pages/contact" },
+        { label: "Terms", url: "/pages/terms" }
+      ]
+    }
+  ],
+  copyrightText: "© 2024. All Rights Reserved."
 };

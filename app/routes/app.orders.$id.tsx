@@ -604,12 +604,12 @@ export default function OrderDetailPage() {
             className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 mb-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Orders
+            {t('backToOrders')}
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Order {order.orderNumber}
+                {t('order')} {order.orderNumber}
               </h1>
               <p className="text-gray-600">{formatDate(order.createdAt as unknown as Date)}</p>
             </div>
@@ -663,7 +663,7 @@ export default function OrderDetailPage() {
               ) : (
                 <h2 className="text-2xl font-bold text-gray-900">{store?.name}</h2>
               )}
-              <p className="text-sm text-gray-500">Invoice</p>
+              <p className="text-sm text-gray-500">{t('invoice')}</p>
             </div>
             <div className="text-right">
               <p className="text-lg font-bold text-gray-900">{order.orderNumber}</p>
@@ -681,13 +681,13 @@ export default function OrderDetailPage() {
           {/* Customer & Shipping Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
             <div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Bill To</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('billTo')}</h3>
               <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
               <p className="text-gray-600">{order.customerPhone}</p>
               {order.customerEmail && <p className="text-gray-600">{order.customerEmail}</p>}
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Ship To</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('shipTo')}</h3>
               {shippingAddress.address && <p className="text-gray-600">{shippingAddress.address}</p>}
               {shippingAddress.city && <p className="text-gray-600">{shippingAddress.city}</p>}
               {shippingAddress.postalCode && <p className="text-gray-600">Postal: {shippingAddress.postalCode}</p>}
@@ -699,10 +699,10 @@ export default function OrderDetailPage() {
           <table className="w-full mb-8">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 text-sm font-semibold text-gray-600">Item</th>
-                <th className="text-center py-3 text-sm font-semibold text-gray-600">Qty</th>
-                <th className="text-right py-3 text-sm font-semibold text-gray-600">Price</th>
-                <th className="text-right py-3 text-sm font-semibold text-gray-600">Total</th>
+                <th className="text-left py-3 text-sm font-semibold text-gray-600">{t('item')}</th>
+                <th className="text-center py-3 text-sm font-semibold text-gray-600">{t('quantity')}</th>
+                <th className="text-right py-3 text-sm font-semibold text-gray-600">{t('price')}</th>
+                <th className="text-right py-3 text-sm font-semibold text-gray-600">{t('total')}</th>
               </tr>
             </thead>
             <tbody>
@@ -723,19 +723,19 @@ export default function OrderDetailPage() {
           <div className="flex justify-end">
             <div className="w-64 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Subtotal</span>
+                <span className="text-gray-500">{t('subtotal')}</span>
                 <span className="text-gray-900">{formatPrice(order.subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Shipping</span>
+                <span className="text-gray-500">{t('shipping')}</span>
                 <span className="text-gray-900">{formatPrice(order.shipping || 0)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tax</span>
+                <span className="text-gray-500">{t('tax')}</span>
                 <span className="text-gray-900">{formatPrice(order.tax || 0)}</span>
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-200 text-lg font-bold">
-                <span>Total</span>
+                <span>{t('total')}</span>
                 <span className="text-emerald-600">{formatPrice(order.total)}</span>
               </div>
             </div>
@@ -762,12 +762,12 @@ export default function OrderDetailPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <User className="w-5 h-5 text-gray-500" />
-              Customer
+              {t('customer')}
             </h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Name</p>
+                  <p className="text-sm text-gray-500">{t('name')}</p>
                   <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
                 </div>
                 {order.customerPhone && (
@@ -777,7 +777,7 @@ export default function OrderDetailPage() {
               <div className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-gray-400 mt-1" />
                 <div>
-                  <p className="text-sm text-gray-500">Phone</p>
+                  <p className="text-sm text-gray-500">{t('phone')}</p>
                   <a href={`tel:${order.customerPhone}`} className="font-medium text-emerald-600 hover:underline">
                     {order.customerPhone || 'N/A'}
                   </a>
@@ -785,7 +785,7 @@ export default function OrderDetailPage() {
               </div>
               {order.customerEmail && (
                 <div>
-                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="text-sm text-gray-500">{t('email')}</p>
                   <p className="font-medium text-gray-900">{order.customerEmail}</p>
                 </div>
               )}

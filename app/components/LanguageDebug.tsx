@@ -1,0 +1,19 @@
+import { useState, useEffect } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
+
+export function LanguageDebug() {
+  const { t, lang } = useTranslation();
+  const [url, setUrl] = useState<string>('');
+  
+  useEffect(() => {
+    setUrl(window.location.href);
+  }, []);
+  
+  return (
+    <div className="fixed top-4 left-4 z-[9999] bg-black/90 text-white p-4 rounded-lg text-xs font-mono">
+      <div>Current Language: <strong>{lang}</strong></div>
+      <div>Test Key: <strong>{t('landingOzzylChat_greetingMsg')}</strong></div>
+      <div>URL: <strong>{url || 'Loading...'}</strong></div>
+    </div>
+  );
+}

@@ -215,7 +215,7 @@ export default function HomepageStrategyPage() {
           {t('homepageSettings')}
         </h1>
         <p className="text-gray-600 mt-1">
-          {lang === 'bn' ? 'আপনার স্টোরের হোমপেজ কেমন হবে তা নির্ধারণ করুন' : "Choose how your store's homepage appears to customers"}
+          {t('homepageDesc')}
         </p>
       </div>
 
@@ -228,13 +228,13 @@ export default function HomepageStrategyPage() {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-emerald-800 text-lg">
-                Your landing page has been saved!
+                {t('landingPageSaved')}
               </h3>
               <p className="text-emerald-700 mt-1">
-                Your previous homepage is now available as a campaign link. Perfect for Facebook Ads!
+                {t('landingPageSavedDesc')}
               </p>
               <div className="mt-4 p-3 bg-white rounded-lg border border-emerald-200">
-                <p className="text-sm text-gray-600 mb-2">Campaign Link:</p>
+                <p className="text-sm text-gray-600 mb-2">{t('campaignLink')}:</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-sm bg-gray-50 px-3 py-2 rounded border text-violet-600 font-mono">
                     {getOfferUrl()}
@@ -273,11 +273,11 @@ export default function HomepageStrategyPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-gray-900">Current Homepage</h2>
+            <h2 className="font-semibold text-gray-900">{t('currentHomepage')}</h2>
             <p className="text-sm text-gray-500">
               {store.mode === 'landing' 
-                ? 'Landing Page (Single Product Focus)' 
-                : 'Full Store (Product Catalog)'}
+                ? t('singleProductFocus') 
+                : t('fullStoreDesc')}
             </p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -285,7 +285,7 @@ export default function HomepageStrategyPage() {
               ? 'bg-violet-100 text-violet-700' 
               : 'bg-emerald-100 text-emerald-700'
           }`}>
-            {store.mode === 'landing' ? 'Funnel Mode' : 'Storefront Mode'}
+            {store.mode === 'landing' ? t('funnelMode') : t('storefrontMode')}
           </span>
         </div>
 
@@ -294,7 +294,7 @@ export default function HomepageStrategyPage() {
           <div className="mt-4 p-3 bg-violet-50 rounded-lg border border-violet-100">
             <p className="text-sm text-violet-700">
               <Sparkles className="w-4 h-4 inline mr-1" />
-              <strong>Featured Product:</strong> {featuredProduct.title}
+              <strong>{t('featuredProductLabel')}:</strong> {featuredProduct.title}
             </p>
           </div>
         )}
@@ -306,7 +306,7 @@ export default function HomepageStrategyPage() {
           <input type="hidden" name="mode" value={selectedMode} />
 
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Choose Your Strategy</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">{t('chooseStrategy')}</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Funnel Mode */}
@@ -322,9 +322,9 @@ export default function HomepageStrategyPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-3">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Funnel Mode</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">{t('funnelMode')}</h3>
                 <p className="text-sm text-gray-500">
-                  High-converting landing page with single product focus. Best for Facebook Ads.
+                  {t('funnelModeDesc')}
                 </p>
                 {selectedMode === 'landing' && (
                   <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
@@ -344,9 +344,9 @@ export default function HomepageStrategyPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-3">
                   <ShoppingBag className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Storefront Mode</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">{t('storefrontMode')}</h3>
                 <p className="text-sm text-gray-500">
-                  Full product catalog with categories, cart, and checkout. Classic e-commerce.
+                  {t('storefrontModeDesc')}
                 </p>
                 {selectedMode === 'store' && (
                   <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-emerald-600" />
@@ -361,10 +361,10 @@ export default function HomepageStrategyPage() {
                   <Rocket className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-blue-800">
-                      Your landing page will be saved automatically
+                      {t('landingSavedAuto')}
                     </p>
                     <p className="text-sm text-blue-600 mt-1">
-                      We'll create a campaign link at <code className="bg-blue-100 px-1 rounded">/offers/{store.featuredProductId}</code> so you can still use it for ads.
+                      {t('campaignLinkNotice')}
                     </p>
                   </div>
                 </div>
@@ -380,13 +380,13 @@ export default function HomepageStrategyPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Switching...
+                  {t('switching')}
                 </>
               ) : selectedMode === store.mode ? (
-                'No Changes'
+                t('noChanges')
               ) : (
                 <>
-                  Apply Strategy
+                  {t('applyStrategy')}
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
@@ -401,17 +401,17 @@ export default function HomepageStrategyPage() {
               <Crown className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Unlock Storefront Mode
+              {t('unlockStorefrontModeStatus')}
             </h2>
             <p className="text-gray-600 mb-6">
-              Upgrade to a paid plan to switch between Funnel and Storefront modes.
+              {t('upgradeToSwitchModes')}
             </p>
             <Link
               to="/app/upgrade"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
             >
               <Crown className="w-5 h-5" />
-              Upgrade Now
+              {t('upgradeNow')}
             </Link>
           </div>
         </div>
@@ -422,7 +422,7 @@ export default function HomepageStrategyPage() {
         <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-600">
             <Rocket className="w-4 h-4 inline mr-1 text-violet-600" />
-            You have <strong>{savedConfigsCount}</strong> saved campaign{savedConfigsCount > 1 ? 's' : ''} from previous mode switches.
+            {t('savedCampaignsCountMsg').replace('{count}', String(savedConfigsCount))}
           </p>
         </div>
       )}

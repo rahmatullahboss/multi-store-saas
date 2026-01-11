@@ -34,7 +34,7 @@ import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Discount Codes - Multi-Store SaaS' }];
+  return [{ title: 'Discount Codes' }];
 };
 
 // ============================================================================
@@ -86,13 +86,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       // Validation
       if (!code || code.length < 3) {
-        return json({ error: 'Code must be at least 3 characters' }, { status: 400 });
+        return json({ error: 'codeMinLength' }, { status: 400 });
       }
       if (value <= 0) {
-        return json({ error: 'Discount value must be greater than 0' }, { status: 400 });
+        return json({ error: 'valueMin' }, { status: 400 });
       }
       if (type === 'percentage' && value > 100) {
-        return json({ error: 'Percentage cannot exceed 100%' }, { status: 400 });
+        return json({ error: 'percentageMax' }, { status: 400 });
       }
 
       const data = {
@@ -116,20 +116,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
           .limit(1);
 
         if (existing.length > 0) {
-          return json({ error: 'This code already exists' }, { status: 400 });
+          return json({ error: 'codeExists' }, { status: 400 });
         }
 
         await db.insert(discounts).values({
           storeId,
           ...data,
         });
-        return json({ success: true, message: 'Discount code created!' });
+        return json({ success: true, message: 'successfullySubmitted' });
       } else {
         await db
           .update(discounts)
           .set(data)
           .where(and(eq(discounts.id, parseInt(id)), eq(discounts.storeId, storeId)));
-        return json({ success: true, message: 'Discount code updated!' });
+        return json({ success: true, message: 'settingsSaved' });
       }
     }
 
@@ -138,7 +138,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       await db
         .delete(discounts)
         .where(and(eq(discounts.id, parseInt(id)), eq(discounts.storeId, storeId)));
-      return json({ success: true, message: 'Discount code deleted!' });
+      return json({ success: true, message: 'deleted' });
     }
 
     if (intent === 'toggle') {
@@ -154,7 +154,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
     console.error('Discount action error:', error);
-    return json({ error: 'Failed to process request' }, { status: 500 });
+    return json({ error: 'failedProcessRequest' }, { status: 500 });
   }
 }
 
@@ -207,7 +207,7 @@ export default function DiscountsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('discounts')}</h1>
-          <p className="text-gray-600">{lang === 'bn' ? 'বিক্রয় বাড়াতে প্রোমো কোড তৈরি করুন' : 'Create promo codes to boost sales'}</p>
+          <p className="text-gray-600">{t('discountsManageDesc')}</p>
         </div>
         {!showForm && (
           <button
@@ -215,7 +215,7 @@ export default function DiscountsPage() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition"
           >
             <Plus className="w-4 h-4" />
-            Create Code
+            {t('createCode')}
           </button>
         )}
       </div>
@@ -224,12 +224,12 @@ export default function DiscountsPage() {
       {actionData && 'success' in actionData && actionData.success && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {'message' in actionData ? String(actionData.message) : 'Action completed!'}
+          {'message' in actionData ? t(String(actionData.message)) : t('success')}
         </div>
       )}
       {actionData && 'error' in actionData && actionData.error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {actionData.error}
+          {t(actionData.error)}
         </div>
       )}
 
@@ -237,7 +237,7 @@ export default function DiscountsPage() {
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {editingDiscount ? 'Edit Discount Code' : 'Create Discount Code'}
+            {editingDiscount ? t('editDiscountCode') : t('createDiscountCode')}
           </h2>
           
           <Form method="post" className="space-y-4">
@@ -248,7 +248,7 @@ export default function DiscountsPage() {
               {/* Code */}
               <div>
                 <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
-                  Discount Code *
+                  {t('discountCodeLabel')} *
                 </label>
                 <input
                   type="text"
@@ -262,9 +262,9 @@ export default function DiscountsPage() {
               </div>
 
               {/* Type */}
-              <div>
+               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Discount Type
+                  {t('discountTypeLabel')}
                 </label>
                 <div className="flex gap-2">
                   <button
@@ -275,9 +275,9 @@ export default function DiscountsPage() {
                         ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
-                  >
+                   >
                     <Percent className="w-4 h-4" />
-                    Percentage
+                    {t('percentage')}
                   </button>
                   <button
                     type="button"
@@ -287,9 +287,9 @@ export default function DiscountsPage() {
                         ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
-                  >
+                   >
                     <DollarSign className="w-4 h-4" />
-                    Fixed
+                    {t('fixed')}
                   </button>
                 </div>
                 <input type="hidden" name="type" value={discountType} />
@@ -297,8 +297,8 @@ export default function DiscountsPage() {
 
               {/* Value */}
               <div>
-                <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
-                  {discountType === 'percentage' ? 'Percentage Off (%)' : `Amount Off (${currency})`}
+                 <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
+                  {discountType === 'percentage' ? t('percentageOff') : `${t('amountOff')} (${currency})`}
                 </label>
                 <input
                   type="number"
@@ -316,8 +316,8 @@ export default function DiscountsPage() {
 
               {/* Min Order */}
               <div>
-                <label htmlFor="minOrderAmount" className="block text-sm font-medium text-gray-700 mb-1">
-                  Minimum Order ({currency})
+                 <label htmlFor="minOrderAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('minOrderAmountLabel')} ({currency})
                 </label>
                 <input
                   type="number"
@@ -334,8 +334,8 @@ export default function DiscountsPage() {
               {/* Max Discount (for percentage) */}
               {discountType === 'percentage' && (
                 <div>
-                  <label htmlFor="maxDiscountAmount" className="block text-sm font-medium text-gray-700 mb-1">
-                    Max Discount Cap ({currency})
+                   <label htmlFor="maxDiscountAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('maxDiscountCap')} ({currency})
                   </label>
                   <input
                     type="number"
@@ -352,8 +352,8 @@ export default function DiscountsPage() {
 
               {/* Max Uses */}
               <div>
-                <label htmlFor="maxUses" className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Uses (Total)
+                 <label htmlFor="maxUses" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('maxUsesLabel')}
                 </label>
                 <input
                   type="number"
@@ -368,8 +368,8 @@ export default function DiscountsPage() {
 
               {/* Expiry Date */}
               <div>
-                <label htmlFor="expiresAt" className="block text-sm font-medium text-gray-700 mb-1">
-                  Expiry Date
+                 <label htmlFor="expiresAt" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('expiryDateLabel')}
                 </label>
                 <input
                   type="date"
@@ -391,8 +391,8 @@ export default function DiscountsPage() {
                 defaultChecked={editingDiscount?.isActive !== false}
                 className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
               />
-              <label htmlFor="isActive" className="text-sm text-gray-700">
-                Code is active
+               <label htmlFor="isActive" className="text-sm text-gray-700">
+                {t('codeIsActive')}
               </label>
             </div>
 
@@ -403,21 +403,21 @@ export default function DiscountsPage() {
                 disabled={isSubmitting}
                 className="px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 flex items-center gap-2"
               >
-                {isSubmitting ? (
+                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Saving...
+                    {t('saving')}
                   </>
                 ) : (
-                  editingDiscount ? 'Update Code' : 'Create Code'
+                  editingDiscount ? t('updateCode') : t('createCode')
                 )}
               </button>
-              <button
+               <button
                 type="button"
                 onClick={handleCancel}
                 className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </Form>
@@ -429,8 +429,8 @@ export default function DiscountsPage() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <Tag className="w-5 h-5 text-emerald-600" />
-              Your Discount Codes ({allDiscounts.length})
+               <Tag className="w-5 h-5 text-emerald-600" />
+              {t('yourDiscountCodes')} ({allDiscounts.length})
             </h2>
           </div>
           
@@ -471,25 +471,25 @@ export default function DiscountsPage() {
                         </button>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                        <span className="font-medium text-emerald-600">
+                         <span className="font-medium text-emerald-600">
                           {discount.type === 'percentage' 
-                            ? `${discount.value}% off` 
-                            : `${formatPrice(discount.value)} off`
+                            ? `${discount.value}% ${t('offLabel')}` 
+                            : `${formatPrice(discount.value)} ${t('offLabel')}`
                           }
                         </span>
                         {discount.minOrderAmount && (
                           <span>Min: {formatPrice(discount.minOrderAmount)}</span>
                         )}
                         {discount.maxUses && (
-                          <span className="flex items-center gap-1">
+                           <span className="flex items-center gap-1">
                             <Users className="w-3 h-3" />
-                            {discount.usedCount || 0}/{discount.maxUses} used
+                            {discount.usedCount || 0}/{discount.maxUses} {t('usedLabel')}
                           </span>
                         )}
-                        {discount.expiresAt && (
+                         {discount.expiresAt && (
                           <span className={`flex items-center gap-1 ${expired ? 'text-red-500' : ''}`}>
                             <Calendar className="w-3 h-3" />
-                            {expired ? 'Expired' : `Expires ${new Date(discount.expiresAt).toLocaleDateString()}`}
+                            {expired ? t('expiredLabel') : `${t('expiresLabel')} ${new Date(discount.expiresAt).toLocaleDateString()}`}
                           </span>
                         )}
                       </div>
@@ -509,8 +509,8 @@ export default function DiscountsPage() {
                             ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                             : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                         }`}
-                      >
-                        {discount.isActive ? 'Active' : 'Inactive'}
+                       >
+                        {discount.isActive ? t('activeLabel') : t('inactiveLabel')}
                       </button>
                     </Form>
 
@@ -522,9 +522,9 @@ export default function DiscountsPage() {
                       <Edit2 className="w-4 h-4" />
                     </button>
 
-                    {/* Delete */}
+                     {/* Delete */}
                     <Form method="post" onSubmit={(e) => {
-                      if (!confirm('Delete this discount code?')) {
+                      if (!confirm(t('deleteConfirmDiscount'))) {
                         e.preventDefault();
                       }
                     }}>
@@ -546,16 +546,16 @@ export default function DiscountsPage() {
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Tag className="w-8 h-8 text-gray-400" />
+             <Tag className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No discount codes yet</h3>
-          <p className="text-gray-500 mb-6">Create promo codes to attract more customers</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noDiscountsYet')}</h3>
+          <p className="text-gray-500 mb-6">{t('createFirstCodeDesc')}</p>
           <button
             onClick={() => setShowForm(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition"
           >
             <Plus className="w-4 h-4" />
-            Create Your First Code
+            {t('createFirstCodeBtn')}
           </button>
         </div>
       )}

@@ -7,6 +7,7 @@
 
 import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
+export * from './schema_agent';
 
 // ============================================================================
 // STORES TABLE - Core tenant table with Hybrid Mode support
@@ -39,6 +40,8 @@ export const stores = sqliteTable('stores', {
   featuredProductId: integer('featured_product_id'),
   // Landing page config: { headline, subheadline, videoUrl, ctaText, testimonials }
   landingConfig: text('landing_config'),
+  // Draft landing config (auto-saved, not visible to public until published)
+  landingConfigDraft: text('landing_config_draft'),
   // Full store theme: { primaryColor, accentColor, bannerUrl, collections[] }
   themeConfig: text('theme_config'),
   // Business info: { phone, email, address, city, country }
@@ -93,6 +96,7 @@ export const stores = sqliteTable('stores', {
   // AI Agent Activation Request System
   aiAgentRequestStatus: text('ai_agent_request_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
   aiAgentRequestedAt: integer('ai_agent_requested_at', { mode: 'timestamp' }),
+  aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
   
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
@@ -626,6 +630,33 @@ export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ on
   product: one(products, {
     fields: [savedLandingConfigs.productId],
     references: [products.id],
+  }),
+}));
+
+// ============================================================================
+// LANDING PAGES TABLE - GrapesJS Custom Pages
+// ============================================================================
+export const landingPages = sqliteTable('landing_pages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  slug: text('slug').notNull(),
+  projectData: text('project_data'), // GrapesJS Internal JSON
+  htmlContent: text('html_content'),
+  cssContent: text('css_content'),
+  pageConfig: text('page_config'), // JSON configuration for featured product, WhatsApp, etc.
+  isPublished: integer('is_published', { mode: 'boolean' }).default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('landing_pages_store_id_idx').on(table.storeId),
+  index('landing_pages_slug_idx').on(table.storeId, table.slug),
+]);
+
+export const landingPagesRelations = relations(landingPages, ({ one }) => ({
+  store: one(stores, {
+    fields: [landingPages.storeId],
+    references: [stores.id],
   }),
 }));
 
@@ -1168,6 +1199,8 @@ export type StoreTag = typeof storeTags.$inferSelect;
 export type NewStoreTag = typeof storeTags.$inferInsert;
 export type MarketingLead = typeof marketingLeads.$inferSelect;
 export type NewMarketingLead = typeof marketingLeads.$inferInsert;
+export type PasswordReset = typeof passwordResets.$inferSelect;
+export type NewPasswordReset = typeof passwordResets.$inferInsert;
 
 // ============================================================================
 // PAYMENTS TABLE - Historical Subscription Records
@@ -1260,3 +1293,119 @@ export const webhooksRelations = relations(webhooks, ({ one }) => ({
 
 export type Webhook = typeof webhooks.$inferSelect;
 export type NewWebhook = typeof webhooks.$inferInsert;
+// ============================================================================
+// VISITOR CHAT & LEAD CAPTURE
+// ============================================================================
+export const visitors = sqliteTable('visitors', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  phone: text('phone').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+// ============================================================================
+// PASSWORD RESETS TABLE - Forgot Password Tokens
+// ============================================================================
+export const passwordResets = sqliteTable('password_resets', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(), // Hashed token for security
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('password_resets_token_idx').on(table.token),
+  index('password_resets_user_idx').on(table.userId),
+]);
+
+export const passwordResetsRelations = relations(passwordResets, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResets.userId],
+    references: [users.id],
+  }),
+}));
+
+export const visitorMessages = sqliteTable('visitor_messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  visitorId: integer('visitor_id').notNull().references(() => visitors.id, { onDelete: 'cascade' }),
+  role: text('role').$type<'user' | 'assistant'>().notNull(),
+  content: text('content').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('visitor_messages_visitor_id_idx').on(table.visitorId),
+]);
+
+export const visitorsRelations = relations(visitors, ({ many }) => ({
+  messages: many(visitorMessages),
+}));
+
+export const visitorMessagesRelations = relations(visitorMessages, ({ one }) => ({
+  visitor: one(visitors, {
+    fields: [visitorMessages.visitorId],
+    references: [visitors.id],
+  }),
+}));
+
+// ============================================================================
+// MARKETPLACE THEMES TABLE - Shared community themes
+// ============================================================================
+export const marketplaceThemes = sqliteTable('marketplace_themes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  description: text('description'),
+  thumbnail: text('thumbnail'),
+  config: text('config').notNull(), // JSON: ThemeConfig
+  createdBy: integer('created_by').references(() => stores.id, { onDelete: 'set null' }),
+  authorName: text('author_name'),
+  status: text('status').$type<'pending' | 'approved' | 'rejected'>().default('pending'),
+  isPublic: integer('is_public', { mode: 'boolean' }).default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const marketplaceThemesRelations = relations(marketplaceThemes, ({ one }) => ({
+  creator: one(stores, {
+    fields: [marketplaceThemes.createdBy],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// STORE THEMES TABLE - User's installed/purchased theme collection
+// ============================================================================
+export const storeThemes = sqliteTable('store_themes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  
+  // Source: either a system template ID or a marketplace theme ID
+  templateId: text('template_id'), // e.g., 'luxe-boutique', 'tech-modern' (from STORE_TEMPLATES)
+  marketplaceThemeId: integer('marketplace_theme_id').references(() => marketplaceThemes.id, { onDelete: 'set null' }),
+  
+  // Saved config snapshot (allows customization without losing original)
+  name: text('name').notNull(), // User's name for this theme (e.g., "My Custom Luxe")
+  config: text('config').notNull(), // JSON: Full ThemeConfig snapshot
+  thumbnail: text('thumbnail'), // Custom screenshot or original thumbnail
+  
+  // Status
+  isActive: integer('is_active', { mode: 'boolean' }).default(false), // Currently applied theme
+  
+  // Timestamps
+  installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('store_themes_store_id_idx').on(table.storeId),
+  index('store_themes_active_idx').on(table.storeId, table.isActive),
+]);
+
+export const storeThemesRelations = relations(storeThemes, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeThemes.storeId],
+    references: [stores.id],
+  }),
+  marketplaceTheme: one(marketplaceThemes, {
+    fields: [storeThemes.marketplaceThemeId],
+    references: [marketplaceThemes.id],
+  }),
+}));
+

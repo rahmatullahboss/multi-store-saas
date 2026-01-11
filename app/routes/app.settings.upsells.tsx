@@ -13,9 +13,10 @@ import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { useState } from 'react';
 import { Plus, Edit2, Trash2, ArrowRight, ArrowUpRight, ArrowDownRight, BarChart3, Eye, CheckCircle } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -65,7 +66,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ...offer,
     triggerProduct: productMap.get(offer.productId),
     offerProduct: productMap.get(offer.offerProductId),
-    conversionRate: offer.views > 0 ? ((offer.conversions / offer.views) * 100).toFixed(1) : '0',
+    conversionRate: (offer.views ?? 0) > 0 ? (((offer.conversions ?? 0) / (offer.views ?? 1)) * 100).toFixed(1) : '0',
   }));
 
   return json({
@@ -76,7 +77,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -149,12 +150,13 @@ export default function UpsellSettingsPage() {
   const { offers, products, currency } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const { t, lang } = useTranslation();
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const isSubmitting = navigation.state === 'submitting';
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
+    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -167,10 +169,10 @@ export default function UpsellSettingsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            🚀 আপসেল/ডাউনসেল অফার
+            {t('upsellSettings')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            অর্ডার সম্পন্ন হওয়ার পর অতিরিক্ত পণ্য অফার করুন
+            {t('upsellSubtitle')}
           </p>
         </div>
         <button
@@ -178,22 +180,22 @@ export default function UpsellSettingsPage() {
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition"
         >
           <Plus size={20} />
-          নতুন অফার তৈরি করুন
+          {t('createUpsellOffer')}
         </button>
       </div>
 
       {/* Action Feedback */}
-      {actionData?.success && actionData?.message && (
+      {actionData?.success && 'message' in actionData && (
         <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg flex items-center gap-2">
           <CheckCircle className="text-green-600 dark:text-green-400" size={20} />
-          <span className="text-green-800 dark:text-green-300">{actionData.message}</span>
+          <span className="text-green-800 dark:text-green-300">{actionData.message as string}</span>
         </div>
       )}
 
       {/* Create Form */}
       {showCreateForm && (
         <div className="mb-8 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">নতুন আপসেল অফার</h2>
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{t('newUpsellOffer')}</h2>
           <Form method="post" className="space-y-4">
             <input type="hidden" name="intent" value="create" />
             
@@ -201,14 +203,14 @@ export default function UpsellSettingsPage() {
               {/* Trigger Product */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  ট্রিগার প্রোডাক্ট (যখন এই প্রোডাক্ট কেনা হবে)
+                  {t('triggerProduct')}
                 </label>
                 <select 
                   name="productId"
                   required
                   className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                 >
-                  <option value="">প্রোডাক্ট সিলেক্ট করুন</option>
+                  <option value="">{t('selectProduct')}</option>
                   {products.map(p => (
                     <option key={p.id} value={p.id}>{p.title} - {formatPrice(p.price)}</option>
                   ))}
@@ -218,14 +220,14 @@ export default function UpsellSettingsPage() {
               {/* Offer Product */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  অফার প্রোডাক্ট (যা অফার করা হবে)
+                  {t('offerProduct')}
                 </label>
                 <select 
                   name="offerProductId"
                   required
                   className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                 >
-                  <option value="">প্রোডাক্ট সিলেক্ট করুন</option>
+                  <option value="">{t('selectProduct')}</option>
                   {products.map(p => (
                     <option key={p.id} value={p.id}>{p.title} - {formatPrice(p.price)}</option>
                   ))}
@@ -237,21 +239,21 @@ export default function UpsellSettingsPage() {
               {/* Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  অফার টাইপ
+                  {t('offerType')}
                 </label>
                 <select 
                   name="type"
                   className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                 >
-                  <option value="upsell">আপসেল (মূল্যবান পণ্য)</option>
-                  <option value="downsell">ডাউনসেল (যদি প্রত্যাখ্যাত হয়)</option>
+                  <option value="upsell">{t('upsell')}</option>
+                  <option value="downsell">{t('downsell')}</option>
                 </select>
               </div>
 
               {/* Discount */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  ডিসকাউন্ট (%)
+                  {t('discountPercentage')}
                 </label>
                 <input
                   type="number"
@@ -266,13 +268,13 @@ export default function UpsellSettingsPage() {
               {/* Next Offer (for sequence) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  যদি প্রত্যাখ্যাত হয় তাহলে (ডাউনসেল)
+                  {t('nextOffer')}
                 </label>
                 <select 
                   name="nextOfferId"
                   className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                 >
-                  <option value="">কিছু না (থ্যাংক ইউ পেজে যান)</option>
+                  <option value="">{t('upsellNone')}</option>
                   {offers.filter(o => o.type === 'downsell').map(o => (
                     <option key={o.id} value={o.id}>{o.headline}</option>
                   ))}
@@ -283,13 +285,13 @@ export default function UpsellSettingsPage() {
             {/* Headline */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                হেডলাইন *
+                {t('headline')} *
               </label>
               <input
                 type="text"
                 name="headline"
                 required
-                placeholder="যেমন: অপেক্ষা করুন! স্পেশাল অফার!"
+                placeholder={String(t('headlinePlaceholder'))}
                 className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
               />
             </div>
@@ -297,12 +299,12 @@ export default function UpsellSettingsPage() {
             {/* Subheadline */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                সাব-হেডলাইন
+                {t('upsellSubheadline')}
               </label>
               <input
                 type="text"
                 name="subheadline"
-                placeholder="যেমন: এই প্রোডাক্টটি মাত্র ৳৪৯৯ তে যোগ করুন!"
+                placeholder={String(t('subheadlinePlaceholder'))}
                 className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
               />
             </div>
@@ -310,12 +312,12 @@ export default function UpsellSettingsPage() {
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                বিস্তারিত বর্ণনা
+                {t('upsellDescription')}
               </label>
               <textarea
                 name="description"
                 rows={2}
-                placeholder="এই অফার সম্পর্কে আরো তথ্য..."
+                placeholder={String(t('upsellDescriptionPlaceholder'))}
                 className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
               />
             </div>
@@ -326,14 +328,14 @@ export default function UpsellSettingsPage() {
                 disabled={isSubmitting}
                 className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50"
               >
-                {isSubmitting ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}
+                {isSubmitting ? t('savingSettings') : t('saveSettings')}
               </button>
               <button
                 type="button"
                 onClick={() => setShowCreateForm(false)}
                 className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg"
               >
-                বাতিল
+                {t('cancel')}
               </button>
             </div>
           </Form>
@@ -344,23 +346,23 @@ export default function UpsellSettingsPage() {
       {offers.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">মোট অফার</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalOffers')}</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{offers.length}</p>
           </div>
           <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">মোট ভিউ</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalViews')}</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {offers.reduce((sum, o) => sum + (o.views ?? 0), 0)}
             </p>
           </div>
           <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">মোট কনভার্সন</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalConversions')}</p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
               {offers.reduce((sum, o) => sum + (o.conversions ?? 0), 0)}
             </p>
           </div>
           <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">মোট রেভিনিউ</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalRevenue')}</p>
             <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
               {formatPrice(offers.reduce((sum, o) => sum + (o.revenue ?? 0), 0))}
             </p>
@@ -373,16 +375,16 @@ export default function UpsellSettingsPage() {
         <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="text-6xl mb-4">🎯</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            এখনো কোন আপসেল অফার নেই
+            {t('noUpsellOffers')}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            প্রথম আপসেল অফার তৈরি করে বিক্রয় বাড়ান!
+            {t('createFirstUpsell')}
           </p>
           <button
             onClick={() => setShowCreateForm(true)}
             className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
           >
-            প্রথম অফার তৈরি করুন
+            {t('createUpsellOffer')}
           </button>
         </div>
       ) : (
@@ -410,7 +412,7 @@ export default function UpsellSettingsPage() {
                     )}
                     {!offer.isActive && (
                       <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded">
-                        নিষ্ক্রিয়
+                        {t('inactive')}
                       </span>
                     )}
                   </div>
@@ -425,12 +427,12 @@ export default function UpsellSettingsPage() {
                   
                   <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <span>
-                      <strong>ট্রিগার:</strong> {offer.triggerProduct?.title || 'Unknown'}
+                      <strong>{t('trigger')}:</strong> {offer.triggerProduct?.title || 'Unknown'}
                     </span>
                     <ArrowRight size={14} />
                     <span>
-                      <strong>অফার:</strong> {offer.offerProduct?.title || 'Unknown'}
-                      {offer.discount > 0 && (
+                      <strong>{t('offer')}:</strong> {offer.offerProduct?.title || 'Unknown'}
+                      {(offer.discount ?? 0) > 0 && (
                         <span className="ml-1 text-green-600">(-{offer.discount}%)</span>
                       )}
                     </span>
@@ -444,19 +446,19 @@ export default function UpsellSettingsPage() {
                       <Eye size={14} />
                       <span>{offer.views ?? 0}</span>
                     </div>
-                    <span className="text-xs text-gray-400">ভিউ</span>
+                    <span className="text-xs text-gray-400">{t('views')}</span>
                   </div>
                   <div className="text-center">
                     <div className="text-green-600 dark:text-green-400 font-medium">
                       {offer.conversions ?? 0}
                     </div>
-                    <span className="text-xs text-gray-400">কনভার্সন</span>
+                    <span className="text-xs text-gray-400">{t('conversions')}</span>
                   </div>
                   <div className="text-center">
                     <div className="text-indigo-600 dark:text-indigo-400 font-medium">
                       {offer.conversionRate}%
                     </div>
-                    <span className="text-xs text-gray-400">রেট</span>
+                    <span className="text-xs text-gray-400">{t('bumpConversionRate')}</span>
                   </div>
                 </div>
 
@@ -474,11 +476,12 @@ export default function UpsellSettingsPage() {
                           : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200'
                       }`}
                     >
-                      {offer.isActive ? 'নিষ্ক্রিয়' : 'সক্রিয়'}
+                      {offer.isActive ? t('inactive') : t('active')}
                     </button>
+
                   </Form>
                   <Form method="post" onSubmit={(e) => {
-                    if (!confirm('এই অফারটি ডিলিট করতে চান?')) e.preventDefault();
+                    if (!confirm(t('deleteOfferConfirm'))) e.preventDefault();
                   }}>
                     <input type="hidden" name="intent" value="delete" />
                     <input type="hidden" name="id" value={offer.id} />
@@ -498,12 +501,12 @@ export default function UpsellSettingsPage() {
 
       {/* Help Text */}
       <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-        <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">💡 কিভাবে কাজ করে?</h4>
+        <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">💡 {t('howItWorks')}</h4>
         <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
-          <li>• যখন একজন কাস্টমার ট্রিগার প্রোডাক্ট কিনবে, তখন আপসেল অফার দেখাবে</li>
-          <li>• কাস্টমার যদি প্রত্যাখ্যান করে, তাহলে ডাউনসেল অফার দেখাতে পারেন</li>
-          <li>• অফার গ্রহণ করলে সেই প্রোডাক্ট একই অর্ডারে যোগ হবে</li>
-          <li>• প্রতিটি অফার ১৫ মিনিটের জন্য বৈধ থাকবে</li>
+          <li>• {t('howItWorks1')}</li>
+          <li>• {t('howItWorks2')}</li>
+          <li>• {t('howItWorks3')}</li>
+          <li>• {t('howItWorks4')}</li>
         </ul>
       </div>
     </div>

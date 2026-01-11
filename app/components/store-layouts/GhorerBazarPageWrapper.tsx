@@ -8,6 +8,8 @@
 
 import type { ReactNode } from 'react';
 import { Link } from '@remix-run/react';
+import { useState } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { 
   Search, 
   ShoppingCart, 
@@ -55,6 +57,7 @@ export function GhorerBazarPageWrapper({
   pageTitle,
   showBreadcrumbBanner = false,
 }: GhorerBazarPageWrapperProps) {
+  const count = useCartCount();
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">

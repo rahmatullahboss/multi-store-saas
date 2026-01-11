@@ -25,12 +25,15 @@ import {
   DollarSign,
   ExternalLink,
   Sparkles,
-  Clock
+  Clock,
+  Bot
 } from 'lucide-react';
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
+import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { getUsageStats } from '~/utils/plans.server';
+import { getStoreStats } from '~/services/analytics.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Multi-Store SaaS' }];
@@ -53,82 +56,28 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const store = storeResult[0];
 
-  // Get today's start timestamp (Bangladesh timezone)
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
-  const weekAgoStart = new Date(todayStart.getTime() - 7 * 86400000);
+  // Fetch store stats using shared service
+  const statsResult = await getStoreStats(db, storeId);
+  const { 
+      products: productCount, 
+      lowStock: lowStockCount, 
+      orders: orderCount, 
+      revenue: revenueTotal, 
+      todaySales, 
+      salesTrend, 
+      pendingOrders: pendingCount, 
+      abandonedCarts: abandonedCount,
+      salesData 
+  } = statsResult;
 
-  // Count products
-  const productCount = await db
-    .select({ count: count() })
-    .from(products)
-    .where(eq(products.storeId, storeId));
-
-  // Low stock products
-  const lowStockProducts = await db
-    .select({ count: count() })
-    .from(products)
-    .where(and(
-      eq(products.storeId, storeId),
-      sql`${products.inventory} <= 5 AND ${products.inventory} > 0`
-    ));
-
-  // Total orders
-  const orderCount = await db
-    .select({ count: count() })
-    .from(orders)
-    .where(eq(orders.storeId, storeId));
-
-  // Today's orders
-  const todayOrders = await db
-    .select({ 
-      count: count(),
-      total: sql<number>`COALESCE(SUM(total), 0)`
-    })
-    .from(orders)
-    .where(and(
-      eq(orders.storeId, storeId),
-      gte(orders.createdAt, todayStart)
-    ));
-
-  // Yesterday's orders for comparison
-  const yesterdayOrders = await db
-    .select({ 
-      count: count(),
-      total: sql<number>`COALESCE(SUM(total), 0)`
-    })
-    .from(orders)
-    .where(and(
-      eq(orders.storeId, storeId),
-      gte(orders.createdAt, yesterdayStart),
-      sql`${orders.createdAt} < ${todayStart.toISOString()}`
-    ));
-
-  // Total revenue
-  const revenueResult = await db
-    .select({ total: sql<number>`COALESCE(SUM(total), 0)` })
-    .from(orders)
-    .where(eq(orders.storeId, storeId));
-
-  // Pending orders count
-  const pendingOrders = await db
-    .select({ count: count() })
-    .from(orders)
-    .where(and(
-      eq(orders.storeId, storeId),
-      eq(orders.status, 'pending')
-    ));
-
-  // Abandoned carts count (last 7 days)
-  const abandonedCartsCount = await db
-    .select({ count: count() })
-    .from(abandonedCarts)
-    .where(and(
-      eq(abandonedCarts.storeId, storeId),
-      eq(abandonedCarts.status, 'abandoned'),
-      gte(abandonedCarts.abandonedAt, weekAgoStart)
-    ));
+  // Build action items
+  const actionItems: Array<{
+    id: string;
+    type: 'low_stock' | 'pending_order' | 'abandoned_cart' | 'domain_request';
+    count: number;
+    link: string;
+    priority: 'high' | 'medium' | 'low';
+  }> = [];
 
   // Recent 5 orders
   const recentOrders = await db
@@ -145,51 +94,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(desc(orders.createdAt))
     .limit(5);
 
-  // Daily sales for last 7 days
-  const salesData: { date: string; label: string; value: number }[] = [];
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  
-  for (let i = 6; i >= 0; i--) {
-    const dayStart = new Date(todayStart.getTime() - i * 86400000);
-    const dayEnd = new Date(dayStart.getTime() + 86400000);
-    
-    // Convert to Unix timestamps (seconds) for SQLite integer comparison
-    const dayStartTimestamp = Math.floor(dayStart.getTime() / 1000);
-    const dayEndTimestamp = Math.floor(dayEnd.getTime() / 1000);
-    
-    const dayRevenue = await db
-      .select({ total: sql<number>`COALESCE(SUM(total), 0)` })
-      .from(orders)
-      .where(and(
-        eq(orders.storeId, storeId),
-        sql`${orders.createdAt} >= ${dayStartTimestamp}`,
-        sql`${orders.createdAt} < ${dayEndTimestamp}`
-      ));
-    
-    salesData.push({
-      date: dayStart.toISOString().split('T')[0],
-      label: i === 0 ? 'Today' : dayNames[dayStart.getDay()],
-      value: dayRevenue[0]?.total || 0,
-    });
-  }
-
-  // Calculate trends
-  const todaySales = todayOrders[0]?.total || 0;
-  const yesterdaySales = yesterdayOrders[0]?.total || 0;
-  const salesTrend = yesterdaySales > 0 
-    ? Math.round(((todaySales - yesterdaySales) / yesterdaySales) * 100)
-    : todaySales > 0 ? 100 : 0;
-
-  // Build action items
-  const actionItems: Array<{
-    id: string;
-    type: 'low_stock' | 'pending_order' | 'abandoned_cart' | 'domain_request';
-    count: number;
-    link: string;
-    priority: 'high' | 'medium' | 'low';
-  }> = [];
-
-  const pendingCount = pendingOrders[0]?.count || 0;
   if (pendingCount > 0) {
     actionItems.push({
       id: 'pending-orders',
@@ -200,7 +104,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     });
   }
 
-  const lowStockCount = lowStockProducts[0]?.count || 0;
   if (lowStockCount > 0) {
     actionItems.push({
       id: 'low-stock',
@@ -211,7 +114,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     });
   }
 
-  const abandonedCount = abandonedCartsCount[0]?.count || 0;
   if (abandonedCount > 0) {
     actionItems.push({
       id: 'abandoned-carts',
@@ -223,6 +125,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Get greeting based on time
+  const now = new Date();
   const hour = now.getHours();
   let greeting = 'Good morning';
   if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
@@ -243,9 +146,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     planType: store.planType || 'free',
     usage,
     stats: {
-      products: productCount[0]?.count || 0,
-      orders: orderCount[0]?.count || 0,
-      revenue: revenueResult[0]?.total || 0,
+      products: productCount,
+      orders: orderCount,
+      revenue: revenueTotal,
       todaySales,
       salesTrend,
       pendingOrders: pendingCount,
@@ -321,6 +224,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* First Sale Checklist (Only if 0 orders) */}
+      {stats.orders === 0 && (
+         <FirstSaleChecklist productCount={stats.products} storeUrl={storeUrl} />
+      )}
+
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
@@ -353,6 +261,41 @@ export default function DashboardPage() {
           color="blue"
           link="/app/products"
         />
+        {/* AI Usage Card */}
+        {usage.aiPlan && (
+          <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col justify-between">
+              <div>
+                  <div className="flex items-center justify-between mb-4">
+                      <div>
+                          <p className="text-gray-500 text-sm font-medium">AI Messages</p>
+                          <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                              {usage.aiMessages?.current}
+                              <span className="text-sm font-normal text-gray-400"> / {usage.aiMessages?.limit}</span>
+                          </h3>
+                      </div>
+                      <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                          <Bot className="w-5 h-5 text-orange-600" />
+                      </div>
+                  </div>
+                  <div className="space-y-2">
+                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                              className={`h-full rounded-full transition-all ${
+                                  (usage.aiMessages?.percentage || 0) >= 90 ? 'bg-red-500' : 'bg-orange-500'
+                              }`}
+                              style={{ width: `${Math.min(usage.aiMessages?.percentage || 0, 100)}%` }}
+                          />
+                       </div>
+                       {(usage.aiMessages?.percentage || 0) >= 80 && (
+                           <p className="text-xs text-orange-600 font-medium">
+                               {usage.aiMessages?.percentage >= 100 ? 'Limit Reached' : 'Running Low'}
+                               <Link to="/app/billing" className="ml-1 underline">Upgrade</Link>
+                           </p>
+                       )}
+                  </div>
+              </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content Grid */}

@@ -2,4 +2,4 @@
 trigger: always_on
 ---
 
-commit after every edit
+commit after every changes

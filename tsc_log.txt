@@ -1,0 +1,125 @@
+
+> typecheck
+> tsc --noEmit
+
+app/components/templates/LandingPageTemplate.tsx(332,7): error TS2345: Argument of type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; variant_id: number | null; bump_ids: number[] | undefined; }' is not assignable to parameter of type 'SubmitTarget'.
+  Type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; variant_id: number | null; bump_ids: number[] | undefined; }' is not assignable to type 'null'.
+app/components/templates/LandingPageTemplate.tsx(355,25): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; orderNumber?: string | undefined; error?: string | undefined; details?: Record<string, string[]> | undefined; }>'.
+app/components/templates/LandingPageTemplate.tsx(356,45): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; orderNumber?: string | undefined; error?: string | undefined; details?: Record<string, string[]> | undefined; }>'.
+app/components/templates/LuxeTemplate.tsx(126,7): error TS2345: Argument of type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to parameter of type 'SubmitTarget'.
+  Type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to type 'null'.
+app/components/templates/LuxeTemplate.tsx(143,25): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/LuxeTemplate.tsx(144,45): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/MobileFirstTemplate.tsx(130,7): error TS2345: Argument of type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to parameter of type 'SubmitTarget'.
+  Type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to type 'null'.
+app/components/templates/MobileFirstTemplate.tsx(147,25): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/MobileFirstTemplate.tsx(148,45): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/OrganicTemplate.tsx(126,7): error TS2345: Argument of type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to parameter of type 'SubmitTarget'.
+  Type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to type 'null'.
+app/components/templates/OrganicTemplate.tsx(143,25): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/OrganicTemplate.tsx(144,45): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/PremiumBDTemplate.tsx(142,7): error TS2345: Argument of type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to parameter of type 'SubmitTarget'.
+  Type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to type 'null'.
+app/components/templates/PremiumBDTemplate.tsx(159,25): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/PremiumBDTemplate.tsx(160,45): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/ShowcaseTemplate.tsx(127,7): error TS2345: Argument of type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to parameter of type 'SubmitTarget'.
+  Type '{ store_id: number; product_id: number; customer_name: string; phone: string; address: string; division: "dhaka" | "chittagong" | "rajshahi" | "khulna" | "barisal" | "sylhet" | "rangpur" | "mymensingh"; quantity: number; bump_ids: number[] | undefined; }' is not assignable to type 'null'.
+app/components/templates/ShowcaseTemplate.tsx(144,25): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/components/templates/ShowcaseTemplate.tsx(145,45): error TS2339: Property 'upsellUrl' does not exist on type 'JsonifyObject<{ success: boolean; orderId?: number | undefined; error?: string | undefined; }>'.
+app/routes/admin.ai-requests.tsx(13,15): error TS2300: Duplicate identifier 'LoaderFunctionArgs'.
+app/routes/admin.ai-requests.tsx(13,35): error TS2300: Duplicate identifier 'ActionFunctionArgs'.
+app/routes/admin.ai-requests.tsx(13,55): error TS2300: Duplicate identifier 'MetaFunction'.
+app/routes/admin.ai-requests.tsx(14,15): error TS2300: Duplicate identifier 'LoaderFunctionArgs'.
+app/routes/admin.ai-requests.tsx(14,35): error TS2300: Duplicate identifier 'ActionFunctionArgs'.
+app/routes/admin.ai-requests.tsx(14,55): error TS2300: Duplicate identifier 'MetaFunction'.
+app/routes/admin.ai-requests.tsx(39,3): error TS2305: Module '"~/utils/plans.server"' has no exported member 'activePlans'.
+app/routes/admin.audit-logs.tsx(119,34): error TS2339: Property 'targetType' does not exist on type 'SQLiteTableWithColumns<{ name: "admin_audit_logs"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "admin_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 8 more ...; createdAt: SQLiteColumn<...'.
+app/routes/admin.audit-logs.tsx(120,32): error TS2339: Property 'targetId' does not exist on type 'SQLiteTableWithColumns<{ name: "admin_audit_logs"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "admin_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 8 more ...; createdAt: SQLiteColumn<...'.
+app/routes/admin.audit-logs.tsx(121,34): error TS2339: Property 'targetName' does not exist on type 'SQLiteTableWithColumns<{ name: "admin_audit_logs"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "admin_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 8 more ...; createdAt: SQLiteColumn<...'.
+app/routes/admin.audit-logs.tsx(122,31): error TS2339: Property 'details' does not exist on type 'SQLiteTableWithColumns<{ name: "admin_audit_logs"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "admin_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 8 more ...; createdAt: SQLiteColumn<...'.
+app/routes/admin.audit-logs.tsx(129,50): error TS2339: Property 'adminId' does not exist on type 'SQLiteTableWithColumns<{ name: "admin_audit_logs"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "admin_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 8 more ...; createdAt: SQLiteColumn<...'.
+app/routes/admin.billing.tsx(21,10): error TS2305: Module '"~/services/email.server"' has no exported member 'createEmailService'.
+app/routes/api.ai.action.ts(51,78): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: SQLiteColumn<{ name: "id"; tableName: "users"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>, right: number | SQLWrapper): SQL<...>', gave the following error.
+    Argument of type 'number | undefined' is not assignable to parameter of type 'number | SQLWrapper'.
+      Type 'undefined' is not assignable to type 'number | SQLWrapper'.
+  Overload 2 of 3, '(left: Aliased<number | undefined>, right: number | SQLWrapper | undefined): SQL<unknown>', gave the following error.
+    Argument of type 'SQLiteColumn<{ name: "id"; tableName: "users"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<number | undefined>'.
+      Type 'SQLiteColumn<{ name: "id"; tableName: "users"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<number | undefined>': sql, fieldAlias
+  Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'SQLiteColumn<{ name: "id"; tableName: "users"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'never'.
+app/routes/api.ai.action.ts(58,29): error TS2554: Expected 5 arguments, but got 3.
+app/routes/api.ai.action.ts(85,16): error TS2304: Cannot find name 'ActionPayload'.
+app/routes/api.check-low-stock.ts(16,10): error TS2305: Module '"~/services/email.server"' has no exported member 'createEmailService'.
+app/routes/api.create-order.ts(20,10): error TS2305: Module '"~/services/email.server"' has no exported member 'createEmailService'.
+app/routes/api.subscribe.ts(22,7): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+app/routes/app.ab-tests.$id.tsx(18,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.ab-tests.$id.tsx(110,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.ab-tests.new.tsx(18,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.ab-tests.new.tsx(45,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.ab-tests.tsx(18,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.ab-tests.tsx(101,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.agent.chat.tsx(15,12): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>, right: number | SQLWrapper): SQL<...>', gave the following error.
+    Argument of type 'number | null' is not assignable to parameter of type 'number | SQLWrapper'.
+      Type 'null' is not assignable to type 'number | SQLWrapper'.
+  Overload 2 of 3, '(left: Aliased<number | null>, right: number | SQLWrapper | null): SQL<unknown>', gave the following error.
+    Argument of type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<number | null>'.
+      Type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<number | null>': sql, fieldAlias
+  Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'never'.
+app/routes/app.agent.chat.tsx(59,11): error TS18046: 'data' is of type 'unknown'.
+app/routes/app.agent.chat.tsx(60,69): error TS18046: 'data' is of type 'unknown'.
+app/routes/app.agent.chat.tsx(61,18): error TS18046: 'data' is of type 'unknown'.
+app/routes/app.agent.chat.tsx(62,80): error TS18046: 'data' is of type 'unknown'.
+app/routes/app.agent.config.tsx(14,12): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>, right: number | SQLWrapper): SQL<...>', gave the following error.
+    Argument of type 'number | null' is not assignable to parameter of type 'number | SQLWrapper'.
+      Type 'null' is not assignable to type 'number | SQLWrapper'.
+  Overload 2 of 3, '(left: Aliased<number | null>, right: number | SQLWrapper | null): SQL<unknown>', gave the following error.
+    Argument of type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<number | null>'.
+      Type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<number | null>': sql, fieldAlias
+  Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'never'.
+app/routes/app.agent.config.tsx(38,14): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>, right: number | SQLWrapper): SQL<...>', gave the following error.
+    Argument of type 'number | null' is not assignable to parameter of type 'number | SQLWrapper'.
+      Type 'null' is not assignable to type 'number | SQLWrapper'.
+  Overload 2 of 3, '(left: Aliased<number | null>, right: number | SQLWrapper | null): SQL<unknown>', gave the following error.
+    Argument of type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<number | null>'.
+      Type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<number | null>': sql, fieldAlias
+  Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'SQLiteColumn<{ name: "store_id"; tableName: "agents"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'never'.
+app/routes/app.agent.config.tsx(47,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { name: string | SQL<unknown> | Placeholder<string, any>; storeId: number | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; ... 5 more ...; agentSettings?: string | ... 3 more ... | undefined; }): SQLiteInsertBase<...>', gave the following error.
+    Type 'number | null' is not assignable to type 'number | SQL<unknown> | Placeholder<string, any>'.
+      Type 'null' is not assignable to type 'number | SQL<unknown> | Placeholder<string, any>'.
+  Overload 2 of 2, '(values: { name: string | SQL<unknown> | Placeholder<string, any>; storeId: number | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; ... 5 more ...; agentSettings?: string | ... 3 more ... | undefined; }[]): SQLiteInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'storeId' does not exist in type '{ name: string | SQL<unknown> | Placeholder<string, any>; storeId: number | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; ... 5 more ...; agentSettings?: string | ... 3 more ... | undefined; }[]'.
+app/routes/app.agent.config.tsx(147,26): error TS2339: Property 'success' does not exist on type 'JsonifyObject<{ success: boolean; }> | JsonifyObject<{ error: string; }>'.
+  Property 'success' does not exist on type 'JsonifyObject<{ error: string; }>'.
+app/routes/app.agent.knowledge.tsx(43,45): error TS2345: Argument of type 'Env' is not assignable to parameter of type 'Env'.
+  Type 'Env' is missing the following properties from type 'Env': R2_PUBLIC_URL, SAAS_DOMAIN, RESEND_API_KEY, VAPID_PUBLIC_KEY, and 3 more.
+app/routes/app.automations.new.tsx(57,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.automations.new.tsx(65,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.automations.tsx(24,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.automations.tsx(58,45): error TS2345: Argument of type 'AppLoadContext' is not assignable to parameter of type 'Env'.
+  Type 'AppLoadContext' is missing the following properties from type 'Env': DB, R2, R2_PUBLIC_URL, SAAS_DOMAIN, and 7 more.
+app/routes/app.campaigns.$id.tsx(20,10): error TS2305: Module '"~/services/email.server"' has no exported member 'createEmailService'.
+app/routes/app.campaigns.new.tsx(20,10): error TS2305: Module '"~/services/email.server"' has no exported member 'createEmailService'.
+app/routes/app.orders.$id.tsx(474,15): error TS2339: Property 'createEmailService' does not exist on type 'typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/app/services/email.server")'.
+app/routes/app.settings.team.tsx(21,10): error TS2305: Module '"~/services/email.server"' has no exported member 'createEmailService'.
+app/routes/auth.google.callback.ts(83,31): error TS2367: This comparison appears to be unintentional because the types '"admin" | "merchant" | "staff" | null' and '"super_admin"' have no overlap.
+app/services/automation.server.ts(14,10): error TS2305: Module '"./email.server"' has no exported member 'createEmailService'.
+app/services/security.server.ts(5,10): error TS2305: Module '"./email.server"' has no exported member 'createEmailService'.
+functions/[[path]].ts(15,24): error TS2307: Cannot find module '../build/server' or its corresponding type declarations.

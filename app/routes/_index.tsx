@@ -18,6 +18,7 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
 import { useLoaderData, useRouteError, isRouteErrorResponse, useSearchParams } from '@remix-run/react';
+import { useState, useEffect } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, productVariants, orderBumps, type Product, type Store } from '@db/schema';
@@ -28,6 +29,7 @@ import { StoreLayout } from '~/components/templates/StoreLayout';
 import { MarketingLanding } from '~/components/MarketingLanding';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
+import { useTrackVisit } from '~/hooks/use-track-visit';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -602,6 +604,9 @@ export default function Index() {
   // Check for edit mode via URL param (for merchant editing)
   const isEditMode = searchParams.get('edit') === 'true';
 
+  // Track visitor (only for store pages)
+  useTrackVisit(data.mode !== 'marketing' ? data.storeId : undefined);
+
   // ========== MARKETING MODE ==========
   if (data.mode === 'marketing') {
     return <MarketingLanding />;
@@ -821,6 +826,15 @@ export default function Index() {
  */
 export function ErrorBoundary() {
   const error = useRouteError();
+  const [clientInfo, setClientInfo] = useState({ url: '', hostname: '' });
+  
+  // Get client-side URL info after mount to prevent hydration mismatch
+  useEffect(() => {
+    setClientInfo({
+      url: window.location.href,
+      hostname: window.location.hostname,
+    });
+  }, []);
   
   // For store not found (404), let it bubble to root for full-page treatment
   if (isRouteErrorResponse(error) && error.status === 404) {
@@ -831,9 +845,8 @@ export function ErrorBoundary() {
     window.location.reload();
   };
   
-  // Get current URL for debugging
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : 'SSR';
-  const currentHostname = typeof window !== 'undefined' ? window.location.hostname : 'SSR';
+  const currentUrl = clientInfo.url || 'Loading...';
+  const currentHostname = clientInfo.hostname || 'Loading...';
   const timestamp = new Date().toISOString();
   
   // Extract error details for display

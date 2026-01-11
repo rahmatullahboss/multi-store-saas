@@ -143,7 +143,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         previewText,
         unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(subscriber.email)}&store=${storeId}`,
       });
-      if (result.success) sentCount++;
+      if (!result.error) sentCount++;
     }
 
     // Mark as sent
@@ -194,7 +194,7 @@ export default function NewCampaignPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('createCampaign')}</h1>
-          <p className="text-gray-500">{lang === 'bn' ? 'আপনার সাবস্ক্রাইবারদের ইমেইল পাঠান' : 'Send an email to your subscribers'}</p>
+          <p className="text-gray-500">{t('sendEmailToSubscribers')}</p>
         </div>
       </div>
 
@@ -203,10 +203,10 @@ export default function NewCampaignPage() {
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
           <div>
-            <p className="text-yellow-800 font-medium">No subscribers yet</p>
+            <p className="text-yellow-800 font-medium">{t('noSubscribersYet')}</p>
             <p className="text-yellow-700 text-sm">
-              You need to add subscribers before sending a campaign.{' '}
-              <Link to="/app/subscribers" className="underline">Add subscribers</Link>
+              {t('addSubscribersTip')}{' '}
+              <Link to="/app/subscribers" className="underline">{t('addSubscribers')}</Link>
             </p>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function NewCampaignPage() {
         {/* Subject */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Subject Line <span className="text-red-500">*</span>
+            {t('subjectLine')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -261,23 +261,23 @@ export default function NewCampaignPage() {
         {/* Preview Text */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Preview Text
+            {t('previewText')}
           </label>
           <input
             type="text"
             name="previewText"
-            placeholder="Short preview that appears in email clients"
+            placeholder={t('previewTextHint')}
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
           <p className="text-gray-500 text-xs mt-1">
-            This text appears in the inbox preview
+            {t('previewTextHint')}
           </p>
         </div>
 
         {/* Content */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Email Content (HTML) <span className="text-red-500">*</span>
+            {t('emailContentHtml')} <span className="text-red-500">*</span>
           </label>
           <textarea
             name="content"
@@ -296,7 +296,7 @@ export default function NewCampaignPage() {
         {/* Preview */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Preview
+            {t('emailPreview')}
           </label>
           <div 
             className="border border-gray-200 rounded-lg p-6 bg-gray-50"
@@ -307,7 +307,7 @@ export default function NewCampaignPage() {
         {/* Recipient Count */}
         <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-lg">
           <Users className="w-4 h-4" />
-          This campaign will be sent to <strong>{subscriberCount}</strong> subscriber{subscriberCount !== 1 ? 's' : ''}
+          {t('campaignTargetCount', { count: subscriberCount })}
         </div>
 
         {/* Actions */}
@@ -330,7 +330,7 @@ export default function NewCampaignPage() {
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
-            {isSubmitting ? (lang === 'bn' ? 'পাঠানো হচ্ছে...' : 'Sending...') : t('sendNow')}
+            {isSubmitting ? t('sending') : t('sendNow')}
           </button>
         </div>
       </Form>

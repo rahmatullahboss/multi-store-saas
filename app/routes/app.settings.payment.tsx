@@ -1,12 +1,12 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useActionData } from '@remix-run/react';
+import { useLoaderData, useFetcher, useActionData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { parseManualPaymentConfig, ManualPaymentConfig } from '@db/types';
 import { useState } from 'react';
-import { Save, AlertCircle, CheckCircle, CreditCard, Wallet } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle, CreditCard, Wallet, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -45,26 +45,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .set({ manualPaymentConfig: JSON.stringify(config) })
     .where(eq(stores.id, storeId));
 
-  return json({ success: true, message: 'Payment settings updated successfully' });
+  return json({ success: true, message: 'saved' });
 }
 
 export default function PaymentSettings() {
   const { manualPaymentConfig } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success: boolean; message: string }>();
   const isSaving = fetcher.state === 'submitting';
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('manualPaymentSettings') || 'Manual Payment Settings'}</h1>
-        <p className="text-gray-500 mt-1">Configure your personal or merchant numbers to accept manual payments manually.</p>
+      <div className="flex items-center gap-3">
+        <Link 
+          to="/app/settings" 
+          className="p-2 hover:bg-gray-100 rounded-lg transition"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{t('manualPaymentSettings')}</h1>
+          <p className="text-gray-500 mt-1">{t('paymentSettingsDesc')}</p>
+        </div>
       </div>
 
       {fetcher.data?.success && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {fetcher.data.message}
+          {t('saved')}
         </div>
       )}
 
@@ -77,13 +85,13 @@ export default function PaymentSettings() {
               <Wallet className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900">bKash Payment</h3>
-              <p className="text-sm text-gray-500">Configure bKash numbers</p>
+              <h3 className="font-bold text-gray-900">{t('bkashPayment')}</h3>
+              <p className="text-sm text-gray-500">{t('bkashDesc')}</p>
             </div>
           </div>
           <div className="p-6 grid gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Personal Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('personalNumber')}</label>
               <input
                 type="text"
                 name="bkashPersonal"
@@ -93,7 +101,7 @@ export default function PaymentSettings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Merchant Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('merchantNumber')}</label>
               <input
                 type="text"
                 name="bkashMerchant"
@@ -112,13 +120,13 @@ export default function PaymentSettings() {
               <Wallet className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900">Nagad Payment</h3>
-              <p className="text-sm text-gray-500">Configure Nagad numbers</p>
+              <h3 className="font-bold text-gray-900">{t('nagadPayment')}</h3>
+              <p className="text-sm text-gray-500">{t('nagadDesc')}</p>
             </div>
           </div>
           <div className="p-6 grid gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Personal Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('personalNumber')}</label>
               <input
                 type="text"
                 name="nagadPersonal"
@@ -128,7 +136,7 @@ export default function PaymentSettings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Merchant Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('merchantNumber')}</label>
               <input
                 type="text"
                 name="nagadMerchant"
@@ -147,13 +155,13 @@ export default function PaymentSettings() {
               <Wallet className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900">Rocket Payment</h3>
-              <p className="text-sm text-gray-500">Configure Rocket numbers</p>
+              <h3 className="font-bold text-gray-900">{t('rocketPayment')}</h3>
+              <p className="text-sm text-gray-500">{t('rocketDesc')}</p>
             </div>
           </div>
           <div className="p-6 grid gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Personal Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('personalNumber')}</label>
               <input
                 type="text"
                 name="rocketPersonal"
@@ -163,7 +171,7 @@ export default function PaymentSettings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Merchant Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('merchantNumber')}</label>
               <input
                 type="text"
                 name="rocketMerchant"
@@ -178,8 +186,7 @@ export default function PaymentSettings() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <p>
-            When customers select one of these payment methods, they will see your number and instructions. 
-            They will be asked to input the Transaction ID, which you can verify in your dashboard before processing the order.
+            {t('manualPaymentInstructions')}
           </p>
         </div>
 
@@ -189,8 +196,12 @@ export default function PaymentSettings() {
             disabled={isSaving}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
-            <Save className="w-4 h-4" />
-            {isSaving ? 'Saving...' : 'Save Settings'}
+            {isSaving ? (
+              <Save className="w-4 h-4 animate-pulse" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {isSaving ? t('saving') : t('saveSettings')}
           </button>
         </div>
       </fetcher.Form>

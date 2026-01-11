@@ -13,6 +13,7 @@
 import { motion, useMotionValue, useSpring, useInView } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { Globe, Zap, Shield, Clock, Server, Activity } from 'lucide-react';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 // ============================================================================
 // DESIGN TOKENS - Matching Hero theme
@@ -255,9 +256,10 @@ interface DataFlowLineProps {
   from: { x: number; y: number };
   to: { x: number; y: number };
   delay: number;
+  isMobile?: boolean;
 }
 
-const DataFlowLine = ({ from, to, delay }: DataFlowLineProps) => {
+const DataFlowLine = ({ from, to, delay, isMobile = false }: DataFlowLineProps) => {
   return (
     <svg
       className="absolute inset-0 w-full h-full pointer-events-none"
@@ -281,7 +283,7 @@ const DataFlowLine = ({ from, to, delay }: DataFlowLineProps) => {
       <motion.circle
         r="2"
         fill={COLORS.cyan}
-        filter="url(#glow)"
+        filter={isMobile ? undefined : "url(#glow)"}
         initial={{ opacity: 0 }}
         animate={{
           cx: [`${from.x}%`, `${to.x}%`],
@@ -296,7 +298,7 @@ const DataFlowLine = ({ from, to, delay }: DataFlowLineProps) => {
           ease: 'easeInOut',
         }}
         style={{
-          filter: `drop-shadow(0 0 4px ${COLORS.cyan})`,
+          filter: isMobile ? undefined : `drop-shadow(0 0 4px ${COLORS.cyan})`,
         }}
       />
     </svg>
@@ -484,6 +486,7 @@ const LiveLatencyCounter = () => {
 export function InfrastructureSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const isMobile = useIsMobile();
   
   // Find Dhaka location for data flow lines
   const dhakaLocation = SERVER_LOCATIONS.find(s => s.id === 'dhaka')!;
@@ -604,6 +607,7 @@ export function InfrastructureSection() {
                 from={{ x: dhakaLocation.x, y: dhakaLocation.y }}
                 to={{ x: server.x, y: server.y }}
                 delay={0.5 + index * 0.3}
+                isMobile={isMobile}
               />
             ))}
             

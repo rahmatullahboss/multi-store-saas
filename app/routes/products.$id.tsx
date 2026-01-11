@@ -11,7 +11,7 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, Link, useFetcher } from '@remix-run/react';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, ne, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, reviews, stores, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig, type SocialLinks } from '@db/types';
@@ -25,6 +25,7 @@ import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazP
 import { BDShopProductDetail } from '~/components/store-layouts/BDShopProductDetail';
 import { GhorerBazarProductDetail } from '~/components/store-layouts/GhorerBazarProductDetail';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
@@ -133,6 +134,46 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   let avgRating = 0;
   let reviewCount = 0;
   
+  // Fetch related products (same category or just random from store)
+  let relatedProducts: any[] = [];
+  
+  if (product.category) {
+    relatedProducts = await db
+      .select()
+      .from(products)
+      .where(
+        and(
+          eq(products.storeId, storeId),
+          ne(products.id, productId),
+          like(products.category, product.category) // fuzzy match or exact? Using eq might be safer but allow like for now
+        )
+      )
+      .limit(8);
+  }
+  
+  // Fallback if no category matches or not enough products
+  if (relatedProducts.length < 4) {
+    const moreProducts = await db
+      .select()
+      .from(products)
+      .where(
+        and(
+          eq(products.storeId, storeId),
+          ne(products.id, productId)
+        )
+      )
+      .limit(8 - relatedProducts.length)
+      .orderBy(desc(products.createdAt));
+      
+    // Filter out duplicates if any (though logic prevents)
+    const existingIds = new Set(relatedProducts.map(p => p.id));
+    for (const p of moreProducts) {
+      if (!existingIds.has(p.id)) {
+        relatedProducts.push(p);
+      }
+    }
+  }
+
   if (showReviews) {
     // Fetch only APPROVED reviews for this product
     productReviews = await db
@@ -174,6 +215,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     theme,
     socialLinks,
     businessInfo,
+    themeConfig, // Return full config for section rendering
+    relatedProducts,
   });
 }
 
@@ -395,6 +438,7 @@ export default function ProductDetail() {
     logo,
     currency, 
     showReviews, 
+    relatedProducts,
     reviews: productReviews, 
     avgRating, 
     reviewCount,
@@ -627,30 +671,89 @@ export default function ProductDetail() {
             )}
           </div>
         </div>
-        
-        {/* ============================================================== */}
-        {/* REVIEWS SECTION - Only shown for paid plans */}
-        {/* ============================================================== */}
-        {showReviews && (
-          <div className={`mt-16 pt-8 border-t ${borderColor}`}>
-            <h2 className={`text-2xl font-bold ${textPrimary} mb-8`}>Customer Reviews</h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Reviews List (2/3 width) */}
-              <div className="lg:col-span-2">
-                <ReviewList reviews={productReviews} isDark={isDarkTheme} />
-              </div>
-              
-              {/* Review Form (1/3 width) */}
-              <div>
-                <ReviewForm productId={product.id} storeId={storeId} isDark={isDarkTheme} />
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
+
+  // ============================================================================
+  // DYNAMIC SECTION RENDERING (Shopify 2.0 Style)
+  // ============================================================================
+  const themeConfig = useLoaderData<typeof loader>().themeConfig as ThemeConfig | null;
+  const productSections = themeConfig?.productSections;
+
+  if (productSections && productSections.length > 0) {
+    // Shared props for all sections
+    const sectionProps = {
+      theme: isDaraz ? DARAZ_THEME : (theme || {}),
+      product,
+      relatedProducts, // Pass related products to sections
+      storeId,
+      currency,
+      storeName,
+      reviews: productReviews,
+      reviewCount,
+      avgRating,
+      showReviews,
+      logo: logo || undefined,
+      socialLinks,
+      businessInfo,
+      store: {
+        name: storeName,
+        currency: currency,
+        email: businessInfo?.email,
+        phone: businessInfo?.phone,
+        address: businessInfo?.address
+      }
+    };
+
+    const content = (
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme?.background || '#ffffff' }}>
+        <SectionRenderer 
+          sections={productSections}
+          {...sectionProps}
+        />
+      </div>
+    );
+
+    if (isDaraz) {
+      return (
+        <DarazPageWrapper 
+          storeName={storeName}
+          storeId={storeId}
+          logo={logo}
+          currency={currency}
+          socialLinks={socialLinks}
+          businessInfo={businessInfo}
+        >
+          {content}
+        </DarazPageWrapper>
+      );
+    }
+    
+    return (
+      <StorePageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        templateId={storeTemplateId}
+        theme={theme}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+      >
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme?.background || '#ffffff' }}>
+          <SectionRenderer 
+            sections={productSections}
+            {...sectionProps}
+          />
+        </div>
+      </StorePageWrapper>
+    );
+  }
+
+  // ============================================================================
+  // LEGACY FALLBACK RENDERING
+  // ============================================================================
 
   // Render with appropriate wrapper based on template
   if (isBDShop) {
@@ -673,7 +776,7 @@ export default function ProductDetail() {
     return (
       <GhorerBazarProductDetail
         product={product as any}
-        relatedProducts={[]}
+        relatedProducts={relatedProducts}
         storeName={storeName}
         storeId={storeId}
         logo={logo}
