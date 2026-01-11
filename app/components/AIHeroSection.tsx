@@ -15,6 +15,7 @@ import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motio
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import { Link } from '@remix-run/react';
 import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe, Bot, Zap, MessageCircle, Box } from 'lucide-react';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 // ============================================================================
 // TYPES
@@ -76,7 +77,7 @@ const GrainOverlay = ({ isLight = false }: { isLight?: boolean }) => (
 // ============================================================================
 // NEURAL NETWORK BACKGROUND (Updated for AI Theme)
 // ============================================================================
-const NeuralBackground = ({ colors }: { colors: any }) => (
+const NeuralBackground = ({ colors, isMobile = false }: { colors: any, isMobile?: boolean }) => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     {/* Grid Pattern */}
     <div 
@@ -87,22 +88,22 @@ const NeuralBackground = ({ colors }: { colors: any }) => (
       }}
     />
     
-    {/* Green Orb */}
+    {/* Green Orb - Static on mobile */}
     <motion.div
       className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-full blur-[100px]"
       style={{ background: colors.primary }}
-      animate={{
+      animate={isMobile ? { opacity: 0.1, scale: 1 } : {
         opacity: [0.1, 0.15, 0.1],
         scale: [1, 1.1, 1],
       }}
       transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
     />
     
-    {/* Purple Orb (AI) */}
+    {/* Purple Orb (AI) - Static on mobile */}
     <motion.div
       className="absolute top-[20%] right-[0%] w-[500px] h-[500px] rounded-full blur-[100px]"
       style={{ background: colors.aiPurple }}
-      animate={{
+      animate={isMobile ? { opacity: 0.05, scale: 1, x: 0 } : {
         opacity: [0.05, 0.1, 0.05],
         scale: [1, 1.2, 1],
         x: [0, -20, 0],
@@ -115,7 +116,7 @@ const NeuralBackground = ({ colors }: { colors: any }) => (
 // ============================================================================
 // AI VISUAL COMPONENT
 // ============================================================================
-const AIHeroVisual = ({ theme }: { theme: 'dark' | 'light' }) => {
+const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light', isMobile?: boolean }) => {
   const colors = getColors(theme);
   const [activeChat, setActiveChat] = useState(0);
   
@@ -267,7 +268,7 @@ const AIHeroVisual = ({ theme }: { theme: 'dark' | 'light' }) => {
             background: theme === 'dark' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.8)',
             borderColor: colors.aiPurple
           }}
-          animate={{ y: [0, -10, 0] }}
+          animate={isMobile ? {} : { y: [0, -10, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         >
           <Sparkles className="w-3 h-3 text-purple-500" />
@@ -280,7 +281,7 @@ const AIHeroVisual = ({ theme }: { theme: 'dark' | 'light' }) => {
             background: theme === 'dark' ? 'rgba(0, 106, 78, 0.1)' : 'rgba(255,255,255,0.8)',
             borderColor: colors.primary
           }}
-          animate={{ y: [0, 10, 0] }}
+          animate={isMobile ? {} : { y: [0, 10, 0] }}
           transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         >
           <Zap className="w-3 h-3" style={{ color: colors.primary }} />
@@ -298,6 +299,7 @@ const AIHeroVisual = ({ theme }: { theme: 'dark' | 'light' }) => {
 export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
   const colors = getColors(theme);
   const isLight = theme === 'light';
+  const isMobile = useIsMobile();
 
   return (
     <section 
@@ -305,7 +307,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
       style={{ backgroundColor: colors.background }}
     >
       <GrainOverlay isLight={isLight} />
-      <NeuralBackground colors={colors} />
+      <NeuralBackground colors={colors} isMobile={isMobile} />
       
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 md:py-28">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -393,7 +395,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
 
           {/* RIGHT: AI VISUAL */}
           <div className="relative z-10 lg:translate-x-10">
-             <AIHeroVisual theme={theme} />
+             <AIHeroVisual theme={theme} isMobile={isMobile} />
              
              {/* Decorative Background Blob behind Visual */}
              <div 

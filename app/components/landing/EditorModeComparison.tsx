@@ -2,17 +2,21 @@ import { motion } from 'framer-motion';
 import { Zap, Palette, ArrowRight, CheckCircle2, LayoutTemplate, MousePointer2 } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 export function EditorModeComparison() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   return (
     <section className="relative py-24 overflow-hidden bg-[#0A0F0D]">
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/10 blur-[120px] rounded-full mix-blend-screen opacity-30" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/10 blur-[120px] rounded-full mix-blend-screen opacity-30" />
-      </div>
+      {/* Background Gradients - Reduced complexity on mobile */}
+      {!isMobile && (
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/10 blur-[120px] rounded-full mix-blend-screen opacity-30" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/10 blur-[120px] rounded-full mix-blend-screen opacity-30" />
+        </div>
+      )}
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -44,7 +48,9 @@ export function EditorModeComparison() {
             transition={{ delay: 0.1 }}
             className="relative group"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl blur-xl" />
+            {!isMobile && (
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl blur-xl" />
+            )}
             
             <div className="relative h-full bg-[#111] border border-white/10 rounded-3xl p-8 flex flex-col group-hover:border-blue-500/50 transition-colors duration-300">
                <div className="flex items-center gap-4 mb-6">
@@ -110,7 +116,9 @@ export function EditorModeComparison() {
             transition={{ delay: 0.2 }}
             className="relative group"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl blur-xl" />
+            {!isMobile && (
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl blur-xl" />
+            )}
             
             <div className="relative h-full bg-[#111] border border-white/10 rounded-3xl p-8 flex flex-col group-hover:border-purple-500/50 transition-colors duration-300">
                <div className="flex items-center gap-4 mb-6">

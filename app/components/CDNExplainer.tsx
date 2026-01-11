@@ -14,6 +14,7 @@
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { HelpCircle, RefreshCw, Globe, Server, User, Zap, Clock, MapPin } from 'lucide-react';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -328,6 +329,7 @@ export function CDNExplainer() {
   const [slowComplete, setSlowComplete] = useState(false);
   const [fastComplete, setFastComplete] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const isMobile = useIsMobile();
   
   const SLOW_TIME = 0.8; // Competitors from Singapore
   const FAST_TIME = 0.05; // Our platform from Dhaka edge
@@ -346,10 +348,21 @@ export function CDNExplainer() {
   // Auto-start when in view
   useEffect(() => {
     if (isInView && !hasStarted) {
-      const timer = setTimeout(() => startAnimation(), 800);
-      return () => clearTimeout(timer);
+      if (isMobile) {
+        // Instant finish on mobile
+        setSlowTime(SLOW_TIME);
+        setFastTime(FAST_TIME);
+        setSlowProgress(100);
+        setFastProgress(100);
+        setSlowComplete(true);
+        setFastComplete(true);
+        setHasStarted(true);
+      } else {
+        const timer = setTimeout(() => startAnimation(), 800);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isInView, hasStarted, startAnimation]);
+  }, [isInView, hasStarted, startAnimation, isMobile]);
   
   // Animation logic
   useEffect(() => {

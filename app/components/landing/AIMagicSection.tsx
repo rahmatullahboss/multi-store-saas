@@ -2,14 +2,21 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Palette, ShoppingBag, Moon, Sun, MessageSquare, Bell, ArrowRight, Smartphone, CreditCard } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 export function AIMagicSection() {
   const { t } = useTranslation();
   const [isNight, setIsNight] = useState(true);
   const [step, setStep] = useState(0); // 0: Idle, 1: Chat, 2: Order, 3: Day/Notification
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const cycle = async () => {
+      if (isMobile) {
+        setStep(2); // Show full chat on mobile without looping
+        return;
+      }
+
       while (true) {
         // Reset to Night
         setIsNight(true);
@@ -31,7 +38,7 @@ export function AIMagicSection() {
       }
     };
     cycle();
-  }, []);
+  }, [isMobile]);
 
   return (
     <section className="relative py-24 overflow-hidden bg-[#0A0F0D]">

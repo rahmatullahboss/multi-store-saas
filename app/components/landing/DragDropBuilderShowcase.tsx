@@ -6,6 +6,7 @@ import {
   Square, FileText, BarChart3, Video, Star, Move
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 export function DragDropBuilderShowcase() {
   const { t } = useTranslation();
@@ -17,6 +18,7 @@ export function DragDropBuilderShowcase() {
 
   // Animation sequence state
   const [animationStep, setAnimationStep] = useState(0);
+  const isMobile = useIsMobile();
 
   const widgets = [
     { id: 'text', icon: Type, label: t('landingDragDrop_widgetText') },
@@ -75,6 +77,9 @@ export function DragDropBuilderShowcase() {
 
   useEffect(() => {
     const sequence = async () => {
+      // Disable animation on mobile
+      if (isMobile) return;
+
       while (true) {
         // Reset
         setActiveDrop(null);
@@ -102,7 +107,7 @@ export function DragDropBuilderShowcase() {
       }
     };
     sequence();
-  }, []);
+  }, [isMobile]);
 
   return (
     <section className="relative py-24 overflow-hidden bg-[#0A0F0D]">

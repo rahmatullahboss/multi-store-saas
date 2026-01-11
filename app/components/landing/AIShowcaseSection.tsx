@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Sparkles, MessageSquare, BrainCircuit, Bot, Zap, Check, Send, Search, Menu, BarChart3, TrendingUp, Users, Package, Shirt, Footprints, AlertCircle, Phone, HelpCircle } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 export function AIShowcaseSection() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const rotationTimer = useRef<NodeJS.Timeout | null>(null);
+  const isMobile = useIsMobile();
 
   const tabs = [
     {
@@ -38,7 +40,8 @@ export function AIShowcaseSection() {
 
   // Auto-rotation logic
   useEffect(() => {
-    if (!isPaused) {
+    // Disable auto-rotation on mobile
+    if (!isPaused && !isMobile) {
       rotationTimer.current = setInterval(() => {
         setActiveTab((prev) => (prev + 1) % tabs.length);
       }, 8000); // 8 seconds per slide to read content
@@ -46,7 +49,7 @@ export function AIShowcaseSection() {
     return () => {
       if (rotationTimer.current) clearInterval(rotationTimer.current);
     };
-  }, [isPaused, tabs.length]);
+  }, [isPaused, isMobile, tabs.length]);
 
   return (
     <section className="relative py-24 overflow-hidden bg-[#0A0F0D]">
@@ -116,8 +119,8 @@ export function AIShowcaseSection() {
                     </div>
                   </div>
                   
-                  {/* Progress Bar */}
-                  {isActive && !isPaused && (
+                  {/* Progress Bar - Only on desktop */}
+                  {isActive && !isPaused && !isMobile && (
                     <motion.div
                       layoutId="progress"
                       initial={{ width: '0%' }}

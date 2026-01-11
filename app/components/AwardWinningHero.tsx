@@ -19,6 +19,7 @@ import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motio
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import { Link } from '@remix-run/react';
 import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe } from 'lucide-react';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 // ============================================================================
 // TYPES
@@ -83,8 +84,10 @@ const GrainOverlay = ({ isLight = false }: { isLight?: boolean }) => (
 // ============================================================================
 // FLOATING BENGALI TYPOGRAPHY ELEMENTS
 // ============================================================================
-const FloatingBengaliText = () => {
+const FloatingBengaliText = ({ isMobile = false }: { isMobile?: boolean }) => {
   const bengaliChars = ['অ', 'আ', 'ই', 'ক', 'খ', 'গ', 'ব', 'ম', 'স', 'হ', 'ড', 'ন'];
+  
+  if (isMobile) return null; // Disable floating text on mobile for performance
   
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -121,7 +124,7 @@ const FloatingBengaliText = () => {
 // ============================================================================
 // GRADIENT MESH BACKGROUND (Dark Theme)
 // ============================================================================
-const GradientMeshBackground = () => (
+const GradientMeshBackground = ({ isMobile = false }: { isMobile?: boolean }) => (
   <div className="absolute inset-0 overflow-hidden">
     {/* Primary green gradient orb */}
     <motion.div
@@ -129,7 +132,7 @@ const GradientMeshBackground = () => (
       style={{
         background: `radial-gradient(circle, ${COLORS.primary}40 0%, transparent 70%)`,
       }}
-      animate={{
+      animate={isMobile ? {} : {
         scale: [1, 1.15, 1],
         x: [0, 60, 0],
         y: [0, 40, 0],
@@ -143,7 +146,7 @@ const GradientMeshBackground = () => (
       style={{
         background: 'radial-gradient(circle, rgba(30, 58, 138, 0.35) 0%, transparent 70%)',
       }}
-      animate={{
+      animate={isMobile ? {} : {
         scale: [1.1, 1, 1.1],
         x: [0, -40, 0],
         y: [0, -60, 0],
@@ -157,7 +160,7 @@ const GradientMeshBackground = () => (
       style={{
         background: `radial-gradient(circle, ${COLORS.accent}20 0%, transparent 70%)`,
       }}
-      animate={{
+      animate={isMobile ? {} : {
         scale: [1, 1.3, 1],
         opacity: [0.3, 0.5, 0.3],
       }}
@@ -177,7 +180,7 @@ const GradientMeshBackground = () => (
 // ============================================================================
 // LIGHT GRADIENT BACKGROUND (Light Theme)
 // ============================================================================
-const LightGradientBackground = () => (
+const LightGradientBackground = ({ isMobile = false }: { isMobile?: boolean }) => (
   <div className="absolute inset-0 overflow-hidden" style={{ backgroundColor: LIGHT_COLORS.background }}>
     {/* Subtle green gradient at top */}
     <motion.div
@@ -185,7 +188,7 @@ const LightGradientBackground = () => (
       style={{
         background: 'radial-gradient(ellipse at center, rgba(0,106,78,0.06) 0%, transparent 60%)',
       }}
-      animate={{
+      animate={isMobile ? {} : {
         scale: [1, 1.1, 1],
         x: [0, 30, 0],
       }}
@@ -198,7 +201,7 @@ const LightGradientBackground = () => (
       style={{
         background: 'radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 60%)',
       }}
-      animate={{
+      animate={isMobile ? {} : {
         scale: [1.05, 1, 1.05],
         opacity: [0.4, 0.6, 0.4],
       }}
@@ -211,7 +214,7 @@ const LightGradientBackground = () => (
       style={{
         background: 'radial-gradient(circle, rgba(217,119,6,0.04) 0%, transparent 60%)',
       }}
-      animate={{
+      animate={isMobile ? {} : {
         scale: [1, 1.15, 1],
         y: [0, -20, 0],
       }}
@@ -640,6 +643,7 @@ const BuilderMockup = () => {
 export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) {
   const colors = getColors(theme);
   const isLight = theme === 'light';
+  const isMobile = useIsMobile();
 
   return (
     <section 
@@ -648,8 +652,8 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
     >
       {/* Background layers - conditional on theme */}
       <GrainOverlay isLight={isLight} />
-      {isLight ? <LightGradientBackground /> : <GradientMeshBackground />}
-      {!isLight && <FloatingBengaliText />}
+      {isLight ? <LightGradientBackground isMobile={isMobile} /> : <GradientMeshBackground isMobile={isMobile} />}
+      {!isLight && <FloatingBengaliText isMobile={isMobile} />}
       
       {/* Subtle grid pattern */}
       <div 

@@ -15,6 +15,7 @@
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Zap, RefreshCw, TrendingUp, Clock, ShoppingCart, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -265,6 +266,7 @@ export function SpeedComparison() {
   const [fastComplete, setFastComplete] = useState(false);
   const [slowProgress, setSlowProgress] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
+  const isMobile = useIsMobile();
   
   const SLOW_LOAD_TIME = 3.2;
   const FAST_LOAD_TIME = 0.4;
@@ -282,12 +284,22 @@ export function SpeedComparison() {
   // Auto-start when in view
   useEffect(() => {
     if (isInView && !hasStarted) {
-      const timer = setTimeout(() => {
-        startRace();
-      }, 500);
-      return () => clearTimeout(timer);
+      if (isMobile) {
+        // Instant finish on mobile
+        setSlowTime(SLOW_LOAD_TIME);
+        setFastTime(FAST_LOAD_TIME);
+        setSlowProgress(100);
+        setSlowComplete(true);
+        setFastComplete(true);
+        setHasStarted(true);
+      } else {
+        const timer = setTimeout(() => {
+          startRace();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isInView, hasStarted, startRace]);
+  }, [isInView, hasStarted, startRace, isMobile]);
   
   // Race animation logic
   useEffect(() => {
