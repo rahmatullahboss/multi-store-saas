@@ -1,0 +1,1 @@
+ALTER TABLE `stores` ADD `ai_credits` integer DEFAULT 50;

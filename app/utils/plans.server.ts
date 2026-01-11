@@ -559,7 +559,7 @@ export function canUseCustomDomain(planType: PlanType): boolean {
 // UTILITY: Check if store can use AI features
 // ============================================================================
 export function canUseAI(planType: PlanType): boolean {
-  return planType !== 'free';
+  return true; // Everyone can use AI (Credit System)
 }
 
 // ============================================================================

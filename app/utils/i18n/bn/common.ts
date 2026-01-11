@@ -129,6 +129,7 @@ export const common = {
   navShipping: 'শিপিং',
   navDomain: 'ডোমেইন',
   navBilling: 'বিলিং',
+  navCredits: 'AI ক্রেডিট',
   navAllSettings: 'সব সেটিংস',
   navPlanManagement: 'প্ল্যান ম্যানেজমেন্ট',
   navPayouts: 'পেআউট',
@@ -207,6 +208,8 @@ export const common = {
   registrationFailedGeneric: 'নিবন্ধন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
   storeCreationFailed: 'স্টোর তৈরি করতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
   accountCreatedLoginFailed: 'একাউন্ট তৈরি হয়েছে কিন্তু লগইন করতে ব্যর্থ হয়েছে। অনুগ্রহ করে লগইন করার চেষ্টা করুন।',
+  aiCredits: 'AI ক্রেডিট',
+  manageCredits: 'ক্রেডিট কিনুন',
   
   // Business Categories
   categoryFashion: 'ফ্যাশন ও পোশাক',

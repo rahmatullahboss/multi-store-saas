@@ -6,7 +6,7 @@ import { users, stores } from 'db/schema';
 import { agents, conversations, messages } from 'db/schema_agent';
 import { eq, desc, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
+import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
 import { getStoreStats } from '~/services/analytics.server';
 import type { PlanType, AIPlanType } from '~/utils/plans.server';
 
@@ -205,31 +205,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
        }
 
        // Rate Limit Check
-       const planType = (store.planType as PlanType) || 'free';
-       const aiPlan = (store.aiPlan as AIPlanType) || null;
-       
-       const rateCheck = await checkAIRateLimit(
-         env.AI_RATE_LIMIT, 
-         env.DB, 
-         user.storeId, 
-         planType,
-         aiPlan
-       );
-       
-       if (!rateCheck.allowed) {
-        // Customize message based on limit type
-        const period = rateCheck.type === 'daily' ? 'Daily' : 'Monthly';
-        const msg = rateCheck.type === 'daily' 
-            ? `Daily AI trial limit reached (${rateCheck.limit}). Upgrade to an AI Plan for more!`
-            : `Monthly AI plan limit reached (${rateCheck.limit}). Upgrade your plan.`;
+       // Credit Check
+       const creditCheck = await checkCredits(db, user.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
 
-        return json(
-          { 
-            error: msg,
-            code: 'RATE_LIMIT_EXCEEDED'
-          }, 
-          { status: 429 }
-        );
+       if (!creditCheck.allowed) {
+         return json(
+           { 
+             error: `Insufficient credits. This action costs ${CREDIT_COSTS.AI_CHAT_MESSAGE} credits.`,
+             code: 'INSUFFICIENT_CREDITS'
+           }, 
+           { status: 402 }
+         );
        }
 
        // Fetch recent history
@@ -272,7 +258,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
        // Increment usage
        // Only increment KV if we are in Daily/Trial mode
-       await incrementAIUsage(env.AI_RATE_LIMIT, user.storeId, rateCheck.type === 'daily');
+       // Deduct credits
+       await deductCredits(db, user.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
     }
 
     // 4. Save Assistant Response

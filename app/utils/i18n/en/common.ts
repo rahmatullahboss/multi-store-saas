@@ -130,6 +130,7 @@ export const common = {
   navShipping: 'Shipping',
   navDomain: 'Domain',
   navBilling: 'Billing',
+  navCredits: 'AI Credits',
   navAllSettings: 'All Settings',
   navPlanManagement: 'Plan Management',
   navPayouts: 'Payouts',
@@ -275,4 +276,6 @@ export const common = {
   registrationFailedGeneric: 'Registration failed. Please try again.',
   storeCreationFailed: 'Store creation failed. Please try again.',
   accountCreatedLoginFailed: 'Account created but login failed. Please try logging in.',
+  aiCredits: 'AI Credits',
+  manageCredits: 'Manage Credits',
 };

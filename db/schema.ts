@@ -6,7 +6,7 @@
  */
 
 import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 export * from './schema_agent';
 
 // ============================================================================
@@ -97,6 +97,7 @@ export const stores = sqliteTable('stores', {
   aiAgentRequestStatus: text('ai_agent_request_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
   aiAgentRequestedAt: integer('ai_agent_requested_at', { mode: 'timestamp' }),
   aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
+  aiCredits: integer('ai_credits').default(50), // Default 50 credits for new stores
   
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
@@ -1406,6 +1407,26 @@ export const storeThemesRelations = relations(storeThemes, ({ one }) => ({
   marketplaceTheme: one(marketplaceThemes, {
     fields: [storeThemes.marketplaceThemeId],
     references: [marketplaceThemes.id],
+  }),
+}));
+
+// ============================================================================
+// CREDIT USAGE LOGS - Track every credit transaction
+// ============================================================================
+export const creditUsageLogs = sqliteTable('credit_usage_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  amount: integer('amount').notNull(), // Positive for add, Negative for deduct
+  type: text('type').$type<'purchase' | 'usage' | 'bonus' | 'refund' | 'adjustment'>().notNull(),
+  description: text('description'), // E.g. "Generated Landing Page", "Purchased Starter Pack"
+  metadata: text('metadata'), // JSON: { feature: 'ai_chat', relatedId: 'order_123' }
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+});
+
+export const creditUsageLogsRelations = relations(creditUsageLogs, ({ one }) => ({
+  store: one(stores, {
+    fields: [creditUsageLogs.storeId],
+    references: [stores.id],
   }),
 }));
 

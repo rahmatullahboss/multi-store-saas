@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
-import { Send, Sparkles, X, Loader2, Check, AlertCircle, HelpCircle, MessageSquare, Lightbulb, ChevronRight } from 'lucide-react';
+import { useFetcher, Link } from '@remix-run/react';
+import { Send, Sparkles, X, Loader2, Check, AlertCircle, HelpCircle, MessageSquare, Lightbulb, ChevronRight, Coins } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
@@ -22,6 +22,7 @@ interface StoreAIAssistantProps {
   onApplyConfig: (config: any) => void;
   onApplyCommand?: (command: any) => void;
   storeContext?: StoreContext;
+  aiCredits?: number;
 }
 
 // ============================================================================
@@ -96,7 +97,8 @@ export function StoreAIAssistant({
   onClose, 
   onApplyConfig, 
   onApplyCommand,
-  storeContext 
+  storeContext,
+  aiCredits = 0
 }: StoreAIAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     { 
@@ -282,7 +284,13 @@ export function StoreAIAssistant({
             <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5" />
-                <h2 className="font-semibold text-lg">AI ডিজাইনার</h2>
+                <div>
+                  <h2 className="font-semibold text-lg leading-none">AI ডিজাইনার</h2>
+                  <Link to="/app/credits" className="text-xs text-violet-200 hover:text-white flex items-center gap-1 mt-1">
+                    <Coins className="w-3 h-3" />
+                    {aiCredits} ক্রেডিটস
+                  </Link>
+                </div>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-5 h-5" />

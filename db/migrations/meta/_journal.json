@@ -232,6 +232,20 @@
       "when": 1768115557377,
       "tag": "0032_bitter_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1768143104593,
+      "tag": "0033_neat_logan",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1768145308147,
+      "tag": "0034_salty_stryfe",
+      "breakpoints": true
     }
   ]
 }

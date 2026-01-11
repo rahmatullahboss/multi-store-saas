@@ -14,6 +14,7 @@ import { eq, like, or, and, sql } from 'drizzle-orm';
 import { stores, products, orders } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { callAIWithSystemPrompt } from '~/services/ai.server';
+import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
 
 // ============================================================================
 // TYPES
@@ -413,12 +414,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // MERCHANT CO-PILOT
   // ============================================================================
   if (context_type === 'merchant') {
-    // Check plan - Merchant co-pilot is for paid plans only
-    if (store.planType === 'free') {
+    // Check credits
+    const creditCheck = await checkCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
+    if (!creditCheck.allowed) {
       return json({
-        error: 'Upgrade to Starter or Premium to access AI Co-pilot',
-        code: 'PLAN_REQUIRED',
-      }, { status: 403 });
+        error: `Insufficient credits. Need ${CREDIT_COSTS.AI_CHAT_MESSAGE} credits.`,
+        code: 'INSUFFICIENT_CREDITS',
+      }, { status: 402 });
     }
 
     // Step 2: Retrieve Data (RAG) - Get store stats
@@ -436,6 +438,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
       );
 
+      await deductCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Merchant Co-pilot Chat');
       return json({ success: true, response: responseText, context: 'merchant' });
     } catch (error) {
       console.error('[AI Chat] Merchant error:', error);
@@ -453,6 +456,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
         error: 'AI Sales Agent not enabled for this store',
         code: 'ADDON_REQUIRED',
       }, { status: 403 });
+    }
+
+    // Check credits (Store Owner pays)
+    const creditCheck = await checkCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
+    if (!creditCheck.allowed) {
+      // For customers, we fail gracefully or just say "AI Busy"
+      console.log(`[AI Chat] Store ${storeId} out of credits for customer chat`);
+      return json({
+        error: 'AI assistant is currently unavailable.',
+        code: 'STORE_LIMIT_REACHED',
+      }, { status: 503 });
     }
 
     // Step 2: Retrieve Data (RAG) - Find relevant products (SECURITY: Strict storeId)
@@ -474,6 +488,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
       );
 
+      await deductCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Customer Sales Agent Chat');
       return json({ success: true, response: responseText, context: 'customer' });
     } catch (error) {
       console.error('[AI Chat] Customer error:', error);

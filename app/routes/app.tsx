@@ -268,10 +268,10 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarMarketing',
     items: [
-      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail, isPaidOnly: true },
+      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
       { to: '/app/agent', labelKey: 'navAgent', icon: OzzylIcon as any },
-      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail, isPaidOnly: true },
-      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, isPaidOnly: true },
+      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
+      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
     ],
   },
   {
@@ -290,6 +290,7 @@ const navSections: NavSection[] = [
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/billing', labelKey: 'navBilling', icon: CreditCard },
+      { to: '/app/credits', labelKey: 'navCredits', icon: Sparkles },
       { to: '/app/settings', labelKey: 'navAllSettings', icon: Settings },
       { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: AlertTriangle },
     ],
@@ -608,7 +609,7 @@ export default function AppLayout() {
       <DashboardChatWidget 
         userName={user.name || undefined}
         storeName={store.name}
-        isLocked={store.planType === 'free'}
+        isLocked={false}
       />
     </div>
   );

@@ -61,6 +61,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       name: stores.name,
       subdomain: stores.subdomain,
       planType: stores.planType,
+      aiCredits: stores.aiCredits,
       isActive: stores.isActive,
       deletedAt: stores.deletedAt,
       createdAt: stores.createdAt,
@@ -540,6 +541,9 @@ export default function AdminStores() {
                   Plan
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Credits
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Usage
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
@@ -645,6 +649,19 @@ export default function AdminStores() {
                     {/* Plan */}
                     <td className="px-4 py-4">
                       {getPlanBadge(store.planType)}
+                    </td>
+                    
+                    {/* Credits */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-1">
+                         <span className={`font-mono font-bold ${
+                           (store.aiCredits || 0) > 100 ? 'text-emerald-400' :
+                           (store.aiCredits || 0) > 20 ? 'text-amber-400' : 'text-red-400'
+                         }`}>
+                           {store.aiCredits || 0}
+                         </span>
+                         <span className="text-xs text-slate-500">Cr</span>
+                      </div>
                     </td>
                     
                     {/* Usage */}

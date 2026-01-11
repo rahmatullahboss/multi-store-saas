@@ -508,179 +508,29 @@ export default function BillingPage() {
       </div>
 
       {/* Add-ons Section */}
-      {planType !== 'free' && (
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">{t('addOns')}</h2>
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                    <Bot className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-lg">{t('aiSalesAgent')}</h3>
-                    <p className="text-gray-500 text-sm">
-                      {t('aiAgentBillingDesc')}
-                    </p>
-                  </div>
+      {/* AI Credits Section */}
+      <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+              <Bot className="w-6 h-6 text-orange-600" />
             </div>
-
-            {/* AI Tiers Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                    { id: 'lite', name: 'Lite', nameBn: 'লাইট', limit: 500, price: '৳৫০০', desc: 'Starter AI', popular: false },
-                    { id: 'standard', name: 'Standard', nameBn: 'স্ট্যান্ডার্ড', limit: 1200, price: '৳১,০০০', desc: 'Growing stores', popular: true },
-                    { id: 'pro', name: 'Pro', nameBn: 'প্রো', limit: 3000, price: '৳২,০০০', desc: 'High volume', popular: false }
-                ].map((tier) => {
-                    const isSelected = aiPlan === tier.id && isCustomerAiEnabled;
-                    return (
-                        <div key={tier.id} className={`relative border rounded-lg p-4 flex flex-col ${isSelected ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
-                              {tier.popular && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-orange-500 text-white text-[10px] uppercase font-bold rounded-full">{lang === 'bn' ? 'জনপ্রিয়' : 'Popular'}</span>}
-                              
-                              <div className="flex justify-between items-start mb-2">
-                                  <div>
-                                      <h4 className="font-bold text-gray-900">{lang === 'bn' ? (tier as any).nameBn : tier.name}</h4>
-                                      <div className="text-xs text-gray-500">{t(`ai${tier.id.charAt(0).toUpperCase() + tier.id.slice(1)}Desc`)}</div>
-                                  </div>
-                                  <div className="text-right">
-                                      <div className="font-bold text-gray-900">{tier.price}</div>
-                                      <div className="text-xs text-gray-500">/{lang === 'bn' ? 'মাস' : 'mo'}</div>
-                                  </div>
-                              </div>
-                              
-                              <div className="mt-2 mb-4 text-sm font-medium text-gray-700">
-                                <span className="text-orange-600">{tier.limit.toLocaleString()}</span> {t('messagesPerMo')}
-                              </div>
-
-                              <div className="mt-auto">
-                                  {isSelected ? (
-                                      <div className="w-full py-2 text-center text-sm font-medium text-orange-700 bg-orange-100 rounded-md flex items-center justify-center gap-2">
-                                          <Check className="w-4 h-4" /> {t('activeLabel')}
-                                      </div>
-                                  ) : (
-                                      <fetcher.Form method="post">
-                                          <input type="hidden" name="action" value="activate_ai_plan" />
-                                          <input type="hidden" name="plan" value={tier.id} />
-                                          <button 
-                                            disabled={isSubmitting}
-                                            className={`w-full py-2 text-center text-sm font-medium rounded-md transition ${
-                                                isSubmitting 
-                                                    ? 'bg-gray-100 text-gray-400' 
-                                                    : 'bg-white border border-orange-200 text-orange-600 hover:bg-orange-50'
-                                            }`}
-                                          >
-                                            {isCustomerAiEnabled ? t('switch') : t('select')}
-                                          </button>
-                                      </fetcher.Form>
-                                  )}
-                              </div>
-                        </div>
-                    );
-                })}
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">{t('aiCredits')}</h3>
+              <p className="text-gray-600">
+                {lang === 'bn' ? 'AI ব্যবহার করতে ক্রেডিট কিনুন' : 'Purchase credits to use AI features'}
+              </p>
             </div>
-
-            {/* Disable Option (if active) */}
-            {isCustomerAiEnabled && (
-                <div className="mt-6 pt-6 border-t border-gray-100 flex justify-end">
-                      <fetcher.Form method="post">
-                        <input type="hidden" name="action" value="disable_ai_agent" />
-                        <button className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1">
-                            {t('turnOffAiAgent')}
-                        </button>
-                      </fetcher.Form>
-                </div>
-            )}
-
-            {/* Manual Payment Section for AI Agent */}
-            {aiPlan && !isCustomerAiEnabled && (
-                <div className="mt-8 p-6 bg-orange-50 border border-orange-200 rounded-xl">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-                            <CreditCard className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-gray-900">
-                                {lang === 'bn' ? 'bKash / Nagad পেমেন্ট' : 'bKash / Nagad Payment'}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                                {lang === 'bn' ? 'এজেন্ট অ্যাক্টিভ করার জন্য পেমেন্ট করুন' : 'Complete payment to activate AI Agent'}
-                            </p>
-                        </div>
-                    </div>
-
-                    {paymentStatus === 'pending_verification' ? (
-                        <div className="bg-white border border-orange-200 rounded-lg p-6 text-center">
-                            <Clock className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-                            <h4 className="font-bold text-gray-900">
-                                {t('verificationInProgress')}
-                            </h4>
-                            <p className="text-sm text-gray-600 mt-2 max-w-sm mx-auto">
-                                {t('verificationDesc', { trxId: paymentTransactionId })}
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {/* Payment Number */}
-                            <div className="bg-white rounded-lg p-4 border border-orange-100 flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">{t('sendMoneyTo')}</p>
-                                    <span className="text-xl font-mono font-bold text-orange-600">01739416661</span>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText('01739416661');
-                                        toast.success('Number copied!');
-                                    }}
-                                    className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-medium rounded-lg transition flex items-center gap-1"
-                                >
-                                    <Copy className="w-4 h-4" /> {t('copy')}
-                                </button>
-                            </div>
-
-                            <fetcher.Form method="post" className="space-y-4">
-                                <input type="hidden" name="action" value="submit_ai_payment" />
-                                <input type="hidden" name="aiPlan" value={aiPlan} />
-                                <input type="hidden" name="amount" value={CLIENT_AI_PLAN_PRICES[aiPlan as keyof typeof CLIENT_AI_PLAN_PRICES]} />
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Transaction ID (TRX ID)</label>
-                                        <input 
-                                            name="transactionId"
-                                            required
-                                            placeholder="e.g. TXN12345678"
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 font-mono uppercase"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Your BKash/Nagad Number</label>
-                                        <input 
-                                            name="phoneNumber"
-                                            required
-                                            placeholder="01XXXXXXXXX"
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                {fetcher.data?.error && (
-                                    <p className="text-sm text-red-500">{fetcher.data.error}</p>
-                                )}
-
-                                <button 
-                                    className={`w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition flex items-center justify-center gap-2 ${fetcher.state !== 'idle' ? 'opacity-50' : ''}`}
-                                    disabled={fetcher.state !== 'idle'}
-                                >
-                                    {fetcher.state !== 'idle' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                                    {t('submitPayment')}
-                                </button>
-                            </fetcher.Form>
-                        </div>
-                    )}
-                </div>
-            )}
           </div>
+          <Link 
+            to="/app/credits"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition"
+          >
+            {t('manageCredits')}
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
-      )}
+      </div>
 
       {/* Upgrade CTA for Free Users */}
       {planType === 'free' && (

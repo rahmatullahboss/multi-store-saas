@@ -135,6 +135,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       fontFamily: store[0].fontFamily || 'inter',
       businessInfo: store[0].businessInfo ? JSON.parse(store[0].businessInfo) : {},
       socialLinks: parseSocialLinks(store[0].socialLinks as string | null) || {},
+      aiCredits: store[0].aiCredits || 0,
     },
     themeConfig,
     templates: templates.map(t => ({ 
@@ -2201,6 +2202,7 @@ export default function StoreLiveEditor() {
         onApplyConfig={handleAIApplyConfig}
         onApplyCommand={handleAICommand}
         storeContext={storeContext}
+        aiCredits={(store as any).aiCredits}
       />
     </div>
   );

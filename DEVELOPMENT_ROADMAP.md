@@ -94,3 +94,11 @@
 
 - [x] **Reactive Cart Logic**: Standardized `useCartCount` hook across all templates and headers.
 - [x] **Template Building Guide**: Created comprehensive documentation for future theme development.
+
+### Phase 11: Monetization & AI Economy (Completed)
+
+- [x] **Restore Store Plan Lifecycle**: Restored robust product and order limits based on Starter/Pro/Business plans.
+- [x] **AI Credit System**: Implemented a persistent credit-based economy for all AI features.
+- [x] **Credit Ledger & History**: Added detailed transaction logging and merchant history UI.
+- [x] **Admin Credit Oversight**: Enabled Super Admin monitoring of store credit balances.
+- [x] **Sustainable Pricing**: Launched credit packages aligned with a 1:1 BDT-to-Credit ratio.

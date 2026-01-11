@@ -156,6 +156,17 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#F5F5F5',
     footerText: '#424242',
   },
+  'nova-lux': {
+    primary: '#1C1C1E', // DEEP CHARCOAL
+    accent: '#C4A35A',  // ROSE GOLD
+    background: '#FAFAFA',
+    text: '#2C2C2C',
+    muted: '#8E8E93',
+    cardBg: '#FFFFFF',
+    headerBg: '#FFFFFF',
+    footerBg: '#1C1C1E',
+    footerText: '#FAFAFA',
+  },
 };
 
 // ============================================================================
@@ -168,6 +179,7 @@ import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTempl
 import { DarazTemplate } from '~/components/store-templates/DarazTemplate';
 import { BDShopTemplate } from '~/components/store-templates/BDShopTemplate';
 import { GhorerBazarTemplate } from '~/components/store-templates/GhorerBazarTemplate';
+import { NovaLuxTemplate } from '~/components/store-templates/NovaLuxTemplate';
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -263,6 +275,19 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Noto Sans Bengali',
     },
     component: GhorerBazarTemplate,
+  },
+  {
+    id: 'nova-lux',
+    name: 'NovaLux Premium',
+    description: 'World-class luxury design with rose gold accents, transparent header, and elegant animations. Perfect for premium fashion and lifestyle brands.',
+    thumbnail: '/templates/nova-lux.png',
+    category: 'luxury',
+    theme: STORE_TEMPLATE_THEMES['nova-lux'],
+    fonts: {
+      heading: 'Cormorant Garamond',
+      body: 'DM Sans',
+    },
+    component: NovaLuxTemplate,
   },
 ];
 
