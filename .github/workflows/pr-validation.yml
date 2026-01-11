@@ -1,0 +1,134 @@
+# Pull Request Validation
+# Runs quick checks on every PR before merge
+
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  # ============================================================================
+  # QUICK VALIDATION
+  # ============================================================================
+  validate:
+    name: ✅ Validate PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Type check
+        run: npm run typecheck
+
+      - name: 🧪 Run tests
+        run: npm run test
+
+      - name: 🏗️ Build check
+        run: npm run build
+
+  # ============================================================================
+  # PR SIZE CHECK
+  # ============================================================================
+  size-check:
+    name: 📏 PR Size Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📏 Check PR size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const additions = files.reduce((sum, f) => sum + f.additions, 0);
+            const deletions = files.reduce((sum, f) => sum + f.deletions, 0);
+            const totalChanges = additions + deletions;
+
+            let sizeLabel = 'size/S';
+            let sizeEmoji = '🟢';
+
+            if (totalChanges > 1000) {
+              sizeLabel = 'size/XL';
+              sizeEmoji = '🔴';
+            } else if (totalChanges > 500) {
+              sizeLabel = 'size/L';
+              sizeEmoji = '🟠';
+            } else if (totalChanges > 100) {
+              sizeLabel = 'size/M';
+              sizeEmoji = '🟡';
+            }
+
+            // Add size label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: [sizeLabel]
+            });
+
+            // Add comment if too large
+            if (totalChanges > 500) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `${sizeEmoji} **PR Size Warning**\n\nThis PR has ${additions} additions and ${deletions} deletions (${totalChanges} total changes).\n\nConsider breaking this into smaller PRs for easier review.`
+              });
+            }
+
+  # ============================================================================
+  # SECURITY CHECK ON PR
+  # ============================================================================
+  pr-security:
+    name: 🔒 Security Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --only-verified
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔒 Audit new dependencies
+        run: npm audit --audit-level=high
+        continue-on-error: true
