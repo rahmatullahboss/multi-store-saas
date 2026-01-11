@@ -137,15 +137,29 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-black text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform duration-200 z-[100] group border border-gray-800"
+        className="fixed bottom-6 right-6 z-[100] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300 group"
+        style={{
+          background: 'linear-gradient(135deg, #00875F 0%, #006A4E 50%, #004D38 100%)',
+          boxShadow: '0 0 30px rgba(0, 135, 95, 0.5), 0 8px 25px -5px rgba(0, 0, 0, 0.4)'
+        }}
       >
-        <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 to-teal-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        <img src="/ozzyl-logo-small.png" alt="Ozzyl AI" className="relative z-10 w-6 h-6" />
+        {/* Animated ring */}
+        <span className="absolute inset-0 rounded-full bg-white/10 animate-ping opacity-30" />
+        {/* Inner glow */}
+        <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-50" />
+        {/* Logo */}
+        <img 
+          src="/ozzyl-logo-small.png" 
+          alt="Ozzyl AI" 
+          className="w-14 h-14 relative z-10 object-contain"
+        />
+        {/* Online indicator */}
+        <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white z-20 animate-pulse" />
         
         {isLocked && (
-             <div className="absolute -top-1 -right-1 bg-gray-900 border border-white/20 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm z-20">
-                PRO
-            </div>
+          <div className="absolute -top-1 -left-1 bg-gray-900 border border-white/20 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm z-20">
+            PRO
+          </div>
         )}
       </button>
     );
