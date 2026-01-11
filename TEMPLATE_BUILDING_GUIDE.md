@@ -169,3 +169,12 @@ To maintain a premium standard, all templates must adhere to:
 - **Type Safety**: No `any` types. Define proper interfaces for all props.
 - **Prop Drilling**: Use Context for deep state, but prefer composition.
 - **Comments**: Explain _why_, not _what_, for complex logic.
+
+## 10. AI & Editor Compatibility (Mandatory)
+
+To ensure the "Store AI" can fully edit, redesign, and copywrite for your template (achieving a "Lovable-like" dynamic experience), you must adhere to **Strict Configuration Binding**:
+
+1.  **Zero Hardcoded Content**: Never write static text (e.g., `<h1>Welcome</h1>`). Always bind to config (e.g., `<h1>{config.hero.title}</h1>`).
+2.  **Theme-Token Usage**: Never use arbitrary hex codes. Use `theme.primary`, `theme.accent`, or `config.colors`.
+3.  **Structure via JSON**: The layout must be generated from `config.sections`. This allows the AI to reorder, add, or remove sections instantly.
+4.  **Granular Props**: Every simplified component (like a ProductCard) must accept style overrides from the parent, allowing the AI to tweak "border-radius" or "shadows" globally.
