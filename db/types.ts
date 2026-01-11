@@ -143,6 +143,7 @@ export interface ThemeConfig {
   // Typography Settings (Phase 1)
   typography?: TypographySettings;
   storeTemplateId?: string; // Selected store template ID
+  checkoutStyle?: 'standard' | 'minimal' | 'one_page'; // Checkout Layout Style
   bannerUrl?: string;
   bannerText?: string;
   collections?: {

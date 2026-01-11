@@ -259,6 +259,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     floatingWhatsappMessage: floatingWhatsappMessage || undefined,
     floatingCallEnabled,
     floatingCallNumber: floatingCallNumber || undefined,
+    checkoutStyle: (formData.get('checkoutStyle') as any) || 'standard',
     sections: sections.length > 0 ? sections : undefined,
     productSections: productSections.length > 0 ? productSections : undefined,
   };
@@ -415,6 +416,9 @@ export default function StoreLiveEditor() {
   const [floatingCallEnabled, setFloatingCallEnabled] = useState(themeConfig.floatingCallEnabled ?? true);
   const [floatingCallNumber, setFloatingCallNumber] = useState(themeConfig.floatingCallNumber || phone || '');
 
+  // Checkout Style state
+  const [checkoutStyle, setCheckoutStyle] = useState<'standard' | 'minimal' | 'one_page'>(themeConfig.checkoutStyle || 'standard');
+
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
@@ -531,6 +535,7 @@ export default function StoreLiveEditor() {
     footerDescription,
     copyrightText,
     footerColumns,
+    checkoutStyle,
     sections,
   }), [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, sections]);
 
@@ -575,6 +580,7 @@ export default function StoreLiveEditor() {
     setFooterDescription(snapshot.footerDescription);
     setCopyrightText(snapshot.copyrightText);
     setFooterColumns(snapshot.footerColumns);
+    setCheckoutStyle(snapshot.checkoutStyle || 'standard');
     setSections(snapshot.sections);
   }, []);
 
@@ -618,7 +624,7 @@ export default function StoreLiveEditor() {
       return;
     }
     setHasChanges(true);
-  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, floatingCallNumber, sections]);
+  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, floatingCallNumber, checkoutStyle, sections]);
 
 
   // Show success message
@@ -684,6 +690,7 @@ export default function StoreLiveEditor() {
     if (config.textColor) setTextColor(config.textColor);
     if (config.borderColor) setBorderColor(config.borderColor);
     if (config.fontFamily) setFontFamily(config.fontFamily);
+    if (config.checkoutStyle) setCheckoutStyle(config.checkoutStyle);
     
     if (config.sections && Array.isArray(config.sections)) {
       const newSections = config.sections.map((s: any) => {
@@ -852,7 +859,11 @@ export default function StoreLiveEditor() {
             <input type="hidden" name="floatingWhatsappNumber" value={floatingWhatsappNumber} />
             <input type="hidden" name="floatingWhatsappMessage" value={floatingWhatsappMessage} />
             <input type="hidden" name="floatingCallEnabled" value={floatingCallEnabled.toString()} />
+            <input type="hidden" name="floatingCallEnabled" value={floatingCallEnabled.toString()} />
             <input type="hidden" name="floatingCallNumber" value={floatingCallNumber} />
+
+            {/* Checkout Config */}
+            <input type="hidden" name="checkoutStyle" value={checkoutStyle} />
 
             {/* SECTIONS LIST */}
             <input type="hidden" name="sections" value={JSON.stringify(homeSections)} />
@@ -1515,6 +1526,46 @@ export default function StoreLiveEditor() {
                     placeholder="01XXXXXXXXX"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* Header Layout Section */}
+            <AccordionSection
+              title={language === 'bn' ? 'চেকআউট স্টাইল' : 'Checkout Style'}
+              icon={ShoppingCart}
+              isOpen={openSection === 'checkout'}
+              onToggle={() => setOpenSection(openSection === 'checkout' ? '' : 'checkout')}
+            >
+              <div className="space-y-4">
+                <div>
+                   <p className="text-xs font-medium text-gray-700 mb-2">Layout Option</p>
+                   <div className="grid grid-cols-1 gap-2">
+                     {[
+                       { id: 'standard', label: 'Standard (Split)', desc: 'Best for trust & clarity' },
+                       { id: 'minimal', label: 'Minimal', desc: 'Distraction-free, centered logo' },
+                       { id: 'one_page', label: 'One Page', desc: 'Modern single column' },
+                     ].map((style) => (
+                       <button
+                         key={style.id}
+                         type="button"
+                         onClick={() => setCheckoutStyle(style.id as any)}
+                         className={`flex items-center gap-3 p-3 rounded-lg border text-left transition ${
+                           checkoutStyle === style.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:bg-gray-50'
+                         }`}
+                       >
+                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                           checkoutStyle === style.id ? 'border-purple-600' : 'border-gray-300'
+                         }`}>
+                           {checkoutStyle === style.id && <div className="w-2 h-2 rounded-full bg-purple-600" />}
+                         </div>
+                         <div>
+                           <span className="block text-sm font-medium text-gray-900">{style.label}</span>
+                           <span className="block text-xs text-gray-500">{style.desc}</span>
+                         </div>
+                       </button>
+                     ))}
+                   </div>
                 </div>
               </div>
             </AccordionSection>
