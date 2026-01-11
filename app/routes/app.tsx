@@ -354,11 +354,11 @@ export default function AppLayout() {
         <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between sticky top-0 z-[60]">
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5" />
-            <span className="font-bold">Shadow Mode Active: Viewing as {store.name}</span>
+            <span className="font-bold">{t('shadowModeActive')}: {t('viewingAs')} {store.name}</span>
           </div>
           <Form method="post" action="/admin/stop-impersonation">
             <button type="submit" className="bg-white text-red-600 px-3 py-1 rounded text-xs font-bold uppercase hover:bg-red-50 transition">
-              Exit
+              {t('exit')}
             </button>
           </Form>
         </div>
@@ -448,7 +448,7 @@ export default function AppLayout() {
                           <Icon className="w-5 h-5" />
                           <span className="flex-1">{t(item.labelKey)}</span>
                           <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium group-hover:bg-amber-200">
-                            আপগ্রেড
+                            {t('upgrade')}
                           </span>
                         </Link>
                       );

@@ -31,7 +31,7 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Settings - Multi-Store SaaS' }];
+  return [{ title: 'Settings' }];
 };
 
 // ============================================================================
@@ -40,7 +40,7 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
+    throw new Response('Unauthorized', { status: 401 });
   }
 
   const db = drizzle(context.cloudflare.env.DB);
@@ -162,7 +162,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Validation
   if (!name || name.trim().length < 2) {
-    return json({ error: 'Store name must be at least 2 characters' }, { status: 400 });
+    return json({ error: 'storeNameMinLength' }, { status: 400 });
   }
 
   // ========================================================================
@@ -176,7 +176,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!canUseStoreMode(planType)) {
       console.warn(`[SECURITY] Free user (store ${storeId}) attempted to switch to store mode`);
       return json({ 
-        error: 'Full Store mode requires a paid plan. Please upgrade to unlock.' 
+        error: 'storeModeUpgradeRequired' 
       }, { status: 403 });
     }
   }
@@ -445,7 +445,7 @@ export default function SettingsPage() {
       {/* Error Message */}
       {actionData?.error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {actionData.error}
+          {t(actionData.error as any)}
         </div>
       )}
 
@@ -561,7 +561,7 @@ export default function SettingsPage() {
                     <Upload className="w-4 h-4" />
                     {isUploadingFavicon ? t('uploading') : t('uploadBtn')}
                   </button>
-                  <p className="text-xs text-gray-500 mt-1">32x32 or 16x16 PNG</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('faviconHint')}</p>
                 </div>
                 <input
                   ref={faviconInputRef}
@@ -640,10 +640,10 @@ export default function SettingsPage() {
 
             {/* Read-only info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-              <InfoItem label="Subdomain" value={`${store.subdomain}.digitalcare.site`} />
-              <InfoItem label="Current Plan" value={store.planType === 'free' ? 'Free' : store.planType.charAt(0).toUpperCase() + store.planType.slice(1)} />
+              <InfoItem label={t('subdomainLabel')} value={`${store.subdomain}.digitalcare.site`} />
+              <InfoItem label={t('currentPlanLabel')} value={t(store.planType)} />
               {store.customDomain && (
-                <InfoItem label="Custom Domain" value={store.customDomain} />
+                <InfoItem label={t('customDomainLabel')} value={store.customDomain} />
               )}
             </div>
           </div>
@@ -777,7 +777,7 @@ export default function SettingsPage() {
             {/* Facebook */}
             <div>
               <label htmlFor="facebook" className="block text-sm font-medium text-gray-700 mb-1">
-                <Facebook className="w-4 h-4 inline mr-1 text-blue-600" /> Facebook
+                <Facebook className="w-4 h-4 inline mr-1 text-blue-600" /> {t('facebookUrl')}
               </label>
               <input
                 type="url"
@@ -792,7 +792,7 @@ export default function SettingsPage() {
             {/* Instagram */}
             <div>
               <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 mb-1">
-                <Instagram className="w-4 h-4 inline mr-1 text-pink-600" /> Instagram
+                <Instagram className="w-4 h-4 inline mr-1 text-pink-600" /> {t('instagramUrl')}
               </label>
               <input
                 type="url"
@@ -807,7 +807,7 @@ export default function SettingsPage() {
             {/* WhatsApp */}
             <div>
               <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
-                <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" /> WhatsApp
+                <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" /> {t('whatsappNumber')}
               </label>
               <input
                 type="tel"
@@ -921,16 +921,16 @@ export default function SettingsPage() {
 
             {/* DNS Instructions */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">{t('setupInstructions')}</h4>
+              <h4 className="font-medium text-blue-900">{t('setupInstructions')}</h4>
               <ol className="text-sm text-blue-800 space-y-2">
-                <li>1. Go to your domain registrar's DNS settings</li>
-                <li>2. Add a <strong>CNAME</strong> record:</li>
+                <li>1. {t('dnsStep1')}</li>
+                <li>2. {t('dnsStep2')}</li>
                 <li className="ml-4 font-mono text-xs bg-blue-100 p-2 rounded">
                   Name: @ or www<br />
                   Value: multi-store-saas.pages.dev
                 </li>
-                <li>3. Contact admin to add your domain in Cloudflare Dashboard</li>
-                <li>4. Wait for DNS propagation (up to 48 hours)</li>
+                <li>3. {t('dnsStep3')}</li>
+                <li>4. {t('dnsStep4')}</li>
               </ol>
             </div>
 

@@ -12,10 +12,18 @@ export type TranslationKey = keyof typeof translations.en;
 /**
  * Get translation for a key
  */
-export function t(key: TranslationKey, lang: Language = 'en'): string {
+export function t(key: TranslationKey, lang: Language = 'en', params?: Record<string, string | number>): string {
   const dict = translations[lang] as Record<string, string>;
   const enDict = translations.en as Record<string, string>;
-  return dict[key] || enDict[key] || key;
+  let text = dict[key] || enDict[key] || key;
+
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      text = text.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
+    });
+  }
+
+  return text;
 }
 
 /**

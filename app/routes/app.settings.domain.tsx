@@ -43,14 +43,14 @@ interface ActionData {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
+    throw new Response('unauthorized', { status: 401 });
   }
   
   const db = drizzle(context.cloudflare.env.DB);
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   
   if (!store[0]) {
-    throw new Response('Store not found', { status: 404 });
+    throw new Response('storeNotFound', { status: 404 });
   }
   
   const env = context.cloudflare.env as CloudflareEnv;
@@ -94,7 +94,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
-    return json<ActionData>({ error: 'Unauthorized' }, { status: 401 });
+    return json<ActionData>({ error: 'unauthorized' }, { status: 401 });
   }
   
   const db = drizzle(context.cloudflare.env.DB);
@@ -105,7 +105,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Get current store data
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   if (!store[0]) {
-    return json<ActionData>({ error: 'Store not found' }, { status: 404 });
+    return json<ActionData>({ error: 'storeNotFound' }, { status: 404 });
   }
   
   const planType = (store[0].planType as PlanType) || 'free';
@@ -120,21 +120,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!canUseCustomDomain(planType)) {
       console.warn(`[SECURITY] Free user (store ${storeId}) attempted to add custom domain: ${domain}`);
       return json<ActionData>({ 
-        error: 'Custom domains require a paid plan. Please upgrade to Starter or Premium.' 
+        error: 'premiumFeature' 
       }, { status: 403 });
     }
     
     // Check if already has a domain
     if (store[0].customDomain) {
       return json<ActionData>({ 
-        error: 'You already have a custom domain configured. Remove it first to add a new one.' 
+        error: 'domainAlreadyConfigured' 
       }, { status: 400 });
     }
     
     // Validate domain format
     const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/;
     if (!domain || !domainRegex.test(domain)) {
-      return json<ActionData>({ error: 'Invalid domain format. Example: shop.example.com' }, { status: 400 });
+      return json<ActionData>({ error: 'invalidDomainFormat' }, { status: 400 });
     }
     
     // Check if domain is already taken
@@ -143,7 +143,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .limit(1);
     
     if (existingStore[0]) {
-      return json<ActionData>({ error: 'This domain is already in use by another store.' }, { status: 400 });
+      return json<ActionData>({ error: 'domainAlreadyTaken' }, { status: 400 });
     }
     
     // Check Cloudflare configuration
@@ -158,7 +158,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       
       return json<ActionData>({ 
         success: true, 
-        message: 'Domain request submitted. Our team will set it up within 24 hours.' 
+        message: 'domainRequestSubmitted' 
       });
     }
     
@@ -181,7 +181,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       
       return json<ActionData>({ 
         success: true, 
-        message: 'Domain added! Now configure your DNS to complete the setup.' 
+        message: 'domainAddedSuccess' 
       });
     } catch (error) {
       console.error('[Domain] Cloudflare API error:', error);
@@ -208,10 +208,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         updatedAt: new Date(),
       }).where(eq(stores.id, storeId));
       
-      return json<ActionData>({ success: true, message: 'Status refreshed!' });
+      return json<ActionData>({ success: true, message: 'hostnameRefreshSuccess' });
     } catch (error) {
       console.error('[Domain] Refresh failed:', error);
-      return json<ActionData>({ error: 'Failed to refresh status' }, { status: 500 });
+      return json<ActionData>({ error: 'hostnameRefreshFailed' }, { status: 500 });
     }
   }
   
@@ -238,10 +238,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       
       console.log(`[Domain] Store ${storeId} removed custom domain`);
       
-      return json<ActionData>({ success: true, message: 'Domain removed successfully.' });
+      return json<ActionData>({ success: true, message: 'domainRemovalSuccess' });
     } catch (error) {
       console.error('[Domain] Remove failed:', error);
-      return json<ActionData>({ error: 'Failed to remove domain' }, { status: 500 });
+      return json<ActionData>({ error: 'domainRemovalFailed' }, { status: 500 });
     }
   }
   
@@ -311,14 +311,14 @@ export default function DomainSettings() {
       {actionData?.success && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
           <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-          <p className="text-green-800">{actionData.message || 'Success!'}</p>
+          <p className="text-green-800">{actionData.message ? t(actionData.message) : t('success')}</p>
         </div>
       )}
       
       {actionData?.error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-          <p className="text-red-800">{actionData.error}</p>
+          <p className="text-red-800">{t(actionData.error)}</p>
         </div>
       )}
       
@@ -365,8 +365,8 @@ export default function DomainSettings() {
                   {customDomain}
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <StatusBadge status={sslStatus} label="SSL" />
-                  <StatusBadge status={dnsVerified ? 'active' : 'pending'} label="DNS" />
+                  <StatusBadge status={sslStatus} label={t('ssl')} />
+                  <StatusBadge status={dnsVerified ? 'active' : 'pending'} label={t('dns')} />
                 </div>
               </div>
             </div>
@@ -414,7 +414,7 @@ export default function DomainSettings() {
               <tbody className="font-semibold">
                 <tr>
                   <td className="py-1">CNAME</td>
-                  <td className="py-1 text-blue-600">@ (or www)</td>
+                  <td className="py-1 text-blue-600">{t('cnameNameHost')}</td>
                   <td className="py-1 text-emerald-600">{dnsTarget}</td>
                 </tr>
               </tbody>
@@ -482,7 +482,7 @@ export default function DomainSettings() {
             <div className="flex-1">
               <h3 className="font-semibold text-yellow-900">{t('domainRequestPending')}</h3>
               <p className="text-yellow-800 mt-1">
-                {t('domainRequestReviewing').replace('{{domain}}', customDomainRequest)}
+                {t('domainRequestReviewing', { domain: customDomainRequest })}
               </p>
               <p className="text-sm text-yellow-700 mt-2">
                 {t('willNotifyOnceApproved')}
@@ -522,7 +522,7 @@ export default function DomainSettings() {
                     <p className="text-amber-900 font-bold text-lg">{t('premiumFeature')}</p>
                   </div>
                   <p className="text-amber-800 mt-2 leading-relaxed">
-                    <strong>{t('upgradeToStarter')}</strong> {t('upgradeToConnectDomain').replace('myshop.com', 'myshop.com')}
+                    <strong>{t('upgradeToStarter')}</strong> {t('upgradeToConnectDomain', { exampleDomain: 'myshop.com' })}
                   </p>
                   <p className="text-sm text-amber-700 mt-1">
                     {t('freePlanSubdomainOnly')}
@@ -550,7 +550,7 @@ export default function DomainSettings() {
                 type="text"
                 id="domain"
                 name="domain"
-                placeholder="shop.yourdomain.com"
+                placeholder={t('domainPlaceholder')}
                 disabled={!isPaid}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
@@ -584,9 +584,9 @@ export default function DomainSettings() {
               <h3 className="text-sm font-medium text-gray-700 mb-3">{t('dnsInstructionsPreview')}</h3>
               <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm">
                 <div className="grid grid-cols-3 gap-2">
-                  <span className="text-gray-500">Type</span>
-                  <span className="text-gray-500">Name</span>
-                  <span className="text-gray-500">Value</span>
+                   <span className="text-gray-500">{t('type')}</span>
+                  <span className="text-gray-500">{t('nameHost')}</span>
+                  <span className="text-gray-500">{t('valueTarget')}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-2 font-semibold">
                   <span>CNAME</span>

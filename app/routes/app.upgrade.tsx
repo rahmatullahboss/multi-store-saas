@@ -33,7 +33,7 @@ import {
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Upgrade Plan - Multi-Store SaaS' }];
+  return [{ title: 'Upgrade Plan' }];
 };
 
 // ============================================================================
@@ -300,7 +300,7 @@ export default function UpgradePage() {
           {t('backToBilling')}
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">{t('upgradePlan')}</h1>
-        <p className="text-gray-500 mt-1">{lang === 'bn' ? 'আরো ফিচার আনলক করতে প্ল্যান আপগ্রেড করুন' : 'Choose a plan to unlock more features'}</p>
+        <p className="text-gray-500 mt-1">{t('unlockMoreFeatures')}</p>
       </div>
 
       {/* bKash/Nagad Payment Section */}
@@ -311,10 +311,10 @@ export default function UpgradePage() {
           </div>
           <div>
             <h3 className="font-bold text-gray-900">
-              {lang === 'bn' ? 'bKash / Nagad পেমেন্ট' : 'bKash / Nagad Payment'}
+              {t('bkashNagadPayment')}
             </h3>
             <p className="text-sm text-gray-600">
-              {lang === 'bn' ? 'Send Money করে TRX ID সাবমিট করুন' : 'Send Money and submit Transaction ID'}
+              {t('sendMoneySubmitTrx')}
             </p>
           </div>
         </div>
@@ -322,7 +322,7 @@ export default function UpgradePage() {
         {/* Payment Number */}
         <div className="bg-white rounded-lg p-4 mb-4 border border-pink-100">
           <p className="text-sm text-gray-600 mb-2">
-            {lang === 'bn' ? 'এই নম্বরে Send Money করুন:' : 'Send Money to this number:'}
+            {t('sendMoneyToNumber')}
           </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -332,12 +332,12 @@ export default function UpgradePage() {
             <button
               onClick={() => {
                 navigator.clipboard.writeText('01739416661');
-                alert('Number copied!');
+                alert(t('numberCopied'));
               }}
               className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition flex items-center gap-1"
             >
               <Copy className="w-4 h-4" />
-              Copy
+              {t('copyBtn')}
             </button>
           </div>
         </div>
@@ -348,12 +348,12 @@ export default function UpgradePage() {
             selectedPlan={selectedPlan} 
             appliedCoupon={appliedCoupon}
             planPrice={UPGRADE_PLANS[selectedPlan].price}
-            lang={lang}
+            t={t}
           />
         ) : (
           <div className="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             <p className="text-gray-500">
-              {lang === 'bn' ? '👇 প্রথমে নিচ থেকে একটি প্ল্যান সিলেক্ট করুন' : '👇 Select a plan below first'}
+              {t('selectPlanFirst')}
             </p>
           </div>
         )}
@@ -364,7 +364,7 @@ export default function UpgradePage() {
         <div className="flex items-center gap-2 mb-3">
           <Ticket className="w-5 h-5 text-pink-600" />
           <h3 className="font-semibold text-gray-900">
-            {lang === 'bn' ? 'কুপন কোড আছে?' : 'Have a Coupon Code?'}
+            {t('haveCouponCode')}
           </h3>
         </div>
         
@@ -377,7 +377,7 @@ export default function UpgradePage() {
                 <span className="text-sm text-green-600">({appliedCoupon.discountLabel})</span>
               </div>
               <p className="text-sm text-gray-600 mt-1">
-                {lang === 'bn' ? 'ডিসকাউন্ট প্রযোজ্য হয়েছে!' : 'Discount applied!'}
+                {t('discountApplied')}
               </p>
             </div>
             <button
@@ -393,7 +393,7 @@ export default function UpgradePage() {
               type="text"
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              placeholder={lang === 'bn' ? 'কুপন কোড লিখুন' : 'Enter coupon code'}
+              placeholder={t('enterCouponCode')}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent font-mono uppercase"
             />
             <button
@@ -401,13 +401,13 @@ export default function UpgradePage() {
               disabled={!couponCode || !selectedPlan || isValidating}
               className="px-4 py-2 bg-pink-600 hover:bg-pink-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition flex items-center gap-2"
             >
-              {isValidating ? (
+               {isValidating ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  {lang === 'bn' ? 'চেক হচ্ছে...' : 'Checking...'}
+                  {t('checking')}
                 </>
               ) : (
-                lang === 'bn' ? 'অ্যাপ্লাই' : 'Apply'
+                t('apply')
               )}
             </button>
           </div>
@@ -415,7 +415,7 @@ export default function UpgradePage() {
         
         {!selectedPlan && !appliedCoupon && (
           <p className="text-sm text-gray-500 mt-2">
-            {lang === 'bn' ? 'প্রথমে একটি প্ল্যান সিলেক্ট করুন' : 'Select a plan first to apply coupon'}
+            {t('selectPlanToApplyCoupon')}
           </p>
         )}
         
@@ -455,7 +455,7 @@ export default function UpgradePage() {
               {key === 'starter' && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    {lang === 'bn' ? 'সবচেয়ে জনপ্রিয়' : 'Most Popular'}
+                    {t('mostPopular')}
                   </span>
                 </div>
               )}
@@ -491,13 +491,13 @@ export default function UpgradePage() {
                   {originalPrice && (
                     <p className="text-lg text-gray-400 line-through">৳{originalPrice.toLocaleString()}</p>
                   )}
-                  <p className={`text-4xl font-bold ${showDiscount ? 'text-green-600' : 'text-gray-900'}`}>
+                   <p className={`text-4xl font-bold ${showDiscount ? 'text-green-600' : 'text-gray-900'}`}>
                     ৳{displayPrice.toLocaleString()}
-                    <span className="text-base font-normal text-gray-500">/{lang === 'bn' ? 'মাস' : 'month'}</span>
+                    <span className="text-base font-normal text-gray-500">{t('perMonth')}</span>
                   </p>
                   {showDiscount && (
                     <p className="text-sm text-green-600 font-medium mt-1">
-                      🎉 {appliedCoupon.discountLabel} - {lang === 'bn' ? 'বাঁচান' : 'Save'} ৳{appliedCoupon.discountAmount}!
+                      🎉 {appliedCoupon.discountLabel} - {t('saveAmount')} ৳{appliedCoupon.discountAmount}!
                     </p>
                   )}
                 </div>
@@ -516,11 +516,11 @@ export default function UpgradePage() {
               
               {isCurrentPlan ? (
                 <div className="w-full py-3 text-center text-gray-500 font-medium border border-gray-200 rounded-xl bg-gray-50">
-                  {lang === 'bn' ? 'বর্তমান প্ল্যান' : 'Current Plan'}
+                  {t('currentPlanLabel')}
                 </div>
               ) : isDowngrade ? (
                 <div className="w-full py-3 text-center text-gray-400 font-medium border border-gray-200 rounded-xl bg-gray-50">
-                  {lang === 'bn' ? 'উপলব্ধ নয়' : 'Not Available'}
+                  {t('notAvailable')}
                 </div>
               ) : (
                 <button
@@ -539,13 +539,13 @@ export default function UpgradePage() {
                         : 'bg-purple-600 hover:bg-purple-700 text-white'
                   }`}
                 >
-                  {isSelected ? (
+                   {isSelected ? (
                     <>
                       <Check className="w-5 h-5" />
-                      {lang === 'bn' ? 'নির্বাচিত' : 'Selected'}
+                      {t('selected')}
                     </>
                   ) : (
-                    lang === 'bn' ? 'এই প্ল্যান নিন' : 'Select This Plan'
+                    t('selectThisPlan')
                   )}
                 </button>
               )}
@@ -554,45 +554,40 @@ export default function UpgradePage() {
         })}
       </div>
 
-      {/* FAQ */}
+       {/* FAQ */}
       <div className="mt-8 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Frequently Asked Questions</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{t('faqs')}</h3>
         <div className="space-y-3">
           <details className="bg-white rounded-lg border border-gray-200 p-4">
             <summary className="font-medium text-gray-900 cursor-pointer">
-              How does billing work?
+              {t('faqBillingTitle')}
             </summary>
             <p className="mt-2 text-gray-600 text-sm">
-              You'll be charged monthly. Your subscription renews automatically 
-              unless you cancel before the renewal date.
+              {t('faqBillingDesc')}
             </p>
           </details>
           <details className="bg-white rounded-lg border border-gray-200 p-4">
             <summary className="font-medium text-gray-900 cursor-pointer">
-              Can I upgrade later?
+              {t('faqUpgradeTitle')}
             </summary>
             <p className="mt-2 text-gray-600 text-sm">
-              Yes! You can upgrade to a higher plan anytime. You'll only pay the 
-              difference for the remaining billing period.
+              {t('faqUpgradeDesc')}
             </p>
           </details>
           <details className="bg-white rounded-lg border border-gray-200 p-4">
             <summary className="font-medium text-gray-900 cursor-pointer">
-              What happens to my data if I downgrade?
+              {t('faqDowngradeTitle')}
             </summary>
             <p className="mt-2 text-gray-600 text-sm">
-              Your data is safe. However, if you exceed the new plan's limits, 
-              you may need to remove some products or wait for the next billing cycle for orders.
+              {t('faqDowngradeDesc')}
             </p>
           </details>
           <details className="bg-white rounded-lg border border-gray-200 p-4">
             <summary className="font-medium text-gray-900 cursor-pointer">
-              How do coupon codes work?
+              {t('faqCouponTitle')}
             </summary>
             <p className="mt-2 text-gray-600 text-sm">
-              Coupon codes give you a discount on your subscription fee. Select a plan,
-              enter your coupon code, and click Apply. The discounted price will be shown
-              and included in your WhatsApp message when you contact us.
+              {t('faqCouponDesc')}
             </p>
           </details>
         </div>
@@ -604,7 +599,7 @@ export default function UpgradePage() {
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 z-50"
-        title={lang === 'bn' ? 'WhatsApp-এ যোগাযোগ করুন' : 'Contact via WhatsApp'}
+        title={t('contactViaWhatsapp')}
       >
         <MessageCircle className="w-7 h-7" />
       </a>
@@ -616,15 +611,15 @@ export default function UpgradePage() {
 // PAYMENT SUBMIT FORM COMPONENT
 // ============================================================================
 function PaymentSubmitForm({
-  selectedPlan,
+   selectedPlan,
   appliedCoupon,
   planPrice,
-  lang,
+  t,
 }: {
   selectedPlan: 'starter' | 'premium';
   appliedCoupon: { finalPrice: number } | null;
   planPrice: number;
-  lang: string;
+  t: (key: any) => string;
 }) {
   const fetcher = useFetcher<{ success?: boolean; error?: string; message?: string }>();
   const [transactionId, setTransactionId] = useState('');
@@ -641,12 +636,10 @@ function PaymentSubmitForm({
           <Check className="w-6 h-6 text-green-600" />
         </div>
         <h4 className="font-semibold text-green-800">
-          {lang === 'bn' ? 'সফলভাবে সাবমিট হয়েছে!' : 'Successfully Submitted!'}
+          {t('successfullySubmitted')}
         </h4>
         <p className="text-sm text-green-700 mt-1">
-          {lang === 'bn' 
-            ? 'আমরা আপনার পেমেন্ট ভেরিফাই করে ২৪ ঘন্টার মধ্যে প্ল্যান অ্যাক্টিভ করব।'
-            : 'We will verify your payment and activate your plan within 24 hours.'}
+          {t('paymentVerifyActivation')}
         </p>
       </div>
     );
@@ -661,7 +654,7 @@ function PaymentSubmitForm({
       {/* Amount Display */}
       <div className="flex items-center justify-between bg-emerald-50 p-3 rounded-lg border border-emerald-200">
         <span className="text-sm font-medium text-emerald-800">
-          {lang === 'bn' ? 'পেমেন্ট করতে হবে:' : 'Amount to Send:'}
+          {t('amountToSend')}
         </span>
         <span className="text-xl font-bold text-emerald-600">৳{finalAmount.toLocaleString()}</span>
       </div>
@@ -685,7 +678,7 @@ function PaymentSubmitForm({
       {/* Phone Number */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          {lang === 'bn' ? 'আপনার bKash/Nagad নম্বর *' : 'Your bKash/Nagad Number *'}
+          {t('bkashNagadNumber')} *
         </label>
         <input
           type="tel"
@@ -714,12 +707,12 @@ function PaymentSubmitForm({
         {isSubmitting ? (
           <>
             <Loader2 className="w-5 h-5 animate-spin" />
-            {lang === 'bn' ? 'সাবমিট হচ্ছে...' : 'Submitting...'}
+            {t('submitting')}
           </>
         ) : (
           <>
             <Send className="w-5 h-5" />
-            {lang === 'bn' ? 'পেমেন্ট সাবমিট করুন' : 'Submit Payment'}
+            {t('submitPayment')}
           </>
         )}
       </button>

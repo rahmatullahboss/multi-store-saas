@@ -86,7 +86,7 @@ export function LanguageProvider({
   
   const t: (key: string | TranslationKey, options?: any) => string = (key, options) => {
     // 1. Try customs translations from ~/utils/i18n.ts first
-    const customTranslation = i18nCustomT(key as TranslationKey, lang);
+    const customTranslation = i18nCustomT(key as TranslationKey, lang, options);
     
     // If it's not the same as the key, it means we found a translation
     if (customTranslation !== key) {

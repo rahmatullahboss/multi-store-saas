@@ -34,7 +34,7 @@ import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/com
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Inventory - Multi-Store SaaS' }];
+  return [{ title: 'Inventory' }];
 };
 
 // ============================================================================
@@ -154,7 +154,7 @@ export default function InventoryPage() {
 
   // Status tabs configuration
   const statusTabs = [
-    { id: 'all', label: t('allOrders'), count: stats.total },
+    { id: 'all', label: t('allProducts'), count: stats.total },
     { id: 'healthy', label: t('inStock'), count: stats.healthy },
     { id: 'low', label: t('lowStock'), count: stats.lowStock },
     { id: 'out', label: t('outOfStockLabel'), count: stats.outOfStock },
@@ -226,14 +226,14 @@ export default function InventoryPage() {
       {/* Header */}
       <PageHeader
         title={t('inventory')}
-        description={lang === 'bn' ? 'স্টক লেভেল ম্যানেজ করুন এবং ইনভেন্টরি ট্র্যাক করুন' : 'Manage stock levels and track inventory'}
+        description={t('inventoryManageDesc')}
         secondaryAction={{
-          label: lang === 'bn' ? 'CSV ইম্পোর্ট' : 'Import CSV',
+          label: t('importCsv'),
           href: '/app/inventory/import',
           icon: <Upload className="w-4 h-4" />,
         }}
         primaryAction={{
-          label: lang === 'bn' ? 'CSV এক্সপোর্ট' : 'Export CSV',
+          label: t('exportCsv'),
           href: '/api/products/export',
           icon: <Download className="w-4 h-4" />,
         }}
@@ -242,31 +242,31 @@ export default function InventoryPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard
-          label="Total Products"
+          label={t('totalProducts')}
           value={stats.total}
           icon={<Package className="w-5 h-5" />}
           color="blue"
         />
         <StatCard
-          label="Total Units"
+          label={t('totalUnits')}
           value={stats.totalUnits.toLocaleString()}
           icon={<Package className="w-5 h-5" />}
           color="purple"
         />
         <StatCard
-          label="In Stock"
+          label={t('inStock')}
           value={stats.healthy}
           icon={<CheckCircle className="w-5 h-5" />}
           color="emerald"
         />
         <StatCard
-          label="Low Stock"
+          label={t('lowStock')}
           value={stats.lowStock}
           icon={<AlertTriangle className="w-5 h-5" />}
           color={stats.lowStock > 0 ? 'yellow' : 'gray'}
         />
         <StatCard
-          label="Out of Stock"
+          label={t('outOfStockLabel')}
           value={stats.outOfStock}
           icon={<AlertTriangle className="w-5 h-5" />}
           color={stats.outOfStock > 0 ? 'red' : 'gray'}
@@ -282,10 +282,10 @@ export default function InventoryPage() {
             </div>
             <div>
               <p className="font-medium text-yellow-800">
-                {stats.lowStock} product{stats.lowStock > 1 ? 's' : ''} running low on stock
+                {t('lowStockAlertWithCount').replace('{count}', stats.lowStock.toString())}
               </p>
               <p className="text-sm text-yellow-600">
-                Stock level is at or below {lowStockThreshold} units
+                {t('lowStockThresholdDesc').replace('{threshold}', lowStockThreshold.toString())}
               </p>
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function InventoryPage() {
             onClick={() => handleStatusChange('low')}
             className="px-4 py-2 bg-yellow-100 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 transition"
           >
-            View Low Stock
+            {t('viewLowStock')}
           </button>
         </div>
       )}
@@ -302,7 +302,7 @@ export default function InventoryPage() {
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <SearchInput
-          placeholder="Search by name or SKU..."
+          placeholder={t('searchInventoryPlaceholder')}
           value={searchQuery}
           onChange={setSearchQuery}
           className="w-full md:w-80"
@@ -323,10 +323,10 @@ export default function InventoryPage() {
         <div className="bg-white rounded-xl border border-gray-200">
           <EmptyState
             icon={<Package className="w-10 h-10" />}
-            title="No products yet"
-            description="Add products to start tracking inventory."
+            title={t('noProductsTitle')}
+            description={t('noProductsDesc')}
             action={{
-              label: 'Add Product',
+              label: t('addProduct'),
               href: '/app/products/new',
               icon: <Plus className="w-4 h-4" />,
             }}
@@ -334,7 +334,7 @@ export default function InventoryPage() {
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No products match your filters.</p>
+          <p className="text-gray-500">{t('noProductsMatchFilters')}</p>
           <button
             onClick={() => {
               setSearchQuery('');
@@ -342,7 +342,7 @@ export default function InventoryPage() {
             }}
             className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            Clear filters
+            {t('clearFilters')}
           </button>
         </div>
       ) : (
@@ -352,19 +352,19 @@ export default function InventoryPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Product
+                    {t('productTableHeader')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    SKU
+                    {t('skuTableHeader')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Price
+                    {t('priceTableHeader')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px]">
-                    Stock Level
+                    {t('stockLevelTableHeader')}
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Adjust
+                    {t('adjustTableHeader')}
                   </th>
                 </tr>
               </thead>
@@ -423,19 +423,19 @@ export default function InventoryPage() {
                               className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-center"
                               autoFocus
                             />
-                            <button
+                             <button
                               type="submit"
                               disabled={isSubmitting}
                               className="px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition"
                             >
-                              Save
+                              {t('saveBtn')}
                             </button>
-                            <button
+                             <button
                               type="button"
                               onClick={() => setEditingId(null)}
                               className="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-100 rounded-lg transition"
                             >
-                              Cancel
+                              {t('cancel')}
                             </button>
                           </Form>
                         ) : (
@@ -448,7 +448,7 @@ export default function InventoryPage() {
                                 }}
                                 className="font-bold text-lg hover:text-emerald-600 transition"
                               >
-                                {stock} <span className="text-xs text-gray-500 font-normal">units</span>
+                                {stock} <span className="text-xs text-gray-500 font-normal">{t('unitsLabel')}</span>
                               </button>
                               <StockStatusBadge stock={stock} threshold={lowStockThreshold} />
                             </div>
@@ -504,7 +504,7 @@ export default function InventoryPage() {
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-4 shadow-xl flex items-center gap-3">
             <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
-            <span>Updating...</span>
+            <span>{t('updating')}</span>
           </div>
         </div>
       )}
@@ -516,11 +516,12 @@ export default function InventoryPage() {
 // STOCK STATUS BADGE COMPONENT
 // ============================================================================
 function StockStatusBadge({ stock, threshold }: { stock: number; threshold: number }) {
+  const { t } = useTranslation();
   if (stock <= 0) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
         <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-        Out of stock
+        {t('outOfStockLabel')}
       </span>
     );
   }
@@ -529,7 +530,7 @@ function StockStatusBadge({ stock, threshold }: { stock: number; threshold: numb
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
         <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
-        Low stock
+        {t('lowStock')}
       </span>
     );
   }
@@ -537,7 +538,7 @@ function StockStatusBadge({ stock, threshold }: { stock: number; threshold: numb
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">
       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-      In stock
+      {t('inStock')}
     </span>
   );
 }

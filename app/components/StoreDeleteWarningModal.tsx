@@ -19,6 +19,7 @@ import {
   Loader2,
   Trash2
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface DataCounts {
   products: number;
@@ -44,6 +45,7 @@ export function StoreDeleteWarningModal({
   storeName,
   dataCounts 
 }: StoreDeleteWarningProps) {
+  const { t } = useTranslation();
   const [confirmText, setConfirmText] = useState('');
   const [exitReason, setExitReason] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -77,43 +79,43 @@ export function StoreDeleteWarningModal({
   const dataItems = [
     { 
       icon: Package, 
-      label: 'Products', 
+      labelKey: 'productsLabel', 
       count: dataCounts.products,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100'
     },
     { 
       icon: Users, 
-      label: 'Customers', 
+      labelKey: 'customersLabel', 
       count: dataCounts.customers,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100'
     },
     { 
       icon: ShoppingCart, 
-      label: 'Orders', 
+      labelKey: 'ordersLabel', 
       count: dataCounts.orders,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
-      subtext: dataCounts.totalRevenue > 0 ? `${formatCurrency(dataCounts.totalRevenue)} revenue` : undefined
+      subtext: dataCounts.totalRevenue > 0 ? `${formatCurrency(dataCounts.totalRevenue)} ${t('revenueLabel')}` : undefined
     },
     { 
       icon: Mail, 
-      label: 'Email Subscribers', 
+      labelKey: 'subscribersLabel', 
       count: dataCounts.subscribers,
       color: 'text-pink-600',
       bgColor: 'bg-pink-100'
     },
     { 
       icon: FileText, 
-      label: 'Landing Pages', 
+      labelKey: 'landingPagesLabel', 
       count: dataCounts.landingPages,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100'
     },
     { 
       icon: BarChart3, 
-      label: 'Email Campaigns', 
+      labelKey: 'campaignsLabel', 
       count: dataCounts.campaigns,
       color: 'text-cyan-600',
       bgColor: 'bg-cyan-100'
@@ -121,12 +123,12 @@ export function StoreDeleteWarningModal({
   ];
 
   const exitReasons = [
-    { value: 'pricing', label: 'Pricing is too high' },
-    { value: 'features', label: 'Missing features I need' },
-    { value: 'competitor', label: 'Switching to another platform' },
-    { value: 'closing', label: 'Closing my business' },
-    { value: 'temporary', label: 'Taking a break temporarily' },
-    { value: 'other', label: 'Other reason' },
+    { value: 'pricing', labelKey: 'pricingTooHigh' },
+    { value: 'features', labelKey: 'missingFeatures' },
+    { value: 'competitor', labelKey: 'switchingCompetitor' },
+    { value: 'closing', labelKey: 'closingBusiness' },
+    { value: 'temporary', labelKey: 'takingBreak' },
+    { value: 'other', labelKey: 'otherReason' },
   ];
 
   return (
@@ -147,8 +149,8 @@ export function StoreDeleteWarningModal({
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-red-800">Delete Store?</h2>
-                <p className="text-sm text-red-600">This action cannot be undone</p>
+                <h2 className="text-xl font-bold text-red-800">{t('deleteStoreConfirmTitle')}</h2>
+                <p className="text-sm text-red-600">{t('deleteStoreConfirmSubtitle')}</p>
               </div>
               <button
                 onClick={onClose}
@@ -164,10 +166,10 @@ export function StoreDeleteWarningModal({
             {/* Warning Message */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-amber-800 font-medium">
-                ⚠️ You are about to permanently delete <strong>"{storeName}"</strong>
+                ⚠️ {t('permanentlyDeleteWarning')} <strong>"{storeName}"</strong>
               </p>
               <p className="text-amber-700 text-sm mt-1">
-                All your store data will be lost forever. This includes:
+                {t('dataLossWarning')}
               </p>
             </div>
 
@@ -175,14 +177,14 @@ export function StoreDeleteWarningModal({
             <div className="space-y-3">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Trash2 className="w-4 h-4 text-red-500" />
-                Data You Will Lose
+                {t('dataYouWillLose')}
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 {dataItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <div 
-                      key={item.label}
+                      key={item.labelKey}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100"
                     >
                       <div className={`w-10 h-10 ${item.bgColor} rounded-lg flex items-center justify-center`}>
@@ -190,7 +192,7 @@ export function StoreDeleteWarningModal({
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">{item.count.toLocaleString()}</p>
-                        <p className="text-xs text-gray-500">{item.label}</p>
+                        <p className="text-xs text-gray-500">{t(item.labelKey as any)}</p>
                         {item.subtext && (
                           <p className="text-xs text-gray-400">{item.subtext}</p>
                         )}
@@ -204,17 +206,17 @@ export function StoreDeleteWarningModal({
             {/* Exit Survey (Optional) */}
             <div className="space-y-3 border-t border-gray-100 pt-4">
               <h3 className="font-semibold text-gray-900">
-                Why are you leaving? <span className="text-gray-400 font-normal">(Optional)</span>
+                {t('whyLeaving')} <span className="text-gray-400 font-normal">({t('optional')})</span>
               </h3>
               <select
                 value={exitReason}
                 onChange={(e) => setExitReason(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white"
               >
-                <option value="">Select a reason...</option>
+                <option value="">{t('selectReason')}</option>
                 {exitReasons.map((reason) => (
                   <option key={reason.value} value={reason.value}>
-                    {reason.label}
+                    {t(reason.labelKey as any)}
                   </option>
                 ))}
               </select>
@@ -223,7 +225,7 @@ export function StoreDeleteWarningModal({
                 <textarea
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
-                  placeholder="Any additional feedback? (helps us improve)"
+                  placeholder={t('feedbackPlaceholder')}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                   rows={3}
                 />
@@ -233,13 +235,13 @@ export function StoreDeleteWarningModal({
             {/* Confirmation Input */}
             <div className="space-y-2 border-t border-gray-100 pt-4">
               <label className="block text-sm font-medium text-gray-700">
-                Type <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-red-600">DELETE</span> to confirm
+                {t('typeDeleteToConfirm')}
               </label>
               <input
                 type="text"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
-                placeholder="Type DELETE here..."
+                placeholder={t('typeDeleteHere')}
                 className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:border-transparent ${
                   confirmText === 'DELETE' 
                     ? 'border-red-500 focus:ring-red-500 bg-red-50' 
@@ -255,7 +257,7 @@ export function StoreDeleteWarningModal({
                 onClick={onClose}
                 className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
               >
-                Cancel, Keep My Store
+                {t('cancelKeepStore')}
               </button>
               <button
                 type="button"
@@ -266,12 +268,12 @@ export function StoreDeleteWarningModal({
                 {isDeleting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Deleting...
+                    {t('deleting')}
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4" />
-                    Delete Forever
+                    {t('deleteForever')}
                   </>
                 )}
               </button>
@@ -279,7 +281,7 @@ export function StoreDeleteWarningModal({
 
             {/* Last chance reminder */}
             <p className="text-xs text-center text-gray-400">
-              This is your last chance. Once deleted, there's no going back.
+              {t('lastChanceReminder')}
             </p>
           </div>
         </div>
