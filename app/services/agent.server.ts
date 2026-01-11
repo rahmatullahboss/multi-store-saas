@@ -52,37 +52,40 @@ export async function processMessage(
   
   // 1. Fetch Agent Config
   const agent = await db.query.agents.findFirst({
-    where: eq(schema.agents.id, agentId), // Correct usage
+    where: eq(schema.agents.id, agentId),
   });
   
   if (!agent) throw new Error('Agent not found');
   
-  // 2. Fetch Chat History
+  // 2. Fetch Chat History from messages table
   const history = await db.query.messages.findMany({
     where: eq(schema.messages.conversationId, conversationId),
     orderBy: [desc(schema.messages.createdAt)],
     limit: 10,
   });
 
-  // 2.5 Check Usage Limits (Spam + Monthly Quota)
+  // 2.5 Check Usage Limits & Credits
   
-  // A. Spam Protection: Check if last user message was < 2 seconds ago
+  // A. Spam Protection
   const lastUserMessage = history.find(m => m.role === 'user');
   if (lastUserMessage && lastUserMessage.createdAt) {
     const timeSinceLastMessage = Date.now() - lastUserMessage.createdAt.getTime();
-    if (timeSinceLastMessage < 2000) { // 2 seconds cooldown
-      return { text: 'অনুগ্রহ করে একটু ধীরে লিখুন। (Please slow down)' };
+    if (timeSinceLastMessage < 2000) { 
+      return { text: 'অনুগ্রহ করে একটু ধীরে লিখুন।' };
     }
   }
 
-  // B. Monthly Quota Check
-  const usageCheck = await checkUsageLimit(db, agent.storeId, 'ai_message');
-  if (!usageCheck.allowed) {
-    console.warn(`[AI LIMIT] Store ${agent.storeId} reached limit. Code: ${usageCheck.error?.code}`);
-    return { 
-      text: '⚠️ এই মাসে আপনার দোকানের AI মেসেজ লিমিট শেষ হয়ে গেছে। দয়া করে প্ল্যান আপগ্রেড করুন বা আগামী মাসের জন্য অপেক্ষা করুন।' 
-      // "Your store's AI message limit for this month has been reached. Please upgrade plan..."
-    };
+  // B. Credit Check & Deduction (NEW)
+  // Check if store has credits
+  const creditLogs = await db.select({
+      amount: schema.creditUsageLogs.amount
+  }).from(schema.creditUsageLogs)
+  .where(eq(schema.creditUsageLogs.storeId, agent.storeId));
+  
+  const totalCredits = creditLogs.reduce((sum, log) => sum + log.amount, 0);
+
+  if (totalCredits <= 0) {
+      return { text: '⚠️ দোকানের ক্রেডিট শেষ হয়ে গেছে। দয়া করে রিচার্জ করুন।' };
   }
   
   // 3. RAG Search
@@ -105,19 +108,20 @@ export async function processMessage(
     }
   }));
 
-  // 6. Build Message Array
-  const historyMessages = history.reverse().map(msg => ({
-    role: msg.role as 'user' | 'assistant',
-    content: msg.content,
-  }));
-
+  // 6. Build Message Array & Save User Message
   const chatMessages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
-    ...historyMessages,
-    ...(historyMessages.length > 0 && historyMessages[historyMessages.length - 1].content === userMessage 
-      ? [] 
-      : [{ role: 'user' as const, content: userMessage }]),
+    ...history.reverse().map(msg => ({ role: msg.role as any, content: msg.content })),
+    { role: 'user', content: userMessage }
   ];
+
+  // Save USER message to DB
+  await db.insert(schema.messages).values({
+      conversationId,
+      role: 'user',
+      content: userMessage,
+      creditsUsed: 0, // Customer message doesn't cost credit
+  });
 
   // 7. Call AI API
   try {
@@ -131,33 +135,51 @@ export async function processMessage(
         model: DEFAULT_MODEL,
         messages: chatMessages,
         tools: tools.length > 0 ? tools : undefined,
-        stream: false,
       }),
     });
 
-    if (!response.ok) {
-      console.error('AI API Error:', await response.text());
-      return { text: 'দুঃখিত, আমি এখন উত্তর দিতে পারছি না। পরে চেষ্টা করুন।' };
-    }
+    if (!response.ok) throw new Error('AI API Failed');
 
     const result = await response.json() as any;
-    const message = result.choices?.[0]?.message;
+    const aiMsg = result.choices?.[0]?.message;
 
-    if (!message) return { text: 'দুঃখিত, আমি বুঝতে পারিনি।' };
+    if (!aiMsg) return { text: 'দুঃখিত, বুঝতে পারিনি।' };
 
-    // Handle Tool Calls
-    if (message.tool_calls && message.tool_calls.length > 0) {
-      const toolCall = message.tool_calls[0];
-      return {
-        text: message.content || '',
-        functionCall: {
-          name: toolCall.function.name,
-          args: JSON.parse(toolCall.function.arguments),
-        },
-      };
+    // 8. Save AI Response to DB & Deduct Credit
+    let responseText = aiMsg.content || '';
+    let toolCallData = null;
+
+    if (aiMsg.tool_calls?.[0]) {
+       const tc = aiMsg.tool_calls[0];
+       toolCallData = {
+           name: tc.function.name,
+           args: JSON.parse(tc.function.arguments)
+       };
+       // Note: logic to execute tool call and save functionality result would go here
     }
 
-    return { text: message.content || '...' };
+    await db.insert(schema.messages).values({
+        conversationId,
+        role: 'assistant',
+        content: responseText || (toolCallData ? `Calling ${toolCallData.name}...` : '...'),
+        functionName: toolCallData?.name, 
+        functionArgs: toolCallData ? JSON.stringify(toolCallData.args) : null,
+        creditsUsed: 1, // DEDUCT 1 CREDIT
+    });
+
+    // Log Credit Usage Transaction
+    await db.insert(schema.creditUsageLogs).values({
+        storeId: agent.storeId,
+        amount: -1, // Deduct 1
+        type: 'usage',
+        description: 'AI Chat Response',
+        metadata: JSON.stringify({ conversationId }),
+    });
+
+    return {
+      text: responseText,
+      functionCall: toolCallData || undefined
+    };
     
   } catch (error) {
     console.error('AI Processing Exception:', error);

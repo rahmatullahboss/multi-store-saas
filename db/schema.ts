@@ -1441,3 +1441,142 @@ export const creditUsageLogsRelations = relations(creditUsageLogs, ({ one }) => 
   }),
 }));
 
+// ============================================================================
+// MERCHANT AI AGENTS TABLE - Store's AI chatbot configuration
+// ============================================================================
+export const agents = sqliteTable('agents', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(), // Agent display name e.g. "সাহায্যকারী বট"
+  
+  // AI Configuration
+  agentSettings: text('agent_settings'), // JSON: AgentConfig from agent.prompts.ts
+  systemPrompt: text('system_prompt'), // Custom system prompt override
+  tone: text('tone').$type<'friendly' | 'formal' | 'urgent'>().default('friendly'),
+  language: text('language').$type<'bn' | 'en' | 'banglish'>().default('bn'),
+  objectives: text('objectives'), // JSON array: ['answer_only', 'lead_gen', 'order']
+  
+  // RAG Knowledge Base
+  knowledgeBaseId: text('knowledge_base_id'), // Vectorize namespace
+  
+  // Channel Settings
+  enabledChannels: text('enabled_channels'), // JSON: ['web', 'whatsapp', 'messenger']
+  whatsappPhoneId: text('whatsapp_phone_id'), // WhatsApp Business Phone ID
+  messengerPageId: text('messenger_page_id'), // Facebook Page ID
+  
+  // Status
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('agents_store_id_idx').on(table.storeId),
+]);
+
+export const agentsRelations = relations(agents, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [agents.storeId],
+    references: [stores.id],
+  }),
+  conversations: many(aiConversations),
+}));
+
+// ============================================================================
+// AI CONVERSATIONS TABLE - Chat sessions with customers
+// ============================================================================
+export const aiConversations = sqliteTable('ai_conversations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  agentId: integer('agent_id').notNull().references(() => agents.id, { onDelete: 'cascade' }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  
+  // Customer Identification
+  customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  visitorId: text('visitor_id'), // Anonymous visitor tracking
+  customerPhone: text('customer_phone'),
+  customerName: text('customer_name'),
+  
+  // Channel
+  channel: text('channel').$type<'web' | 'whatsapp' | 'messenger'>().default('web'),
+  externalId: text('external_id'), // WhatsApp/Messenger conversation ID
+  
+  // Status
+  status: text('status').$type<'active' | 'closed' | 'transferred'>().default('active'),
+  lastMessageAt: integer('last_message_at', { mode: 'timestamp' }),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('ai_conversations_agent_idx').on(table.agentId),
+  index('ai_conversations_store_idx').on(table.storeId),
+  index('ai_conversations_customer_idx').on(table.customerId),
+]);
+
+export const aiConversationsRelations = relations(aiConversations, ({ one, many }) => ({
+  agent: one(agents, {
+    fields: [aiConversations.agentId],
+    references: [agents.id],
+  }),
+  store: one(stores, {
+    fields: [aiConversations.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [aiConversations.customerId],
+    references: [customers.id],
+  }),
+  messages: many(messages),
+  leadsData: many(leadsData),
+}));
+
+// ============================================================================
+// MESSAGES TABLE - Individual chat messages
+// ============================================================================
+export const messages = sqliteTable('messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  conversationId: integer('conversation_id').notNull().references(() => aiConversations.id, { onDelete: 'cascade' }),
+  
+  role: text('role').$type<'user' | 'assistant' | 'system'>().notNull(),
+  content: text('content').notNull(),
+  
+  // Function calls (if AI called a tool)
+  functionName: text('function_name'),
+  functionArgs: text('function_args'), // JSON
+  functionResult: text('function_result'),
+  
+  // Metadata
+  tokensUsed: integer('tokens_used'),
+  creditsUsed: integer('credits_used').default(1), // Each message costs 1 credit
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('messages_conversation_idx').on(table.conversationId),
+]);
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(aiConversations, {
+    fields: [messages.conversationId],
+    references: [aiConversations.id],
+  }),
+}));
+
+// ============================================================================
+// LEADS DATA TABLE - Information captured by AI during conversations
+// ============================================================================
+export const leadsData = sqliteTable('leads_data', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  conversationId: integer('conversation_id').notNull().references(() => aiConversations.id, { onDelete: 'cascade' }),
+  
+  key: text('key').notNull(), // 'phone', 'name', 'budget', 'product_interest'
+  value: text('value').notNull(),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('leads_data_conversation_idx').on(table.conversationId),
+]);
+
+export const leadsDataRelations = relations(leadsData, ({ one }) => ({
+  conversation: one(aiConversations, {
+    fields: [leadsData.conversationId],
+    references: [aiConversations.id],
+  }),
+}));
+
