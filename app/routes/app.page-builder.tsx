@@ -4,7 +4,7 @@
  * This route hosts the GrapesJS editor for creating custom landing pages.
  */
 
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, useSearchParams, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
@@ -84,7 +84,13 @@ export default function PageBuilderRoute() {
   const [searchParams, setSearchParams] = useSearchParams();
   const pageId = searchParams.get('id');
   const [isCreating, setIsCreating] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const navigation = useNavigation();
+
+  // Ensure client-side only rendering for GrapesJS editor to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // If pageId is selected, show the editor in FULL SCREEN mode
   if (pageId) {
@@ -117,7 +123,7 @@ export default function PageBuilderRoute() {
         </div>
 
         <div className="flex-1 relative">
-          {typeof document !== 'undefined' ? (
+          {isMounted ? (
             <Suspense fallback={
               <div className="flex items-center justify-center h-full bg-gray-50/50">
                  <div className="animate-pulse flex flex-col items-center gap-4">
@@ -130,7 +136,16 @@ export default function PageBuilderRoute() {
             }>
               <GrapesEditor pageId={pageId} planType={planType} />
             </Suspense>
-          ) : null}
+          ) : (
+            <div className="flex items-center justify-center h-full bg-gray-50/50">
+               <div className="animate-pulse flex flex-col items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                     <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                  <p className="text-gray-400 font-medium">{t('bootingCanvas')}</p>
+               </div>
+            </div>
+          )}
         </div>
       </div>
     );
