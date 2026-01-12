@@ -20,6 +20,7 @@ import { useEffect, useRef, useState, ReactNode } from 'react';
 import { Link } from '@remix-run/react';
 import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe } from 'lucide-react';
 import { useIsMobile } from '~/hooks/useIsMobile';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // ============================================================================
 // TYPES
@@ -320,6 +321,7 @@ const StaggeredText = ({ text, className = '', delay = 0 }: { text: string; clas
 // LIVE SIGNUP COUNTER
 // ============================================================================
 const LiveSignupCounter = ({ count = 0 }: { count?: number }) => {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -333,11 +335,11 @@ const LiveSignupCounter = ({ count = 0 }: { count?: number }) => {
         transition={{ duration: 1.5, repeat: Infinity }}
       />
       <span className="text-white/50">
-        এখন পর্যন্ত{' '}
+        {t('heroSignupPrefix')}{' '}
         <span className="text-white font-semibold">
           {count.toLocaleString()}
         </span>
-        {' '}জন Signup করেছেন...
+        {' '}{t('heroSignupSuffix')}
       </span>
     </motion.div>
   );
@@ -347,6 +349,7 @@ const LiveSignupCounter = ({ count = 0 }: { count?: number }) => {
 // BUILDER MOCKUP - ANIMATED DEMO
 // ============================================================================
 const BuilderMockup = () => {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [isPublished, setIsPublished] = useState(false);
   
@@ -411,7 +414,7 @@ const BuilderMockup = () => {
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Sparkles className="w-4 h-4 text-[#F9A825]" />
-                  <span className="text-white/70 text-sm">টেমপ্লেট বাছুন</span>
+                  <span className="text-white/70 text-sm">{t('heroDemoTemplate')}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   {templates.map((tmpl, i) => (
@@ -475,10 +478,10 @@ const BuilderMockup = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                     >
-                      {step >= 3 ? 'ফ্যাশন হাউস বিডি' : 'আপনার স্টোরের নাম'}
+                      {step >= 3 ? t('heroDemoStoreName') : t('heroDemoStorePlaceholder')}
                     </motion.h3>
                     <p className="text-sm text-white/60">
-                      {step >= 3 ? 'সেরা মানের ফ্যাশন প্রোডাক্ট' : 'স্লোগান এখানে'}
+                      {step >= 3 ? t('heroDemoStoreSlogan') : t('heroDemoSloganPlaceholder')}
                     </p>
                   </div>
                   
@@ -507,14 +510,14 @@ const BuilderMockup = () => {
                     animate={step === 2 ? { scale: [1, 1.05, 1] } : {}}
                   >
                     <Palette className="w-3 h-3" />
-                    <span>থিম</span>
+                    <span>{t('heroDemoTheme')}</span>
                   </motion.div>
                   <motion.div
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${step === 3 ? 'bg-[#F9A825]/20 border border-[#F9A825]/50 text-[#F9A825]' : 'bg-white/5 text-white/50'}`}
                     animate={step === 3 ? { scale: [1, 1.05, 1] } : {}}
                   >
                     <Type className="w-3 h-3" />
-                    <span>কন্টেন্ট</span>
+                    <span>{t('heroDemoContent')}</span>
                   </motion.div>
                 </div>
                 
@@ -548,7 +551,7 @@ const BuilderMockup = () => {
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 />
-                <p className="text-white/60">পাবলিশ হচ্ছে...</p>
+                <p className="text-white/60">{t('heroDemoPublishing')}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -576,7 +579,7 @@ const BuilderMockup = () => {
                   transition={{ delay: 0.3 }}
                   className="text-2xl font-bold text-white mb-2"
                 >
-                  ✓ Published!
+                  ✓ {t('heroDemoPublished')}
                 </motion.p>
                 <motion.p
                   initial={{ opacity: 0 }}
@@ -584,7 +587,7 @@ const BuilderMockup = () => {
                   transition={{ delay: 0.5 }}
                   className="text-white/60"
                 >
-                  আপনার স্টোর এখন লাইভ 🎉
+                  {t('heroDemoLive')} 🎉
                 </motion.p>
               </motion.div>
             )}
@@ -609,8 +612,8 @@ const BuilderMockup = () => {
               <Sparkles className="w-4 h-4 text-black" />
             </div>
             <div>
-              <p className="text-white text-xs font-medium">৫ মিনিটে রেডি!</p>
-              <p className="text-white/50 text-[10px]">কোনো কোডিং লাগবে না</p>
+              <p className="text-white text-xs font-medium">{t('heroDemoReady')}</p>
+              <p className="text-white/50 text-[10px]">{t('heroDemoNoCoding')}</p>
             </div>
           </div>
         </motion.div>
@@ -640,7 +643,9 @@ const BuilderMockup = () => {
 // ============================================================================
 // MAIN HERO COMPONENT - THEME AWARE
 // ============================================================================
+
 export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) {
+  const { t } = useTranslation();
   const colors = getColors(theme);
   const isLight = theme === 'light';
   const isMobile = useIsMobile();
@@ -692,7 +697,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                 🇧🇩
               </motion.span>
               <span style={{ color: colors.textMuted }} className="text-sm">
-                বাংলাদেশের প্রথম বাংলা-ভিত্তিক বিল্ডার
+                {t('heroBadge')}
               </span>
             </motion.div>
             
@@ -702,11 +707,11 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
               style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
             >
               <StaggeredText 
-                text="বাংলায় বিজনেস," 
+                text={t('heroTitle1')} 
                 className={`block ${isLight ? 'text-[#0F172A]' : 'text-white'}`}
               />
               <StaggeredText 
-                text="বাংলাতেই বানান।" 
+                text={t('heroTitle2')} 
                 className="block bg-clip-text text-transparent"
                 delay={0.4}
               />
@@ -733,9 +738,9 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
               className="text-lg md:text-xl mb-10 max-w-xl leading-relaxed"
               style={{ color: colors.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
-              কোনো কোডিং নেই, কোনো ঝামেলা নেই।
+              {t('heroSubtitle1')}
               <br />
-              টেমপ্লেট বাছুন, কন্টেন্ট দিন — <span style={{ color: colors.text, fontWeight: 600 }}>৫ মিনিটে Online।</span>
+              {t('heroSubtitle2')} <span style={{ color: colors.text, fontWeight: 600 }}>{t('heroSubtitle3')}</span>
             </motion.p>
             
             {/* CTA Buttons */}
@@ -767,7 +772,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                   )}
-                  <span className="relative z-10">ফ্রিতে শুরু করুন</span>
+                  <span className="relative z-10">{t('heroCtaPrimary')}</span>
                   <motion.span
                     className="relative z-10"
                     animate={{ x: [0, 4, 0] }}
@@ -789,11 +794,11 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
             >
               <span className="flex items-center gap-1.5">
                 <Check className="w-4 h-4" style={{ color: colors.primary }} />
-                ক্রেডিট কার্ড লাগবে না
+                {t('heroTrust1')}
               </span>
               <span className="flex items-center gap-1.5">
                 <Check className="w-4 h-4" style={{ color: colors.primary }} />
-                ১ মিনিটে সাইনআপ
+                {t('heroTrust2')}
               </span>
             </motion.div>
             
@@ -814,7 +819,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
             >
               <Sparkles className="w-4 h-4" style={{ color: colors.accent }} />
               <span className="text-sm" style={{ color: colors.accent }}>
-                Beta User হিসেবে Join করুন — Early Adopter Benefits পাবেন
+                {t('heroBetaNotice')}
               </span>
             </motion.div>
           </div>
@@ -845,7 +850,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
           className="text-center mt-20"
         >
           <p className="text-sm" style={{ color: colors.textSubtle }}>
-            বাংলাদেশ থেকে, বাংলাদেশের জন্য 🇧🇩
+            {t('heroFooter')} 🇧🇩
           </p>
         </motion.div>
       </div>

@@ -107,4 +107,32 @@ export const onboarding = {
   storeNameRequired: 'স্টোরের নাম আবশ্যক',
   emailRequired: 'ইমেল আবশ্যক',
   passwordRequired: 'পাসওয়ার্ড আবশ্যক',
+  
+  // Plan Features
+  feature1Product: '১টি প্রোডাক্ট',
+  feature50Orders: '৫০টি অর্ডার/মাস',
+  featureLandingPageMode: 'ল্যান্ডিং পেজ মোড',
+  featureBasicSupport: 'বেসিক সাপোর্ট',
+  feature50Products: '৫০টি প্রোডাক্ট',
+  feature500Orders: '৫০০টি অর্ডার/মাস',
+  featureFullStoreMode: 'ফুল স্টোর মোড',
+  featureCustomDomain: 'কাস্টম ডোমেইন',
+  featureBkashNagad: 'বিকাশ/নগদ পেমেন্ট',
+  feature200Products: '২০০টি প্রোডাক্ট',
+  feature3000Orders: '৩০০০টি অর্ডার/মাস',
+  featureFbApi: 'ফেসবুক কনভার্সন API',
+  featurePrioritySupport: 'প্রায়োরিটি সাপোর্ট',
+  feature247Support: '২৪/৭ সাপোর্ট',
+  
+  // Placeholders & Meta
+  placeholderName: 'রহিম উদ্দিন',
+  placeholderEmail: 'you@example.com',
+  placeholderStoreName: 'আমার দারুন স্টোর',
+  placeholderSubdomain: 'my-store',
+  metaTitle: 'আপনার স্টোর তৈরি করুন - Multi-Store SaaS',
+  
+  // Errors
+  emailAlreadyRegistered: 'এই ইমেইল আগেই রেজিস্টার করা হয়েছে। অনুগ্রহ করে লগইন করুন।',
+  failedToCreateStore: 'স্টোর তৈরি করতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
+  invalidStep: 'অবৈধ ধাপ',
 };

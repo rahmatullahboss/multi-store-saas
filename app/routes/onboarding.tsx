@@ -51,16 +51,10 @@ const PLAN_OPTIONS = [
     icon: Gift,
     color: 'gray',
     features: [
-      '1 Product',
-      '50 Orders/Month',
-      'Landing Page Mode',
-      'Basic Support',
-    ],
-    featuresBn: [
-      '১টি প্রোডাক্ট',
-      '৫০টি অর্ডার/মাস',
-      'ল্যান্ডিং পেজ মোড',
-      'বেসিক সাপোর্ট',
+      'feature1Product',
+      'feature50Orders',
+      'featureLandingPageMode',
+      'featureBasicSupport',
     ],
   },
   { 
@@ -72,18 +66,11 @@ const PLAN_OPTIONS = [
     color: 'emerald',
     popular: true,
     features: [
-      '50 Products',
-      '500 Orders/Month',
-      'Full Store Mode',
-      'Custom Domain',
-      'bKash/Nagad Payment',
-    ],
-    featuresBn: [
-      '৫০টি প্রোডাক্ট',
-      '৫০০টি অর্ডার/মাস',
-      'ফুল স্টোর মোড',
-      'কাস্টম ডোমেইন',
-      'বিকাশ/নগদ পেমেন্ট',
+      'feature50Products',
+      'feature500Orders',
+      'featureFullStoreMode',
+      'featureCustomDomain',
+      'featureBkashNagad',
     ],
   },
   { 
@@ -94,20 +81,12 @@ const PLAN_OPTIONS = [
     icon: Crown,
     color: 'purple',
     features: [
-      '200 Products',
-      '3000 Orders/Month',
-      'Facebook Conversion API',
-      'Custom Domain',
-      'Priority Support',
-      '24/7 Support',
-    ],
-    featuresBn: [
-      '২০০টি প্রোডাক্ট',
-      '৩০০০টি অর্ডার/মাস',
-      'ফেসবুক কনভার্সন API',
-      'কাস্টম ডোমেইন',
-      'প্রায়োরিটি সাপোর্ট',
-      '২৪/৭ সাপোর্ট',
+      'feature200Products',
+      'feature3000Orders',
+      'featureFbApi',
+      'featureCustomDomain',
+      'featurePrioritySupport',
+      'feature247Support',
     ],
   },
 ];
@@ -203,7 +182,7 @@ const CATEGORY_TEMPLATES: Record<string, {
 };
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Create Your Store - Multi-Store SaaS' }];
+  return [{ title: 'metaTitle' }];
 };
 
 // Redirect if already logged in AND onboarding is completed
@@ -265,8 +244,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     
     if (existingUser.length > 0) {
       return json({ 
-        error: 'এই ইমেইল আগেই রেজিস্টার করা হয়েছে। অনুগ্রহ করে লগইন করুন।', 
-        errorEn: 'Email already registered. Please login instead.',
+        error: t('emailAlreadyRegistered'), 
         field: 'email',
         emailExists: true 
       }, { status: 400 });
@@ -409,13 +387,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     } catch (error) {
       console.error('[Onboarding] Error:', error);
       return json({ 
-        error: 'Failed to create store. Please try again.',
+        error: t('failedToCreateStore'),
         details: error instanceof Error ? error.message : 'Unknown error'
       }, { status: 500 });
     }
   }
 
-  return json({ error: 'Invalid step' }, { status: 400 });
+  return json({ error: t('invalidStep') }, { status: 400 });
 }
 
 export default function OnboardingPage() {
@@ -679,7 +657,7 @@ export default function OnboardingPage() {
                   value={formData.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Rahim Uddin"
+                  placeholder={t('placeholderName')}
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
@@ -695,7 +673,7 @@ export default function OnboardingPage() {
                   value={formData.email}
                   onChange={(e) => updateField('email', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="you@example.com"
+                  placeholder={t('placeholderEmail')}
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
@@ -768,7 +746,7 @@ export default function OnboardingPage() {
                   value={formData.storeName}
                   onChange={(e) => updateField('storeName', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Fashion House BD"
+                  placeholder={t('placeholderStoreName')}
                 />
                 {errors.storeName && <p className="text-red-500 text-sm mt-1">{errors.storeName}</p>}
               </div>
@@ -787,7 +765,7 @@ export default function OnboardingPage() {
                       updateField('subdomain', cleaned);
                     }}
                     className="flex-1 px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    placeholder="my-store"
+                    placeholder={t('placeholderSubdomain')}
                   />
                   <span className="px-4 py-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-xl text-gray-500 text-sm">
                     .digitalcare.site
@@ -835,7 +813,7 @@ export default function OnboardingPage() {
                 {PLAN_OPTIONS.map((plan) => {
                   const Icon = plan.icon;
                   const isSelected = formData.selectedPlan === plan.id;
-                  const features = language === 'bn' ? plan.featuresBn : plan.features;
+                  const features = plan.features;
                   
                   return (
                     <button
@@ -881,7 +859,7 @@ export default function OnboardingPage() {
                         {features.map((feature, idx) => (
                           <li key={idx} className="flex items-center gap-2 text-sm text-gray-600">
                             <Check className="w-4 h-4 text-emerald-500" />
-                            {feature}
+                            {t(feature)}
                           </li>
                         ))}
                       </ul>

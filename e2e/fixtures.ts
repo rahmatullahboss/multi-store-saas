@@ -86,19 +86,25 @@ export class AuthPage {
   }
   
   async register(name: string, email: string, password: string, storeName: string, subdomain: string) {
+    // Step 1: Account
     await this.page.fill('input[name="name"]', name);
     await this.page.fill('input[name="email"]', email);
     await this.page.fill('input[name="password"]', password);
-    await this.page.fill('input[name="storeName"]', storeName);
+    // Add phone as it is mandatory now
+    await this.page.fill('input[name="phone"]', '01712345678');
+    await this.page.getByRole('button', { name: /Continue|Next|এগিয়ে যান/i }).click();
     
-    // Check if we need to show custom subdomain field
-    const customToggle = this.page.locator('#useCustomSubdomain');
-    if (await customToggle.isVisible()) {
-      await customToggle.check();
-      await this.page.fill('input[name="subdomain"]', subdomain);
-    }
+    // Step 2: Store Setup
+    await this.page.waitForTimeout(2000);
+    await this.page.getByPlaceholder(/Fashion House BD|Store Name/i).fill(storeName);
+    await this.page.getByPlaceholder(/my-store|subdomain/i).fill(subdomain);
+    // Select a category
+    await this.page.getByRole('button', { name: /Fashion|ফ্যাশন/i }).click();
+    await this.page.getByRole('button', { name: /Continue|Next|এগিয়ে যান/i }).click();
     
-    await this.page.click('button[type="submit"]');
+    // Step 3: Plan Selection
+    await this.page.waitForTimeout(2000);
+    await this.page.getByRole('button', { name: /Create My Store|আমার স্টোর তৈরি করুন/i }).click();
   }
   
   async loginWithGoogle() {
@@ -179,7 +185,7 @@ export class StorefrontPage {
   constructor(private page: Page) {}
   
   async goto(subdomain: string) {
-    await this.page.goto(`/${subdomain}`);
+    await this.page.goto(`http://${subdomain}.localhost:5173/`);
   }
   
   async clickProduct(productTitle: string) {

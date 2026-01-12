@@ -1,0 +1,1657 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e5]:
+      - link "Multi-Store" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e12]: Multi-Store
+      - generic [ref=e13]:
+        - link "বিলিং" [ref=e14] [cursor=pointer]:
+          - /url: /pricing
+        - link "টিউটোরিয়াল" [ref=e15] [cursor=pointer]:
+          - /url: /tutorials
+        - button "BN" [ref=e16]:
+          - img [ref=e17]
+          - text: BN
+        - link "লগইন" [ref=e21] [cursor=pointer]:
+          - /url: /auth/login
+        - link "নিবন্ধন" [ref=e23] [cursor=pointer]:
+          - /url: /auth/register
+  - generic [ref=e24]:
+    - generic:
+      - generic: অ
+      - generic: আ
+      - generic: ই
+      - generic: ক
+      - generic: খ
+      - generic: গ
+      - generic: ব
+      - generic: ম
+      - generic: স
+      - generic: হ
+      - generic: ড
+      - generic: ন
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]: 🇧🇩
+            - generic [ref=e36]: বাংলাদেশের প্রথম বাংলা-ভিত্তিক বিল্ডার
+          - heading "বাংলায় বিজনেস, বাংলাতেই বানান।" [level=1] [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e39]: বাংলায়
+              - generic [ref=e40]: বিজনেস,
+            - generic [ref=e41]:
+              - generic [ref=e42]: বাংলাতেই
+              - generic [ref=e43]: বানান।
+          - paragraph [ref=e44]:
+            - text: কোনো কোডিং নেই, কোনো ঝামেলা নেই।
+            - text: টেমপ্লেট বাছুন, কন্টেন্ট দিন — ৫ মিনিটে Online।
+          - link "ফ্রিতে শুরু করুন" [ref=e47] [cursor=pointer]:
+            - /url: /auth/register
+            - generic [ref=e49]: ফ্রিতে শুরু করুন
+            - img [ref=e51]
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - img [ref=e56]
+              - text: ক্রেডিট কার্ড লাগবে না
+            - generic [ref=e58]:
+              - img [ref=e59]
+              - text: ১ মিনিটে সাইনআপ
+          - generic [ref=e63]: এখন পর্যন্ত 24 জন Signup করেছেন...
+          - generic [ref=e64]:
+            - img [ref=e65]
+            - generic [ref=e70]: Beta User হিসেবে Join করুন — Early Adopter Benefits পাবেন
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - generic [ref=e79]:
+              - img [ref=e80]
+              - generic [ref=e84]: your-store.bikrimart.com
+            - generic [ref=e86]:
+              - img [ref=e88]
+              - paragraph [ref=e90]: ✓ Published!
+              - paragraph [ref=e91]: আপনার স্টোর এখন লাইভ 🎉
+          - generic [ref=e94]:
+            - img [ref=e96]
+            - generic [ref=e101]:
+              - paragraph [ref=e102]: ৫ মিনিটে রেডি!
+              - paragraph [ref=e103]: কোনো কোডিং লাগবে না
+      - paragraph [ref=e111]: বাংলাদেশ থেকে, বাংলাদেশের জন্য 🇧🇩
+  - generic [ref=e114]:
+    - generic [ref=e115]:
+      - generic [ref=e120]: বাংলাদেশের প্রথম AI-Powered E-commerce Platform
+      - heading "AI দিয়ে বানান, AI দিয়ে বিক্রি করুন।" [level=1] [ref=e121]:
+        - generic [ref=e122]: AI দিয়ে বানান,
+        - generic [ref=e123]: AI দিয়ে বিক্রি করুন।
+      - paragraph [ref=e124]: Drag & Drop এ Store বানান, AI আপনার ও আপনার Customer দের সাহায্য করবে ২৪/৭।
+      - link "ফ্রিতে শুরু করুন" [ref=e126] [cursor=pointer]:
+        - /url: /auth/register
+        - generic [ref=e128]:
+          - img [ref=e129]
+          - text: ফ্রিতে শুরু করুন
+      - generic [ref=e134]:
+        - generic [ref=e135]:
+          - img [ref=e136]
+          - generic [ref=e143]: AI-Powered
+        - generic [ref=e144]:
+          - img [ref=e145]
+          - generic [ref=e147]: 310+ CDN
+        - generic [ref=e148]:
+          - img [ref=e149]
+          - generic [ref=e153]: Drag & Drop
+        - generic [ref=e154]:
+          - img [ref=e155]
+          - generic [ref=e159]: বাংলা
+    - generic [ref=e162]:
+      - generic [ref=e163]:
+        - generic [ref=e164]:
+          - img [ref=e177]
+          - generic [ref=e182]: Drag & Drop Editor
+        - paragraph [ref=e186]: 💬 "এই Product এর দাম কত?"
+      - generic [ref=e192]:
+        - img [ref=e193]
+        - generic [ref=e198]: AI Logic
+      - generic [ref=e199]:
+        - img [ref=e200]
+        - generic [ref=e202]: Fast CDN
+  - generic [ref=e204]:
+    - heading "কেন কষ্ট করবেন, যখন আছে সহজ উপায়?" [level=2] [ref=e206]
+    - generic [ref=e208]:
+      - generic [ref=e210]:
+        - generic [ref=e212]:
+          - generic [ref=e213]: 😫
+          - heading "এখনো এভাবে কষ্ট করছেন?" [level=3] [ref=e214]
+        - generic [ref=e215]:
+          - generic [ref=e218]:
+            - img [ref=e220]
+            - generic [ref=e223]:
+              - img [ref=e224]
+              - paragraph [ref=e226]: Facebook এ Post করে করে ক্লান্ত
+          - generic [ref=e229]:
+            - img [ref=e231]
+            - generic [ref=e234]:
+              - img [ref=e235]
+              - paragraph [ref=e238]: Developer এর পেছনে দৌড়ানো
+          - generic [ref=e241]:
+            - img [ref=e243]
+            - generic [ref=e246]:
+              - img [ref=e247]
+              - paragraph [ref=e254]: Excel এ Order Track করা
+          - generic [ref=e257]:
+            - img [ref=e259]
+            - generic [ref=e262]:
+              - img [ref=e263]
+              - paragraph [ref=e266]: Shopify র মাসে ৫০০০+ টাকা
+          - generic [ref=e269]:
+            - img [ref=e271]
+            - generic [ref=e274]:
+              - img [ref=e275]
+              - paragraph [ref=e279]: ইংরেজি Platform এ বুঝতে না পারা
+      - generic [ref=e281]:
+        - generic [ref=e283]:
+          - generic [ref=e284]: ✨
+          - heading "এখন সব সহজ" [level=3] [ref=e285]
+        - generic [ref=e286]:
+          - generic [ref=e287]:
+            - generic [ref=e288]: ১
+            - paragraph [ref=e289]: Template বাছুন
+          - generic [ref=e291]:
+            - generic [ref=e292]: ২
+            - paragraph [ref=e293]: Content দিন
+          - generic [ref=e295]:
+            - generic [ref=e296]: ৩
+            - paragraph [ref=e297]: Publish করুন
+        - generic [ref=e300]:
+          - img [ref=e301]
+          - generic [ref=e311]: আপনার Store Ready!
+          - generic [ref=e312]: 🎉
+        - generic [ref=e313]:
+          - generic [ref=e314]:
+            - img [ref=e315]
+            - generic [ref=e320]: সব কিছু বাংলায়
+          - generic [ref=e321]:
+            - img [ref=e322]
+            - generic [ref=e328]: Live Preview
+          - generic [ref=e329]:
+            - img [ref=e330]
+            - generic [ref=e335]: ফ্রিতে শুরু
+  - generic [ref=e340]:
+    - generic [ref=e341]:
+      - generic [ref=e342]:
+        - img [ref=e343]
+        - generic [ref=e348]: টোটাল AI সুইট
+      - heading "সর্বত্র AI — আপনার জন্য, কাস্টমারের জন্য" [level=2] [ref=e349]
+      - paragraph [ref=e350]: শুধু একটি নয়, তিনটি শক্তিশালী AI একসাথে কাজ করবে আপনার ব্যবসা বাড়াতে
+    - generic [ref=e351]:
+      - generic [ref=e352]:
+        - button "ভিজিটর এআই ক্রেতাদের জন্য" [ref=e353]:
+          - generic [ref=e354]:
+            - img [ref=e356]
+            - generic [ref=e358]:
+              - heading "ভিজিটর এআই" [level=3] [ref=e359]
+              - paragraph [ref=e360]: ক্রেতাদের জন্য
+        - button "মার্চেন্ট এআই আপনার জন্য" [ref=e361]:
+          - generic [ref=e363]:
+            - img [ref=e365]
+            - generic [ref=e379]:
+              - heading "মার্চেন্ট এআই" [level=3] [ref=e380]
+              - paragraph [ref=e381]: আপনার জন্য
+        - button "কাস্টমার এআই পরবর্তী ধাপ" [ref=e383]:
+          - generic [ref=e384]:
+            - img [ref=e386]
+            - generic [ref=e390]:
+              - heading "কাস্টমার এআই" [level=3] [ref=e391]
+              - paragraph [ref=e392]: পরবর্তী ধাপ
+      - generic [ref=e395]:
+        - generic [ref=e396]:
+          - generic [ref=e399]:
+            - generic [ref=e400]: ড্যাশবোর্ড
+            - generic [ref=e401]: পণ্য
+            - generic [ref=e402]: অর্ডার
+            - generic [ref=e403]: অ্যানালিটিক্স
+          - img [ref=e406]
+        - generic [ref=e412]:
+          - generic [ref=e413]:
+            - heading "ড্যাশবোর্ড" [level=3] [ref=e414]:
+              - img [ref=e415]
+              - text: ড্যাশবোর্ড
+            - generic [ref=e420]:
+              - generic [ref=e421]:
+                - paragraph [ref=e422]: আজকের বিক্রি
+                - heading "৳45,230" [level=4] [ref=e423]
+                - paragraph [ref=e424]:
+                  - img [ref=e425]
+                  - text: +23%
+              - generic [ref=e428]:
+                - paragraph [ref=e429]: অর্ডার
+                - heading "23" [level=4] [ref=e430]
+                - paragraph [ref=e431]:
+                  - img [ref=e432]
+                  - text: +12%
+              - generic [ref=e435]:
+                - paragraph [ref=e436]: Visitors
+                - heading "1,247" [level=4] [ref=e437]
+          - generic [ref=e441]:
+            - generic [ref=e442]:
+              - img [ref=e443]
+              - generic [ref=e448]: Ozzyl অ্যাডভাইজার
+            - generic [ref=e450]:
+              - generic [ref=e451]: আজকের ব্যবসার অবস্থা কি?
+              - generic [ref=e452]:
+                - generic [ref=e453]:
+                  - img [ref=e454]
+                  - generic [ref=e461]: ইনসাইট
+                - text: "দারুণ! বিক্রি হয়েছে {total}। শেষ ১ ঘণ্টায় ৫টি নতুন অর্ডার এসেছে।"
+                - generic [ref=e462]: "উর্ধ্বমুখী: গত সপ্তাহের চেয়ে +{percent}% বেশি"
+            - generic [ref=e463]:
+              - paragraph [ref=e464]: পরামর্শসমূহ
+              - generic [ref=e465]:
+                - button "ইনভেন্টরি রিস্টক করুন" [ref=e466]:
+                  - img [ref=e467]
+                  - generic [ref=e472]: ইনভেন্টরি রিস্টক করুন
+                - button "৫০০ ইউজারকে ইমেইল ক্যাম্পেইন করুন" [ref=e473]:
+                  - img [ref=e474]
+                  - generic [ref=e479]: ৫০০ ইউজারকে ইমেইল ক্যাম্পেইন করুন
+                - button "পেন্ডিং অর্ডার চেক করুন" [ref=e480]:
+                  - img [ref=e481]
+                  - generic [ref=e485]: পেন্ডিং অর্ডার চেক করুন
+  - generic [ref=e488]:
+    - generic [ref=e489]:
+      - generic [ref=e490]:
+        - img [ref=e491]
+        - generic [ref=e498]: ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার
+      - heading "🎨 ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার — নিজের ইচ্ছেমতো কাস্টমাইজ করুন" [level=2] [ref=e499]
+      - paragraph [ref=e500]: এলিমেন্টরের মতো — কিন্তু আরও সহজ। কোডিং ছাড়াই পেশাদার ওয়েবসাইট তৈরি করুন।
+    - generic [ref=e503]:
+      - generic [ref=e504]:
+        - generic [ref=e505]: উইজেটস
+        - generic [ref=e506]:
+          - generic [ref=e507]:
+            - img [ref=e508]
+            - generic [ref=e512]: টেক্সট
+          - generic [ref=e513]:
+            - img [ref=e514]
+            - generic [ref=e518]: ছবি
+          - generic [ref=e519]:
+            - img [ref=e520]
+            - generic [ref=e522]: বাটন
+          - generic [ref=e523]:
+            - img [ref=e524]
+            - generic [ref=e530]: ফর্ম
+          - generic [ref=e531]:
+            - img [ref=e532]
+            - generic [ref=e537]: চার্ট
+          - generic [ref=e538]:
+            - img [ref=e539]
+            - generic [ref=e542]: ভিডিও
+          - generic [ref=e543]:
+            - img [ref=e544]
+            - generic [ref=e546]: রিভিউ
+      - generic [ref=e552]:
+        - generic [ref=e571]:
+          - generic [ref=e573]:
+            - img [ref=e574]
+            - img [ref=e576]
+            - img [ref=e578]
+            - img [ref=e580]
+            - img [ref=e582]
+          - generic [ref=e587]:
+            - img [ref=e588]
+            - img [ref=e590]
+            - img [ref=e592]
+            - img [ref=e594]
+            - img [ref=e596]
+          - generic [ref=e601]:
+            - img [ref=e602]
+            - img [ref=e604]
+            - img [ref=e606]
+            - img [ref=e608]
+            - img [ref=e610]
+        - generic [ref=e616]:
+          - generic [ref=e618]:
+            - img [ref=e619]
+            - img [ref=e621]
+            - img [ref=e623]
+            - img [ref=e625]
+            - img [ref=e627]
+          - generic [ref=e632]:
+            - img [ref=e633]
+            - img [ref=e635]
+            - img [ref=e637]
+            - img [ref=e639]
+            - img [ref=e641]
+          - generic [ref=e646]:
+            - img [ref=e647]
+            - img [ref=e649]
+            - img [ref=e651]
+            - img [ref=e653]
+            - img [ref=e655]
+        - generic [ref=e660]: এখানে ড্রপ করুন
+    - generic [ref=e661]:
+      - generic [ref=e662]:
+        - img [ref=e664]
+        - heading "পিক্সেল পারফেক্ট" [level=3] [ref=e668]
+        - paragraph [ref=e669]: যেখানে খুশি সেখানে বসান
+      - generic [ref=e670]:
+        - img [ref=e672]
+        - heading "রেসপন্সিভ" [level=3] [ref=e675]
+        - paragraph [ref=e676]: মোবাইল, ট্যাবলেট, ডেস্কটপ — সব জায়গায় নিখুঁত
+      - generic [ref=e677]:
+        - img [ref=e679]
+        - heading "লাইভ প্রিভিউ" [level=3] [ref=e682]
+        - paragraph [ref=e683]: রিয়েল-টাইমে দেখুন কেমন দেখাচ্ছে
+      - generic [ref=e684]:
+        - img [ref=e686]
+        - heading "অটো সেভ" [level=3] [ref=e690]
+        - paragraph [ref=e691]: কিছুই হারাবে না, সবকিছু সেভ হয়ে যাবে
+      - generic [ref=e692]:
+        - img [ref=e694]
+        - heading "আনডু/রিডু" [level=3] [ref=e697]
+        - paragraph [ref=e698]: ভুল হলে আগের অবস্থায় ফিরে যান
+      - generic [ref=e699]:
+        - img [ref=e701]
+        - heading "কপি/পেস্ট" [level=3] [ref=e704]
+        - paragraph [ref=e705]: সেকশন কপি করে অন্য কোথাও বসান
+  - generic [ref=e710]:
+    - generic [ref=e711]:
+      - generic [ref=e713]: নমনীয় ওয়ার্কফ্লো
+      - heading "আপনার পছন্দ, আপনার স্টাইল" [level=2] [ref=e714]
+      - paragraph [ref=e715]: দুইটি মোড, একটি লক্ষ্য — আপনার সুবিধা। যেভাবে খুশি সেভাবে কাজ করুন।
+    - generic [ref=e716]:
+      - generic [ref=e719]:
+        - generic [ref=e720]:
+          - img [ref=e722]
+          - generic [ref=e724]:
+            - heading "সিম্পল মোড" [level=3] [ref=e725]
+            - paragraph [ref=e726]: দ্রুত ও সহজ
+        - generic [ref=e727]:
+          - generic [ref=e728]:
+            - img [ref=e729]
+            - text: টেমপ্লেট নির্বাচন
+          - generic [ref=e733]: ↓
+          - generic [ref=e734]:
+            - img [ref=e735]
+            - text: কন্টেন্ট পূরণ
+          - generic [ref=e737]: ↓
+          - generic [ref=e738]: 🚀 পাবলিশ!
+        - generic [ref=e739]:
+          - generic [ref=e740]:
+            - img [ref=e741]
+            - generic [ref=e744]:
+              - generic [ref=e745]: ৫ মিনিটে রেডি
+              - generic [ref=e746]: কোডিং লাগবে না
+          - generic [ref=e747]:
+            - img [ref=e748]
+            - generic [ref=e751]:
+              - generic [ref=e752]: শেখার প্রয়োজন নেই
+              - generic [ref=e753]: সবকিছু তৈরি করা আছে
+          - generic [ref=e754]:
+            - img [ref=e755]
+            - generic [ref=e758]:
+              - generic [ref=e759]: সহজ টেমপ্লেট পরিবর্তন
+              - generic [ref=e760]: এক ক্লিকে ডিজাইন পরিবর্তন
+          - generic [ref=e761]:
+            - img [ref=e762]
+            - generic [ref=e765]:
+              - generic [ref=e766]: নতুনদের জন্য
+              - generic [ref=e767]: সবচেয়ে সহজ উপায়
+        - generic [ref=e768]:
+          - paragraph [ref=e769]: "জন্য সেরা:"
+          - paragraph [ref=e771]: "\"আমি দ্রুত লঞ্চ করতে চাই\""
+          - link "সিম্পল দিয়ে শুরু করুন" [ref=e772] [cursor=pointer]:
+            - /url: /auth/register?mode=simple
+            - text: সিম্পল দিয়ে শুরু করুন
+            - img [ref=e773]
+      - generic [ref=e778]:
+        - generic [ref=e779]:
+          - img [ref=e781]
+          - generic [ref=e787]:
+            - heading "প্রো মোড" [level=3] [ref=e788]
+            - paragraph [ref=e789]: ফুল কন্ট্রোল
+        - generic [ref=e790]:
+          - generic [ref=e791]:
+            - img [ref=e792]
+            - text: ড্র্যাগ অ্যান্ড ড্রপ
+          - generic [ref=e794]: ↓
+          - generic [ref=e795]:
+            - img [ref=e796]
+            - text: কাস্টমাইজেশন
+          - generic [ref=e802]: ↓
+          - generic [ref=e803]: 🚀 পাবলিশ!
+        - generic [ref=e804]:
+          - generic [ref=e805]:
+            - img [ref=e806]
+            - generic [ref=e809]:
+              - generic [ref=e810]: পিক্সেল পারফেক্ট ডিজাইন
+              - generic [ref=e811]: প্রতিটি পিক্সেল কন্ট্রোল করুন
+          - generic [ref=e812]:
+            - img [ref=e813]
+            - generic [ref=e816]:
+              - generic [ref=e817]: আনলিমিটেড উইজেট
+              - generic [ref=e818]: ৫০+ উইজেট কালেকশন
+          - generic [ref=e819]:
+            - img [ref=e820]
+            - generic [ref=e823]:
+              - generic [ref=e824]: সম্পূর্ণ স্বাধীনতা
+              - generic [ref=e825]: যেভাবে খুশি সেভাবে সাজান
+          - generic [ref=e826]:
+            - img [ref=e827]
+            - generic [ref=e830]:
+              - generic [ref=e831]: এক্সপার্টদের জন্য
+              - generic [ref=e832]: প্রফেশনাল ফিনিশিং
+        - generic [ref=e833]:
+          - paragraph [ref=e834]: "জন্য সেরা:"
+          - paragraph [ref=e836]: "\"আমি সবকিছু নিজের মতো করতে চাই\""
+          - link "প্রো মোড ট্রাই করুন" [ref=e837] [cursor=pointer]:
+            - /url: /auth/register?mode=pro
+            - text: প্রো মোড ট্রাই করুন
+            - img [ref=e838]
+    - generic [ref=e841]:
+      - generic [ref=e842]:
+        - generic [ref=e843]:
+          - img [ref=e844]
+          - text: সিম্পল
+        - generic [ref=e849]: আপনি যেকোনো জায়গায় থাকতে পারেন
+        - generic [ref=e850]:
+          - text: প্রো
+          - img [ref=e851]
+      - paragraph [ref=e858]: 💡 আপনি যেকোনো সময় মোড পরিবর্তন করতে পারবেন!
+  - generic [ref=e860]:
+    - generic [ref=e861]:
+      - generic [ref=e862]:
+        - img [ref=e863]
+        - text: +
+        - img [ref=e870]
+        - text: = ✨
+      - heading "🤖 AI + 🎨 Builder = Magic ✨" [level=2] [ref=e876]
+      - paragraph [ref=e877]: AI এবং বিল্ডার একসাথে — অসাধারণ অভিজ্ঞতা। আপনি স্টোর বানাবেন, AI বিক্রি করবে।
+    - generic [ref=e878]:
+      - generic [ref=e879]:
+        - img [ref=e881]
+        - generic [ref=e887]:
+          - generic [ref=e888]: ধাপ ১
+          - generic [ref=e889]: বিল্ড
+      - img [ref=e890]
+      - generic [ref=e893]:
+        - img [ref=e895]
+        - generic [ref=e902]:
+          - generic [ref=e903]: ধাপ ২
+          - generic [ref=e904]: অটোমেট
+      - img [ref=e905]
+      - generic [ref=e908]:
+        - img [ref=e910]
+        - generic [ref=e914]:
+          - generic [ref=e915]: ধাপ ৩
+          - generic [ref=e916]: সেল
+    - generic [ref=e917]:
+      - generic [ref=e918]:
+        - generic [ref=e919]:
+          - img [ref=e921]
+          - generic [ref=e923]:
+            - generic [ref=e924]: 02:00 AM
+            - generic [ref=e925]: আপনি ঘুমাচ্ছেন 😴
+        - generic [ref=e927]:
+          - generic [ref=e928]: মোট বিক্রি
+          - generic [ref=e929]: ৳0
+      - generic [ref=e930]:
+        - generic [ref=e935]:
+          - generic [ref=e936]:
+            - generic [ref=e937]: AI
+            - generic [ref=e938]: অনলাইন • অটো-রিপ্লাই
+          - generic [ref=e939]: এই জ্যাকেটটি কি XL সাইজে আছে?
+        - generic [ref=e945]:
+          - generic [ref=e946]: 08:00
+          - generic [ref=e947]: Thursday, January 10
+      - generic [ref=e951]: 💡 আপনি ঘুমান, AI কাস্টমার হ্যান্ডেল করবে...
+  - generic [ref=e953]:
+    - generic [ref=e954]:
+      - generic [ref=e955]: বাংলাদেশে প্রথমবার
+      - heading "ই-কমার্স প্ল্যাটফর্মে এই লেভেলের AI" [level=2] [ref=e956]
+    - generic [ref=e958]:
+      - generic [ref=e959]:
+        - generic [ref=e960]: প্ল্যাটফর্ম
+        - generic [ref=e961]: ভিজিটর এআই
+        - generic [ref=e962]: মার্চেন্ট এআই
+        - generic [ref=e963]: কাস্টমার এআই
+      - generic [ref=e964]:
+        - generic [ref=e965]: Shopify
+        - img [ref=e967]
+        - img [ref=e971]
+        - img [ref=e975]
+      - generic [ref=e978]:
+        - generic [ref=e979]: WooCommerce
+        - img [ref=e981]
+        - img [ref=e985]
+        - img [ref=e989]
+      - generic [ref=e992]:
+        - generic [ref=e993]: Local Platforms
+        - img [ref=e995]
+        - img [ref=e999]
+        - img [ref=e1003]
+      - generic [ref=e1006]:
+        - generic [ref=e1007]:
+          - generic [ref=e1008]: 🏆
+          - text: OZZYL
+          - generic [ref=e1009]: (সব ৩টি আছে)
+        - img [ref=e1011]
+        - img [ref=e1014]
+        - img [ref=e1017]
+    - generic [ref=e1019]:
+      - generic [ref=e1020]:
+        - img [ref=e1022]
+        - heading "স্টাফ খরচ সাশ্রয়" [level=3] [ref=e1024]
+        - paragraph [ref=e1025]: কাস্টমার সাপোর্ট স্টাফের প্রয়োজন নেই
+      - generic [ref=e1026]:
+        - img [ref=e1028]
+        - heading "২৪/৭ পাওয়া যায়" [level=3] [ref=e1031]
+        - paragraph [ref=e1032]: রাত ২টায়ও আপনার কাস্টমারকে উত্তর দেওয়ার কেউ আছে!
+      - generic [ref=e1033]:
+        - img [ref=e1035]
+        - heading "হায়ারিং ছাড়াই ব্যবসা বড় করুন" [level=3] [ref=e1038]
+        - paragraph [ref=e1039]: একসাথে ১০০০ কাস্টমার হ্যান্ডেল করতে পারে
+      - generic [ref=e1040]:
+        - img [ref=e1042]
+        - heading "খুশি কাস্টমার" [level=3] [ref=e1047]
+        - paragraph [ref=e1048]: তাত্ক্ষণিক উত্তর = বিশ্বাস
+    - generic [ref=e1049]:
+      - paragraph [ref=e1050]: পাওয়ারড বাই
+      - generic [ref=e1051]:
+        - generic [ref=e1052]:
+          - img [ref=e1053]
+          - generic [ref=e1068]: OpenAI
+        - generic [ref=e1070]:
+          - img [ref=e1071]
+          - generic [ref=e1086]: Anthropic
+        - generic [ref=e1088]:
+          - img [ref=e1089]
+          - generic [ref=e1091]: Advanced NLP
+      - paragraph [ref=e1092]: বিশ্বের সেরা AI প্রযুক্তি — বাংলায়
+  - generic [ref=e1094]:
+    - generic [ref=e1095]:
+      - generic [ref=e1096]:
+        - img [ref=e1097]
+        - generic [ref=e1102]: Features
+      - heading "সহজ Features, শক্তিশালী Results" [level=2] [ref=e1103]
+    - generic [ref=e1104]:
+      - generic [ref=e1105]:
+        - generic [ref=e1108] [cursor=pointer]:
+          - generic [ref=e1109]:
+            - img [ref=e1111]
+            - generic [ref=e1117]:
+              - heading "Template Library" [level=3] [ref=e1118]
+              - paragraph [ref=e1119]: Professional Templates একটা ক্লিকে
+          - generic [ref=e1120]:
+            - img [ref=e1124]
+            - generic [ref=e1129]:
+              - img [ref=e1131]
+              - paragraph [ref=e1134]: Luxe
+            - img [ref=e1140]
+            - img [ref=e1147]
+        - generic [ref=e1151]:
+          - generic [ref=e1154] [cursor=pointer]:
+            - generic [ref=e1155]:
+              - img [ref=e1157]
+              - heading "Live Preview" [level=3] [ref=e1160]
+            - paragraph [ref=e1161]: যা Edit করবেন, সাথে সাথে দেখবেন
+            - generic [ref=e1162]:
+              - generic [ref=e1163]:
+                - generic [ref=e1164]: EDITOR
+                - generic [ref=e1165]: "title: \"স্বাগতম\""
+              - generic [ref=e1166]:
+                - generic [ref=e1167]: PREVIEW
+                - generic [ref=e1168]: স্বাগতম
+          - generic [ref=e1171] [cursor=pointer]:
+            - generic [ref=e1172]:
+              - img [ref=e1174]
+              - heading "🔀 Section Rearrange" [level=3] [ref=e1181]
+            - paragraph [ref=e1182]: নিজের মতো সাজান
+            - generic [ref=e1183]:
+              - generic [ref=e1184]:
+                - img [ref=e1185]
+                - generic [ref=e1192]: Hero
+              - generic [ref=e1193]:
+                - img [ref=e1194]
+                - generic [ref=e1201]: CTA
+              - generic [ref=e1202]:
+                - img [ref=e1203]
+                - generic [ref=e1210]: Features
+      - generic [ref=e1211]:
+        - generic [ref=e1213] [cursor=pointer]:
+          - generic [ref=e1217]:
+            - img [ref=e1219]
+            - heading "🇧🇩 বাংলা Support" [level=3] [ref=e1226]
+          - paragraph [ref=e1228]: Interface, Support, Everything
+        - generic [ref=e1230] [cursor=pointer]:
+          - generic [ref=e1231]:
+            - img [ref=e1233]
+            - heading "📱 Mobile Ready" [level=3] [ref=e1236]
+          - paragraph [ref=e1237]: সব Device এ Perfect
+      - generic [ref=e1243] [cursor=pointer]:
+        - generic [ref=e1244]:
+          - img [ref=e1246]
+          - generic [ref=e1250]: +
+          - img [ref=e1252]
+          - generic [ref=e1258]: =
+          - generic [ref=e1259]: ONE PLATFORM
+        - generic [ref=e1260]:
+          - heading "🛒 E-Commerce + 📄 Landing Page" [level=3] [ref=e1261]
+          - paragraph [ref=e1262]: দুইটার দাম দিয়ে দুইটাই পান — একই Platform এ
+      - generic [ref=e1264]:
+        - img [ref=e1267]
+        - generic [ref=e1272]:
+          - generic [ref=e1273]:
+            - paragraph [ref=e1274]: "🔮 শীঘ্রই আসছে:"
+            - paragraph [ref=e1275]: Drag & Drop Builder, AI Content, Payment Gateway Integration, এবং আরো অনেক কিছু...
+          - generic [ref=e1276]:
+            - textbox "your@email.com" [ref=e1277]
+            - button "Notify Me" [ref=e1278]:
+              - img [ref=e1279]
+              - generic [ref=e1282]: Notify Me
+  - generic [ref=e1287]:
+    - generic [ref=e1288]:
+      - generic [ref=e1289]:
+        - img [ref=e1290]
+        - generic [ref=e1292]: WORLD-CLASS INFRASTRUCTURE
+      - heading "Facebook-Google এর Technology, আপনার হাতের মুঠোয়" [level=2] [ref=e1293]
+      - paragraph [ref=e1294]: Cloudflare CDN দিয়ে আপনার Store, বিশ্বের যেকোনো জায়গা থেকে ১ সেকেন্ডের কম সময়ে লোড হবে।
+      - generic [ref=e1298]:
+        - text: "Live Latency:"
+        - generic [ref=e1299]: 5ms
+    - generic [ref=e1301]:
+      - img [ref=e1303]
+      - img
+      - img
+      - img
+      - img
+      - generic [ref=e2143] [cursor=pointer]: Dhaka🇧🇩
+      - generic [ref=e2147] [cursor=pointer]: Singapore
+      - generic [ref=e2151] [cursor=pointer]: Tokyo
+      - generic [ref=e2155] [cursor=pointer]: Sydney
+      - generic [ref=e2159] [cursor=pointer]: Mumbai
+      - generic [ref=e2163] [cursor=pointer]: Hong Kong
+      - generic [ref=e2167] [cursor=pointer]: London
+      - generic [ref=e2171] [cursor=pointer]: Frankfurt
+      - generic [ref=e2175] [cursor=pointer]: Paris
+      - generic [ref=e2179] [cursor=pointer]: Amsterdam
+      - generic [ref=e2183] [cursor=pointer]: New York
+      - generic [ref=e2187] [cursor=pointer]: San Francisco
+      - generic [ref=e2191] [cursor=pointer]: São Paulo
+      - generic [ref=e2195] [cursor=pointer]: Toronto
+      - generic [ref=e2199] [cursor=pointer]: Dubai
+      - generic [ref=e2203] [cursor=pointer]: Johannesburg
+      - generic [ref=e2204]:
+        - generic [ref=e2207]: আপনার অবস্থান (BD)
+        - generic [ref=e2210]: Edge Servers
+      - generic [ref=e2212]:
+        - img [ref=e2213]
+        - generic [ref=e2215]: "Nearest: Dhaka Edge (~5ms) 🇧🇩"
+    - generic [ref=e2216]:
+      - generic [ref=e2218]:
+        - img [ref=e2221]
+        - generic [ref=e2226]: 310+
+        - paragraph [ref=e2227]: Global Servers
+        - paragraph [ref=e2228]: ৬ মহাদেশে ছড়িয়ে
+      - generic [ref=e2230]:
+        - img [ref=e2233]
+        - generic [ref=e2236]: <10ms
+        - paragraph [ref=e2237]: Loading Time
+        - paragraph [ref=e2238]: ঢাকা Edge Server থেকে
+      - generic [ref=e2240]:
+        - img [ref=e2243]
+        - generic [ref=e2245]: 99.99%
+        - paragraph [ref=e2246]: Uptime Guarantee
+        - paragraph [ref=e2247]: এন্টারপ্রাইজ রিলায়েবিলিটি
+    - generic [ref=e2248]:
+      - paragraph [ref=e2249]:
+        - img [ref=e2250]
+        - text: "যারা Cloudflare ব্যবহার করে:"
+      - generic [ref=e2257]:
+        - generic [ref=e2259]: Discord
+        - generic [ref=e2261]: Shopify
+        - generic [ref=e2263]: Canva
+        - generic [ref=e2265]: DHL
+        - generic [ref=e2267]: IBM
+        - generic [ref=e2269]: Zendesk
+        - generic [ref=e2271]: Udemy
+        - generic [ref=e2273]: OkCupid
+        - generic [ref=e2275]: Discord
+        - generic [ref=e2277]: Shopify
+        - generic [ref=e2279]: Canva
+        - generic [ref=e2281]: DHL
+        - generic [ref=e2283]: IBM
+        - generic [ref=e2285]: Zendesk
+        - generic [ref=e2287]: Udemy
+        - generic [ref=e2289]: OkCupid
+      - paragraph [ref=e2290]: এবং আরো ৪০+ মিলিয়ন ওয়েবসাইট
+    - generic [ref=e2292]:
+      - img [ref=e2293]
+      - generic [ref=e2295]: Enterprise Speed, Startup Price
+  - generic [ref=e2300]:
+    - generic [ref=e2301]:
+      - generic [ref=e2302]:
+        - img [ref=e2303]
+        - generic [ref=e2305]: SPEED COMPARISON
+      - heading "দেখুন পার্থক্যটা" [level=2] [ref=e2306]
+      - paragraph [ref=e2307]: সাধারণ Hosting বনাম আমাদের Cloudflare-powered Platform
+    - generic [ref=e2308]:
+      - generic:
+        - generic: VS
+      - generic [ref=e2309]:
+        - generic [ref=e2310]:
+          - generic [ref=e2311]:
+            - img [ref=e2312]
+            - heading "সাধারণ Hosting" [level=3] [ref=e2316]
+          - img [ref=e2323]
+          - generic [ref=e2328]:
+            - img [ref=e2329]
+            - generic [ref=e2332]: 0.0s
+        - generic [ref=e2333]:
+          - generic [ref=e2334]:
+            - img [ref=e2335]
+            - heading "আমাদের Platform" [level=3] [ref=e2337]
+          - generic [ref=e2342]:
+            - img [ref=e2343]
+            - generic [ref=e2346]: 0.0s
+      - button "🔄 আবার দেখুন" [ref=e2348]:
+        - img [ref=e2349]
+        - generic [ref=e2354]: 🔄 আবার দেখুন
+    - generic [ref=e2356]:
+      - img [ref=e2357]
+      - generic [ref=e2360]:
+        - paragraph [ref=e2361]: 8x দ্রুত Loading = 40% বেশি Sales
+        - paragraph [ref=e2362]: "গবেষণায় প্রমাণিত: প্রতি ১ সেকেন্ড দেরিতে 7% conversion কমে যায়"
+    - generic [ref=e2363]:
+      - generic [ref=e2366]: Cloudflare Edge Network
+      - generic [ref=e2369]: 310+ Global Servers
+      - generic [ref=e2372]: Smart Caching
+  - generic [ref=e2376]:
+    - generic [ref=e2377]:
+      - generic [ref=e2378]:
+        - img [ref=e2379]
+        - generic [ref=e2383]: সহজ বাংলায় বুঝুন
+      - heading "🤔 CDN কি জিনিস?" [level=2] [ref=e2384]
+      - paragraph [ref=e2385]: CDN মানে Content Delivery Network। এটা আপনার Website কে পৃথিবীর কাছের Server থেকে দ্রুত সার্ভ করে।
+    - generic [ref=e2386]:
+      - generic [ref=e2387]:
+        - generic [ref=e2388]:
+          - generic [ref=e2389]:
+            - heading "COMPETITORS" [level=3] [ref=e2390]
+            - paragraph [ref=e2391]: অন্যান্য Platform
+          - generic [ref=e2392]: 🐢 SLOW
+        - generic [ref=e2393]:
+          - generic [ref=e2394]:
+            - generic [ref=e2396]: 👤
+            - generic [ref=e2397]:
+              - paragraph [ref=e2398]: Customer
+              - paragraph [ref=e2399]: Dhaka, BD
+          - generic [ref=e2403]: 3,000+ km
+          - generic [ref=e2404]:
+            - generic [ref=e2406]: 🖥️
+            - generic [ref=e2407]:
+              - paragraph [ref=e2408]: Server
+              - paragraph [ref=e2409]: Singapore 🇸🇬
+        - generic [ref=e2411]:
+          - img [ref=e2412]
+          - generic [ref=e2415]: 0.0s
+      - generic [ref=e2416]:
+        - generic [ref=e2417]:
+          - generic [ref=e2418]:
+            - heading "আমাদের PLATFORM" [level=3] [ref=e2419]
+            - paragraph [ref=e2420]: Cloudflare Bangladesh Edge
+          - generic [ref=e2421]: ⚡ FAST
+        - generic [ref=e2422]:
+          - generic [ref=e2423]:
+            - generic [ref=e2425]: 👤
+            - generic [ref=e2426]:
+              - paragraph [ref=e2427]: Customer
+              - paragraph [ref=e2428]: Dhaka, BD
+          - generic [ref=e2432]: Same City!
+          - generic [ref=e2433]:
+            - generic [ref=e2435]: ⚡
+            - generic [ref=e2436]:
+              - paragraph [ref=e2437]: Server
+              - paragraph [ref=e2438]: Dhaka Edge 🇧🇩
+        - generic [ref=e2440]:
+          - img [ref=e2441]
+          - generic [ref=e2444]: 0.0s
+    - button "🔄 আবার দেখুন" [ref=e2446]:
+      - img [ref=e2447]
+      - text: 🔄 আবার দেখুন
+    - generic [ref=e2452]:
+      - generic [ref=e2453]:
+        - img [ref=e2454]
+        - heading "সহজ কথায়:" [level=3] [ref=e2456]
+      - paragraph [ref=e2457]: 🌍 ঢাকা থেকে দুবাই — সব জায়গায় 1 সেকেন্ডে Load!
+      - paragraph [ref=e2458]: আপনার Customer এর কাছের Server থেকেই Content Serve হয় — তাই Lightning Fast! ⚡
+      - generic [ref=e2459]:
+        - generic [ref=e2460]:
+          - img [ref=e2461]
+          - generic [ref=e2464]: "ঢাকায় Edge Server: ~5ms"
+        - generic [ref=e2465]:
+          - img [ref=e2466]
+          - generic [ref=e2470]: "Competitors (Singapore): ~80ms"
+    - generic [ref=e2471]:
+      - generic [ref=e2472]:
+        - paragraph [ref=e2473]: 8x
+        - paragraph [ref=e2474]: দ্রুত
+      - generic [ref=e2475]:
+        - paragraph [ref=e2476]: 40%
+        - paragraph [ref=e2477]: বেশি Sales
+      - generic [ref=e2478]:
+        - paragraph [ref=e2479]: 99.9%
+        - paragraph [ref=e2480]: Uptime
+  - generic [ref=e2484]:
+    - generic [ref=e2485]:
+      - generic [ref=e2486]:
+        - img [ref=e2487]
+        - generic [ref=e2490]: SPEED = SALES
+      - heading "💰 Speed কেন গুরুত্বপূর্ণ?" [level=2] [ref=e2491]
+      - paragraph [ref=e2492]: "⚡ Facebook এর মতো Speed, আপনার ছোট Business এও — Research বলছে:"
+    - generic [ref=e2493]:
+      - generic [ref=e2494]:
+        - generic [ref=e2495]:
+          - img [ref=e2497]
+          - img [ref=e2500]
+        - paragraph [ref=e2503]: 7% Loss
+        - paragraph [ref=e2504]: 1 Second Delay = 7% Conversion Loss
+        - paragraph [ref=e2505]: ১ সেকেন্ড দেরিতে ৭% কাস্টমার হারান
+      - generic [ref=e2506]:
+        - generic [ref=e2507]:
+          - img [ref=e2509]
+          - img [ref=e2514]
+        - paragraph [ref=e2517]: 53% Leave
+        - paragraph [ref=e2518]: 3+ Second Load = 53% Visitors Leave
+        - paragraph [ref=e2519]: ৩+ সেকেন্ডে ৫৩% ভিজিটর চলে যায়
+      - generic [ref=e2520]:
+        - generic [ref=e2521]:
+          - img [ref=e2523]
+          - img [ref=e2526]
+        - paragraph [ref=e2529]: +8% Sales
+        - paragraph [ref=e2530]: 0.1s Improvement = 8% More Conversions
+        - paragraph [ref=e2531]: ০.১ সেকেন্ড দ্রুত = ৮% বেশি বিক্রি
+    - generic [ref=e2532]:
+      - generic [ref=e2533]:
+        - generic [ref=e2534]: 💡
+        - heading "বাস্তব উদাহরণ:" [level=3] [ref=e2535]
+      - paragraph [ref=e2536]: ধরুন আপনার Store এ প্রতিদিন 1,000 জন আসে...
+      - generic [ref=e2537]:
+        - generic [ref=e2538]:
+          - generic [ref=e2539]: মেট্রিক্স
+          - generic [ref=e2541]:
+            - img [ref=e2542]
+            - generic [ref=e2546]: Slow Site (3s+)
+          - generic [ref=e2548]:
+            - img [ref=e2549]
+            - generic [ref=e2551]: Fast Site (<1s)
+        - generic [ref=e2552]:
+          - generic [ref=e2553]:
+            - img [ref=e2554]
+            - generic [ref=e2559]: Visitors আসে
+          - generic [ref=e2561]: 0 জন
+          - generic [ref=e2563]: 0 জন
+        - generic [ref=e2564]:
+          - generic [ref=e2565]:
+            - img [ref=e2566]
+            - generic [ref=e2569]: থেকে যায়
+          - generic [ref=e2571]: 0 জন
+          - generic [ref=e2573]: 0 জন
+        - generic [ref=e2574]:
+          - generic [ref=e2575]:
+            - img [ref=e2576]
+            - generic [ref=e2580]: কেনাকাটা করে
+          - generic [ref=e2582]: 0 জন
+          - generic [ref=e2584]: 0 জন
+        - generic [ref=e2585]:
+          - generic [ref=e2586]:
+            - img [ref=e2587]
+            - generic [ref=e2590]: Daily Sales
+          - generic [ref=e2592]: ৳0
+          - generic [ref=e2594]: ৳0
+        - generic [ref=e2596]:
+          - generic [ref=e2597]: 👆
+          - paragraph [ref=e2598]: প্রতিদিন ৳48,000 বেশি শুধু Speed এর জন্য!
+    - generic [ref=e2599]:
+      - generic [ref=e2600]:
+        - img [ref=e2601]
+        - paragraph [ref=e2606]: এই Speed আপনার সব Store এ FREE! ⚡
+      - paragraph [ref=e2607]: "* Source: Google/SOASTA Research, Amazon Internal Studies"
+  - generic [ref=e2613]:
+    - generic [ref=e2614]:
+      - generic [ref=e2615]:
+        - img [ref=e2616]
+        - generic [ref=e2618]: ENTERPRISE-GRADE FEATURES
+      - heading "Enterprise-Grade Features, আপনার জন্য FREE" [level=2] [ref=e2619]
+      - paragraph [ref=e2620]: বড় কোম্পানিগুলোর মতো Technology এখন আপনার ছোট ব্যবসার জন্য, কোনো খরচ ছাড়াই।
+    - generic [ref=e2621]:
+      - button "Scroll left" [ref=e2622]:
+        - img [ref=e2623]
+      - button "Scroll right" [ref=e2625] [cursor=pointer]:
+        - img [ref=e2626]
+      - generic [ref=e2628]:
+        - generic [ref=e2631] [cursor=pointer]:
+          - generic [ref=e2633]:
+            - img [ref=e2636]
+            - generic [ref=e2638]:
+              - paragraph [ref=e2639]: SPEED
+              - heading "বিদ্যুৎ গতি" [level=3] [ref=e2640]
+            - paragraph [ref=e2641]: "\"বিশ্বের সবচেয়ে দ্রুত CDN\""
+            - generic [ref=e2642]:
+              - generic [ref=e2645]: <100ms worldwide
+              - generic [ref=e2648]: Edge Caching
+          - paragraph [ref=e2650]: 💡 আপনার স্টোর বাংলাদেশ থেকে আমেরিকা - সব জায়গায় একই দ্রুত।
+        - generic [ref=e2653] [cursor=pointer]:
+          - generic [ref=e2655]:
+            - img [ref=e2658]
+            - generic [ref=e2660]:
+              - paragraph [ref=e2661]: SECURITY
+              - heading "সুরক্ষা" [level=3] [ref=e2662]
+            - paragraph [ref=e2663]: "\"হ্যাকার থেকে সুরক্ষিত\""
+            - generic [ref=e2664]:
+              - generic [ref=e2667]: DDoS Attack Protection
+              - generic [ref=e2670]: Auto SSL Certificate
+          - paragraph [ref=e2672]: 💡 প্রতিদিন মিলিয়ন হ্যাকার অ্যাটাক ব্লক করে।
+        - generic [ref=e2675] [cursor=pointer]:
+          - generic [ref=e2677]:
+            - img [ref=e2680]
+            - generic [ref=e2684]:
+              - paragraph [ref=e2685]: GLOBAL
+              - heading "বিশ্বব্যাপী" [level=3] [ref=e2686]
+            - paragraph [ref=e2687]: "\"পৃথিবীর যেকোনো প্রান্তে Fast\""
+            - generic [ref=e2688]:
+              - generic [ref=e2691]: 310+ Edge Locations
+              - generic [ref=e2694]: 6 Continents
+          - paragraph [ref=e2696]: 💡 বিশ্বের ১০০+ দেশে সার্ভার।
+        - generic [ref=e2699] [cursor=pointer]:
+          - generic [ref=e2701]:
+            - img [ref=e2704]
+            - generic [ref=e2707]:
+              - paragraph [ref=e2708]: UPTIME
+              - heading "নিরবচ্ছিন্ন" [level=3] [ref=e2709]
+            - paragraph [ref=e2710]: "\"কখনো Down হয় না\""
+            - generic [ref=e2711]:
+              - generic [ref=e2714]: 99.99% Guaranteed
+              - generic [ref=e2717]: Zero Downtime Deploys
+          - paragraph [ref=e2719]: 💡 বছরে মাত্র ৫২ মিনিট ডাউনটাইম।
+        - generic [ref=e2722] [cursor=pointer]:
+          - generic [ref=e2724]:
+            - img [ref=e2727]
+            - generic [ref=e2731]:
+              - paragraph [ref=e2732]: CACHE
+              - heading "স্মার্ট ক্যাশ" [level=3] [ref=e2733]
+            - paragraph [ref=e2734]: "\"Smart Caching = দ্রুত\""
+            - generic [ref=e2735]:
+              - generic [ref=e2738]: Edge Cache Everywhere
+              - generic [ref=e2741]: Instant Purge
+          - paragraph [ref=e2743]: 💡 ছবি, ভিডিও সব কাছের সার্ভারে রাখে।
+        - generic [ref=e2746] [cursor=pointer]:
+          - generic [ref=e2748]:
+            - img [ref=e2751]
+            - generic [ref=e2754]:
+              - paragraph [ref=e2755]: SSL
+              - heading "ফ্রি HTTPS" [level=3] [ref=e2756]
+            - paragraph [ref=e2757]: "\"Free HTTPS সবার জন্য\""
+            - generic [ref=e2758]:
+              - generic [ref=e2761]: Auto SSL Certificate
+              - generic [ref=e2764]: Always Encrypted
+          - paragraph [ref=e2766]: 💡 কোনো খরচ ছাড়াই SSL সার্টিফিকেট।
+    - generic [ref=e2768]:
+      - generic [ref=e2769]: 🇧🇩
+      - generic [ref=e2770]: বাংলাদেশি উদ্যোক্তাদের জন্য বিশ্বমানের Technology
+  - generic [ref=e2775]:
+    - generic [ref=e2776]:
+      - generic [ref=e2777]:
+        - img [ref=e2778]
+        - generic [ref=e2781]: TECHNICAL SPECS
+      - heading "Under the Hood // For the curious" [level=2] [ref=e2782]
+      - paragraph [ref=e2783]: Enterprise-grade infrastructure powering your store
+    - generic [ref=e2784]:
+      - generic [ref=e2785]:
+        - button "CDN NETWORK 5 specifications" [ref=e2786]:
+          - generic [ref=e2787]:
+            - img [ref=e2789]
+            - generic [ref=e2795]:
+              - heading "CDN NETWORK" [level=3] [ref=e2796]
+              - paragraph [ref=e2797]: 5 specifications
+          - img [ref=e2799]
+        - generic [ref=e2802]:
+          - generic [ref=e2803]:
+            - generic [ref=e2806]:
+              - generic [ref=e2807]: "Network:"
+              - text: Cloudflare Global Anycast Network
+            - generic [ref=e2810]:
+              - generic [ref=e2811]: "PoPs:"
+              - text: 310+ Points of Presence worldwide
+            - generic [ref=e2814]:
+              - generic [ref=e2815]: "Capacity:"
+              - text: 100+ Tbps Network Capacity
+            - generic [ref=e2818]:
+              - generic [ref=e2819]: "Routing:"
+              - text: Argo Smart Routing enabled
+            - generic [ref=e2822]:
+              - generic [ref=e2823]: "Protocol:"
+              - text: Anycast DNS with sub-20ms resolution
+          - generic [ref=e2824]:
+            - generic [ref=e2825]:
+              - generic [ref=e2830]:
+                - img [ref=e2831]
+                - generic [ref=e2834]: config.yaml
+              - button "Copy" [ref=e2835]:
+                - img [ref=e2836]
+                - text: Copy
+            - code [ref=e2840]:
+              - generic [ref=e2841]:
+                - generic [ref=e2842]: "1"
+                - generic [ref=e2843]: "# Network Configuration"
+              - generic [ref=e2844]:
+                - generic [ref=e2845]: "2"
+                - generic [ref=e2846]: "CDN: Cloudflare Enterprise"
+              - generic [ref=e2847]:
+                - generic [ref=e2848]: "3"
+                - generic [ref=e2849]: "Anycast: enabled"
+              - generic [ref=e2850]:
+                - generic [ref=e2851]: "4"
+                - generic [ref=e2852]: "PoPs: 310+"
+              - generic [ref=e2853]:
+                - generic [ref=e2854]: "5"
+                - generic [ref=e2855]: "Capacity: 100+ Tbps"
+              - generic [ref=e2856]:
+                - generic [ref=e2857]: "6"
+                - generic [ref=e2858]: "Smart_Routing: Argo"
+      - button "SECURITY 5 specifications" [ref=e2860]:
+        - generic [ref=e2861]:
+          - img [ref=e2863]
+          - generic [ref=e2865]:
+            - heading "SECURITY" [level=3] [ref=e2866]
+            - paragraph [ref=e2867]: 5 specifications
+        - img [ref=e2869]
+      - button "PERFORMANCE 5 specifications" [ref=e2872]:
+        - generic [ref=e2873]:
+          - img [ref=e2875]
+          - generic [ref=e2877]:
+            - heading "PERFORMANCE" [level=3] [ref=e2878]
+            - paragraph [ref=e2879]: 5 specifications
+        - img [ref=e2881]
+      - button "INFRASTRUCTURE 5 specifications" [ref=e2884]:
+        - generic [ref=e2885]:
+          - img [ref=e2887]
+          - generic [ref=e2892]:
+            - heading "INFRASTRUCTURE" [level=3] [ref=e2893]
+            - paragraph [ref=e2894]: 5 specifications
+        - img [ref=e2896]
+    - generic [ref=e2898]:
+      - generic [ref=e2899]:
+        - generic [ref=e2900]: 💡
+        - generic [ref=e2901]: "সহজ কথায়:"
+      - paragraph [ref=e2902]: আপনার Store পৃথিবীর যেকোনো জায়গায় ১ সেকেন্ডের কম সময়ে Load হবে।
+      - paragraph [ref=e2903]: হ্যাকার আক্রমণ থেকে সুরক্ষিত, ২৪/৭ অনলাইন থাকবে।
+    - generic [ref=e2905]:
+      - img [ref=e2906]
+      - generic [ref=e2908]: Powered by Cloudflare
+    - generic [ref=e2909]:
+      - generic [ref=e2910]:
+        - img [ref=e2911]
+        - generic [ref=e2914]: V8 Runtime
+      - generic [ref=e2915]:
+        - img [ref=e2916]
+        - generic [ref=e2920]: Edge SQL
+      - generic [ref=e2921]:
+        - img [ref=e2922]
+        - generic [ref=e2926]: Global CDN
+      - generic [ref=e2927]:
+        - img [ref=e2928]
+        - generic [ref=e2931]: TLS 1.3
+      - generic [ref=e2932]:
+        - img [ref=e2933]
+        - generic [ref=e2948]: Zero Cold Start
+  - generic [ref=e2952]:
+    - generic [ref=e2953]:
+      - generic [ref=e2954]:
+        - img [ref=e2956]
+        - generic [ref=e2958]: LIVE PERFORMANCE
+      - heading "📊 Real-Time Performance" [level=2] [ref=e2959]
+      - paragraph [ref=e2960]: এই মুহূর্তে আমাদের Infrastructure যা করছে
+    - generic [ref=e2961]:
+      - generic [ref=e2962]:
+        - generic [ref=e2963]:
+          - generic [ref=e2964]:
+            - img [ref=e2966]
+            - generic [ref=e2970]: LIVE
+          - paragraph [ref=e2971]: Uptime
+          - generic [ref=e2972]:
+            - generic [ref=e2973]: "99.997"
+            - generic [ref=e2974]: "%"
+        - generic [ref=e2975]:
+          - generic [ref=e2976]:
+            - img [ref=e2978]
+            - generic [ref=e2985]: LIVE
+          - paragraph [ref=e2986]: Today's Requests
+          - generic [ref=e2987]:
+            - generic [ref=e2988]: "2.85"
+            - generic [ref=e2989]: M
+          - generic [ref=e2990]:
+            - img [ref=e2991]
+            - generic [ref=e2994]: +12.3%
+        - generic [ref=e2995]:
+          - generic [ref=e2996]:
+            - img [ref=e2998]
+            - generic [ref=e3005]: LIVE
+          - paragraph [ref=e3006]: Active Connections
+          - generic [ref=e3008]: 12,608
+        - generic [ref=e3009]:
+          - generic [ref=e3010]:
+            - img [ref=e3012]
+            - generic [ref=e3016]: LIVE
+          - paragraph [ref=e3017]: Cache Hit Rate
+          - generic [ref=e3018]:
+            - generic [ref=e3019]: "94.4"
+            - generic [ref=e3020]: "%"
+          - generic [ref=e3021]:
+            - img [ref=e3022]
+            - generic [ref=e3025]: Optimal
+      - generic [ref=e3026]:
+        - generic [ref=e3027]:
+          - img [ref=e3028]
+          - generic [ref=e3032]: Latency by Region
+        - generic [ref=e3033]:
+          - generic [ref=e3034]:
+            - generic [ref=e3035]: 🇧🇩
+            - generic [ref=e3036]: Dhaka
+            - generic [ref=e3038]: 5ms
+          - generic [ref=e3039]:
+            - generic [ref=e3040]: 🇮🇳
+            - generic [ref=e3041]: Mumbai
+            - generic [ref=e3043]: 28ms
+          - generic [ref=e3044]:
+            - generic [ref=e3045]: 🇸🇬
+            - generic [ref=e3046]: Singapore
+            - generic [ref=e3048]: 45ms
+          - generic [ref=e3049]:
+            - generic [ref=e3050]: 🇬🇧
+            - generic [ref=e3051]: London
+            - generic [ref=e3053]: 142ms
+          - generic [ref=e3054]:
+            - generic [ref=e3055]: 🇺🇸
+            - generic [ref=e3056]: New York
+            - generic [ref=e3058]: 198ms
+      - generic [ref=e3059]:
+        - generic [ref=e3060]:
+          - img [ref=e3062]
+          - generic [ref=e3065]:
+            - paragraph [ref=e3066]: All Systems Operational
+            - paragraph [ref=e3067]: "Last checked: just now"
+        - generic [ref=e3068]:
+          - paragraph [ref=e3069]: Powered by
+          - paragraph [ref=e3070]: Cloudflare
+    - paragraph [ref=e3071]: "* Data refreshes every 2 seconds. Actual metrics from our production infrastructure."
+  - generic [ref=e3075]:
+    - generic [ref=e3076]:
+      - img [ref=e3078]
+      - generic [ref=e3083]: 🔥 Shopify যে Infrastructure এ চলে, আপনার Store ও
+    - heading "যে Technology তে বড়রা Millions খরচ করে — সেটা আপনার জন্য FREE!" [level=2] [ref=e3084]:
+      - text: যে Technology তে বড়রা Millions খরচ করে —
+      - text: সেটা আপনার জন্য
+      - generic [ref=e3085]: FREE!
+    - paragraph [ref=e3086]: Facebook, Google, Shopify যে Infrastructure ব্যবহার করে — সেই একই Cloudflare Technology আপনার Store এ আজই Activate করুন।
+    - generic [ref=e3087]:
+      - generic [ref=e3088]:
+        - img [ref=e3089]
+        - generic [ref=e3091]: <10ms Latency
+      - generic [ref=e3092]:
+        - img [ref=e3093]
+        - generic [ref=e3095]: Enterprise Security
+      - generic [ref=e3096]:
+        - img [ref=e3097]
+        - generic [ref=e3101]: 310+ Global Servers
+      - generic [ref=e3102]:
+        - img [ref=e3103]
+        - generic [ref=e3106]: 99.99% Uptime
+    - generic [ref=e3107]:
+      - link "ফ্রিতে শুরু করুন" [ref=e3109] [cursor=pointer]:
+        - /url: /auth/register
+        - generic [ref=e3111]: ফ্রিতে শুরু করুন
+        - img [ref=e3113]
+      - link "ডেমো দেখুন" [ref=e3117] [cursor=pointer]:
+        - /url: /#demo
+        - generic [ref=e3118]: ডেমো দেখুন
+    - paragraph [ref=e3119]: ✓ No credit card required • ✓ Setup in 5 minutes • ✓ Free forever plan
+  - generic [ref=e3125]:
+    - generic [ref=e3126]:
+      - generic [ref=e3127]:
+        - generic [ref=e3128]: 💬 Founder এর কথা
+        - heading "\"আমরা নতুন, কিন্তু আমাদের Vision পরিষ্কার\"" [level=2] [ref=e3129]
+      - generic [ref=e3132]:
+        - generic [ref=e3133]:
+          - generic [ref=e3134]:
+            - img "Rahmatullah Zisan - Founder" [ref=e3135]
+            - img [ref=e3137]
+          - generic [ref=e3139]:
+            - heading "রহমতুল্লাহ জিসান" [level=3] [ref=e3140]
+            - paragraph [ref=e3141]: Founder & Developer
+        - generic [ref=e3142]:
+          - generic [ref=e3143]:
+            - paragraph [ref=e3144]: আমি রহমতুল্লাহ জিসান, এই Platform এর Founder। বাংলাদেশে Small Business শুরু করা কতটা কঠিন আমি নিজে দেখেছি। তাই এই Platform বানাচ্ছি — যেন যেকেউ ৫ মিনিটে Online Business শুরু করতে পারে।
+            - generic [ref=e3145]:
+              - img [ref=e3146]
+              - generic [ref=e3151]: আমরা MVP Stage এ আছি। Perfect না। কিন্তু প্রতিদিন Better হচ্ছি।
+            - paragraph [ref=e3152]: 🤝 Early Adopter রা আমাদের সাথে Product Build করার সুযোগ পাবেন। আপনার Feedback সরাসরি Feature হবে।
+          - generic [ref=e3153]:
+            - link "Email করুন" [ref=e3154] [cursor=pointer]:
+              - /url: mailto:rahmatullahzisan@gmail.com
+              - img [ref=e3155]
+              - generic [ref=e3158]: Email করুন
+            - link "WhatsApp" [ref=e3159] [cursor=pointer]:
+              - /url: https://wa.me/8801739416661
+              - img [ref=e3160]
+              - generic [ref=e3162]: WhatsApp
+            - link "01739-416661" [ref=e3163] [cursor=pointer]:
+              - /url: tel:+8801739416661
+              - img [ref=e3164]
+              - generic [ref=e3166]: 01739-416661
+    - generic [ref=e3167]:
+      - generic [ref=e3168]:
+        - generic [ref=e3169]: 📊 Live Stats
+        - heading "স্বচ্ছতাই আমাদের শক্তি" [level=2] [ref=e3170]
+        - paragraph [ref=e3171]: এগুলো Real Numbers — Fake কিছু না। Real-time আপডেট হচ্ছে।
+      - generic [ref=e3172]:
+        - generic [ref=e3173]:
+          - img [ref=e3175]
+          - generic [ref=e3178]: "0"
+          - generic [ref=e3181]: সাইনআপ
+        - generic [ref=e3182]:
+          - img [ref=e3184]
+          - generic [ref=e3188]: "0"
+          - generic [ref=e3189]:
+            - generic [ref=e3190]: স্টোর তৈরি
+            - generic [ref=e3191]: Live
+        - generic [ref=e3192]:
+          - img [ref=e3194]
+          - generic [ref=e3197]: 0%
+          - generic [ref=e3198]:
+            - generic [ref=e3199]: আপটাইম
+            - generic [ref=e3200]: Last 30d
+      - paragraph [ref=e3202]: 💡 এগুলো Real Numbers — Fake কিছু না
+    - generic [ref=e3203]:
+      - generic [ref=e3204]:
+        - generic [ref=e3205]: 🚀 Early Adopter হওয়ার সুবিধা
+        - heading "প্রথমে থাকুন, সুবিধা পান" [level=2] [ref=e3206]
+      - generic [ref=e3207]:
+        - generic [ref=e3208]:
+          - generic [ref=e3209]:
+            - img [ref=e3211]
+            - generic [ref=e3216]:
+              - heading "✨ LIFETIME EARLY BIRD PRICING" [level=3] [ref=e3217]
+              - paragraph [ref=e3218]: চিরকালের জন্য Early Bird দাম
+              - paragraph [ref=e3219]: এখন যে Price এ নেবেন, সেটাই Forever থাকবে
+          - generic [ref=e3220]:
+            - img [ref=e3222]
+            - generic [ref=e3226]:
+              - heading "✨ SHAPE THE PRODUCT" [level=3] [ref=e3227]
+              - paragraph [ref=e3228]: প্রোডাক্ট তৈরিতে অংশ নিন
+              - paragraph [ref=e3229]: আপনার Feedback সরাসরি Feature হবে
+          - generic [ref=e3230]:
+            - img [ref=e3232]
+            - generic [ref=e3237]:
+              - heading "✨ EXCLUSIVE BETA FEATURES" [level=3] [ref=e3238]
+              - paragraph [ref=e3239]: এক্সক্লুসিভ বিটা ফিচার
+              - paragraph [ref=e3240]: নতুন Features সবার আগে পাবেন
+          - generic [ref=e3241]:
+            - img [ref=e3243]
+            - generic [ref=e3248]:
+              - heading "✨ DIRECT FOUNDER ACCESS" [level=3] [ref=e3249]
+              - paragraph [ref=e3250]: সরাসরি Founder এর সাথে
+              - paragraph [ref=e3251]: সরাসরি Founder এর সাথে কথা বলতে পারবেন
+        - link "🎉 Early Adopter হিসেবে Join করুন" [ref=e3253] [cursor=pointer]:
+          - /url: /auth/register
+          - text: 🎉 Early Adopter হিসেবে Join করুন
+          - img [ref=e3255]
+    - generic [ref=e3258]:
+      - generic [ref=e3259]:
+        - generic [ref=e3260]: 🗺️ আমাদের ROADMAP
+        - heading "স্বচ্ছভাবে আমাদের পরিকল্পনা" [level=2] [ref=e3261]
+      - generic [ref=e3262]:
+        - generic [ref=e3263]:
+          - generic [ref=e3264]:
+            - generic [ref=e3265]:
+              - img [ref=e3266]
+              - generic [ref=e3268]: ✅ DONE
+            - generic [ref=e3269]:
+              - generic [ref=e3270]:
+                - img [ref=e3272]
+                - generic [ref=e3274]: Template System
+              - generic [ref=e3275]:
+                - img [ref=e3277]
+                - generic [ref=e3279]: Live Editor
+              - generic [ref=e3280]:
+                - img [ref=e3282]
+                - generic [ref=e3284]: Bangla Support
+              - generic [ref=e3285]:
+                - img [ref=e3287]
+                - generic [ref=e3289]: Section Rearrange
+              - generic [ref=e3290]:
+                - img [ref=e3292]
+                - generic [ref=e3294]: Analytics Dashboard
+              - generic [ref=e3295]:
+                - img [ref=e3297]
+                - generic [ref=e3299]: Inventory Management
+              - generic [ref=e3300]:
+                - img [ref=e3302]
+                - generic [ref=e3304]: Order Management
+              - generic [ref=e3305]:
+                - img [ref=e3307]
+                - generic [ref=e3309]: Customer Management
+          - generic [ref=e3310]:
+            - generic [ref=e3311]:
+              - img [ref=e3312]
+              - generic [ref=e3314]: 🔨 BUILDING NOW
+            - generic [ref=e3315]:
+              - generic [ref=e3319]: Payment Gateway Integration
+              - generic [ref=e3323]: More Templates
+              - generic [ref=e3327]: Mobile App
+          - generic [ref=e3328]:
+            - generic [ref=e3329]:
+              - img [ref=e3330]
+              - generic [ref=e3335]: 📋 PLANNED
+            - generic [ref=e3336]:
+              - generic [ref=e3337]:
+                - img [ref=e3339]
+                - generic [ref=e3342]: Drag & Drop Builder
+              - generic [ref=e3343]:
+                - img [ref=e3345]
+                - generic [ref=e3348]: AI Content Writer
+              - generic [ref=e3349]:
+                - img [ref=e3351]
+                - generic [ref=e3354]: Multi-channel Selling
+              - generic [ref=e3355]:
+                - img [ref=e3357]
+                - generic [ref=e3360]: Advanced Reports
+        - generic [ref=e3361]:
+          - link "Full Roadmap দেখুন" [ref=e3362] [cursor=pointer]:
+            - /url: https://github.com/yourrepo/roadmap
+            - img [ref=e3363]
+            - generic [ref=e3367]: Full Roadmap দেখুন
+          - link "Feature Request করুন" [ref=e3368] [cursor=pointer]:
+            - /url: mailto:rahmatullahzisan@gmail.com?subject=Feature Request
+            - img [ref=e3369]
+            - generic [ref=e3373]: Feature Request করুন
+  - generic [ref=e3379]:
+    - generic [ref=e3381]:
+      - generic [ref=e3382]:
+        - img [ref=e3383]
+        - generic [ref=e3385]: সৎ তুলনা
+      - heading "কেন আমরাই Best Choice?" [level=2] [ref=e3386]
+      - paragraph [ref=e3387]: বাংলাদেশী উদ্যোক্তাদের জন্য আমাদের প্ল্যাটফর্ম কেন সেরা, নিজেই দেখুন
+    - generic [ref=e3389]:
+      - generic [ref=e3390]:
+        - generic [ref=e3391]: Feature
+        - generic [ref=e3392]: Shopify
+        - generic [ref=e3393]: Wix/Others
+        - generic [ref=e3394]:
+          - generic [ref=e3395]:
+            - img [ref=e3396]
+            - text: Best Choice
+          - generic [ref=e3401]:
+            - text: আমাদের Platform
+            - generic [ref=e3402]: 🇧🇩
+      - generic [ref=e3403]:
+        - generic [ref=e3405]:
+          - generic [ref=e3407]: বাংলা Interface
+          - generic [ref=e3414]: 🇧🇩
+        - generic [ref=e3416]:
+          - generic [ref=e3418]: Monthly Cost
+          - generic [ref=e3420]: ৳৫,০০০+
+          - generic [ref=e3422]: ৳২,০০০+
+          - generic [ref=e3425]:
+            - text: ৳৪৯৯
+            - generic [ref=e3426]: (১০x কম!)
+        - generic [ref=e3428]:
+          - generic [ref=e3430]: Landing Page + E-commerce
+          - generic [ref=e3432]: Needs Extra $
+          - generic [ref=e3434]: Needs Extra $
+          - generic [ref=e3437]: 🇧🇩
+        - generic [ref=e3439]:
+          - generic [ref=e3441]: Setup Time
+          - generic [ref=e3443]: Hours
+          - generic [ref=e3445]: Hours
+          - generic [ref=e3448]:
+            - img [ref=e3449]
+            - generic [ref=e3451]: ৫ মিনিট
+        - generic [ref=e3453]:
+          - generic [ref=e3455]: Local Support
+          - generic [ref=e3462]: 🇧🇩
+        - generic [ref=e3464]:
+          - generic [ref=e3466]: Free Plan
+          - generic [ref=e3470]: Limited
+          - generic [ref=e3473]: 🇧🇩
+        - generic [ref=e3475]:
+          - generic [ref=e3477]: Custom Design Service
+          - generic [ref=e3479]: ৳৫০,০০০+
+          - generic [ref=e3481]: ৳৩০,০০০+
+          - generic [ref=e3484]:
+            - img [ref=e3485]
+            - generic [ref=e3487]: Ultimate এ Included
+    - generic [ref=e3488]:
+      - link "দেখুন Details" [ref=e3489] [cursor=pointer]:
+        - /url: /#pricing
+        - text: দেখুন Details
+        - img [ref=e3490]
+      - link "ফ্রিতে শুরু করুন" [ref=e3493] [cursor=pointer]:
+        - /url: /auth/register
+        - generic [ref=e3494]: ফ্রিতে শুরু করুন
+        - img [ref=e3496]
+    - paragraph [ref=e3499]: ✓ কোনো ক্রেডিট কার্ড লাগবে না • ✓ ৫ মিনিটে সেটআপ • ✓ চিরকাল ফ্রি প্ল্যান
+  - generic [ref=e3503]:
+    - generic [ref=e3504]:
+      - generic [ref=e3505]:
+        - generic [ref=e3506]: 🎮
+        - generic [ref=e3507]: Interactive Demo
+      - heading "নিজে Try করুন — ৩০ সেকেন্ডে Store বানান" [level=2] [ref=e3508]
+      - paragraph [ref=e3509]: কোনো Sign Up লাগবে না, শুধু নিচের ৩টি Step Follow করুন
+    - generic [ref=e3510]:
+      - generic [ref=e3511]:
+        - generic [ref=e3512]:
+          - generic [ref=e3514]: "1"
+          - generic [ref=e3517]: "2"
+          - generic [ref=e3520]: "3"
+          - generic [ref=e3521]: 1/3
+        - generic [ref=e3522]:
+          - heading "1 Template বাছুন" [level=3] [ref=e3523]:
+            - generic [ref=e3524]: "1"
+            - text: Template বাছুন
+          - generic [ref=e3525]:
+            - button "👗 ফ্যাশন" [ref=e3526]:
+              - generic [ref=e3527]: 👗
+              - text: ফ্যাশন
+            - button "🍔 খাবার" [ref=e3528]:
+              - generic [ref=e3529]: 🍔
+              - text: খাবার
+            - button "💻 ডিজিটাল" [ref=e3530]:
+              - generic [ref=e3531]: 💻
+              - text: ডিজিটাল
+      - generic [ref=e3533]:
+        - generic [ref=e3539]: 👆 LIVE PREVIEW
+        - generic [ref=e3541]:
+          - img [ref=e3543]
+          - generic [ref=e3547]:
+            - heading "আপনার Store" [level=3] [ref=e3548]
+            - paragraph [ref=e3549]: আপনার Store
+        - generic [ref=e3551]:
+          - generic [ref=e3553]:
+            - img [ref=e3554]
+            - generic [ref=e3559]: Product 1
+          - generic [ref=e3561]:
+            - img [ref=e3562]
+            - generic [ref=e3567]: Product 2
+  - generic [ref=e3573]:
+    - generic [ref=e3575]:
+      - generic [ref=e3576]:
+        - img [ref=e3577]
+        - generic [ref=e3581]: প্রশ্ন আছে?
+      - heading "সাধারণ জিজ্ঞাসা" [level=2] [ref=e3582]
+      - paragraph [ref=e3583]: আমাদের সম্পর্কে সবচেয়ে জনপ্রিয় প্রশ্নের উত্তর
+    - generic [ref=e3584]:
+      - generic [ref=e3585]:
+        - button "1 Free প্ল্যান কি সত্যিই চিরকাল ফ্রি?" [ref=e3586]:
+          - generic [ref=e3587]:
+            - generic [ref=e3589]: "1"
+            - heading "Free প্ল্যান কি সত্যিই চিরকাল ফ্রি?" [level=3] [ref=e3590]
+          - img [ref=e3592]
+        - paragraph [ref=e3597]: হ্যাঁ! আপনি ১টি Product লিস্ট করতে পারবেন এবং মাসে ৫০টি Sales করতে পারবেন — সম্পূর্ণ বিনামূল্যে। কোনো Hidden Fee নেই, কোনো Credit Card লাগবে না।
+      - button "2 কোন Payment Method সাপোর্ট করে?" [ref=e3599]:
+        - generic [ref=e3600]:
+          - generic [ref=e3602]: "2"
+          - heading "কোন Payment Method সাপোর্ট করে?" [level=3] [ref=e3603]
+        - img [ref=e3605]
+      - button "3 নিজের Domain ব্যবহার করতে পারব?" [ref=e3608]:
+        - generic [ref=e3609]:
+          - generic [ref=e3611]: "3"
+          - heading "নিজের Domain ব্যবহার করতে পারব?" [level=3] [ref=e3612]
+        - img [ref=e3614]
+      - button "4 Store Setup করতে কতক্ষণ লাগে?" [ref=e3617]:
+        - generic [ref=e3618]:
+          - generic [ref=e3620]: "4"
+          - heading "Store Setup করতে কতক্ষণ লাগে?" [level=3] [ref=e3621]
+        - img [ref=e3623]
+      - button "5 আমার টাকা কবে পাব?" [ref=e3626]:
+        - generic [ref=e3627]:
+          - generic [ref=e3629]: "5"
+          - heading "আমার টাকা কবে পাব?" [level=3] [ref=e3630]
+        - img [ref=e3632]
+      - button "6 কোনো সমস্যা হলে কার সাথে কথা বলব?" [ref=e3635]:
+        - generic [ref=e3636]:
+          - generic [ref=e3638]: "6"
+          - heading "কোনো সমস্যা হলে কার সাথে কথা বলব?" [level=3] [ref=e3639]
+        - img [ref=e3641]
+    - generic [ref=e3643]:
+      - paragraph [ref=e3644]: আরো প্রশ্ন আছে?
+      - link "আমাদের সাথে যোগাযোগ করুন" [ref=e3645] [cursor=pointer]:
+        - /url: mailto:support@digitalcare.site
+        - img [ref=e3646]
+        - generic [ref=e3651]: আমাদের সাথে যোগাযোগ করুন
+  - generic [ref=e3654]:
+    - generic [ref=e3655]:
+      - generic [ref=e3656]:
+        - img [ref=e3657]
+        - generic [ref=e3664]: সীমিত সময়ের অফার
+      - heading "AI + ড্র্যাগ অ্যান্ড ড্রপ + স্পিড = আপনার সাফল্য 🚀" [level=2] [ref=e3665]
+      - paragraph [ref=e3666]: এখনই শুরু করুন — AI থাকবে আপনার পাশে। ব্যবসা চলবে অটো-পাইলটে।
+      - link "🚀 ফ্রিতে শুরু করুন AI অন্তর্ভুক্ত" [ref=e3668] [cursor=pointer]:
+        - /url: /auth/register
+        - generic [ref=e3670]:
+          - text: 🚀 ফ্রিতে শুরু করুন
+          - generic [ref=e3671]: AI অন্তর্ভুক্ত
+      - generic [ref=e3672]:
+        - generic [ref=e3673]:
+          - img [ref=e3674]
+          - text: ক্রেডিট কার্ড লাগবে না
+        - generic [ref=e3677]:
+          - img [ref=e3678]
+          - text: ১ মিনিটে সেটআপ
+        - generic [ref=e3681]:
+          - img [ref=e3682]
+          - text: AI সব প্ল্যানেই ফ্রি
+      - generic [ref=e3687]: অথবা
+      - link "কল করুন" [ref=e3690] [cursor=pointer]:
+        - /url: tel:+8801570260118
+        - img [ref=e3691]
+        - text: কল করুন
+    - generic [ref=e3695]:
+      - generic [ref=e3697]:
+        - img [ref=e3699]
+        - generic [ref=e3706]:
+          - generic [ref=e3707]: OZZYL AI Assistant
+          - generic [ref=e3710]: Online Now
+      - generic [ref=e3713]: যেকোনো প্রশ্ন? আমাকে জিজ্ঞেস করুন! প্রাইসিং, ফিচার্স, যেকোনো কিছু!
+      - generic [ref=e3714]:
+        - generic [ref=e3715]:
+          - textbox "আপনার প্রশ্ন লিখুন..." [ref=e3716]
+          - button [ref=e3717]:
+            - img [ref=e3718]
+        - generic [ref=e3721]: 👆 এখনই AI এর সাথে কথা বলে দেখুন!
+  - generic [ref=e3727]:
+    - heading "আজই শুরু করুন, Future Build করুন" [level=2] [ref=e3730]
+    - generic [ref=e3731]:
+      - paragraph [ref=e3732]: আমরা Bangladesh এর প্রথম সত্যিকারের বাংলা E-commerce Platform বানাচ্ছি।
+      - paragraph [ref=e3733]: আপনি কি আমাদের সাথে এই Journey তে থাকতে চান?
+    - link "ফ্রিতে শুরু করুন" [ref=e3737] [cursor=pointer]:
+      - /url: /auth/register
+      - generic [ref=e3738]: ফ্রিতে শুরু করুন
+      - img [ref=e3740]
+    - generic [ref=e3743]:
+      - generic [ref=e3744]:
+        - img [ref=e3745]
+        - generic [ref=e3747]: Credit Card লাগবে না
+      - generic [ref=e3748]:
+        - img [ref=e3749]
+        - generic [ref=e3751]: ১ মিনিটে Setup
+      - generic [ref=e3752]:
+        - img [ref=e3753]
+        - generic [ref=e3758]: Lifetime Early Bird Pricing
+    - generic [ref=e3761]: অথবা
+    - generic [ref=e3763]:
+      - link "📞 আমাদের সাথে কথা বলুন" [ref=e3764] [cursor=pointer]:
+        - /url: tel:+8801570260118
+        - img [ref=e3765]
+        - generic [ref=e3767]: 📞 আমাদের সাথে কথা বলুন
+      - link "📧 Question আছে?" [ref=e3768] [cursor=pointer]:
+        - /url: /contact
+        - img [ref=e3769]
+        - generic [ref=e3772]: 📧 Question আছে?
+    - generic [ref=e3774]:
+      - img [ref=e3776]
+      - generic [ref=e3779]: "Live: T***t from চট্টগ্রাম just signed up!"
+  - contentinfo [ref=e3781]:
+    - generic [ref=e3782]:
+      - generic [ref=e3783]:
+        - generic [ref=e3784]:
+          - generic [ref=e3785]:
+            - img [ref=e3787]
+            - generic [ref=e3791]: Multi-Store
+          - paragraph [ref=e3792]: বাংলাদেশি মার্চেন্টদের জন্য সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। তৈরি করুন, বিক্রি করুন, বড় হন।
+        - generic [ref=e3793]:
+          - heading "প্রোডাক্ট" [level=4] [ref=e3794]
+          - list [ref=e3795]:
+            - listitem [ref=e3796]:
+              - link "ফিচার" [ref=e3797] [cursor=pointer]:
+                - /url: /#features
+            - listitem [ref=e3798]:
+              - link "প্রাইসিং" [ref=e3799] [cursor=pointer]:
+                - /url: /pricing
+            - listitem [ref=e3800]:
+              - link "টেমপ্লেট" [ref=e3801] [cursor=pointer]:
+                - /url: /tutorials
+        - generic [ref=e3802]:
+          - heading "কোম্পানি" [level=4] [ref=e3803]
+          - list [ref=e3804]:
+            - listitem [ref=e3805]:
+              - link "সম্পর্কে" [ref=e3806] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e3807]:
+              - link "ব্লগ" [ref=e3808] [cursor=pointer]:
+                - /url: /contact
+        - generic [ref=e3809]:
+          - heading "আইনি" [level=4] [ref=e3810]
+          - list [ref=e3811]:
+            - listitem [ref=e3812]:
+              - link "গোপনীয়তা" [ref=e3813] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e3814]:
+              - link "শর্তাবলী" [ref=e3815] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e3816]:
+              - link "রিফান্ড নীতি" [ref=e3817] [cursor=pointer]:
+                - /url: /refund
+      - generic [ref=e3818]:
+        - paragraph [ref=e3819]: © ২০২৬ মাল্টি-স্টোর। বাংলাদেশে ❤️ দিয়ে তৈরি।
+        - generic [ref=e3820]:
+          - link "💬" [ref=e3821] [cursor=pointer]:
+            - /url: /
+          - link "📘" [ref=e3822] [cursor=pointer]:
+            - /url: /
+          - link "📸" [ref=e3823] [cursor=pointer]:
+            - /url: /
+  - button "Ozzyl AI" [ref=e3824]:
+    - img "Ozzyl AI" [ref=e3827]
+```

@@ -107,4 +107,32 @@ export const onboarding = {
   storeNameRequired: 'Store name is required',
   emailRequired: 'Email is required',
   passwordRequired: 'Password is required',
+  
+  // Plan Features
+  feature1Product: '1 Product',
+  feature50Orders: '50 Orders/Month',
+  featureLandingPageMode: 'Landing Page Mode',
+  featureBasicSupport: 'Basic Support',
+  feature50Products: '50 Products',
+  feature500Orders: '500 Orders/Month',
+  featureFullStoreMode: 'Full Store Mode',
+  featureCustomDomain: 'Custom Domain',
+  featureBkashNagad: 'bKash/Nagad Payment',
+  feature200Products: '200 Products',
+  feature3000Orders: '3000 Orders/Month',
+  featureFbApi: 'Facebook Conversion API',
+  featurePrioritySupport: 'Priority Support',
+  feature247Support: '24/7 Support',
+  
+  // Placeholders & Meta
+  placeholderName: 'John Doe',
+  placeholderEmail: 'you@example.com',
+  placeholderStoreName: 'My Awesome Store',
+  placeholderSubdomain: 'my-store',
+  metaTitle: 'Create Your Store - Multi-Store SaaS',
+  
+  // Errors
+  emailAlreadyRegistered: 'Email already registered. Please login instead.',
+  failedToCreateStore: 'Failed to create store. Please try again.',
+  invalidStep: 'Invalid step',
 };
