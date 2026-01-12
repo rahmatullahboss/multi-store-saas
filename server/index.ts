@@ -2,6 +2,8 @@
  * Hono Server Entry Point
  * 
  * Main entry for Cloudflare Workers. Combines:
+ * - Security headers middleware
+ * - Rate limiting middleware
  * - Multi-tenancy middleware
  * - API routes (Hono)
  * - Remix SSR (forwarded requests)
@@ -12,6 +14,8 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { cache } from 'hono/cache';
 import { tenantMiddleware, type TenantEnv, type TenantContext } from './middleware/tenant';
+import { securityHeaders, apiSecurityHeaders } from './middleware/security';
+import { standardApiLimit, authLimit, orderLimit, aiChatLimit } from './middleware/rate-limit';
 import { productsApi } from './api/products';
 import { ordersApi } from './api/orders';
 import { storesApi } from './api/stores';
@@ -19,6 +23,8 @@ import { storesApi } from './api/stores';
 // Type definitions for Cloudflare bindings
 interface Env extends TenantEnv {
   ASSETS: Fetcher;
+  RATE_LIMIT_KV?: KVNamespace;
+  ENVIRONMENT?: string;
 }
 
 type AppContext = {
@@ -36,12 +42,57 @@ const app = new Hono<AppContext>();
 // Logger for development
 app.use('*', logger());
 
-// CORS for API routes
+// Security Headers for all routes
+app.use('*', securityHeaders());
+
+// API-specific security headers (stricter CSP)
+app.use('/api/*', apiSecurityHeaders());
+
+// CORS for API routes (restrictive - allow only same-origin and trusted domains)
+const allowedOrigins = [
+  'https://ozzyl.com',
+  'https://*.ozzyl.com',
+  /^https:\/\/.*\.ozzyl\.com$/,
+  // Development
+  'http://localhost:5173',
+  'http://localhost:8787',
+];
+
 app.use('/api/*', cors({
-  origin: '*',
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  origin: (origin) => {
+    if (!origin) return 'https://ozzyl.com'; // No origin = same-origin
+    
+    // Check exact matches
+    if (allowedOrigins.includes(origin)) return origin;
+    
+    // Check regex patterns
+    for (const pattern of allowedOrigins) {
+      if (pattern instanceof RegExp && pattern.test(origin)) {
+        return origin;
+      }
+    }
+    
+    // Allow subdomain wildcard
+    if (origin.endsWith('.ozzyl.com')) return origin;
+    
+    // Deny unknown origins
+    return null;
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+  credentials: true,
+  maxAge: 86400, // 24 hours
 }));
+
+// Standard API rate limiting (100 req/min)
+app.use('/api/*', standardApiLimit());
+
+// Stricter rate limits for sensitive endpoints
+app.use('/api/auth/*', authLimit()); // 5 req/15min
+app.use('/api/create-order', orderLimit()); // 10 req/min
+app.use('/api/ai/*', aiChatLimit()); // 20 req/min
+app.use('/api/chat', aiChatLimit());
 
 // Apply tenant middleware to all routes
 app.use('*', tenantMiddleware());
