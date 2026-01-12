@@ -982,4 +982,11 @@ export const dashboard = {
   dashboardChat_maybeLater: 'পরে হবে',
   dashboardChat_thinking: 'Ozzyl ভাবছে...',
   dashboardChat_askAnything: 'আপনার স্টোর সম্পর্কে যেকোনো কিছু জিজ্ঞাসা করুন...',
+  analyzing: 'অ্যানালাইজিং',
+  designing: 'ডিজাইনিং',
+  generating: 'জেনারেটিং',
+  analyzingPrompt: 'আপনার অনুরোধ বিশ্লেষণ করা হচ্ছে...',
+  generatingDesign: 'চমৎকার ডিজাইন তৈরি করছি...',
+  aiWorkingHint: 'AI তার জাদু (Magic) দেখাচ্ছে ✨',
+  aiTip: 'টিপ: পার্সোনালাইজড টেক্সট পেতে আপনার প্রোডাক্টের সঠিক তথ্য দিন!',
 };

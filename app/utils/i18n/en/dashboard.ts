@@ -988,4 +988,11 @@ export const dashboard = {
   dashboardChat_maybeLater: 'Maybe later',
   dashboardChat_thinking: 'Ozzyl is thinking...',
   dashboardChat_askAnything: 'Ask anything about your store...',
+  analyzing: 'Analyzing',
+  designing: 'Designing',
+  generating: 'Generating',
+  analyzingPrompt: 'Analyzing your request...',
+  generatingDesign: 'Creating beautiful design...',
+  aiWorkingHint: 'AI is working its magic ✨',
+  aiTip: 'Tip: AI uses your product info for personalized copy!',
 };
