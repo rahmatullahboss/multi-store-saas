@@ -41,6 +41,9 @@ jobs:
       - name: 🏗️ Build application
         run: npm run build
 
+      - name: 🗄️ Run migrations (Local DB)
+        run: npx wrangler d1 migrations apply DB --local
+
       - name: 🧪 Run E2E tests
         run: npx playwright test --project=chromium
         env:
@@ -95,6 +98,9 @@ jobs:
       - name: 🏗️ Build application
         run: npm run build
 
+      - name: 🗄️ Run migrations (Local DB)
+        run: npx wrangler d1 migrations apply DB --local
+
       - name: 🧪 Run ${{ matrix.browser }} tests
         run: npx playwright test --project=${{ matrix.browser }}
         env:
@@ -133,6 +139,9 @@ jobs:
 
       - name: 🏗️ Build application
         run: npm run build
+
+      - name: 🗄️ Run migrations (Local DB)
+        run: npx wrangler d1 migrations apply DB --local
 
       - name: 📱 Run mobile tests
         run: |
