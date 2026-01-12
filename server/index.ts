@@ -53,6 +53,10 @@ const allowedOrigins = [
   'https://ozzyl.com',
   'https://*.ozzyl.com',
   /^https:\/\/.*\.ozzyl\.com$/,
+  // Temporary - digitalcare.site
+  'https://digitalcare.site',
+  'https://*.digitalcare.site',
+  /^https:\/\/.*\.digitalcare\.site$/,
   // Development
   'http://localhost:5173',
   'http://localhost:8787',
