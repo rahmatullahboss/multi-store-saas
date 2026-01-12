@@ -6,13 +6,13 @@
 
 import { Suspense, lazy, useState, useEffect } from 'react';
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams, Form, useNavigation } from '@remix-run/react';
+import { useLoaderData, useSearchParams, Form, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { landingPages, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { Plus, FileText, ChevronRight, Globe, Lock, Clock, ExternalLink, Trash2, Check } from 'lucide-react';
+import { Plus, FileText, ChevronRight, Globe, Lock, Clock, ExternalLink, Trash2, Check, Pencil, X } from 'lucide-react';
 
 // Lazy load the editor
 const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as React.FC<{ 
@@ -74,17 +74,44 @@ export async function loader({ request, context }: any) {
 }
 
 // ============================================================================
-// ACTION (Create Page)
+// ACTION (Create, Rename, Delete Page)
 // ============================================================================
 export async function action({ request, context }: any) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
   const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // RENAME PAGE
+  if (intent === 'rename') {
+    const pageId = parseInt(formData.get('pageId') as string);
+    const newName = formData.get('name') as string;
+    
+    await db
+      .update(landingPages)
+      .set({ name: newName, updatedAt: new Date() })
+      .where(and(eq(landingPages.id, pageId), eq(landingPages.storeId, storeId)));
+    
+    return json({ success: true });
+  }
+
+  // DELETE PAGE
+  if (intent === 'delete') {
+    const pageId = parseInt(formData.get('pageId') as string);
+    
+    await db
+      .delete(landingPages)
+      .where(and(eq(landingPages.id, pageId), eq(landingPages.storeId, storeId)));
+    
+    return json({ success: true });
+  }
+
+  // CREATE PAGE (default)
   const name = formData.get('name') as string;
   const slug = formData.get('slug') as string || `page-${Date.now()}`;
 
-  const db = drizzle(context.cloudflare.env.DB);
   const [newPage] = await db
     .insert(landingPages)
     .values({
@@ -106,7 +133,10 @@ export default function PageBuilderRoute() {
   const [isCreating, setIsCreating] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [storageStatus, setStorageStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [editingPageId, setEditingPageId] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
   const navigation = useNavigation();
+  const fetcher = useFetcher();
 
   // Ensure client-side only rendering for GrapesJS editor to prevent hydration mismatch
   useEffect(() => {
@@ -296,8 +326,65 @@ export default function PageBuilderRoute() {
                   </div>
                </div>
                
-               <h3 className="text-lg font-bold text-gray-900 group-hover:text-emerald-600 transition-colors line-clamp-1">{page.name}</h3>
-               <p className="text-xs text-gray-400 font-medium mb-6">/p/{page.slug}</p>
+               {/* Editable Page Name */}
+               {editingPageId === page.id ? (
+                 <div className="flex items-center gap-2 mb-6">
+                   <input
+                     type="text"
+                     value={editName}
+                     onChange={(e) => setEditName(e.target.value)}
+                     className="flex-1 px-3 py-2 text-sm font-bold border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                     autoFocus
+                   />
+                   <button
+                     onClick={() => {
+                       fetcher.submit(
+                         { intent: 'rename', pageId: page.id.toString(), name: editName },
+                         { method: 'post' }
+                       );
+                       setEditingPageId(null);
+                     }}
+                     className="p-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition"
+                   >
+                     <Check size={14} />
+                   </button>
+                   <button
+                     onClick={() => setEditingPageId(null)}
+                     className="p-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition"
+                   >
+                     <X size={14} />
+                   </button>
+                 </div>
+               ) : (
+                 <div className="flex items-center gap-2 mb-1">
+                   <h3 className="text-lg font-bold text-gray-900 group-hover:text-emerald-600 transition-colors line-clamp-1 flex-1">{page.name}</h3>
+                   <button
+                     onClick={() => {
+                       setEditingPageId(page.id);
+                       setEditName(page.name);
+                     }}
+                     className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition opacity-0 group-hover:opacity-100"
+                     title={t('rename') || 'Rename'}
+                   >
+                     <Pencil size={12} />
+                   </button>
+                   <button
+                     onClick={() => {
+                       if (confirm(t('confirmDeletePage') || 'Are you sure you want to delete this page?')) {
+                         fetcher.submit(
+                           { intent: 'delete', pageId: page.id.toString() },
+                           { method: 'post' }
+                         );
+                       }
+                     }}
+                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100"
+                     title={t('delete') || 'Delete'}
+                   >
+                     <Trash2 size={12} />
+                   </button>
+                 </div>
+               )}
+               <p className="text-xs text-gray-400 font-medium mb-5">/p/{page.slug}</p>
                
                <div className="grid grid-cols-2 gap-3">
                   <button 
