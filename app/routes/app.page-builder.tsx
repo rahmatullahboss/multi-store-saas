@@ -159,6 +159,18 @@ export default function PageBuilderRoute() {
                    </>
                  )}
               </div>
+              {/* View Published Button */}
+              {pages.find((p: any) => p.id.toString() === pageId)?.isPublished && (
+                <a
+                  href={`${publishedBaseUrl}/p/${pages.find((p: any) => p.id.toString() === pageId)?.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition text-xs font-bold"
+                >
+                  <ExternalLink size={12} />
+                  {t('viewPublished') || 'View Live'}
+                </a>
+              )}
            </div>
         </div>
 
@@ -294,14 +306,20 @@ export default function PageBuilderRoute() {
                   >
                      {t('editPage')}
                   </button>
-                  <a 
-                     href={`/p/${page.slug}`} 
-                     target="_blank" 
-                     rel="noreferrer"
-                     className="flex items-center justify-center gap-2 py-3 bg-gray-50 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-100 transition"
-                  >
-                     {t('view')} <ExternalLink size={12} />
-                  </a>
+                  {page.isPublished ? (
+                    <a 
+                       href={`${publishedBaseUrl}/p/${page.slug}`} 
+                       target="_blank" 
+                       rel="noreferrer"
+                       className="flex items-center justify-center gap-2 py-3 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-xl hover:bg-emerald-100 transition border border-emerald-100"
+                    >
+                       {t('view')} <ExternalLink size={12} />
+                    </a>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 py-3 bg-gray-50 text-gray-400 text-xs font-medium rounded-xl border border-gray-100 cursor-not-allowed">
+                       <Lock size={12} /> {t('draft')}
+                    </div>
+                  )}
                </div>
             </div>
           ))

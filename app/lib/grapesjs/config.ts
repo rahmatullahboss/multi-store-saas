@@ -144,11 +144,15 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
           contentTypeJson: true,
           
           // Transform data before storing - include HTML and CSS
+          // Note: data may already contain publish flag from storage:start:store event
           onStore: (data: any, editor: any) => {
+            console.log('[GrapesJS] onStore called, publish flag:', data.publish);
             return {
               ...data,
               html: editor.getHtml(),
               css: editor.getCss(),
+              // Preserve publish flag if set
+              publish: data.publish || (editor as any).isPublishing || false,
             };
           },
           
