@@ -1489,6 +1489,113 @@ export default function StoreLiveEditor() {
                                       </div>
                                     )}
                                   </div>
+                                  
+                                  {/* AI ENHANCE BUTTON */}
+                                  {definition.aiSchema?.properties?.[key]?.aiAction === 'enhance' && !section.settings.bindings?.[key] && (
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                          const currentText = value?.toString() || '';
+                                          const fieldType = key; // heading, subheading, etc.
+                                          // Prompt user for keywords or intent
+                                          const userPrompt = prompt("What kind of text do you want? (e.g. 'Catchy', 'Professional', 'For Summer Sale')");
+                                          if (!userPrompt) return;
+
+                                          const toastId = toast.loading("AI is enhancing text...");
+                                          
+                                          fetch('/api/ai/action', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                  action: 'ENHANCE_TEXT',
+                                                  fieldType,
+                                                  currentText,
+                                                  keywords: userPrompt
+                                              })
+                                          })
+                                          .then(res => res.json())
+                                          .then((data: any) => {
+                                              if (data.success && data.data) {
+                                                  // Type Check: Enhance Text should return a string
+                                                  if (typeof data.data !== 'string') {
+                                                      toast.dismiss(toastId);
+                                                      console.error("[AI Error] Expected string, got:", typeof data.data);
+                                                      toast.error("AI returned invalid format. Please try again.");
+                                                      return;
+                                                  }
+                                                  
+                                                  updateSectionSettings(section.id, { [key]: data.data });
+                                                  toast.dismiss(toastId);
+                                                  toast.success("Text enhanced!");
+                                              } else {
+                                                  toast.dismiss(toastId);
+                                                  toast.error(data.error || "Failed to enhance text");
+                                              }
+                                          })
+                                          .catch(() => {
+                                              toast.dismiss(toastId);
+                                              toast.error("Network error");
+                                          });
+                                       }}
+                                       className="absolute right-0 top-0 -mt-1 text-[10px] text-purple-600 hover:text-purple-800 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+                                      >
+                                        <Sparkles className="w-3 h-3" />
+                                        AI Enhance
+                                      </button>
+                                  )}
+
+                                  {/* AI GENERATE ARRAY BUTTON */}
+                                  {definition.aiSchema?.properties?.[key]?.aiAction === 'generate-array' && !section.settings.bindings?.[key] && (
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                          const fieldType = key; // features, faqs, etc.
+                                          // Prompt user for topic
+                                          const userPrompt = prompt(`What kind of ${key} do you want to generate? (e.g. 'For a clothing store', 'Shipping policies')`);
+                                          if (!userPrompt) return;
+
+                                          const toastId = toast.loading(`AI is generating ${key}...`);
+                                          
+                                          fetch('/api/ai/action', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                  action: 'GENERATE_ARRAY',
+                                                  fieldType,
+                                                  keywords: userPrompt,
+                                                  count: 3
+                                              })
+                                          })
+                                          .then(res => res.json())
+                                          .then((data: any) => {
+                                              if (data.success && data.data) {
+                                                  // Type Check: Generate Array should return an array
+                                                  if (!Array.isArray(data.data)) {
+                                                      toast.dismiss(toastId);
+                                                      console.error("[AI Error] Expected array, got:", typeof data.data);
+                                                      toast.error("AI returned invalid format. Please try again.");
+                                                      return;
+                                                  }
+
+                                                  updateSectionSettings(section.id, { [key]: data.data });
+                                                  toast.dismiss(toastId);
+                                                  toast.success(`${key} generated!`);
+                                              } else {
+                                                  toast.dismiss(toastId);
+                                                  toast.error(data.error || "Failed to generate items");
+                                              }
+                                          })
+                                          .catch(() => {
+                                              toast.dismiss(toastId);
+                                              toast.error("Network error");
+                                          });
+                                       }}
+                                       className="absolute right-0 top-0 -mt-1 text-[10px] text-green-600 hover:text-green-800 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+                                      >
+                                        <Wand2 className="w-3 h-3" />
+                                        Generate Items
+                                      </button>
+                                  )}
                                </div>
                              );
                           });

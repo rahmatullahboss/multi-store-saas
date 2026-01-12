@@ -41,7 +41,14 @@ import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
+
 import { NOVALUX_THEME } from './NovaLuxTheme';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { useProductPrice } from '~/hooks/useProductPrice';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+import { useWishlist } from '~/hooks/useWishlist';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 
 // ============================================================================
 // THEME CONSTANTS (AI-compatible - use config overrides when available)
@@ -100,13 +107,17 @@ export function NovaLuxTemplate({
   const announcement = config?.announcement;
 
   return (
-    <div 
-      className="min-h-screen pb-16 md:pb-0" 
-      style={{ 
-        backgroundColor: THEME.background, 
-        fontFamily: NOVALUX_THEME.fontBody 
-      }}
-    >
+    <StoreConfigProvider config={config}>
+      <WishlistProvider>
+        <ClientOnly fallback={<SkeletonLoader />}>
+          {() => (
+            <div 
+              className="min-h-screen pb-16 md:pb-0" 
+              style={{ 
+                backgroundColor: THEME.background, 
+                fontFamily: NOVALUX_THEME.fontBody 
+              }}
+            >
       {/* Google Fonts */}
       <link 
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" 
@@ -737,6 +748,10 @@ export function NovaLuxTemplate({
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
+          )}
+        </ClientOnly>
+      </WishlistProvider>
+    </StoreConfigProvider>
   );
 }
 
@@ -751,12 +766,10 @@ interface NovaLuxProductCardProps {
 }
 
 function NovaLuxProductCard({ product, storeId, formatPrice, isPreview }: NovaLuxProductCardProps) {
-  const [isLiked, setIsLiked] = useState(false);
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isLiked = isInWishlist(product.id);
   const [isHovered, setIsHovered] = useState(false);
-  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
-  const discountPercent = hasDiscount 
-    ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
-    : 0;
+  const { price, compareAtPrice: displayCompareAt, isFlashSale, isOnSale, discountPercentage } = useProductPrice(product);
 
   return (
     <div 
@@ -786,39 +799,40 @@ function NovaLuxProductCard({ product, storeId, formatPrice, isPreview }: NovaLu
         )}
 
         {/* Gradient Overlay on Hover */}
-        <div 
+        <div
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3) 100%)' }}
         />
 
         {/* Discount Badge */}
-        {hasDiscount && (
-          <div 
+        {isOnSale && (
+          <div
             className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider"
-            style={{ 
-              background: NOVALUX_THEME.accentGradient, 
-              color: THEME.primary 
+            style={{
+              background: isFlashSale ? '#EF4444' : NOVALUX_THEME.accentGradient,
+              color: isFlashSale ? 'white' : THEME.primary
             }}
           >
-            -{discountPercent}%
+            {isFlashSale && <span className="mr-1">⚡</span>}
+            {discountPercentage}% OFF
           </div>
         )}
 
         {/* Wishlist Button */}
-        <button 
+        <button
           onClick={(e) => {
             e.preventDefault();
-            setIsLiked(!isLiked);
+            toggleWishlist(product.id);
           }}
           className="absolute top-4 right-4 p-2.5 rounded-full bg-white/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
         >
-          <Heart 
-            className="w-5 h-5 transition-all duration-300" 
-            style={{ 
+          <Heart
+            className="w-5 h-5 transition-all duration-300"
+            style={{
               color: isLiked ? '#ef4444' : THEME.muted,
               fill: isLiked ? '#ef4444' : 'none'
-            }} 
+            }}
           />
         </button>
 
@@ -827,9 +841,11 @@ function NovaLuxProductCard({ product, storeId, formatPrice, isPreview }: NovaLu
           <AddToCartButton
             productId={product.id}
             storeId={storeId}
-            className="w-full py-3 rounded-xl font-semibold text-sm backdrop-blur-sm transition-all duration-300 hover:scale-[1.02]"
-            style={{ 
-              background: 'rgba(255,255,255,0.95)', 
+            productPrice={price}
+            productName={product.title}
+            className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-105"
+            style={{
+              background: 'rgba(255,255,255,0.95)',
               color: THEME.primary,
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
             }}
@@ -844,20 +860,20 @@ function NovaLuxProductCard({ product, storeId, formatPrice, isPreview }: NovaLu
       <div className="p-5">
         {/* Category */}
         {product.category && (
-          <span 
+          <span
             className="text-xs font-medium uppercase tracking-wider"
             style={{ color: THEME.accent }}
           >
             {product.category}
           </span>
         )}
-        
+
         {/* Title */}
         <Link to={`/product/${product.id}`}>
-          <h3 
+          <h3
             className="font-medium mt-2 mb-3 line-clamp-2 transition-colors duration-300 hover:opacity-70"
-            style={{ 
-              fontFamily: NOVALUX_THEME.fontHeading, 
+            style={{
+              fontFamily: NOVALUX_THEME.fontHeading,
               color: THEME.text,
               fontSize: '1.125rem',
               lineHeight: '1.4'
@@ -870,34 +886,30 @@ function NovaLuxProductCard({ product, storeId, formatPrice, isPreview }: NovaLu
         {/* Rating */}
         <div className="flex items-center gap-1 mb-3">
           {[...Array(5)].map((_, i) => (
-            <Star 
-              key={i} 
-              className="w-3.5 h-3.5" 
-              style={{ 
-                color: THEME.accent, 
-                fill: i < 4 ? THEME.accent : 'none' 
-              }} 
+            <Star
+              key={i}
+              className="w-3.5 h-3.5"
+              style={{
+                color: THEME.accent,
+                fill: i < 4 ? THEME.accent : 'none'
+              }}
             />
           ))}
           <span className="text-xs ml-1" style={{ color: THEME.muted }}>(24)</span>
         </div>
 
         {/* Price */}
-        <div className="flex items-center gap-2">
-          <span 
-            className="text-lg font-semibold"
-            style={{ color: THEME.primary }}
-          >
-            {formatPrice(product.price)}
-          </span>
-          {hasDiscount && (
-            <span 
-              className="text-sm line-through"
-              style={{ color: THEME.muted }}
-            >
-              {formatPrice(product.compareAtPrice!)}
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-lg font-bold" style={{ color: THEME.primary }}>
+              {formatPrice(price)}
             </span>
-          )}
+            {isOnSale && displayCompareAt && (
+              <span className="block text-xs line-through mt-0.5" style={{ color: THEME.muted }}>
+                {formatPrice(displayCompareAt)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -12,6 +12,12 @@
 import { Link, useSearchParams } from '@remix-run/react';
 import { useState } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+import { useWishlist } from '~/hooks/useWishlist';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { 
   Menu, X, Search, ShoppingCart, 
   Heart, User, ShoppingBag, Headphones, Grid3X3, ChevronRight 
@@ -38,6 +44,8 @@ export function DarazTemplate({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchParams] = useSearchParams();
   const count = useCartCount();
+  const { count: wishlistCount } = useWishlist();
+  const { t } = useTranslation();
 
 
   // Get products for different sections
@@ -47,7 +55,11 @@ export function DarazTemplate({
   const featuredCategories = categories.filter(Boolean).slice(0, 12);
 
   return (
-    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: DARAZ_THEME.background, fontFamily: "'Roboto', 'NotoSans', Arial, sans-serif" }}>
+    <StoreConfigProvider config={config}>
+      <WishlistProvider>
+        <ClientOnly fallback={<SkeletonLoader />}>
+          {() => (
+            <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: DARAZ_THEME.background, fontFamily: "'Roboto', 'NotoSans', Arial, sans-serif" }}>
       {/* Top Bar */}
       <div style={{ backgroundColor: DARAZ_THEME.topBarBg }} className="hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-9 text-xs text-white/90">
@@ -128,8 +140,16 @@ export function DarazTemplate({
                 {count}
               </span>
             </Link>
-            <button className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition">
+            <button className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition relative">
               <Heart className="h-6 w-6" />
+              {wishlistCount > 0 && (
+                <span 
+                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{ backgroundColor: '#FFD700', color: DARAZ_THEME.text }}
+                >
+                  {wishlistCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -394,5 +414,9 @@ export function DarazTemplate({
         }
       `}</style>
     </div>
+          )}
+        </ClientOnly>
+      </WishlistProvider>
+    </StoreConfigProvider>
   );
 }

@@ -92,6 +92,7 @@ export interface SectionSettings {
   trustText2?: string;
   trustText3?: string;
   showWishlist?: boolean;
+  blockName?: string;
 }
 
 export interface StoreSection {
@@ -109,25 +110,26 @@ export interface SectionDefinition {
   defaultSettings: SectionSettings;
   component: ComponentType<any>;
   allowedPages?: ('home' | 'product' | 'collection' | 'page' | 'cart')[];
+  aiSchema?: any; // Added for AI Action Layer
 }
 
 
 // ============================================================================
 // REGISTRY
 // ============================================================================
-import HeroSection from './HeroSection';
-import { ProductGridSection } from './ProductGridSection';
-import NewsletterSection from './NewsletterSection';
-import CategorySection from './CategorySection';
+import HeroSection, { HERO_AI_SCHEMA } from './HeroSection';
+import { ProductGridSection, PRODUCT_GRID_AI_SCHEMA } from './ProductGridSection';
+import NewsletterSection, { NEWSLETTER_AI_SCHEMA } from './NewsletterSection';
+import CategorySection, { CATEGORY_AI_SCHEMA } from './CategorySection';
 import ProductScrollSection from './ProductScrollSection';
-import FeaturesSection from './FeaturesSection';
+import FeaturesSection, { FEATURES_AI_SCHEMA } from './FeaturesSection';
 import BannerSection from './BannerSection';
-import FAQSection from './FAQSection';
+import FAQSection, { FAQ_AI_SCHEMA } from './FAQSection';
 import ModernHeroSection from './ModernHeroSection';
 import ModernFeaturesSection from './ModernFeaturesSection';
 
 
-import RichTextSection from './RichTextSection';
+import RichTextSection, { RICH_TEXT_AI_SCHEMA } from './RichTextSection';
 import { ProductHeaderSection } from './ProductHeaderSection';
 import { ProductGallerySection } from './ProductGallerySection';
 import { ProductInfoSection } from './ProductInfoSection';
@@ -137,7 +139,7 @@ import { RelatedProductsSection } from './RelatedProductsSection';
 import { CollectionHeaderSection } from './CollectionHeaderSection';
 import { CartItemsSection } from './CartItemsSection';
 import { CartSummarySection } from './CartSummarySection';
-import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText, Type, ImageIcon, Info, MessageSquare, Calculator } from 'lucide-react';
+import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText, Type, ImageIcon, Info, MessageSquare, Calculator, Star } from 'lucide-react';
 
 // We will populate this as we implement components
 export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
@@ -153,7 +155,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       alignment: 'center',
       layout: 'standard',
     },
-    component: HeroSection,
+    component: HeroSection as any,
+    aiSchema: HERO_AI_SCHEMA,
     allowedPages: ['home']
   },
   'modern-hero': {
@@ -166,7 +169,6 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       subheading: 'Discover our amazing collection...',
       primaryAction: { label: 'Shop Now', url: '/products' },
       secondaryAction: { label: 'Browse Categories', url: '/about' },
-      badge: 'New Collection',
       image: '',
     },
     component: ModernHeroSection,
@@ -186,7 +188,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
         { icon: '💬', title: '24/7 Support', description: 'Always ready to help.' },
       ]
     },
-    component: ModernFeaturesSection, // Fixed typo in previous step content
+    component: ModernFeaturesSection,
     allowedPages: ['home']
   },
   'rich-text': {
@@ -200,6 +202,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       alignment: 'center'
     },
     component: RichTextSection,
+    aiSchema: RICH_TEXT_AI_SCHEMA,
     allowedPages: ['home', 'product', 'collection']
   },
   'category-list': {
@@ -213,6 +216,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       limit: 8
     },
     component: CategorySection,
+    aiSchema: CATEGORY_AI_SCHEMA,
     allowedPages: ['home']
   },
   'product-scroll': {
@@ -238,6 +242,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       backgroundColor: 'white'
     },
     component: FeaturesSection,
+    aiSchema: FEATURES_AI_SCHEMA,
     allowedPages: ['home', 'product']
   },
   'banner': {
@@ -262,6 +267,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       heading: 'Frequently Asked Questions',
     },
     component: FAQSection,
+    aiSchema: FAQ_AI_SCHEMA,
     allowedPages: ['home', 'product']
   },
   'product-grid': {
@@ -278,6 +284,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       showWishlist: true
     },
     component: ProductGridSection,
+    aiSchema: PRODUCT_GRID_AI_SCHEMA,
     allowedPages: ['home', 'collection']
   },
   'newsletter': {
@@ -296,6 +303,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       successMessage: 'Thanks for subscribing!'
     },
     component: NewsletterSection,
+    aiSchema: NEWSLETTER_AI_SCHEMA,
     allowedPages: ['home']
   },
   'product-header': {
@@ -392,7 +400,30 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     },
     component: CartSummarySection,
     allowedPages: ['cart']
-  }
+  },
+  'video': {
+    type: 'video',
+    name: 'Video',
+    icon: 'ImageIcon',
+    description: 'Display a video.',
+    defaultSettings: {
+      heading: 'Featured Video'
+    },
+    component: HeroSection as any, // Placeholder
+    allowedPages: ['home', 'product']
+  },
+  'testimonials': {
+    type: 'testimonials',
+    name: 'Testimonials',
+    icon: 'MessageSquare',
+    description: 'Customer reviews.',
+    defaultSettings: {
+        heading: 'What our customers say',
+        autoplay: true
+    },
+    component: FeaturesSection, // Placeholder
+    allowedPages: ['home']
+ }
 };
 
 

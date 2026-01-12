@@ -1,18 +1,27 @@
 /**
  * Tech Modern Store Template
- * 
+ *
  * Clean, bold design for electronics & tech products.
  * Features: Slate + Blue accents, modern typography, gradient backgrounds.
  */
 
 import { Link } from '@remix-run/react';
-import { ShoppingCart, Search, Menu, X, Zap, ChevronRight, Star, Twitter, Linkedin, Youtube, Home as HomeIcon, Grid3X3, User, Phone, MessageCircle } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Zap, ChevronRight, ArrowRight, User, Heart,
+  Instagram, Facebook, Twitter, Smartphone, Laptop, Watch, Headphones, Speaker,
+  Linkedin, Youtube, Star, Grid3X3, Home as HomeIcon, Phone, MessageCircle
+} from 'lucide-react';
+import { useWishlist } from '~/hooks/useWishlist';
 import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { useProductPrice } from '~/hooks/useProductPrice';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 
 // ============================================================================
 // TECH MODERN THEME CONSTANTS
@@ -59,18 +68,22 @@ export function TechModernTemplate({
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
-    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: THEME.background, fontFamily: "'Inter', sans-serif" }}>
+    <StoreConfigProvider config={config}>
+      <WishlistProvider>
+        <ClientOnly fallback={<SkeletonLoader />}>
+          {() => (
+            <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: THEME.background, fontFamily: "'Inter', sans-serif" }}>
       {/* Google Fonts */}
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
       {/* ==================== HEADER ==================== */}
-      <header 
+      <header
         className="sticky top-0 z-50 border-b shadow-sm"
         style={{ backgroundColor: THEME.headerBg, borderColor: '#e2e8f0' }}
       >
         {/* Top Bar */}
         {config?.announcement?.text && (
-          <div 
+          <div
             className="text-center py-2 text-sm font-medium"
             style={{ backgroundColor: THEME.accent, color: 'white' }}
           >
@@ -88,7 +101,7 @@ export function TechModernTemplate({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20 gap-4">
             {/* Mobile Menu Button */}
-            <button 
+            <button
               className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -100,11 +113,11 @@ export function TechModernTemplate({
               {logo ? (
                 <img src={logo} alt={storeName} className="h-8 lg:h-10 object-contain" />
               ) : (
-                <span 
+                <span
                   className="text-xl lg:text-2xl font-bold flex items-center gap-2"
                   style={{ color: THEME.primary }}
                 >
-                  <div 
+                  <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center"
                     style={{ backgroundColor: THEME.accent }}
                   >
@@ -117,10 +130,10 @@ export function TechModernTemplate({
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
-              <Link 
+              <Link
                 to="/"
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={{ 
+                style={{
                   backgroundColor: !currentCategory ? THEME.accentLight : 'transparent',
                   color: !currentCategory ? THEME.accent : THEME.text,
                 }}
@@ -132,7 +145,7 @@ export function TechModernTemplate({
                   key={category}
                   to={`/?category=${encodeURIComponent(category)}`}
                   className="px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-100"
-                  style={{ 
+                  style={{
                     backgroundColor: currentCategory === category ? THEME.accentLight : 'transparent',
                     color: currentCategory === category ? THEME.accent : THEME.text,
                   }}
@@ -160,8 +173,8 @@ export function TechModernTemplate({
             {/* <LanguageSelector variant="toggle" size="sm" showFlag={true} showName={false} /> */} {/* Temporarily disabled - Bengali is default */}
 
             {/* Cart Button */}
-            <Link 
-              to="/cart" 
+            <Link
+              to="/cart"
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors"
               style={{ backgroundColor: THEME.accent, color: 'white' }}
             >
@@ -186,10 +199,10 @@ export function TechModernTemplate({
                 />
               </div>
             </div>
-            
+
             {/* Mobile Nav */}
             <nav className="py-2">
-              <Link 
+              <Link
                 to="/"
                 className="flex items-center justify-between px-4 py-3 font-medium"
                 style={{ color: !currentCategory ? THEME.accent : THEME.text }}
@@ -251,7 +264,7 @@ export function TechModernTemplate({
        ]).map((section: any) => {
         const SectionComponent = SECTION_REGISTRY[section.type]?.component;
         if (!SectionComponent) return null;
-        
+
         return (
           <SectionComponent
             key={section.id}
@@ -281,7 +294,7 @@ export function TechModernTemplate({
             {/* Brand */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <div 
+                <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: THEME.accent }}
                 >
@@ -292,7 +305,7 @@ export function TechModernTemplate({
               <p className="text-white/60 max-w-md mb-6">
                 {footerConfig?.description || 'Your trusted destination for cutting-edge technology and electronics.'}
               </p>
-              
+
               {/* Newsletter */}
               <div className="flex gap-2">
                 <input
@@ -328,12 +341,12 @@ export function TechModernTemplate({
                 {businessInfo?.email && <li>{businessInfo.email}</li>}
                 {businessInfo?.phone && <li>{businessInfo.phone}</li>}
               </ul>
-              
+
               <div className="flex gap-3 mt-6">
                 {socialLinks?.twitter && (
-                  <a 
-                    href={socialLinks.twitter} 
-                    target="_blank" 
+                  <a
+                    href={socialLinks.twitter}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
                   >
@@ -367,19 +380,19 @@ export function TechModernTemplate({
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
         <div className="flex items-center justify-around h-14">
           <Link to="/" className="flex flex-col items-center gap-0.5 py-1 px-3">
-            <HomeIcon className="w-5 h-5" style={{ color: !currentCategory ? THEME.accent : THEME.muted }} />
+            <ArrowRight className="w-5 h-5" style={{ color: !currentCategory ? THEME.accent : THEME.muted }} />
             <span className="text-[10px] font-medium" style={{ color: !currentCategory ? THEME.accent : THEME.muted }}>Home</span>
           </Link>
-          <button 
+          <button
             onClick={() => setMobileMenuOpen(true)}
             className="flex flex-col items-center gap-0.5 py-1 px-3"
           >
-            <Grid3X3 className="w-5 h-5" style={{ color: THEME.muted }} />
+            <ArrowRight className="w-5 h-5" style={{ color: THEME.muted }} />
             <span className="text-[10px] font-medium" style={{ color: THEME.muted }}>Categories</span>
           </button>
           <Link to="/cart" className="flex flex-col items-center gap-0.5 py-1 px-3 relative">
             <ShoppingCart className="w-5 h-5" style={{ color: THEME.muted }} />
-            <span 
+            <span
               className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
               style={{ backgroundColor: THEME.accent }}
             >
@@ -407,7 +420,7 @@ export function TechModernTemplate({
               className="fixed bottom-20 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
               title="Message on WhatsApp"
             >
-              <MessageCircle className="h-7 w-7 text-white" />
+              <ArrowRight className="h-7 w-7 text-white" />
               <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25" />
             </a>
           )}
@@ -417,34 +430,30 @@ export function TechModernTemplate({
               className={`fixed bottom-20 md:bottom-8 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
               title="Call us"
             >
-              <Phone className="h-7 w-7 text-white" />
+              <ArrowRight className="h-7 w-7 text-white" />
               <span className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-25" />
             </a>
           )}
         </>
       )}
     </div>
+          )}
+        </ClientOnly>
+      </WishlistProvider>
+    </StoreConfigProvider>
   );
 }
 
 // ============================================================================
 // TECH PRODUCT CARD COMPONENT
 // ============================================================================
-interface TechProductCardProps {
-  product: StoreTemplateProps['products'][0];
-  storeId: number;
-  formatPrice: (price: number) => string;
-  isPreview?: boolean;
-}
-
-function TechProductCard({ product, storeId, formatPrice, isPreview }: TechProductCardProps) {
-  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
-  const discountPercent = hasDiscount 
-    ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
-    : 0;
+function TechProductCard({ product, storeId, formatPrice, isPreview }: { product: any, storeId: number, formatPrice: (price: number) => string, isPreview?: boolean }) {
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isLiked = isInWishlist(product.id);
+  const { price, compareAtPrice: displayCompareAt, isFlashSale, isOnSale, discountPercentage } = useProductPrice(product);
 
   return (
-    <div 
+    <div
       className="group bg-white rounded-2xl border-2 border-transparent overflow-hidden transition-all hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10"
     >
       {/* Image */}
@@ -462,14 +471,23 @@ function TechProductCard({ product, storeId, formatPrice, isPreview }: TechProdu
         )}
 
         {/* Discount Badge */}
-        {hasDiscount && (
-          <div 
-            className="absolute top-3 left-3 px-3 py-1 rounded-full text-sm font-semibold"
-            style={{ backgroundColor: '#ef4444', color: 'white' }}
-          >
-            {discountPercent}% OFF
-          </div>
+        {isOnSale && (
+          <span className={`absolute top-2 left-2 px-2 py-1 text-xs font-bold uppercase tracking-wider rounded ${isFlashSale ? 'bg-red-500 text-white' : 'bg-cyan-500 text-black'}`}>
+            {isFlashSale ? 'Flash Sale' : `-${discountPercentage}%`}
+          </span>
         )}
+
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            toggleWishlist(product.id);
+          }}
+          className={`absolute top-2 right-2 p-2 rounded-full transition-colors ${
+            isLiked ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-black/50 text-white hover:bg-cyan-500 hover:text-black'
+          }`}
+        >
+          <Heart size={16} className={isLiked ? "fill-current" : ""} />
+        </button>
       </Link>
 
       {/* Content */}
@@ -500,11 +518,11 @@ function TechProductCard({ product, storeId, formatPrice, isPreview }: TechProdu
         <div className="flex items-center justify-between">
           <div>
             <span className="text-xl font-bold" style={{ color: THEME.primary }}>
-              {formatPrice(product.price)}
+              {formatPrice(price)}
             </span>
-            {hasDiscount && (
+            {isOnSale && displayCompareAt && (
               <span className="text-sm line-through ml-2" style={{ color: THEME.muted }}>
-                {formatPrice(product.compareAtPrice!)}
+                {formatPrice(displayCompareAt)}
               </span>
             )}
           </div>
@@ -512,6 +530,8 @@ function TechProductCard({ product, storeId, formatPrice, isPreview }: TechProdu
           <AddToCartButton
             productId={product.id}
             storeId={storeId}
+            productPrice={price}
+            productName={product.title}
             className="p-3 rounded-xl transition-all hover:scale-110"
             style={{ backgroundColor: THEME.accent, color: 'white' }}
             isPreview={isPreview}

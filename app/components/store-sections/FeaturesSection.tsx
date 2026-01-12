@@ -11,7 +11,21 @@ const ICON_MAP: Record<string, any> = {
   Truck, Shield, RotateCcw, Headphones, Star, Zap, Lock, CreditCard, Gift, ThumbsUp
 };
 
-export default function FeaturesSection({ settings, theme }: FeaturesSectionProps) {
+import { withAISchema, type AISchema } from '~/utils/ai-editable';
+
+export const FEATURES_AI_SCHEMA: AISchema = {
+  component: 'FeaturesSection',
+  version: '1.0.0',
+  properties: {
+    heading: { type: 'string', maxLength: 100, aiAction: 'enhance' },
+    subheading: { type: 'string', maxLength: 200, aiAction: 'enhance' },
+    backgroundColor: { type: 'string', maxLength: 20 },
+    // Array support to be added to validator later
+    features: { type: 'array', aiAction: 'generate-array' } 
+  }
+};
+
+function FeaturesSectionBase({ settings, theme }: FeaturesSectionProps) {
   const features = settings.features || [
     { icon: 'Truck', title: 'Free Delivery', description: 'On all orders' },
     { icon: 'Shield', title: 'Secure Payment', description: '100% secure' },
@@ -53,3 +67,6 @@ export default function FeaturesSection({ settings, theme }: FeaturesSectionProp
     </section>
   );
 }
+
+const FeaturesSection = withAISchema(FeaturesSectionBase, FEATURES_AI_SCHEMA);
+export default FeaturesSection;

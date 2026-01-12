@@ -7,19 +7,12 @@
 
 import { Link } from '@remix-run/react';
 import { 
-  ShoppingBag, 
-  Search, 
-  Menu, 
-  X, 
-  Heart, 
-  ArrowRight, 
-  Instagram, 
-  Facebook, 
-  Twitter,
-  Zap,
-  Globe,
-  Monitor
+  Menu, X, Search, ShoppingCart, 
+  ChevronRight, ArrowRight, Star, 
+  Instagram, Facebook, Twitter, ShoppingBag, Heart, User,
+  Zap, Globe, Monitor
 } from 'lucide-react';
+import { useWishlist } from '~/hooks/useWishlist';
 import { useState, useEffect, useRef } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
@@ -27,6 +20,11 @@ import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { ECLIPSE_THEME } from './EclipseTheme';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { useProductPrice } from '~/hooks/useProductPrice';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 
 // ============================================================================
 // COMPONENT: ECLIPSE TEMPLATE
@@ -47,6 +45,7 @@ export function EclipseTemplate({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const count = useCartCount();
+  const { count: wishlistCount } = useWishlist();
   const formatPrice = useFormatPrice();
   const { t } = useTranslation();
 
@@ -68,14 +67,18 @@ export function EclipseTemplate({
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
-    <div 
-      className="min-h-screen selection:bg-violet-500 selection:text-white"
-      style={{ 
-        backgroundColor: ECLIPSE_THEME.background,
-        color: ECLIPSE_THEME.text,
-        fontFamily: ECLIPSE_THEME.fontBody
-      }}
-    >
+    <StoreConfigProvider config={config}>
+      <WishlistProvider>
+        <ClientOnly fallback={<SkeletonLoader />}>
+          {() => (
+            <div 
+              className="min-h-screen selection:bg-violet-500 selection:text-white"
+              style={{ 
+                backgroundColor: ECLIPSE_THEME.background,
+                color: ECLIPSE_THEME.text,
+                fontFamily: ECLIPSE_THEME.fontBody
+              }}
+            >
       {/* Fonts */}
       <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
@@ -312,6 +315,10 @@ export function EclipseTemplate({
         ::-webkit-scrollbar-thumb:hover { background: #555; }
       `}</style>
     </div>
+          )}
+        </ClientOnly>
+      </WishlistProvider>
+    </StoreConfigProvider>
   );
 }
 
@@ -328,6 +335,9 @@ interface EclipseProductCardProps {
 }
 
 function EclipseProductCard({ product, storeId, formatPrice, isPreview, addToCartText, showWishlist }: EclipseProductCardProps) {
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isLiked = isInWishlist(product.id);
+  const { price, compareAtPrice: displayCompareAt, isFlashSale, isOnSale } = useProductPrice(product);
   const divRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -411,14 +421,23 @@ function EclipseProductCard({ product, storeId, formatPrice, isPreview, addToCar
           )}
           
           {/* Tag */}
-          {product.compareAtPrice && product.compareAtPrice > product.price && (
-            <span className="absolute top-4 left-4 bg-violet-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide">
-              Sale
+          {isOnSale && (
+            <span className={`absolute top-4 left-4 ${isFlashSale ? 'bg-red-600' : 'bg-violet-600'} text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide`}>
+              {isFlashSale ? 'Flash Sale' : 'Sale'}
             </span>
           )}
 
           {/* Quick Add Overlay (Mobile Friendly: Always visible on bottom right or just icon) */}
-          <div className="absolute bottom-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+          <div className="absolute bottom-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 flex flex-col gap-2">
+             <button 
+               onClick={(e) => {
+                 e.preventDefault();
+                 toggleWishlist(product.id);
+               }}
+               className="bg-white text-black p-3 rounded-full hover:scale-110 transition-transform shadow-lg"
+             >
+                <Heart size={18} className={isLiked ? "fill-red-500 text-red-500" : ""} />
+             </button>
              <button className="bg-white text-black p-3 rounded-full hover:scale-110 transition-transform shadow-lg">
                 <ShoppingBag size={18} />
              </button>
@@ -436,11 +455,11 @@ function EclipseProductCard({ product, storeId, formatPrice, isPreview, addToCar
           <div className="mt-auto flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-white font-semibold">
-                {formatPrice(product.price)}
+                {formatPrice(price)}
               </span>
-              {product.compareAtPrice && product.compareAtPrice > product.price && (
+              {isOnSale && displayCompareAt && (
                 <span className="text-white/40 line-through text-sm">
-                  {formatPrice(product.compareAtPrice)}
+                  {formatPrice(displayCompareAt)}
                 </span>
               )}
             </div>

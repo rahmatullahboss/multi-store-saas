@@ -130,6 +130,7 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
     storageManager: {
       type: 'remote',
       stepsBeforeSave: 3,
+      autosave: true,
       contentTypeJson: true,
       options: {
         remote: {

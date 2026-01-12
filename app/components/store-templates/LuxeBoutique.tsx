@@ -13,6 +13,10 @@ import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 
 // ============================================================================
@@ -58,7 +62,12 @@ export function LuxeBoutiqueTemplate({
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
-    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: THEME.background, fontFamily: "'Inter', sans-serif" }}>
+    <StoreConfigProvider config={config}>
+      <WishlistProvider>
+        <ClientOnly fallback={<SkeletonLoader />}>
+          {() => (
+            <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: THEME.background, fontFamily: "'Inter', sans-serif" }}>
+
       {/* Google Fonts */}
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
@@ -418,6 +427,10 @@ export function LuxeBoutiqueTemplate({
         </>
       )}
     </div>
+          )}
+        </ClientOnly>
+      </WishlistProvider>
+    </StoreConfigProvider>
   );
 }
 

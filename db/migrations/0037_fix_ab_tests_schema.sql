@@ -27,6 +27,27 @@ CREATE TABLE IF NOT EXISTS `product_recommendations` (
 --> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `prod_recs_source_idx` ON `product_recommendations` (`store_id`,`source_product_id`);--> statement-breakpoint
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
+-- Safely handle missing ab_tests table by creating it if it doesn't exist
+CREATE TABLE IF NOT EXISTS `ab_tests` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`store_id` integer NOT NULL,
+	`name` text NOT NULL,
+	`test_key` text NOT NULL,
+	`variant_a` text NOT NULL,
+	`variant_b` text NOT NULL,
+	`traffic_split` integer DEFAULT 50,
+	`status` text DEFAULT 'active',
+	`views_a` integer DEFAULT 0,
+	`conversions_a` integer DEFAULT 0,
+	`views_b` integer DEFAULT 0,
+	`conversions_b` integer DEFAULT 0,
+	`winner` text,
+	`started_at` integer,
+	`ended_at` integer,
+	`created_at` integer,
+	FOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `__new_ab_tests` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,

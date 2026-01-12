@@ -169,3 +169,12 @@
 - [x] **Featured Product Auto-selection**: Merchants with products now have the first one automatically selected as primary landing product.
 - [x] **Context Injection**: Seamlessly passed \`featuredProductId\` across Builder panels, Magic Generate modal, and AI Chat widget.
 - [x] **Backend Resolution**: API routes now securely fetch real-time product data to ground AI responses with 100% accuracy.
+
+### Phase 19: AI Action Layer & Centralized Logic (Completed) ⚡️
+
+- [x] **Centralized Pricing Logic**: `useProductPrice` hook handling Flash Sales & Regular Discounts uniformly across all themes.
+- [x] **Global Store Config**: `StoreConfigContext` providing instant access to marketing settings (Flash Sale, Trust Badges) deeper in the component tree.
+- [x] **AI Action Layer Specs**: Defined `AI_SCHEMA` architecture for standardized AI-component contracts.
+- [x] **Smart AI Validation**: Recursive, type-safe validation preventing AI hallucinations from breaking the UI.
+- [x] **Generative List Capabilities**: AI can now generate array items (Features, FAQs) via `GENERATE_ARRAY` action.
+- [x] **Robust Error Handling**: Client-side type safety ensuring the Editor remains stable even with malformed AI responses.

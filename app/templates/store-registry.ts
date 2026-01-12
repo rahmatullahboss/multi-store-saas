@@ -189,21 +189,36 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#2C2C2C',
     footerText: '#FDFBF9',
   },
+  'freshness': {
+    primary: FRESHNESS_THEME.primary,
+    accent: FRESHNESS_THEME.accent,
+    background: FRESHNESS_THEME.background,
+    text: FRESHNESS_THEME.text,
+    muted: FRESHNESS_THEME.textMuted,
+    cardBg: FRESHNESS_THEME.background, // Using background as cardBg fallback or specific token
+    headerBg: FRESHNESS_THEME.headerBg,
+    footerBg: FRESHNESS_THEME.footerBg,
+    footerText: FRESHNESS_THEME.footerText,
+  },
 };
 
 // ============================================================================
-// IMPORT TEMPLATE COMPONENTS
+// IMPORT TEMPLATE COMPONENTS (Dynamically Loaded)
 // ============================================================================
-import { LuxeBoutiqueTemplate } from '~/components/store-templates/LuxeBoutique';
-import { TechModernTemplate } from '~/components/store-templates/TechModern';
-import { ArtisanMarketTemplate } from '~/components/store-templates/ArtisanMarket';
-import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTemplate';
-import { DarazTemplate } from '~/components/store-templates/DarazTemplate';
-import { BDShopTemplate } from '~/components/store-templates/BDShopTemplate';
-import { GhorerBazarTemplate } from '~/components/store-templates/GhorerBazarTemplate';
-import { NovaLuxTemplate } from '~/components/store-templates/NovaLuxTemplate';
-import { EclipseTemplate } from '~/components/store-templates/EclipseTemplate';
-import { AuroraMinimalTemplate } from '~/components/store-templates/AuroraMinimalTemplate';
+import React from 'react';
+import { FRESHNESS_THEME } from '~/components/store-templates/FreshnessTheme';
+
+const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/LuxeBoutique').then(m => ({ default: m.LuxeBoutiqueTemplate })));
+const TechModernTemplate = React.lazy(() => import('~/components/store-templates/TechModern').then(m => ({ default: m.TechModernTemplate })));
+const ArtisanMarketTemplate = React.lazy(() => import('~/components/store-templates/ArtisanMarket').then(m => ({ default: m.ArtisanMarketTemplate })));
+const ModernPremiumTemplate = React.lazy(() => import('~/components/templates/ModernPremiumTemplate').then(m => ({ default: m.ModernPremiumTemplate })));
+const DarazTemplate = React.lazy(() => import('~/components/store-templates/DarazTemplate').then(m => ({ default: m.DarazTemplate })));
+const BDShopTemplate = React.lazy(() => import('~/components/store-templates/BDShopTemplate').then(m => ({ default: m.BDShopTemplate })));
+const GhorerBazarTemplate = React.lazy(() => import('~/components/store-templates/GhorerBazarTemplate').then(m => ({ default: m.GhorerBazarTemplate })));
+const NovaLuxTemplate = React.lazy(() => import('~/components/store-templates/NovaLuxTemplate').then(m => ({ default: m.NovaLuxTemplate })));
+const EclipseTemplate = React.lazy(() => import('~/components/store-templates/EclipseTemplate').then(m => ({ default: m.EclipseTemplate })));
+const AuroraMinimalTemplate = React.lazy(() => import('~/components/store-templates/AuroraMinimalTemplate').then(m => ({ default: m.AuroraMinimalTemplate })));
+const FreshnessTemplate = React.lazy(() => import('~/components/store-templates/FreshnessTemplate').then(m => ({ default: m.FreshnessTemplate })));
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -338,6 +353,19 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Plus Jakarta Sans',
     },
     component: AuroraMinimalTemplate,
+  },
+  {
+    id: 'freshness',
+    name: 'Freshness Organic',
+    description: 'Vibrant organic-focused design with fresh color palette, dynamic product cards, and floating contact buttons. Perfect for grocery and organic stores.',
+    thumbnail: '/templates/freshness.png', // Placeholder until screenshot is generated
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['freshness'],
+    fonts: {
+      heading: 'Cursive', // As per theme definition
+      body: 'system-ui',
+    },
+    component: FreshnessTemplate,
   },
 ];
 

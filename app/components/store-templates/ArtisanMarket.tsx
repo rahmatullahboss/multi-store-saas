@@ -13,6 +13,12 @@ import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { useProductPrice } from '~/hooks/useProductPrice';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+import { useWishlist } from '~/hooks/useWishlist';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 
 // ============================================================================
 // ARTISAN MARKET THEME CONSTANTS
@@ -58,7 +64,11 @@ export function ArtisanMarketTemplate({
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
-    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: THEME.background, fontFamily: "'Work Sans', sans-serif" }}>
+    <StoreConfigProvider config={config}>
+      <WishlistProvider>
+        <ClientOnly fallback={<SkeletonLoader />}>
+          {() => (
+            <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: THEME.background, fontFamily: "'Work Sans', sans-serif" }}>
       {/* Google Fonts */}
       <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
@@ -262,6 +272,7 @@ export function ArtisanMarketTemplate({
               address: businessInfo?.address,
               currency: currency
             }}
+            ProductCardComponent={ArtisanProductCard}
           />
         );
       })}
@@ -422,6 +433,10 @@ export function ArtisanMarketTemplate({
         </>
       )}
     </div>
+          )}
+        </ClientOnly>
+      </WishlistProvider>
+    </StoreConfigProvider>
   );
 }
 
@@ -436,11 +451,9 @@ interface ArtisanProductCardProps {
 }
 
 function ArtisanProductCard({ product, storeId, formatPrice, isPreview }: ArtisanProductCardProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
-  const discountPercent = hasDiscount 
-    ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
-    : 0;
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isLiked = isInWishlist(product.id);
+  const { price, compareAtPrice: displayCompareAt, isFlashSale, isOnSale, discountPercentage } = useProductPrice(product);
 
   return (
     <div 
@@ -465,12 +478,13 @@ function ArtisanProductCard({ product, storeId, formatPrice, isPreview }: Artisa
         )}
 
         {/* Discount Badge */}
-        {hasDiscount && (
+        {isOnSale && (
           <div 
             className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-sm font-medium"
-            style={{ backgroundColor: THEME.accent, color: 'white' }}
+            style={{ backgroundColor: isFlashSale ? '#EF4444' : THEME.accent, color: 'white' }}
           >
-            {discountPercent}% Off
+            {isFlashSale && <span className="mr-1">⚡</span>}
+            {discountPercentage}% Off
           </div>
         )}
 
@@ -478,7 +492,7 @@ function ArtisanProductCard({ product, storeId, formatPrice, isPreview }: Artisa
         <button 
           onClick={(e) => {
             e.preventDefault();
-            setIsLiked(!isLiked);
+            toggleWishlist(product.id);
           }}
           className="absolute top-4 right-4 p-2.5 rounded-full bg-white/90 opacity-0 group-hover:opacity-100 transition-all hover:bg-white"
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
@@ -518,11 +532,11 @@ function ArtisanProductCard({ product, storeId, formatPrice, isPreview }: Artisa
         {/* Price */}
         <div className="flex items-center gap-2 mb-4">
           <span className="text-xl font-semibold" style={{ color: THEME.primary }}>
-            {formatPrice(product.price)}
+            {formatPrice(price)}
           </span>
-          {hasDiscount && (
+          {isOnSale && displayCompareAt && (
             <span className="text-sm line-through" style={{ color: THEME.muted }}>
-              {formatPrice(product.compareAtPrice!)}
+              {formatPrice(displayCompareAt)}
             </span>
           )}
         </div>

@@ -389,6 +389,8 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
     editorInstance.on('storage:start:store', (data: any) => {
       data.pageConfig = pageConfig;
       data.themeConfig = themeConfig;
+      data.html = editorInstance.getHtml();
+      data.css = editorInstance.getCss();
       if (editorInstance.isPublishing) {
         data.publish = true;
       }

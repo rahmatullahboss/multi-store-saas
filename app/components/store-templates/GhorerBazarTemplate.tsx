@@ -35,6 +35,10 @@ import { AddToCartButton } from '~/components/AddToCartButton';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { GHORER_BAZAR_THEME } from './GhorerBazarTheme';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 
 export function GhorerBazarTemplate({
   storeName,
@@ -69,7 +73,11 @@ export function GhorerBazarTemplate({
   }
 
   return (
-    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: GHORER_BAZAR_THEME.background }}>
+    <StoreConfigProvider config={config}>
+      <WishlistProvider>
+        <ClientOnly fallback={<SkeletonLoader />}>
+          {() => (
+           <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: GHORER_BAZAR_THEME.background }}>
       {/* Top Bar - Orange */}
       <div 
         className="text-white text-center py-2 text-sm"
@@ -97,10 +105,10 @@ export function GhorerBazarTemplate({
               <Search className="h-5 w-5 text-gray-600" />
             </button>
 
-            {/* Logo - Centered */}
-            <Link to="/" className="flex items-center gap-2">
+            {/* Logo */}
+            <Link to="/" className="flex items-center justify-center">
               {logo ? (
-                <img src={logo} alt={storeName} className="h-10 w-auto object-contain" />
+                <img src={logo} alt={storeName} className="h-10 w-auto" />
               ) : (
                 <span className="text-xl font-bold" style={{ color: primary }}>
                   {storeName}
@@ -108,32 +116,24 @@ export function GhorerBazarTemplate({
               )}
             </Link>
 
-            {/* User & Cart Icons */}
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-gray-100 rounded-full transition">
-                <User className="h-5 w-5 text-gray-600" />
-              </button>
-              <Link 
-                to="/cart" 
-                className="relative p-2 hover:bg-gray-100 rounded-full transition"
+            {/* Cart Icon */}
+            <Link to="/cart" className="p-2 hover:bg-gray-100 rounded-full transition relative">
+              <ShoppingBag className="h-5 w-5 text-gray-600" />
+              <span 
+                className="absolute top-1 right-1 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                style={{ backgroundColor: accent }}
               >
-                <ShoppingCart className="h-5 w-5 text-gray-600" />
-                <span 
-                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                  style={{ backgroundColor: accent }}
-                >
-                  {count}
-                </span>
-              </Link>
-            </div>
+                {count}
+              </span>
+            </Link>
           </div>
         </div>
 
-        {/* Navigation Menu */}
-        <nav className="bg-gray-100 border-t border-gray-200">
+        {/* Categories Bar */}
+        <nav className="border-t border-gray-100 hidden md:block">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center gap-4 overflow-x-auto py-3 scrollbar-hide">
-              <Link
+            <div className="flex items-center justify-center gap-2 py-3 overflow-x-auto scrollbar-hide">
+              <Link 
                 to="/"
                 className={`whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition ${
                   !currentCategory 
@@ -454,5 +454,9 @@ export function GhorerBazarTemplate({
         }
       `}</style>
     </div>
+          )}
+        </ClientOnly>
+      </WishlistProvider>
+    </StoreConfigProvider>
   );
 }

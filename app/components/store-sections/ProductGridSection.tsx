@@ -5,17 +5,21 @@ import { useState } from 'react';
 import type { SectionSettings } from './registry';
 import { useTranslation, useFormatPrice } from '~/contexts/LanguageContext';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { useProductPrice } from '~/hooks/useProductPrice';
+import { useWishlist } from '~/hooks/useWishlist';
+
+import { withAISchema } from '~/utils/ai-editable';
 
 interface ProductGridSectionProps {
   settings: SectionSettings;
   theme: any;
-  products?: any[]; // Allow generic products to be passed (e.g. from Collection loader)
+  products?: any[]; 
   currency?: string;
-  storeId?: number; // storeId is now optional as it might not always be passed
+  storeId?: number;
   ProductCardComponent?: React.ComponentType<any>;
 }
 
-export function ProductGridSection({ settings, theme, products: passedProducts, currency = 'BDT', storeId, ProductCardComponent }: ProductGridSectionProps) {
+function ProductGridSectionComponent({ settings, theme, products: passedProducts, currency = 'BDT', storeId, ProductCardComponent }: ProductGridSectionProps) {
   const { t } = useTranslation();
   const formatPrice = useFormatPrice();
   
@@ -126,10 +130,9 @@ export function ProductGridSection({ settings, theme, products: passedProducts, 
 
 function ProductCard({ product, storeId, currency, formatPrice, theme, addToCartText, showWishlist }: any) {
   const [isHovered, setIsHovered] = useState(false);
-  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
-  const discountPercent = hasDiscount 
-    ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
-    : 0;
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isLiked = isInWishlist(product.id);
+  const { price, compareAtPrice: displayCompareAt, isFlashSale, isOnSale, discountPercentage } = useProductPrice(product);
 
   return (
     <div 
@@ -152,12 +155,16 @@ function ProductCard({ product, storeId, currency, formatPrice, theme, addToCart
         )}
 
         {/* Discount Badge */}
-        {hasDiscount && (
+        {isOnSale && (
           <div 
-            className="absolute top-3 left-3 px-2 py-1 text-xs font-medium"
-            style={{ backgroundColor: theme.accent, color: theme.primary }}
+            className="absolute top-3 left-3 px-2 py-1 text-xs font-medium rounded shadow-sm"
+            style={{ 
+              backgroundColor: isFlashSale ? '#EF4444' : theme.accent, 
+              color: isFlashSale ? 'white' : theme.primary 
+            }}
           >
-            -{discountPercent}%
+            {isFlashSale && <span className="mr-1">⚡</span>}
+            -{discountPercentage}%
           </div>
         )}
 
@@ -168,6 +175,8 @@ function ProductCard({ product, storeId, currency, formatPrice, theme, addToCart
           <AddToCartButton
             productId={product.id}
             storeId={storeId}
+            productPrice={price}
+            productName={product.title}
             className="w-full py-3 text-sm font-medium uppercase tracking-wider transition-colors shadow-lg"
             style={{ backgroundColor: theme.primary, color: 'white' }}
           >
@@ -179,10 +188,16 @@ function ProductCard({ product, storeId, currency, formatPrice, theme, addToCart
       {/* Wishlist Button - Always visible on mobile, hover on desktop */}
       {showWishlist !== false && (
       <button 
-        className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 shadow-md md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-white active:scale-95"
-        aria-label="Add to wishlist"
+        onClick={(e) => {
+          e.preventDefault();
+          toggleWishlist(product.id);
+        }}
+        className={`absolute top-3 right-3 p-2.5 rounded-full shadow-md transition-all hover:bg-white active:scale-95 ${
+          isLiked ? 'bg-red-50 text-red-500 opacity-100' : 'bg-white/90 md:opacity-0 md:group-hover:opacity-100'
+        }`}
+        aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
       >
-        <Heart className="w-5 h-5" style={{ color: theme.text }} />
+        <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} style={{ color: isLiked ? '#ef4444' : theme.text }} />
       </button>
       )}
 
@@ -198,11 +213,11 @@ function ProductCard({ product, storeId, currency, formatPrice, theme, addToCart
         </Link>
         <div className="flex items-center justify-center gap-2">
           <span className="font-medium" style={{ color: theme.primary }}>
-            {formatPrice(product.price)}
+            {formatPrice(price)}
           </span>
-          {hasDiscount && (
+          {isOnSale && displayCompareAt && (
             <span className="text-sm line-through" style={{ color: theme.muted }}>
-              {formatPrice(product.compareAtPrice!)}
+              {formatPrice(displayCompareAt)}
             </span>
           )}
         </div>
@@ -210,3 +225,37 @@ function ProductCard({ product, storeId, currency, formatPrice, theme, addToCart
     </div>
   );
 }
+
+export const PRODUCT_GRID_AI_SCHEMA = {
+  component: 'product-grid',
+  version: '1.0',
+  properties: {
+    heading: { 
+      type: 'text', 
+      aiEditable: true, 
+      maxLength: 60,
+      aiPrompt: "A catchy phrase for a product collection, e.g., 'New Arrivals' or 'Top Picks'" 
+    },
+    productCount: {
+      type: 'number',
+      aiEditable: true,
+      constraints: { min: 4, max: 24, step: 4 }
+    },
+    addToCartText: {
+      type: 'text',
+      aiEditable: true,
+      aiEnum: ['Add to Cart', 'Add to Bag', 'Get Yours', 'Buy Now']
+    },
+    showWishlist: {
+      type: 'boolean',
+      aiEditable: true
+    },
+    backgroundColor: {
+      type: 'color',
+      aiEditable: true
+    }
+  },
+  actions: ['update', 'remove', 'reorder']
+};
+
+export const ProductGridSection = withAISchema(ProductGridSectionComponent, PRODUCT_GRID_AI_SCHEMA);

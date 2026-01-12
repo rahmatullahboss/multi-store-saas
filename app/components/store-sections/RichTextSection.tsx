@@ -7,7 +7,20 @@ interface RichTextSectionProps {
   theme: any;
 }
 
-export default function RichTextSection({ settings, theme }: RichTextSectionProps) {
+import { withAISchema, type AISchema } from '~/utils/ai-editable';
+
+export const RICH_TEXT_AI_SCHEMA: AISchema = {
+  component: 'RichTextSection',
+  version: '1.0.0',
+  properties: {
+    heading: { type: 'string', maxLength: 100, aiAction: 'enhance' },
+    text: { type: 'string', maxLength: 2000, aiAction: 'enhance' },
+    alignment: { type: 'string', aiEnum: ['left', 'center', 'right'], aiAction: 'select' },
+    backgroundColor: { type: 'string', maxLength: 20 }
+  }
+};
+
+function RichTextSectionBase({ settings, theme }: RichTextSectionProps) {
   const alignmentClass = {
     left: 'text-left',
     center: 'text-center mx-auto',
@@ -32,3 +45,6 @@ export default function RichTextSection({ settings, theme }: RichTextSectionProp
     </section>
   );
 }
+
+const RichTextSection = withAISchema(RichTextSectionBase, RICH_TEXT_AI_SCHEMA);
+export default RichTextSection;

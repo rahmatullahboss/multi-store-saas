@@ -1,180 +1,225 @@
-# Template Building Guide
+# Template Building Guide: The "Pure UI" Standard (World-Class Edition)
 
-This guide outlines the best practices and requirements for creating new store templates in the Multi-Store SaaS platform. Follow these guidelines to ensure consistency, performance, and full feature support.
+This guide is the **absolute reference** for creating world-class, future-proof store templates on the Multi-Store SaaS platform.
 
-## 1. Core Structure
+> [!IMPORTANT] > **Core Principle: Pure UI & Logic Centralization**
+> Themes are **Strictly Presentational**. They must NEVER contain business logic (e.g., price calculations, cart management, wishlist storage). All logic must be consumed via **Standardized Hooks** and **Contexts**. This ensures that when we upgrade the backend logic (e.g., add a new discount engine), _every_ theme is automatically upgraded without editing the theme file.
 
-All store templates reside in `app/components/store-templates/`. A basic template structure looks like this:
+---
+
+## 1. Critical: Hydration & SSR Safety
+
+Templates rely on client-side storage (localStorage) for Cart and Wishlist. To prevent **Hydration Mismatches** (a common source of production bugs), you **MUST** use the `ClientOnly` wrapper.
+
+**Why?** Server-side rendered HTML (empty cart) will not match client-side HTML (3 items in cart), causing React to bail out of hydration.
 
 ```tsx
-import type { StoreTemplateProps } from "~/templates/store-registry";
-// ... other imports
+import { ClientOnly } from "remix-utils/client-only";
+import { SkeletonLoader } from "~/components/SkeletonLoader"; // Create or use generic
 
-export function MyNewTemplate({
-  storeName,
-  storeId,
-  logo,
-  products,
-  categories,
-  currentCategory,
-  config,
-  currency,
-  socialLinks,
-  footerConfig,
-  businessInfo,
-  isPreview,
-}: StoreTemplateProps) {
-  // ... hook calls
-
+export function MyNewTemplate({ config, ...props }: StoreTemplateProps) {
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      {/* Dynamic Sections */}
-      {/* Footer */}
-    </div>
+    <StoreConfigProvider config={config}>
+      <ClientOnly fallback={<SkeletonLoader />}>
+        {() => (
+          <WishlistProvider>
+            {/* Main UI */}
+            <div className="min-h-screen">{/* ... */}</div>
+          </WishlistProvider>
+        )}
+      </ClientOnly>
+    </StoreConfigProvider>
   );
 }
 ```
 
-## 2. Reactive Cart Logic (CRITICAL)
+---
 
-**Do NOT implement manual `localStorage` listeners or `window` event handlers for the cart.**
+## 2. World-Class Performance: Bundle Splitting
 
-Use the centralized `useCartCount` hook. This hook handles hydration safety, `localStorage` parsing, and real-time updates across tabs and components.
+Monolithic bundles kill conversion rates. We use **Route-based Code Splitting** and **Dynamic Imports** for templates.
+
+When registering your template, use `React.lazy`:
 
 ```tsx
-import { useCartCount } from "~/hooks/useCartCount";
+// store-registry.ts (Example Pattern)
+const EclipseTemplate = React.lazy(
+  () => import("~/components/store-templates/EclipseTemplate")
+);
 
-// Inside your component:
-const count = useCartCount();
-
-// Usage in JSX:
-<Link to="/cart">
-  <ShoppingCartIcon />
-  <span>{count}</span>
-</Link>;
+// In the loader/router:
+<Suspense fallback={<TemplateLoader />}>
+  <EclipseTemplate {...props} />
+</Suspense>;
 ```
 
-## 3. Dynamic Section Rendering
+**Section Level Splitting:**
+Use the `SECTION_REGISTRY` which handles dynamic imports for heavy sections automatically.
 
-Templates must support the drag-and-drop section builder. Do not hardcode the homepage layout.
+---
 
-Use the `SECTION_REGISTRY` to render sections based on `config.sections`.
+## 3. Theme Token System (Design System)
+
+Do not use arbitrary values. Define a `THEME` constant that follows this exact world-class schema for consistency and animation smoothness.
 
 ```tsx
-import {
-  SECTION_REGISTRY,
-  DEFAULT_SECTIONS,
-} from "~/components/store-sections/registry";
-
-// ... inside the return statement:
-{
-  (config?.sections ?? DEFAULT_SECTIONS).map((section: any) => {
-    const SectionComponent = SECTION_REGISTRY[section.type]?.component;
-    if (!SectionComponent) return null;
-
-    return (
-      <SectionComponent
-        key={section.id}
-        settings={section.settings}
-        theme={THEME} // Your theme constants
-        products={products}
-        categories={categories}
-        storeId={storeId}
-        currency={currency}
-        store={{
-          name: storeName,
-          email: businessInfo?.email,
-          phone: businessInfo?.phone,
-          address: businessInfo?.address,
-          currency: currency,
-        }}
-        // Optional: Pass custom card components if needed
-        // ProductCardComponent={MyCustomProductCard}
-      />
-    );
-  });
-}
+export const THEME_TOKENS = {
+  colors: {
+    primary: { DEFAULT: "#000", hover: "#333", subtle: "#f0f0f0" },
+    secondary: { DEFAULT: "#fff", contrast: "#000" },
+    semantic: { success: "#10b981", error: "#ef4444", warning: "#f59e0b" },
+  },
+  typography: {
+    fontFamily: {
+      heading: ['"Newsreader"', "serif"],
+      body: ['"Inter"', "sans-serif"],
+    },
+    fontSize: { xs: "0.75rem", sm: "0.875rem", base: "1rem", xl: "1.25rem" },
+  },
+  spacing: { xs: "4px", sm: "8px", md: "16px", lg: "24px", xl: "40px" },
+  shadows: {
+    card: "0 1px 3px rgba(0,0,0,0.1)",
+    hover: "0 10px 15px -3px rgba(0,0,0,0.1)",
+  },
+  animations: {
+    duration: { fast: "150ms", normal: "300ms", slow: "500ms" },
+    easing: { easeOut: "cubic-bezier(0.4, 0, 0.2, 1)" },
+  },
+} as const;
 ```
 
-## 4. Theme Configuration & Fallbacks
+---
 
-Always define a theme constant object for consistent styling, but allow overriding from `config` if applicable (future proofing).
+## 4. Standardized Hooks (The "Brain")
+
+**Never** write your own logic. Use these hooks to power your UI.
+
+### 💰 Pricing & Discounts: `useProductPrice(product)`
+
+**MANDATORY** for every product card.
+
+- **Why?** Automatically handles Flash Sales, huge discounts, currency formatting, and sales badges.
+- **Usage**:
+  ```tsx
+  const { price, compareAtPrice, isFlashSale, isOnSale } =
+    useProductPrice(product);
+  ```
+
+### ❤ Wishlist: `useWishlist()`
+
+**MANDATORY** for wishlist interactions.
+
+- **Why?** Handles `localStorage` persistence and global state sync.
+- **Usage**:
+  ```tsx
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  ```
+
+### 🛒 Cart: `useCartCount()`
+
+**MANDATORY** for header cart icons.
+
+- **Why?** Handles isolation from other browser tabs and hydration issues.
+
+---
+
+## 5. AI Integration: The API Contract (Secret Sauce)
+
+Your template must be "AI Editable". To allow the AI to intelligently redesign sections, you must expose an **`AI_SCHEMA`** for complex sections.
+
+**Reference**: See `AI_ARCHITECTURE_SPEC.md` for the full system architecture.
+
+### Schema-First Design (Mandatory)
+
+Every section component must export a schema defining _exactly_ what the AI can allow the merchant to edit.
 
 ```tsx
-const THEME = {
-  primary: "#...",
-  accent: "#...",
-  background: "#...",
-  // ...
+// Export this alongside your component (e.g., HeroSection.tsx)
+export const HERO_SECTION_AI_SCHEMA = {
+  component: "hero",
+  version: "1.0",
+  properties: {
+    title: {
+      type: "text",
+      aiEditable: true,
+      maxLength: 100,
+      aiPrompt: "Compelling hero title for {storeType} store", // Context-aware prompt
+      examples: ["Welcome to Our Store", "New Collection 2025"],
+    },
+    background: {
+      type: "object",
+      aiEditable: true,
+      properties: {
+        color: {
+          type: "color",
+          aiTransform: "hexToRgb",
+          constraints: { minBrightness: 0.3 }, // Accessibility check
+        },
+        image: {
+          type: "image",
+          aiAction: "generate", // Enables AI Image Generation
+          constraints: { maxSizeMB: 2, aspectRatio: "16:9" },
+        },
+      },
+    },
+    cta: {
+      type: "object",
+      aiEditable: true,
+      properties: {
+        text: {
+          type: "text",
+          aiEnum: ["Shop Now", "Explore", "Get Started"], // Restrict AI creativity here
+        },
+        action: {
+          type: "link",
+          aiValidate: "internalLink", // Ensure valid internal routing only
+        },
+      },
+    },
+  },
+  actions: ["update", "duplicate", "remove", "reorder"],
 };
 ```
 
-Ensure robust fallbacks for all optional props (`socialLinks`, `businessInfo`, `storeName`).
+---
 
-## 5. Icons & Assets
+## 6. Security & SEO Standards
 
-- **Icons**: Use `lucide-react` for all UI icons to maintain consistency.
-- **Images**: Use the `OptimizedImage` component (if available locally) or standard `img` tags with proper `alt` text.
+### Content Security Policy (CSP)
 
-## 6. URLs & Navigation
+Templates must be CSP-compliant. Avoid inline scripts (`<script>...</script>`) and `eval()`. Use `style={{}}` react prop instead of `<style>` tags where possible.
 
-- **Internal Links**: Use Remix's `<Link to="...">` component.
-- **Categories**: Use query parameters: `<Link to="/?category=example">`.
-- **Cart**: Link to `/cart`.
-- **Checkout**: Link to `/checkout`.
+### SEO Schema Injection
 
-## 7. Mobile Responsiveness
-
-All templates must be fully responsive.
-
-- Implement a mobile menu (hamburger).
-- Ensure product grids collapse to 1 or 2 columns on mobile.
-- Verify touch targets (buttons/links) are at least 44px height.
-
-## 8. Internationalization
-
-Use existing translation hooks where possible.
+Every template MUST inject JSON-LD structured data for products to ensure Google Rich Snippets (Star ratings, Price, Stock status).
 
 ```tsx
-import { useTranslation } from "~/contexts/LanguageContext";
-
-const { t } = useTranslation();
-
-// Usage:
-{
-  t("addToCart");
-}
+// Helper: getProductSchema(product)
+<script type="application/ld+json">
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.title,
+    offers: {
+      "@type": "Offer",
+      price: product.price,
+      availability: product.inStock ? "InStock" : "OutOfStock",
+    },
+  })}
+</script>
 ```
 
-## 9. World-Class Performance & Quality Standards
+---
 
-To maintain a premium standard, all templates must adhere to:
+## Quick Checklist for New Templates
 
-### Performance
+1.  [ ] **Wrapped in `ClientOnly`**?
+2.  [ ] **Wrapped in `StoreConfigProvider` & `WishlistProvider`**?
+3.  [ ] **Using `useProductPrice`** for all prices?
+4.  [ ] **Using `THEME_TOKENS`** (no magic hex codes)?
+5.  [ ] **Mobile Responsive** (Hamburger menu, touch targets)?
+6.  [ ] **Exported via `React.lazy`**?
 
-- **LCP (Largest Contentful Paint)**: Core content must load within 2.5s. Use `fetchPriority="high"` on hero images.
-- **CLS (Cumulative Layout Shift)**: Must be < 0.1. Always set `width` and `height` on images or use aspect-ratio containers.
-- **Code Splitting**: Dynamic sections are automatically code-split. Do not import heavy libraries (e.g., `framer-motion`) in the main bundle unless necessary.
+---
 
-### Accessibility (a11y)
-
-- **Semantic HTML**: Use `<header>`, `<main>`, `<nav>`, `<footer>`, `<article>`.
-- **Keyboard Navigation**: Ensure all interactive elements are focusable and have visible focus states.
-- **Color Contrast**: Text must meet WCAG AA standards (4.5:1 ratio).
-- **ARIA**: Use `aria-label` for icon-only buttons (e.g., Search, Cart).
-
-### Clean Code
-
-- **Type Safety**: No `any` types. Define proper interfaces for all props.
-- **Prop Drilling**: Use Context for deep state, but prefer composition.
-- **Comments**: Explain _why_, not _what_, for complex logic.
-
-## 10. AI & Editor Compatibility (Mandatory)
-
-To ensure the "Store AI" can fully edit, redesign, and copywrite for your template (achieving a "Lovable-like" dynamic experience), you must adhere to **Strict Configuration Binding**:
-
-1.  **Zero Hardcoded Content**: Never write static text (e.g., `<h1>Welcome</h1>`). Always bind to config (e.g., `<h1>{config.hero.title}</h1>`).
-2.  **Theme-Token Usage**: Never use arbitrary hex codes. Use `theme.primary`, `theme.accent`, or `config.colors`.
-3.  **Structure via JSON**: The layout must be generated from `config.sections`. This allows the AI to reorder, add, or remove sections instantly.
-4.  **Granular Props**: Every simplified component (like a ProductCard) must accept style overrides from the parent, allowing the AI to tweak "border-radius" or "shadows" globally.
+**Version**: 2.0.0 (World-Class Standard)

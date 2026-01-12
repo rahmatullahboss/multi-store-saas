@@ -1,9 +1,11 @@
 
 import { Link } from '@remix-run/react';
-import { ChevronLeft, ChevronRight, Zap, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, ShoppingBag, Heart } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import type { SectionSettings } from './registry';
 import { useFormatPrice } from '~/contexts/LanguageContext';
+import { useProductPrice } from '~/hooks/useProductPrice';
+import { useWishlist } from '~/hooks/useWishlist';
 
 interface ProductScrollSectionProps {
   settings: SectionSettings;
@@ -102,57 +104,14 @@ export default function ProductScrollSection({ settings, theme, products, curren
             ref={scrollRef}
             className="flex gap-4 p-4 overflow-x-auto scrollbar-hide snap-x"
           >
-            {items.map((product) => {
-              const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
-              const discountPercent = hasDiscount 
-                ? Math.round((1 - product.price / product.compareAtPrice!) * 100) 
-                : 0;
-
-              return (
-                <Link
-                  key={product.id}
-                  to={`/products/${product.id}`}
-                  className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition snap-center relative"
-                >
-                  <div className="aspect-square bg-gray-50 relative overflow-hidden">
-                    {product.imageUrl ? (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag className="text-gray-300 w-8 h-8" />
-                      </div>
-                    )}
-                    
-                    {hasDiscount && (
-                      <span 
-                        className="absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded"
-                        style={{ backgroundColor: theme.accent || 'red' }}
-                      >
-                        -{discountPercent}%
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="p-3">
-                    <p className="font-bold text-sm md:text-base mb-1" style={{ color: theme.primary }}>
-                      {formatPrice(product.price)}
-                    </p>
-                    {hasDiscount && (
-                      <p className="text-xs text-gray-400 line-through mb-1">
-                        {formatPrice(product.compareAtPrice)}
-                      </p>
-                    )}
-                    <h3 className="text-xs md:text-sm text-gray-700 line-clamp-2 hover:text-blue-600 transition-colors">
-                      {product.title}
-                    </h3>
-                  </div>
-                </Link>
-              );
-            })}
+            {items.map((product) => (
+              <ProductScrollCard 
+                key={product.id} 
+                product={product} 
+                theme={theme} 
+                formatPrice={formatPrice} 
+              />
+            ))}
           </div>
 
           <button
@@ -164,5 +123,70 @@ export default function ProductScrollSection({ settings, theme, products, curren
         </div>
       </div>
     </section>
+  );
+}
+
+function ProductScrollCard({ product, theme, formatPrice }: { product: any, theme: any, formatPrice: (price: number) => string }) {
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isLiked = isInWishlist(product.id);
+  const { price, compareAtPrice: displayCompareAt, isFlashSale, isOnSale, discountPercentage } = useProductPrice(product);
+
+  return (
+    <Link
+      to={`/products/${product.id}`}
+      className="group min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition snap-center relative"
+    >
+      <div className="aspect-square bg-gray-50 relative overflow-hidden">
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.title}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ShoppingBag className="text-gray-300 w-8 h-8" />
+          </div>
+        )}
+        
+        {isOnSale && (
+          <span 
+            className="absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1"
+            style={{ backgroundColor: isFlashSale ? '#EF4444' : (theme.accent || 'red') }}
+          >
+            {isFlashSale && <span>⚡</span>}
+            -{discountPercentage}%
+          </span>
+        )}
+      </div>
+
+      {/* Wishlist Button - Absolute position on image */}
+      <button 
+        onClick={(e) => {
+          e.preventDefault();
+          toggleWishlist(product.id);
+        }}
+        className={`absolute top-2 right-2 p-1.5 rounded-full shadow-md transition-all hover:bg-white active:scale-95 z-10 ${
+          isLiked ? 'bg-red-50 text-red-500 opacity-100' : 'bg-white/90 opacity-0 group-hover:opacity-100'
+        }`}
+        aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
+      >
+        <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} style={{ color: isLiked ? '#ef4444' : theme.text }} />
+      </button>
+
+      <div className="p-3">
+        <p className="font-bold text-sm md:text-base mb-1" style={{ color: theme.primary }}>
+          {formatPrice(price)}
+        </p>
+        {isOnSale && displayCompareAt && (
+          <p className="text-xs text-gray-400 line-through mb-1">
+            {formatPrice(displayCompareAt)}
+          </p>
+        )}
+        <h3 className="text-xs md:text-sm text-gray-700 line-clamp-2 hover:text-blue-600 transition-colors">
+          {product.title}
+        </h3>
+      </div>
+    </Link>
   );
 }

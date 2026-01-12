@@ -9,7 +9,21 @@ interface NewsletterSectionProps {
   storeId?: number;
 }
 
-export default function NewsletterSection({ settings, theme, storeId }: NewsletterSectionProps) {
+import { withAISchema, type AISchema } from '~/utils/ai-editable';
+
+export const NEWSLETTER_AI_SCHEMA: AISchema = {
+  component: 'NewsletterSection',
+  version: '1.0.0',
+  properties: {
+    heading: { type: 'string', description: 'Main heading', maxLength: 100, aiAction: 'enhance' },
+    subheading: { type: 'string', description: 'Descriptive text', maxLength: 200, aiAction: 'enhance' },
+    buttonText: { type: 'string', description: 'Subscribe button text', maxLength: 30, aiAction: 'enhance' },
+    placeholderText: { type: 'string', description: 'Input placeholder', maxLength: 50 },
+    successMessage: { type: 'string', description: 'Message shown after success', maxLength: 100, aiAction: 'enhance' },
+  }
+};
+
+function NewsletterSectionBase({ settings, theme, storeId }: NewsletterSectionProps) {
   const fetcher = useFetcher<any>();
   const formRef = useRef<HTMLFormElement>(null);
   const isSuccess = fetcher.data?.success;
@@ -89,3 +103,6 @@ export default function NewsletterSection({ settings, theme, storeId }: Newslett
     </section>
   );
 }
+
+const NewsletterSection = withAISchema(NewsletterSectionBase, NEWSLETTER_AI_SCHEMA);
+export default NewsletterSection;

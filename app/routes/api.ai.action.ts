@@ -12,7 +12,6 @@
  */
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, users, products } from '@db/schema';
 import { getSession } from '~/services/auth.server';
@@ -20,8 +19,11 @@ import { canUseAI, type PlanType, type AIPlanType } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 import { checkCredits, deductCredits, CREDIT_COSTS, type AIFeatureName } from '~/utils/credit.server';
+import { buildAIContext } from '~/services/ai-context-builder.server';
+import { validateAIAction } from '~/services/ai-action-validator.server';
+import { SECTION_REGISTRY } from '~/components/store-sections/registry';
+import { createDb } from '~/lib/db.server';
 
-// Define Payload Type
 interface ActionPayload {
   action: string;
   featuredProductId?: string;
@@ -37,12 +39,13 @@ interface ActionPayload {
   keywords?: string;
   prompt?: string;
   currentHtml?: string;
+  count?: number;
   context?: any;
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { env } = context.cloudflare;
-  const db = drizzle(env.DB);
+  const db = createDb(env.DB); // Use typed DB
 
   // Get session and store
   const session = await getSession(request, env);
@@ -101,16 +104,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Action type required' }, { status: 400 });
   }
 
-  // DETERMINE COST
+  // Determine Cost
   let cost = 0;
   if (actionType in CREDIT_COSTS) {
     cost = CREDIT_COSTS[actionType as AIFeatureName];
-  } else {
-    // Default fallback or free actions can be 0 or throw error
-    console.warn(`[AI Action] Unknown action type for credits: ${actionType}`);
   }
 
-  // CHECK CREDITS (Skip for Super Admin if you want, or just enforce for consistency. Let's enforce.)
+  // Check Credits
   if (cost > 0 && userRole !== 'super_admin') {
     const creditCheck = await checkCredits(db, storeId, cost);
     if (!creditCheck.allowed) {
@@ -119,7 +119,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         code: 'INSUFFICIENT_CREDITS',
         required: cost,
         available: creditCheck.currentBalance
-      }, { status: 402 }); // Payment Required
+      }, { status: 402 });
     }
   }
 
@@ -219,6 +219,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
         break;
       }
 
+      case 'GENERATE_ARRAY': {
+        if (!payload.fieldType || !payload.keywords) {
+          return json({ error: 'Field type (e.g., features, faqs) and keywords required' }, { status: 400 });
+        }
+        result = await ai.generateListItems(
+          payload.fieldType,
+          payload.count || 3,
+          payload.keywords
+        );
+        break;
+      }
+
       case 'GENERATE_ELEMENTOR_PAGE': {
         if (!payload.prompt) {
           return json({ error: 'AI Prompt required' }, { status: 400 });
@@ -277,21 +289,51 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (!payload.editPrompt) {
           return json({ error: 'User prompt required' }, { status: 400 });
         }
-        // Validate context is provided
-        if (!payload.context?.sections || !payload.context?.currentColors) {
-          return json({ error: 'Store context required (sections, currentColors)' }, { status: 400 });
-        }
+
+        // 1. Build Full AI Context
+        const aiContext = await buildAIContext(db, storeId, payload.editPrompt);
+        
+        // 2. Execute AI Command with Context
+        // Map AIContext to StoreEditorContext expected by commandStoreEditor
+        const editorContext = {
+          sections: aiContext.sections,
+          currentColors: { 
+            primary: aiContext.config.theme.primaryColor || '#6366f1',
+            accent: aiContext.config.theme.accentColor || '#f59e0b',
+            background: aiContext.config.theme.backgroundColor || '#f9fafb',
+            text: aiContext.config.theme.textColor || '#111827'
+          },
+          currentFont: aiContext.config.theme.fontFamily || 'inter',
+          storeName: aiContext.store.name
+        };
+
         result = await ai.commandStoreEditor(
           payload.editPrompt,
-          {
-            sections: payload.context.sections || [],
-            currentColors: payload.context.currentColors || { primary: '#6366f1', accent: '#f59e0b', background: '#f9fafb', text: '#111827' },
-            currentFont: payload.context.currentFont || 'inter',
-            storeName: payload.context.storeName || 'My Store'
-          }
+          editorContext
         );
+
+        // 3. Validation Logic
+        if (result && typeof result === 'object' && 'action' in result && result.action === 'update_section') {
+             // Safe cast or check
+             const updateAction = result as any;
+             if (updateAction.sectionId) {
+                const section = aiContext.sections.find((s: any) => s.id === updateAction.sectionId);
+                if (section) {
+                    const def = SECTION_REGISTRY[section.type];
+                    if (def?.aiSchema) {
+                        const validation = await validateAIAction(result as any, def.aiSchema);
+                        if (!validation.valid) {
+                            console.warn("[AI Validation Failed]", validation.errors);
+                            (result as any)._warnings = validation.errors;
+                        }
+                    }
+                }
+             }
+        }
+        
         break;
       }
+
 
       default:
         return json({ error: `Unknown action: ${actionType}` }, { status: 400 });
@@ -307,13 +349,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { action: actionType }
       );
       if (!deduction.success) {
-        // This is a rare edge case where check passed but deduction failed (race condition)
-        // We log it but still return success to user since they got their result.
         console.error(`[AI Action] Credit deduction failed after success. Store: ${storeId}, Cost: ${cost}`);
       }
     }
 
-    // Also track usage for analytics/limits if needed (keeping legacy for now)
     await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
 
     return json({ success: true, data: result });
@@ -322,7 +361,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('[AI Action] Error Message:', errorMessage);
     
-    // Check for JSON/Schema errors specifically to return friendly messages
     if (errorMessage.includes('JSON') || errorMessage.includes('Schema')) {
          return json({
           error: 'AI response was invalid. Please try again.',

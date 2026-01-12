@@ -6,6 +6,7 @@
  */
 
 import { vi, afterEach } from 'vitest';
+import '@testing-library/jest-dom';
 
 // Mock environment variables for tests
 process.env.NODE_ENV = 'test';
@@ -14,6 +15,20 @@ process.env.NODE_ENV = 'test';
 vi.spyOn(console, 'log').mockImplementation(() => {});
 vi.spyOn(console, 'error').mockImplementation(() => {});
 vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+// Mock global fetch to avoid network requests during tests
+const mockFetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: () => Promise.resolve({}),
+  text: () => Promise.resolve(''),
+  blob: () => Promise.resolve(new Blob()),
+  arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+} as Response);
+
+global.fetch = mockFetch;
+window.fetch = mockFetch;
 
 // Global test utilities
 export const createMockContext = () => ({

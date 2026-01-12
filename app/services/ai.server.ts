@@ -601,6 +601,54 @@ const ENHANCE_PROMPTS: Record<string, string> = {
   seo: 'You are an SEO expert. Generate relevant search keywords.',
 };
 
+// ============================================================================
+// ACTION: Generate List Items (Updates an array field)
+// ============================================================================
+
+export async function generateListItems(
+  apiKey: string,
+  fieldType: 'features' | 'faqs' | 'testimonials' | 'benefits' | string,
+  count: number,
+  topic: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<any[]> {
+  const systemPrompt = `You are an expert e-commerce content generator.
+Your task is to generate a list of ${fieldType} items for an online store.
+
+Rules:
+1. Return strictly valid JSON array.
+2. No markdown, no explanations.
+3. Use Bengali if the topic seems to be in Bengali.
+4. Generate exactly ${count} items.`;
+
+  let itemStructure = '';
+  if (fieldType === 'features' || fieldType === 'benefits') {
+    itemStructure = `{ "icon": "LucideIconName", "title": "Benefit Title", "description": "Short description" }`;
+  } else if (fieldType === 'faqs') {
+    itemStructure = `{ "question": "Common Question?", "answer": "Helpful answer" }`;
+  } else if (fieldType === 'testimonials') {
+    itemStructure = `{ "name": "Customer Name", "text": "Positive review", "rating": 5 }`;
+  } else {
+    itemStructure = `{ "title": "Item Title", "description": "Item Description" }`;
+  }
+
+  const userPrompt = `Topic/Context: "${topic}"
+Generate ${count} items in this JSON structure:
+[
+  ${itemStructure}
+]`;
+
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
+  const parsed = extractJSON(response);
+  
+  if (!Array.isArray(parsed)) {
+    throw new Error('AI did not return an array');
+  }
+  
+  return parsed;
+}
+
 export async function enhanceText(
   apiKey: string,
   fieldType: string,
@@ -1942,6 +1990,10 @@ export function createAIService(apiKey: string | undefined, options?: { model?: 
   const aiContext = options?.context || {};
 
   return {
+    // List Generation
+    generateListItems: (fieldType: string, count: number, topic: string) => 
+      generateListItems(validApiKey, fieldType, count, topic, model, baseUrl),
+
     generateStoreSetup: (description: string) => 
       generateStoreSetup(validApiKey, description, model, baseUrl),
     

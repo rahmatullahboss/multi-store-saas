@@ -29,7 +29,19 @@ const getCategoryIcon = (category: string) => {
   return CATEGORY_ICONS[normalized] || CATEGORY_ICONS['default'];
 };
 
-export default function CategorySection({ settings, theme, categories }: CategorySectionProps) {
+import { withAISchema, type AISchema } from '~/utils/ai-editable';
+
+export const CATEGORY_AI_SCHEMA: AISchema = {
+  component: 'CategorySection',
+  version: '1.0.0',
+  properties: {
+    heading: { type: 'string', maxLength: 50, aiAction: 'enhance' },
+    limit: { type: 'number', aiAction: 'select', options: [4, 8, 12, 16] },
+    layout: { type: 'string', aiEnum: ['grid', 'tabs', 'pills', 'scroll'], aiAction: 'select' }
+  }
+};
+
+function CategorySectionBase({ settings, theme, categories }: CategorySectionProps) {
   const [searchParams] = useSearchParams();
   const currentCategory = searchParams.get('category');
   const validCategories = categories.filter(Boolean).slice(0, settings.limit || 8);
@@ -179,3 +191,6 @@ export default function CategorySection({ settings, theme, categories }: Categor
     </section>
   );
 }
+
+const CategorySection = withAISchema(CategorySectionBase, CATEGORY_AI_SCHEMA);
+export default CategorySection;

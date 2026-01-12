@@ -8,7 +8,19 @@ interface FAQSectionProps {
   theme: any;
 }
 
-export default function FAQSection({ settings, theme }: FAQSectionProps) {
+import { withAISchema, type AISchema } from '~/utils/ai-editable';
+
+export const FAQ_AI_SCHEMA: AISchema = {
+  component: 'FAQSection',
+  version: '1.0.0',
+  properties: {
+    heading: { type: 'string', maxLength: 100, aiAction: 'enhance' },
+    // Array support
+    faqs: { type: 'array', aiAction: 'generate-array' }
+  }
+};
+
+function FAQSectionBase({ settings, theme }: FAQSectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   
   const faqs = settings.faqs || [
@@ -55,3 +67,6 @@ export default function FAQSection({ settings, theme }: FAQSectionProps) {
     </section>
   );
 }
+
+const FAQSection = withAISchema(FAQSectionBase, FAQ_AI_SCHEMA);
+export default FAQSection;

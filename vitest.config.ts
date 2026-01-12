@@ -4,7 +4,7 @@ import path from 'path';
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'happy-dom',
+    environment: 'jsdom',
     include: ['**/*.test.ts', '**/*.test.tsx'],
     exclude: ['node_modules', 'android', 'ios', '.wrangler'],
     coverage: {
@@ -20,6 +20,17 @@ export default defineConfig({
     },
     setupFiles: ['./tests/setup.ts'],
     testTimeout: 10000,
+    environmentOptions: {
+      happyDOM: {
+        settings: {
+          disableJavaScriptFileLoading: true,
+          disableJavaScriptEvaluation: true,
+          disableCSSFileLoading: true,
+          disableIframePageLoading: true,
+          disableComputedStyleRendering: true,
+        },
+      },
+    },
   },
   resolve: {
     alias: {

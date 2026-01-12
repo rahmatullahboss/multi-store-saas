@@ -15,6 +15,11 @@
 import { Link, useSearchParams } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+import { useWishlist } from '~/hooks/useWishlist';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { 
   Menu, X, Search, ShoppingCart, 
   Heart, User, ShoppingBag, 
@@ -48,7 +53,8 @@ export function BDShopTemplate({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchParams] = useSearchParams();
   const count = useCartCount();
-
+  const { count: wishlistCount } = useWishlist(); 
+  
   // Close drawers when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -66,7 +72,11 @@ export function BDShopTemplate({
   const featuredCategories = categories.filter(Boolean).slice(0, 12);
 
   return (
-    <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: BDSHOP_THEME.background, fontFamily: "'Inter', 'NotoSans', Arial, sans-serif" }}>
+    <StoreConfigProvider config={config}>
+      <WishlistProvider>
+        <ClientOnly fallback={<SkeletonLoader />}>
+          {() => (
+            <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: BDSHOP_THEME.background, fontFamily: "'Inter', 'NotoSans', Arial, sans-serif" }}>
       {/* Top Bar - Desktop Only */}
       <div style={{ backgroundColor: BDSHOP_THEME.secondary }} className="hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-9 text-xs text-white/90">
@@ -143,8 +153,15 @@ export function BDShopTemplate({
 
           {/* Desktop Action Buttons */}
           <div className="hidden lg:flex items-center gap-2">
-            <button className="px-3 py-2 rounded-lg text-white text-xs font-medium transition hover:opacity-90" style={{ backgroundColor: BDSHOP_THEME.purple }}>
-              Flash Sale
+            <button className="px-3 py-2 rounded-lg text-white text-xs font-medium transition hover:opacity-90 relative" style={{ backgroundColor: BDSHOP_THEME.purple }}>
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span 
+                  className="absolute -top-1 -right-1 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold bg-white text-black"
+                >
+                  {wishlistCount}
+                </span>
+              )}
             </button>
             <button className="px-3 py-2 rounded-lg text-white text-xs font-medium transition hover:opacity-90" style={{ backgroundColor: BDSHOP_THEME.green }}>
               New Arrival
@@ -525,5 +542,9 @@ export function BDShopTemplate({
         }
       `}</style>
     </div>
+          )}
+        </ClientOnly>
+      </WishlistProvider>
+    </StoreConfigProvider>
   );
 }
