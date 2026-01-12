@@ -287,6 +287,119 @@ export default function StyleControls({ editor }: StyleControlsProps) {
           </ControlRow>
       </Sector>
 
+      {/* Animation Sector */}
+      <Sector title="Animation" icon={<Move size={14} />} isOpen={activeSector === 'animation'} onToggle={() => setActiveSector(activeSector === 'animation' ? null : 'animation')}>
+          <ControlRow label="Animation Type">
+             <SelectControl 
+                value={styles['animation-name'] || 'none'} 
+                options={[
+                    { label: 'None', value: 'none' },
+                    { label: 'Fade In', value: 'fadeIn' },
+                    { label: 'Fade In Up', value: 'fadeInUp' },
+                    { label: 'Fade In Down', value: 'fadeInDown' },
+                    { label: 'Slide Up', value: 'slideUp' },
+                    { label: 'Slide Down', value: 'slideDown' },
+                    { label: 'Slide Left', value: 'slideLeft' },
+                    { label: 'Slide Right', value: 'slideRight' },
+                    { label: 'Bounce In', value: 'bounceIn' },
+                    { label: 'Zoom In', value: 'zoomIn' },
+                    { label: 'Pulse', value: 'pulse' },
+                    { label: 'Shake', value: 'shake' },
+                ]}
+                onChange={(val: string) => {
+                    updateStyle('animation-name', val);
+                    if (val !== 'none') {
+                        // Set default duration if not set
+                        if (!styles['animation-duration']) {
+                            updateStyle('animation-duration', '0.5s');
+                        }
+                        // Add animation class for Tailwind
+                        selectedComp.addClass(`animate-${val}`);
+                    }
+                }}
+             />
+          </ControlRow>
+          
+          {styles['animation-name'] && styles['animation-name'] !== 'none' && (
+            <>
+              <ControlRow label="Duration">
+                 <SelectControl 
+                    value={styles['animation-duration'] || '0.5s'} 
+                    options={[
+                        { label: '0.2s (Fast)', value: '0.2s' },
+                        { label: '0.3s', value: '0.3s' },
+                        { label: '0.5s (Normal)', value: '0.5s' },
+                        { label: '0.7s', value: '0.7s' },
+                        { label: '1s (Slow)', value: '1s' },
+                        { label: '1.5s', value: '1.5s' },
+                        { label: '2s (Very Slow)', value: '2s' },
+                    ]}
+                    onChange={(val: string) => updateStyle('animation-duration', val)}
+                 />
+              </ControlRow>
+              
+              <ControlRow label="Delay">
+                 <SelectControl 
+                    value={styles['animation-delay'] || '0s'} 
+                    options={[
+                        { label: 'None', value: '0s' },
+                        { label: '0.2s', value: '0.2s' },
+                        { label: '0.5s', value: '0.5s' },
+                        { label: '1s', value: '1s' },
+                        { label: '1.5s', value: '1.5s' },
+                        { label: '2s', value: '2s' },
+                    ]}
+                    onChange={(val: string) => updateStyle('animation-delay', val)}
+                 />
+              </ControlRow>
+
+              <ControlRow label="Timing">
+                 <SelectControl 
+                    value={styles['animation-timing-function'] || 'ease'} 
+                    options={[
+                        { label: 'Ease (Default)', value: 'ease' },
+                        { label: 'Linear', value: 'linear' },
+                        { label: 'Ease In', value: 'ease-in' },
+                        { label: 'Ease Out', value: 'ease-out' },
+                        { label: 'Ease In Out', value: 'ease-in-out' },
+                        { label: 'Bounce', value: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)' },
+                    ]}
+                    onChange={(val: string) => updateStyle('animation-timing-function', val)}
+                 />
+              </ControlRow>
+
+              <ControlRow label="Repeat">
+                 <SelectControl 
+                    value={styles['animation-iteration-count'] || '1'} 
+                    options={[
+                        { label: 'Once', value: '1' },
+                        { label: 'Twice', value: '2' },
+                        { label: '3 Times', value: '3' },
+                        { label: 'Infinite', value: 'infinite' },
+                    ]}
+                    onChange={(val: string) => updateStyle('animation-iteration-count', val)}
+                 />
+              </ControlRow>
+
+              {/* Preview Button */}
+              <button 
+                onClick={() => {
+                    // Trigger animation replay
+                    const el = selectedComp.getEl();
+                    if (el) {
+                        el.style.animation = 'none';
+                        el.offsetHeight; // Trigger reflow
+                        el.style.animation = '';
+                    }
+                }}
+                className="w-full mt-2 py-2 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg hover:bg-indigo-200 transition flex items-center justify-center gap-2"
+              >
+                <Move size={12} /> Preview Animation
+              </button>
+            </>
+          )}
+      </Sector>
+
       {/* Advanced / Custom CSS */}
       <Sector title="Advanced" icon={<Maximize2 size={14} />} isOpen={activeSector === 'advanced'} onToggle={() => setActiveSector(activeSector === 'advanced' ? null : 'advanced')}>
           <ControlRow label="Element ID">
