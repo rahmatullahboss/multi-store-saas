@@ -126,7 +126,7 @@ export function MarketingLanding() {
             {/* Brand Section */}
             <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                <img src="/brand/logo-white.png" alt="Ozzyl" className="h-8 w-auto" />
+                <img src="/brand/logo-white.png" alt="Ozzyl" className="h-10 w-auto" />
               </div>
               <p className="text-sm text-white/50">{t('footerAbout')}</p>
             </div>
