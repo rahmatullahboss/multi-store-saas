@@ -49,10 +49,10 @@ binding = "AI"
 # ENVIRONMENT VARIABLES
 # ============================================================================
 [vars]
-SAAS_DOMAIN = "digitalcare.site"  # Custom domain for the SaaS
+SAAS_DOMAIN = "ozzyl.com"  # Custom domain for the SaaS
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"  # R2 bucket public URL
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"  # Only this email can impersonate users
-CLOUDFLARE_ZONE_ID = "YOUR_ZONE_ID_HERE"  # Zone ID from Cloudflare Dashboard (digitalcare.site)
+CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"  # Zone ID from Cloudflare Dashboard (ozzyl.com)
 
 # AI CONFIGURATION (Xiaomi Mimo or any OpenAI-compatible provider)
 AI_MODEL = "mimo-v2-flash"  # Model ID for AI features
