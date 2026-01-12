@@ -15,10 +15,10 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
 
   return (
     <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-1.5 shadow-lg">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-0.5 shadow-lg">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/brand/logo-white.png" alt="Ozzyl" className="h-12 w-auto" />
+            <img src="/brand/logo-white.png" alt="Ozzyl" className="h-16 w-auto" />
           </Link>
           
           <div className="flex items-center gap-3">
