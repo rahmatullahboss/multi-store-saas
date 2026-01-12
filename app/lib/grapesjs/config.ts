@@ -307,21 +307,25 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
         { name: 'active', label: 'Active' },
       ],
     },
-    projectData: {
-      assets: [],
-      pages: [
-        {
-          name: 'Home',
-          components: `
-            <div class="p-10 text-center font-sans">
-              <h1 class="text-4xl font-bold text-gray-800 mb-4">স্বাগতম আপনার নতুন ল্যান্ডিং পেজে!</h1>
-              <p class="text-lg text-gray-600 mb-8">এখান থেকে আপনি আপনার পছন্দের ডিজাইন তৈরি করতে পারবেন। বাম দিকের ব্লকগুলো টেনে এখানে আনুন।</p>
-              <a href="#order" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 transition inline-block">অর্ডার করুন</a>
-            </div>
-          `,
-        },
-      ],
-    },
+    // Only provide default projectData for NEW pages (no pageId)
+    // For existing pages, let autoload fetch from server
+    ...(pageId ? {} : {
+      projectData: {
+        assets: [],
+        pages: [
+          {
+            name: 'Home',
+            components: `
+              <div class="p-10 text-center font-sans">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">স্বাগতম আপনার নতুন ল্যান্ডিং পেজে!</h1>
+                <p class="text-lg text-gray-600 mb-8">এখান থেকে আপনি আপনার পছন্দের ডিজাইন তৈরি করতে পারবেন। বাম দিকের ব্লকগুলো টেনে এখানে আনুন।</p>
+                <a href="#order" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 transition inline-block">অর্ডার করুন</a>
+              </div>
+            `,
+          },
+        ],
+      },
+    }),
     canvas: {
       styles: [
         // Tailwind CDN for Editor ONLY (published pages use compiled CSS)
