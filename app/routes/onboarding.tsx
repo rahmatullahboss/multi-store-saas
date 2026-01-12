@@ -23,6 +23,7 @@ import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { useTranslation } from '~/contexts/LanguageContext';
+import i18next from '~/services/i18n.server';
 
 // ==============================================================================
 // CONFIGURATION - Update these values
@@ -130,74 +131,74 @@ const CATEGORY_TEMPLATES: Record<string, {
   product: { title: string; price: number; description: string };
 }> = {
   fashion: {
-    headline: 'প্রিমিয়াম ফ্যাশন কালেকশন',
-    subheadline: 'ট্রেন্ডি ও স্টাইলিশ পোশাক',
+    headline: 'categoryFashionHeadline',
+    subheadline: 'categoryFashionSubheadline',
     features: [
-      { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের ফেব্রিক' },
-      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
-      { icon: '💳', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা দিন' },
+      { icon: '✨', title: 'featurePremiumQuality', description: 'descBestFabric' },
+      { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
+      { icon: '💳', title: 'featureCashOnDelivery', description: 'descPayOnReceive' },
     ],
-    product: { title: 'Premium Fashion Item', price: 1500, description: 'স্টাইলিশ ও ট্রেন্ডি ফ্যাশন আইটেম' },
+    product: { title: 'Premium Fashion Item', price: 1500, description: 'descStylishFashion' },
   },
   electronics: {
-    headline: 'সেরা ইলেকট্রনিক্স প্রোডাক্ট',
-    subheadline: 'অরিজিনাল গ্যাজেট ও এক্সেসরিজ',
+    headline: 'categoryElectronicsHeadline',
+    subheadline: 'categoryElectronicsSubheadline',
     features: [
-      { icon: '✅', title: '১০০% অরিজিনাল', description: 'ওয়ারেন্টি সহ' },
-      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
-      { icon: '🔧', title: 'আফটার সেলস সার্ভিস', description: 'ফ্রি টেকনিক্যাল সাপোর্ট' },
+      { icon: '✅', title: 'featureOriginal', description: 'descWarranty' },
+      { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
+      { icon: '🔧', title: 'featureAfterSales', description: 'descTechnicalSupport' },
     ],
-    product: { title: 'Quality Electronics', price: 2500, description: 'প্রিমিয়াম ইলেকট্রনিক্স আইটেম' },
+    product: { title: 'Quality Electronics', price: 2500, description: 'descPremiumElectronics' },
   },
   beauty: {
-    headline: 'বিউটি ও স্কিনকেয়ার সলিউশন',
-    subheadline: 'গ্লো করুন নিজেকে',
+    headline: 'categoryBeautyHeadline',
+    subheadline: 'categoryBeautySubheadline',
     features: [
-      { icon: '💎', title: 'অথেনটিক প্রোডাক্ট', description: '১০০% জেনুইন' },
-      { icon: '🌿', title: 'ন্যাচারাল ইনগ্রিডিয়েন্ট', description: 'স্কিন ফ্রেন্ডলি' },
-      { icon: '💝', title: 'ফ্রি গিফট', description: 'প্রতি অর্ডারে সারপ্রাইজ' },
+      { icon: '💎', title: 'featureAuthentic', description: 'descGenuine' },
+      { icon: '🌿', title: 'featureNatural', description: 'descSkinFriendly' },
+      { icon: '💝', title: 'featureFreeGift', description: 'descSurprise' },
     ],
-    product: { title: 'Beauty Product', price: 800, description: 'প্রিমিয়াম বিউটি প্রোডাক্ট' },
+    product: { title: 'Beauty Product', price: 800, description: 'descPremiumBeauty' },
   },
   food: {
-    headline: 'সুস্বাদু খাবার ও স্ন্যাক্স',
-    subheadline: 'ফ্রেশ ও হাইজিনিক',
+    headline: 'categoryFoodHeadline',
+    subheadline: 'categoryFoodSubheadline',
     features: [
-      { icon: '🍽️', title: 'ফ্রেশ প্রোডাক্ট', description: 'প্রতিদিন তৈরি' },
-      { icon: '🚴', title: 'হট ডেলিভারি', description: 'গরম গরম পৌঁছে যাবে' },
-      { icon: '😋', title: 'টেস্ট গ্যারান্টি', description: 'মুখে লেগে যাবে' },
+      { icon: '🍽️', title: 'featureFresh', description: 'descDaily' },
+      { icon: '🚴', title: 'featureHotDelivery', description: 'descHot' },
+      { icon: '😋', title: 'featureTasteGuarantee', description: 'descDelicious' },
     ],
-    product: { title: 'Delicious Food Item', price: 350, description: 'সুস্বাদু খাবার' },
+    product: { title: 'Delicious Food Item', price: 350, description: 'descDeliciousFood' },
   },
   home: {
-    headline: 'হোম ও লাইফস্টাইল প্রোডাক্ট',
-    subheadline: 'আপনার ঘরকে সাজান',
+    headline: 'categoryHomeHeadline',
+    subheadline: 'categoryHomeSubheadline',
     features: [
-      { icon: '🏡', title: 'কোয়ালিটি প্রোডাক্ট', description: 'লং লাস্টিং' },
-      { icon: '📦', title: 'সেফ প্যাকেজিং', description: 'সঠিক কন্ডিশনে ডেলিভারি' },
-      { icon: '🔄', title: 'ইজি রিটার্ন', description: '৭ দিনে রিটার্ন' },
+      { icon: '🏡', title: 'featureQuality', description: 'descLongLasting' },
+      { icon: '📦', title: 'featureSafePackaging', description: 'descCorrectCondition' },
+      { icon: '🔄', title: 'featureEasyReturn', description: 'descSevenDays' },
     ],
-    product: { title: 'Home & Living Product', price: 1200, description: 'হোম ডেকোর আইটেম' },
+    product: { title: 'Home & Living Product', price: 1200, description: 'descHomeDecor' },
   },
   services: {
-    headline: 'প্রফেশনাল সার্ভিস',
-    subheadline: 'এক্সপার্ট সলিউশন',
+    headline: 'categoryServicesHeadline',
+    subheadline: 'categoryServicesSubheadline',
     features: [
-      { icon: '👨‍💼', title: 'এক্সপার্ট টিম', description: 'অভিজ্ঞ প্রফেশনাল' },
-      { icon: '⏱️', title: 'সময়মত ডেলিভারি', description: 'ডেডলাইন মেইনটেইন' },
-      { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'বেস্ট কোয়ালিটি সার্ভিস' },
+      { icon: '👨‍💼', title: 'featureExpertTeam', description: 'descExperienced' },
+      { icon: '⏱️', title: 'featureOnTime', description: 'descDeadline' },
+      { icon: '💯', title: 'featureSatisfaction', description: 'descBestQuality' },
     ],
-    product: { title: 'Professional Service', price: 2000, description: 'প্রফেশনাল সার্ভিস প্যাকেজ' },
+    product: { title: 'Professional Service', price: 2000, description: 'descProfessionalService' },
   },
   other: {
-    headline: 'কোয়ালিটি প্রোডাক্ট',
-    subheadline: 'বেস্ট সিলেকশন',
+    headline: 'categoryOtherHeadline',
+    subheadline: 'categoryOtherSubheadline',
     features: [
-      { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের পণ্য' },
-      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
-      { icon: '💳', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা দিন' },
+      { icon: '✅', title: 'featurePremiumQuality', description: 'descBestQualityItem' },
+      { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
+      { icon: '💳', title: 'featureCashOnDelivery', description: 'descPayOnReceive' },
     ],
-    product: { title: 'Quality Product', price: 1000, description: 'প্রিমিয়াম প্রোডাক্ট' },
+    product: { title: 'Quality Product', price: 1000, description: 'descPremiumProduct' },
   },
 };
 
@@ -242,6 +243,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 // Action to handle each step
 export async function action({ request, context }: ActionFunctionArgs) {
+  const t = await i18next.getFixedT(request);
   const { env } = context.cloudflare;
   const formData = await request.formData();
   const step = formData.get('step') as string;
@@ -251,7 +253,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const email = formData.get('email') as string;
     
     if (!email || !email.includes('@')) {
-      return json({ error: 'Valid email required', field: 'email' }, { status: 400 });
+      return json({ error: t('validEmailRequired'), field: 'email' }, { status: 400 });
     }
     
     const db = drizzle(env.DB);
@@ -278,7 +280,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const subdomain = formData.get('subdomain') as string;
     
     if (!subdomain || subdomain.length < 3) {
-      return json({ error: 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে', field: 'subdomain' }, { status: 400 });
+      return json({ error: t('subdomainMinChars'), field: 'subdomain' }, { status: 400 });
     }
     
     const db = drizzle(env.DB);
@@ -291,8 +293,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (existingStore.length > 0) {
       console.log('[Onboarding] Subdomain not available:', subdomain);
       return json({ 
-        error: `"${subdomain}" সাবডোমেইন আগেই নেওয়া হয়েছে। অন্য একটি বেছে নিন।`, 
-        errorEn: `The subdomain "${subdomain}" is already taken. Please choose another one.`,
+        error: t('subdomainTaken', { subdomain }), 
         field: 'subdomain',
         subdomainTaken: true 
       }, { status: 400 });
@@ -342,16 +343,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // 3. Create landing config from category template
       const landingConfig = {
         templateId: 'modern-dark',
-        headline: template.headline,
-        subheadline: template.subheadline,
-        ctaText: 'এখনই অর্ডার করুন',
-        ctaSubtext: 'ক্যাশ অন ডেলিভারি',
-        features: template.features,
+        headline: t(template.headline),
+        subheadline: t(template.subheadline),
+        ctaText: t('orderNow') || 'এখনই অর্ডার করুন',
+        ctaSubtext: t('cashOnDelivery') || 'ক্যাশ অন ডেলিভারি',
+        features: template.features.map(f => ({
+          ...f,
+          title: t(f.title),
+          description: t(f.description)
+        })),
         testimonials: [
-          { name: 'সন্তুষ্ট ক্রেতা', text: 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!' },
+          { name: t('satisfiedCustomer') || 'সন্তুষ্ট ক্রেতা', text: t('satisfiedCustomerText') || 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!' },
         ],
-        urgencyText: '🔥 সীমিত সময়ের অফার!',
-        guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি',
+        urgencyText: t('limitedTimeOffer') || '🔥 সীমিত সময়ের অফার!',
+        guaranteeText: t('satisfactionGuarantee') || '১০০% সন্তুষ্টির গ্যারান্টি',
       };
 
       // 4. Determine payment status based on plan
