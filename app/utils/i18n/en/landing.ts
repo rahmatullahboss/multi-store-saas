@@ -81,6 +81,7 @@ export const landing = {
   landingFinalCTA_tryAiHint: '👆 Try talking to AI right now!',
 
   landingSocialProof_firstInBD: 'First time in Bangladesh',
+  landingSocialProof_title: 'This level of AI in E-commerce Platform',
   landingSocialProof_aiLevelTitle: 'This level of AI in E-commerce Platform',
   landingSocialProof_platformCol: 'Platform',
   landingSocialProof_visitorAiCol: 'Visitor AI',

@@ -891,6 +891,7 @@ export type GrapesJsPageConfig = z.infer<typeof GrapesJsPageSchema>;
 export async function generateGrapesJsPage(
   apiKey: string,
   prompt: string, 
+  productInfo: { title: string; description?: string; price: number } | null = null,
   model = DEFAULT_MODEL, 
   baseUrl = DEFAULT_BASE_URL
 ): Promise<GrapesJsPageConfig> {
@@ -958,7 +959,11 @@ export async function generateGrapesJsPage(
     CRITICAL: Return ONLY the JSON object. No explanations, no markdown code fences.
   `;
 
-  const userPrompt = `Create a high-converting landing page for: ${prompt}`;
+  const productContext = productInfo 
+    ? `\n\nProduct Information (USE THIS FOR COPY):\n- Title: ${productInfo.title}\n- Description: ${productInfo.description || 'N/A'}\n- Price: ৳${productInfo.price}`
+    : '';
+
+  const userPrompt = `Create a high-converting landing page for: ${prompt}${productContext}`;
 
   // We reuse callAI helper but need to be careful with args
   const completion = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
@@ -1089,6 +1094,7 @@ export async function commandGrapesJs(
     selectedClasses?: string[];
     selectedAttributes?: Record<string, any>;
     selectedStyles?: Record<string, any>;
+    productInfo?: { title: string; description?: string; price: number } | null;
   },
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
@@ -1173,6 +1179,8 @@ CRITICAL: Return ONLY valid JSON. No markdown.`;
 - Content: ${context.selectedContent ? context.selectedContent.substring(0, 100) + '...' : 'none'}
 - Classes: ${context.selectedClasses?.join(', ') || 'none'}
 - Current Styles: ${context.selectedStyles ? JSON.stringify(context.selectedStyles).substring(0, 100) : 'none'}
+- Featured Product: ${context.productInfo ? `${context.productInfo.title} (${context.productInfo.price} BDT)` : 'none'}
+- Product Description: ${context.productInfo?.description || 'none'}
 
 User Request: "${userPrompt}"
 
@@ -1238,6 +1246,7 @@ export async function designCustomSection(
   apiKey: string,
   prompt: string,
   currentHtml?: string,
+  productInfo: { title: string; description?: string; price: number } | null = null,
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<ElementorPageResult> {
@@ -1271,9 +1280,13 @@ Your response MUST be valid JSON:
 }
 Return ONLY the JSON. No markdown, no code fences.`;
 
+  const productContext = productInfo 
+    ? `\n\nFeatured Product Content (USE THIS):\n- Title: ${productInfo.title}\n- Description: ${productInfo.description || 'N/A'}\n- Price: ৳${productInfo.price}`
+    : '';
+
   const userPrompt = currentHtml 
-    ? `Objective: Edit/Refine the existing section.\nPrompt: "${prompt}"\n\nCurrent HTML:\n${currentHtml}`
-    : `Objective: Design from scratch.\nPrompt: "${prompt}"`;
+    ? `Objective: Edit/Refine the existing section.\nPrompt: "${prompt}"${productContext}\n\nCurrent HTML:\n${currentHtml}`
+    : `Objective: Design from scratch.\nPrompt: "${prompt}"${productContext}`;
 
   const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   const parsed = extractJSON(response);
@@ -1961,11 +1974,11 @@ export function createAIService(apiKey: string | undefined, options?: { model?: 
     editElementorSection: (currentHtml: string, prompt: string) => 
       editElementorSection(validApiKey, currentHtml, prompt, options?.model, options?.baseUrl),
     
-    generateGrapesJsPage: (prompt: string) => 
-      generateGrapesJsPage(validApiKey, prompt, options?.model, options?.baseUrl),
+    generateGrapesJsPage: (prompt: string, productInfo?: any) => 
+      generateGrapesJsPage(validApiKey, prompt, productInfo, model, baseUrl),
     
-    designCustomSection: (prompt: string, currentHtml?: string) =>
-      designCustomSection(validApiKey, prompt, currentHtml, options?.model, options?.baseUrl),
+    designCustomSection: (prompt: string, currentHtml?: string, productInfo?: any) =>
+      designCustomSection(validApiKey, prompt, currentHtml, productInfo, model, baseUrl),
 
     commandGrapesJs: (prompt: string, context: any) =>
       commandGrapesJs(validApiKey, prompt, context, options?.model, options?.baseUrl),

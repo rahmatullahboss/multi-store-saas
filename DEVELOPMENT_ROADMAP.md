@@ -150,10 +150,22 @@
   - **Product Recommendations**: AI-driven "Frequently Bought Together" logic.
   - **Next Purchase Prediction**: Forecasted date for next order.
 
-### Phase 15: Advanced Marketing Integrations (Planned) 🚧
+### Phase 16: Maintenance & Stability (Completed) 🛡️
+
+- [x] **Dependency Audit & Resolution**: Reverted incompatible `remix-i18next` v7 bump to v6, restoring build stability and resolving peer dependency conflicts.
+- [x] **CI/CD Reliability**: Fixed build failures in preview branch caused by automated dependency upgrades.
+
+### Phase 17: Advanced Marketing Integrations (Planned) 🚧
 
 - [ ] **SMS Gateway Integration**: Native integration with SSL Wireless / BulkSMS BD for real SMS delivery.
 - [ ] **WhatsApp Business API**: Direct integration for official Template Messages (Order Confirm, Shipping).
 - [ ] **Catalog Sync**: Sync Product Catalog with WhatsApp/Facebook Shops.
 - [ ] **Smart Discount Rules**: Time-based (Flash Sale) and Behavior-based (Cart Abandonment) dynamic discounts.
 - [ ] **A/B Testing**: Split testing framework for marketing subject lines and offers.
+
+### Phase 18: AI-Powered Builder Intelligence (Completed) 🧠
+
+- [x] **Product-Aware Generation**: AI now retrieves and prioritizes selected product name, price, and description for landing page copy.
+- [x] **Featured Product Auto-selection**: Merchants with products now have the first one automatically selected as primary landing product.
+- [x] **Context Injection**: Seamlessly passed \`featuredProductId\` across Builder panels, Magic Generate modal, and AI Chat widget.
+- [x] **Backend Resolution**: API routes now securely fetch real-time product data to ground AI responses with 100% accuracy.

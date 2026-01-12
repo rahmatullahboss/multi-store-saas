@@ -14,7 +14,7 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { stores, users } from '@db/schema';
+import { stores, users, products } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { canUseAI, type PlanType, type AIPlanType } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
@@ -24,6 +24,7 @@ import { checkCredits, deductCredits, CREDIT_COSTS, type AIFeatureName } from '~
 // Define Payload Type
 interface ActionPayload {
   action: string;
+  featuredProductId?: string;
   description?: string;
   productInfo?: any;
   style?: string;
@@ -130,8 +131,41 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   try {
     let result;
-    // We will perform the AI action first, then deduct credits upon success.
-    // This prevents charging for failed AI calls.
+    
+    // Resolve Product Context if needed
+    let resolvedProductInfo: any = null;
+    const productIdStr = payload.featuredProductId || payload.context?.featuredProductId;
+    const productId = productIdStr ? parseInt(productIdStr) : null;
+
+    if (productId) {
+      const product = await db.select().from(products)
+        .where(eq(products.id, productId))
+        .get();
+      if (product) {
+         resolvedProductInfo = {
+           title: product.title,
+           description: product.description,
+           price: product.price,
+           imageUrl: product.imageUrl
+         };
+      }
+    }
+
+    // Fallback to first product if no product info provided for relevant actions
+    if (!resolvedProductInfo && ['GENERATE_GRAPESJS_PAGE', 'CHAT_COMMAND', 'DESIGN_CUSTOM_SECTION'].includes(actionType)) {
+        const firstProduct = await db.select().from(products)
+          .where(eq(products.storeId, storeId))
+          .limit(1)
+          .get();
+         if (firstProduct) {
+          resolvedProductInfo = {
+            title: firstProduct.title,
+            description: firstProduct.description,
+            price: firstProduct.price,
+            imageUrl: firstProduct.imageUrl
+          };
+        }
+    }
 
     switch (actionType) {
       case 'SETUP_STORE': {
@@ -205,7 +239,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (!payload.prompt) {
           return json({ error: 'AI Prompt required' }, { status: 400 });
         }
-        result = await ai.generateGrapesJsPage(payload.prompt);
+        result = await ai.generateGrapesJsPage(payload.prompt, resolvedProductInfo);
         break;
       }
 
@@ -213,7 +247,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (!payload.prompt) {
           return json({ error: 'AI Prompt required' }, { status: 400 });
         }
-        result = await ai.designCustomSection(payload.prompt, payload.currentHtml);
+        result = await ai.designCustomSection(payload.prompt, payload.currentHtml, resolvedProductInfo);
         break;
       }
 
@@ -231,7 +265,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
         result = await ai.commandGrapesJs(
           payload.editPrompt,
-          payload.context || {}
+          {
+            ...(payload.context || {}),
+            productInfo: resolvedProductInfo
+          }
         );
         break;
       }
