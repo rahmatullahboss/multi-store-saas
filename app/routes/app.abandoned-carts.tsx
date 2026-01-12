@@ -178,8 +178,8 @@ export default function AbandonedCartsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('abandonedCarts')}</h1>
-        <p className="text-gray-600">{t('abandonedCartsDesc')}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('navAbandonedCarts')}</h1>
+        <p className="text-gray-600">{t('countRecoverNeeded', { count: stats.abandoned })}</p>
       </div>
 
       {/* Stats */}
