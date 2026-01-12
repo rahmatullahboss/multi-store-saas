@@ -179,31 +179,31 @@ export default function AbandonedCartsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('abandonedCarts')}</h1>
-        <p className="text-gray-600">{lang === 'bn' ? 'পরিত্যক্ত কার্ট ট্র্যাক ও পুনরুদ্ধার করুন' : 'Track and recover abandoned shopping carts'}</p>
+        <p className="text-gray-600">{t('abandonedCartsDesc')}</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="Total Abandoned"
+          label={t('totalAbandoned')}
           value={stats.abandoned.toString()}
           icon={<ShoppingCart className="w-5 h-5" />}
           color="orange"
         />
         <StatCard
-          label="Recovered"
+          label={t('recovered')}
           value={stats.recovered.toString()}
           icon={<CheckCircle className="w-5 h-5" />}
           color="emerald"
         />
         <StatCard
-          label="Recovery Rate"
+          label={t('recoveryRate')}
           value={stats.total > 0 ? `${Math.round((stats.recovered / stats.total) * 100)}%` : '0%'}
           icon={<RefreshCw className="w-5 h-5" />}
           color="blue"
         />
         <StatCard
-          label="Lost Revenue"
+          label={t('lostRevenue')}
           value={formatPrice(stats.totalValue)}
           icon={<DollarSign className="w-5 h-5" />}
           color="red"
@@ -216,9 +216,9 @@ export default function AbandonedCartsPage() {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <ShoppingCart className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No abandoned carts</h3>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noAbandonedCarts')}</h3>
           <p className="text-gray-500">
-            Abandoned carts will appear here when customers leave items in their cart without completing checkout.
+            {t('noAbandonedCartsDesc')}
           </p>
         </div>
       ) : (
@@ -295,7 +295,7 @@ export default function AbandonedCartsPage() {
                         className="inline-flex items-center gap-1 px-3 py-2 text-sm bg-emerald-50 text-emerald-700 font-medium rounded-lg hover:bg-emerald-100 transition"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        Mark Recovered
+                        {t('markRecovered')}
                       </button>
                     </Form>
                     <Form method="post">
@@ -308,7 +308,7 @@ export default function AbandonedCartsPage() {
                         className="inline-flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition"
                       >
                         <XCircle className="w-4 h-4" />
-                        Dismiss
+                        {t('dismiss')}
                       </button>
                     </Form>
                   </div>
@@ -324,7 +324,7 @@ export default function AbandonedCartsPage() {
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-4 shadow-xl flex items-center gap-3">
             <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
-            <span>Updating...</span>
+            <span>{t('updating')}</span>
           </div>
         </div>
       )}

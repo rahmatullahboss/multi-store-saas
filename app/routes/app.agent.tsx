@@ -91,15 +91,15 @@ export default function AgentDashboard() {
         <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6">
             <Sparkles className="w-8 h-8 text-amber-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Premium Feature</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('premiumFeature')}</h2>
         <p className="text-gray-500 max-w-md mb-6">
-          AI Agent is a premium feature. Upgrade your plan to enable 24/7 automated customer support.
+          {t('premiumFeatureDesc')}
         </p>
         <Link 
           to="/app/billing" 
           className="px-6 py-2.5 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 transition"
         >
-          Upgrade Now
+          {t('upgradeNow')}
         </Link>
       </div>
     );
@@ -156,8 +156,8 @@ export default function AgentDashboard() {
                     <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <span className="text-gray-500 text-sm font-medium">{lang === 'bn' ? 'ম্যাসেজ লিমিট' : 'Message Usage'}</span>
-                                <div className="text-xs text-emerald-600 font-bold mt-1 uppercase">{aiPlan || 'Trial'} Plan</div>
+                                <span className="text-gray-500 text-sm font-medium">{t('messageUsageLimit')}</span>
+                                <div className="text-xs text-emerald-600 font-bold mt-1 uppercase">{aiPlan || 'Trial'} {t('plan')}</div>
                             </div>
                             <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
                                 <Zap className="w-5 h-5 text-emerald-600" />
