@@ -28,7 +28,7 @@ export const landing = {
   howTitle: '৩ ধাপে স্টোর চালু করুন',
   howSubtitle: 'সাইন আপ থেকে প্রথম বিক্রি ১০ মিনিটে',
   step1: 'অ্যাকাউন্ট তৈরি',
-  step1Desc: 'ইমেইল দিয়ে সাইন আপ করুন ও সাবডোমেইন বাছুন (yourstore.digitalcare.site)',
+  step1Desc: 'ইমেইল দিয়ে সাইন আপ করুন ও সাবডোমেইন বাছুন (yourstore.ozzyl.com)',
   step2: 'প্রোডাক্ট যোগ',
   step2Desc: 'প্রোডাক্টের ছবি আপলোড করুন, BDT-তে দাম সেট করুন, বিবরণ লিখুন।',
   step3: 'বিক্রি শুরু',
@@ -48,12 +48,12 @@ export const landing = {
   
   // CTA
   ctaTitle: 'আজই বিক্রি শুরু করুন',
-  ctaSubtitle: '৫০০+ মার্চেন্ট ইতিমধ্যে Multi-Store দিয়ে ব্যবসা বাড়াচ্ছে',
+  ctaSubtitle: '৫০০+ মার্চেন্ট ইতিমধ্যে Ozzyl দিয়ে ব্যবসা বাড়াচ্ছে',
   ctaButton: 'ফ্রি স্টোর তৈরি করুন',
   
   // Features
   featureGlobeTitle: 'নিজের স্টোর URL',
-  featureGlobeDesc: 'yourstore.digitalcare.site তাৎক্ষণিক পান। প্রিমিয়াম ইউজাররা নিজের ডোমেইন কানেক্ট করতে পারেন।',
+  featureGlobeDesc: 'yourstore.ozzyl.com তাৎক্ষণিক পান। প্রিমিয়াম ইউজাররা নিজের ডোমেইন কানেক্ট করতে পারেন।',
   featureSmartphoneTitle: 'বিকাশ ও নগদ রেডি',
   featureSmartphoneDesc: 'কোটি বাংলাদেশী কাস্টমারের কাছ থেকে মোবাইল পেমেন্ট নিন। ক্যাশ অন ডেলিভারিও সাপোর্ট করে।',
   featurePackageTitle: 'অর্ডার ম্যানেজমেন্ট',
@@ -84,8 +84,8 @@ export const landing = {
   testimonial3Role: 'ইলেকট্রনিক্স, সিলেট',
   testimonial3Text: 'ল্যান্ডিং পেজ মোড আমার গ্যাজেট ব্যবসার জন্য পারফেক্ট। সহজ COD অর্ডার, দারুণ ড্যাশবোর্ড!',
   faq3Q: 'নিজের ডোমেইন ব্যবহার করতে পারব?',
-  faq3A: 'হ্যাঁ! Starter Plan থেকে আপনি Custom Domain কানেক্ট করতে পারবেন। Free Plan এ আপনি yourstore.digitalcare.site সাবডোমেইন পাবেন।',
-  faq3Q_custom: 'হ্যাঁ! Starter Plan থেকে আপনি Custom Domain কানেক্ট করতে পারবেন। Free Plan এ আপনি yourstore.digitalcare.site সাবডোমেইন পাবেন।',
+  faq3A: 'হ্যাঁ! Starter Plan থেকে আপনি Custom Domain কানেক্ট করতে পারবেন। Free Plan এ আপনি yourstore.ozzyl.com সাবডোমেইন পাবেন।',
+  faq3Q_custom: 'হ্যাঁ! Starter Plan থেকে আপনি Custom Domain কানেক্ট করতে পারবেন। Free Plan এ আপনি yourstore.ozzyl.com সাবডোমেইন পাবেন।',
   faq4Q: 'পেমেন্ট কিভাবে পাব?',
   faq4A: 'বিকাশ/নগদ পেমেন্ট সরাসরি আপনার অ্যাকাউন্টে যায়। COD-এর জন্য আপনি কাস্টমারের কাছ থেকে নেন। আমরা কখনো আপনার টাকা ধরে রাখি না।',
   faq5Q: 'Store Setup করতে কতক্ষণ লাগে?',
@@ -109,7 +109,7 @@ export const landing = {
   footerLinkPrivacy: 'গোপনীয়তা',
   footerLinkTerms: 'শর্তাবলী',
   footerLinkRefund: 'রিফান্ড নীতি',
-  copyright: '© ২০২৬ মাল্টি-স্টোর। বাংলাদেশে ❤️ দিয়ে তৈরি।',
+  copyright: '© ২০২৬ Ozzyl। বাংলাদেশে ❤️ দিয়ে তৈরি।',
   
   // AwardWinningHero
   heroSignupPrefix: 'ইতিমধ্যে',

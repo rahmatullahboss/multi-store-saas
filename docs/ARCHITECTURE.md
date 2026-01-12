@@ -27,7 +27,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    Cloudflare Edge                          │
 ├─────────────────────────────────────────────────────────────┤
-│  store1.digitalcare.site  │  store2.digitalcare.site       │
+│  store1.ozzyl.com  │  store2.ozzyl.com       │
 ├─────────────────────────────────────────────────────────────┤
 │                   Request Handler                           │
 │     ┌─────────────────┐    ┌─────────────────┐             │
@@ -56,7 +56,7 @@
 ## Directory Structure
 
 ```
-Multi Store Saas/
+Ozzyl Saas/
 ├── app/                      # Remix Frontend
 │   ├── routes/               # Page & API routes
 │   │   ├── _index.tsx        # Storefront homepage
@@ -117,7 +117,7 @@ All data is isolated by `storeId`. Every query filters by the merchant's store t
 POST /api/upload-image
 ├── Accepts: multipart/form-data (file, folder)
 ├── Images compressed on client via imageCompression.ts
-├── Uploads to R2 bucket (multi-store-saas-media)
+├── Uploads to R2 bucket (ozzyl-saas-media)
 ├── Returns: { url, key, size, type }
 ```
 
@@ -157,7 +157,7 @@ npm run dev
 npm run db:generate
 
 # Apply migrations (local)
-wrangler d1 execute multi-store-saas-db --local --file=./db/migrations/xxxx.sql
+wrangler d1 execute ozzyl-saas-db --local --file=./db/migrations/xxxx.sql
 
 # Deploy to production
 npm run deploy
@@ -172,4 +172,4 @@ Hosted on **Cloudflare Pages** with:
 - Auto-deployment on git push
 - Edge SSR via Workers
 - D1 database (production)
-- Custom domain: `stores.digitalcare.site`
+- Custom domain: `stores.ozzyl.com`

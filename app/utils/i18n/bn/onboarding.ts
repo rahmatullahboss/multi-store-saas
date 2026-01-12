@@ -129,7 +129,7 @@ export const onboarding = {
   placeholderEmail: 'you@example.com',
   placeholderStoreName: 'আমার দারুন স্টোর',
   placeholderSubdomain: 'my-store',
-  metaTitle: 'আপনার স্টোর তৈরি করুন - Multi-Store SaaS',
+  metaTitle: 'আপনার স্টোর তৈরি করুন - Ozzyl SaaS',
   
   // Errors
   emailAlreadyRegistered: 'এই ইমেইল আগেই রেজিস্টার করা হয়েছে। অনুগ্রহ করে লগইন করুন।',

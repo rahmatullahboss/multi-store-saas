@@ -57,7 +57,7 @@ const DEFAULT_GUARANTEE_TEXT = '১০০% সন্তুষ্টির গ্
 
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Landing Page Builder - Multi-Store SaaS' }];
+  return [{ title: 'Landing Page Builder - Ozzyl SaaS' }];
 };
 
 
@@ -98,7 +98,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const landingConfig = parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;
   
   // Get SAAS_DOMAIN for preview URL
-  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
 
   return json({
     store: {

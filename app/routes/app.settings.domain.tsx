@@ -87,7 +87,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     planType: store[0].planType as PlanType,
     canUseDomain: canUseCustomDomain((store[0].planType as PlanType) || 'free'),
     cloudflareConfigured,
-    dnsTarget: 'multi-store-saas.pages.dev',
+    dnsTarget: 'ozzyl-saas.pages.dev',
   });
 }
 
@@ -332,13 +332,13 @@ export default function DomainSettings() {
             <Globe className="w-5 h-5 text-emerald-600" />
             <div>
               <div className="font-mono font-medium text-gray-900">
-                {subdomain}.digitalcare.site
+                {subdomain}.ozzyl.com
               </div>
               <p className="text-sm text-gray-500">{t('freeSubdomainActive')}</p>
             </div>
           </div>
           <a
-            href={`https://${subdomain}.digitalcare.site`}
+            href={`https://${subdomain}.ozzyl.com`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:underline"

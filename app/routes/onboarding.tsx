@@ -613,11 +613,8 @@ export default function OnboardingPage() {
       {/* Header */}
       <header className="py-6 px-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="p-2 bg-emerald-600 rounded-xl">
-              <Store className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl text-gray-900">Multi-Store</span>
+          <Link to="/" className="flex items-center gap-3">
+            <img src="/brand/logo-green.png" alt="Ozzyl" className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
             {/* <LanguageSelector variant="toggle" size="sm" /> */} {/* Temporarily disabled - Bengali is default */}
@@ -768,7 +765,7 @@ export default function OnboardingPage() {
                     placeholder={t('placeholderSubdomain')}
                   />
                   <span className="px-4 py-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-xl text-gray-500 text-sm">
-                    .digitalcare.site
+                    .ozzyl.com
                   </span>
                 </div>
                 {errors.subdomain && <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>}

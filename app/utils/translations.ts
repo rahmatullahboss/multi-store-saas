@@ -1,5 +1,5 @@
 /**
- * Translation System for Multi-Store SaaS
+ * Translation System for Ozzyl SaaS
  * 
  * Provides English and Bengali translations for storefront UI
  */

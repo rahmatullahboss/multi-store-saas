@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
-export const meta: MetaFunction = () => [{ title: 'My Themes - Multi-Store SaaS' }];
+export const meta: MetaFunction = () => [{ title: 'My Themes - Ozzyl SaaS' }];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   await requireUserId(request, context.cloudflare.env);

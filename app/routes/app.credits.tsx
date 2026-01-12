@@ -18,7 +18,7 @@ const CREDIT_PACKAGES = [
 ];
 
 export const meta = () => [
-  { title: 'AI Credits - Multi-Store SaaS' },
+  { title: 'AI Credits - Ozzyl SaaS' },
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

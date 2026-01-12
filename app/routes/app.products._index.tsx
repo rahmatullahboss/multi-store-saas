@@ -27,7 +27,7 @@ import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/com
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Products - Multi-Store SaaS' }];
+  return [{ title: 'Products - Ozzyl SaaS' }];
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -228,7 +228,7 @@ export default function ProductsIndexPage() {
 
   // Generate offer URL for a product
   const getOfferUrl = (productId: number) => {
-    const domain = storeCustomDomain || `${storeSubdomain}.digitalcare.site`;
+    const domain = storeCustomDomain || `${storeSubdomain}.ozzyl.com`;
     return `https://${domain}/offers/${productId}`;
   };
 

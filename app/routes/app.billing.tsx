@@ -48,7 +48,7 @@ import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Billing & Plans - Multi-Store SaaS' }];
+  return [{ title: 'Billing & Plans - Ozzyl SaaS' }];
 };
 
 // ============================================================================

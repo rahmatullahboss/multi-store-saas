@@ -220,7 +220,7 @@ export default function LandingEditorPage() {
   }, [fetcher.data, fetcher.state, currentConfig]);
 
   // Preview URL
-  const previewUrl = `https://${store.subdomain}.digitalcare.site`;
+  const previewUrl = `https://${store.subdomain}.ozzyl.com`;
 
   // Dynamic Template Component
   const TemplateComponent = getTemplateComponent(currentConfig.templateId);

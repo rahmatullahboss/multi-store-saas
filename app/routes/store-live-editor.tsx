@@ -69,7 +69,7 @@ function SortableSectionItem({ section, onSelect, onDelete, isActive }: any) {
 
 
 
-export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Multi-Store SaaS' }];
+export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Ozzyl SaaS' }];
 
 // Font Options - includes English and Bengali fonts
 const FONT_OPTIONS = [
@@ -123,7 +123,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   const themeConfig = parseThemeConfig(store[0].themeConfig as string | null) || defaultThemeConfig;
   const templates = getAllStoreTemplates();
-  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
   
   return json({
     store: {

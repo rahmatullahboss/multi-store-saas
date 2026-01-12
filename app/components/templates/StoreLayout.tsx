@@ -521,7 +521,7 @@ export function StoreLayout({
             <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
             {(footerConfig?.showPoweredBy !== false) && (
               <p className="mt-2">
-                Powered by <span className="text-blue-400">Multi-Store SaaS</span>
+                Powered by <span className="text-blue-400">Ozzyl SaaS</span>
               </p>
             )}
           </div>

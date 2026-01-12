@@ -32,7 +32,7 @@ export const links: LinksFunction = () => [
 /**
  * Root Loader - Load store information for all pages
  * 
- * On main domain (digitalcare.site), store will be null.
+ * On main domain (ozzyl.com), store will be null.
  * This is expected for auth pages and marketing landing.
  * 
  * Tracking IDs are loaded per-store for data isolation.
@@ -50,7 +50,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     locale,
     store: {
       id: storeId || 0,
-      name: store?.name || 'Multi-Store SaaS',
+      name: store?.name || 'Ozzyl SaaS',
       logo: store?.logo || null,
       theme: store?.theme || 'default',
       currency: store?.currency || 'BDT',

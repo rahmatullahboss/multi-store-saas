@@ -99,7 +99,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Check if there are unpublished changes
   const hasUnpublishedChanges = !!draftConfig && JSON.stringify(draftConfig) !== JSON.stringify(publishedConfig);
   
-  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
 
   return json({
     store: {

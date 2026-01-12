@@ -150,18 +150,18 @@ export default function AdminLayout() {
           <div className="p-4 border-b border-slate-800">
             <div className="flex items-center justify-between">
               <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'lg:justify-center' : ''}`}>
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <img src="/brand/icon-white.png" alt="Ozzyl" className="w-6 h-6" />
                 </div>
                 {!sidebarCollapsed && (
                   <div className="lg:block hidden">
-                    <h2 className="font-semibold text-white">Super Admin</h2>
+                    <h2 className="font-semibold text-white">Ozzyl Admin</h2>
                     <p className="text-xs text-slate-400">Control Panel</p>
                   </div>
                 )}
                 {/* Always show on mobile */}
                 <div className="lg:hidden block">
-                  <h2 className="font-semibold text-white">Super Admin</h2>
+                  <h2 className="font-semibold text-white">Ozzyl Admin</h2>
                   <p className="text-xs text-slate-400">Control Panel</p>
                 </div>
               </div>

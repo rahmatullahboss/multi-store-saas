@@ -16,7 +16,7 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import i18next from '~/services/i18n.server';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Login - Multi-Store SaaS' }];
+  return [{ title: 'Login - Ozzyl SaaS' }];
 };
 
 // Redirect if already logged in
@@ -183,9 +183,9 @@ export default function LoginPage() {
       
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Multi-Store SaaS</h1>
-          <p className="text-gray-600 mt-2">{t('login')}</p>
+        <div className="text-center mb-8 flex flex-col items-center gap-3">
+          <img src="/brand/logo-green.png" alt="Ozzyl" className="h-12 w-auto" />
+          <p className="text-gray-600 font-medium">{t('login')}</p>
         </div>
 
         {/* Login Form */}

@@ -227,7 +227,7 @@ async function sendDomainDisconnectedEmail(
     const resend = new Resend(resendApiKey);
 
     await resend.emails.send({
-      from: 'DigitalCare <notifications@digitalcare.site>',
+      from: 'DigitalCare <notifications@ozzyl.com>',
       to: owner[0].email,
       subject: 'Your Custom Domain Has Been Disconnected',
       html: `
@@ -253,7 +253,7 @@ async function sendDomainDisconnectedEmail(
             
             <p>Your store is still accessible via your free subdomain:</p>
             <p style="text-align: center;">
-              <a href="https://${storeName}.digitalcare.site" style="display: inline-block; background: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">
+              <a href="https://${storeName}.ozzyl.com" style="display: inline-block; background: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">
                 Visit Your Store
               </a>
             </p>
@@ -264,13 +264,13 @@ async function sendDomainDisconnectedEmail(
             <p>Upgrade to the Starter plan to reconnect your custom domain and unlock premium features.</p>
             
             <p style="text-align: center;">
-              <a href="https://digitalcare.site/app/upgrade" style="display: inline-block; background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">
+              <a href="https://ozzyl.com/app/upgrade" style="display: inline-block; background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">
                 Upgrade Now
               </a>
             </p>
             
             <p style="color: #666; font-size: 14px; margin-top: 30px;">
-              If you have any questions, please contact us at <a href="mailto:support@digitalcare.site" style="color: #059669;">support@digitalcare.site</a>
+              If you have any questions, please contact us at <a href="mailto:support@ozzyl.com" style="color: #059669;">support@ozzyl.com</a>
             </p>
           </div>
           

@@ -50,7 +50,7 @@ A Shopify-like multi-tenant e-commerce platform built with Cloudflare Workers, H
 2. **Create D1 database**
 
    ```bash
-   wrangler d1 create multi-store-saas-db
+   wrangler d1 create ozzyl-saas-db
    ```
 
    Copy the `database_id` to `wrangler.toml`
@@ -58,19 +58,19 @@ A Shopify-like multi-tenant e-commerce platform built with Cloudflare Workers, H
 3. **Create R2 bucket**
 
    ```bash
-   wrangler r2 bucket create multi-store-saas-media
+   wrangler r2 bucket create ozzyl-saas-media
    ```
 
 4. **Run migrations**
 
    ```bash
    # Local
-   wrangler d1 execute multi-store-saas-db --local --file=./db/migrations/0001_initial_schema.sql
-   wrangler d1 execute multi-store-saas-db --local --file=./db/migrations/0002_seed_data.sql
+   wrangler d1 execute ozzyl-saas-db --local --file=./db/migrations/0001_initial_schema.sql
+   wrangler d1 execute ozzyl-saas-db --local --file=./db/migrations/0002_seed_data.sql
 
    # Production
-   wrangler d1 execute multi-store-saas-db --file=./db/migrations/0001_initial_schema.sql
-   wrangler d1 execute multi-store-saas-db --file=./db/migrations/0002_seed_data.sql
+   wrangler d1 execute ozzyl-saas-db --file=./db/migrations/0001_initial_schema.sql
+   wrangler d1 execute ozzyl-saas-db --file=./db/migrations/0002_seed_data.sql
    ```
 
 5. **Start development server**

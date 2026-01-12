@@ -17,7 +17,7 @@ import { Sparkles, Loader2, AlertCircle, ArrowRight, Zap } from 'lucide-react';
 import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
 
 export const meta = () => [
-  { title: 'AI Store Setup - Multi-Store SaaS' },
+  { title: 'AI Store Setup - Ozzyl SaaS' },
 ];
 
 // Loader: Check plan access

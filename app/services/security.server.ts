@@ -91,7 +91,7 @@ async function sendSecurityAlert(env: Env, data: { type: string, ip?: string, em
      `;
 
      await resend.emails.send({
-        from: 'Multi-Store Security <security@digitalcare.site>',
+        from: 'Ozzyl Security <security@ozzyl.com>',
         to: env.SUPER_ADMIN_EMAIL!,
         subject,
         html

@@ -1610,7 +1610,7 @@ async function searchVectors(
 
 /**
  * Ozzyl AI - The first impression chatbot for marketing landing page visitors.
- * This chatbot has complete knowledge of the Multi-Store SaaS platform and can
+ * This chatbot has complete knowledge of the Ozzyl SaaS platform and can
  * answer any question about pricing, features, integrations, and business value.
  */
 export async function chatWithVisitor(

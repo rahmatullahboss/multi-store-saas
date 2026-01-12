@@ -126,10 +126,7 @@ export function MarketingLanding() {
             {/* Brand Section */}
             <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
-                  <Store className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-bold text-xl text-white">Multi-Store</span>
+                <img src="/brand/logo-white.png" alt="Ozzyl" className="h-8 w-auto" />
               </div>
               <p className="text-sm text-white/50">{t('footerAbout')}</p>
             </div>

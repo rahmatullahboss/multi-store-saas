@@ -61,7 +61,7 @@ export async function loader({ request, context }: any) {
   ]);
 
   // Generate base URL for published pages
-  const saasDomain = context.cloudflare.env.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare.env.SAAS_DOMAIN || 'ozzyl.com';
   const publishedBaseUrl = store?.customDomain 
     ? `https://${store.customDomain}` 
     : `https://${store?.subdomain}.${saasDomain}`;

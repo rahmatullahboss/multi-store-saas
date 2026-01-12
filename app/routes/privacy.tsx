@@ -14,8 +14,8 @@ import { MarketingHeader } from '~/components/MarketingHeader';
 import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
-  { title: 'গোপনীয়তা নীতি - Multi-Store SaaS' },
-  { name: 'description', content: 'Multi-Store SaaS প্ল্যাটফর্মের গোপনীয়তা নীতি।' },
+  { title: 'গোপনীয়তা নীতি - Ozzyl SaaS' },
+  { name: 'description', content: 'Ozzyl SaaS প্ল্যাটফর্মের গোপনীয়তা নীতি।' },
 ];
 
 export default function PrivacyPolicyPage() {
@@ -72,7 +72,7 @@ export default function PrivacyPolicyPage() {
               <section>
                 <h2 className="text-xl font-bold text-white mb-3">তথ্য সংগ্রহ</h2>
                 <p className="leading-relaxed">
-                  Multi-Store প্ল্যাটফর্ম ব্যবহার করার সময় আমরা নিম্নলিখিত তথ্য সংগ্রহ করি:
+                  Ozzyl প্ল্যাটফর্ম ব্যবহার করার সময় আমরা নিম্নলিখিত তথ্য সংগ্রহ করি:
                 </p>
                 <ul className="list-disc list-inside mt-3 space-y-2">
                   <li>নাম, ইমেইল, ফোন নম্বর (অ্যাকাউন্ট তৈরির জন্য)</li>

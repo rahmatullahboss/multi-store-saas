@@ -246,7 +246,7 @@ export function FAQSection() {
             {t('faqStillQuestions')}
           </p>
           <a
-            href="mailto:support@digitalcare.site"
+            href="mailto:support@ozzyl.com"
             className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#006A4E]/50 rounded-xl text-white/70 hover:text-white transition-all duration-300"
           >
             <Sparkles className="w-4 h-4 text-[#F9A825]" />

@@ -15,8 +15,8 @@ import { MarketingHeader } from '~/components/MarketingHeader';
 import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
-  { title: 'টিউটোরিয়াল - Multi-Store | নতুন মার্চেন্টদের জন্য গাইড' },
-  { name: 'description', content: 'Multi-Store প্ল্যাটফর্ম ব্যবহার করে সহজে অনলাইন স্টোর তৈরি করুন। ভিডিও টিউটোরিয়াল দিয়ে শিখুন।' },
+  { title: 'টিউটোরিয়াল - Ozzyl | নতুন মার্চেন্টদের জন্য গাইড' },
+  { name: 'description', content: 'Ozzyl প্ল্যাটফর্ম ব্যবহার করে সহজে অনলাইন স্টোর তৈরি করুন। ভিডিও টিউটোরিয়াল দিয়ে শিখুন।' },
 ];
 
 const content = {

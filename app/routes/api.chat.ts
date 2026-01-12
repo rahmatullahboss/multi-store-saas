@@ -339,9 +339,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId || storeId === 0) {
     console.log('[AI Chat] Marketing mode - no storeId');
     
-    const saasSystemPrompt = `You are a helpful AI assistant for Multi-Store SaaS - an e-commerce platform for Bangladeshi sellers.
+    const saasSystemPrompt = `You are a helpful AI assistant for Ozzyl SaaS - an e-commerce platform for Bangladeshi sellers.
 
-## About Multi-Store
+## About Ozzyl
 - E-commerce platform to create online stores
 - Supports bKash, Nagad, Cash on Delivery
 - Free plan: 1 product, 50 orders/month
@@ -349,7 +349,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 - Premium: ৳1500/month - unlimited products, custom domain
 
 ## Features
-- Instant subdomain (yourstore.digitalcare.site)
+- Instant subdomain (yourstore.ozzyl.com)
 - Order management dashboard
 - Inventory tracking
 - Courier integration (Pathao, Steadfast, RedX)

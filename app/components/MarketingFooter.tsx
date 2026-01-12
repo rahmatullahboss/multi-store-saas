@@ -26,7 +26,7 @@ export function MarketingFooter({ showStickyCTA = true }: MarketingFooterProps) 
                 <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
                   <Store className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-xl text-white">Multi-Store</span>
+                <span className="font-bold text-xl text-white">Ozzyl</span>
               </div>
               <p className="text-sm text-white/50">
                 বাংলাদেশী উদ্যোক্তাদের জন্য তৈরি ই-কমার্স প্ল্যাটফর্ম
@@ -49,7 +49,7 @@ export function MarketingFooter({ showStickyCTA = true }: MarketingFooterProps) 
               <ul className="space-y-2">
                 <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
                 <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
-                <li><a href="https://status.digitalcare.site" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#00875F] transition text-sm">সার্ভিস স্ট্যাটাস</a></li>
+                <li><a href="https://status.ozzyl.com" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#00875F] transition text-sm">সার্ভিস স্ট্যাটাস</a></li>
               </ul>
             </div>
             
@@ -65,7 +65,7 @@ export function MarketingFooter({ showStickyCTA = true }: MarketingFooterProps) 
           </div>
           
           <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-white/40">© {new Date().getFullYear()} Multi-Store SaaS. সর্বস্বত্ব সংরক্ষিত।</p>
+            <p className="text-sm text-white/40">© {new Date().getFullYear()} Ozzyl SaaS. সর্বস্বত্ব সংরক্ষিত।</p>
             <div className="flex items-center gap-3">
               {[
                 { icon: '💬', label: 'WhatsApp', href: 'https://wa.me/8801739416661' },

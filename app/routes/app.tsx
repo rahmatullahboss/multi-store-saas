@@ -56,12 +56,12 @@ import type { TranslationKey } from '~/utils/i18n/index';
 // Custom Ozzyl Icon Component (for nav)
 const OzzylIcon = ({ className }: { className?: string }) => {
   const { t } = useTranslation();
-  return <img src="/ozzyl-logo-small.png" alt={String(t('landingFinalCTA_aiAssistantName'))} className={className || 'w-5 h-5'} />;
+  return <img src="/brand/icon.png" alt={String(t('landingFinalCTA_aiAssistantName'))} className={className || 'w-5 h-5'} />;
 };
 
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Dashboard - Multi-Store SaaS' }];
+  return [{ title: 'Dashboard - Ozzyl SaaS' }];
 };
 
 // ============================================================================
@@ -167,7 +167,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     console.log('[app.loader] Dashboard data loaded successfully for store:', store.name);
     
     // Get SAAS_DOMAIN for store URL
-    const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+    const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
     
     // Fetch active system notifications
     let activeNotifications: { id: number; message: string; type: string | null }[] = [];
@@ -393,8 +393,8 @@ export default function AppLayout() {
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                  <Store className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+                  <img src="/brand/icon.png" alt="Ozzyl" className="w-6 h-6" />
                 </div>
                 <div>
                   <h2 className="font-semibold text-gray-900 truncate max-w-[140px]">

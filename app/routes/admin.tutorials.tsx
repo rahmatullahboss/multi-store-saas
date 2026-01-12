@@ -224,8 +224,8 @@ const tutorialSections = [
         heading: 'DNS Verification',
         steps: [
           'Customer কে বলুন তাদের domain এ CNAME রেকর্ড যোগ করতে',
-          'CNAME: @ → [subdomain].digitalcare.site',
-          'অথবা: www → [subdomain].digitalcare.site',
+          'CNAME: @ → [subdomain].ozzyl.com',
+          'অথবা: www → [subdomain].ozzyl.com',
           'DNS propagate হতে 1-24 ঘন্টা লাগে',
         ],
       },

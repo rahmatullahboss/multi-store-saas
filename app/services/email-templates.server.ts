@@ -138,7 +138,7 @@ export function getNewOrderAlertHtml(data: {
           <p style="margin: 0; font-size: 20px; color: #1d4ed8;"><strong>Total: ${symbol}${data.total.toLocaleString()}</strong></p>
         </div>
         
-        <a href="https://digitalcare.site/app/orders" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">View Order Details</a>
+        <a href="https://ozzyl.com/app/orders" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">View Order Details</a>
       </div>
     </body>
     </html>
@@ -237,7 +237,7 @@ export function getLowStockAlertHtml(data: {
           </tbody>
         </table>
         
-        <a href="https://digitalcare.site/app/products" style="display: inline-block; background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">Update Inventory</a>
+        <a href="https://ozzyl.com/app/products" style="display: inline-block; background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">Update Inventory</a>
       </div>
     </body>
     </html>
@@ -336,7 +336,7 @@ export function getSubscriptionApprovalHtml(data: {
         <p>You now have access to all ${data.planName} features. Start growing your business today!</p>
         
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://digitalcare.site/app/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Go to Dashboard →</a>
+          <a href="https://ozzyl.com/app/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Go to Dashboard →</a>
         </div>
         
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
@@ -396,14 +396,14 @@ export function getFirstSaleCelebrationHtml(data: {
         </p>
 
         <div style="margin-top: 40px;">
-          <a href="https://digitalcare.site/app/orders/${data.orderNumber}" style="display: inline-block; background: #000000; color: white; padding: 16px 36px; text-decoration: none; border-radius: 99px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <a href="https://ozzyl.com/app/orders/${data.orderNumber}" style="display: inline-block; background: #000000; color: white; padding: 16px 36px; text-decoration: none; border-radius: 99px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
             Fulfill My First Order
           </a>
         </div>
       </div>
       
       <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px;">
-        Sent with ❤️ from Multi-Store SaaS Team
+        Sent with ❤️ from Ozzyl SaaS Team
       </p>
     </body>
     </html>

@@ -15,8 +15,8 @@ import { MarketingHeader } from '~/components/MarketingHeader';
 import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
-  { title: 'আমাদের সম্পর্কে - Multi-Store | বাংলাদেশী ই-কমার্স প্ল্যাটফর্ম' },
-  { name: 'description', content: 'Multi-Store - বাংলাদেশী উদ্যোক্তাদের জন্য তৈরি সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। আমাদের মিশন ও ভিশন জানুন।' },
+  { title: 'আমাদের সম্পর্কে - Ozzyl | বাংলাদেশী ই-কমার্স প্ল্যাটফর্ম' },
+  { name: 'description', content: 'Ozzyl - বাংলাদেশী উদ্যোক্তাদের জন্য তৈরি সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। আমাদের মিশন ও ভিশন জানুন।' },
 ];
 
 export default function AboutPage() {

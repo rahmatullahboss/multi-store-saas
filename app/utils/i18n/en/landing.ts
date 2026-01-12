@@ -28,7 +28,7 @@ export const landing = {
   howTitle: 'Launch Your Store in 3 Steps',
   howSubtitle: 'From signup to first sale in under 10 minutes',
   step1: 'Create Account',
-  step1Desc: 'Sign up with email & choose your subdomain (yourstore.digitalcare.site)',
+  step1Desc: 'Sign up with email & choose your subdomain (yourstore.ozzyl.com)',
   step2: 'Add Products',
   step2Desc: 'Upload product photos, set prices in BDT, and write descriptions.',
   step3: 'Start Selling',
@@ -48,12 +48,12 @@ export const landing = {
   
   // CTA
   ctaTitle: 'Start Selling Today',
-  ctaSubtitle: 'Join 500+ merchants already growing their business with Multi-Store',
+  ctaSubtitle: 'Join 500+ merchants already growing their business with Ozzyl',
   ctaButton: 'Create Your Free Store',
   
   // Features (Keys for mapping if needed, or just use as strings)
   featureGlobeTitle: 'Your Own Store URL',
-  featureGlobeDesc: 'Get yourstore.digitalcare.site instantly. Premium users can connect their own domain.',
+  featureGlobeDesc: 'Get yourstore.ozzyl.com instantly. Premium users can connect their own domain.',
   featureSmartphoneTitle: 'bKash & Nagad Ready',
   featureSmartphoneDesc: 'Accept mobile payments from millions of Bangladeshi customers. Also supports Cash on Delivery.',
   featurePackageTitle: 'Order Management',
@@ -84,8 +84,8 @@ export const landing = {
   testimonial3Role: 'Electronics, Sylhet',
   testimonial3Text: 'The landing page mode is perfect for my gadget business. Easy COD orders, great dashboard!',
   faq3Q: 'Can I use my own domain?',
-  faq3A: 'Yes! From Starter Plan, you can connect your Custom Domain. In Free Plan, you get a yourstore.digitalcare.site subdomain.',
-  faq3Q_custom: 'Yes! From Starter Plan, you can connect your Custom Domain. In Free Plan, you get a yourstore.digitalcare.site subdomain.',
+  faq3A: 'Yes! From Starter Plan, you can connect your Custom Domain. In Free Plan, you get a yourstore.ozzyl.com subdomain.',
+  faq3Q_custom: 'Yes! From Starter Plan, you can connect your Custom Domain. In Free Plan, you get a yourstore.ozzyl.com subdomain.',
   faq4Q: 'How do I receive my payments?',
   faq4A: 'bKash/Nagad payments go directly to your account. For COD, you collect from customers. We never hold your money.',
   faq5Q: 'How long does it take to setup a store?',
@@ -109,7 +109,7 @@ export const landing = {
   footerLinkPrivacy: 'Privacy',
   footerLinkTerms: 'Terms',
   footerLinkRefund: 'Refund Policy',
-  copyright: '© 2026 Multi-Store. Made with ❤️ in Bangladesh.',
+  copyright: '© 2026 Ozzyl. Made with ❤️ in Bangladesh.',
   
   // AwardWinningHero
   heroSignupPrefix: 'Already',

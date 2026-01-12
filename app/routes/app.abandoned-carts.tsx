@@ -33,7 +33,7 @@ import {
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Abandoned Carts - Multi-Store SaaS' }];
+  return [{ title: 'Abandoned Carts - Ozzyl SaaS' }];
 };
 
 // ============================================================================

@@ -15,8 +15,8 @@ import { MarketingHeader } from '~/components/MarketingHeader';
 import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
-  { title: 'যোগাযোগ করুন - Multi-Store | সাপোর্ট ও হেল্প' },
-  { name: 'description', content: 'Multi-Store টিমের সাথে যোগাযোগ করুন। ফোন, হোয়াটসঅ্যাপ এবং ইমেইল সাপোর্ট উপলব্ধ।' },
+  { title: 'যোগাযোগ করুন - Ozzyl | সাপোর্ট ও হেল্প' },
+  { name: 'description', content: 'Ozzyl টিমের সাথে যোগাযোগ করুন। ফোন, হোয়াটসঅ্যাপ এবং ইমেইল সাপোর্ট উপলব্ধ।' },
 ];
 
 // Contact information

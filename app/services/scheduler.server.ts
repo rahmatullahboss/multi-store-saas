@@ -60,7 +60,7 @@ async function processAbandonedCarts(db: Database, env: Env) {
       await sendSmartNotification(db, env, 0, cart.storeId, 'ABANDONED_CART', {
         phone: cart.customerPhone,
         customerName: cart.customerName || 'Guest',
-        cartUrl: `https://${cart.store.subdomain}.digitalcare.site/checkout?recovery=${cart.sessionId}`,
+        cartUrl: `https://${cart.store.subdomain}.ozzyl.com/checkout?recovery=${cart.sessionId}`,
         amount: cart.totalAmount,
         currency: cart.currency
       });
@@ -75,7 +75,7 @@ async function processAbandonedCarts(db: Database, env: Env) {
             customerEmail: cart.customerEmail,
             customerName: cart.customerName || 'Guest',
             metadata: {
-              cartUrl: `https://${cart.store.subdomain}.digitalcare.site/checkout?recovery=${cart.sessionId}`,
+              cartUrl: `https://${cart.store.subdomain}.ozzyl.com/checkout?recovery=${cart.sessionId}`,
               amount: cart.totalAmount,
               currency: cart.currency,
             }

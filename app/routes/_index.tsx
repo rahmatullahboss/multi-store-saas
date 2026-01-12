@@ -57,7 +57,7 @@ export const meta: MetaFunction = ({ data }) => {
   // Marketing mode - return SaaS branding
   if (loaderData.mode === 'marketing') {
     return [
-      { title: 'Multi-Store SaaS - Launch Your Online Store in 5 Minutes' },
+      { title: 'Ozzyl SaaS - Launch Your Online Store in 5 Minutes' },
       { name: 'description', content: 'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.' },
     ];
   }
@@ -228,9 +228,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   const mainDomains = [
     'localhost',
     '127.0.0.1',
-    'multi-store-saas.pages.dev',
-    'digitalcare.site',
-    'www.digitalcare.site',
+    'ozzyl-saas.pages.dev',
+    'ozzyl.com',
+    'www.ozzyl.com',
   ];
   
   // Check if this is a main domain (should show marketing page)

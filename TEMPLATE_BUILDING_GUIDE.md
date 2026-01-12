@@ -1,6 +1,6 @@
 # Template Building Guide: The "Pure UI" Standard (World-Class Edition)
 
-This guide is the **absolute reference** for creating world-class, future-proof store templates on the Multi-Store SaaS platform.
+This guide is the **absolute reference** for creating world-class, future-proof store templates on the Ozzyl SaaS platform.
 
 > [!IMPORTANT] > **Core Principle: Pure UI & Logic Centralization**
 > Themes are **Strictly Presentational**. They must NEVER contain business logic (e.g., price calculations, cart management, wishlist storage). All logic must be consumed via **Standardized Hooks** and **Contexts**. This ensures that when we upgrade the backend logic (e.g., add a new discount engine), _every_ theme is automatically upgraded without editing the theme file.

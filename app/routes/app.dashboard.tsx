@@ -38,7 +38,7 @@ import { getStoreStats, getRevenueForecast, getPredictedCLV } from '~/services/a
 import { GrowthOpportunitiesCard } from '~/components/dashboard/GrowthOpportunitiesCard';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Dashboard - Multi-Store SaaS' }];
+  return [{ title: 'Dashboard - Ozzyl SaaS' }];
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -141,7 +141,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   else if (hour >= 17) greeting = 'Good evening';
 
   // Get SAAS_DOMAIN for store URL
-  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
 
   // Get usage stats for limit warning banner

@@ -18,12 +18,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
       <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
-              <Store className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl text-white hidden sm:block">
-              Multi-Store
-            </span>
+            <img src="/brand/logo-white.png" alt="Ozzyl" className="h-8 w-auto" />
           </Link>
           
           <div className="flex items-center gap-3">

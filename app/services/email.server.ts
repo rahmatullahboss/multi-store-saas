@@ -28,7 +28,7 @@ export async function sendPasswordResetEmail(
     const resetLink = `${env.SAAS_DOMAIN}/auth/reset-password?token=${token}`;
 
     const { data, error } = await resend.emails.send({
-      from: 'Multi-Store SaaS <system@digitalcare.site>', // Update with your verified domain
+      from: 'Ozzyl SaaS <system@ozzyl.com>', // Update with your verified domain
       to: [email],
       subject: 'Reset Your Password',
       html: `
@@ -92,7 +92,7 @@ export async function sendLowStockAlert(
     `).join('');
 
     const { data, error } = await resend.emails.send({
-      from: 'Multi-Store SaaS <system@digitalcare.site>',
+      from: 'Ozzyl SaaS <system@ozzyl.com>',
       to: [merchantEmail],
       subject: `[Alert] Low Stock Warning - ${storeName}`,
       html: `
@@ -184,7 +184,7 @@ interface SendStaffInviteParams {
  */
 export function createEmailService(apiKey: string) {
   const resend = new Resend(apiKey);
-  const fromEmail = 'Multi-Store SaaS <system@digitalcare.site>';
+  const fromEmail = 'Ozzyl SaaS <system@ozzyl.com>';
 
   return {
     async sendCampaignEmail({ email, subject, content, storeName, unsubscribeUrl, previewText }: SendCampaignEmailParams) {
@@ -295,7 +295,7 @@ export function createEmailService(apiKey: string) {
 
                 <!-- CTA -->
                 <div style="text-align: center; margin-top: 40px;">
-                  <a href="https://${storeName.toLowerCase().replace(/\s+/g, '')}.digitalcare.site" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; font-weight: 600; padding: 12px 32px; border-radius: 8px; text-decoration: none;">Visit Store</a>
+                  <a href="https://${storeName.toLowerCase().replace(/\s+/g, '')}.ozzyl.com" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; font-weight: 600; padding: 12px 32px; border-radius: 8px; text-decoration: none;">Visit Store</a>
                 </div>
               </div>
 
@@ -329,7 +329,7 @@ export function createEmailService(apiKey: string) {
             </div>
 
             <p>
-              <a href="https://digitalcare.site/admin/orders/${orderNumber}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              <a href="https://ozzyl.com/admin/orders/${orderNumber}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 View Order
               </a>
             </p>
@@ -411,7 +411,7 @@ export function createEmailService(apiKey: string) {
               <p style="color: #6b7280;">You now have full access to all ${planName} features. Start growing your business today!</p>
               
               <div style="text-align: center; margin-top: 30px;">
-                <a href="https://digitalcare.site/app" style="display: inline-block; padding: 12px 30px; background: #10B981; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Go to Dashboard</a>
+                <a href="https://ozzyl.com/app" style="display: inline-block; padding: 12px 30px; background: #10B981; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Go to Dashboard</a>
               </div>
             </div>
             

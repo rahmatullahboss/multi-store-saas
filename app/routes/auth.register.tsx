@@ -351,7 +351,7 @@ export default function RegisterPage() {
                   <span className="font-semibold text-emerald-600">
                     {displaySubdomain || 'yourstore'}
                   </span>
-                  <span className="text-gray-500">.digitalcare.site</span>
+                  <span className="text-gray-500">.ozzyl.com</span>
                 </span>
               </div>
               
@@ -383,7 +383,7 @@ export default function RegisterPage() {
                     maxLength={30}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
-                    .digitalcare.site
+                    .ozzyl.com
                   </span>
                 </div>
               )}

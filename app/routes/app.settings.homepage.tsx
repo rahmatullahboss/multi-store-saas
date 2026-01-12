@@ -202,7 +202,7 @@ export default function HomepageStrategyPage() {
 
   // Build offer URL for showing after mode switch
   const getOfferUrl = () => {
-    const domain = store.customDomain || `${store.subdomain}.digitalcare.site`;
+    const domain = store.customDomain || `${store.subdomain}.ozzyl.com`;
     return `https://${domain}/offers/${store.featuredProductId}`;
   };
 

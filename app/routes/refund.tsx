@@ -13,8 +13,8 @@ import { MarketingHeader } from '~/components/MarketingHeader';
 import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 
 export const meta: MetaFunction = () => [
-  { title: 'রিফান্ড নীতি - Multi-Store SaaS' },
-  { name: 'description', content: 'Multi-Store SaaS প্ল্যাটফর্মের রিফান্ড নীতি।' },
+  { title: 'রিফান্ড নীতি - Ozzyl SaaS' },
+  { name: 'description', content: 'Ozzyl SaaS প্ল্যাটফর্মের রিফান্ড নীতি।' },
 ];
 
 export default function RefundPolicyPage() {
@@ -71,7 +71,7 @@ export default function RefundPolicyPage() {
               <section>
                 <h2 className="text-xl font-bold text-white mb-3">সাবস্ক্রিপশন রিফান্ড</h2>
                 <p className="leading-relaxed">
-                  Multi-Store এ নিম্নলিখিত রিফান্ড নীতি প্রযোজ্য:
+                  Ozzyl এ নিম্নলিখিত রিফান্ড নীতি প্রযোজ্য:
                 </p>
                 <ul className="list-disc list-inside mt-3 space-y-2">
                   <li><strong className="text-white">৭ দিনের মানি-ব্যাক গ্যারান্টি:</strong> প্রথম পেমেন্টের ৭ দিনের মধ্যে সম্পূর্ণ রিফান্ড</li>

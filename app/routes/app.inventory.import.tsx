@@ -30,7 +30,7 @@ import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Import Products - Multi-Store SaaS' }];
+  return [{ title: 'Import Products - Ozzyl SaaS' }];
 };
 
 // ============================================================================
