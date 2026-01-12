@@ -9,7 +9,7 @@ import { useLanguage } from '~/contexts/LanguageContext';
 export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: boolean }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { lang, toggleLang } = useLanguage();
+  const { lang, toggleLang, t } = useLanguage();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -36,7 +36,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                       isActive('/pricing') ? 'text-[#00875F]' : 'text-white/60 hover:text-[#00875F]'
                     }`}
                   >
-                    প্রাইসিং
+                    {t('navBilling')}
                   </Link>
                 )}
                 {!isActive('/tutorials') && (
@@ -46,33 +46,42 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                       isActive('/tutorials') ? 'text-[#00875F]' : 'text-white/60 hover:text-[#00875F]'
                     }`}
                   >
-                    টিউটোরিয়াল
+                    {t('navTutorials')}
                   </Link>
                 )}
+                {/* Language Toggle */}
+                <button
+                  onClick={toggleLang}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/80 rounded-xl text-sm font-medium transition border border-white/10"
+                  title={lang === 'en' ? 'Switch to Bengali' : 'ইংরেজিতে পরিবর্তন করুন'}
+                >
+                  <Globe className="w-4 h-4" />
+                  {lang === 'en' ? 'EN' : 'BN'}
+                </button>
                 <Link 
                   to="/auth/login" 
                   className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
                 >
-                  লগইন
+                  {t('login')}
                 </Link>
                 <MagneticButton>
                   <Link 
                     to="/auth/register" 
                     className="hidden sm:inline-block px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
                   >
-                    ফ্রি শুরু করুন
+                    {t('register')}
                   </Link>
                 </MagneticButton>
               </>
             ) : (
               // Back to Home mode (for specific pages if needed, though usually standard nav is better)
               <>
-                 <Link 
+                   <Link 
                   to="/" 
                   className="hidden sm:flex items-center gap-2 text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  হোমে ফিরে যান
+                  {t('backToHome')}
                 </Link>
                  {/* Language Toggle */}
               <button
@@ -87,7 +96,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                     to="/auth/register" 
                     className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
                   >
-                    ফ্রি শুরু করুন
+                    {t('register')}
                   </Link>
                 </MagneticButton>
               </>
@@ -123,7 +132,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      প্রাইসিং
+                      {t('navBilling')}
                     </Link>
                     <Link 
                       to="/tutorials" 
@@ -132,7 +141,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      টিউটোরিয়াল
+                      {t('navTutorials')}
                     </Link>
                     <Link 
                       to="/about" 
@@ -141,7 +150,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      আমাদের সম্পর্কে
+                      {t('sidebarSettings')}
                     </Link>
                     <Link 
                       to="/contact" 
@@ -150,14 +159,14 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      যোগাযোগ
+                      {t('contactSupport')}
                     </Link>
                     <Link 
                       to="/auth/login" 
                       className="text-white/70 hover:text-white font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      লগইন
+                      {t('login')}
                     </Link>
                   </>
                 ) : (
@@ -166,7 +175,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                       className="text-white/70 hover:text-white font-medium text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      হোমে ফিরে যান
+                      {t('backToHome')}
                     </Link>
                 )}
                 
@@ -175,7 +184,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                   className="px-4 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-semibold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  ফ্রি শুরু করুন
+                  {t('register')}
                 </Link>
               </div>
             </motion.div>
