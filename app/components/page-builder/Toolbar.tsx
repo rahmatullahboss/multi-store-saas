@@ -16,7 +16,9 @@ import {
   Code,
   Check,
   Lock,
-  Layout
+  Layout,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -24,10 +26,12 @@ import CodeEditor from './CodeEditor';
 
 export default function EditorToolbar({ 
   isAiLocked = false,
-  onOpenLibrary
+  onOpenLibrary,
+  publishedPageUrl
 }: { 
   isAiLocked?: boolean,
-  onOpenLibrary?: () => void 
+  onOpenLibrary?: () => void,
+  publishedPageUrl?: string
 }) {
   const { t } = useTranslation();
   const editor = useEditorMaybe();
@@ -88,7 +92,31 @@ export default function EditorToolbar({
       // Reset flag
       (editor as any).isPublishing = false;
       
-      toast.success(t('pagePublished'), { id: 'publish' });
+      // Copy URL to clipboard if available
+      if (publishedPageUrl) {
+        try {
+          await navigator.clipboard.writeText(publishedPageUrl);
+          toast.success(
+            <div className="flex flex-col gap-1">
+              <span className="font-bold">{t('pagePublished')}</span>
+              <span className="text-xs opacity-75">URL copied: {publishedPageUrl}</span>
+              <a 
+                href={publishedPageUrl} 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-xs text-blue-400 hover:underline flex items-center gap-1 mt-1"
+              >
+                Open Page <ExternalLink size={10} />
+              </a>
+            </div>,
+            { id: 'publish', duration: 6000 }
+          );
+        } catch {
+          toast.success(t('pagePublished'), { id: 'publish' });
+        }
+      } else {
+        toast.success(t('pagePublished'), { id: 'publish' });
+      }
     } catch (error) {
       console.error('Publish error:', error);
       (editor as any).isPublishing = false;

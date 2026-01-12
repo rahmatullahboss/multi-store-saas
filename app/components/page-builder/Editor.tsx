@@ -34,9 +34,11 @@ interface GrapesEditorProps {
   pageId?: string;
   planType?: string;
   onStorageStatusChange?: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
+  publishedBaseUrl?: string;
+  pageSlug?: string;
 }
 
-export default function GrapesEditor({ pageId, planType = 'free', onStorageStatusChange }: GrapesEditorProps) {
+export default function GrapesEditor({ pageId, planType = 'free', onStorageStatusChange, publishedBaseUrl, pageSlug }: GrapesEditorProps) {
   const [editor, setEditor] = useState<any>(null);
   const isAiLocked = planType === 'free';
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
@@ -702,7 +704,11 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         onEditor={onEditor}
       >
         <div className="flex flex-col h-full overflow-hidden">
-          <EditorToolbar isAiLocked={isAiLocked} onOpenLibrary={() => setIsBlockLibraryOpen(true)} />
+          <EditorToolbar 
+            isAiLocked={isAiLocked} 
+            onOpenLibrary={() => setIsBlockLibraryOpen(true)}
+            publishedPageUrl={publishedBaseUrl && pageSlug ? `${publishedBaseUrl}/p/${pageSlug}` : undefined}
+          />
           <div className="flex flex-1 overflow-hidden min-h-0">
             {/* Unified Left Sidebar: Blocks + Customization */}
             <div className="h-full overflow-hidden flex-shrink-0">
@@ -808,5 +814,4 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
     </div>
   );
 }
-
 

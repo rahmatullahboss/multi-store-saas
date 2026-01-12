@@ -19,6 +19,8 @@ const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as R
   pageId?: string; 
   planType?: string;
   onStorageStatusChange?: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
+  publishedBaseUrl?: string;
+  pageSlug?: string;
 }>;
 
 export const meta: MetaFunction = () => {
@@ -48,13 +50,27 @@ export async function loader({ request, context }: any) {
       .where(eq(landingPages.storeId, storeId))
       .orderBy(desc(landingPages.updatedAt)),
     db
-      .select({ planType: stores.planType })
+      .select({ 
+        planType: stores.planType, 
+        subdomain: stores.subdomain,
+        customDomain: stores.customDomain
+      })
       .from(stores)
       .where(eq(stores.id, storeId))
       .get()
   ]);
 
-  return json({ pages, planType: store?.planType || 'free' });
+  // Generate base URL for published pages
+  const saasDomain = context.cloudflare.env.SAAS_DOMAIN || 'digitalcare.site';
+  const publishedBaseUrl = store?.customDomain 
+    ? `https://${store.customDomain}` 
+    : `https://${store?.subdomain}.${saasDomain}`;
+
+  return json({ 
+    pages, 
+    planType: store?.planType || 'free',
+    publishedBaseUrl
+  });
 }
 
 // ============================================================================
@@ -84,7 +100,7 @@ export async function action({ request, context }: any) {
 
 export default function PageBuilderRoute() {
   const { t, lang } = useTranslation();
-  const { pages, planType } = useLoaderData<typeof loader>();
+  const { pages, planType, publishedBaseUrl } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const pageId = searchParams.get('id');
   const [isCreating, setIsCreating] = useState(false);
@@ -158,7 +174,13 @@ export default function PageBuilderRoute() {
                  </div>
               </div>
             }>
-              <GrapesEditor pageId={pageId} planType={planType} onStorageStatusChange={setStorageStatus} />
+              <GrapesEditor 
+                pageId={pageId} 
+                planType={planType} 
+                onStorageStatusChange={setStorageStatus}
+                publishedBaseUrl={publishedBaseUrl}
+                pageSlug={pages.find((p: any) => p.id.toString() === pageId)?.slug}
+              />
             </Suspense>
           ) : (
             <div className="flex items-center justify-center h-full bg-gray-50/50">
