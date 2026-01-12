@@ -12,7 +12,7 @@ import { upsellOffers, products, stores } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { useState } from 'react';
-import { Plus, Edit2, Trash2, ArrowRight, ArrowUpRight, ArrowDownRight, BarChart3, Eye, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, ArrowUpRight, ArrowDownRight, Eye, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -164,16 +164,24 @@ export default function UpsellSettingsPage() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('upsellSettings')}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {t('upsellSubtitle')}
-          </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link 
+            to="/app/settings" 
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {t('upsellSettings')}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {t('upsellSubtitle')}
+            </p>
+          </div>
         </div>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
@@ -186,29 +194,29 @@ export default function UpsellSettingsPage() {
 
       {/* Action Feedback */}
       {actionData?.success && 'message' in actionData && (
-        <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg flex items-center gap-2">
-          <CheckCircle className="text-green-600 dark:text-green-400" size={20} />
-          <span className="text-green-800 dark:text-green-300">{actionData.message as string}</span>
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+          <CheckCircle className="text-green-600" size={20} />
+          <span className="text-green-800">{String(actionData.message)}</span>
         </div>
       )}
 
       {/* Create Form */}
       {showCreateForm && (
-        <div className="mb-8 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{t('newUpsellOffer')}</h2>
+        <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">{t('newUpsellOffer')}</h2>
           <Form method="post" className="space-y-4">
             <input type="hidden" name="intent" value="create" />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Trigger Product */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('triggerProduct')}
                 </label>
                 <select 
                   name="productId"
                   required
-                  className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                  className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
                 >
                   <option value="">{t('selectProduct')}</option>
                   {products.map(p => (
@@ -219,13 +227,13 @@ export default function UpsellSettingsPage() {
 
               {/* Offer Product */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('offerProduct')}
                 </label>
                 <select 
                   name="offerProductId"
                   required
-                  className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                  className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
                 >
                   <option value="">{t('selectProduct')}</option>
                   {products.map(p => (
@@ -238,12 +246,12 @@ export default function UpsellSettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('offerType')}
                 </label>
                 <select 
                   name="type"
-                  className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                  className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
                 >
                   <option value="upsell">{t('upsell')}</option>
                   <option value="downsell">{t('downsell')}</option>
@@ -252,7 +260,7 @@ export default function UpsellSettingsPage() {
 
               {/* Discount */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('discountPercentage')}
                 </label>
                 <input
@@ -261,18 +269,18 @@ export default function UpsellSettingsPage() {
                   min="0"
                   max="90"
                   defaultValue="0"
-                  className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                  className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
                 />
               </div>
 
               {/* Next Offer (for sequence) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('nextOffer')}
                 </label>
                 <select 
                   name="nextOfferId"
-                  className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                  className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
                 >
                   <option value="">{t('upsellNone')}</option>
                   {offers.filter(o => o.type === 'downsell').map(o => (
@@ -284,7 +292,7 @@ export default function UpsellSettingsPage() {
 
             {/* Headline */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('headline')} *
               </label>
               <input
@@ -292,33 +300,33 @@ export default function UpsellSettingsPage() {
                 name="headline"
                 required
                 placeholder={String(t('headlinePlaceholder'))}
-                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
               />
             </div>
 
             {/* Subheadline */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('upsellSubheadline')}
               </label>
               <input
                 type="text"
                 name="subheadline"
                 placeholder={String(t('subheadlinePlaceholder'))}
-                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('upsellDescription')}
               </label>
               <textarea
                 name="description"
                 rows={2}
                 placeholder={String(t('upsellDescriptionPlaceholder'))}
-                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
               />
             </div>
 
@@ -333,7 +341,7 @@ export default function UpsellSettingsPage() {
               <button
                 type="button"
                 onClick={() => setShowCreateForm(false)}
-                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg"
+                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg"
               >
                 {t('cancel')}
               </button>
@@ -344,26 +352,26 @@ export default function UpsellSettingsPage() {
 
       {/* Stats Overview */}
       {offers.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalOffers')}</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{offers.length}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <p className="text-sm text-gray-500">{t('totalOffers')}</p>
+            <p className="text-2xl font-bold text-gray-900">{offers.length}</p>
           </div>
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalViews')}</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <p className="text-sm text-gray-500">{t('totalViews')}</p>
+            <p className="text-2xl font-bold text-gray-900">
               {offers.reduce((sum, o) => sum + (o.views ?? 0), 0)}
             </p>
           </div>
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalConversions')}</p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <p className="text-sm text-gray-500">{t('totalConversions')}</p>
+            <p className="text-2xl font-bold text-green-600">
               {offers.reduce((sum, o) => sum + (o.conversions ?? 0), 0)}
             </p>
           </div>
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalRevenue')}</p>
-            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <p className="text-sm text-gray-500">{t('totalRevenue')}</p>
+            <p className="text-2xl font-bold text-indigo-600">
               {formatPrice(offers.reduce((sum, o) => sum + (o.revenue ?? 0), 0))}
             </p>
           </div>
@@ -372,12 +380,12 @@ export default function UpsellSettingsPage() {
 
       {/* Offers List */}
       {offers.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
           <div className="text-6xl mb-4">🎯</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
             {t('noUpsellOffers')}
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-gray-600 mb-4">
             {t('createFirstUpsell')}
           </p>
           <button
@@ -392,40 +400,40 @@ export default function UpsellSettingsPage() {
           {offers.map(offer => (
             <div 
               key={offer.id}
-              className={`p-5 bg-white dark:bg-gray-800 rounded-xl border transition ${
+              className={`p-5 bg-white rounded-xl border transition ${
                 offer.isActive 
-                  ? 'border-green-200 dark:border-green-800' 
-                  : 'border-gray-200 dark:border-gray-700 opacity-60'
+                  ? 'border-green-200' 
+                  : 'border-gray-200 opacity-60'
               }`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     {offer.type === 'upsell' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium rounded">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded">
                         <ArrowUpRight size={12} /> Upsell
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium rounded">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-medium rounded">
                         <ArrowDownRight size={12} /> Downsell
                       </span>
                     )}
                     {!offer.isActive && (
-                      <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded">
+                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
                         {t('inactive')}
                       </span>
                     )}
                   </div>
                   
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
                     {offer.headline}
                   </h3>
                   
                   {offer.subheadline && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{offer.subheadline}</p>
+                    <p className="text-gray-600 text-sm mb-2">{offer.subheadline}</p>
                   )}
                   
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span>
                       <strong>{t('trigger')}:</strong> {offer.triggerProduct?.title || 'Unknown'}
                     </span>
@@ -442,20 +450,20 @@ export default function UpsellSettingsPage() {
                 {/* Stats */}
                 <div className="flex items-center gap-6 text-sm">
                   <div className="text-center">
-                    <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1 text-gray-500">
                       <Eye size={14} />
                       <span>{offer.views ?? 0}</span>
                     </div>
                     <span className="text-xs text-gray-400">{t('views')}</span>
                   </div>
                   <div className="text-center">
-                    <div className="text-green-600 dark:text-green-400 font-medium">
+                    <div className="text-green-600 font-medium">
                       {offer.conversions ?? 0}
                     </div>
                     <span className="text-xs text-gray-400">{t('conversions')}</span>
                   </div>
                   <div className="text-center">
-                    <div className="text-indigo-600 dark:text-indigo-400 font-medium">
+                    <div className="text-indigo-600 font-medium">
                       {offer.conversionRate}%
                     </div>
                     <span className="text-xs text-gray-400">{t('bumpConversionRate')}</span>
@@ -472,8 +480,8 @@ export default function UpsellSettingsPage() {
                       type="submit"
                       className={`px-3 py-1.5 rounded text-sm ${
                         offer.isActive 
-                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200' 
-                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200'
+                          ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
                       }`}
                     >
                       {offer.isActive ? t('inactive') : t('active')}
@@ -487,7 +495,7 @@ export default function UpsellSettingsPage() {
                     <input type="hidden" name="id" value={offer.id} />
                     <button
                       type="submit"
-                      className="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -500,9 +508,9 @@ export default function UpsellSettingsPage() {
       )}
 
       {/* Help Text */}
-      <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-        <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">💡 {t('howItWorks')}</h4>
-        <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+        <h4 className="font-semibold text-blue-800 mb-2">💡 {t('howItWorks')}</h4>
+        <ul className="text-sm text-blue-700 space-y-1">
           <li>• {t('howItWorks1')}</li>
           <li>• {t('howItWorks2')}</li>
           <li>• {t('howItWorks3')}</li>

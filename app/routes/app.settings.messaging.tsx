@@ -1,10 +1,10 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs, redirect } from "@remix-run/cloudflare";
-import { useLoaderData, useFormAction, Form, useNavigation } from "@remix-run/react";
+import { Link, useLoaderData, useFormAction, Form, useNavigation } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../../db/schema";
 import { getStoreId } from "~/services/auth.server";
-import { CheckCircle, MessageSquare, Facebook, Smartphone } from "lucide-react";
+import { CheckCircle, MessageSquare, Facebook, Smartphone, ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -79,12 +79,20 @@ export default function MessagingSettings() {
   const enabledChannels = agent?.enabledChannels ? JSON.parse(agent.enabledChannels) : ['web'];
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Messaging Settings</h1>
-        <p className="text-gray-500 mt-2">
-          Connect your store with WhatsApp and Facebook Messenger to automate customer support.
-        </p>
+    <div className="space-y-8">
+      <div className="flex items-center gap-3">
+        <Link 
+          to="/app/settings" 
+          className="p-2 hover:bg-gray-100 rounded-lg transition"
+        >
+          <ArrowLeft className="w-5 h-5 text-slate-600" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Messaging Settings</h1>
+          <p className="text-gray-500 mt-1">
+            Connect your store with WhatsApp and Facebook Messenger to automate customer support.
+          </p>
+        </div>
       </div>
 
       <Form method="post" className="space-y-6">

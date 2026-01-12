@@ -602,7 +602,9 @@ export default function AppLayout() {
 
         {/* Page Content */}
         <main className="p-4 lg:p-8">
-          <Outlet />
+          <div className="max-w-7xl mx-auto w-full">
+            <Outlet />
+          </div>
         </main>
       </div>
 

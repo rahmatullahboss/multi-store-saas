@@ -97,7 +97,7 @@ export default function AICreditsPage() {
   }, [fetcher.data]);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
         <div>
