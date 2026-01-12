@@ -43,7 +43,7 @@
 
 - [x] **Data Architecture**: Create `payments` and `invoices` tables for historical tracking.
 - [x] **Dashboard**: MRR, ARR, and Revenue Trends visualization.
-- [ ] **Invoicing**: PDF Invoice generation for merchants.
+- [x] **Invoicing**: PDF Invoice generation for merchants.
 - [ ] **Automated Billing**: Stripe/Paddle integration (optional upgrade from manual).
 
 ### Phase 6: Developer Ecosystem
