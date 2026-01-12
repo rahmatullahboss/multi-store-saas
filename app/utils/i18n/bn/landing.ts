@@ -81,6 +81,7 @@ export const landing = {
   landingFinalCTA_tryAiHint: '👆 এখনই AI এর সাথে কথা বলে দেখুন!',
 
   landingSocialProof_firstInBD: 'বাংলাদেশে প্রথমবার',
+  landingSocialProof_title: 'ই-কমার্স প্ল্যাটফর্মে এই লেভেলের AI',
   landingSocialProof_aiLevelTitle: 'ই-কমার্স প্ল্যাটফর্মে এই লেভেলের AI',
   landingSocialProof_platformCol: 'প্ল্যাটফর্ম',
   landingSocialProof_visitorAiCol: 'ভিজিটর AI',
