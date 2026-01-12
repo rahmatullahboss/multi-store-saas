@@ -180,8 +180,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       return json({ success: true });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Storage API error:', error);
-    return json({ error: 'Failed to save', details: error?.message || String(error) }, { status: 500 });
+    return json({ error: 'Failed to save' }, { status: 500 });
   }
 }
