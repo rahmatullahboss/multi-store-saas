@@ -123,10 +123,11 @@
   "retry": "আবার চেষ্টা করুন",
   "startOver": "শুরু থেকে শুরু করুন",
   
-  "stepAccount": "একাউন্ট",
+  "stepAccount": "অ্যাকাউন্ট",
   "stepBusiness": "বিজনেস",
   "stepPlan": "প্ল্যান",
   "stepDone": "সম্পন্ন",
+  "subdomainTaken": "\"{{subdomain}}\" সাবডোমেইন আগেই নেওয়া হয়েছে। অন্য একটি বেছে নিন।",
   
   "validEmailRequired": "সঠিক ইমেইল দিন",
   "passwordMinChars": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
@@ -303,6 +304,7 @@
   "price": "দাম",
   "status": "স্ট্যাটাস",
   "actions": "অ্যাকশন",
+  "activeStores": "সক্রিয় স্টোর",
   "active": "সক্রিয়",
   "inactive": "নিষ্ক্রিয়",
   "published": "প্রকাশিত",
