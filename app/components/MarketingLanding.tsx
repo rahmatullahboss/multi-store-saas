@@ -345,41 +345,41 @@ export function MarketingLanding() {
                   </div>
                   <span className="font-bold text-xl text-white">Multi-Store</span>
                 </div>
-                <p className="text-sm text-white/50">বাংলাদেশি মার্চেন্টদের জন্য সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। তৈরি করুন, বিক্রি করুন, বড় হন।</p>
+                <p className="text-sm text-white/50">{content.footerAbout}</p>
               </div>
               
               {/* Product Links */}
               <div className="text-center sm:text-left">
-              <h4 className="text-[#006A4E] font-semibold mb-4">প্রোডাক্ট</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
               <ul className="space-y-2">
-                  <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
-                  <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
-                  <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">টিউটোরিয়াল</Link></li>
+                  <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.productLinks[0]}</Link></li>
+                  <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.productLinks[1]}</Link></li>
+                  <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.productLinks[2]}</Link></li>
                 </ul>
               </div>
               
               {/* Company Links */}
               <div className="text-center sm:text-left">
-                <h4 className="text-[#006A4E] font-semibold mb-4">কোম্পানি</h4>
+                <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
                 <ul className="space-y-2">
-                  <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
-                  <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
+                  <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.companyLinks[0]}</Link></li>
+                  <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.companyLinks[1]}</Link></li>
                 </ul>
               </div>
               
               {/* Legal Links */}
               <div className="text-center sm:text-left">
-                <h4 className="text-[#006A4E] font-semibold mb-4">আইনি</h4>
+                <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
                 <ul className="space-y-2">
-                  <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>
-                  <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">শর্তাবলী</Link></li>
-                  <li><Link to="/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">রিফান্ড নীতি</Link></li>
+                  <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.legalLinks[0]}</Link></li>
+                  <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.legalLinks[1]}</Link></li>
+                  <li><Link to="/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.legalLinks[2]}</Link></li>
                 </ul>
               </div>
             </div>
             
             <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-sm text-white/40">© ২০২৬ মাল্টি-স্টোর। বাংলাদেশে ❤️ দিয়ে তৈরি।</p>
+              <p className="text-sm text-white/40">{content.copyright}</p>
               <div className="flex items-center gap-3">
                 {[
                   { icon: '💬', label: 'WhatsApp' },
@@ -407,7 +407,7 @@ export function MarketingLanding() {
             className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm shadow-xl shadow-[#006A4E]/40 active:scale-[0.95] transition-transform"
           >
             <Rocket className="w-4 h-4" />
-            ফ্রি শুরু
+            {content.getStarted}
           </Link>
         </div>
 
@@ -459,7 +459,7 @@ export function MarketingLanding() {
               {/* Language Toggle */}
               <button
                 onClick={toggleLang}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 text-[#00875F] rounded-xl text-sm font-medium transition border border-[#006A4E]/20"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 text-[#00875F] rounded-xl"
                 title={lang === 'en' ? 'Switch to Bengali' : 'ইংরেজিতে পরিবর্তন করুন'}
               >
                 <Globe className="w-4 h-4" />
@@ -592,36 +592,37 @@ export function MarketingLanding() {
             
             {/* Product Links */}
             <div className="text-center sm:text-left">
-              <h4 className="text-[#006A4E] font-semibold mb-4">প্রোডাক্ট</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerProduct}</h4>
               <ul className="space-y-2">
-                <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">ফিচার</Link></li>
-                <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">প্রাইসিং</Link></li>
-                <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">টিউটোরিয়াল</Link></li>
+                <li><Link to="/#features" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.productLinks[0]}</Link></li>
+                <li><Link to="/pricing" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.productLinks[1]}</Link></li>
+                <li><Link to="/tutorials" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.productLinks[2]}</Link></li>
+                <li><Link to="/templates" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.productLinks[3]}</Link></li>
               </ul>
             </div>
             
             {/* Company Links */}
             <div className="text-center sm:text-left">
-              <h4 className="text-[#006A4E] font-semibold mb-4">কোম্পানি</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerCompany}</h4>
               <ul className="space-y-2">
-                <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">সম্পর্কে</Link></li>
-                <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">যোগাযোগ</Link></li>
+                <li><Link to="/about" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.companyLinks[0]}</Link></li>
+                <li><Link to="/contact" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.companyLinks[1]}</Link></li>
               </ul>
             </div>
             
             {/* Legal Links */}
             <div className="text-center sm:text-left">
-              <h4 className="text-[#006A4E] font-semibold mb-4">আইনি</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">{content.footerLegal}</h4>
               <ul className="space-y-2">
-                <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">গোপনীয়তা</Link></li>
-                <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">শর্তাবলী</Link></li>
-                <li><Link to="/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">রিফান্ড নীতি</Link></li>
+                <li><Link to="/privacy" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.legalLinks[0]}</Link></li>
+                <li><Link to="/terms" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.legalLinks[1]}</Link></li>
+                <li><Link to="/refund" className="text-white/50 hover:text-[#00875F] transition text-sm">{content.legalLinks[2]}</Link></li>
               </ul>
             </div>
           </div>
           
           <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-white/40">© ২০২৬ মাল্টি-স্টোর। বাংলাদেশে ❤️ দিয়ে তৈরি।</p>
+            <p className="text-sm text-[#006A4E]/60">{content.copyright}</p>
             <div className="flex items-center gap-3">
               {[
                 { icon: '💬', label: 'WhatsApp' },

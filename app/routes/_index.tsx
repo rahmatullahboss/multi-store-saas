@@ -26,6 +26,8 @@ import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConf
 import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { StoreLayout } from '~/components/templates/StoreLayout';
+import { MarketingHeader } from '~/components/MarketingHeader';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { MarketingLanding } from '~/components/MarketingLanding';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
@@ -602,6 +604,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 // COMPONENT - Conditional rendering based on mode
 // ============================================================================
 export default function Index() {
+  // Translation hook for reactive i18n
+  const { t, lang } = useTranslation();
   const data = useLoaderData<LoaderData>();
   const [searchParams] = useSearchParams();
   
@@ -736,14 +740,14 @@ export default function Index() {
           <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-2 py-1.5 text-center shadow-md">
             <div className="flex items-center justify-center gap-2">
               <span className="text-xs">👁️</span>
-              <span className="font-medium text-xs">টেমপ্লেট প্রিভিউ মোড</span>
+              <span className="font-medium text-xs">{t('templatePreviewMode')}</span>
               <span className="text-white/60 text-xs hidden sm:inline">|</span>
-              <span className="hidden sm:inline text-xs text-white/80">এটি ডেমো কন্টেন্ট সহ প্রিভিউ। আপনার আসল ডাটা দিয়ে আলাদা দেখাবে।</span>
+              <span className="hidden sm:inline text-xs text-white/80">{t('templatePreviewDesc')}</span>
               <button
                 onClick={() => window.close()}
                 className="px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded text-xs font-medium transition"
               >
-                বন্ধ করুন ✕
+                {t('close')} ✕
               </button>
             </div>
           </div>
@@ -765,8 +769,8 @@ export default function Index() {
       return (
         <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Coming Soon</h1>
-            <p className="text-gray-400">This store is being set up.</p>
+            <h1 className="text-3xl font-bold mb-4">{t('comingSoon')}</h1>
+            <p className="text-gray-400">{t('storeUnderConstruction')}</p>
           </div>
         </div>
       );
