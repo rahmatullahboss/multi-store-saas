@@ -60,7 +60,7 @@
     "recharts": "^3.6.0",
     "remix-auth": "^3.7.0",
     "remix-auth-google": "^2.0.0",
-    "remix-i18next": "^7.4.2",
+    "remix-i18next": "^6.4.1",
     "resend": "^6.6.0",
     "sonner": "^2.0.7",
     "swiper": "^12.0.3",
