@@ -261,4 +261,22 @@ export const landing = {
   landingVisitorAi_alwaysActive: 'Always active',
   landingVisitorAi_initialAiMsg: 'Hello! I am OZZYL AI. How can I help with your online business?',
   landingVisitorAi_typeMessage: 'Type a message...',
+
+  // Context Menu (Page Builder)
+  copiedToClipboard: 'Copied to clipboard',
+  pasted: 'Pasted',
+  duplicated: 'Duplicated',
+  action: 'Action',
+  copy: 'Copy',
+  paste: 'Paste',
+  duplicate: 'Duplicate',
+  moveUp: 'Move Up',
+  moveDown: 'Move Down',
+  navigator: 'Navigator',
+  delete: 'Delete',
+
+  // Toolbar (Page Builder)
+  magicEditLabel: 'MAGIC EDIT',
+  magicAiLabel: 'MAGIC AI',
+  proBadge: 'PRO',
 };

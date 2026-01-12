@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { Editor } from 'grapesjs';
 import { toast } from 'sonner';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface ContextMenuProps {
   editor: Editor | null;
@@ -20,6 +21,7 @@ interface ContextMenuProps {
 }
 
 export default function ContextMenu({ editor, position, onClose }: ContextMenuProps) {
+  const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const [selectedComponent, setSelectedComponent] = useState<any>(null);
 
@@ -62,15 +64,15 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
     switch (action) {
       case 'copy':
         editor.runCommand('tlb-copy');
-        toast.success('Copied to clipboard');
+        toast.success(t('copiedToClipboard') || 'Copied to clipboard');
         break;
       case 'paste':
         editor.runCommand('tlb-paste');
-        toast.success('Pasted');
+        toast.success(t('pasted') || 'Pasted');
         break;
       case 'duplicate':
         editor.runCommand('tlb-clone');
-        toast.success('Duplicated');
+        toast.success(t('duplicated') || 'Duplicated');
         break;
       case 'delete':
         editor.runCommand('tlb-delete');
@@ -114,25 +116,25 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
     >
       <div className="p-1.5 space-y-0.5">
         <h4 className="px-2 py-1.5 text-[10px] uppercase tracking-widest font-black text-gray-400 border-b border-gray-50 mb-1">
-            {selectedComponent ? selectedComponent.getName() || selectedComponent.getTagName() : 'Action'}
+            {selectedComponent ? selectedComponent.getName() || selectedComponent.getTagName() : t('action') || 'Action'}
         </h4>
 
         <MenuItem 
             icon={<Copy size={14} />} 
-            label="Copy" 
+            label={t('copy') || 'Copy'} 
             shortcut="⌘C" 
             onClick={() => handleAction('copy')} 
         />
         <MenuItem 
             icon={<Clipboard size={14} />} 
-            label="Paste" 
+            label={t('paste') || 'Paste'} 
             shortcut="⌘V" 
             onClick={() => handleAction('paste')} 
             disabled={!isPasteAvailable}
         />
          <MenuItem 
             icon={<CopyPlus size={14} />} 
-            label="Duplicate" 
+            label={t('duplicate') || 'Duplicate'} 
             shortcut="⌘D" 
             onClick={() => handleAction('duplicate')} 
         />
@@ -141,12 +143,12 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
 
         <MenuItem 
             icon={<ArrowUp size={14} />} 
-            label="Move Up" 
+            label={t('moveUp') || 'Move Up'} 
             onClick={() => handleAction('move-up')} 
         />
         <MenuItem 
             icon={<ArrowDown size={14} />} 
-            label="Move Down" 
+            label={t('moveDown') || 'Move Down'} 
             onClick={() => handleAction('move-down')} 
         />
         
@@ -154,7 +156,7 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
         
         <MenuItem 
             icon={<Layers size={14} />} 
-            label="Navigator" 
+            label={t('navigator') || 'Navigator'} 
             onClick={() => handleAction('navigator')} 
         />
         
@@ -162,7 +164,7 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
 
         <MenuItem 
             icon={<Trash2 size={14} />} 
-            label="Delete" 
+            label={t('delete') || 'Delete'} 
             shortcut="Del" 
             variant="destructive"
             onClick={() => handleAction('delete')} 

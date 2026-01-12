@@ -330,8 +330,8 @@ export default function EditorToolbar({
             {isAiLocked ? (
               <div className="flex items-center gap-1.5">
                 <Lock size={12} className="text-white/80" />
-                <span>MAGIC EDIT</span>
-                <span className="bg-white/20 text-[8px] px-1 rounded-sm backdrop-blur-sm">PRO</span>
+                <span>{t('magicEditLabel') || 'MAGIC EDIT'}</span>
+                <span className="bg-white/20 text-[8px] px-1 rounded-sm backdrop-blur-sm">{t('proBadge') || 'PRO'}</span>
               </div>
             ) : (
               <>
@@ -353,8 +353,8 @@ export default function EditorToolbar({
             {isAiLocked ? (
               <div className="flex items-center gap-1.5">
                 <Lock size={12} className="text-slate-400" />
-                <span>MAGIC AI</span>
-                <span className="bg-slate-200 text-slate-600 text-[8px] px-1 rounded-sm">PRO</span>
+                <span>{t('magicAiLabel') || 'MAGIC AI'}</span>
+                <span className="bg-slate-200 text-slate-600 text-[8px] px-1 rounded-sm">{t('proBadge') || 'PRO'}</span>
               </div>
             ) : (
               <>

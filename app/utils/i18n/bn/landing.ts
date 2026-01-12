@@ -261,4 +261,22 @@ export const landing = {
   landingVisitorAi_alwaysActive: 'সবসময় অ্যাক্টিভ',
   landingVisitorAi_initialAiMsg: 'হ্যালো! আমি OZZYL AI। আপনার অনলাইন ব্যবসা নিয়ে কিভাবে সাহায্য করতে পারি?',
   landingVisitorAi_typeMessage: 'মেসেজ লিখুন...',
+
+  // Context Menu (Page Builder)
+  copiedToClipboard: 'ক্লিপবোর্ডে কপি হয়েছে',
+  pasted: 'পেস্ট হয়েছে',
+  duplicated: 'ডুপ্লিকেট হয়েছে',
+  action: 'অ্যাকশন',
+  copy: 'কপি',
+  paste: 'পেস্ট',
+  duplicate: 'ডুপ্লিকেট',
+  moveUp: 'উপরে নিন',
+  moveDown: 'নিচে নিন',
+  navigator: 'ন্যাভিগেটর',
+  delete: 'ডিলিট',
+
+  // Toolbar (Page Builder)
+  magicEditLabel: 'ম্যাজিক এডিট',
+  magicAiLabel: 'ম্যাজিক AI',
+  proBadge: 'প্রো',
 };
