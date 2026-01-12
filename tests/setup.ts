@@ -16,7 +16,7 @@ vi.spyOn(console, 'log').mockImplementation(() => {});
 vi.spyOn(console, 'error').mockImplementation(() => {});
 vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-vi.spyOn(console, 'warn').mockImplementation(() => {});
+// vi.spyOn(console, 'warn').mockImplementation(() => {});
 
 // Mock global fetch to avoid network requests during tests
 const mockFetch = vi.fn().mockResolvedValue({
@@ -40,6 +40,7 @@ export const createMockContext = () => ({
           run: vi.fn().mockResolvedValue({ success: true }),
           first: vi.fn().mockResolvedValue(null),
           all: vi.fn().mockResolvedValue({ results: [] }),
+          raw: vi.fn().mockResolvedValue([]),
         }),
       },
       RESEND_API_KEY: 'test_resend_key',

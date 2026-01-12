@@ -293,7 +293,10 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   
   // Determine store mode with safe fallback
   const dbMode = (validatedStore as Store & { mode?: 'landing' | 'store' }).mode || 'store';
-  const planType = (validatedStore.planType as PlanType) || 'free';
+  const rawPlanType = validatedStore.planType;
+  // Safeguard: Ensure planType is a valid PlanType, fallback to 'free'
+  const validPlanTypes = ['free', 'starter', 'premium', 'business'] as const;
+  const planType: PlanType = (validPlanTypes.includes(rawPlanType as PlanType) ? rawPlanType : 'free') as PlanType;
   
   // ========================================================================
   // HYBRID MODE ENFORCEMENT - Free users CANNOT access store mode
@@ -302,6 +305,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   // When they upgrade, the system simply stops forcing landing mode,
   // instantly unlocking their chosen layout without data migration.
   const storeMode = canUseStoreMode(planType) ? dbMode : 'landing';
+
   
   // ========== LANDING MODE ==========
   if (storeMode === 'landing') {

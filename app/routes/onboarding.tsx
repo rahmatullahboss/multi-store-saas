@@ -388,6 +388,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         title: template.product.title,
         description: template.product.description,
         price: template.product.price,
+        inventory: 100, // Ensure sample product is in stock
         isPublished: true,
       });
 

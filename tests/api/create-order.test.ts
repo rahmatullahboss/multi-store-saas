@@ -257,9 +257,7 @@ describe('Order Number Generation', () => {
   
   it('should generate unique order numbers', () => {
     const generateOrderNumber = (): string => {
-      const timestamp = Date.now().toString(36).toUpperCase();
-      const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-      return `ORD-${timestamp}-${random}`;
+      return `ORD-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
     };
 
     const orderNumbers = new Set<string>();

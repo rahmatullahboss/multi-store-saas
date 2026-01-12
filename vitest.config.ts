@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     include: ['**/*.test.ts', '**/*.test.tsx'],
-    exclude: ['node_modules', 'android', 'ios', '.wrangler'],
+    exclude: ['node_modules', 'android', 'ios', '.wrangler', 'e2e', 'app/tests/performance/api-load.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

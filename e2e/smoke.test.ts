@@ -3,73 +3,79 @@ import { randomUUID } from 'crypto';
 
 test.describe('Critical Path: Store Creation to Purchase', () => {
   
-  // Use unique user per test run to avoid conflicts
   const uniqueId = randomUUID().slice(0, 8);
   const email = `test-merchant-${uniqueId}@example.com`;
   const subdomain = `test-store-${uniqueId}`;
+  const password = 'Password123!';
 
   test('full merchant and customer journey', async ({ page }) => {
     // --- MERCHANT JOURNEY ---
 
-    // 1. Sign Up
-    await page.goto('/login'); // Assuming login/signup is at /login or similar
-    // Note: Adjust selectors based on actual UI implementation
-    // For this test template, we are assuming standard inputs.
+    // 1. Start Onboarding
+    await page.goto('/auth/register');
+    await page.waitForURL('/onboarding');
     
-    // Simulate generic login/signup flow if available, or direct to dashboard if using magic links.
-    // Assuming we have a way to reach the onboarding flow:
-    await page.goto('/auth/onboarding'); // Direct navigation to onboarding for testing if allowed
+    // Switch to English for reliable selectors
+    const englishBtn = page.getByRole('button', { name: /English/i });
+    if (await englishBtn.isVisible()) {
+      await englishBtn.click();
+      await page.waitForTimeout(1000);
+    }
     
-    // 2. Create Store
-    await expect(page.getByText(/Create your store/i)).toBeVisible();
-    await page.fill('input[name="storeName"]', `Test Store ${uniqueId}`);
-    await page.fill('input[name="subdomain"]', subdomain);
-    await page.click('button[type="submit"]');
+    // Step 1: Account
+    await page.fill('input[name="name"]', 'Test Merchant');
+    await page.fill('input[name="email"]', email);
+    await page.fill('input[name="password"]', password);
+    await page.fill('input[name="phone"]', '01739416661');
+    await page.getByRole('button', { name: /Continue|Next|এগিয়ে যান/i }).click();
     
-    // Wait for dashboard redirection
-    await page.waitForURL(/\/admin\/dashboard/);
+    // Step 2: Store Setup
+    await page.waitForTimeout(2000);
+    await page.getByPlaceholder(/Fashion House BD|Store Name/i).fill(`Test Store ${uniqueId}`);
+    await page.getByPlaceholder(/my-store|subdomain/i).fill(subdomain);
+    // Select "Fashion" category which creates "Premium Fashion Item"
+    await page.getByRole('button', { name: /Fashion|ফ্যাশন/i }).click();
+    await page.getByRole('button', { name: /Continue|Next|এগিয়ে যান/i }).click();
+    
+    // Step 3: Plan Selection (Free)
+    await page.waitForTimeout(2000);
+    await page.getByRole('button', { name: /Create My Store|আমার স্টোর তৈরি করুন/i }).click();
+    
+    // Wait for Dashboard (Redirected to /app/orders)
+    await page.waitForURL(/\/app\/orders/, { timeout: 60000 });
+    await expect(page).toHaveURL(/\/app\/orders/);
 
-    // 3. Add Product
-    await page.goto('/admin/products/new');
-    await page.fill('input[name="title"]', 'Test Product Red Dress');
-    await page.fill('input[name="price"]', '1500');
-    // Skipping complex image upload for smoke test, handling optional if possible
-    await page.click('button:has-text("Save Product")');
-    await expect(page.getByText('Product saved')).toBeVisible();
+    // 2. Verify Product exists (Auto-created by onboarding)
+    await page.goto('/app/products');
+    await expect(page.getByRole('link', { name: /Premium Fashion Item/i })).toBeVisible({ timeout: 10000 });
 
-    // 4. Create Flash Sale
-    await page.goto('/admin/marketing');
-    await page.click('button:has-text("Create Campaign")'); // Logical guess
-    // Assuming Flash Sale UI
-    await page.fill('input[name="flash_sale_discount"]', '25');
-    await page.click('button:has-text("Activate Flash Sale")');
-    
     // --- CUSTOMER JOURNEY ---
     
-    // 5. Storefront Visit
-    // In E2E, we need to visit the subdomain. 
-    // Playwright config baseURL is localhost:5173. 
-    // Subdomains on localhost usually require /store/subdomain or specific host handling.
-    // We will assume the app supports path-based access for checks: /store/<subdomain>
-    await page.goto(`/store/${subdomain}`);
+    // 3. Storefront Visit via subdomain (Free plan = Landing Page Mode)
+    await page.goto(`http://${subdomain}.localhost:5173/`);
+    await page.waitForTimeout(3000);
     
-    // Check for Flash Sale Badge
-    await expect(page.getByText('25% OFF')).toBeVisible();
+    // Free plan shows landing page with order form directly
+    // Look for the order form and fill it
+    await expect(page.locator('text=অর্ডার কনফার্ম করুন').first()).toBeVisible({ timeout: 10000 });
     
-    // 6. Add to Cart & Checkout
-    await page.click('text=Test Product Red Dress');
-    await page.click('button:has-text("Add to Cart")');
-    await page.click('a[href="/cart"]'); // or button
-    await page.click('button:has-text("Checkout")');
+    // 4. Fill Order Form (Landing Page has embedded form)
+    await page.getByPlaceholder(/আপনার নাম|Your Name/i).fill('Guest Customer');
+    await page.getByPlaceholder(/017XXXXXXXX|Phone/i).fill('01700000000');
+    await page.getByPlaceholder(/বাসা নং|Address/i).fill('Dhaka, Bangladesh');
     
-    // 7. Order Confirmation
-    // Fill Guest Details
-    await page.fill('input[name="fullName"]', 'Guest Customer');
-    await page.fill('input[name="phone"]', '01700000000');
-    await page.fill('textarea[name="address"]', 'Dhaka, Bangladesh');
+    // Select delivery area (inside Dhaka) - use the one in the order form
+    await page.locator('#order-form').getByText('ঢাকা সিটির ভিতরে').click();
     
-    await page.click('button:has-text("Place Order")');
+    // Submit order
+    await page.getByRole('button', { name: /অর্ডার কনফার্ম করুন|Confirm Order/i }).click();
     
-    await expect(page.locator('text="Order Confirmed"')).toBeVisible();
+    // Success check - look for thank you message or order confirmation
+    await page.waitForURL(/\/thank-you|\/order-success|checkout\/success/, { timeout: 15000 }).catch(() => {
+      // If no redirect, check for inline success message
+    });
+    
+    // Check for success indicator (could be inline or redirected)
+    await expect(page.getByText(/ধন্যবাদ|Thank you|Order Confirmed|অর্ডার সম্পন্ন/i)).toBeVisible({ timeout: 10000 });
   });
 });

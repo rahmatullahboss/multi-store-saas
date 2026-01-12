@@ -275,7 +275,8 @@ export async function checkUsageLimit(
     : dbBinding as ReturnType<typeof drizzle>;
   
   const { planType, aiPlan } = await getStorePlans(db, storeId);
-  const limits = PLAN_LIMITS[planType];
+  // Safeguard: Use getPlanLimitsSafe to handle invalid/missing plan types
+  const limits = getPlanLimitsSafe(planType);
   
   if (type === 'order') {
     const currentCount = await getMonthlyOrderCount(db, storeId);

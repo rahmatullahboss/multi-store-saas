@@ -83,8 +83,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
 
   try {
-    // Parse request body
-    const body = await request.json();
+    // Parse request body - handle both JSON and FormData
+    let body: Record<string, unknown>;
+    const contentType = request.headers.get('Content-Type') || '';
+    
+    if (contentType.includes('application/json')) {
+      body = await request.json();
+    } else {
+      // Handle FormData (default for useFetcher without encType)
+      const formData = await request.formData();
+      body = {};
+      for (const [key, value] of formData.entries()) {
+        // Parse numbers for numeric fields
+        if (['store_id', 'product_id', 'quantity', 'variant_id'].includes(key)) {
+          body[key] = parseInt(value as string, 10);
+        } else if (key === 'bump_ids') {
+          try {
+            body[key] = JSON.parse(value as string);
+          } catch {
+            body[key] = [];
+          }
+        } else {
+          body[key] = value;
+        }
+      }
+    }
 
     // Extend Schema for Cart Items
     const CartItemSchema = z.object({

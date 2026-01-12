@@ -38,6 +38,19 @@ type AppContext = {
 // Create Hono app with typed context
 const app = new Hono<AppContext>();
 
+// Error and Not Found Handlers
+app.onError((err, c) => {
+  console.error('[SERVER ERROR]', err);
+  return c.json({
+    error: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+  }, 500);
+});
+
+app.notFound((c) => {
+  return c.json({ error: 'Not Found' }, 404);
+});
+
 // ============================================================================
 // GLOBAL MIDDLEWARE
 // ============================================================================
