@@ -8,6 +8,7 @@ import { addCredits, getCreditHistory } from '~/utils/credit.server';
 import { Crown, Sparkles, CreditCard, Check, Zap, Coins, History, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // Pricing Packages for Credits
 const CREDIT_PACKAGES = [
@@ -83,6 +84,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function AICreditsPage() {
+  const { t } = useTranslation();
   const { credits, packages, history } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const navigation = useNavigation();
@@ -90,7 +92,7 @@ export default function AICreditsPage() {
   useEffect(() => {
     const data = fetcher.data as { success?: boolean; added?: number } | null | undefined;
     if (data?.success) {
-      toast.success(`Successfully added ${data.added} credits!`);
+      toast.success(t('addedCreditsMsg', { added: data.added }));
     }
   }, [fetcher.data]);
 
@@ -101,10 +103,10 @@ export default function AICreditsPage() {
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-3">
             <Sparkles className="w-8 h-8 text-purple-600" />
-            AI Credits
+            {t('aiCredits')}
           </h1>
           <p className="text-gray-500 mt-2 text-lg">
-             Power your store with AI. Pay as you go.
+             {t('aiCreditsSubtitle')}
           </p>
         </div>
 
@@ -112,13 +114,13 @@ export default function AICreditsPage() {
         <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl p-6 text-white shadow-xl w-full md:w-auto min-w-[300px] hover:scale-105 transition-transform duration-300">
           <div className="text-violet-200 font-medium mb-1 flex items-center gap-2">
             <Coins className="w-5 h-5" />
-            Available Balance
+            {t('availableBalance')}
           </div>
           <div className="text-5xl font-bold mb-2 tracking-tight">
             {credits}
           </div>
           <div className="text-violet-200 text-sm opacity-80">
-            Credits never expire
+            {t('creditsNeverExpire')}
           </div>
         </div>
       </div>
@@ -126,7 +128,7 @@ export default function AICreditsPage() {
       {/* Packages Grid */}
       <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
         <Zap className="w-5 h-5 text-yellow-500" />
-        Top up Credits
+        {t('topUpCredits')}
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -144,7 +146,7 @@ export default function AICreditsPage() {
             {pkg.popular && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-md">
                 <Crown className="w-3 h-3" />
-                Best Value
+                {t('bestValue')}
               </div>
             )}
 
@@ -152,7 +154,7 @@ export default function AICreditsPage() {
               <h3 className="text-lg font-semibold text-gray-500 mb-2">{pkg.name}</h3>
               <div className="flex items-baseline gap-1 mb-6">
                 <span className="text-4xl font-bold text-gray-900">{pkg.credits}</span>
-                <span className="text-gray-500 font-medium">credits</span>
+                <span className="text-gray-500 font-medium">{t('creditsLabel')}</span>
               </div>
               
               <div className="mb-8">
@@ -165,19 +167,19 @@ export default function AICreditsPage() {
                   <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-green-600" />
                   </div>
-                  Generate Stores
+                  {t('generateStores')}
                 </li>
                  <li className="flex items-center gap-3 text-gray-600">
                   <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-green-600" />
                   </div>
-                  Write Product Descriptions
+                  {t('writeProductDescriptions')}
                 </li>
                  <li className="flex items-center gap-3 text-gray-600">
                   <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-green-600" />
                   </div>
-                  Design Landing Pages
+                  {t('designLandingPages')}
                 </li>
               </ul>
 
@@ -195,11 +197,11 @@ export default function AICreditsPage() {
                   `}
                 >
                   {fetcher.state !== 'idle' ? (
-                     <span className="animate-pulse">Processing...</span>
+                     <span className="animate-pulse">{t('processing')}</span>
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5" />
-                      Buy Now
+                      {t('buyNow')}
                     </>
                   )}
                 </button>
@@ -211,22 +213,22 @@ export default function AICreditsPage() {
       
       {/* FAQ / Info */}
       <div className="mt-16 bg-gray-50 rounded-2xl p-8 border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">How much does it cost?</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">{t('howMuchDoesItCost')}</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-4 bg-white rounded-xl shadow-sm">
-                <div className="font-semibold text-gray-800 mb-1">Store Setup</div>
+                <div className="font-semibold text-gray-800 mb-1">{t('storeSetup')}</div>
                 <div className="text-violet-600 font-bold">50 Credits</div>
             </div>
              <div className="p-4 bg-white rounded-xl shadow-sm">
-                <div className="font-semibold text-gray-800 mb-1">Full Landing Page</div>
+                <div className="font-semibold text-gray-800 mb-1">{t('fullLandingPage')}</div>
                 <div className="text-violet-600 font-bold">30 Credits</div>
             </div>
              <div className="p-4 bg-white rounded-xl shadow-sm">
-                <div className="font-semibold text-gray-800 mb-1">Page Section</div>
+                <div className="font-semibold text-gray-800 mb-1">{t('pageSection')}</div>
                 <div className="text-violet-600 font-bold">20 Credits</div>
             </div>
              <div className="p-4 bg-white rounded-xl shadow-sm">
-                <div className="font-semibold text-gray-800 mb-1">Text Edit</div>
+                <div className="font-semibold text-gray-800 mb-1">{t('textEdit')}</div>
                 <div className="text-violet-600 font-bold">5 Credits</div>
             </div>
         </div>
@@ -235,7 +237,7 @@ export default function AICreditsPage() {
       <div className="mt-16">
         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
           <History className="w-5 h-5 text-slate-500" />
-          Transaction History
+          {t('transactionHistory')}
         </h2>
         
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -243,17 +245,17 @@ export default function AICreditsPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('type')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('description')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('amount')}</th>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('date')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {history.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
-                      No transaction history yet.
+                      {t('noTransactionHistory')}
                     </td>
                   </tr>
                 ) : (

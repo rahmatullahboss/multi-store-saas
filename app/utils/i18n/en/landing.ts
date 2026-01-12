@@ -83,9 +83,9 @@ export const landing = {
   testimonial3Name: 'Karim Hossain',
   testimonial3Role: 'Electronics, Sylhet',
   testimonial3Text: 'The landing page mode is perfect for my gadget business. Easy COD orders, great dashboard!',
-  
   faq3Q: 'Can I use my own domain?',
   faq3A: 'Yes! From Starter Plan, you can connect your Custom Domain. In Free Plan, you get a yourstore.digitalcare.site subdomain.',
+  faq3Q_custom: 'Yes! From Starter Plan, you can connect your Custom Domain. In Free Plan, you get a yourstore.digitalcare.site subdomain.',
   faq4Q: 'How do I receive my payments?',
   faq4A: 'bKash/Nagad payments go directly to your account. For COD, you collect from customers. We never hold your money.',
   faq5Q: 'How long does it take to setup a store?',
@@ -171,13 +171,6 @@ export const landing = {
   problemTag3: 'Start for Free',
 
   // AIShowcaseSection
-  showcaseSectionTitle: 'AI Everywhere — For You, For Your Customers',
-  showcaseSectionSubtitle: 'Not just one, but three powerful AIs working together to grow your business',
-  showcaseVisitorTitle: 'Visitor AI',
-  showcaseVisitorRole: 'For Shoppers',
-  showcaseVisitorDesc: 'Personal shopping assistant for every visitor',
-  showcaseVisitorF1: 'Instant product recommendations',
-  showcaseVisitorF2: '24/7 Question answering in Bangla',
   showcaseVisitorF3: 'Smart search assistance',
   showcaseVisitorF4: 'Automated lead capture',
   showcaseMerchantTitle: 'Merchant AI',

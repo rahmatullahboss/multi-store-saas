@@ -252,11 +252,11 @@ Social Media: Facebook: ${facebook}, Instagram: ${instagram}, WhatsApp: ${whatsa
 // CURRENCIES
 // ============================================================================
 const currencies = [
-  { value: 'BDT', label: '৳ BDT - Bangladeshi Taka' },
-  { value: 'USD', label: '$ USD - US Dollar' },
-  { value: 'EUR', label: '€ EUR - Euro' },
-  { value: 'GBP', label: '£ GBP - British Pound' },
-  { value: 'INR', label: '₹ INR - Indian Rupee' },
+  { value: 'BDT', labelKey: 'currencyBDT' },
+  { value: 'USD', labelKey: 'currencyUSD' },
+  { value: 'EUR', labelKey: 'currencyEUR' },
+  { value: 'GBP', labelKey: 'currencyGBP' },
+  { value: 'INR', labelKey: 'currencyINR' },
 ];
 
 
@@ -615,7 +615,7 @@ export default function SettingsPage() {
               >
                 {currencies.map((c) => (
                   <option key={c.value} value={c.value}>
-                    {c.label}
+                    {t(c.labelKey as any)}
                   </option>
                 ))}
               </select>
@@ -632,8 +632,8 @@ export default function SettingsPage() {
                 defaultValue={store.defaultLanguage || 'en'}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
               >
-                <option value="en">🇬🇧 English</option>
-                <option value="bn">🇧🇩 বাংলা (Bengali)</option>
+                <option value="en">🇬🇧 {t('english')}</option>
+                <option value="bn">🇧🇩 {t('bengali')}</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">{t('storeLanguageDesc')}</p>
             </div>

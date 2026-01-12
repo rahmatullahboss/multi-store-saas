@@ -319,7 +319,7 @@ export default function LandingSettingsPage() {
                     id="headline"
                     name="headline"
                     defaultValue={store.landingConfig.headline}
-                    placeholder="Transform Your Life Today"
+                    placeholder={String(t('mainHeadline'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
@@ -333,7 +333,7 @@ export default function LandingSettingsPage() {
                     id="subheadline"
                     name="subheadline"
                     defaultValue={store.landingConfig.subheadline || ''}
-                    placeholder="The only solution you'll ever need"
+                    placeholder={String(t('subheadline'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
@@ -420,7 +420,7 @@ export default function LandingSettingsPage() {
                     id="ctaText"
                     name="ctaText"
                     defaultValue={store.landingConfig.ctaText}
-                    placeholder="Buy Now"
+                    placeholder={String(t('buttonText'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
@@ -434,7 +434,7 @@ export default function LandingSettingsPage() {
                     id="ctaSubtext"
                     name="ctaSubtext"
                     defaultValue={store.landingConfig.ctaSubtext || ''}
-                    placeholder="30-day money back guarantee"
+                    placeholder={String(t('buttonSubtext'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>

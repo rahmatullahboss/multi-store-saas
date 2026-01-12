@@ -54,9 +54,10 @@ import { useState } from 'react';
 import type { TranslationKey } from '~/utils/i18n/index';
 
 // Custom Ozzyl Icon Component (for nav)
-const OzzylIcon = ({ className }: { className?: string }) => (
-  <img src="/ozzyl-logo-small.png" alt="" className={className || 'w-5 h-5'} />
-);
+const OzzylIcon = ({ className }: { className?: string }) => {
+  const { t } = useTranslation();
+  return <img src="/ozzyl-logo-small.png" alt={String(t('landingFinalCTA_aiAssistantName'))} className={className || 'w-5 h-5'} />;
+};
 
 
 export const meta: MetaFunction = () => {
@@ -269,7 +270,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarMarketing',
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
-      { to: '/app/agent', labelKey: 'navAgent', icon: OzzylIcon as any },
+      { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon as any },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
       { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
     ],

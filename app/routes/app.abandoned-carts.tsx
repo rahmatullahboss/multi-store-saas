@@ -169,9 +169,9 @@ export default function AbandonedCartsPage() {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
     
-    if (days > 0) return `${days}d ago`;
-    if (hours > 0) return `${hours}h ago`;
-    return 'Just now';
+    if (days > 0) return t('daysAgo', { days });
+    if (hours > 0) return t('hoursAgo', { hours });
+    return t('justNow');
   };
 
   return (
@@ -241,7 +241,7 @@ export default function AbandonedCartsPage() {
                         </p>
                         <p className="text-sm text-gray-500 flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
-                          Abandoned {getTimeAgo(cart.abandonedAt!)}
+                          {t('abandoned')} {getTimeAgo(cart.abandonedAt!)}
                         </p>
                       </div>
                     </div>
@@ -271,14 +271,14 @@ export default function AbandonedCartsPage() {
                     {/* Cart Items Summary */}
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Package className="w-4 h-4" />
-                      <span>{items.length} item{items.length !== 1 ? 's' : ''}</span>
+                      <span>{items.length} {items.length !== 1 ? t('items') : t('item')}</span>
                       {items.slice(0, 3).map((item: { title: string }, i: number) => (
                         <span key={i} className="text-gray-400">
                           • {item.title}
                         </span>
                       ))}
                       {items.length > 3 && (
-                        <span className="text-gray-400">+{items.length - 3} more</span>
+                        <span className="text-gray-400">+{items.length - 3} {t('more')}</span>
                       )}
                     </div>
                   </div>
