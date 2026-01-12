@@ -204,10 +204,39 @@ export default function MagicGenerateModal({
           )}
 
           {step === 'generating' && (
-            <div className="py-8">
-              <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto mb-4" />
-              <div className="h-2 w-48 bg-gray-100 rounded-full mx-auto overflow-hidden text-sm font-bold text-indigo-600">
-                {t('processingMagic')}
+            <div className="py-8 space-y-6">
+              {/* Progress Steps */}
+              <div className="flex justify-center gap-2 mb-6">
+                <ProgressDot active={true} completed={true} label={t('analyzing') || 'Analyzing'} />
+                <div className="w-8 h-0.5 bg-gray-200 self-center mt-3" />
+                <ProgressDot active={fetcher.state === 'submitting'} completed={fetcher.state === 'loading'} label={t('designing') || 'Designing'} />
+                <div className="w-8 h-0.5 bg-gray-200 self-center mt-3" />
+                <ProgressDot active={fetcher.state === 'loading'} completed={false} label={t('generating') || 'Generating'} />
+              </div>
+
+              {/* Animated Loader */}
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <Loader2 className="w-16 h-16 text-indigo-500 animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-indigo-600 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Text */}
+              <div className="text-center">
+                <p className="text-sm font-bold text-indigo-600 animate-pulse">
+                  {fetcher.state === 'submitting' ? (t('analyzingPrompt') || 'Analyzing your request...') : (t('generatingDesign') || 'Creating beautiful design...')}
+                </p>
+                <p className="text-xs text-gray-400 mt-2">{t('aiWorkingHint') || 'AI is working its magic ✨'}</p>
+              </div>
+
+              {/* Fun Facts / Tips */}
+              <div className="bg-indigo-50 rounded-xl p-3 text-center">
+                <p className="text-xs text-indigo-600 font-medium">
+                  💡 {t('aiTip') || 'Tip: AI uses your product info for personalized copy!'}
+                </p>
               </div>
             </div>
           )}
@@ -240,6 +269,28 @@ export default function MagicGenerateModal({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Progress Dot Component for AI Generation Steps
+function ProgressDot({ active, completed, label }: { active: boolean; completed: boolean; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+        completed ? 'bg-green-500 text-white' :
+        active ? 'bg-indigo-600 text-white animate-pulse' :
+        'bg-gray-200 text-gray-400'
+      }`}>
+        {completed ? (
+          <CheckCircle size={16} />
+        ) : (
+          <div className={`w-2 h-2 rounded-full ${active ? 'bg-white' : 'bg-gray-400'}`} />
+        )}
+      </div>
+      <span className={`text-[10px] font-bold ${active || completed ? 'text-gray-700' : 'text-gray-400'}`}>
+        {label}
+      </span>
     </div>
   );
 }

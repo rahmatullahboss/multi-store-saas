@@ -279,4 +279,13 @@ export const landing = {
   magicEditLabel: 'ম্যাজিক এডিট',
   magicAiLabel: 'ম্যাজিক AI',
   proBadge: 'প্রো',
+
+  // Interactive AI Generation
+  analyzing: 'বিশ্লেষণ',
+  designing: 'ডিজাইনিং',
+  generating: 'তৈরি',
+  analyzingPrompt: 'আপনার অনুরোধ বিশ্লেষণ করছি...',
+  generatingDesign: 'সুন্দর ডিজাইন তৈরি করছি...',
+  aiWorkingHint: 'AI ম্যাজিক করছে ✨',
+  aiTip: 'টিপ: AI আপনার প্রডাক্ট ইনফো থেকে কপি তৈরি করে!',
 };
