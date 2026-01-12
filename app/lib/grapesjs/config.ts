@@ -131,17 +131,45 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
       type: 'remote',
       stepsBeforeSave: 1,
       autosave: true,
-      contentTypeJson: true,
+      autoload: true, // CRITICAL: Load saved data on page refresh
       options: {
         remote: {
           urlLoad: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
           urlStore: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
-          // The data GrapesJS sends
-          onStore: (data: any) => ({
-            ...data,
-            html: data.html,
-            css: data.css,
-          }),
+          
+          // Include credentials for session cookies
+          credentials: 'include',
+          
+          // Content type for requests
+          contentTypeJson: true,
+          
+          // Transform data before storing - include HTML and CSS
+          onStore: (data: any, editor: any) => {
+            return {
+              ...data,
+              html: editor.getHtml(),
+              css: editor.getCss(),
+            };
+          },
+          
+          // Extract project data from server response
+          onLoad: (result: any) => {
+            // If it's an error response or no valid data, return empty object
+            if (result.error || !result) {
+              console.warn('[GrapesJS] Load error or empty:', result?.error);
+              return {};
+            }
+            // Server returns projectData directly (already parsed in loader)
+            return result;
+          },
+          
+          // Error handlers for debugging
+          onStoreError: (error: any) => {
+            console.error('[GrapesJS] Store failed:', error);
+          },
+          onLoadError: (error: any) => {
+            console.error('[GrapesJS] Load failed:', error);
+          },
         }
       }
     },
