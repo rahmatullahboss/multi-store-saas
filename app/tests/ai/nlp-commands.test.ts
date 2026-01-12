@@ -1,7 +1,15 @@
 import { describe, test, expect, vi } from 'vitest';
 
+// Define the return type
+interface ParseResult {
+  action: string;
+  target?: string;
+  updates?: { background: { color: string } };
+  confidence: number;
+}
+
 // Mocking the AI service logic since we don't want to make real API calls to OpenAI/Gemini in unit tests
-const mockParseCommand = vi.fn((input: string) => {
+const mockParseCommand = vi.fn((input: string): ParseResult => {
   const lower = input.toLowerCase();
   
   if (lower.includes('red') || lower.includes('lal') || lower.includes('crimson')) {
@@ -39,7 +47,7 @@ describe('AI NLP Command Parsing', () => {
     const result = mockParseCommand(input);
     
     expect(result.action).toBe('update_style');
-    expect(result.updates.background.color).toBe(expectedColor);
+    expect(result.updates?.background.color).toBe(expectedColor);
     expect(result.confidence).toBeGreaterThan(0.9);
   });
 
