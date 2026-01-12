@@ -267,6 +267,13 @@
       "when": 1768156971204,
       "tag": "0037_fix_ab_tests_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1768223815153,
+      "tag": "0038_curved_skin",
+      "breakpoints": true
     }
   ]
 }

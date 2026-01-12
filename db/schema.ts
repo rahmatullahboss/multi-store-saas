@@ -1313,6 +1313,35 @@ export const webhooksRelations = relations(webhooks, ({ one }) => ({
 
 export type Webhook = typeof webhooks.$inferSelect;
 export type NewWebhook = typeof webhooks.$inferInsert;
+
+// ============================================================================
+// WEBHOOK DELIVERY LOGS - Track delivery attempts
+// ============================================================================
+export const webhookDeliveryLogs = sqliteTable('webhook_delivery_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  webhookId: integer('webhook_id').notNull().references(() => webhooks.id, { onDelete: 'cascade' }),
+  eventType: text('event_type').notNull(), // order.created, order.updated, etc.
+  payload: text('payload').notNull(), // JSON payload sent
+  statusCode: integer('status_code'), // HTTP response code
+  responseBody: text('response_body'), // Response from endpoint
+  success: integer('success', { mode: 'boolean' }).default(false),
+  errorMessage: text('error_message'),
+  attemptCount: integer('attempt_count').default(1),
+  deliveredAt: integer('delivered_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('webhook_logs_webhook_idx').on(table.webhookId),
+  index('webhook_logs_event_idx').on(table.eventType),
+]);
+
+export const webhookDeliveryLogsRelations = relations(webhookDeliveryLogs, ({ one }) => ({
+  webhook: one(webhooks, {
+    fields: [webhookDeliveryLogs.webhookId],
+    references: [webhooks.id],
+  }),
+}));
+
+export type WebhookDeliveryLog = typeof webhookDeliveryLogs.$inferSelect;
+export type NewWebhookDeliveryLog = typeof webhookDeliveryLogs.$inferInsert;
 // ============================================================================
 // VISITOR CHAT & LEAD CAPTURE
 // ============================================================================

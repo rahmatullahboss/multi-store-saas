@@ -430,6 +430,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }))
       ]);
 
+      // ========== WEBHOOK: ORDER CREATED ==========
+      context.cloudflare.ctx.waitUntil(
+        dispatchWebhook(context.cloudflare.env, input.store_id, 'order.created', {
+          event: 'order.created',
+          order_id: orderId,
+          order_number: orderNumber,
+          customer_name: input.customer_name,
+          customer_phone: input.phone,
+          customer_email: input.customer_email || null,
+          shipping_address: input.address,
+          division: input.division,
+          subtotal,
+          shipping,
+          tax,
+          total,
+          payment_method: input.payment_method,
+          item_count: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+          items: finalOrderItems.map(i => ({
+            product_id: i.productId,
+            title: i.title,
+            quantity: i.quantity,
+            price: i.unitPrice,
+          })),
+          created_at: now.toISOString(),
+        }).catch(e => console.error('[Webhook] order.created failed:', e))
+      );
+
     } catch (orderError) {
         console.error('Order creation failed, rolling back inventory:', orderError);
         // Rollback Order

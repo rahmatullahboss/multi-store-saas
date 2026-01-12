@@ -25,6 +25,7 @@ import { TrackingTimeline } from '~/components/TrackingTimeline';
 import { OrderTimeline } from '~/components/OrderTimeline';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { logActivity } from '~/lib/activity.server';
+import { dispatchWebhook } from '~/services/webhook.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.order ? `Order ${data.order.orderNumber}` : 'Order Details' }];
@@ -426,6 +427,29 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       entityId: orderId,
       details: { from: previousStatus, to: status, orderNumber: order.orderNumber },
     });
+
+    // Dispatch webhooks for order status changes
+    const webhookPayload = {
+      event: 'order.updated',
+      order_id: orderId,
+      order_number: order.orderNumber,
+      previous_status: previousStatus,
+      new_status: status,
+      customer_name: order.customerName,
+      customer_phone: order.customerPhone,
+      total: order.total,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Use waitUntil to dispatch webhooks without blocking response
+    (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.updated', webhookPayload));
+
+    // Also dispatch specific status events
+    if (status === 'cancelled') {
+      (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.cancelled', webhookPayload));
+    } else if (status === 'delivered') {
+      (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.delivered', webhookPayload));
+    }
   }
 
   // ============================================================================
