@@ -176,7 +176,7 @@ export function OzzylAIChatWidget() {
     // Validate phone
     const cleanedPhone = regPhone.replace(/\D/g, '');
     if (!validatePhone(cleanedPhone)) {
-      setPhoneError('সঠিক বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)');
+      setPhoneError(t('landingOzzylChat_phoneInvalidError'));
       return;
     }
 
@@ -339,7 +339,7 @@ export function OzzylAIChatWidget() {
                 <div>
                   <h3 className="font-bold text-white flex items-center gap-2 text-base">
                     Ozzyl AI
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#006A4E] text-white rounded-full tracking-wide">BETA</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#006A4E] text-white rounded-full tracking-wide">{t('landingOzzylChat_betaBadge')}</span>
                   </h3>
                   <p className="text-xs text-white/50 font-medium">{t('landingOzzylChat_alwaysHelp')}</p>
                 </div>

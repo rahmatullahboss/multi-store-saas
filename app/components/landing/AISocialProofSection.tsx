@@ -125,7 +125,7 @@ export function AISocialProofSection() {
               </div>
               <div className="w-1 h-1 bg-white/20 rounded-full" />
               <div className="flex items-center gap-2">
-                 <Zap className="w-5 h-5" /> <span className="font-bold text-white">Advanced NLP</span>
+                 <Zap className="w-5 h-5" /> <span className="font-bold text-white">{t('landingSocialProof_advancedNLP')}</span>
               </div>
            </div>
            <p className="text-emerald-500/50 text-xs mt-4">{t('landingSocialProof_bestTech')}</p>

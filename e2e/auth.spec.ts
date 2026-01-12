@@ -22,9 +22,10 @@ test.describe('Authentication', () => {
     test('should show error for empty fields', async ({ page }) => {
       await page.click('button[type="submit"]');
       
-      // Using English validation messages from common.json
-      await expect(page.locator('text=Email is required')).toBeVisible();
-      await expect(page.locator('text=Password is required')).toBeVisible();
+      // App defaults to Bengali - use Bengali error messages
+      // emailRequired: "ইমেইল দিন", passwordRequired: "পাসওয়ার্ড দিন"
+      await expect(page.locator('text=ইমেইল দিন')).toBeVisible();
+      await expect(page.locator('text=পাসওয়ার্ড দিন')).toBeVisible();
     });
 
     test('should show error for invalid credentials', async ({ page }) => {
@@ -32,7 +33,8 @@ test.describe('Authentication', () => {
       await page.fill('input[name="password"]', 'wrongpassword');
       await page.click('button[type="submit"]');
       
-      await expect(page.locator('text=Invalid email or password')).toBeVisible();
+      // invalidCredentials: "ইমেইল বা পাসওয়ার্ড ভুল"
+      await expect(page.locator('text=ইমেইল বা পাসওয়ার্ড ভুল')).toBeVisible();
     });
 
     test('should link to registration', async ({ page }) => {

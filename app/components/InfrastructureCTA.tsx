@@ -9,6 +9,7 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Link } from '@remix-run/react';
 import { ArrowRight, Sparkles, Zap, Shield, Globe, Clock } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -47,6 +48,7 @@ const BenefitPill = ({ icon: Icon, text }: { icon: React.ElementType; text: stri
 export function InfrastructureCTA() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const { t } = useTranslation();
 
   return (
     <section
@@ -95,7 +97,7 @@ export function InfrastructureCTA() {
             <Sparkles className="w-4 h-4" style={{ color: COLORS.accent }} />
           </motion.div>
           <span className="text-sm font-medium" style={{ color: COLORS.accent, fontFamily: "'Noto Sans Bengali', sans-serif" }}>
-            🔥 Shopify যে Infrastructure এ চলে, আপনার Store ও
+            🔥 {t('infraCtaBadge')}
           </span>
         </motion.div>
         
@@ -107,18 +109,18 @@ export function InfrastructureCTA() {
           className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6"
           style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
         >
-          যে Technology তে{' '}
+          {t('infraCtaTitlePart1')}{' '}
           <span 
             className="bg-clip-text text-transparent"
             style={{
               backgroundImage: `linear-gradient(135deg, ${COLORS.cyan} 0%, ${COLORS.green} 100%)`,
             }}
           >
-            বড়রা Millions খরচ করে
+            {t('infraCtaTitlePart2')}
           </span>
           {' '}—
           <br />
-          সেটা আপনার জন্য{' '}
+          {t('infraCtaTitlePart3')}{' '}
           <motion.span
             className="inline-block"
             animate={{ 
@@ -144,8 +146,7 @@ export function InfrastructureCTA() {
           className="text-lg md:text-xl mb-8 max-w-2xl mx-auto"
           style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
         >
-          Facebook, Google, Shopify যে Infrastructure ব্যবহার করে — 
-          সেই একই Cloudflare Technology আপনার Store এ আজই Activate করুন।
+          {t('infraCtaSubtitle')}
         </motion.p>
         
         {/* Benefit pills */}
@@ -155,10 +156,10 @@ export function InfrastructureCTA() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="flex flex-wrap justify-center gap-3 mb-10"
         >
-          <BenefitPill icon={Zap} text="<10ms Latency" />
-          <BenefitPill icon={Shield} text="Enterprise Security" />
-          <BenefitPill icon={Globe} text="310+ Global Servers" />
-          <BenefitPill icon={Clock} text="99.99% Uptime" />
+          <BenefitPill icon={Zap} text={t('infraLatency')} />
+          <BenefitPill icon={Shield} text={t('infraSecurity')} />
+          <BenefitPill icon={Globe} text={t('infraGlobalServers')} />
+          <BenefitPill icon={Clock} text={t('infraUptime')} />
         </motion.div>
         
         {/* CTA Buttons */}
@@ -192,7 +193,7 @@ export function InfrastructureCTA() {
               />
               
               <span className="relative text-white" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
-                ফ্রিতে শুরু করুন
+                {t('infraCtaPrimary')}
               </span>
               <motion.span
                 className="relative"
@@ -214,7 +215,7 @@ export function InfrastructureCTA() {
                 border: '1px solid rgba(255,255,255,0.1)',
               }}
             >
-              <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>ডেমো দেখুন</span>
+              <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>{t('infraCtaSecondary')}</span>
             </Link>
           </motion.div>
         </motion.div>
@@ -227,7 +228,7 @@ export function InfrastructureCTA() {
           className="text-sm mt-8"
           style={{ color: COLORS.textMuted }}
         >
-          ✓ No credit card required &nbsp;•&nbsp; ✓ Setup in 5 minutes &nbsp;•&nbsp; ✓ Free forever plan
+          ✓ {t('heroTrust1')} &nbsp;•&nbsp; ✓ {t('heroDemoReady')} &nbsp;•&nbsp; ✓ {t('planFreeDesc')}
         </motion.p>
       </div>
     </section>
