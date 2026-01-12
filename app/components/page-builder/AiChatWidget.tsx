@@ -11,6 +11,7 @@ interface AiChatWidgetProps {
   isOpen: boolean;
   onToggle: () => void;
   isLocked?: boolean;
+  featuredProductId?: number;
 }
 
 interface Message {
@@ -89,7 +90,7 @@ const TIPS = [
   '💡 CSS property নাম জানলে সরাসরি বলতে পারেন',
 ];
 
-export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggle, isLocked = false }: AiChatWidgetProps) {
+export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggle, isLocked = false, featuredProductId }: AiChatWidgetProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -165,6 +166,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
       selectedClasses: selected?.getClasses(),
       selectedAttributes: selected?.getAttributes(),
       selectedStyles: selected?.getStyle(),
+      featuredProductId: featuredProductId,
     };
 
     fetcher.submit(

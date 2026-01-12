@@ -88,7 +88,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       price: products.price 
     })
     .from(products)
-    .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+    .where(eq(products.storeId, storeId))
     .limit(50);
 
   // Load draft config if exists, otherwise fall back to published config

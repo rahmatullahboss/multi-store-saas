@@ -12,6 +12,7 @@ interface MagicGenerateModalProps {
   mode?: 'full-page' | 'section-design';
   initialData?: string; // Current HTML if in section-design mode
   isLocked?: boolean;
+  featuredProductId?: number;
 }
 
 export default function MagicGenerateModal({ 
@@ -20,7 +21,8 @@ export default function MagicGenerateModal({
   onGenerate, 
   mode = 'full-page',
   initialData,
-  isLocked = false
+  isLocked = false,
+  featuredProductId
 }: MagicGenerateModalProps) {
   const { t } = useTranslation();
   const [prompt, setPrompt] = useState('');
@@ -56,7 +58,7 @@ export default function MagicGenerateModal({
     
     const action = mode === 'section-design' ? 'DESIGN_CUSTOM_SECTION' : 'GENERATE_GRAPESJS_PAGE';
     fetcher.submit(
-      { action, prompt, currentHtml: initialData || '' },
+      { action, prompt, currentHtml: initialData || '', featuredProductId: featuredProductId?.toString() || '' },
       { method: 'post', action: '/api/ai/action', encType: 'application/json' }
     );
   };

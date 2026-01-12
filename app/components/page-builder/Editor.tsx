@@ -731,6 +731,7 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
         mode={aiDesignMode}
         initialData={selectedComponentData || undefined}
         isLocked={isAiLocked}
+        featuredProductId={pageConfig.featuredProductId}
       />
 
       <BlockLibraryModal 
@@ -745,6 +746,7 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
           onToggle={() => setIsChatOpen(!isChatOpen)}
           onExecuteCommand={handleExecuteAiCommand}
           isLocked={isAiLocked}
+          featuredProductId={pageConfig.featuredProductId}
       />
 
       <style dangerouslySetInnerHTML={{ __html: `

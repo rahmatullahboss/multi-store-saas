@@ -48,11 +48,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const store = storeResult[0];
   
-  // Get published products for featured product selector
+  // Get all products for featured product selector
   const storeProducts = await db
     .select({ id: products.id, title: products.title, imageUrl: products.imageUrl, price: products.price })
     .from(products)
-    .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+    .where(eq(products.storeId, storeId))
     .limit(50);
 
   const landingConfig = parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;

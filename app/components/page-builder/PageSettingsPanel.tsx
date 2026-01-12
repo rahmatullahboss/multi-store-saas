@@ -29,7 +29,18 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
         const response = await fetch('/api/products');
         if (response.ok) {
           const data = await response.json() as { products: any[] };
-          setProducts(data.products || []);
+          const fetchedProducts = data.products || [];
+          setProducts(fetchedProducts);
+          
+          // Auto-select first product if none selected
+          if (!config.featuredProductId && fetchedProducts.length > 0) {
+            const firstProduct = fetchedProducts[0];
+            onChange({
+              ...config,
+              featuredProductId: firstProduct.id,
+              featuredProductName: firstProduct.title
+            });
+          }
         }
       } catch (error) {
         console.error('Failed to fetch products:', error);
