@@ -227,7 +227,7 @@ async function sendDomainDisconnectedEmail(
     const resend = new Resend(resendApiKey);
 
     await resend.emails.send({
-      from: 'DigitalCare <notifications@ozzyl.com>',
+      from: 'DigitalCare <contact@ozzyl.com>',
       to: owner[0].email,
       subject: 'Your Custom Domain Has Been Disconnected',
       html: `
@@ -270,7 +270,7 @@ async function sendDomainDisconnectedEmail(
             </p>
             
             <p style="color: #666; font-size: 14px; margin-top: 30px;">
-              If you have any questions, please contact us at <a href="mailto:support@ozzyl.com" style="color: #059669;">support@ozzyl.com</a>
+              If you have any questions, please contact us at <a href="mailto:contact@ozzyl.com" style="color: #059669;">contact@ozzyl.com</a>
             </p>
           </div>
           

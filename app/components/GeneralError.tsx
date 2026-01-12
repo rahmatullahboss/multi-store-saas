@@ -268,7 +268,7 @@ export function MaintenanceError() {
         {/* Secondary Link */}
         <p className="text-gray-400 text-sm mt-6">
           Need help?{' '}
-          <a href="mailto:support@example.com" className="text-white underline hover:no-underline">
+          <a href="mailto:contact@ozzyl.com" className="text-white underline hover:no-underline">
             Contact Support
           </a>
         </p>
