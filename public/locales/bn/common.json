@@ -135,6 +135,11 @@
   "storeNameRequired": "স্টোরের নাম দিন",
   "subdomainMinChars": "সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে",
   "trxIdRequired": "TRX ID দিন",
+  "emailRequired": "ইমেইল দিন",
+  "passwordRequired": "পাসওয়ার্ড দিন",
+  "invalidCredentials": "ইমেইল বা পাসওয়ার্ড ভুল",
+  "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+  "storeNotFound": "আপনার স্টোরটি খুঁজে পাওয়া যায়নি। দয়া করে এডমিনের সাথে যোগাযোগ করুন অথবা নতুন করে সাইন-আপ করুন।",
   
   "freeDelivery": "ফ্রি ডেলিভারি",
   "freeDeliveryInDhaka": "ঢাকায় ফ্রি ডেলিভারি",
@@ -358,5 +363,14 @@
   "startDate": "শুরুর তারিখ",
   "endDate": "শেষের তারিখ",
   "records": "রেকর্ড",
-  "noSalesData": "কোনো সেলস ডেটা পাওয়া যায়নি"
+  "noSalesData": "কোনো সেলস ডেটা পাওয়া যায়নি",
+  "backToHome": "হোমে ফিরে যান",
+  "templatePreviewMode": "টেমপ্লেট প্রিভিউ মোড",
+  "templatePreviewDesc": "এটি ডেমো কন্টেন্ট সহ প্রিভিউ। আপনার আসল ডাটা দিয়ে আলাদা দেখাবে।",
+  "close": "বন্ধ করুন",
+  "comingSoon": "শীঘ্রই আসছে",
+  "storeUnderConstruction": "এই স্টোরটি বর্তমানে তৈরির কাজ চলছে।",
+  "howItWorks": "কিভাবে কাজ করে",
+  "createFreeStore": "ফ্রি স্টোর তৈরি করুন",
+  "watchDemo": "ডেমো দেখুন"
 }

@@ -135,6 +135,11 @@
   "storeNameRequired": "Store name is required",
   "subdomainMinChars": "Subdomain must be at least 3 characters",
   "trxIdRequired": "Please enter TRX ID",
+  "emailRequired": "Email is required",
+  "passwordRequired": "Password is required",
+  "invalidCredentials": "Invalid email or password",
+  "forgotPassword": "Forgot Password?",
+  "storeNotFound": "Your store could not be found. Please contact support or sign up for a new account.",
   
   "freeDelivery": "Free Delivery",
   "freeDeliveryInDhaka": "Free delivery inside Dhaka",
@@ -358,5 +363,14 @@
   "startDate": "Start Date",
   "endDate": "End Date",
   "records": "records",
-  "noSalesData": "No sales data found"
+  "noSalesData": "No sales data found",
+  "backToHome": "Back to Home",
+  "templatePreviewMode": "Template Preview Mode",
+  "templatePreviewDesc": "This is a preview with demo content. Your actual data will look different.",
+  "close": "Close",
+  "comingSoon": "Coming Soon",
+  "storeUnderConstruction": "This store is being set up.",
+  "howItWorks": "How it Works",
+  "createFreeStore": "Create Free Store",
+  "watchDemo": "Watch Demo"
 }
