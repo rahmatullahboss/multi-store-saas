@@ -84,6 +84,13 @@ export default defineConfig({
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    // Environment variables for the web server process
+    env: {
+      ...process.env,
+      SESSION_SECRET: process.env.SESSION_SECRET || 'e2e-test-session-secret',
+      COOKIE_SECRET: process.env.COOKIE_SECRET || 'e2e-test-cookie-secret',
+      NODE_ENV: 'test',
+    },
   },
   
   // Global timeout
