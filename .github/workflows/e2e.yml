@@ -41,6 +41,14 @@ jobs:
       - name: 🏗️ Build application
         run: npm run build
 
+      - name: 📝 Create .dev.vars for Wrangler
+        run: |
+          cat > .dev.vars << EOF
+          SESSION_SECRET=e2e-test-session-secret-32chars
+          COOKIE_SECRET=e2e-test-cookie-secret-32chars
+          NODE_ENV=test
+          EOF
+
       - name: 🗄️ Run migrations (Local DB)
         run: npx wrangler d1 migrations apply DB --local
 
@@ -101,6 +109,14 @@ jobs:
       - name: 🏗️ Build application
         run: npm run build
 
+      - name: 📝 Create .dev.vars for Wrangler
+        run: |
+          cat > .dev.vars << EOF
+          SESSION_SECRET=e2e-test-session-secret-32chars
+          COOKIE_SECRET=e2e-test-cookie-secret-32chars
+          NODE_ENV=test
+          EOF
+
       - name: 🗄️ Run migrations (Local DB)
         run: npx wrangler d1 migrations apply DB --local
 
@@ -145,6 +161,14 @@ jobs:
 
       - name: 🏗️ Build application
         run: npm run build
+
+      - name: 📝 Create .dev.vars for Wrangler
+        run: |
+          cat > .dev.vars << EOF
+          SESSION_SECRET=e2e-test-session-secret-32chars
+          COOKIE_SECRET=e2e-test-cookie-secret-32chars
+          NODE_ENV=test
+          EOF
 
       - name: 🗄️ Run migrations (Local DB)
         run: npx wrangler d1 migrations apply DB --local
