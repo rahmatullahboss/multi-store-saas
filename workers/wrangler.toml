@@ -7,5 +7,7 @@ compatibility_date = "2024-12-30"
 [vars]
 PAGES_URL = "https://multi-store-saas.pages.dev"
 
-# Routes configured in Cloudflare Dashboard:
-# *.ozzyl.com/* → wildcard-proxy
+# Routes for ozzyl.com subdomains
+[[routes]]
+pattern = "*.ozzyl.com/*"
+zone_id = "41147efa7d197cfddda0af7fcbf6d641"
