@@ -229,6 +229,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const floatingCallEnabled = formData.get('floatingCallEnabled') === 'true';
   const floatingCallNumber = formData.get('floatingCallNumber') as string || '';
 
+  // Marketing & Sales Persistence
+  const flashSaleJson = formData.get('flashSale') as string || '{}';
+  let flashSale = undefined;
+  try { flashSale = JSON.parse(flashSaleJson); } catch {}
+
+  const trustBadgesJson = formData.get('trustBadges') as string || '{}';
+  let trustBadges = undefined;
+  try { trustBadges = JSON.parse(trustBadgesJson); } catch {}
+
+  const marketingPopupJson = formData.get('marketingPopup') as string || '{}';
+  let marketingPopup = undefined;
+  try { marketingPopup = JSON.parse(marketingPopupJson); } catch {}
+
+  const seoJson = formData.get('seo') as string || '{}';
+  let seo = undefined;
+  try { seo = JSON.parse(seoJson); } catch {}
+
+
+
   const updatedConfig: ThemeConfig = {
     ...currentConfig,
     storeTemplateId,
@@ -264,6 +283,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     checkoutStyle: (formData.get('checkoutStyle') as any) || 'standard',
     sections: sections.length > 0 ? sections : undefined,
     productSections: productSections.length > 0 ? productSections : undefined,
+    // New Fields
+    flashSale: flashSale?.isActive ? flashSale : undefined,
+    trustBadges: trustBadges?.showPaymentIcons || trustBadges?.showGuaranteeSeals ? trustBadges : undefined,
+    marketingPopup: marketingPopup?.isActive ? marketingPopup : undefined,
+    seo: seo?.metaTitle || seo?.metaDescription ? seo : undefined,
   };
 
   await db.update(stores).set({ 
@@ -458,24 +482,51 @@ export default function StoreLiveEditor() {
     text: string;
     endTime?: string;
     backgroundColor?: string;
-  }>({ isActive: false, text: "Limited Time Offer!" });
+    textColor?: string;
+    discountPercentage?: number;
+    discountType?: 'percent' | 'fixed';
+  }>({ 
+    isActive: false, 
+    text: "Limited Time Offer!",
+    endTime: undefined,
+    backgroundColor: undefined,
+    textColor: undefined,
+    discountPercentage: 0,
+    discountType: 'percent',
+    ...(themeConfig.flashSale || {}) 
+  });
 
   const [trustBadges, setTrustBadges] = useState<{
     showPaymentIcons: boolean;
     showGuaranteeSeals: boolean;
-  }>({ showPaymentIcons: false, showGuaranteeSeals: false });
+    customText?: string;
+  }>({ 
+    showPaymentIcons: false, 
+    showGuaranteeSeals: false,
+    customText: undefined,
+    ...(themeConfig.trustBadges || {}) 
+  });
 
   const [marketingPopup, setMarketingPopup] = useState<{
     isActive: boolean;
     title: string;
     description: string;
     offerCode?: string;
-  }>({ isActive: false, title: "Join & Save", description: "Get 10% off your first order!" });
+    delay?: number;
+  }>({ 
+    isActive: false, 
+    title: "Join & Save", 
+    description: "Get 10% off your first order!",
+    offerCode: undefined,
+    delay: undefined,
+    ...(themeConfig.marketingPopup || {}) 
+  });
 
   const [seoSettings, setSeoSettings] = useState<{
     metaTitle?: string;
     metaDescription?: string;
-  }>({});
+    ogImage?: string;
+  }>(themeConfig.seo || {});
 
   // Accordion state
   const [openSection, setOpenSection] = useState<string>('sections');
@@ -1168,6 +1219,14 @@ export default function StoreLiveEditor() {
 
             {/* Checkout Config */}
             <input type="hidden" name="checkoutStyle" value={checkoutStyle} />
+
+            {/* Marketing Persistence */}
+            <input type="hidden" name="flashSale" value={JSON.stringify(flashSale)} />
+            <input type="hidden" name="trustBadges" value={JSON.stringify(trustBadges)} />
+            <input type="hidden" name="marketingPopup" value={JSON.stringify(marketingPopup)} />
+            <input type="hidden" name="seo" value={JSON.stringify(seoSettings)} />
+
+
 
             {/* SECTIONS LIST */}
             <input type="hidden" name="sections" value={JSON.stringify(homeSections)} />
@@ -2099,6 +2158,202 @@ export default function StoreLiveEditor() {
                     </div>
                   )}
                 </div>
+              </div>
+            </AccordionSection>
+
+            {/* NEW: Marketing & Sales Section */}
+            <AccordionSection
+              title={language === 'bn' ? 'মার্কেটিং ও সেলস' : 'Marketing & Sales'}
+              icon={Sparkles}
+              isOpen={openSection === 'marketing'}
+              onToggle={() => setOpenSection(openSection === 'marketing' ? '' : 'marketing')}
+            >
+              <div className="space-y-6">
+                {/* Flash Sale Toggle */}
+                <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                       Flash Sale Bar
+                    </label>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={flashSale.isActive}
+                        onChange={(e) => setFlashSale({ ...flashSale, isActive: e.target.checked })}
+                      />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                  </div>
+                  
+                  {flashSale.isActive && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Sale Text</label>
+                        <input
+                          type="text"
+                          value={flashSale.text}
+                          onChange={(e) => setFlashSale({...flashSale, text: e.target.value})}
+                          className="w-full text-xs border border-amber-200 rounded p-1.5"
+                          placeholder="Flash Sale! 50% Off"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Discount %</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={flashSale.discountPercentage || 0}
+                              onChange={(e) => setFlashSale({...flashSale, discountPercentage: parseInt(e.target.value) || 0})}
+                              className="w-full text-xs border border-amber-200 rounded p-1.5 pr-6"
+                            />
+                            <span className="absolute right-2 top-1.5 text-xs text-gray-400">%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+                          <select
+                            value={flashSale.discountType || 'percent'}
+                            onChange={(e) => setFlashSale({...flashSale, discountType: e.target.value as 'percent' | 'fixed'})}
+                            className="w-full text-xs border border-amber-200 rounded p-1.5"
+                          >
+                            <option value="percent">Percent Off</option>
+                            <option value="fixed">Fixed Amount</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                         <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Bg Color</label>
+                            <input
+                              type="color"
+                              value={flashSale.backgroundColor || '#000000'}
+                              onChange={(e) => setFlashSale({...flashSale, backgroundColor: e.target.value})}
+                              className="w-full h-8 rounded border cursor-pointer"
+                            />
+                         </div>
+                         <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Text Color</label>
+                            <input
+                              type="color"
+                              value={flashSale.textColor || '#ffffff'}
+                              onChange={(e) => setFlashSale({...flashSale, textColor: e.target.value})}
+                              className="w-full h-8 rounded border cursor-pointer"
+                            />
+                         </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trust Badges */}
+                <div className="border border-gray-100 rounded-lg p-3">
+                  <h4 className="text-xs font-bold text-gray-900 uppercase mb-3">Trust Badges</h4>
+                  
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded border border-gray-200 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={trustBadges.showPaymentIcons}
+                        onChange={(e) => setTrustBadges({...trustBadges, showPaymentIcons: e.target.checked})}
+                        className="rounded text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">Payment Icons (Visa/Bkash)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded border border-gray-200 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={trustBadges.showGuaranteeSeals}
+                        onChange={(e) => setTrustBadges({...trustBadges, showGuaranteeSeals: e.target.checked})}
+                        className="rounded text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">Guarantee Seals (100% Auth)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Marketing Popup */}
+                <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                       <MessageCircle className="w-4 h-4 text-purple-600" />
+                       Popup Offer
+                    </label>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={marketingPopup.isActive}
+                        onChange={(e) => setMarketingPopup({ ...marketingPopup, isActive: e.target.checked })}
+                      />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                  </div>
+
+                  {marketingPopup.isActive && (
+                    <div className="space-y-3">
+                       <input
+                          type="text"
+                          value={marketingPopup.title}
+                          onChange={(e) => setMarketingPopup({...marketingPopup, title: e.target.value})}
+                          className="w-full text-xs border border-purple-200 rounded p-1.5"
+                          placeholder="Popup Title"
+                        />
+                         <textarea
+                          value={marketingPopup.description}
+                          onChange={(e) => setMarketingPopup({...marketingPopup, description: e.target.value})}
+                          className="w-full text-xs border border-purple-200 rounded p-1.5 resize-none"
+                          rows={2}
+                          placeholder="Popup Description"
+                        />
+                         <input
+                          type="text"
+                          value={marketingPopup.offerCode}
+                          onChange={(e) => setMarketingPopup({...marketingPopup, offerCode: e.target.value})}
+                          className="w-full text-xs border border-purple-200 rounded p-1.5 font-mono"
+                          placeholder="Offer Code (e.g. WELCOME10)"
+                        />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* SEO Settings */}
+            <AccordionSection
+              title="SEO Settings"
+              icon={Search}
+              isOpen={openSection === 'seo'}
+              onToggle={() => setOpenSection(openSection === 'seo' ? '' : 'seo')}
+            >
+              <div className="space-y-3">
+                 <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Meta Title</label>
+                    <input
+                      type="text"
+                      value={seoSettings.metaTitle || ''}
+                      onChange={(e) => setSeoSettings({...seoSettings, metaTitle: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      placeholder="My Awesome Store"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Meta Description</label>
+                    <textarea
+                      value={seoSettings.metaDescription || ''}
+                      onChange={(e) => setSeoSettings({...seoSettings, metaDescription: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+                      rows={3}
+                      placeholder="Shop the best products..."
+                    />
+                 </div>
               </div>
             </AccordionSection>
 

@@ -78,6 +78,20 @@ export interface SectionSettings {
   limit?: number;
   features?: any[];
   faqs?: any[];
+  
+  // Text Overrides (AI Control)
+  addToCartText?: string;
+  buyNowText?: string;
+  checkoutText?: string;
+  continueShoppingText?: string;
+  emptyText?: string;
+  buttonText?: string;
+  placeholderText?: string;
+  successMessage?: string;
+  trustText1?: string;
+  trustText2?: string;
+  trustText3?: string;
+  showWishlist?: boolean;
 }
 
 export interface StoreSection {
@@ -259,7 +273,9 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       heading: 'Featured Products',
       productCount: 8,
       paddingTop: 'large',
-      paddingBottom: 'large'
+      paddingBottom: 'large',
+      addToCartText: 'Add to Bag',
+      showWishlist: true
     },
     component: ProductGridSection,
     allowedPages: ['home', 'collection']
@@ -274,7 +290,10 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       subheading: 'Subscribe to receive updates, access to exclusive deals, and more.',
       alignment: 'center',
       paddingTop: 'medium',
-      paddingBottom: 'medium'
+      paddingBottom: 'medium',
+      buttonText: 'Subscribe',
+      placeholderText: 'Enter your email',
+      successMessage: 'Thanks for subscribing!'
     },
     component: NewsletterSection,
     allowedPages: ['home']
@@ -302,7 +321,12 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     name: 'Product Info',
     icon: 'Info',
     description: 'Title, Price, and Buy Button (Product Page Only).',
-    defaultSettings: { paddingTop: 'large', paddingBottom: 'large' },
+    defaultSettings: { 
+      paddingTop: 'large', 
+      paddingBottom: 'large',
+      addToCartText: 'Add to Cart',
+      buyNowText: 'Buy Now'
+    },
     component: ProductInfoSection,
     allowedPages: ['product']
   },
@@ -347,7 +371,11 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     name: 'Cart Items',
     icon: 'ShoppingBag',
     description: 'List of items in the cart.',
-    defaultSettings: { heading: 'Your Cart' },
+    defaultSettings: { 
+      heading: 'Your Cart',
+      continueShoppingText: 'Continue Shopping',
+      emptyText: 'Your cart is empty'
+    },
     component: CartItemsSection,
     allowedPages: ['cart']
   },
@@ -356,7 +384,12 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     name: 'Order Summary',
     icon: 'Calculator',
     description: 'Cart totals and checkout button.',
-    defaultSettings: {},
+    defaultSettings: {
+      checkoutText: 'Proceed to Checkout',
+      trustText1: 'Secure checkout',
+      trustText2: 'Fast delivery',
+      trustText3: 'Easy returns'
+    },
     component: CartSummarySection,
     allowedPages: ['cart']
   }

@@ -323,9 +323,11 @@ interface EclipseProductCardProps {
   storeId: number;
   formatPrice: (price: number) => string;
   isPreview?: boolean;
+  addToCartText?: string;
+  showWishlist?: boolean;
 }
 
-function EclipseProductCard({ product, storeId, formatPrice, isPreview }: EclipseProductCardProps) {
+function EclipseProductCard({ product, storeId, formatPrice, isPreview, addToCartText, showWishlist }: EclipseProductCardProps) {
   const divRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -451,7 +453,7 @@ function EclipseProductCard({ product, storeId, formatPrice, isPreview }: Eclips
                  className="text-xs bg-white/10 text-white px-3 py-1.5 rounded-full"
                  isPreview={isPreview}
                >
-                 Add
+                 {addToCartText || 'Add'}
                </AddToCartButton>
             </div>
           </div>

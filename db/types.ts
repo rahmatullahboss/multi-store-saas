@@ -183,6 +183,33 @@ export interface ThemeConfig {
   productSections?: any[];
   collectionSections?: any[];
   cartSections?: any[]; // StoreSections structure for Product Details Page
+  // Marketing & Sales
+  flashSale?: {
+    isActive: boolean;
+    text?: string;
+    endTime?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    discountPercentage?: number;
+    discountType?: 'percent' | 'fixed';
+  };
+  trustBadges?: {
+    showPaymentIcons: boolean;
+    showGuaranteeSeals: boolean;
+    customText?: string;
+  };
+  marketingPopup?: {
+    isActive: boolean;
+    title?: string;
+    description?: string;
+    delay?: number;
+    offerCode?: string;
+  };
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    ogImage?: string;
+  };
 }
 
 // Social media links configuration

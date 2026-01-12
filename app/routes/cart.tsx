@@ -191,7 +191,22 @@ export default function Cart() {
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const total = subtotal; // Add shipping later logic
+  
+  // Flash Sale Discount Logic
+  const flashSaleConfig = themeConfig?.flashSale;
+  let discountAmount = 0;
+  
+  // Basic check - can add time validation here
+  if (flashSaleConfig?.isActive && flashSaleConfig?.discountPercentage) {
+     if (flashSaleConfig.discountType === 'fixed') {
+         discountAmount = flashSaleConfig.discountPercentage;
+     } else {
+         // Default to percent
+         discountAmount = (subtotal * flashSaleConfig.discountPercentage) / 100;
+     }
+  }
+  
+  const total = Math.max(0, subtotal - discountAmount);
 
   // Cart content that will be wrapped by the appropriate wrapper
   let cartContent = (
@@ -277,9 +292,15 @@ export default function Cart() {
                   <span className={`font-medium ${textPrimary}`}>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={textMuted}>{t('shipping')}</span>
+                  <span className={textMuted}>{t('shipping') || 'Shipping'}</span>
                   <span className={textMuted}>Calculated at checkout</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount {flashSaleConfig?.discountType === 'fixed' ? '' : `(${flashSaleConfig?.discountPercentage}%)`}</span>
+                    <span>-{formatPrice(discountAmount)}</span>
+                  </div>
+                )}
                 {cartItems.length > 0 && (
                    <div className={`border-t ${borderColor} pt-2 md:pt-3 flex justify-between`}>
                      <span className={`font-semibold ${textPrimary}`}>{t('total')}</span>

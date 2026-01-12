@@ -106,6 +106,8 @@ export function ProductGridSection({ settings, theme, products: passedProducts, 
                   currency={currency}
                   formatPrice={formatPrice}
                   theme={theme}
+                  addToCartText={settings.addToCartText}
+                  showWishlist={settings.showWishlist}
                 />
               )
             ))}
@@ -122,7 +124,7 @@ export function ProductGridSection({ settings, theme, products: passedProducts, 
   );
 }
 
-function ProductCard({ product, storeId, currency, formatPrice, theme }: any) {
+function ProductCard({ product, storeId, currency, formatPrice, theme, addToCartText, showWishlist }: any) {
   const [isHovered, setIsHovered] = useState(false);
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount 
@@ -169,18 +171,20 @@ function ProductCard({ product, storeId, currency, formatPrice, theme }: any) {
             className="w-full py-3 text-sm font-medium uppercase tracking-wider transition-colors shadow-lg"
             style={{ backgroundColor: theme.primary, color: 'white' }}
           >
-            Add to Bag
+            {addToCartText || 'Add to Bag'}
           </AddToCartButton>
         </div>
       </Link>
 
       {/* Wishlist Button - Always visible on mobile, hover on desktop */}
+      {showWishlist !== false && (
       <button 
         className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 shadow-md md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-white active:scale-95"
         aria-label="Add to wishlist"
       >
         <Heart className="w-5 h-5" style={{ color: theme.text }} />
       </button>
+      )}
 
       {/* Product Info */}
       <div className="mt-4 text-center">

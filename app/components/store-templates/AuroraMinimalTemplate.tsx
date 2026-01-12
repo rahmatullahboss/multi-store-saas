@@ -791,9 +791,11 @@ interface AuroraProductCardProps {
   storeId: number;
   formatPrice: (price: number) => string;
   isPreview?: boolean;
+  addToCartText?: string;
+  showWishlist?: boolean;
 }
 
-export function AuroraProductCard({ product, storeId, formatPrice, isPreview }: AuroraProductCardProps) {
+export function AuroraProductCard({ product, storeId, formatPrice, isPreview, addToCartText, showWishlist }: AuroraProductCardProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
@@ -865,6 +867,7 @@ export function AuroraProductCard({ product, storeId, formatPrice, isPreview }: 
       </Link>
 
       {/* Wishlist Button */}
+      {showWishlist !== false && (
       <button
         onClick={() => setIsLiked(!isLiked)}
         className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 z-10"
@@ -878,6 +881,7 @@ export function AuroraProductCard({ product, storeId, formatPrice, isPreview }: 
           style={{ color: isLiked ? THEME.primary : THEME.muted }}
         />
       </button>
+      )}
 
       {/* Content */}
       <div className="p-5">
@@ -930,7 +934,7 @@ export function AuroraProductCard({ product, storeId, formatPrice, isPreview }: 
               boxShadow: AURORA_THEME.buttonShadow
             }}
           >
-            Add to Cart
+            {addToCartText || 'Add to Cart'}
           </AddToCartButton>
         ) : (
           <button
@@ -942,7 +946,7 @@ export function AuroraProductCard({ product, storeId, formatPrice, isPreview }: 
             }}
             disabled
           >
-            Add to Cart
+            {addToCartText || 'Add to Cart'}
           </button>
         )}
       </div>
