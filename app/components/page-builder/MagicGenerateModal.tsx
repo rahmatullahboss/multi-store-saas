@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
-import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle, X, Wand2, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -39,18 +39,26 @@ export default function MagicGenerateModal({
     }
   }, [isOpen]);
 
-  // Handle API response
+  // Handle API response - AUTO-APPLY when generated
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data) {
-      if (fetcher.data.success) {
+      if (fetcher.data.success && fetcher.data.data) {
         setGeneratedData(fetcher.data.data);
-        setStep('preview');
+        // AUTO-APPLY: Immediately apply the generated content
+        onGenerate(fetcher.data.data);
+        setStep('success');
+        toast.success(t('designApplied') || '✨ Design applied!');
+        // Close panel after short delay
+        setTimeout(() => {
+          setPrompt('');
+          setStep('input');
+        }, 2000);
       } else if (fetcher.data.error) {
         setStep('input');
         toast.error(fetcher.data.error);
       }
     }
-  }, [fetcher.state, fetcher.data]);
+  }, [fetcher.state, fetcher.data, onGenerate, t]);
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
@@ -63,21 +71,11 @@ export default function MagicGenerateModal({
     );
   };
 
-  const handleApply = () => {
-    if (generatedData) {
-      setStep('success');
-      onGenerate(generatedData);
-      setTimeout(() => {
-        onClose();
-      }, 1000);
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-white/20 relative">
+    // SIDE PANEL instead of centered modal
+    <div className="fixed inset-y-0 right-0 z-[200] w-96 max-w-full flex flex-col bg-white shadow-2xl border-l border-gray-200 animate-in slide-in-from-right duration-300">
         <button 
           onClick={onClose} 
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition text-gray-400 hover:text-gray-600"
@@ -241,34 +239,16 @@ export default function MagicGenerateModal({
             </div>
           )}
 
-          {step === 'preview' && (
-            <div className="py-4 space-y-4">
-               <div className="py-8 bg-emerald-50 rounded-2xl flex items-center justify-center">
-                  <CheckCircle className="w-16 h-16 text-emerald-500" />
-               </div>
-               <button
-                onClick={handleApply}
-                className="w-full bg-emerald-600 text-white font-bold text-lg py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"
-              >
-                {t('applyDesignToPage')}
-              </button>
-              <button
-                onClick={() => setStep('input')}
-                className="w-full bg-white text-gray-500 font-bold text-lg py-2 rounded-xl hover:bg-gray-50 transition"
-              >
-                {t('tryAgain')}
-              </button>
-            </div>
-          )}
-
           {step === 'success' && (
-            <div className="py-8 animate-in zoom-in duration-300 text-emerald-600 font-bold">
-              <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-2" />
-              {t('everythingSet')}
+            <div className="py-8 animate-in zoom-in duration-300 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-200">
+                <CheckCircle className="w-10 h-10 text-white" />
+              </div>
+              <p className="text-xl font-black text-emerald-600">{t('designApplied') || 'Design Applied!'}</p>
+              <p className="text-sm text-gray-500 mt-1">{t('checkCanvas') || 'Check your canvas'}</p>
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }

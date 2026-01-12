@@ -36,6 +36,10 @@
     gap: 4px !important;
     display: flex !important;
     align-items: center !important;
+    /* FIX OVERLAP: Position toolbar above element */
+    transform: translateY(-100%) !important;
+    margin-top: -8px !important;
+    z-index: 9999 !important;
 }
 
 /* Toolbar buttons */
@@ -76,16 +80,29 @@
     color: #f87171 !important;
 }
 
-/* Magic/AI button styling */
+/* Magic/AI button styling - SUPER VISIBLE */
 .gjs-toolbar-item[title*="Magic"],
-.gjs-toolbar-item[title*="AI"] {
-    color: rgba(168, 85, 247, 0.9) !important;
+.gjs-toolbar-item[title*="AI"],
+.gjs-toolbar-item[title*="Design with"] {
+    background: linear-gradient(135deg, #8b5cf6, #a855f7, #c084fc) !important;
+    color: white !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 12px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3) !important;
+    animation: aiPulse 2s ease-in-out infinite !important;
 }
 
 .gjs-toolbar-item[title*="Magic"]:hover,
-.gjs-toolbar-item[title*="AI"]:hover {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(139, 92, 246, 0.25)) !important;
-    color: #a855f7 !important;
+.gjs-toolbar-item[title*="AI"]:hover,
+.gjs-toolbar-item[title*="Design with"]:hover {
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6, #a855f7) !important;
+    transform: scale(1.12) !important;
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.6), 0 0 30px rgba(168, 85, 247, 0.4) !important;
+    animation: none !important;
+}
+
+@keyframes aiPulse {
+    0%, 100% { box-shadow: 0 2px 12px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3); }
+    50% { box-shadow: 0 4px 20px rgba(168, 85, 247, 0.7), 0 0 35px rgba(168, 85, 247, 0.5); }
 }
 
 /* Star/favorite button */
