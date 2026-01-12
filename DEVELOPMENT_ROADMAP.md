@@ -150,7 +150,12 @@
   - **Product Recommendations**: AI-driven "Frequently Bought Together" logic.
   - **Next Purchase Prediction**: Forecasted date for next order.
 
-### Phase 15: Advanced Marketing Integrations (Planned) 🚧
+### Phase 16: Maintenance & Stability (Completed) 🛡️
+
+- [x] **Dependency Audit & Resolution**: Reverted incompatible `remix-i18next` v7 bump to v6, restoring build stability and resolving peer dependency conflicts.
+- [x] **CI/CD Reliability**: Fixed build failures in preview branch caused by automated dependency upgrades.
+
+### Phase 17: Advanced Marketing Integrations (Planned) 🚧
 
 - [ ] **SMS Gateway Integration**: Native integration with SSL Wireless / BulkSMS BD for real SMS delivery.
 - [ ] **WhatsApp Business API**: Direct integration for official Template Messages (Order Confirm, Shipping).
