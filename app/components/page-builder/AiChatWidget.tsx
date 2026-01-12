@@ -106,7 +106,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
         {
           id: '1',
           role: 'assistant',
-          content: 'আমি আপনার Landing Page ডিজাইনে সাহায্য করতে পারি! 🎨\n\nযেকোনো element সিলেক্ট করে বলুন কী পরিবর্তন চান।\n\n👇 "সাহায্য" ট্যাবে উদাহরণ দেখুন!'
+          content: t('chatWelcome')
         }
       ]);
     }
@@ -214,7 +214,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
             </div>
             <div>
                 <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm">AI Page Builder</h3>
+                    <h3 className="font-bold text-sm">{t('pageBuilderAi')}</h3>
                     {isLocked && <span className="bg-white/20 text-white text-[10px] font-black px-1.5 py-0.5 rounded flex items-center gap-1"><Sparkles size={8} /> PRO</span>}
                 </div>
                 <p className="text-[10px] text-gray-400 font-medium">Natural Language → Design</p>
@@ -263,7 +263,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
               }`}
             >
               <MessageSquare className="w-4 h-4" />
-              চ্যাট
+              {t('chatLabel')}
             </button>
             <button
               onClick={() => setActiveTab('help')}
@@ -274,7 +274,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
               }`}
             >
               <HelpCircle className="w-4 h-4" />
-              সাহায্য
+              {t('helpLabel')}
             </button>
           </div>
 
@@ -307,7 +307,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
                     </div>
                     <div className="bg-white border border-gray-100 px-3 py-2 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
                       <Loader2 size={14} className="animate-spin text-indigo-500" />
-                      <span className="text-xs text-gray-500 font-medium">চিন্তা করছি...</span>
+                      <span className="text-xs text-gray-500 font-medium">{t('thinking')}</span>
                     </div>
                   </div>
                 )}
@@ -319,7 +319,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
                 <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-100">
                   <div className="flex items-center gap-2 text-indigo-700 font-medium mb-3">
                     <Lightbulb className="w-4 h-4" />
-                    গুরুত্বপূর্ণ টিপস
+                    {t('tipsTitle')}
                   </div>
                   <ul className="space-y-2">
                     {TIPS.map((tip, idx) => (
@@ -332,7 +332,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
                 <div className="space-y-2">
                   <h3 className="font-medium text-gray-700 flex items-center gap-2">
                     <MessageSquare className="w-4 h-4" />
-                    উদাহরণ কমান্ড
+                    {t('exampleCommands')}
                   </h3>
                   
                   {EXAMPLE_CATEGORIES.map((cat) => (

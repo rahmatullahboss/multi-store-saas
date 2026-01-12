@@ -79,9 +79,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const publish = new URL(request.url).searchParams.get('publish') === 'true' || data.publish === true || data.isPublished === true;
 
     // Extract pageConfig if present
+    const rawPageConfig = data.pageConfig || {};
     const pageConfig = data.pageConfig ? JSON.stringify(data.pageConfig) : null;
     // Don't include pageConfig in the projectData string saved to DB
     const { pageConfig: _, ...projectDataOnly } = data;
+
+    // Determine slug and name from config or body
+    const slug = rawPageConfig.slug || data.slug || `page-${Date.now()}`;
+    const name = rawPageConfig.metaTitle || data.name || 'Untitled Page';
 
     // ========================================================================
     // PROCESS IMAGES: Move from 'temp/' to 'uploads/' on Save
@@ -137,9 +142,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (!pageId) {
       // Create new page
-      const name = data.name || 'Untitled Page';
-      const slug = data.slug || `page-${Date.now()}`;
-
       const [newPage] = await db
         .insert(landingPages)
         .values({
@@ -160,6 +162,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       await db
         .update(landingPages)
         .set({
+          name,
+          slug,
           projectData,
           htmlContent: html,
           cssContent: css,

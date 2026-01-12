@@ -3,16 +3,20 @@ import type { Editor } from 'grapesjs';
 import { 
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Type, Move, Maximize2, Palette, Image as ImageIcon,
-  Layout, MousePointer2, ChevronDown, ChevronRight
+  Layout, MousePointer2, ChevronDown, ChevronRight,
+  Sparkles
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface StyleControlsProps {
   editor: Editor;
 }
 
 export default function StyleControls({ editor }: StyleControlsProps) {
+  const { t } = useTranslation();
   const [selectedComp, setSelectedComp] = useState<any>(null);
   const [styles, setStyles] = useState<Record<string, string>>({});
+  const [attrs, setAttrs] = useState<Record<string, string>>({});
   const [activeSector, setActiveSector] = useState<string | null>('layout');
 
   useEffect(() => {
@@ -22,14 +26,15 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       const selected = editor.getSelected();
       setSelectedComp(selected);
       if (selected) {
-        // Ensure we always have an object, even if getStyle returns undefined
         setStyles((selected as any).getStyle() || {});
+        setAttrs(selected.getAttributes() || {});
       }
     };
 
     editor.on('component:selected', updateStyles);
     editor.on('component:styleUpdate', updateStyles);
     editor.on('style:property:update', updateStyles);
+    editor.on('component:update', updateStyles);
 
     updateStyles();
 
@@ -54,7 +59,7 @@ export default function StyleControls({ editor }: StyleControlsProps) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-center px-6">
         <MousePointer2 size={32} className="mb-4 opacity-50" />
-        <p className="text-xs font-medium">Select an element on the canvas to edit its styles.</p>
+        <p className="text-xs font-medium">{t('selectElementHint')}</p>
       </div>
     );
   }
@@ -63,7 +68,7 @@ export default function StyleControls({ editor }: StyleControlsProps) {
     <div className="space-y-1 pb-20">
       
       {/* Layout Sector */}
-      <Sector title="Layout" icon={<Layout size={14} />} isOpen={activeSector === 'layout'} onToggle={() => setActiveSector(activeSector === 'layout' ? null : 'layout')}>
+      <Sector title={t('sectorLayout')} icon={<Layout size={14} />} isOpen={activeSector === 'layout'} onToggle={() => setActiveSector(activeSector === 'layout' ? null : 'layout')}>
         <ControlRow label="Display">
            <SelectControl 
               value={styles['display'] || 'block'} 
@@ -147,7 +152,7 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       </Sector>
 
       {/* Spacing (Box Model) Sector */}
-      <Sector title="Spacing" icon={<Maximize2 size={14} />} isOpen={activeSector === 'spacing'} onToggle={() => setActiveSector(activeSector === 'spacing' ? null : 'spacing')}>
+      <Sector title={t('sectorSpacing')} icon={<Maximize2 size={14} />} isOpen={activeSector === 'spacing'} onToggle={() => setActiveSector(activeSector === 'spacing' ? null : 'spacing')}>
          <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-4 relative">
              <span className="absolute top-1 left-2 text-[9px] text-gray-400 font-bold uppercase">Margin</span>
              {/* Margin Box */}
@@ -189,7 +194,7 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       </Sector>
 
       {/* Typography Sector */}
-      <Sector title="Typography" icon={<Type size={14} />} isOpen={activeSector === 'typography'} onToggle={() => setActiveSector(activeSector === 'typography' ? null : 'typography')}>
+      <Sector title={t('sectorTypography')} icon={<Type size={14} />} isOpen={activeSector === 'typography'} onToggle={() => setActiveSector(activeSector === 'typography' ? null : 'typography')}>
           <ControlRow label="Font Family">
              <SelectControl 
                 value={styles['font-family'] || ''} 
@@ -233,7 +238,7 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       </Sector>
 
       {/* Background Sector */}
-      <Sector title="Background" icon={<Palette size={14} />} isOpen={activeSector === 'background'} onToggle={() => setActiveSector(activeSector === 'background' ? null : 'background')}>
+      <Sector title={t('sectorBackground')} icon={<Palette size={14} />} isOpen={activeSector === 'background'} onToggle={() => setActiveSector(activeSector === 'background' ? null : 'background')}>
           <ControlRow label="Color">
              <ColorInput 
                 value={styles['background-color']} 
@@ -257,7 +262,7 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       </Sector>
 
       {/* Borders */}
-      <Sector title="Border & Corners" icon={<Maximize2 size={14} />} isOpen={activeSector === 'border'} onToggle={() => setActiveSector(activeSector === 'border' ? null : 'border')}>
+      <Sector title={t('sectorBorder')} icon={<Maximize2 size={14} />} isOpen={activeSector === 'border'} onToggle={() => setActiveSector(activeSector === 'border' ? null : 'border')}>
           <ControlRow label="Radius">
              <UnitInput 
                 placeholder="0px" 
@@ -288,120 +293,88 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       </Sector>
 
       {/* Animation Sector */}
-      <Sector title="Animation" icon={<Move size={14} />} isOpen={activeSector === 'animation'} onToggle={() => setActiveSector(activeSector === 'animation' ? null : 'animation')}>
-          <ControlRow label="Animation Type">
+      <Sector title={t('sectorAnimation')} icon={<Sparkles size={14} />} isOpen={activeSector === 'animation'} onToggle={() => setActiveSector(activeSector === 'animation' ? null : 'animation')}>
+          <ControlRow label="Entrance Animation">
              <SelectControl 
-                value={styles['animation-name'] || 'none'} 
+                value={attrs['data-gjs-animate'] || ''} 
                 options={[
-                    { label: 'None', value: 'none' },
-                    { label: 'Fade In', value: 'fadeIn' },
-                    { label: 'Fade In Up', value: 'fadeInUp' },
-                    { label: 'Fade In Down', value: 'fadeInDown' },
-                    { label: 'Slide Up', value: 'slideUp' },
-                    { label: 'Slide Down', value: 'slideDown' },
-                    { label: 'Slide Left', value: 'slideLeft' },
-                    { label: 'Slide Right', value: 'slideRight' },
-                    { label: 'Bounce In', value: 'bounceIn' },
-                    { label: 'Zoom In', value: 'zoomIn' },
-                    { label: 'Pulse', value: 'pulse' },
-                    { label: 'Shake', value: 'shake' },
+                    { label: 'None', value: '' },
+                    // Fades
+                    { label: 'Fade In', value: 'animate__fadeIn' },
+                    { label: 'Fade In Down', value: 'animate__fadeInDown' },
+                    { label: 'Fade In Up', value: 'animate__fadeInUp' },
+                    { label: 'Fade In Left', value: 'animate__fadeInLeft' },
+                    { label: 'Fade In Right', value: 'animate__fadeInRight' },
+                    // Zooms
+                    { label: 'Zoom In', value: 'animate__zoomIn' },
+                    { label: 'Zoom In Down', value: 'animate__zoomInDown' },
+                    { label: 'Zoom In Up', value: 'animate__zoomInUp' },
+                    // Bounces
+                    { label: 'Bounce In', value: 'animate__bounceIn' },
+                    // Flips
+                    { label: 'Flip In X', value: 'animate__flipInX' },
+                    { label: 'Flip In Y', value: 'animate__flipInY' },
+                    // Slides
+                    { label: 'Slide In Down', value: 'animate__slideInDown' },
+                    { label: 'Slide In Up', value: 'animate__slideInUp' },
                 ]}
                 onChange={(val: string) => {
-                    updateStyle('animation-name', val);
-                    if (val !== 'none') {
-                        // Set default duration if not set
-                        if (!styles['animation-duration']) {
-                            updateStyle('animation-duration', '0.5s');
-                        }
-                        // Add animation class for Tailwind
-                        selectedComp.addClass(`animate-${val}`);
-                    }
+                    selectedComp.addAttributes({ 'data-gjs-animate': val });
+                    setAttrs(prev => ({ ...prev, 'data-gjs-animate': val }));
                 }}
              />
           </ControlRow>
           
-          {styles['animation-name'] && styles['animation-name'] !== 'none' && (
+          {attrs['data-gjs-animate'] && (
             <>
               <ControlRow label="Duration">
                  <SelectControl 
-                    value={styles['animation-duration'] || '0.5s'} 
+                    value={attrs['data-gjs-duration'] || ''} 
                     options={[
-                        { label: '0.2s (Fast)', value: '0.2s' },
-                        { label: '0.3s', value: '0.3s' },
-                        { label: '0.5s (Normal)', value: '0.5s' },
-                        { label: '0.7s', value: '0.7s' },
-                        { label: '1s (Slow)', value: '1s' },
-                        { label: '1.5s', value: '1.5s' },
-                        { label: '2s (Very Slow)', value: '2s' },
+                        { label: 'Normal', value: '' },
+                        { label: 'Slow', value: 'animate__slow' },
+                        { label: 'Slower', value: 'animate__slower' },
+                        { label: 'Fast', value: 'animate__fast' },
+                        { label: 'Faster', value: 'animate__faster' },
                     ]}
-                    onChange={(val: string) => updateStyle('animation-duration', val)}
+                    onChange={(val: string) => {
+                        selectedComp.addAttributes({ 'data-gjs-duration': val });
+                        setAttrs(prev => ({ ...prev, 'data-gjs-duration': val }));
+                    }}
                  />
               </ControlRow>
               
-              <ControlRow label="Delay">
-                 <SelectControl 
-                    value={styles['animation-delay'] || '0s'} 
-                    options={[
-                        { label: 'None', value: '0s' },
-                        { label: '0.2s', value: '0.2s' },
-                        { label: '0.5s', value: '0.5s' },
-                        { label: '1s', value: '1s' },
-                        { label: '1.5s', value: '1.5s' },
-                        { label: '2s', value: '2s' },
-                    ]}
-                    onChange={(val: string) => updateStyle('animation-delay', val)}
-                 />
-              </ControlRow>
-
-              <ControlRow label="Timing">
-                 <SelectControl 
-                    value={styles['animation-timing-function'] || 'ease'} 
-                    options={[
-                        { label: 'Ease (Default)', value: 'ease' },
-                        { label: 'Linear', value: 'linear' },
-                        { label: 'Ease In', value: 'ease-in' },
-                        { label: 'Ease Out', value: 'ease-out' },
-                        { label: 'Ease In Out', value: 'ease-in-out' },
-                        { label: 'Bounce', value: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)' },
-                    ]}
-                    onChange={(val: string) => updateStyle('animation-timing-function', val)}
-                 />
-              </ControlRow>
-
-              <ControlRow label="Repeat">
-                 <SelectControl 
-                    value={styles['animation-iteration-count'] || '1'} 
-                    options={[
-                        { label: 'Once', value: '1' },
-                        { label: 'Twice', value: '2' },
-                        { label: '3 Times', value: '3' },
-                        { label: 'Infinite', value: 'infinite' },
-                    ]}
-                    onChange={(val: string) => updateStyle('animation-iteration-count', val)}
+              <ControlRow label="Delay (ms)">
+                 <UnitInput 
+                    value={attrs['data-gjs-delay'] || ''} 
+                    placeholder="0"
+                    onChange={(val: string) => {
+                        selectedComp.addAttributes({ 'data-gjs-delay': val });
+                        setAttrs(prev => ({ ...prev, 'data-gjs-delay': val }));
+                    }}
                  />
               </ControlRow>
 
               {/* Preview Button */}
               <button 
                 onClick={() => {
-                    // Trigger animation replay
                     const el = selectedComp.getEl();
                     if (el) {
-                        el.style.animation = 'none';
-                        el.offsetHeight; // Trigger reflow
-                        el.style.animation = '';
+                        el.classList.remove('animate__animated');
+                        void el.offsetWidth; // Force reflow
+                        el.classList.add('animate__animated');
                     }
                 }}
                 className="w-full mt-2 py-2 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg hover:bg-indigo-200 transition flex items-center justify-center gap-2"
               >
-                <Move size={12} /> Preview Animation
+                <Sparkles size={12} /> Preview Effect
               </button>
             </>
           )}
       </Sector>
 
       {/* Advanced / Custom CSS */}
-      <Sector title="Advanced" icon={<Maximize2 size={14} />} isOpen={activeSector === 'advanced'} onToggle={() => setActiveSector(activeSector === 'advanced' ? null : 'advanced')}>
+      <Sector title={t('sectorAdvanced')} icon={<Maximize2 size={14} />} isOpen={activeSector === 'advanced'} onToggle={() => setActiveSector(activeSector === 'advanced' ? null : 'advanced')}>
           <ControlRow label="Element ID">
              <UnitInput 
                 placeholder="my-element-id" 

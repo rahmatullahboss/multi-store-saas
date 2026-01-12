@@ -418,7 +418,7 @@ export default function SidebarPanel({
           {activeTab === 'structure' && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300">
                <div className="p-4 border-b border-gray-50 bg-gray-50/30">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Document Structure</h3>
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('docStructure')}</h3>
                </div>
                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                   <div ref={layersContainerRef} className="gjs-layers-wrap" />
@@ -429,7 +429,7 @@ export default function SidebarPanel({
           {activeTab === 'settings' && pageConfig && onPageConfigChange && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300 text-sm">
                <div className="p-4 border-b border-gray-50 bg-gray-50/30">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Page Settings</h3>
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('pageSettings')}</h3>
                </div>
                <div className="flex-1 overflow-y-auto relative">
                  <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />

@@ -8,17 +8,19 @@
 import { useEditorMaybe } from '@grapesjs/react';
 import { useState, useEffect } from 'react';
 import { MousePointer2, Hand, Focus, Zap } from 'lucide-react';
-
-const STATES = [
-  { name: '', label: 'Normal', icon: MousePointer2 },
-  { name: 'hover', label: 'Hover', icon: Hand },
-  { name: 'focus', label: 'Focus', icon: Focus },
-  { name: 'active', label: 'Active', icon: Zap },
-];
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export default function StateSelector() {
+  const { t } = useTranslation();
   const editor = useEditorMaybe();
   const [activeState, setActiveState] = useState('');
+
+  const STATES = [
+    { name: '', label: t('normalState'), icon: MousePointer2 },
+    { name: 'hover', label: t('hoverState'), icon: Hand },
+    { name: 'focus', label: t('focusState'), icon: Focus },
+    { name: 'active', label: t('activeState'), icon: Zap },
+  ];
 
   // Sync with GrapesJS state
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function StateSelector() {
 
   return (
     <div className="flex flex-wrap items-center gap-1 p-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
-      <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mr-2 w-full sm:w-auto mb-1 sm:mb-0">State:</span>
+      <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mr-2 w-full sm:w-auto mb-1 sm:mb-0">{t('stateLabel')}:</span>
       {STATES.map((state) => {
         const Icon = state.icon;
         const isActive = activeState === state.name;
