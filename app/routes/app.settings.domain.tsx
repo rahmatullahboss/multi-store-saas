@@ -87,7 +87,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     planType: store[0].planType as PlanType,
     canUseDomain: canUseCustomDomain((store[0].planType as PlanType) || 'free'),
     cloudflareConfigured,
-    dnsTarget: 'ozzyl-saas.pages.dev',
+    dnsTarget: 'multi-store-saas.pages.dev',
   });
 }
 

@@ -9,7 +9,7 @@
  */
 
 export interface Env {
-  PAGES_URL: string; // e.g., "https://ozzyl-saas.pages.dev"
+  PAGES_URL: string; // e.g., "https://multi-store-saas.pages.dev"
 }
 
 // Static asset patterns to skip (serve directly from CDN)
@@ -39,14 +39,14 @@ export default {
     // ========================================================================
     if (isStaticAsset(pathname)) {
       // Direct fetch from CDN - avoids 302 redirect which causes 2 requests
-      const cdnUrl = new URL(pathname + url.search, env.PAGES_URL || 'https://ozzyl-saas.pages.dev');
+      const cdnUrl = new URL(pathname + url.search, env.PAGES_URL || 'https://multi-store-saas.pages.dev');
       return fetch(cdnUrl.toString());
     }
     
     console.log(`[Proxy] Request: ${hostname}${pathname}`);
     
     // Build the Pages URL
-    const pagesUrl = env.PAGES_URL || 'https://ozzyl-saas.pages.dev';
+    const pagesUrl = env.PAGES_URL || 'https://multi-store-saas.pages.dev';
     const targetUrl = new URL(pathname + url.search, pagesUrl);
     
     // Clone headers and add forwarded host

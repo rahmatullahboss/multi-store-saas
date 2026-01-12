@@ -122,7 +122,7 @@ export async function createCustomHostname(
     sslStatus: mapSslStatus(hostname.ssl.status),
     hostnameId: hostname.id,
     hostname: hostname.hostname,
-    dnsTarget: 'ozzyl-saas.pages.dev', // CNAME target
+    dnsTarget: 'multi-store-saas.pages.dev', // CNAME target - your actual Pages project
     ownershipVerification: hostname.ownership_verification,
   };
 }
@@ -169,7 +169,7 @@ export async function getHostnameStatus(
     sslStatus: mapSslStatus(hostname.ssl.status),
     hostnameId: hostname.id,
     hostname: hostname.hostname,
-    dnsTarget: 'ozzyl-saas.pages.dev',
+    dnsTarget: 'multi-store-saas.pages.dev',
     ownershipVerification: hostname.ownership_verification,
   };
 }

@@ -5,7 +5,7 @@ main = "subdomain-proxy/index.ts"
 compatibility_date = "2024-12-30"
 
 [vars]
-PAGES_URL = "https://ozzyl-saas.pages.dev"
+PAGES_URL = "https://multi-store-saas.pages.dev"
 
 # Routes configured in Cloudflare Dashboard:
 # *.ozzyl.com/* → wildcard-proxy
