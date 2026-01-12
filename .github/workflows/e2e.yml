@@ -50,6 +50,9 @@ jobs:
           E2E_BASE_URL: http://localhost:5173
           E2E_MERCHANT_EMAIL: ${{ secrets.E2E_MERCHANT_EMAIL }}
           E2E_MERCHANT_PASSWORD: ${{ secrets.E2E_MERCHANT_PASSWORD }}
+          SESSION_SECRET: test-session-secret-for-e2e
+          COOKIE_SECRET: test-cookie-secret-for-e2e
+          NODE_ENV: test
 
       - name: 📊 Upload test results
         uses: actions/upload-artifact@v4
@@ -105,6 +108,9 @@ jobs:
         run: npx playwright test --project=${{ matrix.browser }}
         env:
           E2E_BASE_URL: http://localhost:5173
+          SESSION_SECRET: test-session-secret-for-e2e
+          COOKIE_SECRET: test-cookie-secret-for-e2e
+          NODE_ENV: test
 
       - name: 📊 Upload ${{ matrix.browser }} report
         uses: actions/upload-artifact@v4
@@ -149,6 +155,9 @@ jobs:
           npx playwright test --project="Mobile Safari"
         env:
           E2E_BASE_URL: http://localhost:5173
+          SESSION_SECRET: test-session-secret-for-e2e
+          COOKIE_SECRET: test-cookie-secret-for-e2e
+          NODE_ENV: test
 
       - name: 📊 Upload mobile report
         uses: actions/upload-artifact@v4
