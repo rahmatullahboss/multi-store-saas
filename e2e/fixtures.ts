@@ -20,7 +20,7 @@ export const testData = {
   // Test store data
   store: {
     name: 'Test Store',
-    subdomain: `teststore-${Date.now()}`,
+    subdomain: 'test-store-' + Math.floor(Math.random() * 100000),
     currency: 'BDT',
   },
   
@@ -85,16 +85,41 @@ export class AuthPage {
     await this.page.waitForURL(/\/app/);
   }
   
-  async register(name: string, email: string, password: string) {
+  async register(name: string, email: string, password: string, storeName: string, subdomain: string) {
     await this.page.fill('input[name="name"]', name);
     await this.page.fill('input[name="email"]', email);
     await this.page.fill('input[name="password"]', password);
-    await this.page.fill('input[name="confirmPassword"]', password);
+    await this.page.fill('input[name="storeName"]', storeName);
+    
+    // Check if we need to show custom subdomain field
+    const customToggle = this.page.locator('#useCustomSubdomain');
+    if (await customToggle.isVisible()) {
+      await customToggle.check();
+      await this.page.fill('input[name="subdomain"]', subdomain);
+    }
+    
     await this.page.click('button[type="submit"]');
   }
   
   async loginWithGoogle() {
     await this.page.click('button:has-text("Google")');
+  }
+
+  async ensureRegisteredAndLoggedIn(name: string, email: string, password: string, storeName: string, subdomain: string) {
+    await this.gotoLogin();
+    await this.page.fill('input[name="email"]', email);
+    await this.page.fill('input[name="password"]', password);
+    await this.page.click('button[type="submit"]');
+
+    try {
+      // Wait for app or dashboard
+      await this.page.waitForURL(/\/app/, { timeout: 5000 });
+    } catch (e) {
+      // Login failed, try registration
+      await this.gotoRegister();
+      await this.register(name, email, password, storeName, subdomain);
+      await this.page.waitForURL(/\/app/, { timeout: 10000 });
+    }
   }
 }
 

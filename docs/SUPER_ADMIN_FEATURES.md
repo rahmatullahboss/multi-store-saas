@@ -22,7 +22,9 @@ _Manage your merchants and billing._
   - **View All Stores**: See a list of all active and inactive stores.
   - **Impersonation**: Login as any merchant to debug issues or provide support.
   - **Suspension**: Suspend non-compliant stores with a click.
+- **Custom Domain Management**: Approve or reject custom domain requests from merchants. Monitor SSL status and DNS verification.
 - **Plan Management**: Configure subscription tiers (Free, Pro, Enterprise) and set feature limits (e.g., max 100 products, AI message limits).
+- **Manual Payment Verification**: Verify subscription payments made via bKash/Nagad and approve store activation.
 
 ## 3. Theme Marketplace
 
@@ -36,4 +38,5 @@ _Curate the design options for your merchants._
 _How it works under the hood (Cost Analysis)._
 
 - **AI Engine (Shared)**: Uses a shared AI model for the Command Center.
+- **AI Credit System**: Monitors merchant AI usage and credit balances. Handles automated credit deductions for LLM features.
 - **Cost Efficiency**: Most analytics (Health Score, Funnels) use **System Logic (SQL/Stats)** instead of heavy AI calls, keeping your operational costs low.

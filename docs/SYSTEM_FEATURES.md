@@ -16,7 +16,9 @@ The Super Admin dashboard is the control center for the entire SaaS platform.
 ### 1.2 Tenant & Subscription Management
 
 - **Store Management**: View active/inactive stores, login as merchant (Impersonation), and suspend non-compliant stores.
-- **Plan Management**: Configure subscription tiers (Free, Pro, Enterprise) and feature limits (e.g., max 100 products).
+- **Custom Domain Management**: Approve and manage merchant custom domains, monitor SSL/DNS status.
+- **Subscription Verification**: Manual bKash/Nagad verification for store subscriptions.
+- **Plan Management**: Configure subscription tiers (Free, Pro, Enterprise) and feature limits.
 
 ### 1.3 Theme Marketplace
 
@@ -42,6 +44,8 @@ Merchants have access to a powerful dashboard to manage their e-commerce busines
 - **Messaging Automation (SMS & WhatsApp)**:
   - **Abandoned Cart Recovery**: Automatically finds carts abandoned for >1 hour and sends a recovery link via WhatsApp (Priority) or SMS.
   - **Order Confirmation**: Instant WhatsApp/SMS notification when an order is placed.
+- **A/B Testing**: Support for traffic splitting and performance tracking (Views, Conversions, Revenue) for products and landing pages.
+- **Loyalty & Rewards**: Tiered loyalty program (Bronze to Platinum) with referral system and point redemption.
 - **Upsells & Order Bumps**:
   - **Pre-Purchase Bumps**: Offer complementary products right in the checkout flow.
   - **Post-Purchase Upsells**: One-click upsell offers after payment.
@@ -59,8 +63,9 @@ Merchants have access to a powerful dashboard to manage their e-commerce busines
 
 ### 2.3 Store Design & Templates
 
-- **Live Store Editor**: Drag-and-drop editor to customize the storefront.
-- **Mobile-First Themes**: Themes like "MobileFirst" and "Luxe" optimized for mobile views.
+- **Live Store Editor**: Drag-and-drop editor based on GrapesJS.
+- **Advanced Builder Features**: Motion Effects, Shape Dividers, Popup Builder, and Custom CSS support.
+- **Mobile-First Themes**: Themes like "MobileFirst", "Luxe", "Eclipse", and "AuroraMinimal" optimized for modern aesthetics.
 - **Mobile Preview**: Real-time preview of how the store looks on mobile devices.
 - **My Themes**: Save and switch between different installed themes.
 
@@ -113,6 +118,7 @@ The shopping experience provided to the end consumers.
 - **AI Engine**:
   - **RAG (Retrieval-Augmented Generation)**: Uses **Cloudflare Vectorize** to give AI agents access to real-time store data.
   - **LLM**: Compatible with OpenAI and other LLM providers via standard API.
+  - **AI Credit System**: Internal credit management for billable AI features.
 - **Security**:
   - **Role-Based Access Control (RBAC)**: Strict separation between Super Admin, Merchant, and Customer data.
   - **Data Isolation**: Row-level security logic ensures merchants only see their own data.

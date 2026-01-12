@@ -105,24 +105,32 @@ test.describe('Authentication', () => {
   });
   
   test.describe('Session Management', () => {
-    
     test('should redirect to login when not authenticated', async ({ page }) => {
       await page.goto('/app');
-      
-      // Should redirect to login
       await expect(page).toHaveURL(/auth\/login/);
     });
-    
+
     test('should have secure cookie attributes', async ({ page, context }) => {
       await page.goto('/');
-      
       const cookies = await context.cookies();
       const sessionCookie = cookies.find(c => c.name.includes('session'));
-      
       if (sessionCookie) {
         expect(sessionCookie.httpOnly).toBe(true);
         expect(sessionCookie.secure).toBe(true);
       }
+    });
+  });
+
+  test.describe('CI Auto-Registration', () => {
+    test('should ensure merchant account exists and can login', async ({ authPage, page }) => {
+      await authPage.ensureRegisteredAndLoggedIn(
+        testData.merchant.name,
+        testData.merchant.email,
+        testData.merchant.password,
+        testData.store.name,
+        testData.store.subdomain
+      );
+      await expect(page).toHaveURL(/\/app/);
     });
   });
 });

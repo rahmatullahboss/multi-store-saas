@@ -52,13 +52,20 @@ _Automate customer engagement._
 
 - **Tiered Loyalty Program**:
   - **Bronze**: 1x Points (Base).
-  - **Silver (Spent > 10k)**: 1.2x Points.
-  - **Gold (Spent > 50k)**: 1.5x Points.
-  - **Platinum (Spent > 100k)**: 2x Points.
+  - **Silver (Spent > 10,000 BDT)**: 1.2x Points.
+  - **Gold (Spent > 50,000 BDT)**: 1.5x Points.
+  - **Platinum (Spent > 100,000 BDT)**: 2x Points.
 - **Referral System**: Bonus points awarded to referrers when their friends make a first purchase.
+- **Point Redemption**: Customers can use points to get discounts on future orders (configured by merchant).
 - **Cost**: **$0**. Built-in logic engine.
 
-### 2.2 AI Co-Pilot & Assistant (AI Powered - Paid) 🤖
+### 2.3 A/B Testing (System Logic - Pro Plan)
+
+- **Function**: Create multiple versions of product pages or landing pages to see which one performs better.
+- **Metrics**: Tracks Views, Conversions, and Revenue per variant.
+- **Cost**: **$0** (included in Pro/Business plans). Uses database-driven traffic splitting.
+
+### 2.4 AI Co-Pilot & Assistant (AI Powered - Paid) 🤖
 
 - **Smart Assistant**: Chatbot that answers questions ("How are sales today?").
 - **Cost**: Uses LLM Tokens. **Billable**.
@@ -74,10 +81,11 @@ _Automate customer engagement._
 
 _Standard e-commerce capabilities._
 
-- **Live Store Editor**: Drag-and-drop customization.
-- **Product Management**: Inventory tracking, variants.
-- **Order Management**: Invoicing, status updates.
-- **Customer CRM**: Order history, basics profiles.
+- **Live Store Editor**: Drag-and-drop customization with GrapesJS.
+- **Advanced Page Builder**: Support for Motion Effects, Shape Dividers, Popup Builder, and Custom CSS.
+- **Product Management**: Inventory tracking, variants, and SEO customization.
+- **Order Management**: Invoicing, status updates, and courier integration.
+- **Customer CRM**: Order history, basic profiles, and smart segmentation (VIP, Churn Risk, etc.).
 
 ---
 
