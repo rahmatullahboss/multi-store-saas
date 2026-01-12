@@ -80,6 +80,7 @@ export const dashboard = {
   backToOrders: 'Back to Orders',
   orderNumber: 'Order Number',
   printInvoice: 'Print Invoice',
+  downloadPdf: 'Download PDF',
   updateStatus: 'Update Status',
   billTo: 'Bill To',
   shipTo: 'Ship To',

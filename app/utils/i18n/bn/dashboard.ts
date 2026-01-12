@@ -81,6 +81,7 @@ export const dashboard = {
   backToOrders: 'অর্ডারে ফিরে যান',
   orderNumber: 'অর্ডার নম্বর',
   printInvoice: 'ইনভয়েস প্রিন্ট করুন',
+  downloadPdf: 'পিডিএফ ডাউনলোড',
   updateStatus: 'স্ট্যাটাস আপডেট করুন',
   billTo: 'বিল টু',
   shipTo: 'শিপ টু',
