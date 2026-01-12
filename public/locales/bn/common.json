@@ -139,6 +139,12 @@
   "emailRequired": "ইমেইল দিন",
   "passwordRequired": "পাসওয়ার্ড দিন",
   "invalidCredentials": "ইমেইল বা পাসওয়ার্ড ভুল",
+  "orderNow": "এখনই অর্ডার করুন",
+  "cashOnDelivery": "ক্যাশ অন ডেলিভারি",
+  "satisfiedCustomer": "সন্তুষ্ট ক্রেতা",
+  "satisfiedCustomerText": "অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!",
+  "limitedTimeOffer": "🔥 সীমিত সময়ের অফার!",
+  "satisfactionGuarantee": "১০০% সন্তুষ্টির গ্যারান্টি",
   "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
   "storeNotFound": "আপনার স্টোরটি খুঁজে পাওয়া যায়নি। দয়া করে এডমিনের সাথে যোগাযোগ করুন অথবা নতুন করে সাইন-আপ করুন।",
   
@@ -146,7 +152,6 @@
   "freeDeliveryInDhaka": "ঢাকায় ফ্রি ডেলিভারি",
   "originalProduct": "১০০% অরিজিনাল",
   "originalGuarantee": "অরিজিনালের নিশ্চয়তা",
-  "cashOnDelivery": "ক্যাশ অন ডেলিভারি",
   "payOnReceive": "প্রোডাক্ট হাতে পেয়ে পেমেন্ট",
   "easyReturn": "সহজ রিটার্ন",
   "returnPolicy": "৭ দিনের রিটার্ন পলিসি",
@@ -186,7 +191,6 @@
   "faqSubtitle": "সাধারণ প্রশ্নের উত্তর",
   
   "specialOffer": "বিশেষ অফার",
-  "limitedTimeOffer": "সীমিত সময়ের অফার",
   "orderConfirm": "অর্ডার নিশ্চিত",
   "thankYouOrder": "আপনার অর্ডারের জন্য ধন্যবাদ",
   
