@@ -48,7 +48,7 @@
 
 ### Phase 6: Developer Ecosystem
 
-- [ ] **Webhooks**: Merchant-configurable webhooks for order events.
+- [x] **Webhooks**: Merchant-configurable webhooks for order events.
 - [ ] **API Keys**: Public API for merchants to build custom integrations.
 - [x] **System Health**: Error logging and performance monitoring UI for Admins.
 

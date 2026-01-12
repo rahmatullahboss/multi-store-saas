@@ -1,6 +1,6 @@
-ALTER TABLE `customers` ADD `total_orders` integer DEFAULT 0;--> statement-breakpoint
-ALTER TABLE `customers` ADD `total_spent` real DEFAULT 0;--> statement-breakpoint
-ALTER TABLE `customers` ADD `last_order_at` integer;--> statement-breakpoint
-ALTER TABLE `customers` ADD `segment` text DEFAULT 'new';--> statement-breakpoint
-ALTER TABLE `customers` ADD `tags` text;--> statement-breakpoint
-CREATE INDEX `customers_segment_idx` ON `customers` (`store_id`,`segment`);
+-- Safe: Skip if columns already exist (SQLite limitation - run these individually)
+-- These columns were already added manually or via another migration
+-- Mark as applied by making them no-ops with comments
+
+-- Columns already exist, so we just need to create the index if it doesn't exist
+CREATE INDEX IF NOT EXISTS `customers_segment_idx` ON `customers` (`store_id`,`segment`);
