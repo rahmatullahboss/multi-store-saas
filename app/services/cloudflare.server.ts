@@ -263,7 +263,7 @@ export async function refreshHostnameValidation(
     sslStatus: mapSslStatus(hostname.ssl.status),
     hostnameId: hostname.id,
     hostname: hostname.hostname,
-    dnsTarget: 'ozzyl-saas.pages.dev',
+    dnsTarget: 'multi-store-saas.pages.dev',
     ownershipVerification: hostname.ownership_verification,
   };
 }
