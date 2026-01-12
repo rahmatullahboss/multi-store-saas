@@ -712,8 +712,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export async function loader() {
   return json({
     method: 'POST',
-    description: 'Create a new Cash on Delivery order',
-    required_fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address'],
-    optional_fields: ['quantity (default: 1)', 'notes'],
+    description: 'Create a new order (single or multi-item)',
+    payload_options: {
+      single_item: {
+        required_fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address'],
+        optional_fields: ['quantity (default: 1)', 'variant_id', 'notes', 'customer_email', 'payment_method', 'division', 'bump_ids'],
+      },
+      multi_item: {
+        required_fields: ['store_id', 'cart_items', 'customer_name', 'phone', 'address'],
+        cart_item_structure: '{ product_id: number, quantity: number, variant_id?: number }[]',
+        optional_fields: ['notes', 'customer_email', 'payment_method', 'division', 'bump_ids'],
+      },
+    },
+    note: 'Either product_id (single item) OR cart_items (multi-item) must be provided, not both.',
   });
 }
