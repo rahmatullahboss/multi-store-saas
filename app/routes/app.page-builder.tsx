@@ -12,10 +12,14 @@ import { eq, desc } from 'drizzle-orm';
 import { landingPages, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { Plus, FileText, ChevronRight, Globe, Lock, Clock, ExternalLink, Trash2 } from 'lucide-react';
+import { Plus, FileText, ChevronRight, Globe, Lock, Clock, ExternalLink, Trash2, Check } from 'lucide-react';
 
 // Lazy load the editor
-const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as React.FC<{ pageId?: string; planType?: string }>;
+const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as React.FC<{ 
+  pageId?: string; 
+  planType?: string;
+  onStorageStatusChange?: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
+}>;
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Elementor Builder' }];
@@ -85,6 +89,7 @@ export default function PageBuilderRoute() {
   const pageId = searchParams.get('id');
   const [isCreating, setIsCreating] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [storageStatus, setStorageStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const navigation = useNavigation();
 
   // Ensure client-side only rendering for GrapesJS editor to prevent hydration mismatch
@@ -115,9 +120,28 @@ export default function PageBuilderRoute() {
            </div>
            
            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full">
-                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                 <span className="text-[10px] text-gray-400 font-bold uppercase">{t('autoSaveActive')}</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full min-w-[120px] justify-center">
+                 {storageStatus === 'saving' ? (
+                   <>
+                     <div className="w-1.5 h-1.5 border border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                     <span className="text-[10px] text-gray-400 font-bold uppercase">{t('savingDraft')}</span>
+                   </>
+                 ) : storageStatus === 'saved' ? (
+                   <>
+                     <Check size={10} className="text-emerald-500" />
+                     <span className="text-[10px] text-emerald-500 font-bold uppercase">{t('draftSaved')}</span>
+                   </>
+                 ) : storageStatus === 'error' ? (
+                   <>
+                     <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                     <span className="text-[10px] text-red-500 font-bold uppercase">{t('saveDraftFailed')}</span>
+                   </>
+                 ) : (
+                   <>
+                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                     <span className="text-[10px] text-gray-400 font-bold uppercase">{t('autoSaveActive')}</span>
+                   </>
+                 )}
               </div>
            </div>
         </div>
@@ -134,7 +158,7 @@ export default function PageBuilderRoute() {
                  </div>
               </div>
             }>
-              <GrapesEditor pageId={pageId} planType={planType} />
+              <GrapesEditor pageId={pageId} planType={planType} onStorageStatusChange={setStorageStatus} />
             </Suspense>
           ) : (
             <div className="flex items-center justify-center h-full bg-gray-50/50">

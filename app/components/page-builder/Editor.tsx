@@ -33,9 +33,10 @@ import ContextMenu from './ContextMenu';
 interface GrapesEditorProps {
   pageId?: string;
   planType?: string;
+  onStorageStatusChange?: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
 }
 
-export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditorProps) {
+export default function GrapesEditor({ pageId, planType = 'free', onStorageStatusChange }: GrapesEditorProps) {
   const [editor, setEditor] = useState<any>(null);
   const isAiLocked = planType === 'free';
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
@@ -387,6 +388,7 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
 
     // 2. Inject pageConfig during Save
     editorInstance.on('storage:start:store', (data: any) => {
+      onStorageStatusChange?.('saving');
       data.pageConfig = pageConfig;
       data.themeConfig = themeConfig;
       data.html = editorInstance.getHtml();
@@ -394,6 +396,23 @@ export default function GrapesEditor({ pageId, planType = 'free' }: GrapesEditor
       if (editorInstance.isPublishing) {
         data.publish = true;
       }
+    });
+
+    editorInstance.on('storage:end:store', () => {
+      onStorageStatusChange?.('saved');
+      // Reset to idle after 3 seconds
+      setTimeout(() => {
+        onStorageStatusChange?.('idle');
+      }, 3000);
+    });
+
+    editorInstance.on('storage:error', () => {
+      onStorageStatusChange?.('error');
+      // Reset to idle after 5 seconds or keep error? 
+      // Let's reset to idle after 5s so it doesn't stay stuck
+      setTimeout(() => {
+        onStorageStatusChange?.('idle');
+      }, 5000);
     });
 
     // 3. Add Magic Generate Button to Panel
