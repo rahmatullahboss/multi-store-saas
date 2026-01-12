@@ -4,6 +4,7 @@ import { dashboard } from './dashboard';
 import { landing } from './landing';
 import { chat } from './chat';
 import { admin } from './admin';
+import { onboarding } from './onboarding';
 
 export const en = {
   ...common,
@@ -12,4 +13,5 @@ export const en = {
   ...landing,
   ...chat,
   ...admin,
+  ...onboarding,
 };
