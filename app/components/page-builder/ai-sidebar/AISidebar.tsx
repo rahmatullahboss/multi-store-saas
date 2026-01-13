@@ -389,10 +389,10 @@ export default function AISidebar({
         </button>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      {/* Content - min-h-0 is critical for flex + overflow-y-auto to work */}
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
         {activeTab === 'chat' ? (
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 custom-scrollbar">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-gray-50/50" style={{ maxHeight: 'calc(100vh - 380px)' }}>
             {messages.map((msg) => (
               <MessageBubble 
                 key={msg.id} 
