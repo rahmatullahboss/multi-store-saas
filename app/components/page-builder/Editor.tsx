@@ -147,7 +147,7 @@ export default function GrapesEditor({
       setEditor(editorInstance);
 
       // -- Editor Ready (per GrapesJS docs: use onReady(), not on('load')) --
-      editorInstance.onReady(() => {
+      editorInstance.onReady(async () => {
         if (!mountedRef.current) return;
         
         console.log('GrapesJS is ready!');
@@ -177,6 +177,16 @@ export default function GrapesEditor({
               });
             }
           });
+        }
+        
+        // MANUAL LOAD: Load saved data after editor is ready (per Context7 docs)
+        // This prevents autoload from blocking initialization
+        try {
+          console.log('Loading saved data from storage...');
+          await editorInstance.load();
+          console.log('Storage data loaded successfully');
+        } catch (err) {
+          console.warn('Failed to load storage data (new page or no data):', err);
         }
         
         setIsEditorReady(true);

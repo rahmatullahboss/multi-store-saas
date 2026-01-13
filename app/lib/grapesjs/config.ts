@@ -131,7 +131,7 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
       type: 'remote',
       stepsBeforeSave: 1,
       autosave: true,
-      autoload: true, // CRITICAL: Load saved data on page refresh
+      autoload: false, // Changed to false per Context7 docs - load manually after onReady to prevent blocking
       options: {
         remote: {
           urlLoad: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
