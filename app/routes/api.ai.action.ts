@@ -282,6 +282,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
         break;
       }
 
+      case 'STORE_EDITOR_COMMAND': {
+        // Natural language commands for store editor (e.g., "প্রাইমারি কালার লাল করো")
+        const editPrompt = (payload as any).editPrompt;
+        const context = (payload as any).context;
+        
+        if (!editPrompt) {
+          return json({ error: 'Edit prompt required' }, { status: 400 });
+        }
+        
+        // Default context if not provided
+        const storeContext = context || {
+          sections: [],
+          currentColors: { primary: '#6366f1', accent: '#f59e0b', background: '#f9fafb', text: '#111827' },
+          currentFont: 'inter',
+          storeName: 'My Store'
+        };
+        
+        result = await ai.commandStoreEditor(editPrompt, storeContext);
+        break;
+      }
+
       case 'STRICT_EDIT': {
         // Page Builder AI - Strict element targeting
         if (!payload.selectedComponent || !payload.userCommand) {

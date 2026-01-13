@@ -256,7 +256,7 @@ export default function PageBuilderRoute() {
                   <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
                      <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                   </div>
-                  <p className="text-gray-400 font-medium">{t('bootingCanvas')}</p>
+                  <p className="text-gray-400 font-medium">Loading Canvas...</p>
                </div>
             </div>
           }>
