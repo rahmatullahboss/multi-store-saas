@@ -87,6 +87,16 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
     // Disable default context menu and show custom one
     editorInstance.on('load', () => {
         const body = editorInstance.Canvas.getBody();
+        // FORCE CONTENT EDITABLE
+        body.setAttribute('contenteditable', 'true');
+        
+        // Manual CSS Injection to ensure GrapesJS styles are present in the iframe
+        const head = editorInstance.Canvas.getDocument().head;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/grapesjs/dist/css/grapes.min.css';
+        head.appendChild(link);
+        
         body.addEventListener('contextmenu', (e: MouseEvent) => {
             e.preventDefault();
             // Calculate absolute position based on iframe offset
@@ -157,27 +167,32 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
 
 
   // Handle template loading
-  const handleLoadTemplate = (templateId: string) => {
+  const handleLoadTemplate = async (templateId: string) => {
     if (!editor) return;
 
-    // Import template config
-    import('~/lib/grapesjs/template-configs').then(({ TEMPLATE_CONFIGS }) => {
+    try {
+      // Import template config
+      const { TEMPLATE_CONFIGS } = await import('~/lib/grapesjs/template-configs');
       const template = TEMPLATE_CONFIGS[templateId];
+      
       if (!template) {
         console.warn(`Template not found: ${templateId}`);
+        toast.error('Template not found');
         return;
       }
 
       // Clear existing canvas content
       editor.DomComponents.clear();
 
-      //Load template blocks sequentially
+      // Load template blocks sequentially
+      let blocksAdded = 0;
       template.blocks.forEach((blockId) => {
         const blockDef = editor.Blocks.get(blockId);
         if (blockDef) {
           const content = blockDef.getContent ? blockDef.getContent() : blockDef.attributes.content;
           if (content) {
             editor.addComponents(content);
+            blocksAdded++;
           } else {
             console.warn(`Content not found for block: ${blockId}`);
           }
@@ -185,6 +200,11 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
           console.warn(`Block not found: ${blockId}`);
         }
       });
+
+      if (blocksAdded === 0) {
+        toast.error('Could not load any blocks for this template');
+        return;
+      }
 
       // Apply template colors to theme
       setThemeConfig({
@@ -194,8 +214,20 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         fontBody: template.themeColors.fontBody,
       });
 
+      // CRITICAL: Force render and update
+      editor.render();
+      editor.refresh();
+      
+      // Clear undo history so we don't undo into a partial state
+      setTimeout(() => {
+        editor.UndoManager.clear();
+      }, 100);
+
       toast.success(`Template "${template.nameEn}" loaded!`);
-    });
+    } catch (error) {
+      console.error('Failed to load template:', error);
+      toast.error('Failed to load template');
+    }
   };
   
   // Smart Sync: Update blocks when pageConfig changes

@@ -13,6 +13,7 @@ import { landingPages, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { Plus, FileText, ChevronRight, Globe, Lock, Clock, ExternalLink, Trash2, Check, Pencil, X } from 'lucide-react';
+import { ClientOnly } from '~/components/LazySection';
 
 // Lazy load the editor
 const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as React.FC<{ 
@@ -205,7 +206,16 @@ export default function PageBuilderRoute() {
         </div>
 
         <div className="flex-1 relative">
-          {isMounted ? (
+          <ClientOnly fallback={
+            <div className="flex items-center justify-center h-full bg-gray-50/50">
+               <div className="animate-pulse flex flex-col items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                     <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                  <p className="text-gray-400 font-medium">{t('bootingCanvas')}</p>
+               </div>
+            </div>
+          }>
             <Suspense fallback={
               <div className="flex items-center justify-center h-full bg-gray-50/50">
                  <div className="animate-pulse flex flex-col items-center gap-4">
@@ -224,16 +234,7 @@ export default function PageBuilderRoute() {
                 pageSlug={pages.find((p: any) => p.id.toString() === pageId)?.slug}
               />
             </Suspense>
-          ) : (
-            <div className="flex items-center justify-center h-full bg-gray-50/50">
-               <div className="animate-pulse flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                     <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                  <p className="text-gray-400 font-medium">{t('bootingCanvas')}</p>
-               </div>
-            </div>
-          )}
+          </ClientOnly>
         </div>
       </div>
     );
