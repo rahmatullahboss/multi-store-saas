@@ -1680,3 +1680,25 @@ export const productRecommendationsRelations = relations(productRecommendations,
     references: [products.id],
   }),
 }));
+
+// ============================================================================
+// CACHE STORE - Performance critical key-value storage
+// ============================================================================
+export const cacheStore = sqliteTable('cache_store', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  expiresAt: integer('expires_at').notNull(),
+}, (table) => [
+  index('idx_cache_expires').on(table.expiresAt),
+]);
+
+// ============================================================================
+// AI CACHE - AI generated responses cache
+// ============================================================================
+export const aiCache = sqliteTable('ai_cache', {
+  key: text('key').primaryKey(),
+  response: text('response').notNull(),
+  expiresAt: integer('expires_at').notNull(),
+}, (table) => [
+  index('idx_ai_cache_expires').on(table.expiresAt),
+]);

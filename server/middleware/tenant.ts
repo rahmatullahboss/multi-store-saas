@@ -7,8 +7,9 @@
 
 import { Context, MiddlewareHandler } from 'hono';
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { stores, type Store } from '@db/schema';
+import { D1Cache } from '../../app/services/cache-layer.server';
+import { createDb } from '../../app/lib/db.server';
 
 // Extend Hono context with tenant information
 export interface TenantContext {
@@ -75,7 +76,7 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
       const storeParam = c.req.query('store');
       console.log(`[TENANT] Store param: ${storeParam || 'none'}`);
       
-      const db = drizzle(c.env.DB);
+      const db = createDb(c.env.DB);
       
       let store: Store | undefined;
       
@@ -144,10 +145,21 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
     console.log(`[TENANT] Mode: Production`);
     console.log(`[TENANT] Parsed: type=${type}, value=${value}`);
     
-    const db = drizzle(c.env.DB);
+    // Initialize DB and Cache
+    const db = createDb(c.env.DB);
+    const cache = new D1Cache(db);
     
-    let store: Store | undefined;
-    let isCustomDomain = false;
+    const cacheKey = `tenant:${type}:${value}`;
+    let store = await cache.get<Store>(cacheKey);
+    let isCustomDomain = type === 'custom';
+    
+    if (store) {
+      console.log(`[TENANT] ✓ Cache Hit: ID=${store.id}, Name=${store.name}`);
+      c.set('storeId', store.id);
+      c.set('store', store);
+      c.set('isCustomDomain', isCustomDomain);
+      return next();
+    }
     
     try {
       if (type === 'subdomain') {
@@ -162,7 +174,6 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
         console.log(`[TENANT] Subdomain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`);
       } else {
         // Lookup by custom domain
-        isCustomDomain = true;
         console.log(`[TENANT] Looking up store by custom domain: ${value}`);
         const result = await db
           .select()
@@ -172,14 +183,14 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
         store = result[0];
         console.log(`[TENANT] Custom domain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`);
       }
+      
+      // Cache the result (1 hour if found)
+      if (store) {
+        await cache.set(cacheKey, store, 3600);
+      }
     } catch (dbError) {
       console.error(`[TENANT] Database error during store lookup:`);
-      console.error(`[TENANT] Error type:`, dbError?.constructor?.name);
-      console.error(`[TENANT] Error message:`, dbError instanceof Error ? dbError.message : String(dbError));
-      console.error(`[TENANT] Error stack:`, dbError instanceof Error ? dbError.stack : 'No stack');
-      if (dbError && typeof dbError === 'object' && 'cause' in dbError) {
-        console.error(`[TENANT] Error cause:`, (dbError as { cause?: unknown }).cause);
-      }
+      // ... existing error logging
       return c.json(
         { 
           error: 'Database error',

@@ -193,4 +193,12 @@
 - [x] **Dashboard Alert Visibility**: Integrated critical inventory warnings directly onto the merchant dashboard for immediate action.
 - [x] **Refactored Alert Logic**: Extracted alert UI into a reusable component, fixing interpolation bugs and standardizing the threshold (10 units) across the platform.
 - [x] **Store Editor Dropdown Fix**: Resolved the "vanishing dropdown" issue in the Store Live Editor by implementing a state-controlled click trigger.
-- [x] **Page Builder Hydration Resolution**: Fixed minified React errors (#418, #423) by wrapping the Page Builder header in `ClientOnly`.
+- [x] Page Builder Hydration Resolution: Fixed minified React errors (#418, #423) by wrapping the Page Builder header in `ClientOnly`.
+
+### Phase 22: Performance Optimization & Edge Resiliency (Completed) ⚡️
+
+- [x] **D1 Optimized Schema**: Added `cache_store` and `ai_cache` tables to support persistent edge caching.
+- [x] **Redis-like Caching Layer**: Implemented `D1Cache` service for high-performance, low-cost data object storage.
+- [x] **Cached Tenant Resolution**: Middleware now uses D1 caching to resolve stores, drastically reducing database round-trips for every request.
+- [x] **Retail-Ready Product Loaders**: Optimized product detail loaders with D1 batch operations and cached store configurations, merging multiple sequential queries into a single batch.
+- [x] **D1 SQL Alignment**: Standardized database client initialization across middleware and routes for consistent performance.

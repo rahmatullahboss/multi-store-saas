@@ -13,10 +13,13 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import { useLoaderData, Link, useFetcher } from '@remix-run/react';
 import { eq, and, desc, ne, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
+import { resolveStore } from '~/lib/store.server';
+import { createDb } from '~/lib/db.server';
+import { D1Cache } from '~/services/cache-layer.server';
+import { getStoreConfig } from '~/services/store-config.server';
 import { products, reviews, stores, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks, parseFooterConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { resolveStore } from '~/lib/store.server';
 import { Star, Send, CheckCircle, ShoppingBag, ChevronRight, Truck, Shield, RotateCcw, Minus, Plus } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { trackingEvents } from '~/utils/tracking';
@@ -77,122 +80,39 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   }
   
   const { storeId, store } = storeContext;
-  const db = drizzle(context.cloudflare.env.DB);
+  const db = createDb(context.cloudflare.env.DB);
+  const cache = new D1Cache(db);
   
-  // Fetch store details for template config
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  // Use cached store configuration (Phases 1-3 Optimization)
+  const storeConfig = await getStoreConfig(db, cache, storeId);
   
-  const storeData = storeResult[0] as Store | undefined;
-  
-  const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
-  const socialLinks = parseSocialLinks(storeData?.socialLinks as string | null);
-  const footerConfig = parseFooterConfig(storeData?.footerConfig as string | null);
+  if (!storeConfig) {
+    throw new Response('Store configuration not found', { status: 404 });
+  }
+
+  const { themeConfig, businessInfo, footerConfig } = storeConfig;
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
-  
-  // Parse businessInfo safely
-  let businessInfo: { phone?: string; email?: string; address?: string } | null = null;
-  try {
-    if (storeData?.businessInfo) {
-      businessInfo = JSON.parse(storeData.businessInfo as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
+  const socialLinks = storeConfig.socialLinks ? storeConfig.socialLinks : parseSocialLinks(store.socialLinks as string | null);
   
   // Fetch product with store_id filter for security
   const result = await db
-    .select()
-    .from(products)
-    .where(
-      and(
-        eq(products.id, productId),
-        eq(products.storeId, storeId), // Always verify store ownership!
-        eq(products.isPublished, true)
-      )
-    )
-    .limit(1);
-  
-  const product = result[0];
-  
-  if (!product) {
-    throw new Response('Product not found', { status: 404 });
-  }
-  
-  // ========== REVIEWS: Only for paid plans ==========
+  // ========== BATCH DATA FETCHING (Phase 5 Optimization) ==========
+  // We batch Product, Reviews, and potentially Categories into one round-trip
   const showReviews = store?.planType !== 'free';
-  let productReviews: Array<{
-    id: number;
-    customerName: string;
-    rating: number;
-    comment: string | null;
-    createdAt: Date | null;
-  }> = [];
-  let avgRating = 0;
-  let reviewCount = 0;
+  const categoryCacheKey = `store:${storeId}:categories`;
+  let categories = await cache.get<string[]>(categoryCacheKey);
   
-  // Fetch related products (same category or just random from store)
-  let relatedProducts: any[] = [];
-  
-  if (product.category) {
-    relatedProducts = await db
-      .select()
+  const queries: any[] = [
+    db.select()
       .from(products)
-      .where(
-        and(
-          eq(products.storeId, storeId),
-          ne(products.id, productId),
-          like(products.category, product.category) // fuzzy match or exact? Using eq might be safer but allow like for now
-        )
-      )
-      .limit(8);
-  }
+      .where(and(eq(products.id, productId), eq(products.storeId, storeId), eq(products.isPublished, true)))
+      .limit(1)
+  ];
   
-  // Fallback if no category matches or not enough products
-  if (relatedProducts.length < 4) {
-    const moreProducts = await db
-      .select()
-      .from(products)
-      .where(
-        and(
-          eq(products.storeId, storeId),
-          ne(products.id, productId)
-        )
-      )
-      .limit(8 - relatedProducts.length)
-      .orderBy(desc(products.createdAt));
-      
-    // Filter out duplicates if any (though logic prevents)
-    const existingIds = new Set(relatedProducts.map(p => p.id));
-    for (const p of moreProducts) {
-      if (!existingIds.has(p.id)) {
-        relatedProducts.push(p);
-      }
-    }
-  }
-
-  // Fetch unique categories for the header/footer
-  const categoriesQuery = db
-    .select({ category: products.category })
-    .from(products)
-    .where(
-      and(
-        eq(products.storeId, storeId),
-        eq(products.isPublished, true)
-      )
-    );
-  
-  const allProducts = await db.select({ category: products.category }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true)));
-  const categories = [...new Set(allProducts.map(p => p.category).filter((c): c is string => Boolean(c)))];
-
   if (showReviews) {
-    // Fetch only APPROVED reviews for this product
-    productReviews = await db
-      .select({
+    queries.push(
+      db.select({
         id: reviews.id,
         customerName: reviews.customerName,
         rating: reviews.rating,
@@ -200,26 +120,70 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         createdAt: reviews.createdAt,
       })
       .from(reviews)
-      .where(
-        and(
-          eq(reviews.productId, productId),
-          eq(reviews.storeId, storeId),
-          eq(reviews.status, 'approved')
-        )
-      )
+      .where(and(eq(reviews.productId, productId), eq(reviews.storeId, storeId), eq(reviews.status, 'approved')))
       .orderBy(desc(reviews.createdAt))
-      .limit(20); // Limit to 20 most recent reviews
-    
-    reviewCount = productReviews.length;
-    avgRating = reviewCount > 0 
-      ? productReviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount 
-      : 0;
+      .limit(20)
+    );
+  }
+  
+  if (!categories) {
+    queries.push(
+      db.select({ category: products.category })
+        .from(products)
+        .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+    );
+  }
+  
+  const batchResults = await db.batch(queries as any);
+  
+  const product = batchResults[0][0];
+  if (!product) {
+    throw new Response('Product not found', { status: 404 });
+  }
+  
+  let productReviews = showReviews ? batchResults[1] : [];
+  
+  // Handle categories if they were part of the batch
+  if (!categories) {
+    const categoriesResult = (showReviews ? batchResults[2] : batchResults[1]) as Array<{ category: string | null }>;
+    categories = [...new Set(categoriesResult.map(p => p.category).filter((c): c is string => Boolean(c)))];
+    await cache.set(categoryCacheKey, categories, 3600);
+  }
+  
+  const reviewCount = productReviews.length;
+  const avgRating = reviewCount > 0 
+    ? productReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewCount 
+    : 0;
+
+  // ========== RELATED PRODUCTS ==========
+  let relatedProducts: any[] = [];
+  if (product.category) {
+    relatedProducts = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.storeId, storeId), ne(products.id, productId), like(products.category, product.category)))
+      .limit(8);
+  }
+  
+  // Fallback related products
+  if (relatedProducts.length < 4) {
+    const moreProducts = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.storeId, storeId), ne(products.id, productId)))
+      .limit(8 - relatedProducts.length)
+      .orderBy(desc(products.createdAt));
+      
+    const existingIds = new Set(relatedProducts.map(p => p.id));
+    for (const p of moreProducts) {
+      if (!existingIds.has(p.id)) relatedProducts.push(p);
+    }
   }
   
   return json({
     product,
     storeName: store?.name || 'Store',
-    logo: storeData?.logo || null,
+    logo: store.logo || null,
     currency: store?.currency || 'BDT',
     showReviews,
     reviews: productReviews,
