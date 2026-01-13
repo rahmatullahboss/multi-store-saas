@@ -141,6 +141,26 @@ export default function GrapesEditor({
         },
       });
 
+      // Function to apply isolation to a component
+      const applyIsolation = (component: any) => {
+        if (component.get('type') === 'custom-code') {
+          const classes = component.getClasses();
+          if (!classes.includes('bd-custom-code-isolated')) {
+            component.addClass('bd-custom-code-isolated');
+          }
+        }
+      };
+
+      // Event Listeners
+      editorInstance.on('component:create', applyIsolation);
+      
+      editorInstance.on('load', () => {
+        editorInstance.getComponents().forEach((component: any) => {
+          applyIsolation(component);
+          // Also check all nested components if necessary (though custom-code is usually a leaf)
+        });
+      });
+
       // Check if still mounted after init
       if (!mountedRef.current) {
         console.log('Component unmounted during init, destroying...');

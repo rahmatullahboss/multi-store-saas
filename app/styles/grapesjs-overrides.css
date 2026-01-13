@@ -328,4 +328,70 @@
 .animate-bounceIn { animation-name: bounceIn; }
 .animate-zoomIn { animation-name: zoomIn; }
 .animate-pulse { animation-name: pulse; }
-.animate-shake { animation-name: shake; }
+/* ========================================
+   CUSTOM CODE ISOLATION
+   Revert Tailwind Preflight for specific container
+   ======================================== */
+
+.bd-custom-code-isolated {
+    all: initial; /* Reset everything to initial */
+    display: block; /* Restore block display */
+    isolation: isolate; /* Create new stacking context */
+    font-family: serif; /* Browser default font */
+    color: black;
+}
+
+/* Explicitly restore defaults for common elements */
+.bd-custom-code-isolated h1, 
+.bd-custom-code-isolated h2, 
+.bd-custom-code-isolated h3, 
+.bd-custom-code-isolated h4, 
+.bd-custom-code-isolated h5, 
+.bd-custom-code-isolated h6 {
+    font-size: revert;
+    font-weight: bold;
+    margin: 0.67em 0;
+    display: block;
+    line-height: normal;
+}
+
+.bd-custom-code-isolated h1 { font-size: 2em; }
+.bd-custom-code-isolated h2 { font-size: 1.5em; }
+.bd-custom-code-isolated h3 { font-size: 1.17em; }
+.bd-custom-code-isolated h4 { font-size: 1em; }
+.bd-custom-code-isolated h5 { font-size: 0.83em; }
+.bd-custom-code-isolated h6 { font-size: 0.67em; }
+
+.bd-custom-code-isolated p {
+    display: block;
+    margin: 1em 0;
+    line-height: normal;
+}
+
+.bd-custom-code-isolated ul, 
+.bd-custom-code-isolated ol {
+    display: block;
+    list-style: disc;
+    margin: 1em 0;
+    padding-left: 40px;
+}
+.bd-custom-code-isolated ol { list-style: decimal; }
+
+.bd-custom-code-isolated li {
+    display: list-item;
+}
+
+.bd-custom-code-isolated a {
+    color: -webkit-link;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.bd-custom-code-isolated table {
+    border-collapse: separate;
+    border-spacing: 2px;
+    display: table;
+    box-sizing: content-box;
+    text-indent: initial;
+    border-color: gray;
+}
