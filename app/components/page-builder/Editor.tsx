@@ -332,6 +332,7 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
           onOpenLibrary={() => setIsBlockLibraryOpen(true)}
           publishedPageUrl={publishedBaseUrl && pageSlug ? `${publishedBaseUrl}/p/${pageSlug}` : undefined}
           pageId={pageId}
+          editor={editor}
         />
         <div className="flex flex-1 overflow-hidden min-h-0">
           {/* Unified Left Sidebar: Blocks + Customization */}
@@ -344,6 +345,7 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
               onLoadTemplate={handleLoadTemplate}
               activeTab={activeSidebarTab}
               onTabChange={setActiveSidebarTab}
+              editor={editor}
             />
           </div>
 

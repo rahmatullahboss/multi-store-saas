@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useEditorMaybe } from '@grapesjs/react';
 import { 
   Monitor, 
   Smartphone, 
@@ -31,15 +30,16 @@ export default function EditorToolbar({
   isAiLocked = false,
   onOpenLibrary,
   publishedPageUrl,
-  pageId
+  pageId,
+  editor
 }: { 
   isAiLocked?: boolean,
   onOpenLibrary?: () => void,
   publishedPageUrl?: string,
-  pageId?: string
+  pageId?: string,
+  editor?: any
 }) {
   const { t, lang } = useTranslation();
-  const editor = useEditorMaybe();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
   const [isConnectorModalOpen, setIsConnectorModalOpen] = useState(false);

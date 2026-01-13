@@ -1,4 +1,4 @@
-import { BlocksProvider, SelectorsProvider, useEditorMaybe } from '@grapesjs/react';
+import { BlocksProvider, SelectorsProvider } from '@grapesjs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -16,6 +16,7 @@ interface SidebarPanelProps {
   onLoadTemplate?: (templateId: string) => void;
   activeTab: 'widgets' | 'design' | 'structure' | 'settings';
   onTabChange: (tab: 'widgets' | 'design' | 'structure' | 'settings') => void;
+  editor?: any;
 }
 
 export default function SidebarPanel({ 
@@ -25,13 +26,12 @@ export default function SidebarPanel({
   onPageConfigChange,
   onLoadTemplate,
   activeTab,
-  onTabChange
+  onTabChange,
+  editor
 }: SidebarPanelProps) {
   const { t } = useTranslation();
   // const [activeTab, setActiveTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets'); // Lifted up
   const [activeDesignSubTab, setActiveDesignSubTab] = useState<'styles' | 'theme' | 'templates'>('styles');
-
-  const editor = useEditorMaybe();
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
   const stylesContainerRef = useRef<HTMLDivElement>(null);
