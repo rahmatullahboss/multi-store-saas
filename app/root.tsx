@@ -83,8 +83,8 @@ export default function App() {
   useChangeLanguage(locale);
 
   return (
-    <html lang={locale} dir={dir(locale)} className="h-full">
-      <head>
+    <html lang={locale} dir={dir(locale)} className="h-full" suppressHydrationWarning>
+      <head suppressHydrationWarning>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />

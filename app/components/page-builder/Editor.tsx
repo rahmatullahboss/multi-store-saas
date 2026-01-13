@@ -2,10 +2,10 @@
  * GrapesJS Editor Component
  * 
  * A React wrapper for the GrapesJS editor core.
+ * Uses vanilla GrapesJS initialization with useRef for reliable DOM mounting.
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import GjsEditor, { Canvas } from '@grapesjs/react';
 import grapesjs from 'grapesjs';
 import gjsBlocksBasic from 'grapesjs-blocks-basic';
 import gjsForms from 'grapesjs-plugin-forms';
@@ -23,10 +23,8 @@ import shapeDividersPlugin from '~/lib/grapesjs/plugins/shape-dividers';
 import popupPlugin from '~/lib/grapesjs/plugins/popup';
 import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
-import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
 
 import BlockLibraryModal from "./BlockLibraryModal";
-// Removed AISidebar import
 import { toast } from 'sonner';
 import ContextMenu from './ContextMenu';
 
@@ -40,11 +38,10 @@ interface GrapesEditorProps {
 
 export default function GrapesEditor({ pageId, planType = 'free', onStorageStatusChange, publishedBaseUrl, pageSlug }: GrapesEditorProps) {
   const [editor, setEditor] = useState<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const isAiLocked = planType === 'free';
   const [isBlockLibraryOpen, setIsBlockLibraryOpen] = useState(false);
-  // Removed MagicModal state
-  const [selectedComponentData, setSelectedComponentData] = useState<string | null>(null);
-  // Removed isChatOpen state
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
   // Page Configurations (Featured Product, WhatsApp, etc.)
   const [pageConfig, setPageConfig] = useState<{
@@ -68,110 +65,112 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
   // Context Menu State
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
   
-  // Custom Event Listener for Tab Switching from Context Menu
+  // State for Controlling Tabs via Context Menu
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
+
+  // Initialize GrapesJS using vanilla approach
   useEffect(() => {
-    const handleTabSwitch = (e: CustomEvent) => {
-        // This is caught by SidebarPanel ideally, or we can pass a prop if we hoist state
-        // Since SidebarPanel manages its own state locally, we might need to hoist `activeTab` to `GrapesEditor`.
-        // For now, we will dispatch it to window and let SidebarPanel listen, OR hoist the state.
-        // Hoisting state is cleaner.
-    };
-    // window.addEventListener('switch-sidebar-tab', handleTabSwitch as any);
-    // return () => window.removeEventListener('switch-sidebar-tab', handleTabSwitch as any);
-  }, []);
+    if (!containerRef.current || editor) return;
 
-  const onEditor = (editorInstance: any) => {
-    console.log('Editor loaded', editorInstance);
-    setEditor(editorInstance);
+    // Small delay to ensure DOM is fully ready
+    const initTimeout = setTimeout(() => {
+      if (!containerRef.current) return;
 
-    // Disable default context menu and show custom one
-    editorInstance.on('load', () => {
+      const config = getGrapesConfig(containerRef.current, pageId, planType);
+      
+      const editorInstance = grapesjs.init({
+        ...config,
+        container: containerRef.current,
+        plugins: [
+          gjsBlocksBasic,
+          gjsForms,
+          bdBlocksPlugin, // Our custom blocks
+          animationPlugin, // Animation traits for all components
+          swiperPlugin, // New Slider Plugin
+          productLoopPlugin, // Product Loop Plugin
+          shapeDividersPlugin, // Shape Dividers
+          popupPlugin, // Popup Builder
+        ],
+        pluginsOpts: {
+          [gjsBlocksBasic as any]: {},
+          [gjsForms as any]: {},
+        },
+      });
+
+      console.log('Editor initialized', editorInstance);
+      setEditor(editorInstance);
+      setIsEditorReady(true);
+
+      // Setup event handlers
+      editorInstance.on('load', () => {
         const body = editorInstance.Canvas.getBody();
         // FORCE CONTENT EDITABLE
         body.setAttribute('contenteditable', 'true');
         
-        // Manual CSS Injection to ensure GrapesJS styles are present in the iframe
-        const head = editorInstance.Canvas.getDocument().head;
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/grapesjs/dist/css/grapes.min.css';
-        head.appendChild(link);
-        
         body.addEventListener('contextmenu', (e: MouseEvent) => {
-            e.preventDefault();
-            // Calculate absolute position based on iframe offset
-            const canvasOffset = editorInstance.Canvas.getElement().getBoundingClientRect();
-            setContextMenuPos({
-                x: canvasOffset.left + e.clientX,
-                y: canvasOffset.top + e.clientY
-            });
-            // Select component under cursor if not selected
-            const target = editorInstance.getSelected();
-            if (!target) {
-                // editorInstance.select(e.target); // This is tricky with iframe coordinates, let Grapes handle selection mostly
-            }
+          e.preventDefault();
+          const canvasOffset = editorInstance.Canvas.getElement().getBoundingClientRect();
+          setContextMenuPos({
+            x: canvasOffset.left + e.clientX,
+            y: canvasOffset.top + e.clientY
+          });
         });
-    });
+      });
 
-    // 1. Initial Data Loading (pageConfig)
-    editorInstance.on('storage:load', (res: any) => {
-      if (res && res.pageConfig) {
-        setPageConfig(res.pageConfig);
+      // 1. Initial Data Loading (pageConfig)
+      editorInstance.on('storage:load', (res: any) => {
+        if (res && res.pageConfig) {
+          setPageConfig(res.pageConfig);
+        }
+        if (res && res.themeConfig) {
+          setThemeConfig(res.themeConfig);
+        }
+      });
+
+      // 2. Inject pageConfig during Save
+      editorInstance.on('storage:start:store', (data: any) => {
+        onStorageStatusChange?.('saving');
+        data.pageConfig = pageConfig;
+        data.themeConfig = themeConfig;
+        data.html = editorInstance.getHtml();
+        data.css = editorInstance.getCss();
+        // Check if publishing flag is set (custom property)
+        if ((editorInstance as any).isPublishing) {
+          data.publish = true;
+        }
+      });
+
+      editorInstance.on('storage:end:store', () => {
+        onStorageStatusChange?.('saved');
+        setTimeout(() => {
+          onStorageStatusChange?.('idle');
+        }, 3000);
+      });
+
+      editorInstance.on('storage:error', () => {
+        onStorageStatusChange?.('error');
+        setTimeout(() => {
+          onStorageStatusChange?.('idle');
+        }, 5000);
+      });
+
+      // Initial Theme Injection
+      updateCanvasTheme(editorInstance, themeConfig);
+    }, 100);
+
+    return () => {
+      clearTimeout(initTimeout);
+      if (editor) {
+        editor.destroy();
       }
-      if (res && res.themeConfig) {
-        setThemeConfig(res.themeConfig);
-      }
-    });
-
-    // 2. Inject pageConfig during Save
-    editorInstance.on('storage:start:store', (data: any) => {
-      onStorageStatusChange?.('saving');
-      data.pageConfig = pageConfig;
-      data.themeConfig = themeConfig;
-      data.html = editorInstance.getHtml();
-      data.css = editorInstance.getCss();
-      if (editorInstance.isPublishing) {
-        data.publish = true;
-      }
-    });
-
-    editorInstance.on('storage:end:store', () => {
-      onStorageStatusChange?.('saved');
-      // Reset to idle after 3 seconds
-      setTimeout(() => {
-        onStorageStatusChange?.('idle');
-      }, 3000);
-    });
-
-    editorInstance.on('storage:error', () => {
-      onStorageStatusChange?.('error');
-      // Reset to idle after 5 seconds or keep error? 
-      // Let's reset to idle after 5s so it doesn't stay stuck
-      setTimeout(() => {
-        onStorageStatusChange?.('idle');
-      }, 5000);
-    });
-
-    // Removed Magic Generate Button and Commands
-    // AI Actions should now be handled via the Sidebar exclusively
-
-
-    // Removed Component Toolbar "Design with AI" button as it triggered the old modal
-
-
-    // Initial Theme Injection
-    updateCanvasTheme(editorInstance, themeConfig);
-  };
-
-    // Removed handleMagicGenerate
-
+    };
+  }, [pageId, planType]); // Only re-init if these change
 
   // Handle template loading
   const handleLoadTemplate = async (templateId: string) => {
     if (!editor) return;
 
     try {
-      // Import template config
       const { TEMPLATE_CONFIGS } = await import('~/lib/grapesjs/template-configs');
       const template = TEMPLATE_CONFIGS[templateId];
       
@@ -181,10 +180,8 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         return;
       }
 
-      // Clear existing canvas content
       editor.DomComponents.clear();
 
-      // Load template blocks sequentially
       let blocksAdded = 0;
       template.blocks.forEach((blockId) => {
         const blockDef = editor.Blocks.get(blockId);
@@ -206,7 +203,6 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         return;
       }
 
-      // Apply template colors to theme
       setThemeConfig({
         primaryColor: template.themeColors.primaryColor,
         secondaryColor: template.themeColors.secondaryColor,
@@ -214,11 +210,9 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         fontBody: template.themeColors.fontBody,
       });
 
-      // CRITICAL: Force render and update
       editor.render();
       editor.refresh();
       
-      // Clear undo history so we don't undo into a partial state
       setTimeout(() => {
         editor.UndoManager.clear();
       }, 100);
@@ -238,33 +232,28 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
       const wrapper = editor.getWrapper();
       if (!wrapper) return;
 
-      // Update Featured Product references
       if (pageConfig.featuredProductName) {
         wrapper.find('.product-name').forEach((comp: any) => {
           comp.set('content', pageConfig.featuredProductName);
         });
       }
 
-      // Update WhatsApp links
       if (pageConfig.whatsappNumber) {
         const msg = encodeURIComponent(pageConfig.whatsappMessage || '');
         const url = `https://wa.me/${pageConfig.whatsappNumber}?text=${msg}`;
         wrapper.find('.whatsapp-link').forEach((comp: any) => {
-          // Check if it's a link component or has a tagName 'a'
           if (comp.get('type') === 'link' || comp.get('tagName') === 'a') {
             comp.addAttributes({ href: url });
           }
         });
       }
 
-      // Update Social Proof
       if (pageConfig.socialProofCount !== undefined && pageConfig.socialProofCount !== null) {
         wrapper.find('.social-proof-count').forEach((comp: any) => {
           comp.set('content', pageConfig.socialProofCount?.toString() || '0');
         });
       }
 
-      // Update Countdown Timers
       if (pageConfig.timerEndDate) {
         wrapper.find('[data-gjs-type="countdown"]').forEach((comp: any) => {
           comp.set('end-date', pageConfig.timerEndDate);
@@ -289,11 +278,9 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
     const doc = frame.contentDocument;
     if (!doc) return;
 
-    // Remove existing theme style if any
     const existingStyle = doc.getElementById('theme-variables-style');
     if (existingStyle) existingStyle.remove();
 
-    // Create new theme style with CSS custom properties
     const style = doc.createElement('style');
     style.id = 'theme-variables-style';
     style.innerHTML = `
@@ -304,7 +291,6 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         --font-body: "${config.fontBody}", sans-serif;
       }
       
-      /* Apply fonts to common elements */
       h1, h2, h3, h4, h5, h6 {
         font-family: var(--font-heading);
       }
@@ -313,7 +299,6 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         font-family: var(--font-body);
       }
       
-      /* Utility classes for theme colors */
       .bg-primary { background-color: var(--primary-color) !important; }
       .text-primary { color: var(--primary-color) !important; }
       .border-primary { border-color: var(--primary-color) !important; }
@@ -322,101 +307,84 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
       .text-secondary { color: var(--secondary-color) !important; }
       .border-secondary { border-color: var(--secondary-color) !important; }
       
-      /* Button hover effects */
       .bg-primary:hover { filter: brightness(0.9); }
       .bg-secondary:hover { filter: brightness(0.9); }
     `;
     
-    // Inject into head
     doc.head.appendChild(style);
   };
-  
-  // State for Controlling Tabs via Context Menu
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
 
   useEffect(() => {
-      // Listen for the custom event
-      const handleTabSwitch = (e: CustomEvent) => {
-          if (e.detail) {
-              setActiveSidebarTab(e.detail);
-          }
-      };
-      window.addEventListener('switch-sidebar-tab', handleTabSwitch as any);
-      return () => window.removeEventListener('switch-sidebar-tab', handleTabSwitch as any);
+    const handleTabSwitch = (e: CustomEvent) => {
+      if (e.detail) {
+        setActiveSidebarTab(e.detail);
+      }
+    };
+    window.addEventListener('switch-sidebar-tab', handleTabSwitch as any);
+    return () => window.removeEventListener('switch-sidebar-tab', handleTabSwitch as any);
   }, []);
 
   return (
     <div className="h-full w-full flex flex-col bg-white">
-      <GjsEditor
-        grapesjs={grapesjs}
-        grapesjsCss="https://unpkg.com/grapesjs/dist/css/grapes.min.css"
-        // Pass GrapesJS options
-        options={{
-          ...getGrapesConfig(null as any, pageId, planType),
-          height: '100%',
-        }}
-        // Load plugins correctly
-        plugins={[
-          gjsBlocksBasic as any,
-          gjsForms as any,
-          bdBlocksPlugin as any, // Our custom blocks
-          animationPlugin as any, // Animation traits for all components
-          swiperPlugin as any, // New Slider Plugin
-          productLoopPlugin as any, // Product Loop Plugin
-          shapeDividersPlugin as any, // Shape Dividers
-          popupPlugin as any, // Popup Builder
-        ]}
-        onEditor={onEditor}
-      >
-        <div className="flex flex-col h-full overflow-hidden">
-          <EditorToolbar 
-            isAiLocked={isAiLocked} 
-            onOpenLibrary={() => setIsBlockLibraryOpen(true)}
-            publishedPageUrl={publishedBaseUrl && pageSlug ? `${publishedBaseUrl}/p/${pageSlug}` : undefined}
-            pageId={pageId}
-          />
-          <div className="flex flex-1 overflow-hidden min-h-0">
-            {/* Unified Left Sidebar: Blocks + Customization */}
-            <div className="h-full overflow-hidden flex-shrink-0">
+      <div className="flex flex-col h-full overflow-hidden">
+        <EditorToolbar 
+          isAiLocked={isAiLocked} 
+          onOpenLibrary={() => setIsBlockLibraryOpen(true)}
+          publishedPageUrl={publishedBaseUrl && pageSlug ? `${publishedBaseUrl}/p/${pageSlug}` : undefined}
+          pageId={pageId}
+        />
+        <div className="flex flex-1 overflow-hidden min-h-0">
+          {/* Unified Left Sidebar: Blocks + Customization */}
+          <div className="h-full overflow-hidden flex-shrink-0">
             <SidebarPanel 
-                themeConfig={themeConfig} 
-                onThemeChange={setThemeConfig}
-                pageConfig={pageConfig}
-                onPageConfigChange={setPageConfig}
-                onLoadTemplate={handleLoadTemplate}
-                activeTab={activeSidebarTab}
-                onTabChange={setActiveSidebarTab}
+              themeConfig={themeConfig} 
+              onThemeChange={setThemeConfig}
+              pageConfig={pageConfig}
+              onPageConfigChange={setPageConfig}
+              onLoadTemplate={handleLoadTemplate}
+              activeTab={activeSidebarTab}
+              onTabChange={setActiveSidebarTab}
             />
-            </div>
+          </div>
 
-            {/* Main Area: Canvas */}
-            <div 
-                className="flex-1 bg-gray-100 flex items-center justify-center overflow-hidden relative"
-                onContextMenu={(e) => {
-                  e.preventDefault(); 
-                  // Fallback if not caught by iframe
-                }}
-            >
-                <div className="w-full h-full shadow-lg relative bg-white">
-                    <Canvas className="h-full w-full" />
+          {/* Main Area: GrapesJS Canvas Container */}
+          <div 
+            className="flex-1 bg-gray-100 flex items-center justify-center overflow-hidden relative"
+            onContextMenu={(e) => {
+              e.preventDefault(); 
+            }}
+          >
+            <div className="w-full h-full shadow-lg relative bg-white">
+              {/* GrapesJS will render its canvas here */}
+              <div 
+                ref={containerRef} 
+                className="h-full w-full gjs-editor-container"
+              />
+              
+              {/* Loading Overlay */}
+              {!isEditorReady && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80 z-10">
+                  <div className="animate-pulse flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                    <p className="text-gray-400 font-medium">Loading Editor...</p>
+                  </div>
                 </div>
-                
-                {/* Custom Context Menu */}
-                {contextMenuPos && (
-                  <ContextMenu 
-                    editor={editor} 
-                    position={contextMenuPos} 
-                    onClose={() => setContextMenuPos(null)} 
-                  />
-                )}
+              )}
             </div>
-
-            {/* AI Sidebar Removed */}
+            
+            {/* Custom Context Menu */}
+            {contextMenuPos && (
+              <ContextMenu 
+                editor={editor} 
+                position={contextMenuPos} 
+                onClose={() => setContextMenuPos(null)} 
+              />
+            )}
           </div>
         </div>
-      </GjsEditor>
-
-
+      </div>
 
       <BlockLibraryModal 
         isOpen={isBlockLibraryOpen}
@@ -458,8 +426,15 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
           width: 100% !important;
           font-size: 11px !important;
         }
+        /* Ensure GrapesJS editor container takes full space */
+        .gjs-editor-container .gjs-editor {
+          height: 100% !important;
+        }
+        .gjs-editor-container .gjs-cv-canvas {
+          width: 100% !important;
+          height: 100% !important;
+        }
       `}} />
     </div>
   );
 }
-

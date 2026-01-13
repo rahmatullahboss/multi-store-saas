@@ -41,25 +41,41 @@ export default function SidebarPanel({
   useEffect(() => {
     if (!editor) return;
 
-    // Render Traits Manager
-    if (traitsContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
-      const traitsEl = editor.TraitManager.render();
-      traitsContainerRef.current.innerHTML = '';
-      traitsContainerRef.current.appendChild(traitsEl);
-    }
+    try {
+      // Render Traits Manager
+      if (traitsContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
+        if (editor.TraitManager && typeof editor.TraitManager.render === 'function') {
+          const traitsEl = editor.TraitManager.render();
+          if (traitsEl) {
+            traitsContainerRef.current.innerHTML = '';
+            traitsContainerRef.current.appendChild(traitsEl);
+          }
+        }
+      }
 
-    // Render Style Manager
-    if (stylesContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
-      const stylesEl = editor.StyleManager.render();
-      stylesContainerRef.current.innerHTML = '';
-      stylesContainerRef.current.appendChild(stylesEl);
-    }
+      // Render Style Manager
+      if (stylesContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
+        if (editor.StyleManager && typeof editor.StyleManager.render === 'function') {
+          const stylesEl = editor.StyleManager.render();
+          if (stylesEl) {
+            stylesContainerRef.current.innerHTML = '';
+            stylesContainerRef.current.appendChild(stylesEl);
+          }
+        }
+      }
 
-    // Render Layers
-    if (layersContainerRef.current && activeTab === 'structure') {
-      const layersEl = editor.LayerManager.render();
-      layersContainerRef.current.innerHTML = '';
-      layersContainerRef.current.appendChild(layersEl);
+      // Render Layers
+      if (layersContainerRef.current && activeTab === 'structure') {
+        if (editor.LayerManager && typeof editor.LayerManager.render === 'function') {
+          const layersEl = editor.LayerManager.render();
+          if (layersEl) {
+            layersContainerRef.current.innerHTML = '';
+            layersContainerRef.current.appendChild(layersEl);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('SidebarPanel: Error rendering GrapesJS managers, editor may not be fully initialized', e);
     }
   }, [editor, activeTab, activeDesignSubTab]);
 
