@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import { 
   Monitor, 
   Smartphone, 
   Tablet,
@@ -6,9 +8,9 @@
   Eye, 
   Save, 
   Send,
+  Wand2,
   Trash2,
   Sparkles, 
-  Wand2,
   X,
   Code,
   Check,
