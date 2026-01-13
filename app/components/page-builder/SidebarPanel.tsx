@@ -1,4 +1,3 @@
-import { BlocksProvider, SelectorsProvider } from '@grapesjs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -36,6 +35,43 @@ export default function SidebarPanel({
   const traitsContainerRef = useRef<HTMLDivElement>(null);
   const stylesContainerRef = useRef<HTMLDivElement>(null);
   const layersContainerRef = useRef<HTMLDivElement>(null);
+
+  // Custom State for Blocks and Selectors
+  const [blocks, setBlocks] = useState<any[]>([]);
+  const [selectors, setSelectors] = useState<any[]>([]);
+
+  // Fetch Blocks and Selectors when editor is ready
+  useEffect(() => {
+    if (!editor) return;
+
+    // Load initial blocks
+    const loadBlocks = () => {
+      const allBlocks = editor.Blocks.getAll();
+      setBlocks([...allBlocks]);
+    };
+
+    // Load initial selectors
+    const refreshSelectors = () => {
+        const selected = editor.getSelected();
+        if (selected) {
+            setSelectors(selected.getSelectors().models || []);
+        } else {
+            setSelectors([]);
+        }
+    };
+
+    loadBlocks();
+    refreshSelectors();
+
+    // Event Listeners
+    editor.on('block:add block:remove', loadBlocks);
+    editor.on('component:selected component:deselected selector:add selector:remove', refreshSelectors);
+
+    return () => {
+      editor.off('block:add block:remove', loadBlocks);
+      editor.off('component:selected component:deselected selector:add selector:remove', refreshSelectors);
+    };
+  }, [editor]);
 
   // Render GrapesJS built-in managers into our containers
   useEffect(() => {
@@ -78,6 +114,24 @@ export default function SidebarPanel({
       console.warn('SidebarPanel: Error rendering GrapesJS managers, editor may not be fully initialized', e);
     }
   }, [editor, activeTab, activeDesignSubTab]);
+
+  // CATEGORIZE BLOCKS
+  const categories: Record<string, any[]> = {};
+  blocks.forEach((block) => {
+    const cat = block.getCategoryLabel() || t('uncategorized');
+    if (!categories[cat]) categories[cat] = [];
+    categories[cat].push(block);
+  });
+
+  const handleDragStart = (block: any, ev: React.DragEvent) => {
+      // GrapesJS requires the drag data to be set
+      ev.dataTransfer.setData('text', '');
+      editor.runCommand('tlb-core:drag-start', { target: block });
+  };
+
+  const handleDragEnd = () => {
+      editor.runCommand('tlb-core:drag-stop');
+  };
 
   return (
     <>
@@ -302,50 +356,37 @@ export default function SidebarPanel({
                   <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('availableWidgets')}</h3>
                </div>
                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <BlocksProvider>
-                  {({ blocks, dragStart, dragStop }) => {
-                    const categories: Record<string, any[]> = {};
-                    blocks.forEach((block) => {
-                      const cat = block.getCategoryLabel() || t('uncategorized');
-                      if (!categories[cat]) categories[cat] = [];
-                      categories[cat].push(block);
-                    });
-
-                    return (
-                      <div className="p-4 space-y-6">
-                        {Object.entries(categories).map(([catLabel, catBlocks]) => (
-                          <div key={catLabel}>
-                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                               <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                               {catLabel}
-                            </h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {catBlocks.map((block) => (
-                                <div
-                                  key={block.getId()}
-                                  draggable
-                                  onDragStart={(ev) => dragStart(block, ev.nativeEvent)}
-                                  onDragEnd={() => dragStop()}
-                                  className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
-                                >
-                                  <div 
-                                    className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
-                                    dangerouslySetInnerHTML={{ __html: block.getMedia() || `
-                                      <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
-                                    ` }}
-                                  />
-                                  <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
-                                    {block.getLabel()}
-                                  </span>
-                                </div>
-                              ))}
+                  <div className="p-4 space-y-6">
+                    {Object.entries(categories).map(([catLabel, catBlocks]) => (
+                      <div key={catLabel}>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                           <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                           {catLabel}
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {catBlocks.map((block) => (
+                            <div
+                              key={block.getId()}
+                              draggable
+                              onDragStart={(ev) => handleDragStart(block, ev)}
+                              onDragEnd={handleDragEnd}
+                              className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
+                            >
+                              <div 
+                                className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
+                                dangerouslySetInnerHTML={{ __html: block.getMedia() || `
+                                  <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
+                                ` }}
+                              />
+                              <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
+                                {block.getLabel()}
+                              </span>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    );
-                  }}
-                </BlocksProvider>
+                    ))}
+                  </div>
               </div>
             </div>
           )}
@@ -385,25 +426,21 @@ export default function SidebarPanel({
                     
                     {/* Selectors Manager */}
                     <div className="bg-blue-50/30 rounded-2xl p-4 border border-blue-50">
-                      <SelectorsProvider>
-                        {(props) => (
                           <div className="space-y-3">
                              <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">{t('activeElement')}</span>
                              </div>
                              <div className="flex flex-wrap gap-2">
-                                {props.selectors.map(sel => (
+                                {selectors.map(sel => (
                                   <span key={sel.getLabel()} className="px-2.5 py-1 bg-white text-blue-600 rounded-lg text-[10px] font-black border border-blue-100 shadow-sm">
                                      #{sel.getLabel()}
                                   </span>
                                 ))}
-                                {props.selectors.length === 0 && (
+                                {selectors.length === 0 && (
                                   <p className="text-gray-400 text-[10px] font-medium italic">{t('selectElementHint')}</p>
                                 )}
                              </div>
                           </div>
-                        )}
-                      </SelectorsProvider>
                     </div>
 
                     {/* Traits Manager */}
