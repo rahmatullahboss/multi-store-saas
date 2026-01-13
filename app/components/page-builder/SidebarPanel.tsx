@@ -124,13 +124,21 @@ export default function SidebarPanel({
   });
 
   const handleDragStart = (block: any, ev: React.DragEvent) => {
-      // GrapesJS requires the drag data to be set
-      ev.dataTransfer.setData('text', '');
-      editor.runCommand('tlb-core:drag-start', { target: block });
+      // Use GrapesJS BlockManager's built-in drag functionality
+      if (editor?.BlockManager?.startDrag) {
+        editor.BlockManager.startDrag(block, ev.nativeEvent);
+      } else {
+        // Fallback: Set the block content as drag data
+        ev.dataTransfer.setData('text/html', block.getContent() || '');
+        ev.dataTransfer.effectAllowed = 'copy';
+      }
   };
 
-  const handleDragEnd = () => {
-      editor.runCommand('tlb-core:drag-stop');
+  const handleDragEnd = (ev: React.DragEvent) => {
+      // Use GrapesJS BlockManager's built-in drag end
+      if (editor?.BlockManager?.endDrag) {
+        editor.BlockManager.endDrag();
+      }
   };
 
   return (
@@ -369,7 +377,7 @@ export default function SidebarPanel({
                               key={block.getId()}
                               draggable
                               onDragStart={(ev) => handleDragStart(block, ev)}
-                              onDragEnd={handleDragEnd}
+                              onDragEnd={(ev) => handleDragEnd(ev)}
                               className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
                             >
                               <div 

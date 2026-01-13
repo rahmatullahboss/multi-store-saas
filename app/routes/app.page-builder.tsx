@@ -139,6 +139,8 @@ export default function PageBuilderRoute() {
   const navigation = useNavigation();
   const fetcher = useFetcher();
 
+  console.log('DEBUG: PageBuilderRoute render', { pageId });
+
   // Ensure client-side only rendering for GrapesJS editor to prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true);
@@ -229,7 +231,7 @@ export default function PageBuilderRoute() {
               <GrapesEditor 
                 pageId={pageId} 
                 planType={planType} 
-                onStorageStatusChange={setStorageStatus}
+                // onStorageStatusChange={setStorageStatus}
                 publishedBaseUrl={publishedBaseUrl}
                 pageSlug={pages.find((p: any) => p.id.toString() === pageId)?.slug}
               />

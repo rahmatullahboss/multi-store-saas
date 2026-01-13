@@ -116,7 +116,7 @@ export const dashboard = {
   navReviews: 'Reviews',
   sidebarAnalytics: 'Analytics',
   // navPlans already defined
-  navPageBuilder: 'Drag & Drop Builder',
+  navPageBuilder: 'Advanced Builder (WIP)',
   navStoreTemplates: 'Store Design',
   navHomepage: 'Homepage Settings',
   navShipping: 'Shipping',

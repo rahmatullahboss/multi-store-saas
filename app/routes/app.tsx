@@ -45,7 +45,8 @@ import {
   AlertTriangle,
   Rocket,
   AlertCircle,
-  BookOpen
+  BookOpen,
+  UserPen
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -285,8 +286,8 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarSettings',
     items: [
+      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: UserPen },
       { to: '/app/page-builder', labelKey: 'navPageBuilder' as any, icon: Rocket },
-      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: AlertTriangle },
       { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Palette },
       { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },

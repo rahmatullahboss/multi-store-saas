@@ -26,7 +26,17 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
     
     try {
       // Add block to the center of the canvas or at the end
-      const content = block.get('content');
+      let content = block.get('content');
+      
+      // Handle lazy content (function)
+      if (typeof content === 'function') {
+        content = content();
+      }
+      // Or use public accessor if available (safer)
+      if (!content && typeof block.getContent === 'function') {
+        content = block.getContent();
+      }
+
       if (!content) {
           console.error('Block has no content', block);
           return;

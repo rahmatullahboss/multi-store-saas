@@ -127,7 +127,7 @@ export default function App() {
           </noscript>
         )}
       </head>
-      <body className="h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <body className="h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }} suppressHydrationWarning>
         <LanguageProvider defaultCurrency={store.currency as 'USD' | 'BDT'}>
           <Outlet />
         </LanguageProvider>
