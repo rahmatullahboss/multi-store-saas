@@ -121,6 +121,10 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
 
   // Track processed command IDs to prevent re-execution loops (CRITICAL FIX)
   const lastProcessedId = useRef<string | null>(null);
+  
+  // Stable ref for onExecuteCommand to avoid dependency issues
+  const onExecuteCommandRef = useRef(onExecuteCommand);
+  onExecuteCommandRef.current = onExecuteCommand;
 
   useEffect(() => {
     // Only proceed if we have data and it's successful
@@ -144,7 +148,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
       
       // Execute command first (so undo stack updates)
       if (isActionCommand) {
-        onExecuteCommand(command);
+        onExecuteCommandRef.current(command); // Use ref to avoid deps
       }
       
       // Add message with undo reference
@@ -159,13 +163,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
         }
       ]);
     } else if (fetcher.state === 'idle' && fetcher.data?.error) {
-       // Error handling...
-       // We can use a simpler check for errors or just let them show (they don't cause loops usually)
-       // But to be safe, we could track error timestamps too, but sticking to commandId for now.
         const errorMessage = fetcher.data?.error || 'Unknown error';
-        // Simple dedup for errors based on message count/content if needed, 
-        // but errors usually don't trigger state changes that cause re-loops like commands do.
-        // We'll leave error generic, but ensure success path is strictly gated.
         setMessages(prev => {
             const lastMsg = prev[prev.length - 1];
             if (lastMsg?.content === `❌ ${errorMessage}`) return prev; // Dedup same error
@@ -179,7 +177,8 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
           ];
         });
     }
-  }, [fetcher.state, fetcher.data, onExecuteCommand]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetcher.state, fetcher.data, editor]); // Removed onExecuteCommand - using ref instead
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
