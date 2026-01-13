@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react';
-import { 
   Monitor, 
   Smartphone, 
   Tablet,
@@ -8,9 +6,9 @@ import {
   Eye, 
   Save, 
   Send,
-  Wand2,
   Trash2,
   Sparkles, 
+  Wand2,
   X,
   Code,
   Check,
@@ -19,8 +17,6 @@ import {
   Copy,
   ExternalLink,
   Link2,
-  Bot,
-  PanelRightClose,
   PanelRightOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -376,11 +372,21 @@ export default function EditorToolbar({
 
         {selectedComponent ? (
           <button 
-            onClick={() => editor.runCommand('open-ai-design-modal')}
+            onClick={() => {
+              if (isAiLocked) {
+                editor.runCommand('open-ai-design-modal');
+              } else if (onToggleAISidebar) {
+                onToggleAISidebar();
+              } else {
+                editor.runCommand('open-ai-design-modal');
+              }
+            }}
             className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition shadow-md animate-in fade-in zoom-in group relative ${
               isAiLocked 
                 ? 'bg-gradient-to-r from-slate-400 to-slate-500 text-white shadow-slate-100 hover:from-slate-500 hover:to-slate-600' 
-                : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-purple-100'
+                : isAISidebarOpen
+                  ? 'bg-violet-600 text-white shadow-violet-100 ring-2 ring-violet-500 ring-offset-2'
+                  : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-purple-100'
             }`}
             title={isAiLocked ? (t('unlockMagicAi') || "Unlock Magic AI (Premium)") : (t('editElementAi') || "Edit Selected Element with AI")}
           >
@@ -394,16 +400,27 @@ export default function EditorToolbar({
               <>
                 <Sparkles size={14} />
                 <span>{t('magicEdit')}</span>
+                {isAISidebarOpen && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white animate-pulse" />}
               </>
             )}
           </button>
         ) : (
           <button 
-            onClick={() => editor.runCommand('open-magic-modal')}
+            onClick={() => {
+              if (isAiLocked) {
+                editor.runCommand('open-magic-modal');
+              } else if (onToggleAISidebar) {
+                onToggleAISidebar();
+              } else {
+                editor.runCommand('open-magic-modal');
+              }
+            }}
             className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition border shadow-sm group relative ${
               isAiLocked
                 ? 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:border-slate-300 shadow-slate-50'
-                : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100 shadow-emerald-50'
+                : isAISidebarOpen
+                  ? 'text-violet-600 bg-violet-50 border-violet-200 ring-2 ring-violet-500 ring-offset-2'
+                  : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100 shadow-emerald-50'
             }`}
             title={isAiLocked ? (t('unlockMagicAi') || "Unlock Magic AI (Premium)") : (t('generateWithAi') || "Generate Page with AI")}
           >
@@ -417,6 +434,7 @@ export default function EditorToolbar({
               <>
                 <Wand2 size={14} />
                 <span>{t('magicAi')}</span>
+                {isAISidebarOpen && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-violet-500 rounded-full border-2 border-white animate-pulse" />}
               </>
             )}
           </button>
@@ -490,29 +508,6 @@ export default function EditorToolbar({
           {t('publish')}
         </button>
 
-        {/* AI Sidebar Toggle */}
-        {!isAiLocked && onToggleAISidebar && (
-          <>
-            <div className="w-[1px] h-6 bg-gray-200 mx-1" />
-            <button 
-              onClick={onToggleAISidebar}
-              className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition border ${
-                isAISidebarOpen
-                  ? 'text-violet-600 bg-violet-50 border-violet-200 hover:bg-violet-100'
-                  : 'text-gray-600 hover:bg-gray-100 border-transparent hover:border-gray-200'
-              }`}
-              title={isAISidebarOpen ? 'Hide AI Sidebar' : 'Show AI Sidebar'}
-            >
-              <Bot size={14} />
-              AI
-              {isAISidebarOpen ? (
-                <PanelRightClose size={14} className="ml-0.5" />
-              ) : (
-                <PanelRightOpen size={14} className="ml-0.5" />
-              )}
-            </button>
-          </>
-        )}
       </div>
 
 

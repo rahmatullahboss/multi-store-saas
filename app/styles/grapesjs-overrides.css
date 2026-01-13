@@ -54,9 +54,14 @@
 #gjs[data-gjs-device="Desktop"] .gjs-cv-canvas,
 #gjs[data-gjs-device="Desktop"] .gjs-cv-canvas__frames {
     width: 100% !important;
+    height: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+}
+
+[data-gjs-device="Desktop"] .gjs-frame-wrapper {
+    height: 100% !important;
 }
 
 /* Ensure the canvas wrapper itself also fills space */

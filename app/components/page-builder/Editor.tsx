@@ -471,8 +471,7 @@ export default function GrapesEditor({
 
           {/* Canvas Area - EXPLICIT height required for GrapesJS */}
           <div 
-            className="bg-gray-100 overflow-hidden relative"
-            style={{ height: 'calc(100vh - 120px)', flex: '1 1 0%' }}
+            className="bg-gray-100 overflow-hidden relative flex-1 min-w-0"
             onContextMenu={(e) => e.preventDefault()}
           >
             {/* GrapesJS Container */}
@@ -526,6 +525,7 @@ export default function GrapesEditor({
         /* Base editor sizing */
         .gjs-cv-canvas { 
           height: 100% !important;
+          width: 100% !important;
           top: 0 !important;
           left: 0 !important;
           padding: 0 !important;
