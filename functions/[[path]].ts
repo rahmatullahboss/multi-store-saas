@@ -85,11 +85,6 @@ export const onRequest = createPagesFunctionHandler({
     
     const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
     
-    console.log(`[PAGES] ============================================`);
-    console.log(`[PAGES] Request: ${request.method} ${url.pathname}`);
-    console.log(`[PAGES] Hostname: ${hostname}`);
-    console.log(`[PAGES] SAAS_DOMAIN: ${saasDomain}`);
-    
     // Default context values
     let storeId = 0;
     let store = null;
@@ -97,7 +92,6 @@ export const onRequest = createPagesFunctionHandler({
     
     // Skip tenant resolution for main domains
     if (isMainDomain(hostname)) {
-      console.log(`[PAGES] Main domain detected, skipping tenant resolution`);
       return {
         cloudflare: {
           env: {
@@ -118,13 +112,11 @@ export const onRequest = createPagesFunctionHandler({
     
     // Resolve tenant from hostname
     const { type, value } = parseHostname(hostname, saasDomain);
-    console.log(`[PAGES] Parsed hostname: type=${type}, value=${value}`);
     
     try {
       const db = drizzle(env.DB);
       
       if (type === 'subdomain') {
-        console.log(`[PAGES] Looking up store by subdomain: ${value}`);
         const result = await db
           .select()
           .from(stores)
@@ -134,14 +126,10 @@ export const onRequest = createPagesFunctionHandler({
         if (result[0]) {
           store = result[0];
           storeId = result[0].id;
-          console.log(`[PAGES] ✓ Store found: ID=${storeId}, Name=${store.name}`);
-        } else {
-          console.warn(`[PAGES] Store not found for subdomain: ${value}`);
         }
       } else {
         // Custom domain lookup
         isCustomDomainAccess = true;
-        console.log(`[PAGES] Looking up store by custom domain: ${value}`);
         const result = await db
           .select()
           .from(stores)
@@ -151,14 +139,10 @@ export const onRequest = createPagesFunctionHandler({
         if (result[0]) {
           store = result[0];
           storeId = result[0].id;
-          console.log(`[PAGES] ✓ Store found: ID=${storeId}, Name=${store.name}`);
-        } else {
-          console.warn(`[PAGES] Store not found for custom domain: ${value}`);
         }
       }
     } catch (error) {
-      console.error(`[PAGES] Error resolving tenant:`, error);
-      console.error(`[PAGES] Error message:`, error instanceof Error ? error.message : String(error));
+      // Log error to monitoring service in production
     }
     
     return {
