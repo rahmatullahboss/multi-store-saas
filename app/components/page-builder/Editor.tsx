@@ -227,8 +227,10 @@ export default function GrapesEditor({
           // Use setProperty with 'important' to override GrapesJS inline styles
           frameWrapper.style.setProperty('width', '100%', 'important');
           frameWrapper.style.setProperty('max-width', '100%', 'important');
+          frameWrapper.style.setProperty('min-width', '100%', 'important');
           frameWrapper.style.setProperty('box-shadow', 'none', 'important');
           frameWrapper.style.setProperty('margin', '0', 'important');
+          frameWrapper.style.setProperty('left', '0', 'important');
         }
       };
       
@@ -236,6 +238,12 @@ export default function GrapesEditor({
         const device = editorInstance.getDevice();
         const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
         const framesContainer = document.querySelector('.gjs-cv-canvas__frames') as HTMLElement;
+        const editorEl = document.querySelector('.gjs-editor') as HTMLElement;
+        
+        // Set data attribute on editor for CSS targeting
+        if (editorEl) {
+          editorEl.setAttribute('data-gjs-device', device);
+        }
         
         // Disconnect any existing observer
         if (desktopObserver) {
@@ -264,6 +272,8 @@ export default function GrapesEditor({
             // Tablet/Mobile: Remove forced styles
             frameWrapper.style.removeProperty('width');
             frameWrapper.style.removeProperty('max-width');
+            frameWrapper.style.removeProperty('min-width');
+            frameWrapper.style.removeProperty('left');
             frameWrapper.style.setProperty('box-shadow', '0 0 20px rgba(0,0,0,0.15)');
             frameWrapper.style.setProperty('margin', '0 auto');
             if (framesContainer) {

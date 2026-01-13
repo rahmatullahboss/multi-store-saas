@@ -19,7 +19,9 @@ export function t(key: TranslationKey, lang: Language = 'en', params?: Record<st
 
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
-      text = text.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
+      // Support both {{key}} and {key}
+      const regex = new RegExp(`{{?${k}}}?`, 'g');
+      text = text.replace(regex, String(v));
     });
   }
 
