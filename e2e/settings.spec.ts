@@ -21,8 +21,8 @@ test.describe('Store Settings', () => {
     test('should load settings page', async ({ page }) => {
       await page.goto('/app/settings');
       
-      // Should show settings section
-      await expect(page.locator('h1, h2').first()).toContainText(/Settings|সেটিংস/i);
+      // Should show settings section - use main selector to avoid sidebar h2
+      await expect(page.locator('main h1, main h2').first()).toContainText(/Settings|সেটিংস/i);
     });
 
     test('should update store name', async ({ page }) => {

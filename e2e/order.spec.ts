@@ -21,8 +21,8 @@ test.describe('Order Management', () => {
     test('should load orders page', async ({ page }) => {
       await page.goto('/app/orders');
       
-      // Should show orders section
-      await expect(page.locator('h1, h2').first()).toContainText(/Orders|অর্ডার/i);
+      // Should show orders section - use main selector to avoid sidebar h2
+      await expect(page.locator('main h1, main h2').first()).toContainText(/Orders|অর্ডার/i);
     });
 
     test('should show order filters', async ({ page }) => {

@@ -56,23 +56,23 @@ test.describe('Dashboard', () => {
 
   test.describe('Dashboard Navigation', () => {
     test('should navigate to products', async ({ page }) => {
-      await page.goto('/app');
+      await page.goto('/app/dashboard');
       
-      const productsLink = page.locator('a[href*="products"]').first();
-      if (await productsLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await productsLink.click();
-        await expect(page.url()).toContain('products');
-      }
+      // Use nav element to find sidebar links
+      const productsLink = page.locator('nav a[href*="products"]').first();
+      await productsLink.click();
+      await page.waitForURL(/products/);
+      await expect(page.url()).toContain('products');
     });
 
     test('should navigate to orders', async ({ page }) => {
-      await page.goto('/app');
+      await page.goto('/app/dashboard');
       
-      const ordersLink = page.locator('a[href*="orders"]').first();
-      if (await ordersLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await ordersLink.click();
-        await expect(page.url()).toContain('orders');
-      }
+      // Use nav element to find sidebar links
+      const ordersLink = page.locator('nav a[href*="orders"]').first();
+      await ordersLink.click();
+      await page.waitForURL(/orders/);
+      await expect(page.url()).toContain('orders');
     });
 
     test('should navigate to customers', async ({ page }) => {
@@ -86,13 +86,13 @@ test.describe('Dashboard', () => {
     });
 
     test('should navigate to settings', async ({ page }) => {
-      await page.goto('/app');
+      await page.goto('/app/dashboard');
       
-      const settingsLink = page.locator('a[href*="settings"]').first();
-      if (await settingsLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await settingsLink.click();
-        await expect(page.url()).toContain('settings');
-      }
+      // Use nav element to find sidebar links
+      const settingsLink = page.locator('nav a[href*="settings"]').first();
+      await settingsLink.click();
+      await page.waitForURL(/settings/);
+      await expect(page.url()).toContain('settings');
     });
   });
 

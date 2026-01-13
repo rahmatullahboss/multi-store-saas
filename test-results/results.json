@@ -243,12 +243,12 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 1094,
+                          "duration": 1070,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:31.268Z",
+                          "startTime": "2026-01-13T16:24:50.813Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -277,12 +277,12 @@
                           "workerIndex": 1,
                           "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1367,
+                          "duration": 1269,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:31.257Z",
+                          "startTime": "2026-01-13T16:24:50.809Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -311,12 +311,12 @@
                           "workerIndex": 2,
                           "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1432,
+                          "duration": 1444,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:31.260Z",
+                          "startTime": "2026-01-13T16:24:50.815Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -345,12 +345,12 @@
                           "workerIndex": 3,
                           "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 1559,
+                          "duration": 1399,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:31.265Z",
+                          "startTime": "2026-01-13T16:24:50.822Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -379,12 +379,12 @@
                           "workerIndex": 4,
                           "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1515,
+                          "duration": 1359,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:31.276Z",
+                          "startTime": "2026-01-13T16:24:50.836Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -413,12 +413,12 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 845,
+                          "duration": 786,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:32.789Z",
+                          "startTime": "2026-01-13T16:24:52.280Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -455,12 +455,12 @@
                           "workerIndex": 1,
                           "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1294,
+                          "duration": 999,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:33.057Z",
+                          "startTime": "2026-01-13T16:24:52.469Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -486,15 +486,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 2,
-                          "parallelIndex": 2,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1264,
+                          "duration": 991,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:33.120Z",
+                          "startTime": "2026-01-13T16:24:52.559Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -520,15 +520,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 4,
-                          "parallelIndex": 4,
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 1196,
+                          "duration": 1019,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:33.203Z",
+                          "startTime": "2026-01-13T16:24:52.597Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -562,15 +562,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 3,
-                          "parallelIndex": 3,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1019,
+                          "duration": 933,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:33.246Z",
+                          "startTime": "2026-01-13T16:24:52.643Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -599,12 +599,12 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 911,
+                          "duration": 835,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:33.657Z",
+                          "startTime": "2026-01-13T16:24:53.082Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -638,15 +638,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 3,
-                          "parallelIndex": 3,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1496,
+                          "duration": 1114,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:34.295Z",
+                          "startTime": "2026-01-13T16:24:53.485Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -698,15 +698,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1024,
+                          "duration": 978,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:34.408Z",
+                          "startTime": "2026-01-13T16:24:53.568Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -735,12 +735,12 @@
                           "workerIndex": 2,
                           "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1019,
+                          "duration": 876,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:34.419Z",
+                          "startTime": "2026-01-13T16:24:53.601Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -774,15 +774,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 4,
-                          "parallelIndex": 4,
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 998,
+                          "duration": 964,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:34.426Z",
+                          "startTime": "2026-01-13T16:24:53.634Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -819,12 +819,12 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 1012,
+                          "duration": 962,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:34.587Z",
+                          "startTime": "2026-01-13T16:24:53.948Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -850,15 +850,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 4,
-                          "parallelIndex": 4,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1692,
+                          "duration": 1733,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:35.443Z",
+                          "startTime": "2026-01-13T16:24:54.492Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -884,15 +884,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1846,
+                          "duration": 1795,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:35.451Z",
+                          "startTime": "2026-01-13T16:24:54.570Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -928,15 +928,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1092,
+                      "duration": 1522,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:35.458Z",
+                      "startTime": "2026-01-13T16:24:54.610Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -962,15 +962,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1171,
+                      "duration": 1012,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:35.607Z",
+                      "startTime": "2026-01-13T16:24:54.635Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -996,15 +996,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1465,
+                      "duration": 1317,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:35.809Z",
+                      "startTime": "2026-01-13T16:24:54.921Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1054,15 +1054,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 2,
-                          "parallelIndex": 2,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1541,
+                          "duration": 1221,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:36.574Z",
+                          "startTime": "2026-01-13T16:24:55.666Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1088,15 +1088,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 2113,
+                          "duration": 1615,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:36.797Z",
+                          "startTime": "2026-01-13T16:24:56.149Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1122,15 +1122,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 4,
-                          "parallelIndex": 4,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 2119,
+                          "duration": 1650,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:37.164Z",
+                          "startTime": "2026-01-13T16:24:56.250Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1156,15 +1156,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 3,
-                          "parallelIndex": 3,
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 2019,
+                          "duration": 1806,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:37.292Z",
+                          "startTime": "2026-01-13T16:24:56.251Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1190,15 +1190,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1928,
+                          "duration": 1674,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:37.326Z",
+                          "startTime": "2026-01-13T16:24:56.385Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1221,7 +1221,7 @@
               "specs": [
                 {
                   "title": "should navigate to products",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -1232,55 +1232,20 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 2,
-                          "parallelIndex": 2,
-                          "status": "failed",
-                          "duration": 1670,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"products\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"products\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:64:34",
-                            "location": {
-                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                              "column": 34,
-                              "line": 64
-                            },
-                            "snippet": "  62 |       if (await productsLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  63 |         await productsLink.click();\n> 64 |         await expect(page.url()).toContain('products');\n     |                                  ^\n  65 |       }\n  66 |     });\n  67 |"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                                "column": 34,
-                                "line": 64
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"products\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n\n  62 |       if (await productsLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  63 |         await productsLink.click();\n> 64 |         await expect(page.url()).toContain('products');\n     |                                  ^\n  65 |       }\n  66 |     });\n  67 |\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:64:34"
-                            }
-                          ],
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1464,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:38.131Z",
+                          "startTime": "2026-01-13T16:24:56.912Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-12c01-should-navigate-to-products-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-12c01-should-navigate-to-products-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                            "column": 34,
-                            "line": 64
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "90cda532ab82d274b30b-7e387c32ac93ec7c2fa1",
@@ -1290,7 +1255,7 @@
                 },
                 {
                   "title": "should navigate to orders",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -1301,55 +1266,20 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 1877,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"orders\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"orders\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:74:34",
-                            "location": {
-                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                              "column": 34,
-                              "line": 74
-                            },
-                            "snippet": "  72 |       if (await ordersLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  73 |         await ordersLink.click();\n> 74 |         await expect(page.url()).toContain('orders');\n     |                                  ^\n  75 |       }\n  76 |     });\n  77 |"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                                "column": 34,
-                                "line": 74
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"orders\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n\n  72 |       if (await ordersLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  73 |         await ordersLink.click();\n> 74 |         await expect(page.url()).toContain('orders');\n     |                                  ^\n  75 |       }\n  76 |     });\n  77 |\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:74:34"
-                            }
-                          ],
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2249,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:38.930Z",
+                          "startTime": "2026-01-13T16:24:57.774Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-3cf7b-n-should-navigate-to-orders-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-3cf7b-n-should-navigate-to-orders-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                            "column": 34,
-                            "line": 74
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "90cda532ab82d274b30b-b1d20babf96343b6c62a",
@@ -1370,15 +1300,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1827,
+                          "duration": 1567,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:39.281Z",
+                          "startTime": "2026-01-13T16:24:57.909Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1393,7 +1323,7 @@
                 },
                 {
                   "title": "should navigate to settings",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -1404,55 +1334,20 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 4,
-                          "parallelIndex": 4,
-                          "status": "failed",
-                          "duration": 2084,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"settings\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"settings\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:94:34",
-                            "location": {
-                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                              "column": 34,
-                              "line": 94
-                            },
-                            "snippet": "  92 |       if (await settingsLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  93 |         await settingsLink.click();\n> 94 |         await expect(page.url()).toContain('settings');\n     |                                  ^\n  95 |       }\n  96 |     });\n  97 |   });"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                                "column": 34,
-                                "line": 94
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"settings\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n\n  92 |       if (await settingsLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  93 |         await settingsLink.click();\n> 94 |         await expect(page.url()).toContain('settings');\n     |                                  ^\n  95 |       }\n  96 |     });\n  97 |   });\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:94:34"
-                            }
-                          ],
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2311,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:39.301Z",
+                          "startTime": "2026-01-13T16:24:58.068Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-ce3b0-should-navigate-to-settings-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-ce3b0-should-navigate-to-settings-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                            "column": 34,
-                            "line": 94
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "90cda532ab82d274b30b-17d19ba4d02e9c25aa3c",
@@ -1481,15 +1376,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 3,
-                          "parallelIndex": 3,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1908,
+                          "duration": 1948,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:39.330Z",
+                          "startTime": "2026-01-13T16:24:58.068Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1515,15 +1410,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 5,
-                          "parallelIndex": 2,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1672,
+                          "duration": 1666,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:40.520Z",
+                          "startTime": "2026-01-13T16:24:58.397Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1557,15 +1452,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1850,
+                          "duration": 1400,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:41.644Z",
+                          "startTime": "2026-01-13T16:24:59.484Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1591,15 +1486,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1856,
+                          "duration": 1673,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:41.126Z",
+                          "startTime": "2026-01-13T16:25:00.033Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1636,12 +1531,12 @@
                           "workerIndex": 3,
                           "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 2059,
+                          "duration": 1705,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:41.254Z",
+                          "startTime": "2026-01-13T16:25:00.038Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1667,15 +1562,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 7,
-                          "parallelIndex": 4,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1961,
+                          "duration": 1915,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:42.102Z",
+                          "startTime": "2026-01-13T16:25:00.092Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1709,15 +1604,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 5,
-                          "parallelIndex": 2,
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 1853,
+                          "duration": 1710,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:42.366Z",
+                          "startTime": "2026-01-13T16:25:00.388Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1743,15 +1638,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1770,
+                          "duration": 1457,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:42.996Z",
+                          "startTime": "2026-01-13T16:25:00.900Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -1776,7 +1671,7 @@
           "specs": [
             {
               "title": "should load analytics page",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -1787,55 +1682,20 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 11430,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:209:40",
-                        "location": {
-                          "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                          "column": 40,
-                          "line": 209
-                        },
-                        "snippet": "  207 |     await page.goto('/app/analytics');\n  208 |     \n> 209 |     await expect(page.locator('body')).toContainText(/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i);\n      |                                        ^\n  210 |   });\n  211 |\n  212 |   test('should show visitor stats', async ({ page }) => {"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                            "column": 40,
-                            "line": 209
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[22m\n\n\n  207 |     await page.goto('/app/analytics');\n  208 |     \n> 209 |     await expect(page.locator('body')).toContainText(/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i);\n      |                                        ^\n  210 |   });\n  211 |\n  212 |   test('should show visitor stats', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:209:40"
-                        }
-                      ],
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 1706,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:43.329Z",
+                      "startTime": "2026-01-13T16:25:01.728Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Analytics-should-load-analytics-page-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Analytics-should-load-analytics-page-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
-                        "column": 40,
-                        "line": 209
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "90cda532ab82d274b30b-c4879319df3da1313abc",
@@ -1856,15 +1716,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 6,
-                      "parallelIndex": 0,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 6479,
+                      "duration": 6671,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:43.636Z",
+                      "startTime": "2026-01-13T16:25:01.773Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1874,7 +1734,7 @@
               ],
               "id": "90cda532ab82d274b30b-7a31fb4bf53dd8cae003",
               "file": "dashboard.spec.ts",
-              "line": 212,
+              "line": 213,
               "column": 3
             }
           ]
@@ -1896,7 +1756,7 @@
           "specs": [
             {
               "title": "should load successfully",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -1907,55 +1767,20 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 11246,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Multi-Store/i\u001b[39m\nReceived string:  \u001b[31m\"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Multi-Store/i\u001b[39m\nReceived string:  \u001b[31m\"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts:18:24",
-                        "location": {
-                          "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts",
-                          "column": 24,
-                          "line": 18
-                        },
-                        "snippet": "  16 |   test('should load successfully', async ({ page }) => {\n  17 |     // Check page title\n> 18 |     await expect(page).toHaveTitle(/Multi-Store/i);\n     |                        ^\n  19 |     // The app defaults to Bengali, so the CTA would be \"শুরু করুন\" or \"ফ্রিতে শুরু করুন\"\n  20 |     // Let's just check that the page body has content\n  21 |     await expect(page.locator('body')).toBeVisible();"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts",
-                            "column": 24,
-                            "line": 18
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Multi-Store/i\u001b[39m\nReceived string:  \u001b[31m\"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[22m\n\n\n  16 |   test('should load successfully', async ({ page }) => {\n  17 |     // Check page title\n> 18 |     await expect(page).toHaveTitle(/Multi-Store/i);\n     |                        ^\n  19 |     // The app defaults to Bengali, so the CTA would be \"শুরু করুন\" or \"ফ্রিতে শুরু করুন\"\n  20 |     // Let's just check that the page body has content\n  21 |     await expect(page.locator('body')).toBeVisible();\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts:18:24"
-                        }
-                      ],
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 958,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:44.246Z",
+                      "startTime": "2026-01-13T16:25:02.023Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/landing-Landing-Page-should-load-successfully-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/landing-Landing-Page-should-load-successfully-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts",
-                        "column": 24,
-                        "line": 18
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "4e5b49d369fd48ca0656-e772be488a8f986a02ad",
@@ -1976,15 +1801,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 7,
-                      "parallelIndex": 4,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1233,
+                      "duration": 1373,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:44.248Z",
+                      "startTime": "2026-01-13T16:25:02.110Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2010,15 +1835,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1102,
+                      "duration": 1519,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:44.797Z",
+                      "startTime": "2026-01-13T16:25:02.374Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2044,15 +1869,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 7,
-                      "parallelIndex": 4,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 885,
+                      "duration": 849,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:45.495Z",
+                      "startTime": "2026-01-13T16:25:03.001Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2091,7 +1916,7 @@
               "specs": [
                 {
                   "title": "should load orders page",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -2102,55 +1927,20 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
-                          "status": "failed",
-                          "duration": 11063,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Orders|অর্ডার/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Orders|অর্ডার/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts:25:52",
-                            "location": {
-                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts",
-                              "column": 52,
-                              "line": 25
-                            },
-                            "snippet": "  23 |       \n  24 |       // Should show orders section\n> 25 |       await expect(page.locator('h1, h2').first()).toContainText(/Orders|অর্ডার/i);\n     |                                                    ^\n  26 |     });\n  27 |\n  28 |     test('should show order filters', async ({ page }) => {"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts",
-                                "column": 52,
-                                "line": 25
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Orders|অর্ডার/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n\n  23 |       \n  24 |       // Should show orders section\n> 25 |       await expect(page.locator('h1, h2').first()).toContainText(/Orders|অর্ডার/i);\n     |                                                    ^\n  26 |     });\n  27 |\n  28 |     test('should show order filters', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts:25:52"
-                            }
-                          ],
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 1440,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:45.918Z",
+                          "startTime": "2026-01-13T16:25:03.471Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/order-Order-Management-Order-List-should-load-orders-page-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/order-Order-Management-Order-List-should-load-orders-page-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts",
-                            "column": 52,
-                            "line": 25
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "85d1357294a106dff78a-d39b7cbe52e3d0ee6545",
@@ -2171,15 +1961,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 7,
-                          "parallelIndex": 4,
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 11146,
+                          "duration": 11393,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:46.402Z",
+                          "startTime": "2026-01-13T16:25:03.503Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2205,15 +1995,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1540,
+                          "duration": 2287,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:50.129Z",
+                          "startTime": "2026-01-13T16:25:03.861Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2239,15 +2029,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1508,
+                          "duration": 2271,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:51.677Z",
+                          "startTime": "2026-01-13T16:25:03.908Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2281,15 +2071,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 993,
+                          "duration": 1212,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:53.192Z",
+                          "startTime": "2026-01-13T16:25:04.933Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2315,15 +2105,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1015,
+                          "duration": 1002,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:54.192Z",
+                          "startTime": "2026-01-13T16:25:06.159Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2357,15 +2147,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1106,
+                          "duration": 1316,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:55.485Z",
+                          "startTime": "2026-01-13T16:25:06.161Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2391,15 +2181,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1051,
+                          "duration": 1257,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:55.219Z",
+                          "startTime": "2026-01-13T16:25:06.191Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2433,15 +2223,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 9,
-                          "parallelIndex": 2,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1114,
+                          "duration": 1095,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:55.953Z",
+                          "startTime": "2026-01-13T16:25:07.171Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2475,15 +2265,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1334,
+                          "duration": 1122,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:56.290Z",
+                          "startTime": "2026-01-13T16:25:07.458Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2519,15 +2309,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 3,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1255,
+                      "duration": 1111,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:56.715Z",
+                      "startTime": "2026-01-13T16:25:07.487Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2553,15 +2343,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 10,
-                      "parallelIndex": 1,
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 1514,
+                      "duration": 1226,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:03:57.945Z",
+                      "startTime": "2026-01-13T16:25:08.273Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2600,7 +2390,7 @@
               "specs": [
                 {
                   "title": "should load products page",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -2611,55 +2401,20 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 9,
-                          "parallelIndex": 2,
-                          "status": "failed",
-                          "duration": 11468,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Products|পণ্য/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Products|পণ্য/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts:26:52",
-                            "location": {
-                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
-                              "column": 52,
-                              "line": 26
-                            },
-                            "snippet": "  24 |       \n  25 |       // Should show products section\n> 26 |       await expect(page.locator('h1, h2').first()).toContainText(/Products|পণ্য/i);\n     |                                                    ^\n  27 |     });\n  28 |\n  29 |     test('should show add product button', async ({ page }) => {"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
-                                "column": 52,
-                                "line": 26
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Products|পণ্য/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n\n  24 |       \n  25 |       // Should show products section\n> 26 |       await expect(page.locator('h1, h2').first()).toContainText(/Products|পণ্য/i);\n     |                                                    ^\n  27 |     });\n  28 |\n  29 |     test('should show add product button', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts:26:52"
-                            }
-                          ],
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1278,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:57.255Z",
+                          "startTime": "2026-01-13T16:25:08.469Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/product-Product-Management-6b124-t-should-load-products-page-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/product-Product-Management-6b124-t-should-load-products-page-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
-                            "column": 52,
-                            "line": 26
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "2fa8ab87beca8e7f39ce-d19ae71f267729642ddc",
@@ -2669,7 +2424,7 @@
                 },
                 {
                   "title": "should show add product button",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -2680,55 +2435,20 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 7,
-                          "parallelIndex": 4,
-                          "status": "failed",
-                          "duration": 11527,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\u001b[22m\n",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts:34:39",
-                            "location": {
-                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
-                              "column": 39,
-                              "line": 34
-                            },
-                            "snippet": "  32 |       // Should have add product button\n  33 |       const addButton = page.locator('button, a').filter({ hasText: /Add|যোগ করুন/i });\n> 34 |       await expect(addButton.first()).toBeVisible();\n     |                                       ^\n  35 |     });\n  36 |\n  37 |     test('should search products', async ({ page }) => {"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
-                                "column": 39,
-                                "line": 34
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\u001b[22m\n\n\n  32 |       // Should have add product button\n  33 |       const addButton = page.locator('button, a').filter({ hasText: /Add|যোগ করুন/i });\n> 34 |       await expect(addButton.first()).toBeVisible();\n     |                                       ^\n  35 |     });\n  36 |\n  37 |     test('should search products', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts:34:39"
-                            }
-                          ],
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1336,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:57.575Z",
+                          "startTime": "2026-01-13T16:25:08.599Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/product-Product-Management-62b91-uld-show-add-product-button-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/product-Product-Management-62b91-uld-show-add-product-button-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
-                            "column": 39,
-                            "line": 34
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "2fa8ab87beca8e7f39ce-5253b6dc4fbbb17837e8",
@@ -2749,15 +2469,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1565,
+                          "duration": 1322,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:57.646Z",
+                          "startTime": "2026-01-13T16:25:08.615Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2767,7 +2487,7 @@
                   ],
                   "id": "2fa8ab87beca8e7f39ce-7b919dde08d20d166707",
                   "file": "product.spec.ts",
-                  "line": 37,
+                  "line": 44,
                   "column": 5
                 }
               ]
@@ -2775,7 +2495,7 @@
             {
               "title": "Create Product",
               "file": "product.spec.ts",
-              "line": 50,
+              "line": 57,
               "column": 8,
               "specs": [
                 {
@@ -2791,15 +2511,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1541,
+                          "duration": 1184,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:57.996Z",
+                          "startTime": "2026-01-13T16:25:09.516Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2809,7 +2529,7 @@
                   ],
                   "id": "2fa8ab87beca8e7f39ce-186c676b868d8a90a155",
                   "file": "product.spec.ts",
-                  "line": 51,
+                  "line": 58,
                   "column": 5
                 },
                 {
@@ -2825,15 +2545,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 1131,
+                          "duration": 1410,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:59.227Z",
+                          "startTime": "2026-01-13T16:25:09.755Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2843,7 +2563,7 @@
                   ],
                   "id": "2fa8ab87beca8e7f39ce-cf8c70ed730f736f61fe",
                   "file": "product.spec.ts",
-                  "line": 61,
+                  "line": 68,
                   "column": 5
                 },
                 {
@@ -2859,15 +2579,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 3499,
+                          "duration": 3216,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:59.552Z",
+                          "startTime": "2026-01-13T16:25:09.944Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2877,7 +2597,7 @@
                   ],
                   "id": "2fa8ab87beca8e7f39ce-47b746a83a7fdec2a409",
                   "file": "product.spec.ts",
-                  "line": 74,
+                  "line": 81,
                   "column": 5
                 }
               ]
@@ -2885,7 +2605,7 @@
             {
               "title": "Edit Product",
               "file": "product.spec.ts",
-              "line": 103,
+              "line": 110,
               "column": 8,
               "specs": [
                 {
@@ -2901,15 +2621,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 10,
-                          "parallelIndex": 1,
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
                           "status": "passed",
-                          "duration": 1089,
+                          "duration": 1194,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:03:59.653Z",
+                          "startTime": "2026-01-13T16:25:09.945Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2919,7 +2639,7 @@
                   ],
                   "id": "2fa8ab87beca8e7f39ce-7c18487035ed4c832725",
                   "file": "product.spec.ts",
-                  "line": 104,
+                  "line": 111,
                   "column": 5
                 }
               ]
@@ -2927,7 +2647,7 @@
             {
               "title": "Delete Product",
               "file": "product.spec.ts",
-              "line": 128,
+              "line": 135,
               "column": 8,
               "specs": [
                 {
@@ -2943,15 +2663,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1075,
+                          "duration": 1030,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:00.374Z",
+                          "startTime": "2026-01-13T16:25:10.706Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -2961,7 +2681,7 @@
                   ],
                   "id": "2fa8ab87beca8e7f39ce-a4de4b6d8123716f93d1",
                   "file": "product.spec.ts",
-                  "line": 129,
+                  "line": 136,
                   "column": 5
                 }
               ]
@@ -2971,7 +2691,7 @@
         {
           "title": "Product Variants",
           "file": "product.spec.ts",
-          "line": 146,
+          "line": 153,
           "column": 6,
           "specs": [
             {
@@ -2987,15 +2707,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 10,
-                      "parallelIndex": 1,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 11026,
+                      "duration": 10957,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:04:00.755Z",
+                      "startTime": "2026-01-13T16:25:11.155Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3005,7 +2725,7 @@
               ],
               "id": "2fa8ab87beca8e7f39ce-56e711d9f264ec79f52d",
               "file": "product.spec.ts",
-              "line": 157,
+              "line": 164,
               "column": 3
             }
           ]
@@ -3034,7 +2754,7 @@
               "specs": [
                 {
                   "title": "should load settings page",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -3045,55 +2765,20 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 6,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 11100,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Settings|সেটিংস/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Settings|সেটিংস/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts:25:52",
-                            "location": {
-                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
-                              "column": 52,
-                              "line": 25
-                            },
-                            "snippet": "  23 |       \n  24 |       // Should show settings section\n> 25 |       await expect(page.locator('h1, h2').first()).toContainText(/Settings|সেটিংস/i);\n     |                                                    ^\n  26 |     });\n  27 |\n  28 |     test('should update store name', async ({ page }) => {"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
-                                "column": 52,
-                                "line": 25
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Settings|সেটিংস/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n\n  23 |       \n  24 |       // Should show settings section\n> 25 |       await expect(page.locator('h1, h2').first()).toContainText(/Settings|সেটিংস/i);\n     |                                                    ^\n  26 |     });\n  27 |\n  28 |     test('should update store name', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts:25:52"
-                            }
-                          ],
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1120,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:01.468Z",
+                          "startTime": "2026-01-13T16:25:11.178Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/settings-Store-Settings-Ge-beb22-s-should-load-settings-page-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/settings-Store-Settings-Ge-beb22-s-should-load-settings-page-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
-                            "column": 52,
-                            "line": 25
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "d877ffdf71ec720167ae-7920aaeedc5837d11fda",
@@ -3114,15 +2799,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1151,
+                          "duration": 1115,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:03.063Z",
+                          "startTime": "2026-01-13T16:25:11.755Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3148,15 +2833,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
+                          "workerIndex": 3,
                           "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 1005,
+                          "duration": 1040,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:04.228Z",
+                          "startTime": "2026-01-13T16:25:12.309Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3190,15 +2875,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 829,
+                          "duration": 881,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:05.239Z",
+                          "startTime": "2026-01-13T16:25:12.884Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3224,15 +2909,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 924,
+                          "duration": 1373,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:06.075Z",
+                          "startTime": "2026-01-13T16:25:13.174Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3258,15 +2943,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
+                          "workerIndex": 3,
                           "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 883,
+                          "duration": 916,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:07.006Z",
+                          "startTime": "2026-01-13T16:25:13.362Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3300,15 +2985,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 939,
+                          "duration": 911,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:07.907Z",
+                          "startTime": "2026-01-13T16:25:13.770Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3334,15 +3019,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 11,
-                          "parallelIndex": 2,
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 1102,
+                          "duration": 1507,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:09.195Z",
+                          "startTime": "2026-01-13T16:25:14.290Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3376,15 +3061,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1007,
+                          "duration": 1536,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:08.864Z",
+                          "startTime": "2026-01-13T16:25:14.556Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3410,15 +3095,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 12,
+                          "workerIndex": 4,
                           "parallelIndex": 4,
                           "status": "passed",
-                          "duration": 1474,
+                          "duration": 1452,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:09.561Z",
+                          "startTime": "2026-01-13T16:25:14.687Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3444,15 +3129,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 1268,
+                          "duration": 1369,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:09.882Z",
+                          "startTime": "2026-01-13T16:25:14.912Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3486,15 +3171,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 11,
-                          "parallelIndex": 2,
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 1141,
+                          "duration": 1221,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:10.436Z",
+                          "startTime": "2026-01-13T16:25:15.808Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3520,15 +3205,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 1201,
+                          "duration": 1216,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:11.162Z",
+                          "startTime": "2026-01-13T16:25:16.103Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3551,7 +3236,7 @@
               "specs": [
                 {
                   "title": "should load legal settings",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -3562,55 +3247,20 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 12,
+                          "workerIndex": 4,
                           "parallelIndex": 4,
-                          "status": "failed",
-                          "duration": 11616,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Legal|Privacy|Terms|Refund/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[22m\n",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Legal|Privacy|Terms|Refund/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts:157:42",
-                            "location": {
-                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
-                              "column": 42,
-                              "line": 157
-                            },
-                            "snippet": "  155 |       \n  156 |       // Should show legal section\n> 157 |       await expect(page.locator('body')).toContainText(/Legal|Privacy|Terms|Refund/i);\n      |                                          ^\n  158 |     });\n  159 |\n  160 |     test('should update privacy policy', async ({ page }) => {"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
-                                "column": 42,
-                                "line": 157
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Legal|Privacy|Terms|Refund/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[22m\n\n\n  155 |       \n  156 |       // Should show legal section\n> 157 |       await expect(page.locator('body')).toContainText(/Legal|Privacy|Terms|Refund/i);\n      |                                          ^\n  158 |     });\n  159 |\n  160 |     test('should update privacy policy', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts:157:42"
-                            }
-                          ],
+                          "status": "passed",
+                          "duration": 1343,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:11.165Z",
+                          "startTime": "2026-01-13T16:25:16.152Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/settings-Store-Settings-Le-b497d--should-load-legal-settings-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/settings-Store-Settings-Le-b497d--should-load-legal-settings-chromium/error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
-                            "column": 42,
-                            "line": 157
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "d877ffdf71ec720167ae-c49ef03aeff7e2b77acf",
@@ -3631,15 +3281,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 11,
-                          "parallelIndex": 2,
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 1618,
+                          "duration": 1175,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:11.592Z",
+                          "startTime": "2026-01-13T16:25:16.291Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3673,15 +3323,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 10,
-                          "parallelIndex": 1,
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
                           "status": "passed",
-                          "duration": 1507,
+                          "duration": 1050,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:11.810Z",
+                          "startTime": "2026-01-13T16:25:17.037Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3707,15 +3357,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 8,
-                          "parallelIndex": 3,
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 6182,
+                          "duration": 6101,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-13T16:04:12.380Z",
+                          "startTime": "2026-01-13T16:25:17.338Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -3760,15 +3410,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 13,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 23397,
+                      "duration": 23288,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:04:13.504Z",
+                      "startTime": "2026-01-13T16:25:17.486Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3811,15 +3461,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 11,
-                      "parallelIndex": 2,
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 1143,
+                      "duration": 1102,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:04:13.230Z",
+                      "startTime": "2026-01-13T16:25:17.524Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3845,15 +3495,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 10,
-                      "parallelIndex": 1,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1095,
+                      "duration": 1048,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-13T16:04:13.343Z",
+                      "startTime": "2026-01-13T16:25:18.103Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3873,11 +3523,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-01-13T16:03:30.463Z",
-    "duration": 66583.221,
-    "expected": 75,
+    "startTime": "2026-01-13T16:24:49.940Z",
+    "duration": 50868.21,
+    "expected": 85,
     "skipped": 0,
-    "unexpected": 10,
+    "unexpected": 0,
     "flaky": 0
   }
 }
