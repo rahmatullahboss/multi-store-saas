@@ -30,6 +30,7 @@ import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
 import BlockLibraryModal from './BlockLibraryModal';
 import ContextMenu from './ContextMenu';
+import { AISidebar } from './ai-sidebar';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -78,6 +79,7 @@ export default function GrapesEditor({
   
   // UI state
   const [isBlockLibraryOpen, setIsBlockLibraryOpen] = useState(false);
+  const [isAISidebarOpen, setIsAISidebarOpen] = useState(true); // AI Sidebar open by default
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [activeSidebarTab, setActiveSidebarTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
   
@@ -358,6 +360,8 @@ export default function GrapesEditor({
         <EditorToolbar 
           isAiLocked={isAiLocked} 
           onOpenLibrary={() => setIsBlockLibraryOpen(true)}
+          onToggleAISidebar={() => setIsAISidebarOpen(!isAISidebarOpen)}
+          isAISidebarOpen={isAISidebarOpen}
           publishedPageUrl={publishedPageUrl}
           pageId={pageId}
           editor={editor}
@@ -411,6 +415,15 @@ export default function GrapesEditor({
               />
             )}
           </div>
+
+          {/* AI Sidebar */}
+          {!isAiLocked && (
+            <AISidebar
+              editor={editor}
+              isOpen={isAISidebarOpen}
+              onClose={() => setIsAISidebarOpen(false)}
+            />
+          )}
         </div>
       </div>
 

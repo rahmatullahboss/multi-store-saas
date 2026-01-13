@@ -16,10 +16,9 @@ import { eq } from 'drizzle-orm';
 import { stores, users, products } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { canUseAI, type PlanType, type AIPlanType } from '~/utils/plans.server';
-import { createAIService } from '~/services/ai.server';
+import { createAIService, callAIWithSystemPrompt, AI_CONFIG } from '~/services/ai.server';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
 import { checkCredits, deductCredits, CREDIT_COSTS, type AIFeatureName } from '~/utils/credit.server';
-// Removed AI Context and Validator imports
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { createDb } from '~/lib/db.server';
 
@@ -40,6 +39,19 @@ interface ActionPayload {
   currentHtml?: string;
   count?: number;
   context?: any;
+  // STRICT_EDIT fields
+  selectedComponent?: {
+    id: string;
+    type: string;
+    tagName: string;
+    content: string;
+    styles: Record<string, string>;
+    attributes: Record<string, string>;
+    classes: string[];
+    parentId: string | null;
+    parentType: string | null;
+  };
+  userCommand?: string;
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -270,10 +282,169 @@ export async function action({ request, context }: ActionFunctionArgs) {
         break;
       }
 
-      // CHAT_COMMAND removed - replaced by STRICT_EDIT for page builder
+      case 'STRICT_EDIT': {
+        // Page Builder AI - Strict element targeting
+        if (!payload.selectedComponent || !payload.userCommand) {
+          return json({ error: 'Selected component and user command required' }, { status: 400 });
+        }
 
+        const selectedComponent = payload.selectedComponent;
+        const userCommand = payload.userCommand;
 
-      // STORE_EDITOR_COMMAND and STRICT_EDIT removed per user request
+        // Master system prompt from guide
+        const STRICT_EDIT_SYSTEM_PROMPT = `# GrapeJS AI Editor System Prompt
+
+You are an AI assistant integrated into a GrapeJS-based page builder.
+Your ONLY job is to modify the SELECTED element based on user commands.
+
+## CRITICAL RULES (NEVER VIOLATE):
+
+### Rule 1: ONLY MODIFY SELECTED ELEMENT
+- You will receive a selectedComponent object with the element's current state
+- You can ONLY modify THIS element, nothing else
+- NEVER create new sections, rows, or parent containers
+- NEVER delete sibling elements
+- NEVER modify parent elements
+
+### Rule 2: PRESERVE STRUCTURE
+- Keep the element in its current position in the DOM
+- Keep the element's ID/data-gjs-id intact
+- Keep parent-child relationships unchanged
+- Only modify: content, styles, attributes of the SELECTED element
+
+### Rule 3: RETURN SPECIFIC MODIFICATIONS
+- Return a JSON object with ONLY the changes needed
+- Use specific action types (see below)
+- Never return full HTML replacements
+- Use incremental updates
+
+### Rule 4: ALLOWED VS FORBIDDEN ACTIONS
+
+ALLOWED ACTIONS:
+✅ updateContent - Change text/innerHTML
+✅ updateStyles - Modify CSS styles
+✅ updateAttributes - Change HTML attributes
+✅ addClass - Add CSS class
+✅ removeClass - Remove CSS class
+✅ updateSrc - Change image/video source
+✅ updateHref - Change link destination
+
+FORBIDDEN ACTIONS:
+❌ deleteElement - Cannot delete selected element
+❌ createSection - Cannot create new sections
+❌ moveElement - Cannot move element to different parent
+❌ replaceElement - Cannot replace with new element
+❌ modifyParent - Cannot touch parent element
+❌ modifySibling - Cannot touch sibling elements
+
+## OUTPUT FORMAT:
+
+Return ONLY valid JSON in this exact structure:
+{
+  "action": "updateStyles",
+  "targetId": "${selectedComponent.id}",
+  "changes": {
+    "styles": {
+      "background-color": "#006A4E"
+    }
+  },
+  "explanation": "Changed button color to green"
+}
+
+For multiple changes:
+{
+  "actions": [
+    {
+      "action": "updateContent",
+      "targetId": "${selectedComponent.id}",
+      "changes": {
+        "content": "New Text"
+      }
+    },
+    {
+      "action": "updateStyles",
+      "targetId": "${selectedComponent.id}",
+      "changes": {
+        "styles": {
+          "color": "#ffffff"
+        }
+      }
+    }
+  ],
+  "explanation": "Updated text and color"
+}
+
+## CURRENT SELECTED ELEMENT:
+ID: ${selectedComponent.id}
+Type: ${selectedComponent.type}
+Tag: ${selectedComponent.tagName}
+Content: ${selectedComponent.content}
+Styles: ${JSON.stringify(selectedComponent.styles)}
+Classes: ${selectedComponent.classes?.join(', ') || 'none'}
+
+## VALIDATION BEFORE RESPONSE:
+Before generating response, verify:
+1. ✓ Am I only modifying the selected element?
+2. ✓ Am I preserving the targetId as "${selectedComponent.id}"?
+3. ✓ Am I using only allowed actions?
+4. ✓ Am I not creating new parent structures?
+5. ✓ Am I not deleting anything?
+
+If user asks to delete or create new elements, respond with:
+{
+  "action": "updateContent",
+  "targetId": "${selectedComponent.id}",
+  "changes": {},
+  "explanation": "❌ এই অনুরোধটি করা সম্ভব নয়। আমি শুধুমাত্র সিলেক্ট করা element টি পরিবর্তন করতে পারি।"
+}`;
+
+        const userMessage = `User Command: ${userCommand}`;
+
+        try {
+          const aiResponse = await callAIWithSystemPrompt(
+            apiKey,
+            STRICT_EDIT_SYSTEM_PROMPT,
+            userMessage,
+            {
+              model: env.AI_MODEL || AI_CONFIG.defaultModel,
+              baseUrl: env.AI_BASE_URL || AI_CONFIG.defaultBaseUrl,
+            }
+          );
+
+          // Parse JSON from response
+          let parsed;
+          try {
+            // Extract JSON from potential markdown code blocks
+            const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, aiResponse];
+            const jsonStr = jsonMatch[1]?.trim() || aiResponse.trim();
+            parsed = JSON.parse(jsonStr);
+          } catch (parseErr) {
+            console.error('[STRICT_EDIT] JSON parse error:', parseErr);
+            return json({
+              success: false,
+              error: 'AI returned invalid JSON',
+              explanation: '❌ AI response ঠিকমতো পার্স হয়নি। আবার চেষ্টা করুন।'
+            }, { status: 422 });
+          }
+
+          // Normalize response format
+          const actions = parsed.actions ? parsed.actions : [parsed];
+          
+          result = {
+            success: true,
+            actions,
+            explanation: parsed.explanation || 'পরিবর্তন করা হয়েছে',
+          };
+        } catch (aiErr) {
+          console.error('[STRICT_EDIT] AI call error:', aiErr);
+          return json({
+            success: false,
+            error: 'AI call failed',
+            explanation: '❌ AI সার্ভিসে সমস্যা হয়েছে।'
+          }, { status: 500 });
+        }
+        break;
+      }
 
       default:
         return json({ error: `Unknown action: ${actionType}` }, { status: 400 });

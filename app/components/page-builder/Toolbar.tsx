@@ -18,7 +18,10 @@ import {
   Layout,
   Copy,
   ExternalLink,
-  Link2
+  Link2,
+  Bot,
+  PanelRightClose,
+  PanelRightOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -29,12 +32,16 @@ import { generateHandlerScript } from './ButtonActionHandler';
 export default function EditorToolbar({ 
   isAiLocked = false,
   onOpenLibrary,
+  onToggleAISidebar,
+  isAISidebarOpen,
   publishedPageUrl,
   pageId,
   editor
 }: { 
   isAiLocked?: boolean,
   onOpenLibrary?: () => void,
+  onToggleAISidebar?: () => void,
+  isAISidebarOpen?: boolean,
   publishedPageUrl?: string,
   pageId?: string,
   editor?: any
@@ -482,6 +489,30 @@ export default function EditorToolbar({
           <Send size={14} />
           {t('publish')}
         </button>
+
+        {/* AI Sidebar Toggle */}
+        {!isAiLocked && onToggleAISidebar && (
+          <>
+            <div className="w-[1px] h-6 bg-gray-200 mx-1" />
+            <button 
+              onClick={onToggleAISidebar}
+              className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition border ${
+                isAISidebarOpen
+                  ? 'text-violet-600 bg-violet-50 border-violet-200 hover:bg-violet-100'
+                  : 'text-gray-600 hover:bg-gray-100 border-transparent hover:border-gray-200'
+              }`}
+              title={isAISidebarOpen ? 'Hide AI Sidebar' : 'Show AI Sidebar'}
+            >
+              <Bot size={14} />
+              AI
+              {isAISidebarOpen ? (
+                <PanelRightClose size={14} className="ml-0.5" />
+              ) : (
+                <PanelRightOpen size={14} className="ml-0.5" />
+              )}
+            </button>
+          </>
+        )}
       </div>
 
 
