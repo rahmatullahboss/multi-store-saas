@@ -91,21 +91,69 @@ export default function StorePreviewFrame() {
   const [liveConfig, setLiveConfig] = useState<{
     primaryColor?: string;
     accentColor?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    borderColor?: string;
+    typography?: any;
     fontFamily?: string;
     bannerUrl?: string;
     bannerText?: string;
     announcement?: { text: string; link?: string };
     customCSS?: string;
     storeTemplateId?: string;
+    sections?: any[];
+    productSections?: any[];
+    logo?: string;
+    businessInfo?: any;
+    socialLinks?: any;
+    headerLayout?: string;
+    headerShowSearch?: boolean;
+    headerShowCart?: boolean;
+    footerDescription?: string;
+    copyrightText?: string;
+    footerColumns?: any[];
+    floatingWhatsappEnabled?: boolean;
+    floatingWhatsappNumber?: string;
+    floatingWhatsappMessage?: string;
+    floatingCallEnabled?: boolean;
+    floatingCallNumber?: string;
+    checkoutStyle?: string;
+    flashSale?: any;
+    trustBadges?: any;
+    marketingPopup?: any;
   }>({
     primaryColor: data.themeConfig.primaryColor,
     accentColor: data.themeConfig.accentColor,
+    backgroundColor: data.themeConfig.backgroundColor,
+    textColor: data.themeConfig.textColor,
+    borderColor: data.themeConfig.borderColor,
+    typography: data.themeConfig.typography,
     fontFamily: data.fontFamily,
     bannerUrl: data.themeConfig.bannerUrl,
     bannerText: data.themeConfig.bannerText,
     announcement: data.themeConfig.announcement,
     customCSS: data.themeConfig.customCSS,
     storeTemplateId: data.themeConfig.storeTemplateId,
+    sections: data.themeConfig.sections,
+    productSections: data.themeConfig.productSections,
+    logo: data.logo,
+    businessInfo: data.businessInfo,
+    socialLinks: data.socialLinks,
+    headerLayout: data.themeConfig.headerLayout,
+    headerShowSearch: data.themeConfig.headerShowSearch,
+    headerShowCart: data.themeConfig.headerShowCart,
+    footerDescription: data.themeConfig.footerDescription,
+    copyrightText: data.themeConfig.copyrightText,
+    footerColumns: data.themeConfig.footerColumns,
+    floatingWhatsappEnabled: data.themeConfig.floatingWhatsappEnabled,
+    floatingWhatsappNumber: data.themeConfig.floatingWhatsappNumber,
+    floatingWhatsappMessage: data.themeConfig.floatingWhatsappMessage,
+    floatingCallEnabled: data.themeConfig.floatingCallEnabled,
+    floatingCallNumber: data.themeConfig.floatingCallNumber,
+    checkoutStyle: data.themeConfig.checkoutStyle,
+    flashSale: data.themeConfig.flashSale,
+    trustBadges: data.themeConfig.trustBadges,
+    marketingPopup: data.themeConfig.marketingPopup,
   });
 
   // Signal to parent that frame is ready
@@ -133,11 +181,35 @@ export default function StorePreviewFrame() {
     ...data.themeConfig,
     primaryColor: liveConfig.primaryColor || data.themeConfig.primaryColor,
     accentColor: liveConfig.accentColor || data.themeConfig.accentColor,
+    backgroundColor: liveConfig.backgroundColor || data.themeConfig.backgroundColor,
+    textColor: liveConfig.textColor || data.themeConfig.textColor,
+    borderColor: liveConfig.borderColor || data.themeConfig.borderColor,
+    typography: liveConfig.typography || data.themeConfig.typography,
     bannerUrl: liveConfig.bannerUrl ?? data.themeConfig.bannerUrl,
     bannerText: liveConfig.bannerText ?? data.themeConfig.bannerText,
-    announcement: liveConfig.announcement ?? data.themeConfig.announcement,
+    announcement: liveConfig.announcement || (data.themeConfig.announcement ? { 
+      text: data.themeConfig.announcement.text, 
+      link: data.themeConfig.announcement.link || undefined 
+    } : undefined),
     customCSS: liveConfig.customCSS ?? data.themeConfig.customCSS,
     storeTemplateId: liveConfig.storeTemplateId || data.themeConfig.storeTemplateId,
+    sections: liveConfig.sections || data.themeConfig.sections,
+    productSections: liveConfig.productSections || data.themeConfig.productSections,
+    headerLayout: (liveConfig.headerLayout as any) || data.themeConfig.headerLayout,
+    headerShowSearch: liveConfig.headerShowSearch ?? data.themeConfig.headerShowSearch,
+    headerShowCart: liveConfig.headerShowCart ?? data.themeConfig.headerShowCart,
+    footerDescription: liveConfig.footerDescription ?? data.themeConfig.footerDescription,
+    copyrightText: liveConfig.copyrightText ?? data.themeConfig.copyrightText,
+    footerColumns: liveConfig.footerColumns ?? data.themeConfig.footerColumns,
+    floatingWhatsappEnabled: liveConfig.floatingWhatsappEnabled ?? data.themeConfig.floatingWhatsappEnabled,
+    floatingWhatsappNumber: liveConfig.floatingWhatsappNumber ?? data.themeConfig.floatingWhatsappNumber,
+    floatingWhatsappMessage: liveConfig.floatingWhatsappMessage ?? data.themeConfig.floatingWhatsappMessage,
+    floatingCallEnabled: liveConfig.floatingCallEnabled ?? data.themeConfig.floatingCallEnabled,
+    floatingCallNumber: liveConfig.floatingCallNumber ?? data.themeConfig.floatingCallNumber,
+    checkoutStyle: (liveConfig.checkoutStyle as any) ?? data.themeConfig.checkoutStyle,
+    flashSale: liveConfig.flashSale ?? data.themeConfig.flashSale,
+    trustBadges: liveConfig.trustBadges ?? data.themeConfig.trustBadges,
+    marketingPopup: liveConfig.marketingPopup ?? data.themeConfig.marketingPopup,
   };
 
   // Get template component
@@ -165,14 +237,14 @@ export default function StorePreviewFrame() {
         <StoreTemplateComponent
           storeName={data.storeName}
           storeId={data.storeId}
-          logo={data.logo}
+          logo={liveConfig.logo || data.logo}
           products={data.products}
           categories={data.categories}
           currentCategory={null}
           config={mergedConfig}
           currency={data.currency}
-          socialLinks={data.socialLinks}
-          businessInfo={data.businessInfo}
+          socialLinks={liveConfig.socialLinks || data.socialLinks}
+          businessInfo={liveConfig.businessInfo || data.businessInfo}
           isPreview={true}
         />
       </div>

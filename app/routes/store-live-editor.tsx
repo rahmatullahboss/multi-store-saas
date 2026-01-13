@@ -733,13 +733,49 @@ export default function StoreLiveEditor() {
       iframeRef.current.contentWindow.postMessage({
         type: 'STORE_PREVIEW_UPDATE',
         config: {
+          storeTemplateId: selectedTemplateId,
+          primaryColor,
+          accentColor,
+          backgroundColor,
+          textColor,
+          borderColor,
+          typography,
+          fontFamily,
+          bannerUrl,
+          bannerText,
+          announcement: { text: announcementText, link: announcementLink },
           customCSS,
           sections: homeSections,
           productSections: productSections,
+          logo,
+          businessInfo: { phone, email, address },
+          socialLinks: { facebook, instagram, whatsapp },
+          headerLayout,
+          headerShowSearch,
+          headerShowCart,
+          footerDescription,
+          copyrightText,
+          footerColumns,
+          floatingWhatsappEnabled,
+          floatingWhatsappNumber,
+          floatingWhatsappMessage,
+          floatingCallEnabled,
+          floatingCallNumber,
+          checkoutStyle,
+          flashSale,
+          trustBadges,
+          marketingPopup,
         },
       }, '*');
     }
-  }, [iframeReady, selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, homeSections, productSections]); // Depend on both section lists
+  }, [
+    iframeReady, selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, 
+    typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, 
+    homeSections, productSections, logo, phone, email, address, facebook, instagram, whatsapp,
+    headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns,
+    floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, 
+    floatingCallNumber, checkoutStyle, flashSale, trustBadges, marketingPopup
+  ]);
 
 
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
