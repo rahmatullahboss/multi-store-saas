@@ -344,14 +344,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
           return json({ error: 'Selected component and user command required' }, { status: 400 });
         }
 
+        // Safe access with fallbacks
+        const componentId = selectedComponent.id || 'unknown';
+        const componentType = selectedComponent.type || 'element';
+        const componentTag = selectedComponent.tagName || 'div';
+        const componentContent = (selectedComponent.content || '').slice(0, 100);
+        const componentStyles = selectedComponent.styles || {};
+        const componentClasses = Array.isArray(selectedComponent.classes) ? selectedComponent.classes : [];
+
         // Build strict system prompt
         const strictSystemPrompt = `You are an AI assistant for a GrapeJS page builder.
 
 CRITICAL RULES - NEVER VIOLATE:
 
 1. ONLY MODIFY THE SELECTED ELEMENT
-   - Target element ID: ${selectedComponent.id}
-   - Type: ${selectedComponent.type}
+   - Target element ID: ${componentId}
+   - Type: ${componentType}
    - You can ONLY modify THIS element
 
 2. FORBIDDEN ACTIONS (NEVER DO THESE):
@@ -373,7 +381,7 @@ CRITICAL RULES - NEVER VIOLATE:
 4. RESPONSE FORMAT (JSON ONLY):
 {
   "action": "updateStyles",
-  "targetId": "${selectedComponent.id}",
+  "targetId": "${componentId}",
   "changes": {
     "styles": { "property": "value" }
   },
@@ -381,66 +389,75 @@ CRITICAL RULES - NEVER VIOLATE:
 }
 
 SELECTED ELEMENT CURRENT STATE:
-- Tag: ${selectedComponent.tagName}
-- Content: "${(selectedComponent.content || '').slice(0, 100)}"
-- Styles: ${JSON.stringify(selectedComponent.styles || {})}
-- Classes: ${(selectedComponent.classes || []).join(', ')}
+- Tag: ${componentTag}
+- Content: "${componentContent}"
+- Classes: ${componentClasses.join(', ') || 'none'}
 
 USER COMMAND: "${userCommand}"
 
 Generate the modification JSON. Only output valid JSON, nothing else.`;
 
-        const response = await fetch(env.AI_BASE_URL || 'https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://ozzyl.com',
-            'X-Title': 'Ozzyl Page Builder'
-          },
-          body: JSON.stringify({
-            model: env.AI_MODEL || 'openai/gpt-4o-mini',
-            messages: [
-              { role: 'system', content: strictSystemPrompt },
-              { role: 'user', content: userCommand }
-            ],
-            temperature: 0.3,
-            max_tokens: 1000,
-            response_format: { type: 'json_object' }
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`AI service error: ${response.status}`);
-        }
-
-        const aiData = await response.json() as any;
-        const content = aiData.choices?.[0]?.message?.content;
-        
-        if (!content) {
-          throw new Error('Empty AI response');
-        }
-
-        // Parse and validate response
-        let parsedResult;
         try {
-          parsedResult = JSON.parse(content);
-        } catch {
-          throw new Error('Invalid JSON response from AI');
-        }
+          const response = await fetch(env.AI_BASE_URL || 'https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://ozzyl.com',
+              'X-Title': 'Ozzyl Page Builder'
+            },
+            body: JSON.stringify({
+              model: env.AI_MODEL || 'openai/gpt-4o-mini',
+              messages: [
+                { role: 'system', content: strictSystemPrompt },
+                { role: 'user', content: userCommand }
+              ],
+              temperature: 0.3,
+              max_tokens: 1000,
+              response_format: { type: 'json_object' }
+            })
+          });
 
-        // Force correct target ID
-        if (parsedResult.action) {
-          parsedResult.targetId = selectedComponent.id;
-        }
-        if (parsedResult.actions) {
-          parsedResult.actions = parsedResult.actions.map((a: any) => ({
-            ...a,
-            targetId: selectedComponent.id
-          }));
-        }
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[STRICT_EDIT] API Error:', response.status, errorText);
+            throw new Error(`AI service error: ${response.status}`);
+          }
 
-        result = parsedResult;
+          const aiData = await response.json() as any;
+          const content = aiData.choices?.[0]?.message?.content;
+          
+          if (!content) {
+            throw new Error('Empty AI response');
+          }
+
+          // Parse and validate response
+          let parsedResult;
+          try {
+            parsedResult = JSON.parse(content);
+          } catch {
+            throw new Error('Invalid JSON response from AI');
+          }
+
+          // Force correct target ID
+          if (parsedResult.action) {
+            parsedResult.targetId = componentId;
+          }
+          if (parsedResult.actions) {
+            parsedResult.actions = parsedResult.actions.map((a: any) => ({
+              ...a,
+              targetId: componentId
+            }));
+          }
+
+          result = parsedResult;
+        } catch (err: any) {
+          console.error('[STRICT_EDIT] Error:', err.message);
+          return json({ 
+            error: 'AI generation failed. Please try again.',
+            details: err.message 
+          }, { status: 500 });
+        }
         break;
       }
 
