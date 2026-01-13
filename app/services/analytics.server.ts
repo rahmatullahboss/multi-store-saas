@@ -28,7 +28,7 @@ export async function getStoreStats(db: Database, storeId: number) {
 
   // 1. Basic Counts
   const [productCount] = await db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true)));
-  const [lowStockCount] = await db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory < 5`)); // Assuming 5 is low
+  const [lowStockCount] = await db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 10`));
   const [orderCount] = await db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId));
   const [pendingOrders] = await db.select({ count: count() }).from(orders).where(and(eq(orders.storeId, storeId), eq(orders.status, 'pending')));
   const [abandonedCartsCount] = await db.select({ count: count() }).from(abandonedCarts).where(and(eq(abandonedCarts.storeId, storeId), eq(abandonedCarts.status, 'abandoned')));
