@@ -422,9 +422,17 @@ export default function EditorToolbar({
         </button>
 
         <button 
-          onClick={() => {
+          onClick={async () => {
             if (pageId) {
-              window.open(`/app/page-builder/preview/${pageId}`, '_blank');
+              try {
+                toast.loading(t('savingForPreview') || 'Preparing preview...', { id: 'preview' });
+                await editor.store();
+                toast.dismiss('preview');
+                window.open(`/app/page-builder/preview/${pageId}`, '_blank');
+              } catch (error) {
+                console.error('Preview save error:', error);
+                toast.error(t('previewFailed') || 'Failed to prepare preview', { id: 'preview' });
+              }
             } else {
               // Fallback to inline preview if no pageId
               editor.runCommand('core:preview');
