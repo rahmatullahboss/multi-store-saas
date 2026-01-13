@@ -1,0 +1,345 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - img "Ozzyl" [ref=e9]
+          - generic [ref=e10]:
+            - heading "Updated Store Name" [level=2] [ref=e11]
+            - paragraph [ref=e12]: test-store-80927
+        - link "স্টোরে যান" [ref=e13] [cursor=pointer]:
+          - /url: https://test-store-80927.digitalcare.site
+          - img [ref=e14]
+          - text: স্টোরে যান
+      - navigation [ref=e18]:
+        - generic [ref=e20]:
+          - link "ড্যাশবোর্ড" [ref=e21] [cursor=pointer]:
+            - /url: /app/dashboard
+            - img [ref=e22]
+            - text: ড্যাশবোর্ড
+          - link "টিউটোরিয়াল" [ref=e27] [cursor=pointer]:
+            - /url: /app/tutorials
+            - img [ref=e28]
+            - text: টিউটোরিয়াল
+        - generic [ref=e30]:
+          - generic [ref=e31]: ক্যাটালগ
+          - generic [ref=e32]:
+            - link "পণ্য" [ref=e33] [cursor=pointer]:
+              - /url: /app/products
+              - img [ref=e34]
+              - text: পণ্য
+            - link "ইনভেন্টরি" [ref=e38] [cursor=pointer]:
+              - /url: /app/inventory
+              - img [ref=e39]
+              - text: ইনভেন্টরি
+            - link "ছাড়" [ref=e42] [cursor=pointer]:
+              - /url: /app/discounts
+              - img [ref=e43]
+              - text: ছাড়
+        - generic [ref=e46]:
+          - generic [ref=e47]: অর্ডার
+          - generic [ref=e48]:
+            - link "সব অর্ডার" [ref=e49] [cursor=pointer]:
+              - /url: /app/orders
+              - img [ref=e50]
+              - text: সব অর্ডার
+            - link "পরিত্যক্ত কার্ট" [ref=e54] [cursor=pointer]:
+              - /url: /app/abandoned-carts
+              - img [ref=e55]
+              - text: পরিত্যক্ত কার্ট
+        - generic [ref=e58]:
+          - generic [ref=e59]: মার্কেটিং
+          - generic [ref=e60]:
+            - link "ক্যাম্পেইন" [ref=e61] [cursor=pointer]:
+              - /url: /app/campaigns
+              - img [ref=e62]
+              - text: ক্যাম্পেইন
+            - link "ওজিল (OZZYL) AI অ্যাসিস্ট্যান্ট ওজিল (OZZYL) AI অ্যাসিস্ট্যান্ট" [ref=e65] [cursor=pointer]:
+              - /url: /app/agent
+              - img "ওজিল (OZZYL) AI অ্যাসিস্ট্যান্ট" [ref=e66]
+              - text: ওজিল (OZZYL) AI অ্যাসিস্ট্যান্ট
+            - link "সাবস্ক্রাইবার" [ref=e67] [cursor=pointer]:
+              - /url: /app/subscribers
+              - img [ref=e68]
+              - text: সাবস্ক্রাইবার
+            - link "রিভিউ" [ref=e71] [cursor=pointer]:
+              - /url: /app/reviews
+              - img [ref=e72]
+              - text: রিভিউ
+        - generic [ref=e74]:
+          - generic [ref=e75]: অ্যানালিটিক্স
+          - generic [ref=e76]:
+            - link "ওভারভিউ" [ref=e77] [cursor=pointer]:
+              - /url: /app/analytics
+              - img [ref=e78]
+              - text: ওভারভিউ
+            - link "রিপোর্ট" [ref=e80] [cursor=pointer]:
+              - /url: /app/reports
+              - img [ref=e81]
+              - text: রিপোর্ট
+        - generic [ref=e84]:
+          - generic [ref=e85]: সেটিংস
+          - generic [ref=e86]:
+            - link "সিম্পল ল্যান্ডিং বিল্ডার" [ref=e87] [cursor=pointer]:
+              - /url: /landing-live-editor
+              - img [ref=e88]
+              - text: সিম্পল ল্যান্ডিং বিল্ডার
+            - link "অ্যাডভান্সড বিল্ডার (কাজ চলছে)" [ref=e92] [cursor=pointer]:
+              - /url: /app/page-builder
+              - img [ref=e93]
+              - text: অ্যাডভান্সড বিল্ডার (কাজ চলছে)
+            - link "স্টোর ডিজাইন" [ref=e98] [cursor=pointer]:
+              - /url: /app/store-design
+              - img [ref=e99]
+              - text: স্টোর ডিজাইন
+            - link "হোমপেজ সেটিংস" [ref=e105] [cursor=pointer]:
+              - /url: /app/settings/homepage
+              - img [ref=e106]
+              - text: হোমপেজ সেটিংস
+            - link "শিপিং" [ref=e109] [cursor=pointer]:
+              - /url: /app/settings/shipping
+              - img [ref=e110]
+              - text: শিপিং
+            - link "ডোমেইন" [ref=e115] [cursor=pointer]:
+              - /url: /app/settings/domain
+              - img [ref=e116]
+              - text: ডোমেইন
+            - link "বিলিং" [ref=e119] [cursor=pointer]:
+              - /url: /app/billing
+              - img [ref=e120]
+              - text: বিলিং
+            - link "AI ক্রেডিট" [ref=e122] [cursor=pointer]:
+              - /url: /app/credits
+              - img [ref=e123]
+              - text: AI ক্রেডিট
+            - link "সব সেটিংস" [ref=e126] [cursor=pointer]:
+              - /url: /app/settings
+              - img [ref=e127]
+              - text: সব সেটিংস
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - generic [ref=e133]: T
+          - generic [ref=e134]:
+            - paragraph [ref=e135]: Test Merchant
+            - paragraph [ref=e136]: test@example.com
+        - button "লগআউট" [ref=e138]:
+          - img [ref=e139]
+          - text: লগআউট
+  - generic [ref=e142]:
+    - banner [ref=e143]:
+      - generic [ref=e145]:
+        - button "🇬🇧English" [ref=e146]
+        - button "🇧🇩বাংলা" [ref=e147]
+    - main [ref=e148]:
+      - generic [ref=e150]:
+        - generic [ref=e151]:
+          - heading "সেটিংস" [level=1] [ref=e152]
+          - paragraph [ref=e153]: আপনার স্টোর কনফিগারেশন ম্যানেজ করুন
+        - generic [ref=e154]:
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - img [ref=e158]
+              - generic [ref=e162]:
+                - heading "ব্র্যান্ডিং" [level=2] [ref=e163]
+                - paragraph [ref=e164]: আপনার স্টোর লোগো এবং ব্র্যান্ডিং
+            - generic [ref=e165]:
+              - generic [ref=e166]:
+                - generic [ref=e167]: স্টোর লোগো
+                - generic [ref=e168]:
+                  - img [ref=e171]
+                  - generic [ref=e175]:
+                    - button "আপলোড" [ref=e176]:
+                      - img [ref=e177]
+                      - text: আপলোড
+                    - paragraph [ref=e180]: "পরামর্শ: স্কয়ার ইমেজ, ২০০x২০০ পিক্সেল বা তার বেশি"
+              - generic [ref=e181]:
+                - generic [ref=e182]: Favicon
+                - generic [ref=e183]:
+                  - img [ref=e186]
+                  - generic [ref=e189]:
+                    - button "আপলোড" [ref=e190]:
+                      - img [ref=e191]
+                      - text: আপলোড
+                    - paragraph [ref=e194]: ৩২x৩২ বা ১৬x১৬ পিএনজি
+          - generic [ref=e195]:
+            - generic [ref=e196]:
+              - img [ref=e198]
+              - generic [ref=e202]:
+                - heading "স্টোর তথ্য" [level=2] [ref=e203]
+                - paragraph [ref=e204]: আপনার স্টোরের মৌলিক পরিচয়
+            - generic [ref=e205]:
+              - generic [ref=e206]:
+                - generic [ref=e207]: স্টোর নাম
+                - textbox "স্টোর নাম" [ref=e208]: Updated Store Name
+              - generic [ref=e209]:
+                - generic [ref=e210]: কারেন্সি
+                - combobox "কারেন্সি" [ref=e211]:
+                  - option "৳ BDT - বাংলাদেশী টাকা" [selected]
+                  - option "$ USD - ইউএস ডলার"
+                  - option "€ EUR - ইউরো"
+                  - option "£ GBP - ব্রিটিশ পাউন্ড"
+                  - option "₹ INR - ভারতীয় রুপি"
+              - generic [ref=e212]:
+                - generic [ref=e213]: স্টোর ভাষা
+                - combobox "স্টোর ভাষা" [ref=e214]:
+                  - option "🇬🇧 English" [selected]
+                  - option "🇧🇩 বাংলা (Bengali)"
+                - paragraph [ref=e215]: আপনার স্টোরফ্রন্টের জন্য ডিফল্ট ভাষা
+              - generic [ref=e216]:
+                - generic [ref=e217]:
+                  - paragraph [ref=e218]: সাবডোমেন
+                  - paragraph [ref=e219]: test-store-80927.ozzyl.com
+                - generic [ref=e220]:
+                  - paragraph [ref=e221]: বর্তমান প্ল্যান
+                  - paragraph [ref=e222]: ফ্রি
+          - generic [ref=e223]:
+            - generic [ref=e224]:
+              - img [ref=e226]
+              - generic [ref=e228]:
+                - heading "স্টোর মোড" [level=2] [ref=e229]
+                - paragraph [ref=e230]: আপনার স্টোর কিভাবে কাস্টমারদের কাছে প্রদর্শিত হবে তা বেছে নিন
+            - generic [ref=e231]:
+              - generic [ref=e232]:
+                - img [ref=e234]
+                - generic [ref=e237]:
+                  - heading "ল্যান্ডিং পেজ মোড" [level=3] [ref=e238]
+                  - paragraph [ref=e239]: একটি হাই-কনভার্টিং সিঙ্গেল পেজ দেখাবে
+                - generic [ref=e240]: সক্রিয়
+              - generic [ref=e241]:
+                - generic [ref=e242]:
+                  - img [ref=e243]
+                  - text: Pro
+                - generic [ref=e246]:
+                  - img [ref=e248]
+                  - generic [ref=e251]:
+                    - heading "ফুল স্টোর মোড" [level=3] [ref=e252]
+                    - paragraph [ref=e253]: প্রো প্ল্যান প্রয়োজন
+              - link "upgradeToUnlockFullStore" [ref=e254] [cursor=pointer]:
+                - /url: /app/upgrade
+                - img [ref=e255]
+                - text: upgradeToUnlockFullStore
+          - generic [ref=e257]:
+            - generic [ref=e258]:
+              - img [ref=e260]
+              - generic [ref=e263]:
+                - heading "সোশ্যাল মিডিয়া" [level=2] [ref=e264]
+                - paragraph [ref=e265]: আপনার সোশ্যাল প্রোফাইলগুলো কানেক্ট করুন
+            - generic [ref=e266]:
+              - generic [ref=e267]:
+                - generic [ref=e268]:
+                  - img [ref=e269]
+                  - text: ফেসবুক ইউআরএল
+                - textbox "ফেসবুক ইউআরএল" [ref=e271]:
+                  - /placeholder: https://facebook.com/yourpage
+              - generic [ref=e272]:
+                - generic [ref=e273]:
+                  - img [ref=e274]
+                  - text: ইনস্টাগ্রাম ইউআরএল
+                - textbox "ইনস্টাগ্রাম ইউআরএল" [ref=e277]:
+                  - /placeholder: https://instagram.com/yourprofile
+              - generic [ref=e278]:
+                - generic [ref=e279]:
+                  - img [ref=e280]
+                  - text: হোয়াটসঅ্যাপ নম্বর
+                - textbox "হোয়াটসঅ্যাপ নম্বর" [ref=e282]:
+                  - /placeholder: +8801XXXXXXXXX
+                - paragraph [ref=e283]: হোয়াটসঅ্যাপ লিংকের জন্য কান্ট্রি কোড যুক্ত করুন
+          - generic [ref=e284]:
+            - generic [ref=e285]:
+              - img [ref=e287]
+              - generic [ref=e289]:
+                - heading "ব্যবসার তথ্য" [level=2] [ref=e290]
+                - paragraph [ref=e291]: ইনভয়েস এবং কাস্টমারদের জন্য যোগাযোগের তথ্য
+            - generic [ref=e292]:
+              - generic [ref=e293]:
+                - generic [ref=e294]:
+                  - img [ref=e295]
+                  - text: ব্যবসার ফোন
+                - textbox "ব্যবসার ফোন" [ref=e297]:
+                  - /placeholder: +880 1XXX-XXXXXX
+              - generic [ref=e298]:
+                - generic [ref=e299]:
+                  - img [ref=e300]
+                  - text: ব্যবসার ইমেইল
+                - textbox "ব্যবসার ইমেইল" [ref=e303]:
+                  - /placeholder: contact@yourstore.com
+              - generic [ref=e304]:
+                - generic [ref=e305]:
+                  - img [ref=e306]
+                  - text: ব্যবসার ঠিকানা
+                - textbox "ব্যবসার ঠিকানা" [ref=e309]:
+                  - /placeholder: 123 Main Street, Dhaka, Bangladesh
+          - generic [ref=e310]:
+            - generic [ref=e311]:
+              - img [ref=e313]
+              - generic [ref=e316]:
+                - heading "কাস্টম ডোমেন" [level=2] [ref=e317]
+                - paragraph [ref=e318]: নিজস্ব ডোমেন যুক্ত করুন
+            - generic [ref=e319]:
+              - generic [ref=e320]:
+                - paragraph [ref=e321]: "আপনার স্টোর বর্তমানে এখানে পাওয়া যাচ্ছে:"
+                - paragraph [ref=e322]: https://test-store-80927.ozzyl.com
+              - generic [ref=e323]:
+                - generic [ref=e324]: কাস্টম ডোমেন (ঐচ্ছিক)
+                - textbox "কাস্টম ডোমেন (ঐচ্ছিক)" [ref=e325]:
+                  - /placeholder: mystore.com
+                - paragraph [ref=e326]: https:// ছাড়া আপনার ডোমেন লিখুন
+              - generic [ref=e327]:
+                - heading "সেটআপ নির্দেশনা:" [level=4] [ref=e328]
+                - list [ref=e329]:
+                  - listitem [ref=e330]: 1. আপনার ডোমেন রেজিস্ট্রারের DNS সেটিংসে যান
+                  - listitem [ref=e331]: "2. একটি CNAME রেকর্ড যুক্ত করুন:"
+                  - listitem [ref=e332]:
+                    - text: "Name: @ or www"
+                    - text: "Value: ozzyl-saas.pages.dev"
+                  - listitem [ref=e333]: 3. Cloudflare ড্যাশবোর্ডে ডোমেন যুক্ত করতে অ্যাডমিনের সাথে যোগাযোগ করুন
+                  - listitem [ref=e334]: 4. DNS প্রচারের জন্য অপেক্ষা করুন (৪৮ ঘণ্টা পর্যন্ত সময় লাগতে পারে)
+          - generic [ref=e335]:
+            - heading "আরও সেটিংস" [level=2] [ref=e336]
+            - generic [ref=e337]:
+              - link "শিপিং জোন" [ref=e338] [cursor=pointer]:
+                - /url: /app/settings/shipping
+                - img [ref=e340]
+                - generic [ref=e344]: শিপিং জোন
+              - link "SEO সেটিংস" [ref=e345] [cursor=pointer]:
+                - /url: /app/settings/seo
+                - img [ref=e347]
+                - generic [ref=e350]: SEO সেটিংস
+              - link "টিম মেম্বার" [ref=e351] [cursor=pointer]:
+                - /url: /app/settings/team
+                - img [ref=e353]
+                - generic [ref=e356]: টিম মেম্বার
+              - link "অ্যাক্টিভিটি লগ" [ref=e357] [cursor=pointer]:
+                - /url: /app/settings/activity
+                - img [ref=e359]
+                - generic [ref=e362]: অ্যাক্টিভিটি লগ
+              - link "ল্যান্ডিং মোড" [ref=e363] [cursor=pointer]:
+                - /url: /app/settings/landing
+                - img [ref=e365]
+                - generic [ref=e371]: ল্যান্ডিং মোড
+              - link "কুরিয়ার এপিআই" [ref=e372] [cursor=pointer]:
+                - /url: /app/settings/courier
+                - img [ref=e374]
+                - generic [ref=e378]: কুরিয়ার এপিআই
+              - link "ডেভেলপার এপিআই" [ref=e379] [cursor=pointer]:
+                - /url: /app/settings/developer
+                - img [ref=e381]
+                - generic [ref=e384]: ডেভেলপার এপিআই
+          - button "সেটিংস সেভ করুন" [ref=e386]
+        - generic [ref=e387]:
+          - generic [ref=e388]:
+            - img [ref=e390]
+            - generic [ref=e392]:
+              - heading "ডেঞ্জার জোন" [level=2] [ref=e393]
+              - paragraph [ref=e394]: অপরিবর্তনীয় পদক্ষেপ
+          - generic [ref=e396]:
+            - generic [ref=e397]:
+              - heading "স্টোর মুছে ফেলুন" [level=3] [ref=e398]
+              - paragraph [ref=e399]: চিরতরে এই স্টোর এবং এর সব তথ্য মুছে ফেলুন
+            - button "ডিলিট" [ref=e400]
+  - button "Ozzyl AI" [ref=e401]:
+    - img "Ozzyl AI" [ref=e404]
+```

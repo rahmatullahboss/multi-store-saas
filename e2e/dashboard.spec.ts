@@ -206,7 +206,8 @@ test.describe('Analytics', () => {
   test('should load analytics page', async ({ page }) => {
     await page.goto('/app/analytics');
     
-    await expect(page.locator('body')).toContainText(/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i);
+    // Include Bengali: অ্যানালিটিক্স = Analytics, ওভারভিউ = Overview
+    await expect(page.locator('body')).toContainText(/Analytics|বিশ্লেষণ|অ্যানালিটিক্স|ওভারভিউ|Stats|পরিসংখ্যান/i);
   });
 
   test('should show visitor stats', async ({ page }) => {

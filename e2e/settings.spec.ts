@@ -153,8 +153,8 @@ test.describe('Store Settings', () => {
     test('should load legal settings', async ({ page }) => {
       await page.goto('/app/settings/legal');
       
-      // Should show legal section
-      await expect(page.locator('body')).toContainText(/Legal|Privacy|Terms|Refund/i);
+      // Should show legal section - include Bengali: গোপনীয়তা = Privacy, রিফান্ড = Refund, শর্তাবলী = Terms
+      await expect(page.locator('body')).toContainText(/Legal|Privacy|Terms|Refund|গোপনীয়তা|রিফান্ড|শর্তাবলী/i);
     });
 
     test('should update privacy policy', async ({ page }) => {

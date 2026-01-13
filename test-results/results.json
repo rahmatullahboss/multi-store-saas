@@ -1,0 +1,3883 @@
+{
+  "config": {
+    "configFile": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/playwright.config.ts",
+    "rootDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 5
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 5,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANTIGRAVITY_AGENT": "1",
+        "NVM_INC": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/include/node",
+        "TERM_PROGRAM": "vscode",
+        "NODE": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin/node",
+        "INIT_CWD": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas",
+        "NVM_CD_FLAGS": "-q",
+        "TERM": "xterm-256color",
+        "SHELL": "/bin/zsh",
+        "HOMEBREW_REPOSITORY": "/opt/homebrew",
+        "TMPDIR": "/var/folders/s1/nr4lptjd1jjcggyx6j6kyn0r0000gn/T/",
+        "npm_config_global_prefix": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1",
+        "VSCODE_PYTHON_AUTOACTIVATE_GUARD": "1",
+        "TERM_PROGRAM_VERSION": "1.104.0",
+        "ZDOTDIR": "/Users/rahmatullahzisan",
+        "ORIGINAL_XDG_CURRENT_DESKTOP": "undefined",
+        "MallocNanoZone": "0",
+        "COLOR": "0",
+        "npm_config_noproxy": "",
+        "npm_config_local_prefix": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas",
+        "NVM_DIR": "/Users/rahmatullahzisan/.nvm",
+        "USER": "rahmatullahzisan",
+        "VSCODE_LOGIN_INITIALIZED": "1",
+        "COMMAND_MODE": "unix2003",
+        "npm_config_globalconfig": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/etc/npmrc",
+        "SSH_AUTH_SOCK": "/private/tmp/com.apple.launchd.7e1bOpaHyb/Listeners",
+        "VSCODE_PROFILE_INITIALIZED": "1",
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+        "npm_execpath": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js",
+        "PAGER": "cat",
+        "PATH": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/node_modules/.bin:/Users/rahmatullahzisan/Desktop/node_modules/.bin:/Users/rahmatullahzisan/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/opt/homebrew/Cellar/dart/3.10.7/libexec/bin/:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/Cellar/dart/3.10.7/libexec/bin/:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin:/Users/rahmatullahzisan/.antigravity/extensions/vscjava.vscode-java-debug-0.58.5-universal/bundled/scripts/noConfigScripts",
+        "npm_package_json": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/package.json",
+        "_": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/.bin/playwright",
+        "npm_config_userconfig": "/Users/rahmatullahzisan/.npmrc",
+        "npm_config_init_module": "/Users/rahmatullahzisan/.npm-init.js",
+        "USER_ZDOTDIR": "/Users/rahmatullahzisan",
+        "__CFBundleIdentifier": "com.google.antigravity",
+        "npm_command": "run",
+        "PWD": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas",
+        "npm_lifecycle_event": "e2e",
+        "EDITOR": "vi",
+        "npm_package_name": "ozzyl-saas",
+        "LANG": "C.UTF-8",
+        "npm_config_npm_version": "11.6.2",
+        "VSCODE_GIT_ASKPASS_EXTRA_ARGS": "",
+        "XPC_FLAGS": "0x0",
+        "npm_config_node_gyp": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js",
+        "XPC_SERVICE_NAME": "0",
+        "VSCODE_INJECTION": "1",
+        "ANTIGRAVITY_CLI_ALIAS": "agy",
+        "SHLVL": "2",
+        "HOME": "/Users/rahmatullahzisan",
+        "VSCODE_GIT_ASKPASS_MAIN": "/Applications/Antigravity.app/Contents/Resources/app/extensions/git/dist/askpass-main.js",
+        "HOMEBREW_PREFIX": "/opt/homebrew",
+        "npm_config_cache": "/Users/rahmatullahzisan/.npm",
+        "VSCODE_JAVA_EXEC": "/Users/rahmatullahzisan/.gradle/jdks/eclipse_adoptium-17-aarch64-os_x.2/jdk-17.0.17+10/Contents/Home/bin/java",
+        "LOGNAME": "rahmatullahzisan",
+        "npm_lifecycle_script": "playwright test",
+        "VSCODE_GIT_IPC_HANDLE": "/var/folders/s1/nr4lptjd1jjcggyx6j6kyn0r0000gn/T/vscode-git-1c17f43b09.sock",
+        "NVM_BIN": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin",
+        "npm_config_user_agent": "npm/11.6.2 node/v24.11.1 darwin arm64 workspaces/false",
+        "VSCODE_GIT_ASKPASS_NODE": "/Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Plugin).app/Contents/MacOS/Antigravity Helper (Plugin)",
+        "GIT_ASKPASS": "/Applications/Antigravity.app/Contents/Resources/app/extensions/git/dist/askpass.sh",
+        "VSCODE_JDWP_ADAPTER_ENDPOINTS": "/Users/rahmatullahzisan/.antigravity/extensions/vscjava.vscode-java-debug-0.58.5-universal/.noConfigDebugAdapterEndpoints/endpoint-e16654f5efa98206.txt",
+        "INFOPATH": "/opt/homebrew/share/info:/opt/homebrew/share/info:",
+        "HOMEBREW_CELLAR": "/opt/homebrew/Cellar",
+        "OSLogRateLimit": "64",
+        "npm_node_execpath": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin/node",
+        "npm_config_prefix": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1",
+        "COLORTERM": "truecolor",
+        "SESSION_SECRET": "e2e-test-session-secret",
+        "COOKIE_SECRET": "e2e-test-cookie-secret",
+        "NODE_ENV": "test"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication",
+          "file": "auth.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Login Page",
+              "file": "auth.spec.ts",
+              "line": 16,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load login page",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1094,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:31.268Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-50d31287f63bc3ead080",
+                  "file": "auth.spec.ts",
+                  "line": 17,
+                  "column": 5
+                },
+                {
+                  "title": "should show error for empty fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1367,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:31.257Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-66aaaa44cb96ba48074b",
+                  "file": "auth.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show error for invalid credentials",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1432,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:31.260Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-3ef7b958fd59fcb720de",
+                  "file": "auth.spec.ts",
+                  "line": 31,
+                  "column": 5
+                },
+                {
+                  "title": "should link to registration",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1559,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:31.265Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-c55d2e093ce8cd308772",
+                  "file": "auth.spec.ts",
+                  "line": 40,
+                  "column": 5
+                },
+                {
+                  "title": "should link to forgot password",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 1515,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:31.276Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-966fc7832fa1fcb0edbc",
+                  "file": "auth.spec.ts",
+                  "line": 45,
+                  "column": 5
+                },
+                {
+                  "title": "should have a working Google OAuth button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 845,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:32.789Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-1e89d3ea5583047bb4da",
+                  "file": "auth.spec.ts",
+                  "line": 50,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Registration Page (Onboarding)",
+              "file": "auth.spec.ts",
+              "line": 58,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should show validation errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1294,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:33.057Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-23794410140a539b72ca",
+                  "file": "auth.spec.ts",
+                  "line": 63,
+                  "column": 5
+                },
+                {
+                  "title": "should validate password strength",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1264,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:33.120Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-97afe1c599f1f79b91f3",
+                  "file": "auth.spec.ts",
+                  "line": 72,
+                  "column": 5
+                },
+                {
+                  "title": "should validate email format",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 1196,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:33.203Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-29b0503129990bd455ac",
+                  "file": "auth.spec.ts",
+                  "line": 79,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Security & Middleware",
+              "file": "auth.spec.ts",
+              "line": 87,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should redirect to login when not authenticated",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1019,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:33.246Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-4bd14f7dcbe1f1002285",
+                  "file": "auth.spec.ts",
+                  "line": 88,
+                  "column": 5
+                },
+                {
+                  "title": "should use secure cookie attributes",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 911,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:33.657Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-49b816b8d2abee4ce45a",
+                  "file": "auth.spec.ts",
+                  "line": 93,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "CI Auto-Registration",
+              "file": "auth.spec.ts",
+              "line": 100,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should ensure merchant account exists and can login",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1496,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:34.295Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-3e0612e2a6e42f6e4818",
+                  "file": "auth.spec.ts",
+                  "line": 101,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "checkout.spec.ts",
+      "file": "checkout.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Checkout Flow",
+          "file": "checkout.spec.ts",
+          "line": 10,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Storefront",
+              "file": "checkout.spec.ts",
+              "line": 22,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load store homepage",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1024,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:34.408Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "25ab1bfc84c57e3e3a45-19d1a6f7d2e3f39482b6",
+                  "file": "checkout.spec.ts",
+                  "line": 24,
+                  "column": 5
+                },
+                {
+                  "title": "should display products",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1019,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:34.419Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "25ab1bfc84c57e3e3a45-53354c84aa9a0837fa56",
+                  "file": "checkout.spec.ts",
+                  "line": 31,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Cart Operations",
+              "file": "checkout.spec.ts",
+              "line": 39,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should add product to cart",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 998,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:34.426Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "25ab1bfc84c57e3e3a45-9089871e9598f62abc3f",
+                  "file": "checkout.spec.ts",
+                  "line": 41,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Checkout Process",
+              "file": "checkout.spec.ts",
+              "line": 61,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load checkout page",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1012,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:34.587Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "25ab1bfc84c57e3e3a45-95b346bee428ba1eb853",
+                  "file": "checkout.spec.ts",
+                  "line": 63,
+                  "column": 5
+                },
+                {
+                  "title": "should validate phone number (BD format)",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 1692,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:35.443Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "25ab1bfc84c57e3e3a45-127c3843f9955377368d",
+                  "file": "checkout.spec.ts",
+                  "line": 72,
+                  "column": 5
+                },
+                {
+                  "title": "should complete checkout with valid data",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1846,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:35.451Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "25ab1bfc84c57e3e3a45-b1e91135506d4ef578ae",
+                  "file": "checkout.spec.ts",
+                  "line": 93,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Security Tests",
+          "file": "checkout.spec.ts",
+          "line": 120,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should sanitize XSS in form inputs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1092,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:35.458Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "25ab1bfc84c57e3e3a45-680ecfe3fb7211a0b356",
+              "file": "checkout.spec.ts",
+              "line": 122,
+              "column": 3
+            },
+            {
+              "title": "should handle SQL injection attempts gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1171,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:35.607Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "25ab1bfc84c57e3e3a45-bfee53f7acdb880f5e4b",
+              "file": "checkout.spec.ts",
+              "line": 138,
+              "column": 3
+            },
+            {
+              "title": "should verify cart total cannot be client-side manipulated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1465,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:35.809Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "25ab1bfc84c57e3e3a45-698bb936302b7f5392e6",
+              "file": "checkout.spec.ts",
+              "line": 154,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "dashboard.spec.ts",
+      "file": "dashboard.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard",
+          "file": "dashboard.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Dashboard Home",
+              "file": "dashboard.spec.ts",
+              "line": 20,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load dashboard",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1541,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:36.574Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-94f279a4bdafb3f0d05c",
+                  "file": "dashboard.spec.ts",
+                  "line": 21,
+                  "column": 5
+                },
+                {
+                  "title": "should display stats cards",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2113,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:36.797Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-fd0faf5ec8821b9c8818",
+                  "file": "dashboard.spec.ts",
+                  "line": 28,
+                  "column": 5
+                },
+                {
+                  "title": "should show total orders count",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 2119,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:37.164Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-91a493488159e33535ca",
+                  "file": "dashboard.spec.ts",
+                  "line": 35,
+                  "column": 5
+                },
+                {
+                  "title": "should show total revenue",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2019,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:37.292Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-f7005e3cc5d2797e214e",
+                  "file": "dashboard.spec.ts",
+                  "line": 42,
+                  "column": 5
+                },
+                {
+                  "title": "should show customers count",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1928,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:37.326Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-9b6187b448c572aca6fa",
+                  "file": "dashboard.spec.ts",
+                  "line": 49,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Dashboard Navigation",
+              "file": "dashboard.spec.ts",
+              "line": 57,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should navigate to products",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "failed",
+                          "duration": 1670,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"products\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"products\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:64:34",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                              "column": 34,
+                              "line": 64
+                            },
+                            "snippet": "  62 |       if (await productsLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  63 |         await productsLink.click();\n> 64 |         await expect(page.url()).toContain('products');\n     |                                  ^\n  65 |       }\n  66 |     });\n  67 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                                "column": 34,
+                                "line": 64
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"products\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n\n  62 |       if (await productsLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  63 |         await productsLink.click();\n> 64 |         await expect(page.url()).toContain('products');\n     |                                  ^\n  65 |       }\n  66 |     });\n  67 |\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:64:34"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:38.131Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-12c01-should-navigate-to-products-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-12c01-should-navigate-to-products-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                            "column": 34,
+                            "line": 64
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-7e387c32ac93ec7c2fa1",
+                  "file": "dashboard.spec.ts",
+                  "line": 58,
+                  "column": 5
+                },
+                {
+                  "title": "should navigate to orders",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 1877,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"orders\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"orders\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:74:34",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                              "column": 34,
+                              "line": 74
+                            },
+                            "snippet": "  72 |       if (await ordersLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  73 |         await ordersLink.click();\n> 74 |         await expect(page.url()).toContain('orders');\n     |                                  ^\n  75 |       }\n  76 |     });\n  77 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                                "column": 34,
+                                "line": 74
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"orders\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n\n  72 |       if (await ordersLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  73 |         await ordersLink.click();\n> 74 |         await expect(page.url()).toContain('orders');\n     |                                  ^\n  75 |       }\n  76 |     });\n  77 |\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:74:34"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:38.930Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-3cf7b-n-should-navigate-to-orders-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-3cf7b-n-should-navigate-to-orders-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                            "column": 34,
+                            "line": 74
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-b1d20babf96343b6c62a",
+                  "file": "dashboard.spec.ts",
+                  "line": 68,
+                  "column": 5
+                },
+                {
+                  "title": "should navigate to customers",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1827,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:39.281Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-c861112f1b569b3ac710",
+                  "file": "dashboard.spec.ts",
+                  "line": 78,
+                  "column": 5
+                },
+                {
+                  "title": "should navigate to settings",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "failed",
+                          "duration": 2084,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"settings\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"settings\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:94:34",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                              "column": 34,
+                              "line": 94
+                            },
+                            "snippet": "  92 |       if (await settingsLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  93 |         await settingsLink.click();\n> 94 |         await expect(page.url()).toContain('settings');\n     |                                  ^\n  95 |       }\n  96 |     });\n  97 |   });"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                                "column": 34,
+                                "line": 94
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"settings\"\u001b[39m\nReceived string:    \u001b[31m\"http://localhost:5173/app/dashboard\"\u001b[39m\n\n  92 |       if (await settingsLink.isVisible({ timeout: 3000 }).catch(() => false)) {\n  93 |         await settingsLink.click();\n> 94 |         await expect(page.url()).toContain('settings');\n     |                                  ^\n  95 |       }\n  96 |     });\n  97 |   });\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:94:34"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:39.301Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-ce3b0-should-navigate-to-settings-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Dashboard-Dashbo-ce3b0-should-navigate-to-settings-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                            "column": 34,
+                            "line": 94
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-17d19ba4d02e9c25aa3c",
+                  "file": "dashboard.spec.ts",
+                  "line": 88,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Dashboard Charts",
+              "file": "dashboard.spec.ts",
+              "line": 99,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should display sales chart",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1908,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:39.330Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-31464eaacb40e32ea27b",
+                  "file": "dashboard.spec.ts",
+                  "line": 100,
+                  "column": 5
+                },
+                {
+                  "title": "should toggle chart time period",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1672,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:40.520Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-48fb3f460ec3abd510c6",
+                  "file": "dashboard.spec.ts",
+                  "line": 112,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Recent Activity",
+              "file": "dashboard.spec.ts",
+              "line": 123,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should show recent orders",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1850,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:41.644Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-8f732cc2580335a966ea",
+                  "file": "dashboard.spec.ts",
+                  "line": 124,
+                  "column": 5
+                },
+                {
+                  "title": "should click on recent order",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1856,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:41.126Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-b23400360a820961294f",
+                  "file": "dashboard.spec.ts",
+                  "line": 133,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Quick Actions",
+              "file": "dashboard.spec.ts",
+              "line": 144,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should quick add product",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2059,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:41.254Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-7b0b5384b9643b0627f0",
+                  "file": "dashboard.spec.ts",
+                  "line": 145,
+                  "column": 5
+                },
+                {
+                  "title": "should view store",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 1961,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:42.102Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-6c857826306b64549aab",
+                  "file": "dashboard.spec.ts",
+                  "line": 155,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Mobile Responsiveness",
+              "file": "dashboard.spec.ts",
+              "line": 165,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should show mobile menu",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1853,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:42.366Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-95ddcc2ef2b6e6c2b508",
+                  "file": "dashboard.spec.ts",
+                  "line": 166,
+                  "column": 5
+                },
+                {
+                  "title": "should open mobile sidebar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1770,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:42.996Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "90cda532ab82d274b30b-068af6fd69e7aec899cd",
+                  "file": "dashboard.spec.ts",
+                  "line": 178,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Analytics",
+          "file": "dashboard.spec.ts",
+          "line": 195,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load analytics page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 11430,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:209:40",
+                        "location": {
+                          "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                          "column": 40,
+                          "line": 209
+                        },
+                        "snippet": "  207 |     await page.goto('/app/analytics');\n  208 |     \n> 209 |     await expect(page.locator('body')).toContainText(/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i);\n      |                                        ^\n  210 |   });\n  211 |\n  212 |   test('should show visitor stats', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                            "column": 40,
+                            "line": 209
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাঅ্যানালিটিক্সআপনার স্টোরের পারফরম্যান্স ট্র্যাক করুনToday৳ ০0 orders • 0 visitsThis Week৳ ০0 orders • 0 visitsThis Month৳ ০0 orders • 0 visitsAll Time৳ ০0 orders • 0 visitsRevenue - Last 7 DaysWed, Jan 70 ordersThu, Jan 80 ordersFri, Jan 90 ordersSat, Jan 100 ordersSun, Jan 110 ordersMon, Jan 120 ordersTue, Jan 130 ordersOrder StatusPending0Processing0Shipped0Delivered0Cancelled0Top Selling ProductsNo sales data yetCustomer Demographics0Total Customers0First-time0ReturningTop CitiesNo geographic data yetConversion MetricsAbandoned Rate0%0 abandoned, 0 recoveredAvg Order Value৳ ০Per paid orderQuick Insights• 0% returning customer rate• 0 recovered cartsRecent OrdersNo orders yet\"\u001b[22m\n\n\n  207 |     await page.goto('/app/analytics');\n  208 |     \n> 209 |     await expect(page.locator('body')).toContainText(/Analytics|বিশ্লেষণ|Stats|পরিসংখ্যান/i);\n      |                                        ^\n  210 |   });\n  211 |\n  212 |   test('should show visitor stats', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts:209:40"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:43.329Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Analytics-should-load-analytics-page-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/dashboard-Analytics-should-load-analytics-page-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/dashboard.spec.ts",
+                        "column": 40,
+                        "line": 209
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-c4879319df3da1313abc",
+              "file": "dashboard.spec.ts",
+              "line": 206,
+              "column": 3
+            },
+            {
+              "title": "should show visitor stats",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6479,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:43.636Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-7a31fb4bf53dd8cae003",
+              "file": "dashboard.spec.ts",
+              "line": 212,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "landing.spec.ts",
+      "file": "landing.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Landing Page",
+          "file": "landing.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load successfully",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 11246,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Multi-Store/i\u001b[39m\nReceived string:  \u001b[31m\"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Multi-Store/i\u001b[39m\nReceived string:  \u001b[31m\"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts:18:24",
+                        "location": {
+                          "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts",
+                          "column": 24,
+                          "line": 18
+                        },
+                        "snippet": "  16 |   test('should load successfully', async ({ page }) => {\n  17 |     // Check page title\n> 18 |     await expect(page).toHaveTitle(/Multi-Store/i);\n     |                        ^\n  19 |     // The app defaults to Bengali, so the CTA would be \"শুরু করুন\" or \"ফ্রিতে শুরু করুন\"\n  20 |     // Let's just check that the page body has content\n  21 |     await expect(page.locator('body')).toBeVisible();"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts",
+                            "column": 24,
+                            "line": 18
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Multi-Store/i\u001b[39m\nReceived string:  \u001b[31m\"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"Ozzyl - Launch Your Online Store in 5 Minutes\"\u001b[22m\n\n\n  16 |   test('should load successfully', async ({ page }) => {\n  17 |     // Check page title\n> 18 |     await expect(page).toHaveTitle(/Multi-Store/i);\n     |                        ^\n  19 |     // The app defaults to Bengali, so the CTA would be \"শুরু করুন\" or \"ফ্রিতে শুরু করুন\"\n  20 |     // Let's just check that the page body has content\n  21 |     await expect(page.locator('body')).toBeVisible();\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts:18:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:44.246Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/landing-Landing-Page-should-load-successfully-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/landing-Landing-Page-should-load-successfully-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/landing.spec.ts",
+                        "column": 24,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "4e5b49d369fd48ca0656-e772be488a8f986a02ad",
+              "file": "landing.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "should navigate to login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 1233,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:44.248Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4e5b49d369fd48ca0656-eb8e66281a49b5f4dac0",
+              "file": "landing.spec.ts",
+              "line": 24,
+              "column": 3
+            },
+            {
+              "title": "should navigate to registration",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1102,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:44.797Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4e5b49d369fd48ca0656-0f1efb808d7f100f6010",
+              "file": "landing.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on mobile",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 885,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:45.495Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4e5b49d369fd48ca0656-414e921c4f8ceeca2763",
+              "file": "landing.spec.ts",
+              "line": 37,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "order.spec.ts",
+      "file": "order.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Order Management",
+          "file": "order.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Order List",
+              "file": "order.spec.ts",
+              "line": 20,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load orders page",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 11063,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Orders|অর্ডার/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Orders|অর্ডার/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts:25:52",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts",
+                              "column": 52,
+                              "line": 25
+                            },
+                            "snippet": "  23 |       \n  24 |       // Should show orders section\n> 25 |       await expect(page.locator('h1, h2').first()).toContainText(/Orders|অর্ডার/i);\n     |                                                    ^\n  26 |     });\n  27 |\n  28 |     test('should show order filters', async ({ page }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts",
+                                "column": 52,
+                                "line": 25
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Orders|অর্ডার/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n\n  23 |       \n  24 |       // Should show orders section\n> 25 |       await expect(page.locator('h1, h2').first()).toContainText(/Orders|অর্ডার/i);\n     |                                                    ^\n  26 |     });\n  27 |\n  28 |     test('should show order filters', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts:25:52"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:45.918Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/order-Order-Management-Order-List-should-load-orders-page-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/order-Order-Management-Order-List-should-load-orders-page-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/order.spec.ts",
+                            "column": 52,
+                            "line": 25
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-d39b7cbe52e3d0ee6545",
+                  "file": "order.spec.ts",
+                  "line": 21,
+                  "column": 5
+                },
+                {
+                  "title": "should show order filters",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 11146,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:46.402Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-7513279b22b6409b7025",
+                  "file": "order.spec.ts",
+                  "line": 28,
+                  "column": 5
+                },
+                {
+                  "title": "should filter orders by status",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1540,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:50.129Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-15d706d1bdf75eab931e",
+                  "file": "order.spec.ts",
+                  "line": 38,
+                  "column": 5
+                },
+                {
+                  "title": "should search orders by phone",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1508,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:51.677Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-f3eb413732e7c6564015",
+                  "file": "order.spec.ts",
+                  "line": 53,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Order Details",
+              "file": "order.spec.ts",
+              "line": 65,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should open order details",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 993,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:53.192Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-b7a32996399ab2a5f233",
+                  "file": "order.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should display customer info",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1015,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:54.192Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-429079398c2288cb685f",
+                  "file": "order.spec.ts",
+                  "line": 80,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Order Status Updates",
+              "file": "order.spec.ts",
+              "line": 96,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should update order status to processing",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1106,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:55.485Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-52e0db263fcbbbd80083",
+                  "file": "order.spec.ts",
+                  "line": 97,
+                  "column": 5
+                },
+                {
+                  "title": "should update order status to delivered",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1051,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:55.219Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-7342c664ca68b562c0e0",
+                  "file": "order.spec.ts",
+                  "line": 118,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Order Invoice",
+              "file": "order.spec.ts",
+              "line": 136,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should generate invoice",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1114,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:55.953Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-0a49d0e7e3f4e28f5f5b",
+                  "file": "order.spec.ts",
+                  "line": 137,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Order Notes",
+              "file": "order.spec.ts",
+              "line": 155,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should add note to order",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1334,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:56.290Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "85d1357294a106dff78a-6564b356485a1e52c6b9",
+                  "file": "order.spec.ts",
+                  "line": 156,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Bulk Order Actions",
+          "file": "order.spec.ts",
+          "line": 177,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should select multiple orders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1255,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:56.715Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "85d1357294a106dff78a-e514018328364987fec5",
+              "file": "order.spec.ts",
+              "line": 188,
+              "column": 3
+            },
+            {
+              "title": "should bulk update order status",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1514,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:03:57.945Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "85d1357294a106dff78a-3d93754b4517e2ff552f",
+              "file": "order.spec.ts",
+              "line": 203,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "product.spec.ts",
+      "file": "product.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Product Management",
+          "file": "product.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Product List",
+              "file": "product.spec.ts",
+              "line": 21,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load products page",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 2,
+                          "status": "failed",
+                          "duration": 11468,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Products|পণ্য/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Products|পণ্য/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts:26:52",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
+                              "column": 52,
+                              "line": 26
+                            },
+                            "snippet": "  24 |       \n  25 |       // Should show products section\n> 26 |       await expect(page.locator('h1, h2').first()).toContainText(/Products|পণ্য/i);\n     |                                                    ^\n  27 |     });\n  28 |\n  29 |     test('should show add product button', async ({ page }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
+                                "column": 52,
+                                "line": 26
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Products|পণ্য/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n\n  24 |       \n  25 |       // Should show products section\n> 26 |       await expect(page.locator('h1, h2').first()).toContainText(/Products|পণ্য/i);\n     |                                                    ^\n  27 |     });\n  28 |\n  29 |     test('should show add product button', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts:26:52"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:57.255Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/product-Product-Management-6b124-t-should-load-products-page-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/product-Product-Management-6b124-t-should-load-products-page-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
+                            "column": 52,
+                            "line": 26
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "2fa8ab87beca8e7f39ce-d19ae71f267729642ddc",
+                  "file": "product.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show add product button",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 4,
+                          "status": "failed",
+                          "duration": 11527,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts:34:39",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
+                              "column": 39,
+                              "line": 34
+                            },
+                            "snippet": "  32 |       // Should have add product button\n  33 |       const addButton = page.locator('button, a').filter({ hasText: /Add|যোগ করুন/i });\n> 34 |       await expect(addButton.first()).toBeVisible();\n     |                                       ^\n  35 |     });\n  36 |\n  37 |     test('should search products', async ({ page }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
+                                "column": 39,
+                                "line": 34
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('button, a').filter({ hasText: /Add|যোগ করুন/i }).first()\u001b[22m\n\n\n  32 |       // Should have add product button\n  33 |       const addButton = page.locator('button, a').filter({ hasText: /Add|যোগ করুন/i });\n> 34 |       await expect(addButton.first()).toBeVisible();\n     |                                       ^\n  35 |     });\n  36 |\n  37 |     test('should search products', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts:34:39"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:57.575Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/product-Product-Management-62b91-uld-show-add-product-button-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/product-Product-Management-62b91-uld-show-add-product-button-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/product.spec.ts",
+                            "column": 39,
+                            "line": 34
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "2fa8ab87beca8e7f39ce-5253b6dc4fbbb17837e8",
+                  "file": "product.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should search products",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1565,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:57.646Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2fa8ab87beca8e7f39ce-7b919dde08d20d166707",
+                  "file": "product.spec.ts",
+                  "line": 37,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Create Product",
+              "file": "product.spec.ts",
+              "line": 50,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should navigate to add product form",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1541,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:57.996Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2fa8ab87beca8e7f39ce-186c676b868d8a90a155",
+                  "file": "product.spec.ts",
+                  "line": 51,
+                  "column": 5
+                },
+                {
+                  "title": "should validate required fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1131,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:59.227Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2fa8ab87beca8e7f39ce-cf8c70ed730f736f61fe",
+                  "file": "product.spec.ts",
+                  "line": 61,
+                  "column": 5
+                },
+                {
+                  "title": "should create product with valid data",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 3499,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:59.552Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2fa8ab87beca8e7f39ce-47b746a83a7fdec2a409",
+                  "file": "product.spec.ts",
+                  "line": 74,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Edit Product",
+              "file": "product.spec.ts",
+              "line": 103,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should edit existing product",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1089,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:03:59.653Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2fa8ab87beca8e7f39ce-7c18487035ed4c832725",
+                  "file": "product.spec.ts",
+                  "line": 104,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Delete Product",
+              "file": "product.spec.ts",
+              "line": 128,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should show delete confirmation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1075,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:00.374Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2fa8ab87beca8e7f39ce-a4de4b6d8123716f93d1",
+                  "file": "product.spec.ts",
+                  "line": 129,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Product Variants",
+          "file": "product.spec.ts",
+          "line": 146,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should add size variant",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 11026,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:04:00.755Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2fa8ab87beca8e7f39ce-56e711d9f264ec79f52d",
+              "file": "product.spec.ts",
+              "line": 157,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "settings.spec.ts",
+      "file": "settings.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Store Settings",
+          "file": "settings.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "General Settings",
+              "file": "settings.spec.ts",
+              "line": 20,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load settings page",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 11100,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Settings|সেটিংস/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Settings|সেটিংস/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts:25:52",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
+                              "column": 52,
+                              "line": 25
+                            },
+                            "snippet": "  23 |       \n  24 |       // Should show settings section\n> 25 |       await expect(page.locator('h1, h2').first()).toContainText(/Settings|সেটিংস/i);\n     |                                                    ^\n  26 |     });\n  27 |\n  28 |     test('should update store name', async ({ page }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
+                                "column": 52,
+                                "line": 25
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1, h2').first()\nExpected pattern: \u001b[32m/Settings|সেটিংস/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Name\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1, h2').first()\u001b[22m\n\u001b[2m    14 × locator resolved to <h2 class=\"font-semibold text-gray-900 truncate max-w-[140px]\">Updated Store Name</h2>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Name\"\u001b[22m\n\n\n  23 |       \n  24 |       // Should show settings section\n> 25 |       await expect(page.locator('h1, h2').first()).toContainText(/Settings|সেটিংস/i);\n     |                                                    ^\n  26 |     });\n  27 |\n  28 |     test('should update store name', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts:25:52"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:01.468Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/settings-Store-Settings-Ge-beb22-s-should-load-settings-page-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/settings-Store-Settings-Ge-beb22-s-should-load-settings-page-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
+                            "column": 52,
+                            "line": 25
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-7920aaeedc5837d11fda",
+                  "file": "settings.spec.ts",
+                  "line": 21,
+                  "column": 5
+                },
+                {
+                  "title": "should update store name",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1151,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:03.063Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-c3a35608f9c1d9018f45",
+                  "file": "settings.spec.ts",
+                  "line": 28,
+                  "column": 5
+                },
+                {
+                  "title": "should update store logo",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1005,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:04.228Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-3e8cd6c409be29c04119",
+                  "file": "settings.spec.ts",
+                  "line": 45,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Payment Settings",
+              "file": "settings.spec.ts",
+              "line": 58,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load payment settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 829,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:05.239Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-857592c3169087d3fb56",
+                  "file": "settings.spec.ts",
+                  "line": 59,
+                  "column": 5
+                },
+                {
+                  "title": "should toggle COD",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 924,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:06.075Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-96bb2b98f345ee6399e1",
+                  "file": "settings.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should configure bKash number",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 883,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:07.006Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-f2b914a6b78137c10659",
+                  "file": "settings.spec.ts",
+                  "line": 75,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Courier Settings",
+              "file": "settings.spec.ts",
+              "line": 85,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load courier settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 939,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:07.907Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-caf02dd9d0e620f70dc6",
+                  "file": "settings.spec.ts",
+                  "line": 86,
+                  "column": 5
+                },
+                {
+                  "title": "should set delivery charge",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 11,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1102,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:09.195Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-5f8ab9b4fbafd386947c",
+                  "file": "settings.spec.ts",
+                  "line": 93,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "SEO Settings",
+              "file": "settings.spec.ts",
+              "line": 103,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load SEO settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1007,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:08.864Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-10e846feb4936b158744",
+                  "file": "settings.spec.ts",
+                  "line": 104,
+                  "column": 5
+                },
+                {
+                  "title": "should update meta title",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 12,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 1474,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:09.561Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-2cd9385c69062d74a14f",
+                  "file": "settings.spec.ts",
+                  "line": 111,
+                  "column": 5
+                },
+                {
+                  "title": "should update meta description",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1268,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:09.882Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-edc8d970097134937505",
+                  "file": "settings.spec.ts",
+                  "line": 123,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Theme Settings",
+              "file": "settings.spec.ts",
+              "line": 133,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load theme settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 11,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1141,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:10.436Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-0aba0d190a83d3e5d9f7",
+                  "file": "settings.spec.ts",
+                  "line": 134,
+                  "column": 5
+                },
+                {
+                  "title": "should change store theme",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1201,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:11.162Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-a046c94b852a6492851b",
+                  "file": "settings.spec.ts",
+                  "line": 141,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Legal Settings",
+              "file": "settings.spec.ts",
+              "line": 152,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load legal settings",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 12,
+                          "parallelIndex": 4,
+                          "status": "failed",
+                          "duration": 11616,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Legal|Privacy|Terms|Refund/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Legal|Privacy|Terms|Refund/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts:157:42",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
+                              "column": 42,
+                              "line": 157
+                            },
+                            "snippet": "  155 |       \n  156 |       // Should show legal section\n> 157 |       await expect(page.locator('body')).toContainText(/Legal|Privacy|Terms|Refund/i);\n      |                                          ^\n  158 |     });\n  159 |\n  160 |     test('should update privacy policy', async ({ page }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
+                                "column": 42,
+                                "line": 157
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected pattern: \u001b[32m/Legal|Privacy|Terms|Refund/i\u001b[39m\nReceived string:  \u001b[31m\"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    14 × locator resolved to <body class=\"h-full\">…</body>\u001b[22m\n\u001b[2m       - unexpected value \"Updated Store Nametest-store-80927স্টোরে যানড্যাশবোর্ডটিউটোরিয়ালক্যাটালগপণ্যইনভেন্টরিছাড়অর্ডারসব অর্ডারপরিত্যক্ত কার্টমার্কেটিংক্যাম্পেইনওজিল (OZZYL) AI অ্যাসিস্ট্যান্টসাবস্ক্রাইবাররিভিউঅ্যানালিটিক্সওভারভিউরিপোর্টসেটিংসসিম্পল ল্যান্ডিং বিল্ডারঅ্যাডভান্সড বিল্ডার (কাজ চলছে)স্টোর ডিজাইনহোমপেজ সেটিংসশিপিংডোমেইনবিলিংAI ক্রেডিটসব সেটিংসTTest Merchanttest@example.comলগআউটUpdated Store Name🇧🇩English🇬🇧English🇧🇩বাংলাগোপনীয়তা নীতিমালাআপনার স্টোরের লিগ্যাল পেজগুলো কাস্টমাইজ করুনঅটো-জেনারেটেড পলিসিআমরা আপনার স্টোরের নাম (Updated Store Name) এবং ইমেল (support@yourstore.com) ব্যবহার করে পলিসি তৈরি করেছি।🔒গোপনীয়তা নীতিগ্রাহকের তথ্য যেভাবে সংগ্রহ ও ব্যবহার করা হয়অটো-জেনারেটেড📋পরিষেবার শর্তাবলীস্টোর ব্যবহারের নিয়ম ও শর্তসমূহঅটো-জেনারেটেড↩️রিফান্ড ও রিটার্ন পলিসিরিটার্ন এবং রিফান্ডের শর্তাবলীঅটো-জেনারেটেডবাতিলপলিসি সেভ করুন\"\u001b[22m\n\n\n  155 |       \n  156 |       // Should show legal section\n> 157 |       await expect(page.locator('body')).toContainText(/Legal|Privacy|Terms|Refund/i);\n      |                                          ^\n  158 |     });\n  159 |\n  160 |     test('should update privacy policy', async ({ page }) => {\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts:157:42"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:11.165Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/settings-Store-Settings-Le-b497d--should-load-legal-settings-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/settings-Store-Settings-Le-b497d--should-load-legal-settings-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/settings.spec.ts",
+                            "column": 42,
+                            "line": 157
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-c49ef03aeff7e2b77acf",
+                  "file": "settings.spec.ts",
+                  "line": 153,
+                  "column": 5
+                },
+                {
+                  "title": "should update privacy policy",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 11,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1618,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:11.592Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-469d4b3ad6d9711d4991",
+                  "file": "settings.spec.ts",
+                  "line": 160,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Team Settings",
+              "file": "settings.spec.ts",
+              "line": 170,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load team settings",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1507,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:11.810Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-211cdc5f2a4c70323892",
+                  "file": "settings.spec.ts",
+                  "line": 171,
+                  "column": 5
+                },
+                {
+                  "title": "should show invite member button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 6182,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T16:04:12.380Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "d877ffdf71ec720167ae-7252910e005d83113d05",
+                  "file": "settings.spec.ts",
+                  "line": 178,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "smoke.test.ts",
+      "file": "smoke.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Critical Path: Store Creation to Purchase",
+          "file": "smoke.test.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "full merchant and customer journey",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23397,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:04:13.504Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4a239ced0e52b6754d8b-57781e6275caf5461761",
+              "file": "smoke.test.ts",
+              "line": 11,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "theme-switch.test.ts",
+      "file": "theme-switch.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Theme Switching",
+          "file": "theme-switch.test.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "store editor page loads and shows template options",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1143,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:04:13.230Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "945707b527399239896e-576ec24403556845515a",
+              "file": "theme-switch.test.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "flash sale settings can be accessed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1095,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-13T16:04:13.343Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "945707b527399239896e-26784dfe89bf2f2acb88",
+              "file": "theme-switch.test.ts",
+              "line": 26,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-13T16:03:30.463Z",
+    "duration": 66583.221,
+    "expected": 75,
+    "skipped": 0,
+    "unexpected": 10,
+    "flaky": 0
+  }
+}

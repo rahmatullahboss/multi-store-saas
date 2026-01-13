@@ -14,8 +14,8 @@ test.describe('Landing Page', () => {
   });
   
   test('should load successfully', async ({ page }) => {
-    // Check page title
-    await expect(page).toHaveTitle(/Multi-Store/i);
+    // Check page title - app is branded as Ozzyl
+    await expect(page).toHaveTitle(/Ozzyl/i);
     // The app defaults to Bengali, so the CTA would be "শুরু করুন" or "ফ্রিতে শুরু করুন"
     // Let's just check that the page body has content
     await expect(page.locator('body')).toBeVisible();
