@@ -756,8 +756,8 @@ export const dashboard = {
   savedCampaignsCountMsg: 'আপনার কাছে {count}টি সেভ করা ক্যাম্পেইন রয়েছে।',
 
   // Page Builder
-  pageBuilderTitle: 'এলিমেন্টর বিল্ডার (GrapesJS)',
-  pageBuilderDesc: 'সহজেই সুন্দর এবং কাস্টম ড্র্যাগ-অ্যান্ড-ড্রপ পেজ তৈরি করুন।',
+  pageBuilderTitle: 'পার্টি বিল্ডার',
+  pageBuilderDesc: 'পার্টি বিল্ডার এর মাধ্যমে সহজেই সুন্দর এবং কাস্টম পেজ তৈরি করুন।',
   createNewPage: 'নতুন পেজ তৈরি করুন',
   newPageDetails: 'নতুন পেজের বিবরণ',
   internalPageName: 'অভ্যন্তরীণ পেজের নাম',
@@ -773,7 +773,7 @@ export const dashboard = {
   exitEditor: 'এডিটর থেকে বের হন',
   editingPage: 'পেজ এডিট করা হচ্ছে',
   autoSaveActive: 'অটো-সেভ সক্রিয়',
-  bootingCanvas: 'এলিমেন্টর ক্যানভাস চালু হচ্ছে...',
+  bootingCanvas: 'বিল্ডার ক্যানভাস চালু হচ্ছে...',
   pageSettings: 'পেজ সেটিংস',
   pageSettingsDesc: 'এই ল্যান্ডিং পেজের গ্লোবাল সেটিংস কনফিগার করুন।',
   selectProduct: 'প্রোডাক্ট সিলেক্ট করুন',

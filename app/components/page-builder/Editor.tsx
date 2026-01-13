@@ -24,9 +24,9 @@ import popupPlugin from '~/lib/grapesjs/plugins/popup';
 import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
 import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
-import MagicGenerateModal from "./MagicGenerateModal";
+
 import BlockLibraryModal from "./BlockLibraryModal";
-import { AISidebar } from "./ai-sidebar";
+// Removed AISidebar import
 import { toast } from 'sonner';
 import ContextMenu from './ContextMenu';
 
@@ -41,11 +41,10 @@ interface GrapesEditorProps {
 export default function GrapesEditor({ pageId, planType = 'free', onStorageStatusChange, publishedBaseUrl, pageSlug }: GrapesEditorProps) {
   const [editor, setEditor] = useState<any>(null);
   const isAiLocked = planType === 'free';
-  const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
   const [isBlockLibraryOpen, setIsBlockLibraryOpen] = useState(false);
-  const [aiDesignMode, setAiDesignMode] = useState<'full-page' | 'section-design'>('full-page');
+  // Removed MagicModal state
   const [selectedComponentData, setSelectedComponentData] = useState<string | null>(null);
-  const [isChatOpen, setIsChatOpen] = useState(true);
+  // Removed isChatOpen state
 
   // Page Configurations (Featured Product, WhatsApp, etc.)
   const [pageConfig, setPageConfig] = useState<{
@@ -143,111 +142,19 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
       }, 5000);
     });
 
-    // 3. Add Magic Generate Button to Panel
-    editorInstance.Panels.addButton('options', {
-      id: 'magic-generate',
-      className: isAiLocked 
-        ? 'bg-slate-400 text-white font-bold !px-3 !border-none hover:bg-slate-500 flex items-center gap-2'
-        : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold !px-3 !border-none hover:opacity-90 flex items-center gap-2',
-      label: isAiLocked ? `
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
-        AI Generate (PRO)
-      ` : '✨ AI Generate',
-      command: 'open-magic-modal',
-      attributes: { title: isAiLocked ? 'Unlock Magic AI (Premium)' : 'Generate Landing Page with AI' }
-    });
+    // Removed Magic Generate Button and Commands
+    // AI Actions should now be handled via the Sidebar exclusively
 
-    editorInstance.Commands.add('open-magic-modal', {
-      run: () => {
-          setAiDesignMode('full-page');
-          setIsMagicModalOpen(true);
-      },
-    });
 
-    editorInstance.Commands.add('open-ai-design-modal', {
-      run: () => {
-          const selected = editorInstance.getSelected();
-          if (selected) {
-            setSelectedComponentData(selected.toHTML());
-            setAiDesignMode('section-design');
-            setIsMagicModalOpen(true);
-          } else {
-            toast.error("Please select a block to design with AI");
-          }
-      },
-    });
+    // Removed Component Toolbar "Design with AI" button as it triggered the old modal
 
-    // Add Sparkle icon to component toolbar
-    editorInstance.on('component:selected', () => {
-      const selected = editorInstance.getSelected();
-      if (selected) {
-        const toolbar = selected.get('toolbar');
-        const hasAiBtn = toolbar.some((btn: any) => btn.command === 'open-ai-design-modal');
-        
-        if (!hasAiBtn) {
-          toolbar.unshift({
-            attributes: { title: 'Design with AI', class: 'fa fa-magic' },
-            command: 'open-ai-design-modal',
-            label: `
-              <svg viewBox="0 0 24 24" fill="none" width="12" height="12" style="margin: 4px" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-              </svg>
-            `
-          });
-          selected.set('toolbar', toolbar);
-        }
-      }
-    });
 
     // Initial Theme Injection
     updateCanvasTheme(editorInstance, themeConfig);
   };
 
-  const handleMagicGenerate = (data: any) => {
-    if (!editor) return;
+    // Removed handleMagicGenerate
 
-    if (aiDesignMode === 'section-design') {
-      const selected = editor.getSelected();
-      if (selected && data.html) {
-        // Replace selected component with new HTML
-        const index = selected.index();
-        
-        // Add components and get the first one
-        const newComps = editor.addComponents(data.html, { at: index });
-        const newComp = newComps[0];
-        
-        // Apply CSS if provided
-        if (data.css && newComp) {
-          newComp.addStyle(data.css);
-        }
-        
-        selected.remove();
-        editor.select(newComp);
-        toast.success("Design updated by AI!");
-      }
-      return;
-    }
-
-    // Full Page Mode
-    editor.DomComponents.clear();
-    if (data.blocks && Array.isArray(data.blocks)) {
-      data.blocks.sort((a: any, b: any) => a.order - b.order).forEach((block: any) => {
-        const blockType = block.type;
-        const blockDef = editor.Blocks.get(blockType);
-        
-        if (blockDef) {
-           const content = blockDef.getContent ? blockDef.getContent() : blockDef.attributes.content;
-           if (content) {
-             editor.addComponents(content);
-           }
-        }
-      });
-    }
-    toast.success("Page generated successfully!");
-  };
 
   // Handle template loading
   const handleLoadTemplate = (templateId: string) => {
@@ -472,29 +379,12 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
                 )}
             </div>
 
-            {/* AI Sidebar - Docked Right */}
-            <AISidebar 
-              editor={editor}
-              isOpen={isChatOpen}
-              onToggle={() => setIsChatOpen(!isChatOpen)}
-              isLocked={isAiLocked}
-            />
+            {/* AI Sidebar Removed */}
           </div>
         </div>
       </GjsEditor>
 
-      <MagicGenerateModal 
-        isOpen={isMagicModalOpen} 
-        onClose={() => {
-          setIsMagicModalOpen(false);
-          setSelectedComponentData(null);
-        }}
-        onGenerate={handleMagicGenerate}
-        mode={aiDesignMode}
-        initialData={selectedComponentData || undefined}
-        isLocked={isAiLocked}
-        featuredProductId={pageConfig.featuredProductId}
-      />
+
 
       <BlockLibraryModal 
         isOpen={isBlockLibraryOpen}

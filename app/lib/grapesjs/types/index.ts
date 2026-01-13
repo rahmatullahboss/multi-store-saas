@@ -4,5 +4,4 @@
  */
 
 export * from './editor.types';
-export * from './actions.types';
-export * from './ai.types';
+// Export removed types
