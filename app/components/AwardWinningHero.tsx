@@ -703,7 +703,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
             
             {/* Main Headline */}
             <h1 
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-bold leading-[1.1] tracking-tight mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-bold leading-[1.4] tracking-tight mb-6"
               style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
             >
               <StaggeredText 

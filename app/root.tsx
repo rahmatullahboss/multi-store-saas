@@ -19,11 +19,20 @@ import { useChangeLanguage } from 'remix-i18next/react';
 import { dir } from 'i18next';
 
 export const links: LinksFunction = () => [
+  // Critical font preloading for faster LCP
+  { 
+    rel: 'preload', 
+    href: 'https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hiA.woff2',
+    as: 'font',
+    type: 'font/woff2',
+    crossOrigin: 'anonymous',
+  },
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
   { 
     rel: 'stylesheet', 
-    href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&display=swap' 
+    href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&display=swap',
+    // font-display:swap is already in the URL query param
   },
   { rel: 'manifest', href: '/manifest.webmanifest' },
 ];

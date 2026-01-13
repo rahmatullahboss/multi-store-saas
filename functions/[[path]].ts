@@ -13,6 +13,21 @@ import { stores } from '../db/schema';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as build from '../build/server';
+import type { CfProperties } from '@cloudflare/workers-types';
+
+/**
+ * Environment interface for Cloudflare Pages Functions
+ */
+interface Env {
+  DB: D1Database;
+  R2: R2Bucket;
+  R2_PUBLIC_URL: string;
+  SAAS_DOMAIN: string;
+  CLOUDFLARE_API_TOKEN: string;
+  CLOUDFLARE_ZONE_ID: string;
+  OPENROUTER_API_KEY?: string;
+  [key: string]: any;
+}
 
 /**
  * Parse hostname to extract subdomain or custom domain
