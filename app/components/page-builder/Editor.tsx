@@ -221,6 +221,23 @@ export default function GrapesEditor({
       // -- Device Change Handler (for Desktop full width) --
       let desktopObserver: MutationObserver | null = null;
       
+      const setDeviceAttribute = (device: string) => {
+        // Set on our container (which we control)
+        if (containerRef.current) {
+          containerRef.current.setAttribute('data-gjs-device', device);
+        }
+        // Also try setting on .gjs-editor and its parent
+        const editorEl = document.querySelector('.gjs-editor') as HTMLElement;
+        if (editorEl) {
+          editorEl.setAttribute('data-gjs-device', device);
+          // Also set on parent wrapper
+          const parent = editorEl.parentElement;
+          if (parent) {
+            parent.setAttribute('data-gjs-device', device);
+          }
+        }
+      };
+      
       const forceDesktopFullWidth = () => {
         const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
         if (frameWrapper) {
@@ -234,16 +251,20 @@ export default function GrapesEditor({
         }
       };
       
+      // Set initial device attribute on load
+      const initialDevice = editorInstance.getDevice() || 'Desktop';
+      setDeviceAttribute(initialDevice);
+      if (initialDevice === 'Desktop') {
+        setTimeout(forceDesktopFullWidth, 200);
+      }
+      
       editorInstance.on('device:change', () => {
         const device = editorInstance.getDevice();
         const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
         const framesContainer = document.querySelector('.gjs-cv-canvas__frames') as HTMLElement;
-        const editorEl = document.querySelector('.gjs-editor') as HTMLElement;
         
         // Set data attribute on editor for CSS targeting
-        if (editorEl) {
-          editorEl.setAttribute('data-gjs-device', device);
-        }
+        setDeviceAttribute(device);
         
         // Disconnect any existing observer
         if (desktopObserver) {
