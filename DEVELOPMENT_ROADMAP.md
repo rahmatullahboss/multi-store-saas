@@ -186,3 +186,9 @@
 - [x] **Global Asset Modernization**: Processed and integrated high-fidelity SVG/PNG branding assets across all touchpoints (Login, Dashboard, Admin, Final CTA).
 - [x] **Favicon & UI Favicons**: Updated browser favicon and sidebar iconography for a premium, unified feel.
 - [x] **Copy Standardization**: Global replacement of legacy platform name with "Ozzyl" in all transactional and marketing copy.
+
+### Phase 21: Merchant Experience & Operational Excellence (Completed) 📦
+
+- [x] **Universal Low Stock Alert**: Redesigned and standardized low stock alerts with proper translation support.
+- [x] **Dashboard Alert Visibility**: Integrated critical inventory warnings directly onto the merchant dashboard for immediate action.
+- [x] **Refactored Alert Logic**: Extracted alert UI into a reusable component, fixing interpolation bugs and standardizing the threshold (10 units) across the platform.
