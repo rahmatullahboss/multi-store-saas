@@ -31,6 +31,7 @@ import SidebarPanel from './SidebarPanel';
 import BlockLibraryModal from './BlockLibraryModal';
 import ContextMenu from './ContextMenu';
 import { toast } from 'sonner';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface GrapesEditorProps {
   pageId?: string;
@@ -64,6 +65,7 @@ export default function GrapesEditor({
   publishedBaseUrl, 
   pageSlug 
 }: GrapesEditorProps) {
+  const { t } = useTranslation();
   // Core state
   const containerRef = useRef<HTMLDivElement>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -299,7 +301,7 @@ export default function GrapesEditor({
       const template = TEMPLATE_CONFIGS[templateId];
       
       if (!template) {
-        toast.error('Template not found');
+        toast.error(t('templateNotFound') || 'Template not found');
         return;
       }
 
@@ -320,7 +322,7 @@ export default function GrapesEditor({
       });
 
       if (blocksAdded === 0) {
-        toast.error('Could not load template blocks');
+        toast.error(t('loadTemplateBlocksError') || 'Could not load template blocks');
         return;
       }
 
@@ -330,10 +332,10 @@ export default function GrapesEditor({
       }));
 
       editor.UndoManager.clear();
-      toast.success('Template loaded!');
+      toast.success(t('templateLoaded') || 'Template loaded!');
     } catch (err) {
       console.error('Template load failed:', err);
-      toast.error('Failed to load template');
+      toast.error(t('loadTemplateError') || 'Failed to load template');
     }
   }, [editor]);
 
@@ -388,7 +390,7 @@ export default function GrapesEditor({
               <div className="absolute inset-0 flex items-center justify-center bg-gray-50/90 z-10">
                 <div className="flex flex-col items-center">
                   <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mb-2" />
-                  <span className="text-gray-500 font-medium">Initializing Editor...</span>
+                  <span className="text-gray-500 font-medium">{t('initializingEditor')}</span>
                 </div>
               </div>
             )}

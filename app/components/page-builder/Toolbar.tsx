@@ -113,7 +113,7 @@ export default function EditorToolbar({
                 rel="noreferrer"
                 className="text-xs text-blue-400 hover:underline flex items-center gap-1 mt-1"
               >
-                Open Page <ExternalLink size={10} />
+                {t('openPage') || 'Open Page'} <ExternalLink size={10} />
               </a>
             </div>,
             { id: 'publish', duration: 6000 }
@@ -344,12 +344,12 @@ export default function EditorToolbar({
         <div className="w-[1px] h-6 bg-gray-200 mx-1" />
         <button 
           onClick={() => {
-            if (confirm(t('confirmClearCanvas') || 'Are you sure you want to clear the canvas?')) {
+            if (confirm(t('confirmClearCanvas'))) {
               editor.DomComponents.clear();
             }
           }}
           className="p-2 hover:bg-red-50 rounded-lg transition group"
-          title={t('clearCanvas') || 'Clear Canvas'}
+          title={t('clearCanvas')}
         >
           <Trash2 size={16} className="text-gray-500 group-hover:text-red-600" />
         </button>
@@ -375,7 +375,7 @@ export default function EditorToolbar({
                 ? 'bg-gradient-to-r from-slate-400 to-slate-500 text-white shadow-slate-100 hover:from-slate-500 hover:to-slate-600' 
                 : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-purple-100'
             }`}
-            title={isAiLocked ? "Unlock Magic AI (Premium)" : "Edit Selected Element with AI"}
+            title={isAiLocked ? (t('unlockMagicAi') || "Unlock Magic AI (Premium)") : (t('editElementAi') || "Edit Selected Element with AI")}
           >
             {isAiLocked ? (
               <div className="flex items-center gap-1.5">
@@ -398,7 +398,7 @@ export default function EditorToolbar({
                 ? 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:border-slate-300 shadow-slate-50'
                 : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100 shadow-emerald-50'
             }`}
-            title={isAiLocked ? "Unlock Magic AI (Premium)" : "Generate Page with AI"}
+            title={isAiLocked ? (t('unlockMagicAi') || "Unlock Magic AI (Premium)") : (t('generateWithAi') || "Generate Page with AI")}
           >
             {isAiLocked ? (
               <div className="flex items-center gap-1.5">
@@ -434,10 +434,10 @@ export default function EditorToolbar({
               ? 'text-indigo-600 bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
               : 'text-gray-600 hover:bg-gray-100 border-transparent hover:border-gray-200'
           }`}
-          title={lang === 'bn' ? 'বাটন কানেক্ট করুন' : 'Connect buttons to backend'}
+          title={t('connectButtonsBackend')}
         >
           <Link2 size={14} />
-          {lang === 'bn' ? 'কানেক্ট' : 'Connect'}
+          {t('connect')}
           {connectedButtonsCount > 0 && (
             <span className="ml-1 px-1.5 py-0.5 bg-indigo-600 text-white text-[10px] rounded-full leading-none">
               {connectedButtonsCount}
@@ -455,7 +455,7 @@ export default function EditorToolbar({
                 window.open(`/app/page-builder/preview/${pageId}`, '_blank');
               } catch (error) {
                 console.error('Preview save error:', error);
-                toast.error(t('previewFailed') || 'Failed to prepare preview', { id: 'preview' });
+                toast.error(t('previewFailed'), { id: 'preview' });
               }
             } else {
               // Fallback to inline preview if no pageId
@@ -583,10 +583,7 @@ export default function EditorToolbar({
           });
           
           setConnectedButtonsCount(connections.length);
-          toast.success(lang === 'bn' 
-            ? `${connections.length}টি বাটন কানেক্ট করা হয়েছে!` 
-            : `${connections.length} button(s) connected!`
-          );
+          toast.success(t('buttonsConnectedCount', { count: connections.length }));
         }}
       />
     </div>
