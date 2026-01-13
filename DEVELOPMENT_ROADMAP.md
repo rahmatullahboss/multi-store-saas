@@ -192,3 +192,5 @@
 - [x] **Universal Low Stock Alert**: Redesigned and standardized low stock alerts with proper translation support.
 - [x] **Dashboard Alert Visibility**: Integrated critical inventory warnings directly onto the merchant dashboard for immediate action.
 - [x] **Refactored Alert Logic**: Extracted alert UI into a reusable component, fixing interpolation bugs and standardizing the threshold (10 units) across the platform.
+- [x] **Store Editor Dropdown Fix**: Resolved the "vanishing dropdown" issue in the Store Live Editor by implementing a state-controlled click trigger.
+- [x] **Page Builder Hydration Resolution**: Fixed minified React errors (#418, #423) by wrapping the Page Builder header in `ClientOnly`.
