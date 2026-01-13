@@ -1138,10 +1138,12 @@ export async function commandGrapesJs(
   userPrompt: string,
   context: {
     selectedTagName?: string;
+    selectedHtml?: string | null;
     selectedContent?: string;
     selectedClasses?: string[];
     selectedAttributes?: Record<string, any>;
     selectedStyles?: Record<string, any>;
+    hasSelection?: boolean;
     productInfo?: { title: string; description?: string; price: number } | null;
   },
   model: string = DEFAULT_MODEL,
@@ -1197,10 +1199,19 @@ export async function commandGrapesJs(
 
 ### Rules:
 1. **Language**: If user speaks Bengali/Banglish, respond in Bengali. Otherwise English.
-2. **Smart Sections**: When user asks for "pricing", "testimonials", etc., use the smart section actions.
-3. **CSS in update_style**: Use camelCase (backgroundColor, not background-color).
-4. **Tailwind in add_component**: Use Tailwind classes in HTML.
-5. **Creativity**: For copywriting actions, be creative and persuasive.
+2. **CRITICAL - Selected Element Priority**: 
+   - If a specific element is selected (Tag is NOT 'none'), you MUST modify THAT element using update_content, update_style, update_trait, or update_layout.
+   - DO NOT use add_component or add_*_section when user wants to modify the selected element.
+   - Only use add_* actions when user explicitly asks to ADD something NEW to the page.
+3. **For Button Modifications**: When user selects a button and asks to modify it:
+   - Use update_content to change button text
+   - Use update_trait with { href: '#order', 'data-action': 'order' } to connect to order form
+   - Use update_style to change appearance
+   - NEVER create a new section for button modifications
+4. **Smart Sections**: When user asks for "pricing", "testimonials", etc., AND nothing specific is selected, use the smart section actions.
+5. **CSS in update_style**: Use camelCase (backgroundColor, not background-color).
+6. **Tailwind in add_component**: Use Tailwind classes in HTML (only when genuinely adding new content).
+7. **Creativity**: For copywriting actions, be creative and persuasive.
 
 ### Color Presets:
 - sunset: from-orange-500 to-pink-500
@@ -1214,23 +1225,26 @@ fadeIn, fadeInUp, fadeInDown, slideUp, slideDown, slideLeft, slideRight, bounceI
 
 ### Output Format:
 {
-  "action": "add_hero_section",
-  "target": "wrapper",
-  "value": { "headline": "Welcome to Our Platform" },
-  "message": "হিরো সেকশন যোগ করে দিলাম! 🎉"
+  "action": "update_trait",
+  "target": "selected",
+  "value": { "href": "#order", "data-action": "order" },
+  "message": "বাটনে Order link যোগ করে দিলাম! 🛒"
 }
 
 CRITICAL: Return ONLY valid JSON. No markdown.`;
 
   const fullUserPrompt = `Context - Selected Component:
-- Tag: ${context.selectedTagName || 'none (no selection, will apply to page)'}
-- Content: ${context.selectedContent ? context.selectedContent.substring(0, 100) + '...' : 'none'}
+- ⚠️ ELEMENT SELECTED: ${context.hasSelection ? 'YES - MODIFY THIS ELEMENT' : 'NO - Can add new content'}
+- Tag: ${context.selectedTagName || 'none (no selection)'}
+- Selected HTML: ${context.selectedHtml ? context.selectedHtml.substring(0, 300) : 'none'}
+- Content: ${context.selectedContent ? context.selectedContent.substring(0, 100) : 'none'}
 - Classes: ${context.selectedClasses?.join(', ') || 'none'}
 - Current Styles: ${context.selectedStyles ? JSON.stringify(context.selectedStyles).substring(0, 100) : 'none'}
 - Featured Product: ${context.productInfo ? `${context.productInfo.title} (${context.productInfo.price} BDT)` : 'none'}
-- Product Description: ${context.productInfo?.description || 'none'}
 
 User Request: "${userPrompt}"
+
+${context.hasSelection ? '⚠️ IMPORTANT: User has SELECTED an element. MODIFY it using update_content/update_style/update_trait. DO NOT create new sections!' : ''}
 
 Generate GrapesJS Command JSON:`;
 

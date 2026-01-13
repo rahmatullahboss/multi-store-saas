@@ -158,14 +158,16 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
     const userInput = input;
     setInput('');
 
-    // Capture Context from selected element
+    // Capture Context from selected element - ENHANCED for better AI understanding
     const selected = editor.getSelected();
     const context = {
       selectedTagName: selected?.get('tagName'),
+      selectedHtml: selected ? selected.toHTML() : null, // Full HTML of selected element
       selectedContent: selected?.get('content') || selected?.components().map((c: any) => c.get('content')).join(' '),
       selectedClasses: selected?.getClasses(),
       selectedAttributes: selected?.getAttributes(),
       selectedStyles: selected?.getStyle(),
+      hasSelection: !!selected && selected !== editor.getWrapper(), // Explicit flag for selection
       featuredProductId: featuredProductId,
     };
 
