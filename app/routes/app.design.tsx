@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getTemplateComponent } from '~/templates/registry';
 import type { LandingConfig as LandingConfigType } from '@db/types';
 
-export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl SaaS' }];
+export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl' }];
 
 // ============================================================================
 // TEMPLATE METADATA (For beautiful cards)

@@ -25,7 +25,7 @@ import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Activity Log - Ozzyl SaaS' }];
+  return [{ title: 'Activity Log - Ozzyl' }];
 };
 
 // ============================================================================

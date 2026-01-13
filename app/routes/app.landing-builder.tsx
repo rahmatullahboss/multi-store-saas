@@ -57,7 +57,7 @@ const DEFAULT_GUARANTEE_TEXT = '১০০% সন্তুষ্টির গ্
 
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Landing Page Builder - Ozzyl SaaS' }];
+  return [{ title: 'Landing Page Builder - Ozzyl' }];
 };
 
 

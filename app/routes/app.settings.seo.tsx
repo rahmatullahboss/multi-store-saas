@@ -33,7 +33,7 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'SEO Settings - Ozzyl SaaS' }];
+  return [{ title: 'SEO Settings - Ozzyl' }];
 };
 
 // Type for SEO config

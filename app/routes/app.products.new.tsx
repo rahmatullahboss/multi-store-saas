@@ -26,7 +26,7 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Add Product - Ozzyl SaaS' }];
+  return [{ title: 'Add Product - Ozzyl' }];
 };
 
 // ============================================================================

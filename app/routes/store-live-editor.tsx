@@ -69,7 +69,7 @@ function SortableSectionItem({ section, onSelect, onDelete, isActive }: any) {
 
 
 
-export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Ozzyl SaaS' }];
+export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Ozzyl' }];
 
 // Font Options - includes English and Bengali fonts
 const FONT_OPTIONS = [

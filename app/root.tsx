@@ -59,7 +59,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     locale,
     store: {
       id: storeId || 0,
-      name: store?.name || 'Ozzyl SaaS',
+      name: store?.name || 'Ozzyl',
       logo: store?.logo || null,
       theme: store?.theme || 'default',
       currency: store?.currency || 'BDT',

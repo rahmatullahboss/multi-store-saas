@@ -224,7 +224,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   doc.setFontSize(9);
   doc.setTextColor(156, 163, 175); // gray-400
   doc.text('Thank you for your order!', 105, footerY, { align: 'center' });
-  doc.text('Powered by Ozzyl SaaS', 105, footerY + 5, { align: 'center' });
+  doc.text('Powered by Ozzyl', 105, footerY + 5, { align: 'center' });
 
   // Output PDF
   const pdfOutput = doc.output('arraybuffer');

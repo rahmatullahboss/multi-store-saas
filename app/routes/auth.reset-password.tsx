@@ -7,7 +7,7 @@ import { resetPassword } from '~/services/auth.server';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Reset Password - Ozzyl SaaS' }];
+  return [{ title: 'Reset Password - Ozzyl' }];
 };
 
 type ActionData = 

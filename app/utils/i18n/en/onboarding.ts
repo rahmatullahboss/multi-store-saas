@@ -129,7 +129,7 @@ export const onboarding = {
   placeholderEmail: 'you@example.com',
   placeholderStoreName: 'My Awesome Store',
   placeholderSubdomain: 'my-store',
-  metaTitle: 'Create Your Store - Ozzyl SaaS',
+  metaTitle: 'Create Your Store - Ozzyl',
   
   // Errors
   emailAlreadyRegistered: 'Email already registered. Please login instead.',

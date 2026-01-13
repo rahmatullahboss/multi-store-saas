@@ -12,8 +12,8 @@ import { Store, ArrowLeft, Shield, AlertTriangle, Check, HelpCircle } from 'luci
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'ফেয়ার ইউজেজ পলিসি - Ozzyl SaaS' },
-    { name: 'description', content: 'Ozzyl SaaS প্ল্যাটফর্মের ব্যবহারের সীমা এবং নীতিমালা সম্পর্কে জানুন।' },
+    { title: 'ফেয়ার ইউজেজ পলিসি - Ozzyl' },
+    { name: 'description', content: 'Ozzyl প্ল্যাটফর্মের ব্যবহারের সীমা এবং নীতিমালা সম্পর্কে জানুন।' },
   ];
 };
 
@@ -67,7 +67,7 @@ export default function FairUsagePolicy() {
             <section className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
               <h2 className="text-xl font-bold text-white mb-4">পরিচিতি</h2>
               <p className="text-white/70 leading-relaxed">
-                Ozzyl SaaS সকল ব্যবহারকারীর জন্য একটি নির্ভরযোগ্য ও দ্রুত সেবা প্রদান করতে প্রতিশ্রুতিবদ্ধ। 
+                Ozzyl সকল ব্যবহারকারীর জন্য একটি নির্ভরযোগ্য ও দ্রুত সেবা প্রদান করতে প্রতিশ্রুতিবদ্ধ। 
                 এই ফেয়ার ইউজেজ পলিসি নিশ্চিত করে যে প্ল্যাটফর্মের সম্পদ সুষম ভাবে বন্টিত হয় এবং কোনো 
                 একক ব্যবহারকারী অন্যদের অভিজ্ঞতাকে প্রভাবিত করতে না পারে।
               </p>

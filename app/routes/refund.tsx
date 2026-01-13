@@ -19,8 +19,8 @@ const OzzylAIChatWidget = lazy(() =>
 );
 
 export const meta: MetaFunction = () => [
-  { title: 'রিফান্ড নীতি - Ozzyl SaaS' },
-  { name: 'description', content: 'Ozzyl SaaS প্ল্যাটফর্মের রিফান্ড নীতি।' },
+  { title: 'রিফান্ড নীতি - Ozzyl' },
+  { name: 'description', content: 'Ozzyl প্ল্যাটফর্মের রিফান্ড নীতি।' },
 ];
 
 export default function RefundPolicyPage() {

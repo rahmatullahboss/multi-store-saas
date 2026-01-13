@@ -19,8 +19,8 @@ const OzzylAIChatWidget = lazy(() =>
 );
 
 export const meta: MetaFunction = () => [
-  { title: 'শর্তাবলী - Ozzyl SaaS' },
-  { name: 'description', content: 'Ozzyl SaaS প্ল্যাটফর্মের ব্যবহারের শর্তাবলী।' },
+  { title: 'শর্তাবলী - Ozzyl' },
+  { name: 'description', content: 'Ozzyl প্ল্যাটফর্মের ব্যবহারের শর্তাবলী।' },
 ];
 
 export default function TermsPage() {

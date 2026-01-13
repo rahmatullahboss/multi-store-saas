@@ -38,7 +38,7 @@ import { getStoreStats, getRevenueForecast, getPredictedCLV } from '~/services/a
 import { GrowthOpportunitiesCard } from '~/components/dashboard/GrowthOpportunitiesCard';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Dashboard - Ozzyl SaaS' }];
+  return [{ title: 'Dashboard - Ozzyl' }];
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

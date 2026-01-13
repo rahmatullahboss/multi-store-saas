@@ -284,7 +284,7 @@ const tutorialSections = [
     id: 'marketing',
     icon: Ticket,
     title: 'Marketing - Coupons',
-    description: 'SaaS subscription এ discount coupon তৈরি করুন',
+    description: 'সাবস্ক্রিপশন এ discount coupon তৈরি করুন',
     content: [
       {
         heading: 'Coupon তৈরি করা',

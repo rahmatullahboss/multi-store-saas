@@ -28,7 +28,7 @@ export async function sendPasswordResetEmail(
     const resetLink = `${env.SAAS_DOMAIN}/auth/reset-password?token=${token}`;
 
     const { data, error } = await resend.emails.send({
-      from: 'Ozzyl SaaS <contact@ozzyl.com>', // Update with your verified domain
+      from: 'Ozzyl <contact@ozzyl.com>', // Update with your verified domain
       to: [email],
       subject: 'Reset Your Password',
       html: `
@@ -92,7 +92,7 @@ export async function sendLowStockAlert(
     `).join('');
 
     const { data, error } = await resend.emails.send({
-      from: 'Ozzyl SaaS <contact@ozzyl.com>',
+      from: 'Ozzyl <contact@ozzyl.com>',
       to: [merchantEmail],
       subject: `[Alert] Low Stock Warning - ${storeName}`,
       html: `
@@ -184,7 +184,7 @@ interface SendStaffInviteParams {
  */
 export function createEmailService(apiKey: string) {
   const resend = new Resend(apiKey);
-  const fromEmail = 'Ozzyl SaaS <contact@ozzyl.com>';
+  const fromEmail = 'Ozzyl <contact@ozzyl.com>';
 
   return {
     async sendCampaignEmail({ email, subject, content, storeName, unsubscribeUrl, previewText }: SendCampaignEmailParams) {

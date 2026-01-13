@@ -20,8 +20,8 @@ const OzzylAIChatWidget = lazy(() =>
 );
 
 export const meta: MetaFunction = () => [
-  { title: 'গোপনীয়তা নীতি - Ozzyl SaaS' },
-  { name: 'description', content: 'Ozzyl SaaS প্ল্যাটফর্মের গোপনীয়তা নীতি।' },
+  { title: 'গোপনীয়তা নীতি - Ozzyl' },
+  { name: 'description', content: 'Ozzyl প্ল্যাটফর্মের গোপনীয়তা নীতি।' },
 ];
 
 export default function PrivacyPolicyPage() {

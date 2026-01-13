@@ -61,7 +61,7 @@ const OzzylIcon = ({ className }: { className?: string }) => {
 
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Dashboard - Ozzyl SaaS' }];
+  return [{ title: 'Dashboard - Ozzyl' }];
 };
 
 // ============================================================================

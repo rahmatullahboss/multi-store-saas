@@ -27,7 +27,7 @@ import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/com
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Products - Ozzyl SaaS' }];
+  return [{ title: 'Products - Ozzyl' }];
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

@@ -37,7 +37,7 @@ const FONT_OPTIONS = [
   { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", previewKey: 'fontMontserratDesc' },
 ];
 
-export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl SaaS' }];
+export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl' }];
 
 // ============================================================================
 // LOADER - Fetch current store config

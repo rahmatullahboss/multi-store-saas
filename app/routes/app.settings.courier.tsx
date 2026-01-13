@@ -37,7 +37,7 @@ import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Courier Settings - Ozzyl SaaS' }];
+  return [{ title: 'Courier Settings - Ozzyl' }];
 };
 
 // Types

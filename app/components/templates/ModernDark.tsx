@@ -540,7 +540,7 @@ export function ModernDarkTemplate({
         <div className="container-store text-center text-gray-500 text-sm">
           <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
           <p className="mt-2">
-            Powered by <span className="text-orange-400">Ozzyl SaaS</span>
+            Powered by <span className="text-orange-400">Ozzyl</span>
           </p>
         </div>
       </footer>

@@ -339,7 +339,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId || storeId === 0) {
     console.log('[AI Chat] Marketing mode - no storeId');
     
-    const saasSystemPrompt = `You are a helpful AI assistant for Ozzyl SaaS - an e-commerce platform for Bangladeshi sellers.
+    const saasSystemPrompt = `You are a helpful AI assistant for Ozzyl - an e-commerce platform for Bangladeshi sellers.
 
 ## About Ozzyl
 - E-commerce platform to create online stores

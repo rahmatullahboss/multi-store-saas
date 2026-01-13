@@ -26,7 +26,7 @@ import { Link } from '@remix-run/react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Landing Mode Settings - Ozzyl SaaS' }];
+  return [{ title: 'Landing Mode Settings - Ozzyl' }];
 };
 
 // ============================================================================

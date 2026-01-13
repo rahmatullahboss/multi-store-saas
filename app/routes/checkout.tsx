@@ -552,7 +552,7 @@ export default function Checkout() {
                 </button>
                 
                 <p className="text-xs text-center text-gray-500 mt-4">
-                    Secure checkout powered by Ozzyl SaaS
+                    Secure checkout powered by Ozzyl
                 </p>
             </div>
         </div>

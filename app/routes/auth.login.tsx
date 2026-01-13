@@ -16,7 +16,7 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import i18next from '~/services/i18n.server';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Login - Ozzyl SaaS' }];
+  return [{ title: 'Login - Ozzyl' }];
 };
 
 // Redirect if already logged in

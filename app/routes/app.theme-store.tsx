@@ -21,7 +21,7 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { STORE_TEMPLATES, type StoreTemplateDefinition, getStoreTemplate } from '~/templates/store-registry';
 import { type ThemeConfig, defaultThemeConfig } from '@db/types';
 
-export const meta: MetaFunction = () => [{ title: 'Theme Store - Ozzyl SaaS' }];
+export const meta: MetaFunction = () => [{ title: 'Theme Store - Ozzyl' }];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   await requireUserId(request, context.cloudflare.env);

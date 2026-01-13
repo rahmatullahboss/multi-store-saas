@@ -1610,7 +1610,7 @@ async function searchVectors(
 
 /**
  * Ozzyl AI - The first impression chatbot for marketing landing page visitors.
- * This chatbot has complete knowledge of the Ozzyl SaaS platform and can
+ * This chatbot has complete knowledge of the Ozzyl platform and can
  * answer any question about pricing, features, integrations, and business value.
  */
 export async function chatWithVisitor(
@@ -1630,7 +1630,7 @@ export async function chatWithVisitor(
     ).join('\n\n');
   }
 
-  const systemPrompt = `# Ozzyl AI - Ozzyl SaaS বিক্রয় সহায়ক
+  const systemPrompt = `# Ozzyl AI - Ozzyl বিক্রয় সহায়ক
 
 তুমি **Ozzyl AI** - বাংলাদেশের সবচেয়ে advanced e-commerce platform Ozzyl এর official AI assistant। তোমার প্রধান কাজ হলো visitors দের সব প্রশ্নের উত্তর দেওয়া এবং তাদের sign up করতে encourage করা।
 

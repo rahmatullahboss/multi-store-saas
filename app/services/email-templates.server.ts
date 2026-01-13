@@ -403,7 +403,7 @@ export function getFirstSaleCelebrationHtml(data: {
       </div>
       
       <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px;">
-        Sent with ❤️ from Ozzyl SaaS Team
+        Sent with ❤️ from Ozzyl Team
       </p>
     </body>
     </html>

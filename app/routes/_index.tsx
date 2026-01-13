@@ -57,7 +57,7 @@ export const meta: MetaFunction = ({ data }) => {
   // Marketing mode - return SaaS branding
   if (loaderData.mode === 'marketing') {
     return [
-      { title: 'Ozzyl SaaS - Launch Your Online Store in 5 Minutes' },
+      { title: 'Ozzyl - Launch Your Online Store in 5 Minutes' },
       { name: 'description', content: 'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.' },
     ];
   }
