@@ -420,7 +420,14 @@ export default function GrapesEditor({
       {/* Scoped Styles */}
       <style dangerouslySetInnerHTML={{ __html: `
         /* Base editor sizing */
-        .gjs-cv-canvas { width: 100% !important; height: 100% !important; }
+        .gjs-cv-canvas { 
+          width: 100% !important; 
+          height: 100% !important;
+          top: 0 !important;
+          left: 0 !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
         .gjs-editor { height: 100% !important; }
         .gjs-editor-cont { height: 100% !important; width: 100% !important; }
         
@@ -436,14 +443,33 @@ export default function GrapesEditor({
           height: 100% !important;
           top: 0 !important;
           left: 0 !important;
+          padding: 0 !important;
+          margin: 0 !important;
         }
         .gjs-frame-wrapper {
           width: 100% !important;
           height: 100% !important;
+          top: 0 !important;
+          left: 0 !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          position: absolute !important;
+        }
+        .gjs-frame-wrapper__top,
+        .gjs-frame-wrapper__left,
+        .gjs-frame-wrapper__right,
+        .gjs-frame-wrapper__bottom {
+          display: none !important;
         }
         .gjs-frame {
           width: 100% !important;
           height: 100% !important;
+          top: 0 !important;
+          left: 0 !important;
+        }
+        /* Remove canvas toolbar spacing */
+        .gjs-cv-canvas__toolbar {
+          display: none !important;
         }
         
         /* Scrollbar styling */
