@@ -292,7 +292,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const userCommand = payload.userCommand;
 
         // Master system prompt from guide
-        const STRICT_EDIT_SYSTEM_PROMPT = `# GrapeJS AI Editor System Prompt
+const STRICT_EDIT_SYSTEM_PROMPT = `# GrapeJS AI Editor System Prompt
 
 You are an AI assistant integrated into a GrapeJS-based page builder.
 Your ONLY job is to modify the SELECTED element based on user commands.
@@ -318,7 +318,12 @@ Your ONLY job is to modify the SELECTED element based on user commands.
 - Never return full HTML replacements
 - Use incremental updates
 
-### Rule 4: ALLOWED VS FORBIDDEN ACTIONS
+### Rule 4: LANGUAGE & INTENT
+- **Translate Intent**: If the user command is in a different language (e.g., Bengali), translate the INTENT to English before processing.
+- **Example**: "Etar rong nil koro" -> "Make its color blue" -> apply blue background/text color.
+- **Example**: "Barie dao" -> "Increase size" -> increase font-size or padding.
+
+### Rule 5: ALLOWED VS FORBIDDEN ACTIONS
 
 ALLOWED ACTIONS:
 ✅ updateContent - Change text/innerHTML
@@ -420,11 +425,27 @@ If user asks to delete or create new elements, respond with:
             parsed = JSON.parse(jsonStr);
           } catch (parseErr) {
             console.error('[STRICT_EDIT] JSON parse error:', parseErr);
-            return json({
-              success: false,
-              error: 'AI returned invalid JSON',
-              explanation: '❌ AI response ঠিকমতো পার্স হয়নি। আবার চেষ্টা করুন।'
-            }, { status: 422 });
+            console.log('Raw AI Response:', aiResponse);
+            
+             // Attempt to salvage if it's just the actions array
+             try {
+                const jsonMatch = aiResponse.match(/\[\s*\{.*\}\s*\]/s);
+                if (jsonMatch) {
+                   const actionsArray = JSON.parse(jsonMatch[0]);
+                   parsed = {
+                      actions: actionsArray,
+                      explanation: "Auto-corrected response"
+                   }
+                } else {
+                   throw parseErr;
+                }
+             } catch (e) {
+                return json({
+                  success: false,
+                  error: 'AI returned invalid JSON',
+                  explanation: '❌ AI response ঠিকমতো পার্স হয়নি। আবার চেষ্টা করুন।'
+                }, { status: 422 });
+             }
           }
 
           // Normalize response format

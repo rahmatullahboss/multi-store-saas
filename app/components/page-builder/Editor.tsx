@@ -218,64 +218,60 @@ export default function GrapesEditor({
         data.themeConfig = themeConfigRef.current;
       });
 
-      // -- Register Custom Commands --
-      editorInstance.Commands.add('tlb-core:drag-start', { run() {} });
-      editorInstance.Commands.add('tlb-core:drag-stop', { run() {} });
-
       // -- Device Change Handler (for Desktop full width) --
+      let desktopObserver: MutationObserver | null = null;
+      
+      const forceDesktopFullWidth = () => {
+        const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
+        if (frameWrapper) {
+          // Use setProperty with 'important' to override GrapesJS inline styles
+          frameWrapper.style.setProperty('width', '100%', 'important');
+          frameWrapper.style.setProperty('max-width', '100%', 'important');
+          frameWrapper.style.setProperty('box-shadow', 'none', 'important');
+          frameWrapper.style.setProperty('margin', '0', 'important');
+        }
+      };
+      
       editorInstance.on('device:change', () => {
         const device = editorInstance.getDevice();
-        const Canvas = editorInstance.Canvas;
-        const frames = Canvas?.getFrames?.() || [];
-        const frame = frames[0];
+        const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
+        const framesContainer = document.querySelector('.gjs-cv-canvas__frames') as HTMLElement;
         
-        if (frame) {
-          const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
-          const framesContainer = document.querySelector('.gjs-cv-canvas__frames') as HTMLElement;
-          
+        // Disconnect any existing observer
+        if (desktopObserver) {
+          desktopObserver.disconnect();
+          desktopObserver = null;
+        }
+        
+        if (frameWrapper) {
           if (device === 'Desktop') {
-            // Desktop: Force full width using Canvas API
-            // Set frame to a very large width (will be constrained by container)
-            // Note: GrapesJS doesn't support "100%" so we use a large px value
-            const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
-            const canvasWidth = canvasEl?.offsetWidth || window.innerWidth;
+            // Force full width immediately
+            forceDesktopFullWidth();
             
-            // Directly manipulate the wrapper since Canvas API doesn't support %
-            if (frameWrapper) {
-              frameWrapper.style.width = `${canvasWidth}px`;
-              frameWrapper.style.boxShadow = 'none';
-              frameWrapper.style.margin = '0';
-              frameWrapper.style.maxWidth = '100%';
-            }
+            // Watch for GrapesJS trying to change the width
+            desktopObserver = new MutationObserver(() => {
+              forceDesktopFullWidth();
+            });
+            desktopObserver.observe(frameWrapper, { 
+              attributes: true, 
+              attributeFilter: ['style'] 
+            });
+            
             if (framesContainer) {
               framesContainer.style.justifyContent = 'flex-start';
             }
           } else {
-            // Tablet/Mobile: add visual separation and center
-            if (frameWrapper) {
-              frameWrapper.style.boxShadow = '0 0 20px rgba(0,0,0,0.15)';
-              frameWrapper.style.margin = '0 auto';
-              frameWrapper.style.maxWidth = 'none';
-            }
+            // Tablet/Mobile: Remove forced styles
+            frameWrapper.style.removeProperty('width');
+            frameWrapper.style.removeProperty('max-width');
+            frameWrapper.style.setProperty('box-shadow', '0 0 20px rgba(0,0,0,0.15)');
+            frameWrapper.style.setProperty('margin', '0 auto');
             if (framesContainer) {
-              framesContainer.style.display = 'flex';
               framesContainer.style.justifyContent = 'center';
             }
           }
         }
       });
-
-      // Handle window resize for Desktop full width
-      const handleResize = () => {
-        if (editorInstance.getDevice() === 'Desktop') {
-          const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
-          const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
-          if (frameWrapper && canvasEl) {
-            frameWrapper.style.width = `${canvasEl.offsetWidth}px`;
-          }
-        }
-      };
-      window.addEventListener('resize', handleResize);
 
       // Trigger initial device change to set correct styles
       setTimeout(() => {
@@ -287,9 +283,6 @@ export default function GrapesEditor({
     return () => {
       mountedRef.current = false;
       clearTimeout(initTimeout);
-      
-      // Remove resize listener
-      window.removeEventListener('resize', () => {});
       
       if (editorInstance) {
         console.log('Cleanup: Destroying GrapesJS editor...');

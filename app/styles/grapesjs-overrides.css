@@ -18,6 +18,24 @@
 }
 
 /* ========================================
+   DEVICE RESPONSIVE CANVAS STYLING
+   ======================================== */
+
+/* Desktop device: Full width canvas (override GrapesJS inline styles) */
+.gjs-frame-wrapper.desktop-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+}
+
+/* Mobile and Tablet: Center the canvas with visual shadow */
+.gjs-cv-canvas__frames {
+    display: flex;
+    align-items: flex-start;
+}
+
+/* ========================================
    MODERN COMPONENT TOOLBAR STYLING
    ======================================== */
 

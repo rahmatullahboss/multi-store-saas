@@ -84,13 +84,30 @@ export function useAIChat(
 
   // Process AI response
   const processResponse = useCallback((data: any) => {
-    if (!data || !selectedComponent) return;
+    console.log('[useAIChat] API Response:', data); // Debug logging
+
+    if (!data || !selectedComponent) {
+      console.warn('[useAIChat] Missing data or selection', { data, selectedComponent });
+      return;
+    }
+
+    // Handle API-level errors first
+    if (data.error || data.success === false) {
+       setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `❌ ${data.explanation || data.error || 'Unknown error'}`,
+        timestamp: new Date(),
+        status: 'error',
+      }]);
+      return;
+    }
 
     const validator = new ActionValidator(selectedComponent.id);
     const validation = validator.validate({
       success: true,
-      actions: data.actions || [data],
-      explanation: data.explanation || data.message || 'পরিবর্তন করা হবে',
+      actions: data.data?.actions || data.actions || (Array.isArray(data) ? data : [data]),
+      explanation: data.data?.explanation || data.explanation || data.message || 'পরিবর্তন করা হবে',
     });
 
     if (validation.valid && validation.sanitizedResponse) {
@@ -104,6 +121,7 @@ export function useAIChat(
         status: 'preview',
       }]);
     } else {
+      console.error('[useAIChat] Validation failed', validation.errors);
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',

@@ -67,7 +67,7 @@ export function AISidebar({ editor, isOpen, onClose }: AISidebarProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="w-80 h-full bg-white border-l border-gray-200 flex flex-col shadow-lg">
+    <div className="w-80 h-full max-h-full bg-white border-l border-gray-200 flex flex-col shadow-lg overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-violet-500 to-emerald-500">
         <div className="flex items-center gap-2 text-white">
@@ -97,7 +97,7 @@ export function AISidebar({ editor, isOpen, onClose }: AISidebarProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
         ))}

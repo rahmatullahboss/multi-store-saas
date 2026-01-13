@@ -144,18 +144,22 @@ export class ActionExecutor {
    * Get component by ID from editor
    */
   private getComponent(id: string): any {
-    const wrapper = this.editor.DomComponents?.getWrapper?.();
+    // Strategy 1: Direct ID lookup from GrapesJS (Fastest & Best)
+    const directComponent = this.editor.DomComponents.getById(id);
+    if (directComponent) return directComponent;
+
+    const wrapper = this.editor.DomComponents.getWrapper();
     if (!wrapper) return null;
 
-    // Try to find by ID
-    const found = wrapper.find(`#${id}`);
-    if (found && found.length > 0) return found[0];
+    // Strategy 2: Find by HTML ID
+    const foundById = wrapper.find(`#${id}`);
+    if (foundById && foundById.length > 0) return foundById[0];
 
-    // Try to find by data-gjs-id
+    // Strategy 3: Find by data-gjs-id attribute
     const foundByData = wrapper.find(`[data-gjs-id="${id}"]`);
     if (foundByData && foundByData.length > 0) return foundByData[0];
 
-    // Search recursively by component ID
+    // Strategy 4: Deep recursive search (Slowest but thorough)
     return this.findComponentById(wrapper, id);
   }
 
