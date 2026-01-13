@@ -422,7 +422,7 @@ export default function SidebarPanel({
                 {activeDesignSubTab === 'styles' && (
                   <div className="p-4 space-y-6">
                     {/* State Selector (Normal/Hover/Focus/Active) */}
-                    <StateSelector />
+                    <StateSelector editor={editor} />
                     
                     {/* Selectors Manager */}
                     <div className="bg-blue-50/30 rounded-2xl p-4 border border-blue-50">

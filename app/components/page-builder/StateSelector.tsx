@@ -5,14 +5,12 @@
  * in the GrapesJS editor. Works with the Selector Manager API.
  */
 
-import { useEditorMaybe } from '@grapesjs/react';
 import { useState, useEffect } from 'react';
 import { MousePointer2, Hand, Focus, Zap } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
-export default function StateSelector() {
+export default function StateSelector({ editor }: { editor?: any }) {
   const { t } = useTranslation();
-  const editor = useEditorMaybe();
   const [activeState, setActiveState] = useState('');
 
   const STATES = [
