@@ -284,7 +284,7 @@ export default function DashboardPage() {
               <div>
                   <div className="flex items-center justify-between mb-4">
                       <div>
-                          <p className="text-gray-500 text-sm font-medium">AI Messages</p>
+                          <p className="text-gray-500 text-sm font-medium">{t('aiMessages') || 'AI Messages'}</p>
                           <h3 className="text-2xl font-bold text-gray-900 mt-1">
                               {usage.aiMessages?.current}
                               <span className="text-sm font-normal text-gray-400"> / {usage.aiMessages?.limit}</span>
@@ -305,8 +305,8 @@ export default function DashboardPage() {
                        </div>
                        {(usage.aiMessages?.percentage || 0) >= 80 && (
                            <p className="text-xs text-orange-600 font-medium">
-                               {usage.aiMessages?.percentage >= 100 ? 'Limit Reached' : 'Running Low'}
-                               <Link to="/app/billing" className="ml-1 underline">Upgrade</Link>
+                               {usage.aiMessages?.percentage >= 100 ? t('limitReached') || 'Limit Reached' : t('runningLow') || 'Running Low'}
+                               <Link to="/app/billing" className="ml-1 underline">{t('upgrade') || 'Upgrade'}</Link>
                            </p>
                        )}
                   </div>
@@ -316,14 +316,30 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sales Chart - Takes 2 columns */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">{t('salesOverview')}</h2>
-            <span className="text-sm text-gray-500">{t('last7Days')}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left Column Stack: Sales Chart & Recent Orders */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900">{t('salesOverview')}</h2>
+              <span className="text-sm text-gray-500">{t('last7Days')}</span>
+            </div>
+            <SalesChart data={salesData} currency={currency} />
           </div>
-          <SalesChart data={salesData} currency={currency} />
+
+          {/* Recent Orders - Now aligned with left side */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">{t('recentOrders')}</h2>
+              <Link 
+                to="/app/orders" 
+                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+              >
+                {t('viewAll')}
+              </Link>
+            </div>
+            <RecentOrders orders={recentOrders} currency={currency} />
+          </div>
         </div>
 
         {/* Growth Opportunities & Action Items */}
@@ -338,19 +354,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Orders */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">{t('recentOrders')}</h2>
-          <Link 
-            to="/app/orders" 
-            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
-          >
-            {t('viewAll')}
-          </Link>
-        </div>
-        <RecentOrders orders={recentOrders} currency={currency} />
-      </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

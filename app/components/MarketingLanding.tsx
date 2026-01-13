@@ -1,57 +1,146 @@
 /**
- * SaaS Marketing Landing Page - AWARD-WINNING PREMIUM DESIGN
+ * SaaS Marketing Landing Page - PERFORMANCE OPTIMIZED VERSION
  * 
- * Features:
- * - DARK MODE Option with Purple/Blue gradients (Stripe/Linear inspired)
- * - EMERALD/TEAL GREEN light mode (supercharged)
- * - Morphing gradient blobs with parallax
- * - Framer Motion scroll animations
- * - 3D card effects and micro-interactions
- * - Animated counters and text reveals
- * - Premium glassmorphism effects
- * - Magnetic buttons and hover states
+ * Performance optimizations:
+ * - Lazy loading for below-the-fold sections
+ * - React.lazy() for heavy components
+ * - Intersection Observer based rendering
+ * - Reduced initial JS bundle
  */
 
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { Link, useFetcher } from '@remix-run/react';
-import { motion } from 'framer-motion';
-import { Store, Zap, BarChart3, Globe, Check, ArrowRight, Star, Users, ShoppingBag, TrendingUp, Sparkles, Rocket, MessageCircle, ChevronRight, Play, Package, Truck, Smartphone, ChevronDown, Moon, Sun, Menu, X } from 'lucide-react';
-import { useLanguage, useTranslation } from '~/contexts/LanguageContext';
-import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem, FloatingOrbs, TiltCard, MagneticButton, ShimmerText } from '~/components/animations';
-import { AwardWinningHero } from '~/components/AwardWinningHero';
-import { AIHeroSection } from '~/components/AIHeroSection';
-import { AIShowcaseSection } from '~/components/landing/AIShowcaseSection';
-import { DragDropBuilderShowcase } from '~/components/landing/DragDropBuilderShowcase';
-import { EditorModeComparison } from '~/components/landing/EditorModeComparison';
-import { AIMagicSection } from '~/components/landing/AIMagicSection';
-import { AISocialProofSection } from '~/components/landing/AISocialProofSection';
-import { AIPoweredFinalCTA } from '~/components/landing/AIPoweredFinalCTA';
-import { ProblemSolutionSection } from '~/components/ProblemSolutionSection';
-import { BentoFeaturesSection } from '~/components/BentoFeaturesSection';
-import { InfrastructureSection } from '~/components/InfrastructureSection';
-import { CloudflareBenefitsCards } from '~/components/CloudflareBenefitsCards';
-import { SpeedComparison } from '~/components/SpeedComparison';
-import { TechnicalSpecs } from '~/components/TechnicalSpecs';
-import { CDNExplainer } from '~/components/CDNExplainer';
-import { SpeedImpact } from '~/components/SpeedImpact';
-import { LiveDashboard } from '~/components/LiveDashboard';
-import { InfrastructureCTA } from '~/components/InfrastructureCTA';
-import { TrustSection } from '~/components/TrustSection';
-import { ComparisonSection } from '~/components/ComparisonSection';
-import { InteractiveStoreDemo } from '~/components/InteractiveStoreDemo';
-import { PricingSection } from '~/components/PricingSection'; // Keep for reference, not rendered
-import { FinalCTA } from '~/components/FinalCTA';
-import { FAQSection } from '~/components/FAQSection';
-import { LightFloatingOrbs, LightHeroGradient, LightShimmerText } from '~/components/LightThemeEffects';
-import { MarketingHeader } from '~/components/MarketingHeader';
-
-import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
+import { Rocket } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { LazySection, ClientOnly } from '~/components/LazySection';
 import type { MarketingStats } from '~/routes/api.marketing-stats';
 
+// ============================================================================
+// CRITICAL - Load immediately (above the fold)
+// ============================================================================
+import { MarketingHeader } from '~/components/MarketingHeader';
+import { AwardWinningHero } from '~/components/AwardWinningHero';
 
+// ============================================================================
+// LAZY - Load when user scrolls (below the fold)
+// These components are heavy and not needed immediately
+// ============================================================================
+
+// Hero sections (loaded after first hero)
+const AIHeroSection = lazy(() => 
+  import('~/components/AIHeroSection').then(m => ({ default: m.AIHeroSection }))
+);
+
+// Problem/Solution
+const ProblemSolutionSection = lazy(() => 
+  import('~/components/ProblemSolutionSection').then(m => ({ default: m.ProblemSolutionSection }))
+);
+
+// AI Showcase sections (heavy - 31KB+)
+const AIShowcaseSection = lazy(() => 
+  import('~/components/landing/AIShowcaseSection').then(m => ({ default: m.AIShowcaseSection }))
+);
+
+// Builder sections
+const DragDropBuilderShowcase = lazy(() => 
+  import('~/components/landing/DragDropBuilderShowcase').then(m => ({ default: m.DragDropBuilderShowcase }))
+);
+const EditorModeComparison = lazy(() => 
+  import('~/components/landing/EditorModeComparison').then(m => ({ default: m.EditorModeComparison }))
+);
+const AIMagicSection = lazy(() => 
+  import('~/components/landing/AIMagicSection').then(m => ({ default: m.AIMagicSection }))
+);
+const AISocialProofSection = lazy(() => 
+  import('~/components/landing/AISocialProofSection').then(m => ({ default: m.AISocialProofSection }))
+);
+
+// Features
+const BentoFeaturesSection = lazy(() => 
+  import('~/components/BentoFeaturesSection').then(m => ({ default: m.BentoFeaturesSection }))
+);
+
+// Infrastructure sections
+const InfrastructureSection = lazy(() => 
+  import('~/components/InfrastructureSection').then(m => ({ default: m.InfrastructureSection }))
+);
+const SpeedComparison = lazy(() => 
+  import('~/components/SpeedComparison').then(m => ({ default: m.SpeedComparison }))
+);
+const CDNExplainer = lazy(() => 
+  import('~/components/CDNExplainer').then(m => ({ default: m.CDNExplainer }))
+);
+const SpeedImpact = lazy(() => 
+  import('~/components/SpeedImpact').then(m => ({ default: m.SpeedImpact }))
+);
+const CloudflareBenefitsCards = lazy(() => 
+  import('~/components/CloudflareBenefitsCards').then(m => ({ default: m.CloudflareBenefitsCards }))
+);
+const TechnicalSpecs = lazy(() => 
+  import('~/components/TechnicalSpecs').then(m => ({ default: m.TechnicalSpecs }))
+);
+const LiveDashboard = lazy(() => 
+  import('~/components/LiveDashboard').then(m => ({ default: m.LiveDashboard }))
+);
+const InfrastructureCTA = lazy(() => 
+  import('~/components/InfrastructureCTA').then(m => ({ default: m.InfrastructureCTA }))
+);
+
+// Trust & Comparison
+const TrustSection = lazy(() => 
+  import('~/components/TrustSection').then(m => ({ default: m.TrustSection }))
+);
+const ComparisonSection = lazy(() => 
+  import('~/components/ComparisonSection').then(m => ({ default: m.ComparisonSection }))
+);
+
+// Interactive demo
+const InteractiveStoreDemo = lazy(() => 
+  import('~/components/InteractiveStoreDemo').then(m => ({ default: m.InteractiveStoreDemo }))
+);
+
+// FAQ & CTA
+const FAQSection = lazy(() => 
+  import('~/components/FAQSection').then(m => ({ default: m.FAQSection }))
+);
+const AIPoweredFinalCTA = lazy(() => 
+  import('~/components/landing/AIPoweredFinalCTA').then(m => ({ default: m.AIPoweredFinalCTA }))
+);
+const FinalCTA = lazy(() => 
+  import('~/components/FinalCTA').then(m => ({ default: m.FinalCTA }))
+);
+
+// AI Chat Widget - Only load on user interaction (very heavy - 25KB)
+const OzzylAIChatWidget = lazy(() => 
+  import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
+);
+
+
+// ============================================================================
+// Simple Section Skeleton
+// ============================================================================
+function SectionSkeleton() {
+  return (
+    <div className="w-full py-16 animate-pulse">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="h-8 bg-gray-800/20 rounded-lg w-1/3 mx-auto mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-48 bg-gray-800/10 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// Main Component
+// ============================================================================
 export function MarketingLanding() {
   const { t } = useTranslation();
-  const [isDarkMode, setIsDarkMode] = useState(true); // Default to award-winning dark mode
+  const isDarkMode = true; // Always dark mode for landing
   
   // Fetch real marketing stats from API
   const statsFetcher = useFetcher<MarketingStats>();
@@ -64,69 +153,177 @@ export function MarketingLanding() {
   
   const marketingStats = statsFetcher.data;
 
-  // Mobile menu state
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   return (
-    <div className={`min-h-screen overflow-hidden ${isDarkMode ? 'bg-[#0A0A0F]' : 'bg-[#FAFBFC]'}`}>
-      {/* Shared Marketing Header */}
+    <div className="min-h-screen overflow-hidden bg-[#0A0A0F]">
+      {/* ================================================================
+          CRITICAL PATH - Renders immediately
+          ================================================================ */}
       <MarketingHeader />
+      <AwardWinningHero theme="dark" totalUsers={marketingStats?.totalUsers} />
 
-      {/* Award-Winning Bangladesh Hero - Bangla Native */}
-      <AwardWinningHero theme={isDarkMode ? 'dark' : 'light'} totalUsers={marketingStats?.totalUsers} />
+      {/* ================================================================
+          LAZY LOADED SECTIONS - Render on scroll
+          Each LazySection only renders its children when in viewport
+          ================================================================ */}
+      
+      {/* AI Hero - First lazy section */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <AIHeroSection theme="dark" totalUsers={marketingStats?.totalUsers} />
+        </Suspense>
+      </LazySection>
 
-      {/* AI Hero Section - New Transformation */}
-      <AIHeroSection theme={isDarkMode ? 'dark' : 'light'} totalUsers={marketingStats?.totalUsers} />
+      {/* Problem-Solution */}
+      <LazySection minHeight="500px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <ProblemSolutionSection />
+        </Suspense>
+      </LazySection>
 
-      {/* Problem-Solution Section */}
-      <ProblemSolutionSection />
+      {/* AI Showcase - Heavy section */}
+      <LazySection minHeight="800px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <AIShowcaseSection />
+        </Suspense>
+      </LazySection>
 
-      {/* AI Showcase Section */}
-      <AIShowcaseSection />
+      {/* Builder sections */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <DragDropBuilderShowcase />
+        </Suspense>
+      </LazySection>
 
-      {/* Drag & Drop Builder Section */}
-      <DragDropBuilderShowcase />
-      <EditorModeComparison />
-      <AIMagicSection />
-      <AISocialProofSection />
+      <LazySection minHeight="500px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <EditorModeComparison />
+        </Suspense>
+      </LazySection>
 
-      {/* Bento Grid Features Section */}
-      <BentoFeaturesSection />
+      <LazySection minHeight="500px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <AIMagicSection />
+        </Suspense>
+      </LazySection>
 
-      {/* Infrastructure Showcase */}
-      <InfrastructureSection />
-      <SpeedComparison />
-      <CDNExplainer />
-      <SpeedImpact />
-      <CloudflareBenefitsCards />
-      <TechnicalSpecs />
-      <LiveDashboard />
-      <InfrastructureCTA />
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <AISocialProofSection />
+        </Suspense>
+      </LazySection>
 
-      {/* Trust Section */}
-      <TrustSection stats={marketingStats} />
+      {/* Features */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <BentoFeaturesSection />
+        </Suspense>
+      </LazySection>
 
-      {/* Comparison Section */}
-      <ComparisonSection />
+      {/* Infrastructure - Multiple sections */}
+      <LazySection minHeight="500px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <InfrastructureSection />
+        </Suspense>
+      </LazySection>
 
-      {/* Interactive Store Demo */}
-      <InteractiveStoreDemo />
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <SpeedComparison />
+        </Suspense>
+      </LazySection>
 
-      {/* FAQ Section */}
-      <FAQSection />
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <CDNExplainer />
+        </Suspense>
+      </LazySection>
 
-      {/* Final CTA */}
-      <AIPoweredFinalCTA />
-      <FinalCTA stats={marketingStats} />
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <SpeedImpact />
+        </Suspense>
+      </LazySection>
 
-      {/* Footer - Shared Branding */}
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <CloudflareBenefitsCards />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <TechnicalSpecs />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="500px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <LiveDashboard />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="300px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <InfrastructureCTA />
+        </Suspense>
+      </LazySection>
+
+      {/* Trust & Comparison */}
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <TrustSection stats={marketingStats} />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="500px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <ComparisonSection />
+        </Suspense>
+      </LazySection>
+
+      {/* Interactive Demo */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <InteractiveStoreDemo />
+        </Suspense>
+      </LazySection>
+
+      {/* FAQ */}
+      <LazySection minHeight="500px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <FAQSection />
+        </Suspense>
+      </LazySection>
+
+      {/* Final CTAs */}
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <AIPoweredFinalCTA />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="400px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <FinalCTA stats={marketingStats} />
+        </Suspense>
+      </LazySection>
+
+      {/* Footer - Static, no lazy needed */}
       <footer className="py-12 md:py-16 px-4 bg-[#0A0F0D] text-white/60">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             {/* Brand Section */}
             <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                <img src="/brand/logo-white.png" alt="Ozzyl" className="h-10 w-auto" />
+                {/* Optimized: Use smaller logo size */}
+                <img 
+                  src="/brand/logo-white-xs.webp" 
+                  alt="Ozzyl" 
+                  className="h-10 w-auto"
+                  width="103"
+                  height="40"
+                  loading="lazy"
+                />
               </div>
               <p className="text-sm text-white/50">{t('footerAbout')}</p>
             </div>
@@ -195,8 +392,12 @@ export function MarketingLanding() {
         </Link>
       </div>
 
-      {/* Ozzyl AI Chat Widget */}
-      <OzzylAIChatWidget />
+      {/* AI Chat Widget - Lazy loaded, only renders when user wants to interact */}
+      <ClientOnly>
+        <Suspense fallback={null}>
+          <OzzylAIChatWidget />
+        </Suspense>
+      </ClientOnly>
     </div>
   );
 }

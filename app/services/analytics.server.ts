@@ -54,6 +54,16 @@ export async function getStoreStats(db: Database, storeId: number) {
   }
 
   // 4. Sales Chart Data (Last 7 Days)
+  // We need exactly 7 data points, even if there are no sales on some days
+  const salesData: { date: string; amount: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      // Format to YYYY-MM-DD which matches the DB date function
+      const dateStr = d.toISOString().split('T')[0];
+      salesData.push({ date: dateStr, amount: 0 });
+  }
+
   const last7Days = new Date();
   last7Days.setDate(last7Days.getDate() - 7);
   
@@ -67,7 +77,13 @@ export async function getStoreStats(db: Database, storeId: number) {
       .groupBy(sql`date(created_at, 'unixepoch')`)
       .orderBy(sql`date(created_at, 'unixepoch')`);
 
-  const salesData = salesDataRaw.map(d => ({ date: d.date, amount: d.amount }));
+  // Merge raw data into our 7-day skeleton
+  salesDataRaw.forEach(row => {
+      const index = salesData.findIndex(s => s.date === row.date);
+      if (index !== -1) {
+          salesData[index].amount = row.amount;
+      }
+  });
 
   return {
       products: productCount.count,

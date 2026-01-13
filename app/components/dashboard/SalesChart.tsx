@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface SalesDataPoint {
   date: string;
@@ -17,12 +18,13 @@ interface SalesChartProps {
 }
 
 export function SalesChart({ data, currency = 'BDT' }: SalesChartProps) {
+  const { t } = useTranslation();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   
   if (!data || data.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center text-gray-400">
-        No sales data available
+        {t('noSalesData')}
       </div>
     );
   }
@@ -92,13 +94,13 @@ export function SalesChart({ data, currency = 'BDT' }: SalesChartProps) {
       {/* Summary */}
       <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between text-sm">
         <div>
-          <p className="text-gray-500">Total Sales</p>
+          <p className="text-gray-500">{t('totalSalesShort')}</p>
           <p className="font-bold text-gray-900 text-lg">
             {formatPrice(data.reduce((sum, d) => sum + d.value, 0))}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-gray-500">Avg/Day</p>
+          <p className="text-gray-500">{t('avgPerDay')}</p>
           <p className="font-bold text-gray-900 text-lg">
             {formatPrice(data.reduce((sum, d) => sum + d.value, 0) / data.length)}
           </p>
