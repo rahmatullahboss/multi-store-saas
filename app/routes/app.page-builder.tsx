@@ -179,59 +179,74 @@ export default function PageBuilderRoute() {
       <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden">
         {/* Full screen header/nav specifically for being in "Editor Mode" */}
         <div className="bg-gray-900 px-4 py-2 flex items-center justify-between">
-           <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setSearchParams({})}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 hover:text-white rounded-lg transition text-xs font-bold border border-gray-700"
-              >
-                 ← {t('exitEditor')}
-              </button>
-              <div className="h-4 w-[1px] bg-gray-700" />
-              <div className="flex flex-col">
-                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest leading-none mb-1">{t('editingPage')}</span>
-                 <h2 className="text-white text-xs font-bold leading-none truncate max-w-[200px]">
-                    {pages.find((p: any) => p.id.toString() === pageId)?.name || (lang === 'bn' ? 'লোড হচ্ছে...' : 'Loading...')}
-                 </h2>
-              </div>
-           </div>
-           
-           <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full min-w-[120px] justify-center">
-                 {storageStatus === 'saving' ? (
-                   <>
-                     <div className="w-1.5 h-1.5 border border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                     <span className="text-[10px] text-gray-400 font-bold uppercase">{t('savingDraft')}</span>
-                   </>
-                 ) : storageStatus === 'saved' ? (
-                   <>
-                     <Check size={10} className="text-emerald-500" />
-                     <span className="text-[10px] text-emerald-500 font-bold uppercase">{t('draftSaved')}</span>
-                   </>
-                 ) : storageStatus === 'error' ? (
-                   <>
-                     <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                     <span className="text-[10px] text-red-500 font-bold uppercase">{t('saveDraftFailed')}</span>
-                   </>
-                 ) : (
-                   <>
-                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                     <span className="text-[10px] text-gray-400 font-bold uppercase">{t('autoSaveActive')}</span>
-                   </>
-                 )}
-              </div>
-              {/* View Published Button */}
-              {pages.find((p: any) => p.id.toString() === pageId)?.isPublished && (
-                <a
-                  href={`${publishedBaseUrl}/p/${pages.find((p: any) => p.id.toString() === pageId)?.slug}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition text-xs font-bold"
-                >
-                  <ExternalLink size={12} />
-                  {t('viewPublished') || 'View Live'}
-                </a>
-              )}
-           </div>
+           <ClientOnly fallback={
+             <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-bold border border-gray-700">
+                  <span>← Back</span>
+                </div>
+                <div className="h-4 w-[1px] bg-gray-700" />
+                <div className="flex flex-col">
+                   <div className="h-2 w-16 bg-gray-800 rounded mb-1" />
+                   <div className="h-3 w-32 bg-gray-800 rounded" />
+                </div>
+             </div>
+           }>
+             <>
+               <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setSearchParams({})}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 hover:text-white rounded-lg transition text-xs font-bold border border-gray-700"
+                  >
+                     ← {t('exitEditor')}
+                  </button>
+                  <div className="h-4 w-[1px] bg-gray-700" />
+                  <div className="flex flex-col">
+                     <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest leading-none mb-1">{t('editingPage')}</span>
+                     <h2 className="text-white text-xs font-bold leading-none truncate max-w-[200px]">
+                        {pages.find((p: any) => p.id.toString() === pageId)?.name || (lang === 'bn' ? 'লোড হচ্ছে...' : 'Loading...')}
+                     </h2>
+                  </div>
+               </div>
+               
+               <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full min-w-[120px] justify-center">
+                     {storageStatus === 'saving' ? (
+                       <>
+                         <div className="w-1.5 h-1.5 border border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                         <span className="text-[10px] text-gray-400 font-bold uppercase">{t('savingDraft')}</span>
+                       </>
+                     ) : storageStatus === 'saved' ? (
+                       <>
+                         <Check size={10} className="text-emerald-500" />
+                         <span className="text-[10px] text-emerald-500 font-bold uppercase">{t('draftSaved')}</span>
+                       </>
+                     ) : storageStatus === 'error' ? (
+                       <>
+                         <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                         <span className="text-[10px] text-red-500 font-bold uppercase">{t('saveDraftFailed')}</span>
+                       </>
+                     ) : (
+                       <>
+                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                         <span className="text-[10px] text-gray-400 font-bold uppercase">{t('autoSaveActive')}</span>
+                       </>
+                     )}
+                  </div>
+                  {/* View Published Button */}
+                  {pages.find((p: any) => p.id.toString() === pageId)?.isPublished && (
+                    <a
+                      href={`${publishedBaseUrl}/p/${pages.find((p: any) => p.id.toString() === pageId)?.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition text-xs font-bold"
+                    >
+                      <ExternalLink size={12} />
+                      {t('viewPublished') || 'View Live'}
+                    </a>
+                  )}
+               </div>
+             </>
+           </ClientOnly>
         </div>
 
         <div className="flex-1 relative flex flex-col overflow-hidden">

@@ -475,6 +475,7 @@ export default function StoreLiveEditor() {
   };
 
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
   
   // NEW: Sales & Marketing States
   const [flashSale, setFlashSale] = useState<{
@@ -1262,31 +1263,50 @@ export default function StoreLiveEditor() {
               </DndContext>
 
               {/* Add Section Button */}
-              <div className="relative group">
-                <button type="button" className="w-full flex items-center justify-center gap-2 p-2 border border-dashed border-gray-300 rounded hover:border-purple-500 hover:text-purple-600 transition">
+              <div className="relative">
+                <button 
+                  type="button" 
+                  onClick={() => setIsAddSectionOpen(!isAddSectionOpen)}
+                  className={`w-full flex items-center justify-center gap-2 p-2 border border-dashed rounded transition ${
+                    isAddSectionOpen 
+                      ? 'border-purple-500 text-purple-600 bg-purple-50' 
+                      : 'border-gray-300 hover:border-purple-500 hover:text-purple-600'
+                  }`}
+                >
                   <PlusCircle className="w-4 h-4" />
                   <span className="text-sm">Add Section</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${isAddSectionOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {/* Add Section Dropdown */}
-                <div className="hidden group-hover:block absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 shadow-lg rounded mt-1 p-2">
-                  {Object.values(SECTION_REGISTRY)
-                    .filter(def => {
-                      if (!def.allowedPages) return true; // Default to all if not specified
-                      return def.allowedPages.includes(currentPage as any);
-                    })
-                    .map(def => (
-                    <button
-                      key={def.type}
-                      type="button"
-                      onClick={() => addSection(def.type)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center gap-2"
-                    >
-                      <Plus className="w-3 h-3" />
-                      {def.name}
-                    </button>
-                  ))}
-                </div>
+                {isAddSectionOpen && (
+                  <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 shadow-xl rounded-lg mt-1 p-2 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                      {Object.values(SECTION_REGISTRY)
+                        .filter(def => {
+                          if (!def.allowedPages) return true; // Default to all if not specified
+                          return def.allowedPages.includes(currentPage as any);
+                        })
+                        .map(def => (
+                        <button
+                          key={def.type}
+                          type="button"
+                          onClick={() => {
+                            addSection(def.type);
+                            setIsAddSectionOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center justify-between group/item"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Plus className="w-3 h-3 text-gray-400 group-hover/item:text-purple-500" />
+                            <span className="font-medium text-gray-700 group-hover/item:text-purple-700">{def.name}</span>
+                          </div>
+                          <ChevronRight className="w-3 h-3 text-gray-300 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* SECTION EDITING FORM */}
