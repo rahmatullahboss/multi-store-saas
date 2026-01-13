@@ -5,6 +5,8 @@
  * spotlight interactions, and bento-grid layouts.
  */
 
+import { EclipseHeader } from '~/components/store-layouts/templates/EclipseHeader';
+import { EclipseFooter } from '~/components/store-layouts/templates/EclipseFooter';
 import { Link } from '@remix-run/react';
 import { 
   Menu, X, Search, ShoppingCart, 
@@ -42,7 +44,6 @@ export function EclipseTemplate({
   footerConfig,
   isPreview,
 }: StoreTemplateProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const count = useCartCount();
   const { count: wishlistCount } = useWishlist();
@@ -82,130 +83,13 @@ export function EclipseTemplate({
       {/* Fonts */}
       <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-      {/* ==================== FLOATING HEADER ==================== */}
-      <header 
-        className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 transition-all duration-500"
-        style={{ transform: scrolled ? 'translateY(0)' : 'translateY(0)' }}
-      >
-        <div 
-          className="w-full max-w-5xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-300"
-          style={{ 
-            backgroundColor: ECLIPSE_THEME.headerBg,
-            backdropFilter: 'blur(16px)',
-            border: `1px solid ${ECLIPSE_THEME.border}`,
-            boxShadow: scrolled ? '0 10px 40px -10px rgba(0,0,0,0.5)' : 'none'
-          }}
-        >
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-transform group-hover:rotate-12"
-              style={{ background: ECLIPSE_THEME.accentGradient }}
-            >
-              <Zap className="w-5 h-5 text-white" fill="currentColor" />
-            </div>
-            {logo ? (
-              <img src={logo} alt={storeName} className="h-6 object-contain" />
-            ) : (
-              <span 
-                className="font-bold text-lg tracking-tight"
-                style={{ fontFamily: ECLIPSE_THEME.fontHeading }}
-              >
-                {storeName}
-              </span>
-            )}
-          </Link>
+      {/* Floating Neon Header */}
+      <EclipseHeader 
+        storeName={storeName} 
+        logo={logo} 
+        categories={validCategories} 
+      />
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-sm font-medium hover:text-white transition-colors text-white/70">
-              Store
-            </Link>
-            {validCategories.slice(0, 3).map(cat => (
-              <Link 
-                key={cat} 
-                to={`/?category=${encodeURIComponent(cat)}`}
-                className="text-sm font-medium hover:text-white transition-colors text-white/70 hover:text-violet-400"
-              >
-                {cat}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Actions */}
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center bg-white/5 rounded-full px-3 py-1.5 border border-white/10">
-              <Search className="w-3.5 h-3.5 text-white/50 mr-2" />
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="bg-transparent border-none outline-none text-xs w-20 text-white placeholder-white/30" 
-              />
-            </div>
-
-            <Link to="/cart" className="relative group p-2">
-              <ShoppingBag className="w-5 h-5 text-white/90 group-hover:text-white transition-colors" />
-              {count > 0 && (
-                <span 
-                  className="absolute top-0 right-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
-                  style={{ background: ECLIPSE_THEME.accent, color: 'white' }}
-                >
-                  {count}
-                </span>
-              )}
-            </Link>
-
-            <button 
-              className="md:hidden p-2"
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <Menu className="w-5 h-5 text-white" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* ==================== MOBILE MENU OVERLAY ==================== */}
-      <div 
-        className={`fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
-      >
-        <div className="p-6 h-full flex flex-col">
-          <div className="flex justify-end">
-            <button 
-              onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20"
-            >
-              <X className="w-6 h-6 text-white" />
-            </button>
-          </div>
-          
-          <nav className="mt-12 flex flex-col gap-6">
-            <Link 
-              to="/" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-3xl font-bold text-white hover:text-violet-400 transition-colors"
-              style={{ fontFamily: ECLIPSE_THEME.fontHeading }}
-            >
-              All Products
-            </Link>
-            {validCategories.map(cat => (
-              <Link 
-                key={cat}
-                to={`/?category=${encodeURIComponent(cat)}`}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-3xl font-bold text-white/50 hover:text-white transition-colors"
-                style={{ fontFamily: ECLIPSE_THEME.fontHeading }}
-              >
-                {cat}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="mt-auto">
-            <p className="text-white/30 text-sm">© {new Date().getFullYear()} {storeName}</p>
-          </div>
-        </div>
-      </div>
 
       <main className="pt-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-24 pb-20">
         
@@ -238,69 +122,8 @@ export function EclipseTemplate({
 
       </main>
 
-      {/* ==================== MASSIVE FOOTER ==================== */}
-      <footer 
-        className="relative overflow-hidden pt-20 pb-10 px-4"
-        style={{ backgroundColor: ECLIPSE_THEME.footerBg }}
-      >
-        {/* Background Glow */}
-        <div 
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full opacity-10 pointer-events-none"
-          style={{ 
-            background: ECLIPSE_THEME.spotlightGradient,
-            filter: 'blur(80px)' 
-          }}
-        />
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
-            <div className="space-y-6">
-              <h2 
-                className="text-4xl font-bold leading-tight"
-                style={{ fontFamily: ECLIPSE_THEME.fontHeading }}
-              >
-                {storeName}
-              </h2>
-              <p className="text-white/50 max-w-xs">{footerConfig?.description || 'Defining the future of commerce.'}</p>
-            </div>
-            
-            <div>
-              <h4 className="font-bold mb-6 text-white">Explore</h4>
-              <ul className="space-y-4 text-white/50">
-                <li><Link to="/" className="hover:text-white transition-colors">Store</Link></li>
-                <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
-                <li><Link to="/blog" className="hover:text-white transition-colors">Journal</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-6 text-white">Support</h4>
-              <ul className="space-y-4 text-white/50">
-                <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-                <li><Link to="/shipping" className="hover:text-white transition-colors">Shipping</Link></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors">Terms</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-6 text-white">Connect</h4>
-              <div className="flex gap-4">
-                {socialLinks?.instagram && <a href={socialLinks.instagram} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all"><Instagram size={18} /></a>}
-                {socialLinks?.twitter && <a href={socialLinks.twitter} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all"><Twitter size={18} /></a>}
-                {socialLinks?.facebook && <a href={socialLinks.facebook} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all"><Facebook size={18} /></a>}
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-white/30">
-            <p>© 2025 {storeName}. All rights reserved.</p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <span className="flex items-center gap-2"><Globe size={14} /> Global Delivery</span>
-              <span className="flex items-center gap-2"><Monitor size={14} /> Secure Payment</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Footer */}
+      <EclipseFooter storeName={storeName} socialLinks={socialLinks} footerConfig={footerConfig} />
     
       {/* ==================== GLOBAL STYLES FOR SECTIONS ==================== */}
       <style>{`

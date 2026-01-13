@@ -44,6 +44,28 @@ export interface StoreTemplateProps {
 }
 
 // ============================================================================
+// HEADER & FOOTER PROPS
+// ============================================================================
+export interface StoreHeaderProps {
+  storeName: string;
+  logo?: string | null;
+  isPreview?: boolean;
+  config?: ThemeConfig | null;
+  categories: (string | null)[];
+  currentCategory?: string | null;
+  socialLinks?: SocialLinks | null;
+}
+
+export interface StoreFooterProps {
+  storeName: string;
+  logo?: string | null;
+  socialLinks?: SocialLinks | null;
+  footerConfig?: FooterConfig | null;
+  businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  categories: (string | null)[];
+}
+
+// ============================================================================
 // STORE TEMPLATE THEME COLORS
 // ============================================================================
 export interface StoreTemplateTheme {
@@ -73,6 +95,8 @@ export interface StoreTemplateDefinition {
     body: string;
   };
   component: ComponentType<StoreTemplateProps>;
+  Header?: ComponentType<StoreHeaderProps>;
+  Footer?: ComponentType<StoreFooterProps>;
 }
 
 // ============================================================================
@@ -220,6 +244,20 @@ const EclipseTemplate = React.lazy(() => import('~/components/store-templates/Ec
 const AuroraMinimalTemplate = React.lazy(() => import('~/components/store-templates/AuroraMinimalTemplate').then(m => ({ default: m.AuroraMinimalTemplate })));
 const FreshnessTemplate = React.lazy(() => import('~/components/store-templates/FreshnessTemplate').then(m => ({ default: m.FreshnessTemplate })));
 
+// Header Components
+const DarazHeader = React.lazy(() => import('~/components/store-layouts/templates/DarazHeader').then(m => ({ default: m.DarazHeader })));
+const NovaLuxHeader = React.lazy(() => import('~/components/store-layouts/templates/NovaLuxHeader').then(m => ({ default: m.NovaLuxHeader })));
+const EclipseHeader = React.lazy(() => import('~/components/store-layouts/templates/EclipseHeader').then(m => ({ default: m.EclipseHeader })));
+const BDShopHeader = React.lazy(() => import('~/components/store-layouts/templates/BDShopHeader').then(m => ({ default: m.BDShopHeader })));
+const GhorerBazarHeader = React.lazy(() => import('~/components/store-layouts/templates/GhorerBazarHeader').then(m => ({ default: m.GhorerBazarHeader })));
+
+// Footer Components
+const DarazFooter = React.lazy(() => import('~/components/store-layouts/templates/DarazFooter').then(m => ({ default: m.DarazFooter })));
+const NovaLuxFooter = React.lazy(() => import('~/components/store-layouts/templates/NovaLuxFooter').then(m => ({ default: m.NovaLuxFooter })));
+const EclipseFooter = React.lazy(() => import('~/components/store-layouts/templates/EclipseFooter').then(m => ({ default: m.EclipseFooter })));
+const BDShopFooter = React.lazy(() => import('~/components/store-layouts/templates/BDShopFooter').then(m => ({ default: m.BDShopFooter })));
+const GhorerBazarFooter = React.lazy(() => import('~/components/store-layouts/templates/GhorerBazarFooter').then(m => ({ default: m.GhorerBazarFooter })));
+
 // ============================================================================
 // STORE TEMPLATES REGISTRY
 // ============================================================================
@@ -288,6 +326,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Roboto',
     },
     component: DarazTemplate,
+    Header: DarazHeader,
+    Footer: DarazFooter,
   },
   {
     id: 'bdshop',
@@ -301,6 +341,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: BDShopTemplate,
+    Header: BDShopHeader,
+    Footer: BDShopFooter,
   },
   {
     id: 'ghorer-bazar',
@@ -314,6 +356,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Noto Sans Bengali',
     },
     component: GhorerBazarTemplate,
+    Header: GhorerBazarHeader,
+    Footer: GhorerBazarFooter,
   },
   {
     id: 'nova-lux',
@@ -327,6 +371,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'DM Sans',
     },
     component: NovaLuxTemplate,
+    Header: NovaLuxHeader,
+    Footer: NovaLuxFooter,
   },
   {
     id: 'eclipse',
@@ -340,6 +386,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: EclipseTemplate,
+    Header: EclipseHeader,
+    Footer: EclipseFooter,
   },
   {
     id: 'aurora-minimal',

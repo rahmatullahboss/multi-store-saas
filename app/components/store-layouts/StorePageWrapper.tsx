@@ -8,8 +8,10 @@
 import type { ReactNode } from 'react';
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
-import { getStoreTemplateTheme, type StoreTemplateTheme } from '~/templates/store-registry';
-import type { SocialLinks } from '@db/types';
+import { getStoreTemplate, getStoreTemplateTheme, type StoreTemplateTheme } from '~/templates/store-registry';
+import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
 
 interface StorePageWrapperProps {
   children: ReactNode;
@@ -22,6 +24,11 @@ interface StorePageWrapperProps {
   socialLinks?: SocialLinks | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   cartCount?: number;
+  categories?: (string | null)[];
+  currentCategory?: string | null;
+  config?: ThemeConfig | null;
+  footerConfig?: FooterConfig | null;
+  isPreview?: boolean;
 }
 
 export function StorePageWrapper({
@@ -35,9 +42,15 @@ export function StorePageWrapper({
   socialLinks,
   businessInfo,
   cartCount = 0,
+  categories = [],
+  currentCategory,
+  config,
+  footerConfig,
+  isPreview = false,
 }: StorePageWrapperProps) {
-  // Get theme from registry if not provided
-  const resolvedTheme = theme || getStoreTemplateTheme(templateId);
+  // Get template from registry
+  const template = getStoreTemplate(templateId);
+  const resolvedTheme = theme || template.theme;
   
   // Determine background and text colors based on template
   const isDarkTheme = templateId === 'modern-premium' || templateId === 'tech-modern';
@@ -63,13 +76,29 @@ export function StorePageWrapper({
       )}
 
       {/* Header */}
-      <StoreHeader
-        storeName={storeName}
-        logo={logo}
-        theme={resolvedTheme}
-        templateId={templateId}
-        cartCount={cartCount}
-      />
+      <ClientOnly fallback={<SkeletonLoader />}>
+        {() => (
+          template.Header ? (
+            <template.Header
+              storeName={storeName}
+              logo={logo}
+              isPreview={isPreview}
+              config={config}
+              categories={categories}
+              currentCategory={currentCategory}
+              socialLinks={socialLinks}
+            />
+          ) : (
+            <StoreHeader
+              storeName={storeName}
+              logo={logo}
+              theme={resolvedTheme}
+              templateId={templateId}
+              cartCount={cartCount}
+            />
+          )
+        )}
+      </ClientOnly>
 
       {/* Main Content */}
       <main className="relative z-10">
@@ -77,14 +106,29 @@ export function StorePageWrapper({
       </main>
 
       {/* Footer */}
-      <StoreFooter
-        storeName={storeName}
-        logo={logo}
-        theme={resolvedTheme}
-        templateId={templateId}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-      />
+      <ClientOnly fallback={<div className="h-40" />}>
+        {() => (
+          template.Footer ? (
+            <template.Footer
+              storeName={storeName}
+              logo={logo}
+              socialLinks={socialLinks}
+              footerConfig={footerConfig}
+              businessInfo={businessInfo}
+              categories={categories}
+            />
+          ) : (
+            <StoreFooter
+              storeName={storeName}
+              logo={logo}
+              theme={resolvedTheme}
+              templateId={templateId}
+              socialLinks={socialLinks}
+              businessInfo={businessInfo}
+            />
+          )
+        )}
+      </ClientOnly>
     </div>
   );
 }

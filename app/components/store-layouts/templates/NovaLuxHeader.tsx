@@ -1,0 +1,144 @@
+import { Link } from '@remix-run/react';
+import { ShoppingBag, Search, Menu, X, Heart, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useCartCount } from '~/hooks/useCartCount';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { NOVALUX_THEME } from '~/components/store-templates/NovaLuxTheme';
+import type { ThemeConfig, SocialLinks } from '@db/types';
+
+interface NovaLuxHeaderProps {
+  storeName: string;
+  logo?: string | null;
+  config?: ThemeConfig | null;
+  currentCategory?: string | null;
+  categories: (string | null)[];
+  socialLinks?: SocialLinks | null;
+}
+
+export function NovaLuxHeader({ storeName, logo, config, currentCategory, categories, socialLinks }: NovaLuxHeaderProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { t } = useTranslation();
+  const count = useCartCount();
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const announcement = config?.announcement;
+
+  const THEME = {
+    primary: NOVALUX_THEME.primary,
+    accent: NOVALUX_THEME.accent,
+    text: NOVALUX_THEME.text,
+    cardBg: NOVALUX_THEME.cardBg,
+    muted: NOVALUX_THEME.muted,
+  };
+
+  return (
+    <header 
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+      style={{ 
+        backgroundColor: isScrolled ? NOVALUX_THEME.headerBgSolid : 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(12px)',
+        boxShadow: isScrolled ? NOVALUX_THEME.headerShadow : 'none',
+        borderBottom: isScrolled ? `1px solid ${NOVALUX_THEME.border}` : 'none'
+      }}
+    >
+      {/* Announcement Bar */}
+      {announcement?.text && (
+        <div 
+          className="text-center py-2.5 text-sm font-medium transition-all"
+          style={{ 
+            background: NOVALUX_THEME.accentGradient, 
+            color: THEME.primary 
+          }}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            {announcement.link ? (
+              <a href={announcement.link} className="hover:underline">
+                {announcement.text}
+              </a>
+            ) : (
+              announcement.text
+            )}
+            <Sparkles className="w-4 h-4" />
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 lg:h-20">
+          {/* Mobile Menu Button */}
+          <button 
+            className="lg:hidden p-2 -ml-2 rounded-lg transition-colors hover:bg-gray-100"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" style={{ color: THEME.primary }} /> : <Menu className="w-6 h-6" style={{ color: THEME.primary }} />}
+          </button>
+
+          {/* Left Navigation (Desktop) */}
+          <nav className="hidden lg:flex items-center gap-1">
+            <Link 
+              to="/"
+              className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
+              style={{ color: !currentCategory ? THEME.accent : THEME.text }}
+            >
+              {t('allProducts')}
+            </Link>
+            {validCategories.slice(0, 3).map((category) => (
+              <Link
+                key={category}
+                to={`/?category=${encodeURIComponent(category)}`}
+                className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
+                style={{ color: currentCategory === category ? THEME.accent : THEME.text }}
+              >
+                {category}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Logo */}
+          <Link to="/" className="flex items-center justify-center">
+            {logo ? (
+              <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />
+            ) : (
+              <span 
+                className="text-2xl lg:text-3xl font-semibold tracking-wider"
+                style={{ 
+                  fontFamily: NOVALUX_THEME.fontHeading, 
+                  color: THEME.primary 
+                }}
+              >
+                {storeName}
+              </span>
+            )}
+          </Link>
+
+          {/* Right Navigation */}
+          <div className="flex items-center gap-2">
+            <button className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100">
+              <Search className="w-5 h-5" style={{ color: THEME.text }} />
+            </button>
+            <Link to="/cart" className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100 relative">
+              <ShoppingBag className="w-5 h-5" style={{ color: THEME.text }} />
+              {count > 0 && (
+                <span 
+                  className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
+                  style={{ background: NOVALUX_THEME.accentGradient, color: THEME.primary }}
+                >
+                  {count}
+                </span>
+              )}
+            </Link>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

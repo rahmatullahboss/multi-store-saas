@@ -14,7 +14,7 @@ import { useLoaderData, Link, useFetcher } from '@remix-run/react';
 import { eq, and, desc, ne, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, reviews, stores, type Store } from '@db/schema';
-import { parseThemeConfig, parseSocialLinks, type ThemeConfig, type SocialLinks } from '@db/types';
+import { parseThemeConfig, parseSocialLinks, parseFooterConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { resolveStore } from '~/lib/store.server';
 import { Star, Send, CheckCircle, ShoppingBag, ChevronRight, Truck, Shield, RotateCcw, Minus, Plus } from 'lucide-react';
@@ -90,6 +90,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   
   const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
   const socialLinks = parseSocialLinks(storeData?.socialLinks as string | null);
+  const footerConfig = parseFooterConfig(storeData?.footerConfig as string | null);
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
   
@@ -174,6 +175,20 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     }
   }
 
+  // Fetch unique categories for the header/footer
+  const categoriesQuery = db
+    .select({ category: products.category })
+    .from(products)
+    .where(
+      and(
+        eq(products.storeId, storeId),
+        eq(products.isPublished, true)
+      )
+    );
+  
+  const allProducts = await db.select({ category: products.category }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true)));
+  const categories = [...new Set(allProducts.map(p => p.category).filter((c): c is string => Boolean(c)))];
+
   if (showReviews) {
     // Fetch only APPROVED reviews for this product
     productReviews = await db
@@ -216,6 +231,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     socialLinks,
     businessInfo,
     themeConfig, // Return full config for section rendering
+    footerConfig,
+    categories,
     relatedProducts,
   });
 }
@@ -446,7 +463,10 @@ export default function ProductDetail() {
     storeTemplateId,
     theme,
     socialLinks,
-    businessInfo
+    businessInfo,
+    themeConfig,
+    footerConfig,
+    categories
   } = useLoaderData<typeof loader>();
   
   const hasTracked = useRef(false);
@@ -678,129 +698,42 @@ export default function ProductDetail() {
   // ============================================================================
   // DYNAMIC SECTION RENDERING (Shopify 2.0 Style)
   // ============================================================================
-  const themeConfig = useLoaderData<typeof loader>().themeConfig as ThemeConfig | null;
-  const productSections = themeConfig?.productSections;
+  // Shared props for all sections
+  const sectionProps = {
+    theme: theme || {},
+    product,
+    relatedProducts, // Pass related products to sections
+    storeId,
+    currency,
+    storeName,
+    reviews: productReviews,
+    reviewCount,
+    avgRating,
+    showReviews,
+    logo: logo || undefined,
+    socialLinks,
+    businessInfo,
+    store: {
+      name: storeName,
+      currency: currency,
+      email: businessInfo?.email,
+      phone: businessInfo?.phone,
+      address: businessInfo?.address
+    }
+  };
 
-  if (productSections && productSections.length > 0) {
-    // Shared props for all sections
-    const sectionProps = {
-      theme: isDaraz ? DARAZ_THEME : (theme || {}),
-      product,
-      relatedProducts, // Pass related products to sections
-      storeId,
-      currency,
-      storeName,
-      reviews: productReviews,
-      reviewCount,
-      avgRating,
-      showReviews,
-      logo: logo || undefined,
-      socialLinks,
-      businessInfo,
-      store: {
-        name: storeName,
-        currency: currency,
-        email: businessInfo?.email,
-        phone: businessInfo?.phone,
-        address: businessInfo?.address
-      }
-    };
-
-    const content = (
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme?.background || '#ffffff' }}>
+  const content = (
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme?.background || '#ffffff' }}>
+      {themeConfig?.productSections && themeConfig.productSections.length > 0 ? (
         <SectionRenderer 
-          sections={productSections}
+          sections={themeConfig.productSections}
           {...sectionProps}
         />
-      </div>
-    );
-
-    if (isDaraz) {
-      return (
-        <DarazPageWrapper 
-          storeName={storeName}
-          storeId={storeId}
-          logo={logo}
-          currency={currency}
-          socialLinks={socialLinks}
-          businessInfo={businessInfo}
-        >
-          {content}
-        </DarazPageWrapper>
-      );
-    }
-    
-    return (
-      <StorePageWrapper
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        templateId={storeTemplateId}
-        theme={theme}
-        currency={currency}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-      >
-        <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme?.background || '#ffffff' }}>
-          <SectionRenderer 
-            sections={productSections}
-            {...sectionProps}
-          />
-        </div>
-      </StorePageWrapper>
-    );
-  }
-
-  // ============================================================================
-  // LEGACY FALLBACK RENDERING
-  // ============================================================================
-
-  // Render with appropriate wrapper based on template
-  if (isBDShop) {
-    return (
-      <BDShopProductDetail
-        product={product as any}
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        currency={currency}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-        avgRating={avgRating}
-        reviewCount={reviewCount}
-      />
-    );
-  }
-
-  if (isGhorerBazar) {
-    return (
-      <GhorerBazarProductDetail
-        product={product as any}
-        relatedProducts={relatedProducts}
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        currency={currency}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-      />
-    );
-  }
-
-  if (isDaraz) {
-    return (
-      <DarazPageWrapper
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        currency={currency}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-      >
-        {productDetailContent}
-      </DarazPageWrapper>
-    );
-  }
+      ) : (
+        productDetailContent
+      )}
+    </div>
+  );
 
   return (
     <StorePageWrapper
@@ -812,8 +745,12 @@ export default function ProductDetail() {
       currency={currency}
       socialLinks={socialLinks}
       businessInfo={businessInfo}
+      cartCount={0} // Will be updated by client hook
+      categories={categories}
+      config={themeConfig}
+      footerConfig={footerConfig}
     >
-      {productDetailContent}
+      {content}
     </StorePageWrapper>
   );
 }
