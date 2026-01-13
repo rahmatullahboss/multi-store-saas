@@ -1129,9 +1129,18 @@ export const GrapesJsCommandSchema = z.object({
   target: z.enum(['selected', 'wrapper']).optional().default('selected'),
   value: z.any().describe("Action-specific data"),
   message: z.string().describe("User-friendly message in Bengali/English"),
+  commandId: z.string().optional(), // Unique ID to prevent loops
 });
 
-export type GrapesJsCommandResult = z.infer<typeof GrapesJsCommandSchema>;
+export type GrapesJsAction = z.infer<typeof GrapesJsCommandSchema.shape.action>;
+
+export interface GrapesJsCommandResult {
+  action: GrapesJsAction;
+  target?: 'selected' | 'wrapper';
+  value?: any;
+  message?: string;
+  commandId?: string; // Unique ID to prevent loops
+}
 
 export async function commandGrapesJs(
   apiKey: string,
@@ -1250,7 +1259,12 @@ Generate GrapesJS Command JSON:`;
 
   const response = await callAI(apiKey, systemPrompt, fullUserPrompt, model, baseUrl);
   const parsed = extractJSON(response);
-  return GrapesJsCommandSchema.parse(parsed);
+  const command = GrapesJsCommandSchema.parse(parsed);
+
+  return {
+    ...command,
+    commandId: crypto.randomUUID() // Ensure every command has a unique ID
+  };
 }
 
 

@@ -116,39 +116,57 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
 
-  // Track processed data to prevent re-execution loops
-  const lastProcessedData = useRef<any>(null);
+  // Track processed command IDs to prevent re-execution loops (CRITICAL FIX)
+  const lastProcessedId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (fetcher.state === 'idle' && fetcher.data && fetcher.data !== lastProcessedData.current) {
-      lastProcessedData.current = fetcher.data; // Mark as processed
+    // Only proceed if we have data and it's successful
+    if (fetcher.state === 'idle' && fetcher.data?.success) {
+      const command = fetcher.data.data;
       
-      if (fetcher.data.success) {
-        const command = fetcher.data.data;
-        
-        setMessages(prev => [
-          ...prev, 
-          { 
-            id: Date.now().toString(), 
-            role: 'assistant', 
-            content: command.message || '✅ Done!' 
-          }
-        ]);
+      // CRITICAL: Check if we already processed this exact command
+      // If commandId exists and matches last processed, SKIP execution
+      if (command.commandId && command.commandId === lastProcessedId.current) {
+        return;
+      }
 
-        if (command && command.action !== 'general_advice') {
-          onExecuteCommand(command);
+      // Mark this ID as processed immediately
+      if (command.commandId) {
+        lastProcessedId.current = command.commandId;
+      }
+      
+      setMessages(prev => [
+        ...prev, 
+        { 
+          id: Date.now().toString(), 
+          role: 'assistant', 
+          content: command.message || '✅ Done!' 
         }
-      } else if (fetcher.data?.error) {
+      ]);
+
+      if (command && command.action !== 'general_advice') {
+        onExecuteCommand(command);
+      }
+    } else if (fetcher.state === 'idle' && fetcher.data?.error) {
+       // Error handling...
+       // We can use a simpler check for errors or just let them show (they don't cause loops usually)
+       // But to be safe, we could track error timestamps too, but sticking to commandId for now.
         const errorMessage = fetcher.data?.error || 'Unknown error';
-        setMessages(prev => [
+        // Simple dedup for errors based on message count/content if needed, 
+        // but errors usually don't trigger state changes that cause re-loops like commands do.
+        // We'll leave error generic, but ensure success path is strictly gated.
+        setMessages(prev => {
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg?.content === `❌ ${errorMessage}`) return prev; // Dedup same error
+            return [
             ...prev, 
             { 
               id: Date.now().toString(), 
               role: 'assistant', 
               content: `❌ ${errorMessage}` 
             }
-          ]);
-      }
+          ];
+        });
     }
   }, [fetcher.state, fetcher.data, onExecuteCommand]);
 
