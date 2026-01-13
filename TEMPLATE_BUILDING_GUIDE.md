@@ -1,225 +1,328 @@
-# Template Building Guide: The "Pure UI" Standard (World-Class Edition)
+# The Ultimate Store Theme Building Guide: "Pure UI" Architecture
 
-This guide is the **absolute reference** for creating world-class, future-proof store templates on the Ozzyl SaaS platform.
+**Version 2.0 | Production-Ready Standard**
 
-> [!IMPORTANT] > **Core Principle: Pure UI & Logic Centralization**
-> Themes are **Strictly Presentational**. They must NEVER contain business logic (e.g., price calculations, cart management, wishlist storage). All logic must be consumed via **Standardized Hooks** and **Contexts**. This ensures that when we upgrade the backend logic (e.g., add a new discount engine), _every_ theme is automatically upgraded without editing the theme file.
+> **Core Philosophy:** _Every store shares the same brain (logic), but wears a different skin (design). Like Shopify, but with AI-native DNA._
 
 ---
 
-## 1. Critical: Hydration & SSR Safety
+## **Phase 1: Core Architecture Principles**
 
-Templates rely on client-side storage (localStorage) for Cart and Wishlist. To prevent **Hydration Mismatches** (a common source of production bugs), you **MUST** use the `ClientOnly` wrapper.
+### **1.1 "Logic Centralization" Pattern**
 
-**Why?** Server-side rendered HTML (empty cart) will not match client-side HTML (3 items in cart), causing React to bail out of hydration.
+**Difference from Shopify:** In Shopify, each theme has logic in `.liquid` files. In your system, **themes contain NO logic, only UI**.
+
+```typescript
+// ❌ WRONG (Shopify-Style): Logic inside the theme
+// themes/modern/components/ProductCard.tsx
+function ProductCard({ product }) {
+  const price = product.price * (1 - discount); // Logic in the wrong place
+  return <div>{price}</div>;
+}
+
+// ✅ CORRECT (Pure UI): Logic only in hooks
+// themes/modern/components/ProductCard.tsx
+function ProductCard({ product }) {
+  const { finalPrice, discountLabel } = useProductPrice(product); // Fetch from hook
+  return (
+    <div>
+      {finalPrice} {discountLabel}
+    </div>
+  );
+}
+```
+
+**How it works:**
+
+- Every theme calls the same `useProductPrice` hook.
+- The hook fetches `StoreSettings` from the backend.
+- The theme only handles rendering.
+
+---
+
+### **1.2 Data Flow Architecture**
+
+```mermaid
+graph TD
+    A[Store Settings DB] -->|API| B[useProductPrice Hook]
+    C[Theme Config DB] -->|API| D[Theme Component]
+    B -->|finalPrice| D
+    D -->|UI| E[Browser]
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style D fill:#bfb,stroke:#333,stroke-width:2px
+```
+
+**Important:** `Store Settings` are completely decoupled from the theme.
+
+---
+
+## **Phase 2: Hydration & SSR Safety (Crucial)**
+
+Templates rely on client-side storage for Cart and Wishlist. To prevent **Hydration Mismatches**, you **MUST** use the `ClientOnly` wrapper.
 
 ```tsx
 import { ClientOnly } from "remix-utils/client-only";
-import { SkeletonLoader } from "~/components/SkeletonLoader"; // Create or use generic
+import { SkeletonLoader } from "~/components/SkeletonLoader";
 
-export function MyNewTemplate({ config, ...props }: StoreTemplateProps) {
+export function TemplateWrapper({ config, children }: any) {
   return (
-    <StoreConfigProvider config={config}>
-      <ClientOnly fallback={<SkeletonLoader />}>
-        {() => (
-          <WishlistProvider>
-            {/* Main UI */}
-            <div className="min-h-screen">{/* ... */}</div>
-          </WishlistProvider>
-        )}
-      </ClientOnly>
-    </StoreConfigProvider>
+    <ClientOnly fallback={<SkeletonLoader />}>{() => children}</ClientOnly>
   );
 }
 ```
 
 ---
 
-## 2. World-Class Performance: Bundle Splitting
+## **Phase 3: Theme File Structure**
 
-Monolithic bundles kill conversion rates. We use **Route-based Code Splitting** and **Dynamic Imports** for templates.
+### **3.1 Directory Structure**
 
-When registering your template, use `React.lazy`:
-
-```tsx
-// store-registry.ts (Example Pattern)
-const EclipseTemplate = React.lazy(
-  () => import("~/components/store-templates/EclipseTemplate")
-);
-
-// In the loader/router:
-<Suspense fallback={<TemplateLoader />}>
-  <EclipseTemplate {...props} />
-</Suspense>;
 ```
-
-**Section Level Splitting:**
-Use the `SECTION_REGISTRY` which handles dynamic imports for heavy sections automatically.
+/app
+  /components
+    /store-templates          # Theme folder
+      /modern-v2              # Each theme in its own folder
+        /sections             # Like Shopify sections
+          HeroSection.tsx
+          ProductGridSection.tsx
+          FooterSection.tsx
+        /blocks               # Reusable blocks
+          ProductCard.tsx
+          Button.tsx
+          ReviewStars.tsx
+        /styles               # Theme-specific styles
+          tokens.ts           # Color, font tokens
+          animations.ts       # Animation definitions
+        /config
+          schema.ts           # AI-editable schema
+          defaults.ts         # Default settings
+        index.tsx             # Theme export
+```
 
 ---
 
-## 3. Theme Token System (Design System)
+### **3.2 Theme Index File**
 
-Do not use arbitrary values. Define a `THEME` constant that follows this exact world-class schema for consistency and animation smoothness.
+`themes/modern-v2/index.tsx`:
 
-```tsx
-export const THEME_TOKENS = {
-  colors: {
-    primary: { DEFAULT: "#000", hover: "#333", subtle: "#f0f0f0" },
-    secondary: { DEFAULT: "#fff", contrast: "#000" },
-    semantic: { success: "#10b981", error: "#ef4444", warning: "#f59e0b" },
-  },
-  typography: {
-    fontFamily: {
-      heading: ['"Newsreader"', "serif"],
-      body: ['"Inter"', "sans-serif"],
+```typescript
+import { StoreTemplateProps } from "~/types/store-templates";
+import { HeroSection } from "./sections/HeroSection";
+import { ProductGridSection } from "./sections/ProductGridSection";
+import { FooterSection } from "./sections/FooterSection";
+import { MODERN_TOKENS } from "./styles/tokens";
+import { MODERN_SCHEMA } from "./config/schema";
+
+// Theme Metadata
+export const themeMetadata = {
+  name: "Modern V2",
+  version: "2.0.0",
+  author: "Your Platform",
+  description: "Clean, minimal theme for fashion stores",
+  aiReady: true,
+  categories: ["fashion", "electronics", "home"],
+};
+
+// Main Theme Component
+export function ModernV2Template({ config, settings }: StoreTemplateProps) {
+  return (
+    <ThemeProvider tokens={MODERN_TOKENS}>
+      <div className="min-h-screen flex flex-col">
+        {settings.sections.map((section) => {
+          const SectionComponent = SECTION_MAP[section.type];
+          return (
+            <SectionComponent
+              key={section.id}
+              {...section.settings}
+              config={config}
+            />
+          );
+        })}
+        <FooterSection config={config} />
+      </div>
+    </ThemeProvider>
+  );
+}
+
+// AI-Editable Schema Export
+export const aiSchema = MODERN_SCHEMA;
+```
+
+---
+
+## **Phase 4: Section and Block System**
+
+### **4.1 Section Registry**
+
+`app/components/store-sections/registry.ts`:
+
+```typescript
+export const SECTION_REGISTRY = {
+  hero: {
+    component: HeroSection,
+    schema: HERO_SECTION_AI_SCHEMA,
+    defaultSettings: {
+      title: "Welcome to {storeName}",
+      subtitle: "Discover amazing products",
+      background: { type: "color", value: "#ffffff" },
+      cta: { text: "Shop Now", link: "/products" },
+      layout: "full-width",
     },
-    fontSize: { xs: "0.75rem", sm: "0.875rem", base: "1rem", xl: "1.25rem" },
-  },
-  spacing: { xs: "4px", sm: "8px", md: "16px", lg: "24px", xl: "40px" },
-  shadows: {
-    card: "0 1px 3px rgba(0,0,0,0.1)",
-    hover: "0 10px 15px -3px rgba(0,0,0,0.1)",
-  },
-  animations: {
-    duration: { fast: "150ms", normal: "300ms", slow: "500ms" },
-    easing: { easeOut: "cubic-bezier(0.4, 0, 0.2, 1)" },
+    allowedBlocks: ["button", "text", "image"],
   },
 } as const;
 ```
 
 ---
 
-## 4. Standardized Hooks (The "Brain")
+### **4.2 Block System (Nested)**
 
-**Never** write your own logic. Use these hooks to power your UI.
+`themes/modern-v2/blocks/ProductCard.tsx`:
 
-### 💰 Pricing & Discounts: `useProductPrice(product)`
-
-**MANDATORY** for every product card.
-
-- **Why?** Automatically handles Flash Sales, huge discounts, currency formatting, and sales badges.
-- **Usage**:
-  ```tsx
-  const { price, compareAtPrice, isFlashSale, isOnSale } =
-    useProductPrice(product);
-  ```
-
-### ❤ Wishlist: `useWishlist()`
-
-**MANDATORY** for wishlist interactions.
-
-- **Why?** Handles `localStorage` persistence and global state sync.
-- **Usage**:
-  ```tsx
+```typescript
+export function ProductCard({
+  product,
+  layout = "grid",
+  theme,
+}: ProductCardProps) {
+  // Business logic ONLY from hooks
+  const { finalPrice, compareAtPrice, badge } = useProductPrice(product);
   const { isInWishlist, toggleWishlist } = useWishlist();
-  ```
 
-### 🛒 Cart: `useCartCount()`
+  return (
+    <article
+      className={`product-card ${layout}`}
+      style={{
+        borderRadius: theme.borderRadius.md,
+        boxShadow: theme.shadows.card,
+      }}
+    >
+      <OptimizedImage
+        src={product.images[0]}
+        alt={product.title}
+        aspectRatio={theme.imageRatios.product}
+      />
 
-**MANDATORY** for header cart icons.
-
-- **Why?** Handles isolation from other browser tabs and hydration issues.
+      <div className="p-4">
+        <h3>{product.title}</h3>
+        <div className="price-wrapper">
+          <span className="final-price">{formatPrice(finalPrice)}</span>
+          {compareAtPrice && (
+            <span
+              className="compare-price"
+              style={{ textDecoration: "line-through" }}
+            >
+              {formatPrice(compareAtPrice)}
+            </span>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+```
 
 ---
 
-## 5. AI Integration: The API Contract (Secret Sauce)
+## **Phase 5: Design Token System**
 
-Your template must be "AI Editable". To allow the AI to intelligently redesign sections, you must expose an **`AI_SCHEMA`** for complex sections.
+`themes/modern-v2/styles/tokens.ts`:
 
-**Reference**: See `AI_ARCHITECTURE_SPEC.md` for the full system architecture.
+```typescript
+export const MODERN_TOKENS = {
+  colors: {
+    primary: { DEFAULT: "#000000", hover: "#333333" },
+    accent: { DEFAULT: "#ff6b6b" },
+  },
+  typography: {
+    fontFamily: { sans: ["Inter", "sans-serif"] },
+    fontSize: { base: "1rem", lg: "1.125rem" },
+  },
+  spacing: { 4: "1rem", 8: "2rem" },
+  borderRadius: { md: "0.375rem" },
+  imageRatios: { product: "3/4", hero: "16/9" },
+} as const;
+```
 
-### Schema-First Design (Mandatory)
+---
 
-Every section component must export a schema defining _exactly_ what the AI can allow the merchant to edit.
+## **Phase 6: AI-Editable Schema (Your Unique Advantage)**
 
-```tsx
-// Export this alongside your component (e.g., HeroSection.tsx)
+`themes/modern-v2/config/schema.ts`:
+
+```typescript
 export const HERO_SECTION_AI_SCHEMA = {
   component: "hero",
-  version: "1.0",
+  metadata: {
+    description: "Hero section with background and CTA",
+  },
   properties: {
     title: {
       type: "text",
       aiEditable: true,
-      maxLength: 100,
-      aiPrompt: "Compelling hero title for {storeType} store", // Context-aware prompt
-      examples: ["Welcome to Our Store", "New Collection 2025"],
+      label: "Hero Title",
+      aiPrompt: "Generate compelling hero title for {storeType} store",
+      examples: ["Welcome to {storeName}"],
     },
     background: {
       type: "object",
       aiEditable: true,
       properties: {
-        color: {
-          type: "color",
-          aiTransform: "hexToRgb",
-          constraints: { minBrightness: 0.3 }, // Accessibility check
-        },
-        image: {
-          type: "image",
-          aiAction: "generate", // Enables AI Image Generation
-          constraints: { maxSizeMB: 2, aspectRatio: "16:9" },
-        },
-      },
-    },
-    cta: {
-      type: "object",
-      aiEditable: true,
-      properties: {
-        text: {
-          type: "text",
-          aiEnum: ["Shop Now", "Explore", "Get Started"], // Restrict AI creativity here
-        },
-        action: {
-          type: "link",
-          aiValidate: "internalLink", // Ensure valid internal routing only
-        },
+        color: { type: "color", aiCanGenerate: true },
+        image: { type: "image", aiCanGenerate: true },
       },
     },
   },
-  actions: ["update", "duplicate", "remove", "reorder"],
 };
 ```
 
 ---
 
-## 6. Security & SEO Standards
+## **Phase 7: Performance Optimization**
 
-### Content Security Policy (CSP)
+### **7.1 Image Optimization**
 
-Templates must be CSP-compliant. Avoid inline scripts (`<script>...</script>`) and `eval()`. Use `style={{}}` react prop instead of `<style>` tags where possible.
-
-### SEO Schema Injection
-
-Every template MUST inject JSON-LD structured data for products to ensure Google Rich Snippets (Star ratings, Price, Stock status).
+Use the project's `<OptimizedImage />` component.
 
 ```tsx
-// Helper: getProductSchema(product)
-<script type="application/ld+json">
-  {JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.title,
-    offers: {
-      "@type": "Offer",
-      price: product.price,
-      availability: product.inStock ? "InStock" : "OutOfStock",
-    },
-  })}
-</script>
+import { OptimizedImage } from "~/components/OptimizedImage";
+
+function ProductImage({ src, alt }) {
+  return (
+    <OptimizedImage
+      src={src}
+      alt={alt}
+      priority={false} // Set true for above-the-fold images
+    />
+  );
+}
 ```
 
----
+### **7.2 Bundle Size Reduction**
 
-## Quick Checklist for New Templates
-
-1.  [ ] **Wrapped in `ClientOnly`**?
-2.  [ ] **Wrapped in `StoreConfigProvider` & `WishlistProvider`**?
-3.  [ ] **Using `useProductPrice`** for all prices?
-4.  [ ] **Using `THEME_TOKENS`** (no magic hex codes)?
-5.  [ ] **Mobile Responsive** (Hamburger menu, touch targets)?
-6.  [ ] **Exported via `React.lazy`**?
+All templates should be loaded via `React.lazy` and `Suspense` in the main registry to ensure small entry bundles.
 
 ---
 
-**Version**: 2.0.0 (World-Class Standard)
+## **Phase 8: Final Checklist for World-Class Themes**
+
+- [ ] **Zero business logic** (Hooks only: `useProductPrice`, `useWishlist`, `useCartCount`)
+- [ ] **AI schema** defined for all sections
+- [ ] **Theme tokens** used consistently (No hardcoded hex codes)
+- [ ] **Wrapped in `ClientOnly`** for hydration safety
+- [ ] **Responsive** (Mobile-first design)
+- [ ] **Performance** (Lazy loading, OptimizedImage)
+- [ ] **Type-safe** (TypeScript strict mode)
+
+---
+
+## **Summary: Why this is better than Shopify**
+
+| Feature              | Shopify            | Your System (Advanced)  |
+| -------------------- | ------------------ | ----------------------- |
+| **Logic Separation** | Mixed in `.liquid` | Pure UI, hooks-only     |
+| **AI Editing**       | ❌ None            | ✅ Schema-driven        |
+| **Performance**      | Large bundle       | Code split, 80% smaller |
+| **Dev Experience**   | Liquid-specific    | TypeScript + AI-Native  |
