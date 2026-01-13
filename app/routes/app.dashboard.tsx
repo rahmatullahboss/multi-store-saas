@@ -13,7 +13,7 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { useNavigate, useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sql, desc, and, gte } from 'drizzle-orm';
 import { products, orders, stores, abandonedCarts } from '@db/schema';
@@ -32,6 +32,7 @@ import {
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
 import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
+import { LowStockAlertBanner } from '~/components/LowStockAlertBanner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { getUsageStats } from '~/utils/plans.server';
 import { getStoreStats, getRevenueForecast, getPredictedCLV } from '~/services/analytics.server';
@@ -156,6 +157,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     usage,
     stats: {
       products: productCount,
+      lowStock: lowStockCount,
       orders: orderCount,
       revenue: revenueTotal,
       todaySales,
@@ -193,6 +195,7 @@ export default function DashboardPage() {
     recentOrders 
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
+  const navigate = useNavigate();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
@@ -213,6 +216,13 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Limit Warning Banner */}
       <LimitWarningBanner usage={usage} planType={planType} />
+
+      {/* Low Stock Alert */}
+      <LowStockAlertBanner 
+        count={stats.lowStock} 
+        threshold={10} 
+        onAction={() => navigate('/app/inventory?filter=low')}
+      />
 
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
