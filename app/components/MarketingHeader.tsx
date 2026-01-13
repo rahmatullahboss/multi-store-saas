@@ -14,16 +14,16 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="fixed top-8 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-8 py-0 shadow-lg">
+    <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-0 shadow-lg">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <img 
               src="/brand/logo-white.webp" 
               alt="Ozzyl" 
-              className="h-16 w-auto"
-              width="164"
-              height="64"
+              className="h-12 w-auto"
+              width="123"
+              height="48"
             />
           </Link>
           
@@ -33,7 +33,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 {!isActive('/pricing') && (
                   <Link 
                     to="/pricing" 
-                    className={`hidden md:block font-medium text-sm px-5 py-3 transition ${
+                    className={`hidden md:block font-medium text-sm px-4 py-2 transition ${
                       isActive('/pricing') ? 'text-[#00875F]' : 'text-white/60 hover:text-[#00875F]'
                     }`}
                   >
@@ -43,7 +43,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 {!isActive('/tutorials') && (
                   <Link 
                     to="/tutorials" 
-                    className={`hidden md:block font-medium text-sm px-5 py-3 transition ${
+                    className={`hidden md:block font-medium text-sm px-4 py-2 transition ${
                       isActive('/tutorials') ? 'text-[#00875F]' : 'text-white/60 hover:text-[#00875F]'
                     }`}
                   >
@@ -61,14 +61,14 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 </button>
                 <Link 
                   to="/auth/login" 
-                  className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-6 py-3 transition"
+                  className="hidden sm:block text-white/60 hover:text-white font-medium text-sm px-5 py-2 transition"
                 >
                   {t('login')}
                 </Link>
                 <MagneticButton>
                   <Link 
                     to="/auth/register" 
-                    className="hidden sm:inline-block px-8 py-3.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
+                    className="hidden sm:inline-block px-6 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-[#006A4E]/25"
                   >
                     {t('register')}
                   </Link>
