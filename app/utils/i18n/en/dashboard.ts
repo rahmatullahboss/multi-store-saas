@@ -124,7 +124,7 @@ export const dashboard = {
   navBilling: 'Billing',
   navCredits: 'AI Credits',
   navAllSettings: 'All Settings',
-  navStoreEditor: 'Landing Builder (Legacy)',
+  navStoreEditor: 'Simple Landing Builder',
   sidebarAdmin: 'Admin Panel',
   navPlanManagement: 'Plan Management',
   navPayouts: 'Payouts',

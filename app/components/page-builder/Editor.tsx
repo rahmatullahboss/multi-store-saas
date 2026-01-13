@@ -26,7 +26,7 @@ import SidebarPanel from './SidebarPanel';
 import { Sparkles, Loader2, CheckCircle, X } from 'lucide-react';
 import MagicGenerateModal from "./MagicGenerateModal";
 import BlockLibraryModal from "./BlockLibraryModal";
-import AiChatWidget from "./AiChatWidget";
+import { AISidebar } from "./ai-sidebar";
 import { toast } from 'sonner';
 import ContextMenu from './ContextMenu';
 
@@ -796,6 +796,14 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
                   />
                 )}
             </div>
+
+            {/* AI Sidebar - Docked Right */}
+            <AISidebar 
+              editor={editor}
+              isOpen={isChatOpen}
+              onToggle={() => setIsChatOpen(!isChatOpen)}
+              isLocked={isAiLocked}
+            />
           </div>
         </div>
       </GjsEditor>
@@ -819,14 +827,13 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         editor={editor}
       />
       
-      <AiChatWidget 
-          editor={editor}
-          isOpen={isChatOpen}
-          onToggle={() => setIsChatOpen(!isChatOpen)}
-          onExecuteCommand={handleExecuteAiCommand}
-          isLocked={isAiLocked}
-          featuredProductId={pageConfig.featuredProductId}
-      />
+            {/* AI Sidebar - Docked Right */}
+            <AISidebar 
+              editor={editor}
+              isOpen={isChatOpen}
+              onToggle={() => setIsChatOpen(!isChatOpen)}
+              isLocked={isAiLocked}
+            />
 
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {

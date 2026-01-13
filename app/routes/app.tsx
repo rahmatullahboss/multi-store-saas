@@ -286,6 +286,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarSettings',
     items: [
       { to: '/app/page-builder', labelKey: 'navPageBuilder' as any, icon: Rocket },
+      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: AlertTriangle },
       { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Palette },
       { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
@@ -293,7 +294,7 @@ const navSections: NavSection[] = [
       { to: '/app/billing', labelKey: 'navBilling', icon: CreditCard },
       { to: '/app/credits', labelKey: 'navCredits', icon: Sparkles },
       { to: '/app/settings', labelKey: 'navAllSettings', icon: Settings },
-      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: AlertTriangle },
+
     ],
   },
 ];

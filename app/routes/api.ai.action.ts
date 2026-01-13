@@ -335,6 +335,115 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
 
+      case 'STRICT_EDIT': {
+        // NEW: Strict element editing - only modify selected element
+        const selectedComponent = (payload as any).selectedComponent;
+        const userCommand = (payload as any).userCommand;
+
+        if (!selectedComponent || !userCommand) {
+          return json({ error: 'Selected component and user command required' }, { status: 400 });
+        }
+
+        // Build strict system prompt
+        const strictSystemPrompt = `You are an AI assistant for a GrapeJS page builder.
+
+CRITICAL RULES - NEVER VIOLATE:
+
+1. ONLY MODIFY THE SELECTED ELEMENT
+   - Target element ID: ${selectedComponent.id}
+   - Type: ${selectedComponent.type}
+   - You can ONLY modify THIS element
+
+2. FORBIDDEN ACTIONS (NEVER DO THESE):
+   ❌ deleteElement - Cannot delete anything
+   ❌ createSection - Cannot create new sections  
+   ❌ moveElement - Cannot move elements
+   ❌ replaceElement - Cannot replace with new element
+   ❌ modifyParent - Cannot touch parent
+   ❌ modifySibling - Cannot touch siblings
+
+3. ALLOWED ACTIONS:
+   ✅ updateContent - Change text
+   ✅ updateStyles - Change CSS styles
+   ✅ updateAttributes - Change attributes
+   ✅ addClass / removeClass - Manage classes
+   ✅ updateSrc - Change image source
+   ✅ updateHref - Change link URL
+
+4. RESPONSE FORMAT (JSON ONLY):
+{
+  "action": "updateStyles",
+  "targetId": "${selectedComponent.id}",
+  "changes": {
+    "styles": { "property": "value" }
+  },
+  "explanation": "Brief description in Bengali"
+}
+
+SELECTED ELEMENT CURRENT STATE:
+- Tag: ${selectedComponent.tagName}
+- Content: "${(selectedComponent.content || '').slice(0, 100)}"
+- Styles: ${JSON.stringify(selectedComponent.styles || {})}
+- Classes: ${(selectedComponent.classes || []).join(', ')}
+
+USER COMMAND: "${userCommand}"
+
+Generate the modification JSON. Only output valid JSON, nothing else.`;
+
+        const response = await fetch(env.AI_BASE_URL || 'https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://ozzyl.com',
+            'X-Title': 'Ozzyl Page Builder'
+          },
+          body: JSON.stringify({
+            model: env.AI_MODEL || 'openai/gpt-4o-mini',
+            messages: [
+              { role: 'system', content: strictSystemPrompt },
+              { role: 'user', content: userCommand }
+            ],
+            temperature: 0.3,
+            max_tokens: 1000,
+            response_format: { type: 'json_object' }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`AI service error: ${response.status}`);
+        }
+
+        const aiData = await response.json() as any;
+        const content = aiData.choices?.[0]?.message?.content;
+        
+        if (!content) {
+          throw new Error('Empty AI response');
+        }
+
+        // Parse and validate response
+        let parsedResult;
+        try {
+          parsedResult = JSON.parse(content);
+        } catch {
+          throw new Error('Invalid JSON response from AI');
+        }
+
+        // Force correct target ID
+        if (parsedResult.action) {
+          parsedResult.targetId = selectedComponent.id;
+        }
+        if (parsedResult.actions) {
+          parsedResult.actions = parsedResult.actions.map((a: any) => ({
+            ...a,
+            targetId: selectedComponent.id
+          }));
+        }
+
+        result = parsedResult;
+        break;
+      }
+
       default:
         return json({ error: `Unknown action: ${actionType}` }, { status: 400 });
     }
