@@ -975,7 +975,7 @@ export const dashboard = {
   // AI Chat Widget
   dashboardChat_title: 'Ozzyl AI অ্যাসিস্ট্যান্ট',
   dashboardChat_online: 'অনলাইন',
-  dashboardChat_welcome: 'হে {{userName}}! আমি ওজেল, আপনার AI বিজনেস অ্যাসিস্ট্যান্ট। আজ আপনার স্টোর বড় করতে আমি কীভাবে সাহায্য করতে পারি?',
+  dashboardChat_welcome: 'হে {{userName}}! আমি ওজিল, আপনার AI বিজনেস অ্যাসিস্ট্যান্ট। আজ আপনার স্টোর বড় করতে আমি কীভাবে সাহায্য করতে পারি?',
   dashboardChat_unlockTitle: 'Ozzyl AI আনলক করুন',
   dashboardChat_unlockDesc: 'আমাদের প্রো প্ল্যানের সাথে বিজনেস ইনসাইট, স্বয়ংক্রিয় রেসপন্স এবং স্মার্ট পরামর্শ পান।',
   dashboardChat_upgradePro: 'প্রো-তে আপগ্রেড করুন',
