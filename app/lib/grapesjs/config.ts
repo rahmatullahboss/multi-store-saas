@@ -350,15 +350,18 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
     deviceManager: {
       devices: [
         {
+          id: 'desktop',
           name: 'Desktop',
           width: '', 
         },
         {
+          id: 'tablet',
           name: 'Tablet',
           width: '768px',
           widthMedia: '1024px',
         },
         {
+          id: 'mobile',
           name: 'Mobile',
           width: '375px',
           widthMedia: '480px',

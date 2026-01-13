@@ -221,12 +221,75 @@ export default function GrapesEditor({
       // -- Register Custom Commands --
       editorInstance.Commands.add('tlb-core:drag-start', { run() {} });
       editorInstance.Commands.add('tlb-core:drag-stop', { run() {} });
+
+      // -- Device Change Handler (for Desktop full width) --
+      editorInstance.on('device:change', () => {
+        const device = editorInstance.getDevice();
+        const Canvas = editorInstance.Canvas;
+        const frames = Canvas?.getFrames?.() || [];
+        const frame = frames[0];
+        
+        if (frame) {
+          const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
+          const framesContainer = document.querySelector('.gjs-cv-canvas__frames') as HTMLElement;
+          
+          if (device === 'Desktop') {
+            // Desktop: Force full width using Canvas API
+            // Set frame to a very large width (will be constrained by container)
+            // Note: GrapesJS doesn't support "100%" so we use a large px value
+            const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
+            const canvasWidth = canvasEl?.offsetWidth || window.innerWidth;
+            
+            // Directly manipulate the wrapper since Canvas API doesn't support %
+            if (frameWrapper) {
+              frameWrapper.style.width = `${canvasWidth}px`;
+              frameWrapper.style.boxShadow = 'none';
+              frameWrapper.style.margin = '0';
+              frameWrapper.style.maxWidth = '100%';
+            }
+            if (framesContainer) {
+              framesContainer.style.justifyContent = 'flex-start';
+            }
+          } else {
+            // Tablet/Mobile: add visual separation and center
+            if (frameWrapper) {
+              frameWrapper.style.boxShadow = '0 0 20px rgba(0,0,0,0.15)';
+              frameWrapper.style.margin = '0 auto';
+              frameWrapper.style.maxWidth = 'none';
+            }
+            if (framesContainer) {
+              framesContainer.style.display = 'flex';
+              framesContainer.style.justifyContent = 'center';
+            }
+          }
+        }
+      });
+
+      // Handle window resize for Desktop full width
+      const handleResize = () => {
+        if (editorInstance.getDevice() === 'Desktop') {
+          const frameWrapper = document.querySelector('.gjs-frame-wrapper') as HTMLElement;
+          const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
+          if (frameWrapper && canvasEl) {
+            frameWrapper.style.width = `${canvasEl.offsetWidth}px`;
+          }
+        }
+      };
+      window.addEventListener('resize', handleResize);
+
+      // Trigger initial device change to set correct styles
+      setTimeout(() => {
+        editorInstance.trigger('device:change');
+      }, 100);
     }, 0); // Minimal delay, just enough to skip React Strict Mode's first invoke
 
     // Cleanup function
     return () => {
       mountedRef.current = false;
       clearTimeout(initTimeout);
+      
+      // Remove resize listener
+      window.removeEventListener('resize', () => {});
       
       if (editorInstance) {
         console.log('Cleanup: Destroying GrapesJS editor...');
@@ -438,15 +501,15 @@ export default function GrapesEditor({
       <style dangerouslySetInnerHTML={{ __html: `
         /* Base editor sizing */
         .gjs-cv-canvas { 
-          width: 100% !important; 
           height: 100% !important;
           top: 0 !important;
           left: 0 !important;
           padding: 0 !important;
           margin: 0 !important;
+          background: #e5e7eb !important;
         }
         .gjs-editor { height: 100% !important; }
-        .gjs-editor-cont { height: 100% !important; width: 100% !important; }
+        .gjs-editor-cont { height: 100% !important; }
         
         /* Hide default GrapesJS panels (we use our own sidebar) */
         .gjs-pn-panels { display: none !important; }
@@ -454,39 +517,38 @@ export default function GrapesEditor({
         .gjs-pn-commands { display: none !important; }
         .gjs-pn-views { display: none !important; }
         
-        /* Remove white space / fix canvas positioning */
+        /* Canvas frames container - stretch to fill for Desktop, center for others */
         .gjs-cv-canvas__frames {
-          width: 100% !important;
           height: 100% !important;
           top: 0 !important;
           left: 0 !important;
-          padding: 0 !important;
-          margin: 0 !important;
+          width: 100% !important;
         }
+        
+        /* Frame wrapper - width controlled by JS device handler */
         .gjs-frame-wrapper {
-          width: 100% !important;
           height: 100% !important;
-          top: 0 !important;
-          left: 0 !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          position: absolute !important;
+          transition: box-shadow 0.3s ease !important;
+          background: white !important;
         }
+        
+        /* Hide frame wrapper resize handles */
         .gjs-frame-wrapper__top,
         .gjs-frame-wrapper__left,
         .gjs-frame-wrapper__right,
         .gjs-frame-wrapper__bottom {
           display: none !important;
         }
+        
+        /* Frame (iframe) - fill wrapper */
         .gjs-frame {
           width: 100% !important;
           height: 100% !important;
-          top: 0 !important;
-          left: 0 !important;
         }
+        
         /* Remove canvas toolbar spacing */
         .gjs-cv-canvas__toolbar {
-          display: none !important;
+          /* display: none !important; */
         }
         
         /* Scrollbar styling */

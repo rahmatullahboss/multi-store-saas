@@ -35,10 +35,10 @@
     -webkit-backdrop-filter: blur(16px) !important;
     gap: 4px !important;
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
     /* FIX OVERLAP: Position toolbar above element */
-    transform: translateY(-100%) !important;
-    margin-top: -8px !important;
+    margin-top: -10px !important;
     z-index: 9999 !important;
 }
 
