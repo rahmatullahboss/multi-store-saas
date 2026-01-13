@@ -266,11 +266,12 @@ export function PremiumBDTemplate({
 
             {/* CTA Button (Desktop) */}
             <div className="mt-10 text-center hidden md:block">
-              <a href="#order-form" className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-full font-bold text-xl shadow-xl shadow-emerald-200 hover:shadow-2xl hover:scale-105 transition transform">
-                <span>অর্ডার করতে ক্লিক করুন</span>
-                <ChevronRight />
+              <a href="#order-form" className="group relative inline-flex items-center gap-3 px-12 py-5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-full font-black text-2xl shadow-xl shadow-emerald-200 hover:shadow-2xl hover:scale-105 transition transform overflow-hidden">
+                <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
+                <span className="relative">অর্ডার করতে ক্লিক করুন</span>
+                <ChevronRight className="relative animate-bounce-x" />
               </a>
-              <p className="mt-3 text-sm text-gray-500">স্টক সীমিত! দ্রুত অর্ডার করুন</p>
+              <p className="mt-4 text-base font-medium text-red-500 animate-pulse">🔥 স্টক সীমিত! দ্রুত অর্ডার করুন</p>
             </div>
           </div>
         </section>
@@ -607,7 +608,7 @@ export function PremiumBDTemplate({
       <section id="order-form" ref={orderFormRef} className="py-16 bg-emerald-50/50">
         <div className="container max-w-6xl mx-auto px-4">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">📝 অর্ডার কনফার্ম করুন</h2>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">📝 অর্ডার কনফার্ম করুন</h2>
             <p className="text-xl text-gray-600">নিচের ফর্মটি পূরণ করুন, আমরা আপনাকে কল করব</p>
           </div>
 
@@ -782,18 +783,24 @@ export function PremiumBDTemplate({
                 </div>
 
                 {/* Order Summary */}
-                <div className="bg-gray-50 rounded-xl p-4 space-y-2 border border-dashed border-gray-300">
-                   <div className="flex justify-between text-sm">
+                <div className="bg-gray-50 rounded-xl p-5 border border-dashed border-gray-300">
+                   <div className="flex justify-between text-sm mb-2">
                       <span className="text-gray-600">পণ্যের মূল্য</span>
                       <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
                    </div>
-                   <div className="flex justify-between text-sm">
+                   <div className="flex justify-between text-sm mb-2">
                       <span className="text-gray-600">ডেলিভারি চার্জ</span>
                       <span className="font-semibold text-gray-900">{formatPrice(shippingCost)}</span>
                    </div>
-                   <div className="border-t border-gray-200 pt-2 flex justify-between items-center mt-2">
-                      <span className="font-bold text-gray-900">সর্বমোট</span>
-                      <span className="font-bold text-xl text-emerald-600">{formatPrice(totalPrice)}</span>
+                   {bumpTotal > 0 && (
+                     <div className="flex justify-between text-sm mb-2 text-emerald-600">
+                        <span>অতিরিক্ত অফার</span>
+                        <span className="font-semibold">+{formatPrice(bumpTotal)}</span>
+                     </div>
+                   )}
+                   <div className="border-t border-gray-200 pt-3 flex justify-between items-center mt-3">
+                      <span className="font-bold text-gray-900 text-lg">সর্বমোট</span>
+                      <span className="font-black text-2xl text-emerald-600">{formatPrice(totalPrice)}</span>
                    </div>
                 </div>
 

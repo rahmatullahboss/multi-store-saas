@@ -615,6 +615,40 @@ export default function LiveEditorPage() {
     setHasUnpublishedChanges(true);
   }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage]);
 
+  // Auto-populate data when product changes
+  useEffect(() => {
+    if (!featuredProductId || !storeProducts.length) return;
+    
+    const product = storeProducts.find(p => p.id === parseInt(featuredProductId));
+    if (!product) return;
+
+    // Only update if fields are empty or user explicitly wants to reset (could add a button for "Reset to Product Data" later)
+    // For now, we update if it looks like the user just switched products and fields are generic or empty
+    
+    // We use a ref to track if this is the initial load vs a user change
+    // But since we want "Smart" behavior:
+    
+    if (!headline || headline === 'Transform Your Life Today') {
+      setHeadline(product.title);
+    }
+    
+    if (!galleryImages || galleryImages.length === 0) {
+      if (product.imageUrl) {
+        setGalleryImages([product.imageUrl]);
+      }
+    }
+    
+    // Optional: Set subheadline to description if empty
+    /*
+    if (!subheadline && product.description) {
+       // Strip HTML if needed, or just take first 100 chars
+       const plainText = product.description.replace(/<[^>]+>/g, '');
+       setSubheadline(plainText.substring(0, 150) + (plainText.length > 150 ? '...' : ''));
+    }
+    */
+    
+  }, [featuredProductId, storeProducts]);
+
   // ============================================================================
   // DEBOUNCED AUTO-SAVE (2 seconds after last change)
   // ============================================================================

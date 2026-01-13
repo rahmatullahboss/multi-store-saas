@@ -1259,29 +1259,47 @@ export function LandingPageTemplate({
                     </div>
                   )}
 
-                  {/* Quantity Selector */}
-                  <div>
+                  {/* Quantity Selector & Order Summary */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-6">
                     <label className="block text-sm font-bold text-gray-700 mb-3">{t('selectQuantity')}</label>
-                    <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-4">
+                    <div className="flex items-center gap-4 mb-6">
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.max(1, d.quantity - 1) }))}
-                        className="w-14 h-14 bg-white hover:bg-gray-100 rounded-xl text-2xl font-bold text-gray-900 transition shadow-sm border border-gray-200"
+                        className="w-12 h-12 bg-white hover:bg-gray-100 rounded-xl text-xl font-bold text-gray-900 transition shadow-sm border border-gray-200"
                       >
                         -
                       </button>
-                      <span className="text-3xl font-black w-16 text-center text-gray-900">{formData.quantity}</span>
+                      <span className="text-3xl font-black w-14 text-center text-gray-900">{formData.quantity}</span>
                       <button
                         type="button"
                         onClick={() => setFormData(d => ({ ...d, quantity: Math.min(10, d.quantity + 1) }))}
-                        className="w-14 h-14 bg-white hover:bg-gray-100 rounded-xl text-2xl font-bold text-gray-900 transition shadow-sm border border-gray-200"
+                        className="w-12 h-12 bg-white hover:bg-gray-100 rounded-xl text-xl font-bold text-gray-900 transition shadow-sm border border-gray-200"
                       >
                         +
                       </button>
-                      <div className="ml-auto text-right">
-                        <p className="text-sm text-gray-500">{t('totalPrice')}</p>
-                        <span className="text-emerald-600 font-black text-3xl">
-                          {formatPrice(subtotal)}
+                    </div>
+
+                    {/* Bill Summary */}
+                    <div className="space-y-2 pt-4 border-t border-dashed border-gray-300">
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>পণ্যের মূল্য</span>
+                        <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>ডেলিভারি চার্জ</span>
+                        <span className="font-semibold text-gray-900">{formatPrice(shippingCost)}</span>
+                      </div>
+                      {bumpTotal > 0 && (
+                        <div className="flex justify-between text-sm text-emerald-600">
+                          <span>অতিরিক্ত অফার</span>
+                          <span className="font-semibold">+{formatPrice(bumpTotal)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
+                        <span className="font-black text-gray-900 text-lg">সর্বমোট বিল</span>
+                        <span className="font-black text-2xl text-emerald-600">
+                          {formatPrice(totalPrice)}
                         </span>
                       </div>
                     </div>
@@ -1492,15 +1510,25 @@ export function LandingPageTemplate({
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 text-white text-2xl font-bold rounded-xl shadow-lg transition transform hover:scale-[1.02]"
+                      className="group relative w-full py-5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-400 text-white text-2xl font-black rounded-xl shadow-xl transition transform hover:scale-[1.02] overflow-hidden"
                     >
-                      {isSubmitting ? (
-                        <span className="flex items-center justify-center gap-3">
-                          <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          {t('pleaseWait')}
+                      <span className="relative flex items-center justify-center gap-3">
+                        {isSubmitting ? (
+                          <span className="flex items-center justify-center gap-3">
+                            <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            {t('pleaseWait')}
+                          </span>
+                        ) : (
+                          <>
+                            <span>{t('orderNowBtn')}</span>
+                            <span className="text-3xl">➡️</span>
+                          </>
+                        )}
+                      </span>
+                    </button>
                         </span>
                       ) : (
                         `✓ ${t('confirmOrderBtn')} - ${formatPrice(totalPrice)}`
