@@ -578,40 +578,58 @@ export default function EditorToolbar({
           const wrapper = editor.getWrapper();
           if (!wrapper) return;
           
-          connections.forEach(conn => {
-            // Find components matching the selector pattern
-            const components = wrapper.findType('*').filter((comp: any) => {
-              const tagName = comp.get('tagName') || '';
-              const classes = comp.getClasses().join(' ');
-              const id = comp.get('id') || '';
-              
-              // Match by ID
-              if (conn.selector.startsWith('#') && id === conn.selector.slice(1)) {
-                return true;
-              }
-              // Match by tag and class
-              if (conn.selector.includes('.')) {
-                const [tag, ...classNames] = conn.selector.split('.');
-                const hasTag = !tag || tagName.toLowerCase() === tag.toLowerCase();
-                const hasClasses = classNames.every(c => classes.includes(c));
-                return hasTag && hasClasses;
-              }
-              return false;
-            });
+          try {
+            // Start an UndoManager transaction
+            (editor as any).UndoManager?.start();
             
-            // Apply attributes to matched components
-            components.forEach((comp: any) => {
-              comp.addAttributes({
-                'data-ozzyl-action': conn.actionType,
-                ...(conn.productId && { 'data-ozzyl-product': conn.productId.toString() }),
-                ...(conn.phoneNumber && { 'data-ozzyl-phone': conn.phoneNumber }),
-                ...(conn.messageTemplate && { 'data-ozzyl-message': conn.messageTemplate })
+            connections.forEach(conn => {
+              // Find components matching the selector pattern
+              const components = wrapper.findType('*').filter((comp: any) => {
+                const tagName = comp.get('tagName') || '';
+                const classes = comp.getClasses().join(' ');
+                const id = comp.get('id') || '';
+                
+                // Match by ID
+                if (conn.selector.startsWith('#') && id === conn.selector.slice(1)) {
+                  return true;
+                }
+                // Match by tag and class
+                if (conn.selector.includes('.')) {
+                  const [tag, ...classNames] = conn.selector.split('.');
+                  const hasTag = !tag || tagName.toLowerCase() === tag.toLowerCase();
+                  const hasClasses = classNames.every(c => classes.includes(c));
+                  return hasTag && hasClasses;
+                }
+                return false;
+              });
+              
+              // Apply attributes to matched components
+              components.forEach((comp: any) => {
+                comp.addAttributes({
+                  'data-ozzyl-action': conn.actionType,
+                  ...(conn.productId && { 'data-ozzyl-product': conn.productId.toString() }),
+                  ...(conn.phoneNumber && { 'data-ozzyl-phone': conn.phoneNumber }),
+                  ...(conn.messageTemplate && { 'data-ozzyl-message': conn.messageTemplate })
+                });
               });
             });
-          });
-          
-          setConnectedButtonsCount(connections.length);
-          toast.success(t('buttonsConnectedCount', { count: connections.length }));
+            
+            // End the transaction
+            (editor as any).UndoManager?.stop();
+            
+            // CRITICAL: Explicitly trigger storage to persist changes
+            editor.store().then(() => {
+              console.log('[ButtonConnector] Changes stored successfully');
+            }).catch(err => {
+              console.error('[ButtonConnector] Failed to store changes:', err);
+            });
+            
+            setConnectedButtonsCount(connections.length);
+            toast.success(t('buttonsConnectedCount', { count: connections.length }));
+          } catch (err) {
+            console.error('[ButtonConnector] Error applying connections:', err);
+            toast.error(t('errorApplyingConnections') || 'Failed to apply connections');
+          }
         }}
       />
     </div>
