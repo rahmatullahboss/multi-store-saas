@@ -23,6 +23,7 @@
 
 /* Desktop device: Full width canvas using parent data attribute */
 [data-gjs-device="Desktop"] .gjs-frame-wrapper,
+#gjs[data-gjs-device="Desktop"] .gjs-frame-wrapper,
 .gjs-frame-wrapper.desktop-full-width {
     width: 100% !important;
     max-width: 100% !important;
@@ -35,6 +36,7 @@
 
 /* Also target the frame element inside wrapper for Desktop */
 [data-gjs-device="Desktop"] .gjs-frame-wrapper iframe,
+#gjs[data-gjs-device="Desktop"] .gjs-frame-wrapper iframe,
 .gjs-frame-wrapper.desktop-full-width iframe {
     width: 100% !important;
 }
@@ -48,7 +50,9 @@
 
 /* Desktop: Full width frames container - target all parent elements */
 [data-gjs-device="Desktop"] .gjs-cv-canvas,
-[data-gjs-device="Desktop"] .gjs-cv-canvas__frames {
+[data-gjs-device="Desktop"] .gjs-cv-canvas__frames,
+#gjs[data-gjs-device="Desktop"] .gjs-cv-canvas,
+#gjs[data-gjs-device="Desktop"] .gjs-cv-canvas__frames {
     width: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
@@ -56,7 +60,8 @@
 }
 
 /* Ensure the canvas wrapper itself also fills space */
-[data-gjs-device="Desktop"] .gjs-cv-canvas {
+[data-gjs-device="Desktop"] .gjs-cv-canvas,
+#gjs[data-gjs-device="Desktop"] .gjs-cv-canvas {
     flex: 1 1 0% !important;
 }
 

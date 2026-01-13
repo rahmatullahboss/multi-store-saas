@@ -441,8 +441,8 @@ export default function GrapesEditor({
     : undefined;
 
   return (
-    <div className="h-full w-full flex flex-col bg-white">
-      <div className="flex flex-col h-full overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-white overflow-hidden">
+      <div className="flex flex-col h-full min-h-0 overflow-hidden">
         {/* Toolbar */}
         <EditorToolbar 
           isAiLocked={isAiLocked} 

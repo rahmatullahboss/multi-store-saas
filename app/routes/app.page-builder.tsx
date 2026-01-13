@@ -234,7 +234,7 @@ export default function PageBuilderRoute() {
            </div>
         </div>
 
-        <div className="flex-1 relative">
+        <div className="flex-1 relative flex flex-col overflow-hidden">
           <ClientOnly fallback={
             <div className="flex items-center justify-center h-full bg-gray-50/50">
                <div className="animate-pulse flex flex-col items-center gap-4">

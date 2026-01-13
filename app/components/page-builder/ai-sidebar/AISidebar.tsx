@@ -22,7 +22,7 @@ interface AISidebarProps {
 
 export function AISidebar({ editor, isOpen, onClose }: AISidebarProps) {
   const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Hooks
@@ -39,8 +39,10 @@ export function AISidebar({ editor, isOpen, onClose }: AISidebarProps) {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [messages, pendingResponse, isLoading]);
 
   // Focus input when opened
   useEffect(() => {
@@ -96,8 +98,11 @@ export function AISidebar({ editor, isOpen, onClose }: AISidebarProps) {
         <ContextDisplay selectedComponent={selectedComponent} />
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+      {/* Messages Area */}
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3 scroll-smooth custom-scrollbar"
+      >
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
@@ -118,8 +123,6 @@ export function AISidebar({ editor, isOpen, onClose }: AISidebarProps) {
             onReject={rejectAction}
           />
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Suggestions */}
