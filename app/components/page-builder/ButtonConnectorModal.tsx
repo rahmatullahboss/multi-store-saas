@@ -127,14 +127,20 @@ export default function ButtonConnectorModal({
         if (!text || text.length > 50) return; // Skip empty or very long text
         
         const tagName = el.tagName.toLowerCase();
-        const type = detectButtonType(text);
+        
+        // Check for existing connections
+        const existingAction = el.getAttribute('data-ozzyl-action') as ButtonActionType | null;
+        const existingProduct = el.getAttribute('data-ozzyl-product');
+        const existingPhone = el.getAttribute('data-ozzyl-phone');
+        
+        const type = existingAction || detectButtonType(text);
         
         // Generate a selector
         let selector = '';
         if (el.id) {
           selector = `#${el.id}`;
         } else if (el.className && typeof el.className === 'string') {
-          const classes = el.className.split(' ').filter(c => c && !c.includes(':'));
+          const classes = el.className.split(' ').filter(c => c && !c.includes(':') && !c.includes('[') && !c.includes(']'));
           if (classes.length > 0) {
             selector = `${tagName}.${classes.slice(0, 2).join('.')}`;
           }
@@ -149,7 +155,9 @@ export default function ButtonConnectorModal({
           tagName,
           type,
           selector,
-          connected: false
+          connected: !!existingAction,
+          productId: existingProduct ? parseInt(existingProduct) : undefined,
+          phoneNumber: existingPhone || undefined
         });
       });
 
