@@ -119,7 +119,7 @@ export const dashboard = {
   navOverview: 'ওভারভিউ',
   navReports: 'রিপোর্ট',
   sidebarSettings: 'সেটিংস',
-  navPageBuilder: 'ল্যান্ডিং পেজ এডিটর',
+  navPageBuilder: 'ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার',
   navStoreTemplates: 'স্টোর ডিজাইন',
   navHomepage: 'হোমপেজ সেটিংস',
   navShipping: 'শিপিং',
