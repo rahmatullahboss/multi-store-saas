@@ -132,9 +132,12 @@ export function useAIChat(
     }
   }, [selectedComponent]);
 
+  const lastProcessedDataRef = useRef<any>(null);
+
   // Handle fetcher data changes
   useEffect(() => {
-    if (fetcher.data) {
+    if (fetcher.data && fetcher.data !== lastProcessedDataRef.current) {
+      lastProcessedDataRef.current = fetcher.data;
       processResponse(fetcher.data);
     }
   }, [fetcher.data, processResponse]);
