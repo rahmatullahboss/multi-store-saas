@@ -121,6 +121,62 @@ export default function PageBuilderPreview() {
       <div className="pt-10">
         <style dangerouslySetInnerHTML={{ __html: css }} />
         <div dangerouslySetInnerHTML={{ __html: html }} />
+        
+        {/* Button Action Handler Script */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            function initHandlers() {
+              var buttons = document.querySelectorAll('[data-ozzyl-action]');
+              buttons.forEach(function(button) {
+                var action = button.getAttribute('data-ozzyl-action');
+                var productId = button.getAttribute('data-ozzyl-product');
+                var phoneNumber = button.getAttribute('data-ozzyl-phone');
+                var message = button.getAttribute('data-ozzyl-message');
+                
+                button.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  
+                  if (action === 'order') {
+                    var orderForm = document.querySelector('#order-form, #order, [data-order-form]');
+                    if (orderForm) {
+                      orderForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                      alert('Order Now button clicked! Product ID: ' + productId);
+                    }
+                  } else if (action === 'cart') {
+                    if (productId) {
+                      var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                      var idx = cart.findIndex(function(item) { return item.productId == productId; });
+                      if (idx >= 0) { cart[idx].quantity += 1; } else { cart.push({ productId: parseInt(productId), quantity: 1 }); }
+                      localStorage.setItem('cart', JSON.stringify(cart));
+                      window.dispatchEvent(new Event('cart-updated'));
+                      alert('Added to cart! 🛒');
+                    }
+                  } else if (action === 'whatsapp') {
+                    if (phoneNumber) {
+                      var phone = phoneNumber.replace(/[^0-9]/g, '');
+                      if (phone.startsWith('01') && phone.length === 11) phone = '880' + phone.substring(1);
+                      var url = 'https://wa.me/' + phone;
+                      if (message) url += '?text=' + encodeURIComponent(message);
+                      window.open(url, '_blank');
+                    }
+                  } else if (action === 'call') {
+                    if (phoneNumber) {
+                      window.location.href = 'tel:' + phoneNumber.replace(/[^0-9+]/g, '');
+                    }
+                  }
+                });
+              });
+              console.log('[ButtonActionHandler] Initialized ' + buttons.length + ' button(s)');
+            }
+            
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', initHandlers);
+            } else {
+              initHandlers();
+            }
+          })();
+        ` }} />
       </div>
     </>
   );

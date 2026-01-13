@@ -18,11 +18,14 @@ import {
   Lock,
   Layout,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Link2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import CodeEditor from './CodeEditor';
+import ButtonConnectorModal, { type ButtonConnection } from './ButtonConnectorModal';
+import { generateHandlerScript } from './ButtonActionHandler';
 
 export default function EditorToolbar({ 
   isAiLocked = false,
@@ -35,10 +38,12 @@ export default function EditorToolbar({
   publishedPageUrl?: string,
   pageId?: string
 }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const editor = useEditorMaybe();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
+  const [isConnectorModalOpen, setIsConnectorModalOpen] = useState(false);
+  const [connectedButtonsCount, setConnectedButtonsCount] = useState(0);
 
   const [selectedComponent, setSelectedComponent] = useState<any>(null);
 
@@ -421,6 +426,25 @@ export default function EditorToolbar({
           {t('code')}
         </button>
 
+        {/* Connect with Backend Button */}
+        <button 
+          onClick={() => setIsConnectorModalOpen(true)}
+          className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition border ${
+            connectedButtonsCount > 0
+              ? 'text-indigo-600 bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
+              : 'text-gray-600 hover:bg-gray-100 border-transparent hover:border-gray-200'
+          }`}
+          title={lang === 'bn' ? 'বাটন কানেক্ট করুন' : 'Connect buttons to backend'}
+        >
+          <Link2 size={14} />
+          {lang === 'bn' ? 'কানেক্ট' : 'Connect'}
+          {connectedButtonsCount > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 bg-indigo-600 text-white text-[10px] rounded-full leading-none">
+              {connectedButtonsCount}
+            </span>
+          )}
+        </button>
+
         <button 
           onClick={async () => {
             if (pageId) {
@@ -513,6 +537,58 @@ export default function EditorToolbar({
            </div>
         </div>
       )}
+
+      {/* Button Connector Modal */}
+      <ButtonConnectorModal
+        isOpen={isConnectorModalOpen}
+        onClose={() => setIsConnectorModalOpen(false)}
+        htmlContent={editor?.getHtml() || ''}
+        onApply={(connections) => {
+          if (!editor) return;
+          
+          // Apply connections to the HTML
+          const wrapper = editor.getWrapper();
+          if (!wrapper) return;
+          
+          connections.forEach(conn => {
+            // Find components matching the selector pattern
+            const components = wrapper.findType('*').filter((comp: any) => {
+              const tagName = comp.get('tagName') || '';
+              const classes = comp.getClasses().join(' ');
+              const id = comp.get('id') || '';
+              
+              // Match by ID
+              if (conn.selector.startsWith('#') && id === conn.selector.slice(1)) {
+                return true;
+              }
+              // Match by tag and class
+              if (conn.selector.includes('.')) {
+                const [tag, ...classNames] = conn.selector.split('.');
+                const hasTag = !tag || tagName.toLowerCase() === tag.toLowerCase();
+                const hasClasses = classNames.every(c => classes.includes(c));
+                return hasTag && hasClasses;
+              }
+              return false;
+            });
+            
+            // Apply attributes to matched components
+            components.forEach((comp: any) => {
+              comp.addAttributes({
+                'data-ozzyl-action': conn.actionType,
+                ...(conn.productId && { 'data-ozzyl-product': conn.productId.toString() }),
+                ...(conn.phoneNumber && { 'data-ozzyl-phone': conn.phoneNumber }),
+                ...(conn.messageTemplate && { 'data-ozzyl-message': conn.messageTemplate })
+              });
+            });
+          });
+          
+          setConnectedButtonsCount(connections.length);
+          toast.success(lang === 'bn' 
+            ? `${connections.length}টি বাটন কানেক্ট করা হয়েছে!` 
+            : `${connections.length} button(s) connected!`
+          );
+        }}
+      />
     </div>
   );
 }
