@@ -1,0 +1,308 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - img "Ozzyl" [ref=e9]
+          - generic [ref=e10]:
+            - heading "Updated Store Name" [level=2] [ref=e11]
+            - paragraph [ref=e12]: test-store-80927
+        - link "স্টোরে যান" [ref=e13] [cursor=pointer]:
+          - /url: https://test-store-80927.digitalcare.site
+          - img [ref=e14]
+          - text: স্টোরে যান
+      - navigation [ref=e18]:
+        - generic [ref=e20]:
+          - link "ড্যাশবোর্ড" [ref=e21] [cursor=pointer]:
+            - /url: /app/dashboard
+            - img [ref=e22]
+            - text: ড্যাশবোর্ড
+          - link "টিউটোরিয়াল" [ref=e27] [cursor=pointer]:
+            - /url: /app/tutorials
+            - img [ref=e28]
+            - text: টিউটোরিয়াল
+        - generic [ref=e30]:
+          - generic [ref=e31]: ক্যাটালগ
+          - generic [ref=e32]:
+            - link "পণ্য" [ref=e33] [cursor=pointer]:
+              - /url: /app/products
+              - img [ref=e34]
+              - text: পণ্য
+            - link "ইনভেন্টরি" [ref=e38] [cursor=pointer]:
+              - /url: /app/inventory
+              - img [ref=e39]
+              - text: ইনভেন্টরি
+            - link "ছাড়" [ref=e42] [cursor=pointer]:
+              - /url: /app/discounts
+              - img [ref=e43]
+              - text: ছাড়
+        - generic [ref=e46]:
+          - generic [ref=e47]: অর্ডার
+          - generic [ref=e48]:
+            - link "সব অর্ডার" [ref=e49] [cursor=pointer]:
+              - /url: /app/orders
+              - img [ref=e50]
+              - text: সব অর্ডার
+            - link "পরিত্যক্ত কার্ট" [ref=e54] [cursor=pointer]:
+              - /url: /app/abandoned-carts
+              - img [ref=e55]
+              - text: পরিত্যক্ত কার্ট
+        - generic [ref=e58]:
+          - generic [ref=e59]: মার্কেটিং
+          - generic [ref=e60]:
+            - link "ক্যাম্পেইন" [ref=e61] [cursor=pointer]:
+              - /url: /app/campaigns
+              - img [ref=e62]
+              - text: ক্যাম্পেইন
+            - link "ওজিল (OZZYL) AI অ্যাসিস্ট্যান্ট ওজিল (OZZYL) AI অ্যাসিস্ট্যান্ট" [ref=e65] [cursor=pointer]:
+              - /url: /app/agent
+              - img "ওজিল (OZZYL) AI অ্যাসিস্ট্যান্ট" [ref=e66]
+              - text: ওজিল (OZZYL) AI অ্যাসিস্ট্যান্ট
+            - link "সাবস্ক্রাইবার" [ref=e67] [cursor=pointer]:
+              - /url: /app/subscribers
+              - img [ref=e68]
+              - text: সাবস্ক্রাইবার
+            - link "রিভিউ" [ref=e71] [cursor=pointer]:
+              - /url: /app/reviews
+              - img [ref=e72]
+              - text: রিভিউ
+        - generic [ref=e74]:
+          - generic [ref=e75]: অ্যানালিটিক্স
+          - generic [ref=e76]:
+            - link "ওভারভিউ" [ref=e77] [cursor=pointer]:
+              - /url: /app/analytics
+              - img [ref=e78]
+              - text: ওভারভিউ
+            - link "রিপোর্ট" [ref=e80] [cursor=pointer]:
+              - /url: /app/reports
+              - img [ref=e81]
+              - text: রিপোর্ট
+        - generic [ref=e84]:
+          - generic [ref=e85]: সেটিংস
+          - generic [ref=e86]:
+            - link "সিম্পল ল্যান্ডিং বিল্ডার" [ref=e87] [cursor=pointer]:
+              - /url: /landing-live-editor
+              - img [ref=e88]
+              - text: সিম্পল ল্যান্ডিং বিল্ডার
+            - link "অ্যাডভান্সড বিল্ডার (কাজ চলছে)" [ref=e92] [cursor=pointer]:
+              - /url: /app/page-builder
+              - img [ref=e93]
+              - text: অ্যাডভান্সড বিল্ডার (কাজ চলছে)
+            - link "স্টোর ডিজাইন" [ref=e98] [cursor=pointer]:
+              - /url: /app/store-design
+              - img [ref=e99]
+              - text: স্টোর ডিজাইন
+            - link "হোমপেজ সেটিংস" [active] [ref=e105] [cursor=pointer]:
+              - /url: /app/settings/homepage
+              - img [ref=e106]
+              - text: হোমপেজ সেটিংস
+            - link "শিপিং" [ref=e109] [cursor=pointer]:
+              - /url: /app/settings/shipping
+              - img [ref=e110]
+              - text: শিপিং
+            - link "ডোমেইন" [ref=e115] [cursor=pointer]:
+              - /url: /app/settings/domain
+              - img [ref=e116]
+              - text: ডোমেইন
+            - link "বিলিং" [ref=e119] [cursor=pointer]:
+              - /url: /app/billing
+              - img [ref=e120]
+              - text: বিলিং
+            - link "AI ক্রেডিট" [ref=e122] [cursor=pointer]:
+              - /url: /app/credits
+              - img [ref=e123]
+              - text: AI ক্রেডিট
+            - link "সব সেটিংস" [ref=e126] [cursor=pointer]:
+              - /url: /app/settings
+              - img [ref=e127]
+              - text: সব সেটিংস
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - generic [ref=e133]: T
+          - generic [ref=e134]:
+            - paragraph [ref=e135]: Test Merchant
+            - paragraph [ref=e136]: test@example.com
+        - button "লগআউট" [ref=e138]:
+          - img [ref=e139]
+          - text: লগআউট
+  - generic [ref=e142]:
+    - banner [ref=e143]:
+      - generic [ref=e145]:
+        - button "🇬🇧English" [ref=e146]
+        - button "🇧🇩বাংলা" [ref=e147]
+    - main [ref=e148]:
+      - generic [ref=e150]:
+        - generic [ref=e152]:
+          - img [ref=e153]
+          - generic [ref=e155]:
+            - heading "সীমা অতিক্রম করেছে!" [level=3] [ref=e156]
+            - paragraph [ref=e157]:
+              - generic [ref=e158]: প্রোডাক্ট ১০০%
+              - text: ব্যবহার হয়েছে। নতুন প্রোডাক্ট যোগ করা যাবে না। আপগ্রেড করুন।
+            - generic [ref=e159]:
+              - link "আপগ্রেড করুন" [ref=e160] [cursor=pointer]:
+                - /url: /app/upgrade
+                - text: আপগ্রেড করুন
+                - img [ref=e161]
+              - link "বিস্তারিত দেখুন" [ref=e164] [cursor=pointer]:
+                - /url: /app/billing
+        - generic [ref=e166]:
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - img [ref=e169]
+              - generic [ref=e172]: শুভ সন্ধ্যা
+            - heading "স্বাগতম Updated Store Name" [level=1] [ref=e173]
+            - paragraph [ref=e174]: আপনার স্টোরের আজকের অবস্থা দেখুন।
+          - link "স্টোর দেখুন" [ref=e175] [cursor=pointer]:
+            - /url: https://test-store-80927.digitalcare.site
+            - img [ref=e176]
+            - text: স্টোর দেখুন
+        - generic [ref=e180]:
+          - generic [ref=e182]:
+            - generic [ref=e183]:
+              - heading "Let's get your first sale!" [level=2] [ref=e184]:
+                - img [ref=e185]
+                - text: Let's get your first sale!
+              - paragraph [ref=e191]: Complete these steps to launch your business effectively.
+            - generic [ref=e192]:
+              - generic [ref=e193]: 33%
+              - generic [ref=e194]: Ready
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - img [ref=e200]
+              - generic [ref=e203]:
+                - heading "Add your first product" [level=3] [ref=e204]
+                - paragraph [ref=e205]: Start by adding a product to sell.
+              - generic [ref=e207]: Done
+            - generic [ref=e208]:
+              - img [ref=e210]
+              - generic [ref=e214]:
+                - heading "Visit your store" [level=3] [ref=e215]
+                - paragraph [ref=e216]: See how your store looks to customers.
+              - link "View Store" [ref=e218] [cursor=pointer]:
+                - /url: https://test-store-80927.digitalcare.site
+                - text: View Store
+                - img [ref=e219]
+            - generic [ref=e221]:
+              - img [ref=e223]
+              - generic [ref=e229]:
+                - heading "Share your store link" [level=3] [ref=e230]
+                - paragraph [ref=e231]: Share on social media to get visitors.
+              - button "Copy Link" [ref=e233]
+        - generic [ref=e234]:
+          - generic [ref=e235]:
+            - generic [ref=e236]:
+              - img [ref=e238]
+              - generic [ref=e240]:
+                - img [ref=e241]
+                - generic [ref=e242]: 0%
+            - paragraph [ref=e243]: আজকের বিক্রি
+            - paragraph [ref=e244]: ০৳
+            - paragraph [ref=e245]: গতকালের তুলনায়
+          - generic [ref=e246]:
+            - img [ref=e249]
+            - paragraph [ref=e252]: মোট আয়
+            - paragraph [ref=e253]: ০৳
+          - link "পেন্ডিং অর্ডার 0" [ref=e254] [cursor=pointer]:
+            - /url: /app/orders?status=pending
+            - generic [ref=e255]:
+              - img [ref=e258]
+              - paragraph [ref=e261]: পেন্ডিং অর্ডার
+              - paragraph [ref=e262]: "0"
+          - link "মোট প্রোডাক্ট 1" [ref=e263] [cursor=pointer]:
+            - /url: /app/products
+            - generic [ref=e264]:
+              - img [ref=e267]
+              - paragraph [ref=e271]: মোট প্রোডাক্ট
+              - paragraph [ref=e272]: "1"
+        - generic [ref=e273]:
+          - generic [ref=e274]:
+            - generic [ref=e275]:
+              - generic [ref=e276]:
+                - heading "বিক্রির ওভারভিউ" [level=2] [ref=e277]
+                - generic [ref=e278]: গত ৭ দিন
+              - generic [ref=e279]:
+                - generic [ref=e280]:
+                  - paragraph [ref=e283]: 2026-01-07
+                  - paragraph [ref=e286]: 2026-01-08
+                  - paragraph [ref=e289]: 2026-01-09
+                  - paragraph [ref=e292]: 2026-01-10
+                  - paragraph [ref=e295]: 2026-01-11
+                  - paragraph [ref=e298]: 2026-01-12
+                  - paragraph [ref=e301]: 2026-01-13
+                - generic [ref=e302]:
+                  - generic [ref=e303]:
+                    - paragraph [ref=e304]: মোট বিক্রি
+                    - paragraph [ref=e305]: BDT 0
+                  - generic [ref=e306]:
+                    - paragraph [ref=e307]: গড়/দিন
+                    - paragraph [ref=e308]: BDT 0
+            - generic [ref=e309]:
+              - generic [ref=e310]:
+                - heading "সাম্প্রতিক অর্ডার" [level=2] [ref=e311]
+                - link "সবগুলো দেখুন" [ref=e312] [cursor=pointer]:
+                  - /url: /app/orders
+              - generic [ref=e313]:
+                - img [ref=e315]
+                - heading "No orders yet" [level=3] [ref=e319]
+                - paragraph [ref=e320]: Orders will appear here when customers place them
+          - generic [ref=e321]:
+            - generic [ref=e322]:
+              - generic [ref=e323]:
+                - heading "বৃদ্ধির সুযোগ" [level=3] [ref=e324]:
+                  - img [ref=e325]
+                  - text: বৃদ্ধির সুযোগ
+                - generic [ref=e328]: AI ইনসাইটস
+              - generic [ref=e329]:
+                - generic [ref=e330]:
+                  - generic [ref=e331]:
+                    - generic [ref=e332]: রাজস্ব পূর্বাভাস (৭ দিন)
+                    - generic [ref=e333]: BDT 0
+                  - paragraph [ref=e334]: সাম্প্রতিক ট্রেন্ডের ভিত্তিতে, আপনি আগামী সপ্তাহে এই পরিমাণ আয় করতে পারেন।
+                - generic [ref=e335]:
+                  - heading "প্রস্তাবিত পদক্ষেপ" [level=4] [ref=e336]
+                  - generic [ref=e337] [cursor=pointer]:
+                    - img [ref=e339]
+                    - generic [ref=e344]:
+                      - paragraph [ref=e345]: রিটেনশন ক্যাম্পেইন শুরু করুন
+                      - paragraph [ref=e346]: ক্রয়ের হার কম। ইনঅ্যাকটিভ কাস্টমারদের এসএমএস পাঠান।
+                    - img [ref=e347]
+                  - generic [ref=e349] [cursor=pointer]:
+                    - img [ref=e351]
+                    - generic [ref=e354]:
+                      - paragraph [ref=e355]: অর্ডার বাম্পস (Order Bumps) চালু করুন
+                      - paragraph [ref=e356]: AOV প্রত্যাশিত মাত্রার চেয়ে কম। এটি বাড়াতে চেকআউট ক্রস-সেল যোগ করুন।
+                    - img [ref=e357]
+              - link "সম্পূর্ণ অ্যানালিটিক্স রিপোর্ট দেখুন" [ref=e360] [cursor=pointer]:
+                - /url: /app/analytics
+                - text: সম্পূর্ণ অ্যানালিটিক্স রিপোর্ট দেখুন
+                - img [ref=e361]
+            - generic [ref=e363]:
+              - heading "করণীয় কাজ" [level=2] [ref=e364]
+              - generic [ref=e365]:
+                - img [ref=e367]
+                - heading "সব কাজ শেষ!" [level=3] [ref=e370]
+                - paragraph [ref=e371]: কোনো কাজ বাকি নেই।
+        - generic [ref=e372]:
+          - link "পণ্য যোগ করুন" [ref=e373] [cursor=pointer]:
+            - /url: /app/products/new
+            - img [ref=e375]
+            - generic [ref=e379]: পণ্য যোগ করুন
+          - link "অর্ডার দেখুন" [ref=e380] [cursor=pointer]:
+            - /url: /app/orders
+            - img [ref=e382]
+            - generic [ref=e386]: অর্ডার দেখুন
+          - link "অ্যানালিটিক্স" [ref=e387] [cursor=pointer]:
+            - /url: /app/analytics
+            - img [ref=e389]
+            - generic [ref=e392]: অ্যানালিটিক্স
+          - link "সেটিংস" [ref=e393] [cursor=pointer]:
+            - /url: /app/settings
+            - img [ref=e395]
+            - generic [ref=e398]: সেটিংস
+  - button "Ozzyl AI" [ref=e399]:
+    - img "Ozzyl AI" [ref=e402]
+```
