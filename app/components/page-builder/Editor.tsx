@@ -77,21 +77,24 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
      * This fixes:
      * 1. Duplicate sections - by using parent.append with exact position
      * 2. Wrong section replacement - by inserting AFTER selected, not replacing
+     * NOTE: Don't auto-select to avoid event loops
      */
     const insertAfterSelected = (html: string) => {
       const selected = editor.getSelected();
+      
+      // For section-level components (direct children of wrapper), insert after selected
       if (selected && selected !== editor.getWrapper()) {
-        // Get parent of selected element
         const parent = selected.parent();
+        // Check if parent is the wrapper (section-level insertion)
+        if (parent && parent === editor.getWrapper()) {
+          const selectedIndex = selected.index();
+          // Insert after the selected section
+          return parent.append(html, { at: selectedIndex + 1 });
+        }
+        // For nested elements, also insert after selected but in its parent
         if (parent) {
           const selectedIndex = selected.index();
-          // Insert after the selected component
-          const added = parent.append(html, { at: selectedIndex + 1 });
-          // Select the first added component
-          if (added && added.length > 0) {
-            editor.select(added[0]);
-          }
-          return added;
+          return parent.append(html, { at: selectedIndex + 1 });
         }
       }
       // Fallback: append to wrapper (page end)
