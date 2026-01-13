@@ -10,9 +10,10 @@ interface NovaLuxFooterProps {
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   categories: (string | null)[];
+  planType?: string;
 }
 
-export function NovaLuxFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories = [] }: NovaLuxFooterProps) {
+export function NovaLuxFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories = [], planType = 'free' }: NovaLuxFooterProps) {
   const THEME = {
     primary: NOVALUX_THEME.primary,
     accent: NOVALUX_THEME.accent,
@@ -92,6 +93,22 @@ export function NovaLuxFooter({ storeName, logo, socialLinks, footerConfig, busi
             </ul>
           </div>
         </div>
+        
+        {/* Viral Loop / Branding */}
+        {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+          <div className="mt-16 pt-8 border-t border-white/10 flex justify-center items-center">
+            <a 
+              href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[10px] text-white/40 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              style={{ color: THEME.accent }}
+            >
+              <span style={{ color: 'rgba(255,255,255,0.4)' }}>Powered by</span>
+              <span className="font-bold tracking-tight text-sm">Ozzyl</span>
+            </a>
+          </div>
+        )}
       </div>
     </footer>
   );

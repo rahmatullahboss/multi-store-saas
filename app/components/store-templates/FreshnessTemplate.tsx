@@ -75,6 +75,7 @@ export function FreshnessTemplate({
   socialLinks,
   footerConfig,
   businessInfo,
+  planType = 'free',
   isPreview,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -413,10 +414,25 @@ export function FreshnessTemplate({
                  </div>
               </div>
 
-               <div className="border-t py-8 flex flex-col md:flex-row items-center justify-between gap-6" style={{ borderColor: THEME.border }}>
+               <div className="border-t py-8 flex flex-col items-center justify-center gap-4" style={{ borderColor: THEME.border }}>
                   <p className="text-gray-500 text-sm">
                     © {new Date().getFullYear()} <span className="font-bold" style={{ color: THEME.primary }}>{storeName}</span>. All Rights Reserved.
                   </p>
+
+                  {/* Viral Loop / Branding */}
+                  {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+                    <div className="flex justify-center items-center">
+                      <a 
+                        href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-gray-400 hover:text-green-600 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+                      >
+                        <span>Powered by</span>
+                        <span className="font-bold tracking-tight text-sm text-green-700">Ozzyl</span>
+                      </a>
+                    </div>
+                  )}
                </div>
             </div>
           </footer>

@@ -56,6 +56,7 @@ export function TechModernTemplate({
   socialLinks,
   footerConfig,
   businessInfo,
+  planType = 'free',
   isPreview,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -368,6 +369,22 @@ export function TechModernTemplate({
         <div className="border-t border-white/10 py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/50">
             <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+            
+            {/* Viral Loop / Branding */}
+            {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+              <div className="flex justify-center items-center">
+                <a 
+                  href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-white/30 hover:text-blue-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+                >
+                  <span>Powered by</span>
+                  <span className="font-bold tracking-tight text-sm text-white/60">Ozzyl</span>
+                </a>
+              </div>
+            )}
+
             <div className="flex gap-6">
               <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
               <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>

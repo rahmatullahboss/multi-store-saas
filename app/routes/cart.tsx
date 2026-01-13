@@ -66,6 +66,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     socialLinks,
     businessInfo,
     themeConfig, // Return theme config to check for cart sections
+    planType: storeData?.planType || 'free',
   });
 }
 
@@ -109,7 +110,8 @@ export default function Cart() {
     theme,
     socialLinks,
     businessInfo,
-    themeConfig 
+    themeConfig,
+    planType
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { t } = useTranslation();
@@ -425,6 +427,7 @@ export default function Cart() {
       currency={currency}
       socialLinks={socialLinks}
       businessInfo={businessInfo}
+      planType={planType}
     >
       {cartContent}
     </StorePageWrapper>

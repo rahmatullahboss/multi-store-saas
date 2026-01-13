@@ -28,6 +28,7 @@ interface StorePageWrapperProps {
   currentCategory?: string | null;
   config?: ThemeConfig | null;
   footerConfig?: FooterConfig | null;
+  planType?: string;
   isPreview?: boolean;
 }
 
@@ -46,6 +47,7 @@ export function StorePageWrapper({
   currentCategory,
   config,
   footerConfig,
+  planType = 'free',
   isPreview = false,
 }: StorePageWrapperProps) {
   // Get template from registry
@@ -125,6 +127,8 @@ export function StorePageWrapper({
               templateId={templateId}
               socialLinks={socialLinks}
               businessInfo={businessInfo}
+              planType={planType}
+              showPoweredBy={footerConfig?.showPoweredBy ?? true}
             />
           )
         )}

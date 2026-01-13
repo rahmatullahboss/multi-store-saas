@@ -10,9 +10,10 @@ interface EclipseFooterProps {
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   categories?: (string | null)[];
+  planType?: string;
 }
 
-export function EclipseFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories }: EclipseFooterProps) {
+export function EclipseFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories, planType = 'free' }: EclipseFooterProps) {
   return (
     <footer 
       className="relative overflow-hidden pt-20 pb-10 px-4"
@@ -69,6 +70,22 @@ export function EclipseFooter({ storeName, logo, socialLinks, footerConfig, busi
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-white/30">
           <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+
+          {/* Viral Loop / Branding */}
+          {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+            <div className="flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-white/40 hover:text-purple-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-xs text-white/60">Ozzyl</span>
+              </a>
+            </div>
+          )}
+
           <div className="flex gap-6 mt-4 md:mt-0">
             <span className="flex items-center gap-2"><Globe size={14} /> Global Delivery</span>
             <span className="flex items-center gap-2"><Monitor size={14} /> Secure Payment</span>

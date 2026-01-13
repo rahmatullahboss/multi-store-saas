@@ -68,6 +68,7 @@ interface LoaderData {
   product: Product;
   landingConfig: LandingConfig;
   isCustomerAiEnabled: boolean;
+  planType: string;
 }
 
 // ============================================================================
@@ -196,6 +197,7 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
       product,
       landingConfig,
       isCustomerAiEnabled: (resolvedStore as Store & { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled ?? false,
+      planType: resolvedStore.planType || 'free',
     };
 
     return json(loaderData);
@@ -226,6 +228,7 @@ export default function OfferProductPage() {
       isPreview={false}
       isEditMode={false}
       isCustomerAiEnabled={data.isCustomerAiEnabled}
+      planType={data.planType}
     />
   );
 }

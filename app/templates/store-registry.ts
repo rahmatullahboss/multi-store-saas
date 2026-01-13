@@ -40,6 +40,7 @@ export interface StoreTemplateProps {
   socialLinks?: SocialLinks | null;
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  planType?: string;
   isPreview?: boolean; // When true, disables API calls and shows preview mode UI
 }
 
@@ -63,6 +64,7 @@ export interface StoreFooterProps {
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   categories: (string | null)[];
+  planType?: string;
 }
 
 // ============================================================================

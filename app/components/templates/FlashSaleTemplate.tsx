@@ -97,6 +97,7 @@ interface FlashSaleTemplateProps {
   initialStock?: number;
   isPreview?: boolean;
   manualPaymentConfig?: ManualPaymentConfig | null;
+  planType?: string;
 }
 
 // ============================================================================
@@ -116,6 +117,7 @@ export function FlashSaleTemplate({
   initialStock = 15,
   isPreview = false,
   manualPaymentConfig,
+  planType = 'free',
 }: FlashSaleTemplateProps) {
   const fetcher = useFetcher<{ success: boolean; orderNumber?: string; error?: string }>();
   
@@ -900,9 +902,24 @@ export function FlashSaleTemplate({
       {/* ================================================================
           FOOTER - MINIMAL
           ================================================================ */}
-      <footer className="bg-black py-6 border-t border-gray-800">
+      <footer className="bg-black py-10 border-t border-gray-800">
         <div className="max-w-4xl mx-auto px-4 text-center text-gray-500 text-sm">
           <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-8 pt-6 border-t border-white/5 flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=flash-sale-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-gray-300">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </footer>
 

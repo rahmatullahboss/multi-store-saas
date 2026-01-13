@@ -34,6 +34,7 @@ export interface TemplateProps {
   isPreview?: boolean;
   isEditMode?: boolean;  // For Magic Editor integration
   isCustomerAiEnabled?: boolean; // For AI Sales Agent
+  planType?: string; // For Growth Branding Loop
   manualPaymentConfig?: ManualPaymentConfig | null; // For checkout
   onConfigChange?: (newConfig: LandingConfig) => void;
   // Product variants for variant selection in order forms

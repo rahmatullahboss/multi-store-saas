@@ -10,9 +10,10 @@ interface BDShopFooterProps {
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   categories: (string | null)[];
+  planType?: string;
 }
 
-export function BDShopFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories }: BDShopFooterProps) {
+export function BDShopFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories, planType = 'free' }: BDShopFooterProps) {
   return (
     <footer style={{ backgroundColor: BDSHOP_THEME.footerBg }} className="text-white pt-10 pb-8">
       <div className="max-w-7xl mx-auto px-4">
@@ -50,8 +51,23 @@ export function BDShopFooter({ storeName, logo, socialLinks, footerConfig, busin
           </div>
         </div>
         
-        <div className="border-t border-white/10 pt-8 text-center md:text-left">
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-white/50">© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+          
+          {/* Viral Loop / Branding */}
+          {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+            <div className="flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-white/40 hover:text-orange-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-xs text-white/60">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </footer>

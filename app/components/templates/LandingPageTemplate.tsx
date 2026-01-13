@@ -164,6 +164,7 @@ interface LandingPageTemplateProps {
       imageUrl?: string | null;
     };
   }>;
+  planType?: string;
 }
 
 export function LandingPageTemplate({
@@ -178,6 +179,7 @@ export function LandingPageTemplate({
   onConfigChange,
   productVariants = [],
   orderBumps = [],
+  planType = 'free',
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -1569,6 +1571,21 @@ export function LandingPageTemplate({
             <span className="opacity-50">•</span>
             <a href="/policies/refund" className="hover:text-white transition">Refund Policy</a>
           </div>
+
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-8 pt-4 border-t border-gray-100/10 flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=landing-page-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-gray-400 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-white">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </footer>
 

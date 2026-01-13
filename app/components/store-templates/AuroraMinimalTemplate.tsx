@@ -78,6 +78,7 @@ export function AuroraMinimalTemplate({
   socialLinks,
   footerConfig,
   businessInfo,
+  planType = 'free',
   isPreview,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -667,13 +668,30 @@ export function AuroraMinimalTemplate({
                   </div>
                 </div>
 
-                {/* Copyright */}
                 <div 
                   className="border-t py-6"
                   style={{ borderColor: 'rgba(255,255,255,0.1)' }}
                 >
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/50">
-                    <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                      <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+                      
+                      {/* Viral Loop / Branding */}
+                      {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+                        <div className="flex justify-center items-center">
+                          <a 
+                            href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-white/30 hover:text-rose-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+                          >
+                            <span>Powered by</span>
+                            <span className="font-bold tracking-tight text-sm text-white/60">Ozzyl</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
                     <p className="flex items-center gap-2">
                       Designed with <span className="text-red-400">❤️</span> for beauty seekers
                     </p>

@@ -36,6 +36,7 @@ interface FullStoreTemplateProps {
   currentCategory?: string | null;
   config: ThemeConfig | null;
   currency: string;
+  planType?: string;
 }
 
 export function FullStoreTemplate({
@@ -46,6 +47,7 @@ export function FullStoreTemplate({
   currentCategory,
   config,
   currency,
+  planType = 'free',
 }: FullStoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -550,6 +552,21 @@ export function FullStoreTemplate({
               <span>💳 Card</span>
             </div>
           </div>
+
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-8 pt-4 border-t border-gray-800 flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=full-store-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-gray-500 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-gray-400">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </footer>
     </div>

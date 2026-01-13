@@ -53,6 +53,7 @@ export function ArtisanMarketTemplate({
   socialLinks,
   footerConfig,
   businessInfo,
+  planType = 'free',
   isPreview,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -361,13 +362,29 @@ export function ArtisanMarketTemplate({
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-white/10 py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-white/50">
-            <p className="flex items-center justify-center gap-2">
+        {/* Bottom Bar & Branding */}
+        <div className="border-t border-white/10 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4 text-center">
+            <p className="text-sm text-white/50 flex items-center justify-center gap-2">
               Made with <span className="text-red-400">❤️</span> by passionate artisans
             </p>
-            <p className="mt-2">© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+            <p className="text-xs text-white/40">© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+            
+            {/* Viral Loop / Branding */}
+            {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+              <div className="pt-2">
+                <a 
+                  href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-white/30 hover:text-amber-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+                  style={{ color: THEME.accent }}
+                >
+                  <span style={{ color: 'rgba(255,255,255,0.3)' }}>Powered by</span>
+                  <span className="font-bold tracking-tight text-sm">Ozzyl</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </footer>

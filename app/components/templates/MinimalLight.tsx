@@ -10,7 +10,7 @@ import { OptimizedImage } from '~/components/OptimizedImage';
 import { useFormatPrice } from '~/contexts/LanguageContext';
 import type { TemplateProps } from '~/templates/registry';
 
-export function MinimalLightTemplate({ storeName, storeId, product, config }: TemplateProps) {
+export function MinimalLightTemplate({ storeName, storeId, product, config, planType = 'free' }: TemplateProps) {
   const fetcher = useFetcher<{ success: boolean; orderId?: number; orderNumber?: string; error?: string; details?: Record<string, string[]> }>();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ customer_name: '', phone: '', address: '', quantity: 1 });
@@ -145,7 +145,26 @@ export function MinimalLightTemplate({ storeName, storeId, product, config }: Te
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100 p-4 safe-area-pb"><button onClick={() => setShowForm(true)} className="w-full py-4 bg-gray-900 text-white text-lg font-semibold rounded-xl shadow-lg flex items-center justify-center gap-3"><span>Order Now</span><span className="bg-white/20 px-3 py-1 rounded-full text-sm">{formatPrice(product.price)}</span></button></div>
       <div className="lg:hidden h-24" />
-      <footer className="bg-gray-50 border-t border-gray-100 py-8"><div className="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm"><p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p></div></footer>
+      <footer className="bg-gray-50 border-t border-gray-100 py-8">
+        <div className="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
+          <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+          
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-6 pt-4 border-t border-gray-200 flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=minimal-light-campaign-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-gray-400 hover:text-emerald-600 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-gray-500">Ozzyl</span>
+              </a>
+            </div>
+          )}
+        </div>
+      </footer>
     </div>
   );
 }

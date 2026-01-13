@@ -50,7 +50,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   // Fetch store info
   const store = await db
-    .select({ name: stores.name, currency: stores.currency })
+    .select({ name: stores.name, currency: stores.currency, planType: stores.planType })
     .from(stores)
     .where(eq(stores.id, order[0].storeId))
     .limit(1);
@@ -60,11 +60,12 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     items,
     storeName: store[0]?.name || 'Store',
     currency: store[0]?.currency || 'BDT',
+    planType: store[0]?.planType || 'free',
   });
 }
 
 export default function ThankYouPage() {
-  const { order, items, storeName, currency } = useLoaderData<typeof loader>();
+  const { order, items, storeName, currency, planType } = useLoaderData<typeof loader>();
   const hasTracked = useRef(false);
   
   // Track Purchase event (FB Pixel + GA4) - only once on mount
@@ -234,10 +235,24 @@ export default function ThankYouPage() {
             </Link>
           </div>
 
-          {/* Store Footer */}
           <div className="mt-12 text-center text-gray-500 text-sm">
             <p>© {new Date().getFullYear()} {storeName}</p>
             <p className="mt-1">যেকোনো প্রশ্নে কল করুন: 01XXXXXXXXX</p>
+
+            {/* Viral Loop / Branding */}
+            {planType === 'free' && (
+              <div className="mt-8 pt-4 border-t border-gray-700/50 flex justify-center items-center">
+                <a 
+                  href="https://ozzy.com?utm_source=thank-you-branding&utm_medium=referral" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-gray-500 hover:text-emerald-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+                >
+                  <span>Powered by</span>
+                  <span className="font-bold tracking-tight text-sm text-gray-400">Ozzyl</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>

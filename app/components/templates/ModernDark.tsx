@@ -37,6 +37,7 @@ export function ModernDarkTemplate({
   storeId,
   product,
   config,
+  planType = 'free',
 }: TemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -542,6 +543,21 @@ export function ModernDarkTemplate({
           <p className="mt-2">
             Powered by <span className="text-orange-400">Ozzyl</span>
           </p>
+          
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-8 pt-4 border-t border-gray-800 flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=modern-dark-campaign-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-gray-500 hover:text-orange-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-gray-400">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </footer>
     </div>

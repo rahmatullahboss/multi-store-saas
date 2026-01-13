@@ -29,6 +29,7 @@ export function MobileFirstTemplate({
   isPreview = false,
   isEditMode = false,
   onConfigChange,
+  planType = 'free',
 }: TemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -747,6 +748,21 @@ export function MobileFirstTemplate({
             <span className="opacity-50">•</span>
             <a href="/policies/refund" className="hover:text-white transition">{t('refundPolicy')}</a>
           </div>
+
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-8 pt-6 border-t border-gray-800 flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=mobile-first-campaign-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-gray-400">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </footer>
       

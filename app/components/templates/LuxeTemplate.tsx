@@ -28,6 +28,7 @@ export function LuxeTemplate({
   isPreview = false,
   isEditMode = false,
   onConfigChange,
+  planType = 'free',
 }: TemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -762,6 +763,21 @@ export function LuxeTemplate({
             <span className="opacity-50">•</span>
             <a href="/policies/refund" className="hover:text-amber-500 transition">{t('refundPolicy')}</a>
           </div>
+
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-8 pt-6 border-t border-zinc-900 flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=luxe-campaign-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-zinc-600 hover:text-amber-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-zinc-400">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </footer>
 

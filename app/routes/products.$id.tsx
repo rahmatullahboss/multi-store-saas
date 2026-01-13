@@ -198,6 +198,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     footerConfig,
     categories,
     relatedProducts,
+    planType: store?.planType || 'free',
   });
 }
 
@@ -430,7 +431,8 @@ export default function ProductDetail() {
     businessInfo,
     themeConfig,
     footerConfig,
-    categories
+    categories,
+    planType
   } = useLoaderData<typeof loader>();
   
   const hasTracked = useRef(false);
@@ -713,6 +715,7 @@ export default function ProductDetail() {
       categories={categories}
       config={themeConfig}
       footerConfig={footerConfig}
+      planType={planType}
     >
       {content}
     </StorePageWrapper>

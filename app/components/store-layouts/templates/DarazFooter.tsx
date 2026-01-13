@@ -6,12 +6,13 @@ interface DarazFooterProps {
   storeName: string;
   logo?: string | null;
   socialLinks?: SocialLinks | null;
-  footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   categories: (string | null)[];
+  planType?: string;
+  footerConfig?: FooterConfig | null;
 }
 
-export function DarazFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories }: DarazFooterProps) {
+export function DarazFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories, planType = 'free' }: DarazFooterProps) {
   const featuredCategories = categories.filter(Boolean).slice(0, 12);
 
   return (
@@ -71,6 +72,21 @@ export function DarazFooter({ storeName, logo, socialLinks, footerConfig, busine
              {socialLinks?.twitter && <a href={socialLinks.twitter} className="hover:text-orange-500">X</a>}
           </div>
         </div>
+
+        {/* Viral Loop / Branding */}
+        {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+          <div className="mt-8 pt-4 border-t border-gray-100 flex justify-center items-center">
+            <a 
+              href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[10px] text-gray-400 hover:text-orange-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+            >
+              <span>Powered by</span>
+              <span className="font-bold tracking-tight text-xs text-gray-500">Ozzyl</span>
+            </a>
+          </div>
+        )}
       </div>
     </footer>
   );

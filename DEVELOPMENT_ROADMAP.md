@@ -202,3 +202,11 @@
 - [x] **Cached Tenant Resolution**: Middleware now uses D1 caching to resolve stores, drastically reducing database round-trips for every request.
 - [x] **Retail-Ready Product Loaders**: Optimized product detail loaders with D1 batch operations and cached store configurations, merging multiple sequential queries into a single batch.
 - [x] **D1 SQL Alignment**: Standardized database client initialization across middleware and routes for consistent performance.
+
+### Phase 23: Growth Hacking & Viral Loops (Initial) 🚀
+
+- [x] **Viral Loop: "Powered by" Footer**: Implement mandatory branding for free tier stores.
+- [ ] **Referral Logic**: Merchant-to-merchant referral system with AI credit rewards.
+- [ ] **Freemium Gating**: Automated usage limits and upgrade triggers (Products, AI Commands).
+- [ ] **Marketing Strategy Doc**: Formalized [MARKETING_STRATEGY.md](file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/MARKETING_STRATEGY.md).
+- [ ] **Setup Fee Automation**: AI-driven store setup as a paid micro-service.

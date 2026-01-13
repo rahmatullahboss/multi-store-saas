@@ -116,6 +116,7 @@ interface LandingModeData {
   socialLinks: null;
   footerConfig: null;
   businessInfo: null;
+  planType: string;
 }
 
 interface StoreModeData {
@@ -134,6 +135,7 @@ interface StoreModeData {
   socialLinks: SocialLinks | null;
   footerConfig: FooterConfig | null;
   businessInfo: Record<string, unknown> | null;
+  planType: string;
   // Explicitly null for this mode
   featuredProduct: null;
   landingConfig: null;
@@ -496,6 +498,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         socialLinks: null,
         footerConfig: null,
         businessInfo: null,
+        planType: validatedStore.planType || 'free',
       };
       
       return json(landingData);
@@ -583,6 +586,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       socialLinks,
       footerConfig,
       businessInfo,
+      planType: validatedStore.planType || 'free',
       // Explicitly null for store mode
       featuredProduct: null,
       landingConfig: null,
@@ -790,6 +794,7 @@ export default function Index() {
         isEditMode={isEditMode}
         productVariants={data.productVariants}
         orderBumps={data.orderBumps}
+        planType={data.planType}
       />
     );
   }
@@ -814,6 +819,7 @@ export default function Index() {
       socialLinks={data.socialLinks as SocialLinks | null}
       footerConfig={data.footerConfig as FooterConfig | null}
       businessInfo={data.businessInfo}
+      planType={data.planType}
     />
   );
 }

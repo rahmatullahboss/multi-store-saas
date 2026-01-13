@@ -27,6 +27,7 @@ export function ShowcaseTemplate({
   isPreview = false,
   isEditMode = false,
   onConfigChange,
+  planType = 'free',
 }: TemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -746,6 +747,21 @@ export function ShowcaseTemplate({
             <p className="text-zinc-800 text-xs mt-12">
                &copy; {new Date().getFullYear()} {storeName}. All rights reserved.
             </p>
+
+            {/* Viral Loop / Branding */}
+            {planType === 'free' && (
+              <div className="mt-8 pt-4 border-t border-zinc-900 flex justify-center items-center">
+                <a 
+                  href="https://ozzy.com?utm_source=showcase-campaign-branding&utm_medium=referral" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-zinc-600 hover:text-rose-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+                >
+                  <span>Powered by</span>
+                  <span className="font-bold tracking-tight text-sm text-zinc-400">Ozzyl</span>
+                </a>
+              </div>
+            )}
          </div>
       </footer>
 

@@ -181,6 +181,8 @@ export function ModernPremiumTemplate({
   currency,
   socialLinks,
   businessInfo,
+  planType = 'free',
+  footerConfig
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -480,6 +482,7 @@ export function ModernPremiumTemplate({
               <p className="text-sm text-gray-500">
                 © {new Date().getFullYear()} {storeName}. All rights reserved.
               </p>
+              
               <div className="flex gap-6">
                 <Link to="/about" className="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
                   About Us
@@ -492,6 +495,21 @@ export function ModernPremiumTemplate({
                 </Link>
               </div>
             </div>
+
+            {/* Viral Loop / Branding */}
+            {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+              <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-center items-center">
+                <a 
+                  href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-gray-500 hover:text-amber-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+                >
+                  <span>Powered by</span>
+                  <span className="font-bold tracking-tight text-sm dark:text-gray-400">Ozzyl</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </footer>

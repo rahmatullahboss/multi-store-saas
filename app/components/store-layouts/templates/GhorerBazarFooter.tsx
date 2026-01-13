@@ -10,9 +10,10 @@ interface GhorerBazarFooterProps {
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   categories: (string | null)[];
+  planType?: string;
 }
 
-export function GhorerBazarFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories }: GhorerBazarFooterProps) {
+export function GhorerBazarFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories, planType = 'free' }: GhorerBazarFooterProps) {
   const { primary, footerBg } = GHORER_BAZAR_THEME;
 
   return (
@@ -59,11 +60,28 @@ export function GhorerBazarFooter({ storeName, logo, socialLinks, footerConfig, 
       </div>
 
       <div className="text-white py-4" style={{ backgroundColor: primary }}>
-        <div className="max-w-7xl mx-auto px-4 flex justify-between text-sm">
-          <p>© {new Date().getFullYear()} {storeName}.</p>
-          <div className="flex gap-4">
-             {socialLinks?.facebook && <a href={socialLinks.facebook}><Facebook size={18}/></a>}
+        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center gap-4">
+          <div className="w-full flex justify-between text-sm">
+            <p>© {new Date().getFullYear()} {storeName}.</p>
+            <div className="flex gap-4">
+               {socialLinks?.facebook && <a href={socialLinks.facebook} className="hover:opacity-80 transition-opacity"><Facebook size={18}/></a>}
+            </div>
           </div>
+          
+          {/* Viral Loop / Branding */}
+          {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
+            <div className="pt-4 border-t border-white/10 w-full flex justify-center items-center">
+              <a 
+                href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-white/50 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-xs text-white/80">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </footer>
