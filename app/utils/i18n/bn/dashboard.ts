@@ -843,6 +843,7 @@ export const dashboard = {
   appliedSuccess: 'সফলভাবে প্রয়োগ করা হয়েছে!',
   designApplied: 'ডিজাইন প্রয়োগ করা হয়েছে!',
   checkCanvas: 'আপনার ক্যানভাস চেক করুন',
+  confirmClearCanvas: 'আপনি কি নিশ্চিত যে আপনি ক্যানভাস মুছে ফেলতে চান?',
   describeEditHint: 'এই সেকশনটি কীভাবে ডিজাইন করবেন তা AI-কে বলুন। (উদাঃ "হেডলাইনটি মাঝখানে আনুন", "রং গাঢ় সোনালি করুন")',
   describeProductHint: 'আপনার পণ্য সম্পর্কে বর্ণনা করুন, এবং AI একটি হাই-কনভার্টিং ল্যান্ডিং পেজ তৈরি করবে।',
   generatingHtml: 'AI উচ্চমানের HTML এবং Tailwind CSS তৈরি করছে...',
