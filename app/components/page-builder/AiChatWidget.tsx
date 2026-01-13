@@ -1,9 +1,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useFetcher } from '@remix-run/react';
-import { Send, Sparkles, Loader2, Bot, User, ChevronDown, MessageSquare, HelpCircle, Lightbulb, ChevronRight } from 'lucide-react';
+import { Send, Sparkles, Loader2, Bot, User, ChevronDown, MessageSquare, HelpCircle, Lightbulb, ChevronRight, RotateCcw } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface AiChatWidgetProps {
   editor: any; 
@@ -18,6 +19,8 @@ interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  undoCount?: number; // GrapesJS UndoManager stack count at this point
+  hasAction?: boolean; // Whether this message triggered an editor action
 }
 
 // ============================================================================
@@ -135,18 +138,26 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
         lastProcessedId.current = command.commandId;
       }
       
+      // Capture undo stack BEFORE executing command (for revert feature)
+      const undoStackCount = editor?.UndoManager?.getStack()?.length || 0;
+      const isActionCommand = command && command.action !== 'general_advice';
+      
+      // Execute command first (so undo stack updates)
+      if (isActionCommand) {
+        onExecuteCommand(command);
+      }
+      
+      // Add message with undo reference
       setMessages(prev => [
         ...prev, 
         { 
           id: Date.now().toString(), 
           role: 'assistant', 
-          content: command.message || '✅ Done!' 
+          content: command.message || '✅ Done!',
+          undoCount: undoStackCount, // Store stack count BEFORE this action
+          hasAction: isActionCommand
         }
       ]);
-
-      if (command && command.action !== 'general_advice') {
-        onExecuteCommand(command);
-      }
     } else if (fetcher.state === 'idle' && fetcher.data?.error) {
        // Error handling...
        // We can use a simpler check for errors or just let them show (they don't cause loops usually)
@@ -208,6 +219,38 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
     setInput(example);
     setActiveTab('chat');
     inputRef.current?.focus();
+  };
+
+  // INTERACTIVE REVERT: Undo editor changes up to a specific message point
+  const handleRevert = (targetUndoCount: number, messageId: string) => {
+    if (!editor?.UndoManager) {
+      toast.error('UndoManager not available');
+      return;
+    }
+    
+    // Calculate how many steps to undo
+    const currentCount = editor.UndoManager.getStack().length;
+    const undoSteps = currentCount - targetUndoCount;
+    
+    if (undoSteps <= 0) {
+      toast.info('Nothing to revert');
+      return;
+    }
+    
+    // Perform undo operations
+    for (let i = 0; i < undoSteps; i++) {
+      editor.UndoManager.undo();
+    }
+    
+    // Truncate messages: remove this message and everything after it
+    setMessages(prev => {
+      const index = prev.findIndex(m => m.id === messageId);
+      if (index === -1) return prev;
+      // Also remove the user message that triggered this action (index - 1)
+      return prev.slice(0, Math.max(0, index - 1));
+    });
+    
+    toast.success('আগের অবস্থায় ফিরে গেছে! ↩️');
   };
 
   if (!isOpen) {
@@ -307,7 +350,7 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
           <div className="flex-1 overflow-y-auto">
             {activeTab === 'chat' ? (
               <div className="p-4 space-y-4 bg-gray-50/50 min-h-full">
-                {messages.map((msg) => (
+                {messages.map((msg, idx) => (
                   <div key={msg.id} className={`flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${
                       msg.role === 'user' ? 'bg-gray-200' : 'bg-indigo-100 text-indigo-600'
@@ -315,12 +358,26 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
                       {msg.role === 'user' ? <User size={12} className="text-gray-500" /> : <Bot size={14} />}
                     </div>
                     
-                    <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm whitespace-pre-wrap ${
-                      msg.role === 'user' 
-                        ? 'bg-gray-900 text-white rounded-tr-sm' 
-                        : 'bg-white text-gray-700 border border-gray-100 rounded-tl-sm'
-                    }`}>
-                      {msg.content}
+                    <div className="flex flex-col gap-1 max-w-[85%]">
+                      <div className={`rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm whitespace-pre-wrap ${
+                        msg.role === 'user' 
+                          ? 'bg-gray-900 text-white rounded-tr-sm' 
+                          : 'bg-white text-gray-700 border border-gray-100 rounded-tl-sm'
+                      }`}>
+                        {msg.content}
+                      </div>
+                      
+                      {/* REVERT BUTTON - Only for assistant messages with actions */}
+                      {msg.role === 'assistant' && msg.hasAction && msg.undoCount !== undefined && idx > 0 && (
+                        <button
+                          onClick={() => handleRevert(msg.undoCount!, msg.id)}
+                          className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-red-500 transition-colors self-start px-2 py-1 rounded hover:bg-red-50"
+                          title="এই পর্যন্ত ফিরে যান"
+                        >
+                          <RotateCcw size={10} />
+                          <span>ফিরে যান</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
