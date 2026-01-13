@@ -32,6 +32,7 @@ import {
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { LowStockAlertBanner } from '~/components/LowStockAlertBanner';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Inventory' }];
@@ -274,29 +275,11 @@ export default function InventoryPage() {
       </div>
 
       {/* Low Stock Alert */}
-      {stats.lowStock > 0 && statusFilter === 'all' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="font-medium text-yellow-800">
-                {t('lowStockAlertWithCount').replace('{count}', stats.lowStock.toString())}
-              </p>
-              <p className="text-sm text-yellow-600">
-                {t('lowStockThresholdDesc').replace('{threshold}', lowStockThreshold.toString())}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => handleStatusChange('low')}
-            className="px-4 py-2 bg-yellow-100 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 transition"
-          >
-            {t('viewLowStock')}
-          </button>
-        </div>
-      )}
+      <LowStockAlertBanner 
+        count={stats.lowStock} 
+        threshold={lowStockThreshold}
+        onAction={statusFilter === 'all' ? () => handleStatusChange('low') : undefined}
+      />
 
       {/* Filters Row */}
       <div className="flex flex-col md:flex-row gap-4">
