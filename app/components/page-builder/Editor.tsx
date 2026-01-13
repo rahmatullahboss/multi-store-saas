@@ -72,6 +72,32 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
       target = editor.getWrapper();
     }
 
+    /**
+     * Helper: Insert HTML after selected component (or at page end if nothing selected)
+     * This fixes:
+     * 1. Duplicate sections - by using parent.append with exact position
+     * 2. Wrong section replacement - by inserting AFTER selected, not replacing
+     */
+    const insertAfterSelected = (html: string) => {
+      const selected = editor.getSelected();
+      if (selected && selected !== editor.getWrapper()) {
+        // Get parent of selected element
+        const parent = selected.parent();
+        if (parent) {
+          const selectedIndex = selected.index();
+          // Insert after the selected component
+          const added = parent.append(html, { at: selectedIndex + 1 });
+          // Select the first added component
+          if (added && added.length > 0) {
+            editor.select(added[0]);
+          }
+          return added;
+        }
+      }
+      // Fallback: append to wrapper (page end)
+      return editor.addComponents(html);
+    };
+
     try {
       switch (command.action) {
         // ========== Design & Style ==========
@@ -180,77 +206,71 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
           }
           break;
 
-        // ========== Smart Sections ==========
+        // ========== Smart Sections (Using insertAfterSelected) ==========
         case 'add_hero_section':
-          editor.addComponents(SECTION_TEMPLATES.hero);
+          insertAfterSelected(SECTION_TEMPLATES.hero);
           toast.success('Hero Section যোগ হয়েছে! 🦸');
           break;
 
         case 'add_features_section':
-          editor.addComponents(SECTION_TEMPLATES.features);
+          insertAfterSelected(SECTION_TEMPLATES.features);
           toast.success('Features Section যোগ হয়েছে! ⭐');
           break;
 
         case 'add_pricing_table':
-          editor.addComponents(SECTION_TEMPLATES.pricing);
+          insertAfterSelected(SECTION_TEMPLATES.pricing);
           toast.success('Pricing Table যোগ হয়েছে! 💰');
           break;
 
         case 'add_testimonials':
-          editor.addComponents(SECTION_TEMPLATES.testimonials);
+          insertAfterSelected(SECTION_TEMPLATES.testimonials);
           toast.success('Testimonials যোগ হয়েছে! 💬');
           break;
 
         case 'add_faq_section':
-          editor.addComponents(SECTION_TEMPLATES.faq);
+          insertAfterSelected(SECTION_TEMPLATES.faq);
           toast.success('FAQ Section যোগ হয়েছে! ❓');
           break;
 
         case 'add_contact_form':
-          editor.addComponents(SECTION_TEMPLATES.contact);
+          insertAfterSelected(SECTION_TEMPLATES.contact);
           toast.success('Contact Form যোগ হয়েছে! 📧');
           break;
 
         case 'add_footer':
-          editor.addComponents(SECTION_TEMPLATES.footer);
+          insertAfterSelected(SECTION_TEMPLATES.footer);
           toast.success('Footer যোগ হয়েছে! 🔻');
           break;
 
         case 'add_cta_banner':
-          editor.addComponents(SECTION_TEMPLATES.cta_banner);
+          insertAfterSelected(SECTION_TEMPLATES.cta_banner);
           toast.success('CTA Banner যোগ হয়েছে! 📢');
           break;
 
         case 'add_image_gallery':
-          editor.addComponents(SECTION_TEMPLATES.gallery);
+          insertAfterSelected(SECTION_TEMPLATES.gallery);
           toast.success('Image Gallery যোগ হয়েছে! 🖼️');
           break;
 
         case 'add_team_section':
-          editor.addComponents(SECTION_TEMPLATES.team);
+          insertAfterSelected(SECTION_TEMPLATES.team);
           toast.success('Team Section যোগ হয়েছে! 👥');
           break;
 
         case 'add_stats_section':
-          editor.addComponents(SECTION_TEMPLATES.stats);
+          insertAfterSelected(SECTION_TEMPLATES.stats);
           toast.success('Stats Section যোগ হয়েছে! 📊');
           break;
 
         case 'add_logo_cloud':
-          editor.addComponents(SECTION_TEMPLATES.logo_cloud);
+          insertAfterSelected(SECTION_TEMPLATES.logo_cloud);
           toast.success('Logo Cloud যোগ হয়েছে! 🏢');
           break;
 
-        // ========== Generic Components ==========
+        // ========== Generic Components (Using insertAfterSelected) ==========
         case 'add_component':
           if (command.value) {
-            if (target === editor.getWrapper()) {
-              editor.addComponents(command.value);
-            } else {
-              const collection = target.collection;
-              const index = target.index();
-              collection.add(command.value, { at: index + 1 });
-            }
+            insertAfterSelected(command.value);
             toast.success('Component যোগ হয়েছে! ➕');
           }
           break;
