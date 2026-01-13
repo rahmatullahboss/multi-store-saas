@@ -1529,11 +1529,6 @@ export function LandingPageTemplate({
                         )}
                       </span>
                     </button>
-                        </span>
-                      ) : (
-                        `✓ ${t('confirmOrderBtn')} - ${formatPrice(totalPrice)}`
-                      )}
-                    </button>
 
                     <p className="text-center text-gray-500 text-sm">
                       🔒 {t('infoSecure')}
