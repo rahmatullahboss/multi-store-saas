@@ -178,7 +178,22 @@ export default function EditorToolbar({
       }
 
       if (selectedComponent) {
-        selectedComponent.replaceWith(htmlToApply);
+        // FIX: Use parent.append instead of replaceWith to preserve emojis/unicode
+        const parent = selectedComponent.parent();
+        if (parent) {
+          const index = selectedComponent.index();
+          // Add new component at the same position
+          const newComps = parent.append(htmlToApply, { at: index });
+          // Remove the old component
+          selectedComponent.remove();
+          // Select the first new component
+          if (newComps && newComps.length > 0) {
+            editor.select(newComps[0]);
+          }
+        } else {
+          // Fallback if no parent
+          selectedComponent.replaceWith(htmlToApply);
+        }
         if (cssToApply) editor.addStyle(cssToApply);
         toast.success(t('importSuccess'));
       } else {
