@@ -82,6 +82,7 @@ export class ActionExecutor {
 
       case 'updateStyles':
         if (action.changes.styles) {
+          this.resolveStyleConflicts(component, action.changes.styles);
           const currentStyles = component.getStyle() || {};
           component.setStyle({
             ...currentStyles,
@@ -137,6 +138,88 @@ export class ActionExecutor {
 
       default:
         throw new Error(`Unknown action type: ${action.action}`);
+    }
+  }
+
+  /**
+   * Resolve conflicts between new inline styles and existing Tailwind classes
+   */
+  private resolveStyleConflicts(component: any, newStyles: Record<string, string>) {
+    // Get current classes properly from GrapesJS component
+    const currentClassesRaw = component.getClasses();
+    // GrapesJS returns array of objects or strings depending on version/context
+    const currentClasses: string[] = Array.isArray(currentClassesRaw) 
+      ? currentClassesRaw.map((c: any) => typeof c === 'string' ? c : c.id || c.name || '').filter(Boolean)
+      : [];
+
+    const classesToRemove: string[] = [];
+
+    // 1. Background Color Conflicts
+    if (newStyles['background-color'] || newStyles['background']) {
+      // Remove bg-{color}-{shade} but keep gradients/opacity if possible
+      // Safe bet: remove any 'bg-' that isn't 'bg-gradient'
+      classesToRemove.push(...currentClasses.filter(c => 
+        (c.startsWith('bg-') && !c.includes('gradient') && !c.includes('opacity')) ||
+        c === 'bg-white' || c === 'bg-black' || c === 'bg-transparent'
+      ));
+    }
+
+    // 2. Text Color Conflicts
+    if (newStyles['color']) {
+      // Remove text-{color}-{shade}
+      // Exclude text-alignment classes (text-center, text-left, etc.) and size (text-xl)
+      const alignmentClasses = ['text-left', 'text-center', 'text-right', 'text-justify', 'text-start', 'text-end'];
+      const sizeClasses = ['text-xs', 'text-sm', 'text-base', 'text-lg', 'text-xl', 'text-2xl', 'text-3xl', 'text-4xl', 'text-5xl', 'text-6xl', 'text-7xl', 'text-8xl', 'text-9xl'];
+      
+      classesToRemove.push(...currentClasses.filter(c => 
+        c.startsWith('text-') && 
+        !alignmentClasses.includes(c) && 
+        !sizeClasses.includes(c) &&
+        !c.startsWith('text-[') // arbitrary values might be size or color, easier to assume color if valid hex
+      ));
+    }
+
+    // 3. Font Size Conflicts
+    if (newStyles['font-size']) {
+      classesToRemove.push(...currentClasses.filter(c => 
+        c.startsWith('text-') && 
+        ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'].some(s => c.endsWith(s))
+      ));
+    }
+
+    // 4. Padding Conflicts
+    if (newStyles['padding']) {
+      classesToRemove.push(...currentClasses.filter(c => c.startsWith('p-') || c.startsWith('px-') || c.startsWith('py-')));
+    }
+    if (newStyles['padding-left'] || newStyles['padding-right']) {
+      classesToRemove.push(...currentClasses.filter(c => c.startsWith('px-') || c.startsWith('p-')));
+    }
+    if (newStyles['padding-top'] || newStyles['padding-bottom']) {
+      classesToRemove.push(...currentClasses.filter(c => c.startsWith('py-') || c.startsWith('p-')));
+    }
+
+    // 5. Margin Conflicts
+    if (newStyles['margin']) {
+      classesToRemove.push(...currentClasses.filter(c => c.startsWith('m-') || c.startsWith('mx-') || c.startsWith('my-')));
+    }
+
+    // 6. Border Radius Conflicts
+    if (newStyles['border-radius']) {
+      classesToRemove.push(...currentClasses.filter(c => c.startsWith('rounded')));
+    }
+
+    // 7. Width/Height Conflicts
+    if (newStyles['width']) {
+      classesToRemove.push(...currentClasses.filter(c => c.startsWith('w-')));
+    }
+    if (newStyles['height']) {
+      classesToRemove.push(...currentClasses.filter(c => c.startsWith('h-')));
+    }
+
+    // Apply removal
+    if (classesToRemove.length > 0) {
+      console.log(`[ActionExecutor] Resolving conflicts. Removing: ${classesToRemove.join(', ')}`);
+      classesToRemove.forEach(className => component.removeClass(className));
     }
   }
 
