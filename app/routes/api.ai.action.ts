@@ -271,19 +271,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         break;
       }
 
-      case 'CHAT_COMMAND': {
-        if (!payload.editPrompt) {
-          return json({ error: 'User prompt required' }, { status: 400 });
-        }
-        result = await ai.commandGrapesJs(
-          payload.editPrompt,
-          {
-            ...(payload.context || {}),
-            productInfo: resolvedProductInfo
-          }
-        );
-        break;
-      }
+      // CHAT_COMMAND removed - replaced by STRICT_EDIT for page builder
+
 
       case 'STORE_EDITOR_COMMAND': {
         if (!payload.editPrompt) {
