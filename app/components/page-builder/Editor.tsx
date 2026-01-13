@@ -73,11 +73,35 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
     }
 
     /**
-     * Helper: Insert HTML after selected component (or at page end if nothing selected)
-     * This fixes:
-     * 1. Duplicate sections - by using parent.append with exact position
-     * 2. Wrong section replacement - by inserting AFTER selected, not replacing
-     * NOTE: Don't auto-select to avoid event loops
+     * SMART FALLBACK: Detect when AI incorrectly returns add_* action for selected element
+     * If user has selected a specific element (like a button), and AI returns add_component,
+     * we should REPLACE the selected element, not add new content.
+     */
+    const hasSpecificSelection = target && target !== editor.getWrapper();
+    const isAddAction = command.action?.startsWith('add_');
+    
+    // If element selected + AI returns add action = AI made a mistake, we should modify selected
+    if (hasSpecificSelection && isAddAction && command.value) {
+      console.log('[AI Command] Intercepting add action for selected element - converting to replace');
+      
+      // For add_component with HTML, replace the selected element
+      if (command.action === 'add_component' && typeof command.value === 'string') {
+        target.replaceWith(command.value);
+        toast.success('সিলেক্টেড element আপডেট হয়েছে! ✨');
+        return;
+      }
+      
+      // For smart section actions, also replace selected (AI shouldn't do this)
+      if (command.action.startsWith('add_') && command.action.includes('section')) {
+        // Don't add new section, just show message
+        toast.warning('একটি element সিলেক্ট করা আছে। নতুন section যোগ করতে প্রথমে deselect করুন।');
+        return;
+      }
+    }
+
+    /**
+     * Helper: Insert HTML after selected component (ONLY when nothing specific is selected)
+     * This is for genuinely adding NEW sections
      */
     const insertAfterSelected = (html: string) => {
       const selected = editor.getSelected();
@@ -85,13 +109,10 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
       // For section-level components (direct children of wrapper), insert after selected
       if (selected && selected !== editor.getWrapper()) {
         const parent = selected.parent();
-        // Check if parent is the wrapper (section-level insertion)
         if (parent && parent === editor.getWrapper()) {
           const selectedIndex = selected.index();
-          // Insert after the selected section
           return parent.append(html, { at: selectedIndex + 1 });
         }
-        // For nested elements, also insert after selected but in its parent
         if (parent) {
           const selectedIndex = selected.index();
           return parent.append(html, { at: selectedIndex + 1 });
