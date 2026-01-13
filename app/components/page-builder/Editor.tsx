@@ -45,7 +45,7 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
   const [isBlockLibraryOpen, setIsBlockLibraryOpen] = useState(false);
   const [aiDesignMode, setAiDesignMode] = useState<'full-page' | 'section-design'>('full-page');
   const [selectedComponentData, setSelectedComponentData] = useState<string | null>(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(true);
 
   // Section Templates for Smart Section Actions
   const SECTION_TEMPLATES: Record<string, string> = {
@@ -826,14 +826,6 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
         onClose={() => setIsBlockLibraryOpen(false)}
         editor={editor}
       />
-      
-            {/* AI Sidebar - Docked Right */}
-            <AISidebar 
-              editor={editor}
-              isOpen={isChatOpen}
-              onToggle={() => setIsChatOpen(!isChatOpen)}
-              isLocked={isAiLocked}
-            />
 
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {
