@@ -317,7 +317,7 @@ export function MarketingLanding() {
               <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
                 {/* Optimized: Use smaller logo size */}
                 <img 
-                  src="/brand/logo-white-xs.webp" 
+                  src="/brand/logo-white.webp" 
                   alt="Ozzyl" 
                   className="h-10 w-auto"
                   width="103"
