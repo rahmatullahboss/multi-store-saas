@@ -41,7 +41,7 @@ export const chat = {
   chatWidget_errorConnection: 'Failed to connect to AI service',
 
   // Dashboard Chat Widget
-  dashboardChat_welcome: "Hi {userName}! I'm your store assistant. Ask me about your sales, orders, or how to configure settings.",
+  dashboardChat_welcome: "Hi {{userName}}! I'm your store assistant. Ask me about your sales, orders, or how to configure settings.",
   dashboardChat_title: 'Store Assistant',
   dashboardChat_online: 'Online',
   dashboardChat_unlockTitle: 'Unlock Store Assistant',
