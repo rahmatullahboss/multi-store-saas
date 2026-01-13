@@ -753,8 +753,8 @@ export const dashboard = {
   savedCampaignsCountMsg: 'You have {count} saved campaign(s) from previous mode switches.',
 
   // Page Builder
-  pageBuilderTitle: 'Parti Builder',
-  pageBuilderDesc: 'Create beautiful, custom pages easily with Parti Builder.',
+  pageBuilderTitle: 'Drag & Drop Builder',
+  pageBuilderDesc: 'Create beautiful, custom pages easily with Drag & Drop Builder.',
   createNewPage: 'Create New Page',
   newPageDetails: 'New Page Details',
   internalPageName: 'Internal Page Name',

@@ -756,8 +756,8 @@ export const dashboard = {
   savedCampaignsCountMsg: 'আপনার কাছে {count}টি সেভ করা ক্যাম্পেইন রয়েছে।',
 
   // Page Builder
-  pageBuilderTitle: 'পার্টি বিল্ডার',
-  pageBuilderDesc: 'পার্টি বিল্ডার এর মাধ্যমে সহজেই সুন্দর এবং কাস্টম পেজ তৈরি করুন।',
+  pageBuilderTitle: 'ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার',
+  pageBuilderDesc: 'ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার এর মাধ্যমে সহজেই সুন্দর এবং কাস্টম পেজ তৈরি করুন।',
   createNewPage: 'নতুন পেজ তৈরি করুন',
   newPageDetails: 'নতুন পেজের বিবরণ',
   internalPageName: 'অভ্যন্তরীণ পেজের নাম',

@@ -24,7 +24,7 @@ const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as R
 }>;
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Elementor Builder' }];
+  return [{ title: 'Drag & Drop Builder' }];
 };
 
 // ============================================================================
