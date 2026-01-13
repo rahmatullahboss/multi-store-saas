@@ -413,8 +413,7 @@ Generate the modification JSON. Only output valid JSON, nothing else.`;
                 { role: 'user', content: userCommand }
               ],
               temperature: 0.3,
-              max_tokens: 1000,
-              response_format: { type: 'json_object' }
+              max_tokens: 1000
             })
           });
 
@@ -425,17 +424,32 @@ Generate the modification JSON. Only output valid JSON, nothing else.`;
           }
 
           const aiData = await response.json() as any;
-          const content = aiData.choices?.[0]?.message?.content;
+          let content = aiData.choices?.[0]?.message?.content;
           
           if (!content) {
             throw new Error('Empty AI response');
           }
+
+          // Extract JSON from markdown code blocks if present
+          const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+          if (jsonMatch) {
+            content = jsonMatch[1].trim();
+          }
+          
+          // Also try to find JSON object directly
+          const jsonObjectMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonObjectMatch) {
+            content = jsonObjectMatch[0];
+          }
+
+          console.log('[STRICT_EDIT] Extracted content:', content.slice(0, 200));
 
           // Parse and validate response
           let parsedResult;
           try {
             parsedResult = JSON.parse(content);
           } catch {
+            console.error('[STRICT_EDIT] JSON Parse Error, raw content:', content);
             throw new Error('Invalid JSON response from AI');
           }
 
