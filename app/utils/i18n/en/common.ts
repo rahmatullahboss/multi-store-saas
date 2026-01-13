@@ -285,4 +285,6 @@ export const common = {
   aiCredits: 'AI Credits',
   manageCredits: 'Manage Credits',
   invalidCredentials: 'Invalid email or password',
+  orContinueWith: 'Or continue with',
+  continueWithGoogle: 'Continue with Google',
 };

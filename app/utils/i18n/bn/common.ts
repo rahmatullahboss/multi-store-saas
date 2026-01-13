@@ -286,4 +286,6 @@ export const common = {
   confirmPassword: 'পাসওয়ার্ড নিশ্চিত করুন',
   passwordResetSuccess: 'পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে',
   loginNow: 'এখন লগইন করুন',
+  orContinueWith: 'অথবা চালিয়ে যান',
+  continueWithGoogle: 'Google দিয়ে চালিয়ে যান',
 };
