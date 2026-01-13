@@ -116,8 +116,13 @@ export default function AiChatWidget({ editor, onExecuteCommand, isOpen, onToggl
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
 
+  // Track processed data to prevent re-execution loops
+  const lastProcessedData = useRef<any>(null);
+
   useEffect(() => {
-    if (fetcher.state === 'idle' && fetcher.data) {
+    if (fetcher.state === 'idle' && fetcher.data && fetcher.data !== lastProcessedData.current) {
+      lastProcessedData.current = fetcher.data; // Mark as processed
+      
       if (fetcher.data.success) {
         const command = fetcher.data.data;
         

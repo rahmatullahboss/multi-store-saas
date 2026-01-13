@@ -4,7 +4,7 @@
  * A React wrapper for the GrapesJS editor core.
  */
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import GjsEditor, { Canvas } from '@grapesjs/react';
 import grapesjs from 'grapesjs';
 import gjsBlocksBasic from 'grapesjs-blocks-basic';
@@ -64,7 +64,7 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
   };
 
   // AI Command Execution - WORLD-CLASS (30+ Actions)
-  const handleExecuteAiCommand = (command: any) => {
+  const handleExecuteAiCommand = useCallback((command: any) => {
     if (!editor) return;
     
     let target = editor.getSelected();
@@ -79,24 +79,32 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
      */
     const hasSpecificSelection = target && target !== editor.getWrapper();
     const isAddAction = command.action?.startsWith('add_');
+    const isAnimation = command.action === 'add_animation';
     
-    // If element selected + AI returns add action = AI made a mistake, we should modify selected
-    if (hasSpecificSelection && isAddAction && command.value) {
-      console.log('[AI Command] Intercepting add action for selected element - converting to replace');
+    // If element selected + AI returns add action (excluding animation)
+    if (hasSpecificSelection && isAddAction && !isAnimation && command.value) {
+      console.log('[AI Command] Intercepting add action for selected element', command.action);
       
       // For add_component with HTML, replace the selected element
       if (command.action === 'add_component' && typeof command.value === 'string') {
-        target.replaceWith(command.value);
+        // Safer replacement that preserves selection
+        const parent = target.parent();
+        if (parent) {
+             const index = target.index();
+             target.remove();
+             const newComps = parent.append(command.value, { at: index });
+             if (newComps && newComps.length > 0) editor.select(newComps[0]);
+        } else {
+             target.replaceWith(command.value);
+        }
         toast.success('সিলেক্টেড element আপডেট হয়েছে! ✨');
         return;
       }
       
-      // For smart section actions, also replace selected (AI shouldn't do this)
-      if (command.action.startsWith('add_') && command.action.includes('section')) {
-        // Don't add new section, just show message
-        toast.warning('একটি element সিলেক্ট করা আছে। নতুন section যোগ করতে প্রথমে deselect করুন।');
-        return;
-      }
+      // For ANY other add_* action (smart sections like pricing, testimonials, etc.)
+      // Block it to prevent destroying the selected element or adding huge sections inside it
+      toast.warning('একটি element সিলেক্ট করা আছে। নতুন section যোগ করতে প্রথমে deselect করুন।');
+      return;
     }
 
     /**
@@ -361,9 +369,8 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
       }
     } catch (e) {
       console.error('AI Command Execution Failed:', e);
-      toast.error('কমান্ড এক্সিকিউশন ব্যর্থ হয়েছে');
     }
-  };
+  }, [editor]);
 
   // Page Configurations (Featured Product, WhatsApp, etc.)
   const [pageConfig, setPageConfig] = useState<{
