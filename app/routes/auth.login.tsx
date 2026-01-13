@@ -185,6 +185,7 @@ export default function LoginPage() {
         {/* Logo/Brand */}
         <div className="text-center mb-8 flex flex-col items-center gap-3">
           <img src="/brand/logo-green.png" alt="Ozzyl" className="h-12 w-auto" />
+          <h1 className="sr-only">Ozzyl</h1>
           <p className="text-gray-600 font-medium">{t('login')}</p>
         </div>
 

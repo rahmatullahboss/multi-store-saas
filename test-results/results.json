@@ -1,0 +1,316 @@
+{
+  "config": {
+    "configFile": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/playwright.config.ts",
+    "rootDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 5,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANTIGRAVITY_AGENT": "1",
+        "NVM_INC": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/include/node",
+        "TERM_PROGRAM": "vscode",
+        "NODE": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin/node",
+        "INIT_CWD": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas",
+        "NVM_CD_FLAGS": "-q",
+        "TERM": "xterm-256color",
+        "SHELL": "/bin/zsh",
+        "HOMEBREW_REPOSITORY": "/opt/homebrew",
+        "TMPDIR": "/var/folders/s1/nr4lptjd1jjcggyx6j6kyn0r0000gn/T/",
+        "npm_config_global_prefix": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1",
+        "VSCODE_PYTHON_AUTOACTIVATE_GUARD": "1",
+        "TERM_PROGRAM_VERSION": "1.104.0",
+        "ZDOTDIR": "/Users/rahmatullahzisan",
+        "ORIGINAL_XDG_CURRENT_DESKTOP": "undefined",
+        "MallocNanoZone": "0",
+        "COLOR": "1",
+        "npm_config_noproxy": "",
+        "npm_config_local_prefix": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas",
+        "NVM_DIR": "/Users/rahmatullahzisan/.nvm",
+        "USER": "rahmatullahzisan",
+        "VSCODE_LOGIN_INITIALIZED": "1",
+        "COMMAND_MODE": "unix2003",
+        "npm_config_globalconfig": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/etc/npmrc",
+        "E2E_BASE_URL": "https://ozzyl.com",
+        "SSH_AUTH_SOCK": "/private/tmp/com.apple.launchd.7e1bOpaHyb/Listeners",
+        "VSCODE_PROFILE_INITIALIZED": "1",
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+        "npm_execpath": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js",
+        "PAGER": "cat",
+        "PATH": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/node_modules/.bin:/Users/rahmatullahzisan/Desktop/node_modules/.bin:/Users/rahmatullahzisan/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/opt/homebrew/Cellar/dart/3.10.7/libexec/bin/:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/Cellar/dart/3.10.7/libexec/bin/:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin:/Users/rahmatullahzisan/.antigravity/extensions/vscjava.vscode-java-debug-0.58.5-universal/bundled/scripts/noConfigScripts",
+        "npm_package_json": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/package.json",
+        "_": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/.bin/playwright",
+        "npm_config_userconfig": "/Users/rahmatullahzisan/.npmrc",
+        "npm_config_init_module": "/Users/rahmatullahzisan/.npm-init.js",
+        "USER_ZDOTDIR": "/Users/rahmatullahzisan",
+        "__CFBundleIdentifier": "com.google.antigravity",
+        "npm_command": "exec",
+        "PWD": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas",
+        "npm_lifecycle_event": "npx",
+        "EDITOR": "vi",
+        "npm_package_name": "ozzyl-saas",
+        "LANG": "C.UTF-8",
+        "npm_config_npm_version": "11.6.2",
+        "VSCODE_GIT_ASKPASS_EXTRA_ARGS": "",
+        "XPC_FLAGS": "0x0",
+        "npm_config_node_gyp": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js",
+        "XPC_SERVICE_NAME": "0",
+        "VSCODE_INJECTION": "1",
+        "ANTIGRAVITY_CLI_ALIAS": "agy",
+        "SHLVL": "2",
+        "HOME": "/Users/rahmatullahzisan",
+        "VSCODE_GIT_ASKPASS_MAIN": "/Applications/Antigravity.app/Contents/Resources/app/extensions/git/dist/askpass-main.js",
+        "HOMEBREW_PREFIX": "/opt/homebrew",
+        "npm_config_cache": "/Users/rahmatullahzisan/.npm",
+        "VSCODE_JAVA_EXEC": "/Users/rahmatullahzisan/.gradle/jdks/eclipse_adoptium-17-aarch64-os_x.2/jdk-17.0.17+10/Contents/Home/bin/java",
+        "LOGNAME": "rahmatullahzisan",
+        "npm_lifecycle_script": "\"playwright\"",
+        "VSCODE_GIT_IPC_HANDLE": "/var/folders/s1/nr4lptjd1jjcggyx6j6kyn0r0000gn/T/vscode-git-1c17f43b09.sock",
+        "NVM_BIN": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin",
+        "npm_config_user_agent": "npm/11.6.2 node/v24.11.1 darwin arm64 workspaces/false",
+        "VSCODE_GIT_ASKPASS_NODE": "/Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Plugin).app/Contents/MacOS/Antigravity Helper (Plugin)",
+        "GIT_ASKPASS": "/Applications/Antigravity.app/Contents/Resources/app/extensions/git/dist/askpass.sh",
+        "VSCODE_JDWP_ADAPTER_ENDPOINTS": "/Users/rahmatullahzisan/.antigravity/extensions/vscjava.vscode-java-debug-0.58.5-universal/.noConfigDebugAdapterEndpoints/endpoint-e16654f5efa98206.txt",
+        "INFOPATH": "/opt/homebrew/share/info:/opt/homebrew/share/info:",
+        "HOMEBREW_CELLAR": "/opt/homebrew/Cellar",
+        "OSLogRateLimit": "64",
+        "npm_node_execpath": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin/node",
+        "npm_config_prefix": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1",
+        "COLORTERM": "truecolor",
+        "SESSION_SECRET": "e2e-test-session-secret",
+        "COOKIE_SECRET": "e2e-test-cookie-secret",
+        "NODE_ENV": "test"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication",
+          "file": "auth.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Login Page",
+              "file": "auth.spec.ts",
+              "line": 16,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load login page",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 12845,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected substring: \u001b[32m\"Ozzyl\"\u001b[39m\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected substring: \u001b[32m\"Ozzyl\"\u001b[39m\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/auth.spec.ts:19:40",
+                            "location": {
+                              "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/auth.spec.ts",
+                              "column": 40,
+                              "line": 19
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 17 |\u001b[39m     test(\u001b[32m'should load login page'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 18 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[35m/\\/auth\\/login/\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'h1'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'Ozzyl'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m\n \u001b[90m 22 |\u001b[39m     test(\u001b[32m'should show error for empty fields'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/auth.spec.ts",
+                                "column": 40,
+                                "line": 19
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected substring: \u001b[32m\"Ozzyl\"\u001b[39m\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\n\n\u001b[0m \u001b[90m 17 |\u001b[39m     test(\u001b[32m'should load login page'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 18 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[35m/\\/auth\\/login/\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'h1'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[32m'Ozzyl'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m\n \u001b[90m 22 |\u001b[39m     test(\u001b[32m'should show error for empty fields'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/auth.spec.ts:19:40\u001b[22m"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-13T15:55:19.634Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/auth-Authentication-Login-Page-should-load-login-page-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/test-results/auth-Authentication-Login-Page-should-load-login-page-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/e2e/auth.spec.ts",
+                            "column": 40,
+                            "line": 19
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "d748ac400d08b85935ef-50d31287f63bc3ead080",
+                  "file": "auth.spec.ts",
+                  "line": 17,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-13T15:55:19.003Z",
+    "duration": 13811.462000000001,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

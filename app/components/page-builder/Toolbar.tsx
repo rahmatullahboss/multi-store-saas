@@ -620,7 +620,7 @@ export default function EditorToolbar({
             // CRITICAL: Explicitly trigger storage to persist changes
             editor.store().then(() => {
               console.log('[ButtonConnector] Changes stored successfully');
-            }).catch(err => {
+            }).catch((err: any) => {
               console.error('[ButtonConnector] Failed to store changes:', err);
             });
             

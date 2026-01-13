@@ -16,7 +16,7 @@ test.describe('Authentication', () => {
   test.describe('Login Page', () => {
     test('should load login page', async ({ page }) => {
       await expect(page).toHaveURL(/\/auth\/login/);
-      await expect(page.locator('h1')).toContainText('Multi-Store SaaS');
+      await expect(page.locator('h1')).toContainText('Ozzyl');
     });
 
     test('should show error for empty fields', async ({ page }) => {

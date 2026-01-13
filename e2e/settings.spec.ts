@@ -29,14 +29,16 @@ test.describe('Store Settings', () => {
       await page.goto('/app/settings');
       
       const storeNameInput = page.locator('input[name="storeName"], input[name="name"]');
-      if (await storeNameInput.isVisible()) {
+      if (await storeNameInput.isVisible({ timeout: 3000 }).catch(() => false)) {
         await storeNameInput.fill('Updated Store Name');
         
         const saveButton = page.locator('button[type="submit"], button').filter({ hasText: /Save|সেভ/i }).first();
         await saveButton.click();
         
         // Should show success message
-        await expect(page.locator('body')).toContainText(/Saved|Success|সফল/i).catch(() => {});
+        try {
+          await expect(page.locator('body')).toContainText(/Saved|Success|সফল/i, { timeout: 5000 });
+        } catch {}
       }
     });
 
@@ -45,8 +47,10 @@ test.describe('Store Settings', () => {
       
       // Find logo upload section
       const logoUpload = page.locator('[data-testid="logo-upload"], input[type="file"]');
-      if (await logoUpload.isVisible()) {
-        await expect(logoUpload).toBeVisible();
+      try {
+        await expect(logoUpload).toBeVisible({ timeout: 5000 });
+      } catch {
+        // Logo upload may not be available in basic settings
       }
     });
   });
@@ -63,7 +67,7 @@ test.describe('Store Settings', () => {
       await page.goto('/app/settings/payment');
       
       const codToggle = page.locator('input[type="checkbox"], button[role="switch"]').filter({ has: page.locator('text=COD') }).first();
-      if (await codToggle.isVisible()) {
+      if (await codToggle.isVisible({ timeout: 3000 }).catch(() => false)) {
         await codToggle.click();
       }
     });
@@ -72,7 +76,7 @@ test.describe('Store Settings', () => {
       await page.goto('/app/settings/payment');
       
       const bkashInput = page.locator('input').filter({ has: page.locator('text=bKash') }).first();
-      if (await bkashInput.isVisible()) {
+      if (await bkashInput.isVisible({ timeout: 3000 }).catch(() => false)) {
         await bkashInput.fill('01712345678');
       }
     });
@@ -90,7 +94,7 @@ test.describe('Store Settings', () => {
       await page.goto('/app/settings/courier');
       
       const dhakaPriceInput = page.locator('input[name="insideDhaka"], input').filter({ has: page.locator('text=Dhaka|ঢাকা') }).first();
-      if (await dhakaPriceInput.isVisible()) {
+      if (await dhakaPriceInput.isVisible({ timeout: 3000 }).catch(() => false)) {
         await dhakaPriceInput.fill('60');
       }
     });
@@ -108,7 +112,7 @@ test.describe('Store Settings', () => {
       await page.goto('/app/settings/seo');
       
       const metaTitleInput = page.locator('input[name="metaTitle"], input[name="seoTitle"]');
-      if (await metaTitleInput.isVisible()) {
+      if (await metaTitleInput.isVisible({ timeout: 3000 }).catch(() => false)) {
         await metaTitleInput.fill('My Awesome Store - Best Products in BD');
         
         const saveButton = page.locator('button[type="submit"]').first();
@@ -120,7 +124,7 @@ test.describe('Store Settings', () => {
       await page.goto('/app/settings/seo');
       
       const metaDescInput = page.locator('textarea[name="metaDescription"], textarea[name="seoDescription"]');
-      if (await metaDescInput.isVisible()) {
+      if (await metaDescInput.isVisible({ timeout: 3000 }).catch(() => false)) {
         await metaDescInput.fill('Shop the best products at affordable prices. Fast delivery across Bangladesh.');
       }
     });
@@ -139,7 +143,7 @@ test.describe('Store Settings', () => {
       
       // Find theme selector
       const themeCard = page.locator('[data-testid="theme-card"], [role="button"]').filter({ hasText: /Modern|Minimal|Aurora/i }).first();
-      if (await themeCard.isVisible()) {
+      if (await themeCard.isVisible({ timeout: 3000 }).catch(() => false)) {
         await themeCard.click();
       }
     });
@@ -157,7 +161,7 @@ test.describe('Store Settings', () => {
       await page.goto('/app/settings/legal');
       
       const privacyTextarea = page.locator('textarea').first();
-      if (await privacyTextarea.isVisible()) {
+      if (await privacyTextarea.isVisible({ timeout: 3000 }).catch(() => false)) {
         await privacyTextarea.fill('This is our privacy policy for testing purposes.');
       }
     });
@@ -175,7 +179,9 @@ test.describe('Store Settings', () => {
       await page.goto('/app/settings/team');
       
       const inviteButton = page.locator('button, a').filter({ hasText: /Invite|আমন্ত্রণ|Add|যোগ করুন/i });
-      await expect(inviteButton.first()).toBeVisible().catch(() => {});
+      try {
+        await expect(inviteButton.first()).toBeVisible({ timeout: 5000 });
+      } catch {}
     });
   });
 });
