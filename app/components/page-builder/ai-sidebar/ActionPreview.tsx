@@ -22,7 +22,7 @@ function ActionPreviewComponent({ response, onApply, onReject, isApplying }: Act
       {/* Header */}
       <div className="flex items-center gap-2 text-blue-700">
         <Eye className="w-4 h-4" />
-        <span className="text-sm font-medium">Preview</span>
+        <span className="text-sm font-medium">প্রাকদর্শন</span>
       </div>
 
       {/* Explanation */}
@@ -71,7 +71,7 @@ function ActionPreviewComponent({ response, onApply, onReject, isApplying }: Act
           `}
         >
           <Check className="w-4 h-4" />
-          {isApplying ? 'Applying...' : 'Apply করো'}
+          {isApplying ? 'প্রয়োগ হচ্ছে...' : 'Apply করো'}
         </button>
         <button
           onClick={onReject}

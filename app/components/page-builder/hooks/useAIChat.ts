@@ -5,7 +5,7 @@
  * and undo/redo functionality.
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 import { toast } from 'sonner';
 import { ActionValidator, ActionExecutor } from '~/lib/grapesjs/services';
@@ -131,6 +131,13 @@ export function useAIChat(
       }]);
     }
   }, [selectedComponent]);
+
+  // Handle fetcher data changes
+  useEffect(() => {
+    if (fetcher.data) {
+      processResponse(fetcher.data);
+    }
+  }, [fetcher.data, processResponse]);
 
   const applyAction = useCallback(async () => {
     if (!pendingResponse || !actionExecutorRef.current || !selectedComponent) return;
