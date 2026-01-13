@@ -839,6 +839,8 @@ export const dashboard = {
   designingRequest: 'Designing Your Request...',
   designReady: 'Design Ready!',
   appliedSuccess: 'Applied Successfully!',
+  designApplied: 'Design Applied!',
+  checkCanvas: 'Check your canvas',
   describeEditHint: 'Tell AI how to edit or design this section. (e.g. "Move this to right", "Make it dark gold")',
   describeProductHint: 'Describe your product, and AI will build a high-converting landing page.',
   generatingHtml: 'AI is generating high-quality HTML & Tailwind CSS...',
