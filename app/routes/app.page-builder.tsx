@@ -22,6 +22,7 @@ const GrapesEditor = lazy(() => import('~/components/page-builder/Editor')) as R
   onStorageStatusChange?: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
   publishedBaseUrl?: string;
   pageSlug?: string;
+  initialProjectData?: any; // Pre-fetched project data to skip autoload blocking
 }>;
 
 export const meta: MetaFunction = () => {
@@ -36,6 +37,8 @@ export async function loader({ request, context }: any) {
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
   const db = drizzle(context.cloudflare.env.DB);
+  const url = new URL(request.url);
+  const selectedPageId = url.searchParams.get('id');
   
   // Fetch pages and store plan type
   const [pages, store] = await Promise.all([
@@ -67,10 +70,34 @@ export async function loader({ request, context }: any) {
     ? `https://${store.customDomain}` 
     : `https://${store?.subdomain}.${saasDomain}`;
 
+  // If a page is selected, fetch its projectData to pass to editor (per GrapesJS docs: skip autoload)
+  let initialProjectData = null;
+  if (selectedPageId) {
+    const selectedPage = await db
+      .select({ projectData: landingPages.projectData })
+      .from(landingPages)
+      .where(
+        and(
+          eq(landingPages.id, parseInt(selectedPageId)),
+          eq(landingPages.storeId, storeId)
+        )
+      )
+      .get();
+    
+    if (selectedPage?.projectData) {
+      try {
+        initialProjectData = JSON.parse(selectedPage.projectData);
+      } catch (e) {
+        console.warn('Failed to parse projectData:', e);
+      }
+    }
+  }
+
   return json({ 
     pages, 
     planType: store?.planType || 'free',
-    publishedBaseUrl
+    publishedBaseUrl,
+    initialProjectData,
   });
 }
 
@@ -128,7 +155,7 @@ export async function action({ request, context }: any) {
 
 export default function PageBuilderRoute() {
   const { t, lang } = useTranslation();
-  const { pages, planType, publishedBaseUrl } = useLoaderData<typeof loader>();
+  const { pages, planType, publishedBaseUrl, initialProjectData } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const pageId = searchParams.get('id');
   const [isCreating, setIsCreating] = useState(false);
@@ -231,9 +258,10 @@ export default function PageBuilderRoute() {
               <GrapesEditor 
                 pageId={pageId} 
                 planType={planType} 
-                // onStorageStatusChange={setStorageStatus}
+                onStorageStatusChange={setStorageStatus}
                 publishedBaseUrl={publishedBaseUrl}
                 pageSlug={pages.find((p: any) => p.id.toString() === pageId)?.slug}
+                initialProjectData={initialProjectData}
               />
             </Suspense>
           </ClientOnly>

@@ -39,6 +39,7 @@ interface GrapesEditorProps {
   onStorageStatusChange?: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
   publishedBaseUrl?: string;
   pageSlug?: string;
+  initialProjectData?: any; // Pre-fetched from route loader to skip autoload blocking
 }
 
 interface PageConfig {
@@ -63,7 +64,8 @@ export default function GrapesEditor({
   planType = 'free', 
   onStorageStatusChange, 
   publishedBaseUrl, 
-  pageSlug 
+  pageSlug,
+  initialProjectData 
 }: GrapesEditorProps) {
   const { t } = useTranslation();
   // Core state
@@ -119,6 +121,8 @@ export default function GrapesEditor({
         container: containerRef.current,
         height: '100%',
         width: 'auto',
+        // Per GrapesJS docs: when projectData is defined, autoload is skipped
+        ...(initialProjectData ? { projectData: initialProjectData } : {}),
         plugins: [
           gjsBlocksBasic,
           gjsForms,
