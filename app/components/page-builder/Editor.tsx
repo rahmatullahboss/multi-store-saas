@@ -759,6 +759,7 @@ export default function GrapesEditor({ pageId, planType = 'free', onStorageStatu
             isAiLocked={isAiLocked} 
             onOpenLibrary={() => setIsBlockLibraryOpen(true)}
             publishedPageUrl={publishedBaseUrl && pageSlug ? `${publishedBaseUrl}/p/${pageSlug}` : undefined}
+            pageId={pageId}
           />
           <div className="flex flex-1 overflow-hidden min-h-0">
             {/* Unified Left Sidebar: Blocks + Customization */}

@@ -27,11 +27,13 @@ import CodeEditor from './CodeEditor';
 export default function EditorToolbar({ 
   isAiLocked = false,
   onOpenLibrary,
-  publishedPageUrl
+  publishedPageUrl,
+  pageId
 }: { 
   isAiLocked?: boolean,
   onOpenLibrary?: () => void,
-  publishedPageUrl?: string
+  publishedPageUrl?: string,
+  pageId?: string
 }) {
   const { t } = useTranslation();
   const editor = useEditorMaybe();
@@ -420,8 +422,16 @@ export default function EditorToolbar({
         </button>
 
         <button 
-          onClick={() => editor.runCommand('core:preview')}
+          onClick={() => {
+            if (pageId) {
+              window.open(`/app/page-builder/preview/${pageId}`, '_blank');
+            } else {
+              // Fallback to inline preview if no pageId
+              editor.runCommand('core:preview');
+            }
+          }}
           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition"
+          title={t('previewInNewTab') || 'Preview in New Tab'}
         >
           <Eye size={14} />
           {t('preview')}
