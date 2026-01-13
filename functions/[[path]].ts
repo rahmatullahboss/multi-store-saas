@@ -40,8 +40,8 @@ function isMainDomain(hostname: string): boolean {
     'localhost',
     '127.0.0.1',
     'multi-store-saas.pages.dev',
-    'digitalcare.site',
-    'www.digitalcare.site',
+    'ozzyl.com',
+    'www.ozzyl.com',
   ];
   
   return mainDomains.includes(hostname) || 
@@ -68,7 +68,7 @@ export const onRequest = createPagesFunctionHandler({
                      request.headers.get('host') || 
                      url.hostname;
     
-    const saasDomain = env.SAAS_DOMAIN || 'digitalcare.site';
+    const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
     
     console.log(`[PAGES] ============================================`);
     console.log(`[PAGES] Request: ${request.method} ${url.pathname}`);

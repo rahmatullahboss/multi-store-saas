@@ -5,6 +5,7 @@
  * Includes FAQ, comparison table, and call to action
  */
 
+import { lazy, Suspense } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
@@ -16,8 +17,13 @@ import {
 } from 'lucide-react';
 import { ScrollReveal, MagneticButton } from '~/components/animations';
 import { Store, Menu, X } from 'lucide-react';
-import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 import { MarketingHeader } from '~/components/MarketingHeader';
+import { ClientOnly } from '~/components/LazySection';
+
+// Lazy load chat widget - not needed immediately
+const OzzylAIChatWidget = lazy(() => 
+  import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
+);
 
 // ============================================================================
 // META
@@ -897,7 +903,11 @@ export default function PricingPage() {
           </div>
         </div>
       </footer>
-      <OzzylAIChatWidget />
+      <ClientOnly>
+        <Suspense fallback={null}>
+          <OzzylAIChatWidget />
+        </Suspense>
+      </ClientOnly>
     </div>
   );
 }

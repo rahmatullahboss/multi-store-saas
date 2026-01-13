@@ -4,13 +4,19 @@
  * Platform-level refund policy for main marketing domain.
  */
 
+import { lazy, Suspense } from 'react';
 import type { MetaFunction } from '@remix-run/cloudflare';
 import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
 import { MarketingHeader } from '~/components/MarketingHeader';
-import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
+import { ClientOnly } from '~/components/LazySection';
+
+// Lazy load chat widget - not needed immediately
+const OzzylAIChatWidget = lazy(() => 
+  import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
+);
 
 export const meta: MetaFunction = () => [
   { title: 'রিফান্ড নীতি - Ozzyl SaaS' },
@@ -128,7 +134,11 @@ export default function RefundPolicyPage() {
       </main>
 
       <MarketingFooter />
-      <OzzylAIChatWidget />
+      <ClientOnly>
+        <Suspense fallback={null}>
+          <OzzylAIChatWidget />
+        </Suspense>
+      </ClientOnly>
     </div>
   );
 }

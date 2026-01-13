@@ -5,13 +5,19 @@
  * Different from store-level policies.$type.tsx which requires store context.
  */
 
+import { lazy, Suspense } from 'react';
 import type { MetaFunction } from '@remix-run/cloudflare';
 import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
 import { MarketingHeader } from '~/components/MarketingHeader';
-import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
+import { ClientOnly } from '~/components/LazySection';
+
+// Lazy load chat widget - not needed immediately
+const OzzylAIChatWidget = lazy(() => 
+  import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
+);
 
 export const meta: MetaFunction = () => [
   { title: 'গোপনীয়তা নীতি - Ozzyl SaaS' },
@@ -127,7 +133,11 @@ export default function PrivacyPolicyPage() {
       </main>
 
       <MarketingFooter />
-      <OzzylAIChatWidget />
+      <ClientOnly>
+        <Suspense fallback={null}>
+          <OzzylAIChatWidget />
+        </Suspense>
+      </ClientOnly>
     </div>
   );
 }
