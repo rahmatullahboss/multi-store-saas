@@ -251,8 +251,8 @@ interface SectionManagerProps {
   orderFormVariant?: 'full-width' | 'compact';
   onOrderFormVariantChange?: (variant: 'full-width' | 'compact') => void;
   // Custom code sections
-  customSections?: Array<{ id: string; name: string; html: string; css?: string }>;
-  onCustomSectionsChange?: (sections: Array<{ id: string; name: string; html: string; css?: string }>) => void;
+  customSections?: Array<{ id: string; name: string; html: string; css?: string; position?: string }>;
+  onCustomSectionsChange?: (sections: Array<{ id: string; name: string; html: string; css?: string; position?: string }>) => void;
   onAddCustomSection?: () => void;
 }
 
