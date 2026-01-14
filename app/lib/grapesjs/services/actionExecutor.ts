@@ -91,7 +91,35 @@ export class ActionExecutor {
     switch (action.action) {
       case 'updateContent':
         if (action.changes.content !== undefined) {
-          component.set('content', action.changes.content);
+          const newContent = action.changes.content;
+          
+          // SAFETY: Never set empty content
+          if (!newContent || newContent.trim() === '') {
+            console.warn('[ActionExecutor] Blocked empty content update');
+            throw new Error('Content cannot be empty');
+          }
+          
+          console.log('[ActionExecutor] Updating content:', { 
+            componentId: component.getId?.() || 'unknown',
+            oldContent: component.get('content'),
+            newContent 
+          });
+          
+          // Try multiple methods to set content (GrapesJS compatibility)
+          try {
+            // Method 1: Direct content property (for text components)
+            component.set('content', newContent);
+            
+            // Method 2: Also try components() for wrapper types
+            const textNode = component.components();
+            if (textNode && textNode.length === 0) {
+              // It's a leaf text node, content should be set directly
+              component.set('content', newContent);
+            }
+          } catch (e) {
+            console.error('[ActionExecutor] Content update error:', e);
+            throw e;
+          }
         }
         break;
 
