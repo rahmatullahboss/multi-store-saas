@@ -194,6 +194,44 @@ export const VIDEO_FOCUS_THEME: ThemeConfig = {
   footerText: 'text-slate-500',
 };
 
+// Showcase Template - Rose/Pink elegant luxury theme
+export const SHOWCASE_THEME: ThemeConfig = {
+  isDark: true,
+  primary: '#f43f5e',
+  accent: '#fb7185',
+  bgPrimary: 'bg-[#0a0a0a]',
+  bgSecondary: 'bg-zinc-900',
+  textPrimary: 'text-white',
+  textSecondary: 'text-zinc-400',
+  cardBg: 'bg-zinc-900/50',
+  cardBorder: 'border-rose-900/30',
+  ctaBg: 'bg-gradient-to-r from-rose-500 to-pink-500',
+  ctaText: 'text-white',
+  headerBg: 'bg-black',
+  footerBg: 'bg-black',
+  footerText: 'text-zinc-500',
+  urgencyBg: 'bg-rose-900/20',
+};
+
+// Mobile-First Template - Bright orange/red conversion-focused theme
+export const MOBILE_FIRST_THEME: ThemeConfig = {
+  isDark: false,
+  primary: '#f97316',
+  accent: '#fb923c',
+  bgPrimary: 'bg-white',
+  bgSecondary: 'bg-orange-50',
+  textPrimary: 'text-gray-900',
+  textSecondary: 'text-gray-600',
+  cardBg: 'bg-white',
+  cardBorder: 'border-orange-200',
+  ctaBg: 'bg-gradient-to-r from-orange-500 to-red-500',
+  ctaText: 'text-white',
+  headerBg: 'bg-white',
+  footerBg: 'bg-gray-900',
+  footerText: 'text-gray-400',
+  urgencyBg: 'bg-orange-100',
+};
+
 // Helper to customize theme with user-selected colors
 export function applyCustomColors(theme: ThemeConfig, primaryColor?: string, accentColor?: string): ThemeConfig {
   return {

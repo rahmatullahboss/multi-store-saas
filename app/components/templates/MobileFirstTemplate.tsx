@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SectionRenderer } from './SectionRenderer';
-import { PREMIUM_BD_THEME, applyCustomColors } from './sections/types';
+import { MOBILE_FIRST_THEME, applyCustomColors } from './sections/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
@@ -43,7 +43,7 @@ export function MobileFirstTemplate({
     onConfigChange?.(newConfig);
   };
 
-  const theme = applyCustomColors(PREMIUM_BD_THEME, editableConfig.primaryColor, editableConfig.accentColor);
+  const theme = applyCustomColors(MOBILE_FIRST_THEME, editableConfig.primaryColor, editableConfig.accentColor);
 
   const mobileFirstOrder = editableConfig.sectionOrder || [
     'mobile-first-hero',

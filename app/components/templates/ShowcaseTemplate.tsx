@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import type { TemplateProps } from '~/templates/registry';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SectionRenderer } from './SectionRenderer';
-import { MODERN_DARK_THEME, applyCustomColors } from './sections/types';
+import { SHOWCASE_THEME, applyCustomColors } from './sections/types';
 import { FloatingButtons } from './FloatingButtons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ArrowRight, ShoppingBag, ChevronRight } from 'lucide-react';
@@ -44,7 +44,7 @@ export function ShowcaseTemplate({
     onConfigChange?.(newConfig);
   };
 
-  const theme = applyCustomColors(MODERN_DARK_THEME, editableConfig.primaryColor, editableConfig.accentColor);
+  const theme = applyCustomColors(SHOWCASE_THEME, editableConfig.primaryColor, editableConfig.accentColor);
 
   // Default section order for Showcase if not provided
   const showcaseOrder = editableConfig.sectionOrder || [
