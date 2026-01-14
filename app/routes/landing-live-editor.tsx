@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 import { 
@@ -915,9 +915,9 @@ export default function LiveEditorPage() {
   // Get selected template info
   const selectedTemplate = LANDING_TEMPLATES.find(t => t.id === templateId);
 
-  // Build live preview config
+  // Build live preview config - MEMOIZED to prevent flickering
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const previewConfig: LandingConfig & Record<string, any> = {
+  const previewConfig: LandingConfig & Record<string, any> = useMemo(() => ({
     templateId,
     headline: headline || 'Your Amazing Headline',
     subheadline: subheadline || '',
@@ -957,7 +957,14 @@ export default function LiveEditorPage() {
     customSections,
     // Landing language
     landingLanguage,
-  };
+  }), [
+    templateId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText,
+    features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage,
+    callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter,
+    lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor,
+    galleryImages, benefits, comparison, socialProof, orderFormVariant, trustBadges, deliveryInfo,
+    customSections, landingLanguage
+  ]);
 
   // Mock product for preview
   const selectedProduct = storeProducts.find(p => p.id === parseInt(featuredProductId));

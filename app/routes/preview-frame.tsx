@@ -15,7 +15,7 @@ import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getTemplateComponent } from '~/templates/registry';
 import { ClientOnly } from 'remix-utils/client-only';
 
@@ -94,6 +94,9 @@ export default function PreviewFrame() {
   const [liveTemplateId, setLiveTemplateId] = useState(store.landingConfig.templateId || 'modern-dark');
   const [liveFeaturedProductId, setLiveFeaturedProductId] = useState<number | null>(store.featuredProductId);
 
+  // Track previous config string to avoid unnecessary re-renders
+  const prevConfigRef = useRef<string>('');
+
   // Listen for config updates from parent window
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -101,14 +104,20 @@ export default function PreviewFrame() {
       if (event.data && event.data.type === 'PREVIEW_CONFIG_UPDATE') {
         const { config, templateId, featuredProductId } = event.data;
         
+        // Only update if config actually changed (compare by JSON string)
         if (config) {
-          setLiveConfig(config);
+          const configStr = JSON.stringify(config);
+          if (configStr !== prevConfigRef.current) {
+            prevConfigRef.current = configStr;
+            setLiveConfig(config);
+          }
         }
         if (templateId) {
-          setLiveTemplateId(templateId);
+          setLiveTemplateId(prev => prev === templateId ? prev : templateId);
         }
         if (featuredProductId !== undefined) {
-          setLiveFeaturedProductId(featuredProductId ? parseInt(featuredProductId) : null);
+          const newId = featuredProductId ? parseInt(featuredProductId) : null;
+          setLiveFeaturedProductId(prev => prev === newId ? prev : newId);
         }
       }
     };

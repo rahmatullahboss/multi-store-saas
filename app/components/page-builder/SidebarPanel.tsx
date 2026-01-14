@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import ThemePanel from './ThemePanel';
@@ -18,7 +18,7 @@ interface SidebarPanelProps {
   editor?: any;
 }
 
-export default function SidebarPanel({ 
+function SidebarPanelBase({ 
   themeConfig, 
   onThemeChange, 
   pageConfig,
@@ -29,49 +29,72 @@ export default function SidebarPanel({
   editor
 }: SidebarPanelProps) {
   const { t } = useTranslation();
-  // const [activeTab, setActiveTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets'); // Lifted up
   const [activeDesignSubTab, setActiveDesignSubTab] = useState<'styles' | 'theme' | 'templates'>('styles');
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
   const stylesContainerRef = useRef<HTMLDivElement>(null);
   const layersContainerRef = useRef<HTMLDivElement>(null);
 
-  // Custom State for Blocks and Selectors
-  const [blocks, setBlocks] = useState<any[]>([]);
+  // Use refs to store blocks to prevent unnecessary re-renders
+  const blocksRef = useRef<any[]>([]);
+  const [blocksVersion, setBlocksVersion] = useState(0);
   const [selectors, setSelectors] = useState<any[]>([]);
 
-  // Fetch Blocks and Selectors when editor is ready
+  // Fetch Blocks only once when editor is ready (blocks rarely change)
   useEffect(() => {
     if (!editor) return;
 
-    // Load initial blocks
+    // Load blocks only once - they don't change during editing
     const loadBlocks = () => {
       const allBlocks = editor.Blocks.getAll();
-      setBlocks([...allBlocks]);
+      const newBlockIds = allBlocks.map((b: any) => b.getId()).join(',');
+      const oldBlockIds = blocksRef.current.map((b: any) => b.getId()).join(',');
+      
+      // Only update if blocks actually changed
+      if (newBlockIds !== oldBlockIds) {
+        blocksRef.current = [...allBlocks];
+        setBlocksVersion(v => v + 1);
+      }
     };
 
-    // Load initial selectors
-    const refreshSelectors = () => {
+    // Load initial selectors - only update when actually different
+    const refreshSelectors = useCallback(() => {
         const selected = editor.getSelected();
         if (selected) {
-            setSelectors(selected.getSelectors().models || []);
+            const newSelectors = selected.getSelectors().models || [];
+            setSelectors(prev => {
+              // Only update if different
+              if (prev.length !== newSelectors.length) return newSelectors;
+              const same = prev.every((s: any, i: number) => s === newSelectors[i]);
+              return same ? prev : newSelectors;
+            });
         } else {
-            setSelectors([]);
+            setSelectors(prev => prev.length === 0 ? prev : []);
         }
-    };
+    }, []);
 
     loadBlocks();
     refreshSelectors();
 
-    // Event Listeners
+    // Event Listeners - only listen to block changes, not every selection
     editor.on('block:add block:remove', loadBlocks);
-    editor.on('component:selected component:deselected selector:add selector:remove', refreshSelectors);
+    // For selectors, debounce to avoid rapid updates
+    let selectorTimeout: NodeJS.Timeout;
+    const debouncedRefreshSelectors = () => {
+      clearTimeout(selectorTimeout);
+      selectorTimeout = setTimeout(refreshSelectors, 50);
+    };
+    editor.on('component:selected component:deselected', debouncedRefreshSelectors);
 
     return () => {
       editor.off('block:add block:remove', loadBlocks);
-      editor.off('component:selected component:deselected selector:add selector:remove', refreshSelectors);
+      editor.off('component:selected component:deselected', debouncedRefreshSelectors);
+      clearTimeout(selectorTimeout);
     };
   }, [editor]);
+  
+  // Get blocks from ref
+  const blocks = blocksRef.current;
 
   // Render GrapesJS built-in managers into our containers
   useEffect(() => {
@@ -502,3 +525,7 @@ export default function SidebarPanel({
     </>
   );
 }
+
+// Memoized export to prevent flickering from parent re-renders
+const SidebarPanel = memo(SidebarPanelBase);
+export default SidebarPanel;
