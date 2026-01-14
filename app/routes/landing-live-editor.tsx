@@ -916,7 +916,8 @@ export default function LiveEditorPage() {
   const selectedTemplate = LANDING_TEMPLATES.find(t => t.id === templateId);
 
   // Build live preview config
-  const previewConfig: LandingConfig = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const previewConfig: LandingConfig & Record<string, any> = {
     templateId,
     headline: headline || 'Your Amazing Headline',
     subheadline: subheadline || '',
@@ -950,6 +951,10 @@ export default function LiveEditorPage() {
     socialProof,
     // Order form layout
     orderFormVariant,
+    // Trust badges, delivery, custom sections
+    trustBadges,
+    deliveryInfo,
+    customSections,
     // Landing language
     landingLanguage,
   };

@@ -339,10 +339,15 @@ function SectionManagerBase({
     const { active, over } = event;
     
     if (over && active.id !== over.id) {
-      const oldIndex = sectionOrder.indexOf(active.id as string);
-      const newIndex = sectionOrder.indexOf(over.id as string);
-      const newOrder = arrayMove(sectionOrder, oldIndex, newIndex);
-      onOrderChange(newOrder);
+      // Build full order including missing sections
+      const fullOrder = orderedSections.map(s => s.id);
+      const oldIndex = fullOrder.indexOf(active.id as string);
+      const newIndex = fullOrder.indexOf(over.id as string);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(fullOrder, oldIndex, newIndex);
+        onOrderChange(newOrder);
+      }
     }
   };
 
