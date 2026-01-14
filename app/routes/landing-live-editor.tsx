@@ -194,8 +194,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const customCSS = formData.get('customCSS') as string || '';
   const fontFamily = formData.get('fontFamily') as string || 'inter';
   const landingLanguage = formData.get('landingLanguage') as 'bn' | 'en' || 'bn';
+  
+  // New section data
+  const trustBadges = JSON.parse(formData.get('trustBadges') as string || '[]');
+  const deliveryInfo = JSON.parse(formData.get('deliveryInfo') as string || '{"title":"","description":"","areas":[]}');
+  const customSections = JSON.parse(formData.get('customSections') as string || '[]');
 
-  const newConfig: LandingConfig = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const newConfig: LandingConfig & Record<string, any> = {
     templateId,
     headline: headline || 'Transform Your Life Today',
     subheadline: subheadline || '',
@@ -235,6 +241,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
     socialProof: socialProofData.count > 0 || socialProofData.text ? socialProofData : undefined,
     // Order form layout
     orderFormVariant,
+    // Trust badges, delivery, custom sections
+    trustBadges: trustBadges.filter((b: {icon: string; text: string}) => b.icon || b.text),
+    deliveryInfo: deliveryInfo.title || deliveryInfo.description ? deliveryInfo : undefined,
+    customSections: customSections.filter((s: {id: string; html: string}) => s.html),
     // Custom CSS
     customCSS: customCSS || undefined,
     // Font Family
@@ -407,6 +417,21 @@ export default function LiveEditorPage() {
   // Order Form Layout Variant
   const [orderFormVariant, setOrderFormVariant] = useState<'full-width' | 'compact'>(
     store.landingConfig.orderFormVariant || 'full-width'
+  );
+
+  // Trust Badges (new)
+  const [trustBadges, setTrustBadges] = useState<Array<{ icon: string; text: string }>>(
+    (store.landingConfig as any).trustBadges || []
+  );
+
+  // Delivery Info (new)
+  const [deliveryInfo, setDeliveryInfo] = useState<{ title: string; description: string; areas?: string[] }>(
+    (store.landingConfig as any).deliveryInfo || { title: '', description: '', areas: [] }
+  );
+
+  // Custom Sections (new)
+  const [customSections, setCustomSections] = useState<Array<{ id: string; name: string; html: string; css?: string }>>(
+    (store.landingConfig as any).customSections || []
   );
 
   // Landing Page Language (for visitor default view)
@@ -710,6 +735,10 @@ export default function LiveEditorPage() {
       formData.append('customCSS', customCSS);
       formData.append('fontFamily', fontFamily);
       formData.append('landingLanguage', landingLanguage);
+      // New section data
+      formData.append('trustBadges', JSON.stringify(trustBadges));
+      formData.append('deliveryInfo', JSON.stringify(deliveryInfo));
+      formData.append('customSections', JSON.stringify(customSections));
       
       autoSaveFetcher.submit(formData, { method: 'post' });
     }, 2000); // 2 seconds debounce
@@ -719,7 +748,7 @@ export default function LiveEditorPage() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, autoSaveFetcher]);
+  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, trustBadges, deliveryInfo, customSections, autoSaveFetcher]);
 
   // Handle auto-save response
   useEffect(() => {
@@ -1415,6 +1444,20 @@ export default function LiveEditorPage() {
                   setHiddenSections([...hiddenSections, sectionId]);
                 }
               }}
+              // Hero section
+              headline={headline}
+              onHeadlineChange={setHeadline}
+              subheadline={subheadline}
+              onSubheadlineChange={setSubheadline}
+              ctaText={ctaText}
+              onCtaTextChange={setCtaText}
+              // Trust badges
+              trustBadges={trustBadges}
+              onTrustBadgesChange={setTrustBadges}
+              // Delivery info
+              deliveryInfo={deliveryInfo}
+              onDeliveryInfoChange={setDeliveryInfo}
+              // Features
               features={features}
               onFeaturesChange={setFeatures}
               faq={faq}
@@ -1438,6 +1481,9 @@ export default function LiveEditorPage() {
               onSocialProofChange={setSocialProof}
               orderFormVariant={orderFormVariant}
               onOrderFormVariantChange={setOrderFormVariant}
+              // Custom code sections
+              customSections={customSections}
+              onCustomSectionsChange={setCustomSections}
             />
           </AccordionSection>
 
