@@ -119,7 +119,46 @@ export default function PageBuilderPreview() {
 
       {/* Page Content */}
       <div className="pt-10">
+        {/* Tailwind Play CDN for full color palette support */}
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script dangerouslySetInnerHTML={{ __html: `
+          tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                  emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                  primary: '#059669',
+                  secondary: '#2563eb',
+                }
+              }
+            }
+          }
+        `}} />
+        
+        {/* Fonts */}
+        <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        
+        {/* Lucide Icons */}
+        <script src="https://unpkg.com/lucide@latest"></script>
+        
+        {/* Theme CSS Variables */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --primary-color: #059669;
+            --secondary-color: #2563eb;
+          }
+          body { font-family: 'Hind Siliguri', sans-serif; }
+          .text-primary { color: var(--primary-color) !important; }
+          .bg-primary { background-color: var(--primary-color) !important; }
+          .border-primary { border-color: var(--primary-color) !important; }
+          .text-secondary { color: var(--secondary-color) !important; }
+          .bg-secondary { background-color: var(--secondary-color) !important; }
+        `}} />
+        
+        {/* GrapesJS CSS */}
         <style dangerouslySetInnerHTML={{ __html: css }} />
+        
+        {/* HTML Content */}
         <div dangerouslySetInnerHTML={{ __html: html }} />
         
         {/* Button Action Handler Script */}
