@@ -9,13 +9,13 @@ import {
 } from '@remix-run/react';
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
+import { useTranslation } from 'react-i18next';
 
 import './styles/tailwind.css';
 import { GeneralError } from '~/components/GeneralError';
 import { LanguageProvider } from '~/contexts/LanguageContext';
 import i18nextServer from '~/services/i18n.server';
 import { useChangeLanguage } from 'remix-i18next/react';
-import { dir } from 'i18next';
 import { useEffect } from 'react';
 
 export const links: LinksFunction = () => [
@@ -95,12 +95,16 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
  * This is the recommended Remix pattern to prevent hydration mismatches.
  * The Layout wraps both the App component and ErrorBoundary.
  * 
- * IMPORTANT: Analytics scripts are injected client-side via useEffect
- * to prevent hydration mismatches from conditional rendering in <head>.
+ * IMPORTANT: We use useTranslation() to get the current language from i18next
+ * This ensures the <html lang> attribute matches between server and client.
  */
 export function Layout({ children }: { children: React.ReactNode }) {
+  // Get the current language from i18next
+  // This ensures consistency between server-rendered and client-hydrated HTML
+  const { i18n } = useTranslation();
+  
   return (
-    <html lang="en" dir="ltr" className="h-full" suppressHydrationWarning>
+    <html lang={i18n.language} dir={i18n.dir()} className="h-full" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -118,6 +122,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { store, ENV, locale, masterPixelId } = useLoaderData<typeof loader>();
+  
+  // This hook tells remix-i18next to change the language when the locale changes
+  // It syncs the client-side i18next instance with the server-detected locale
   useChangeLanguage(locale);
 
   // Inject analytics scripts client-side to avoid hydration mismatches
@@ -167,12 +174,6 @@ export default function App() {
       document.head.appendChild(fbScript);
     }
   }, [store.googleAnalyticsId, store.facebookPixelId, masterPixelId, ENV]);
-
-  // Update html lang and dir attributes client-side
-  useEffect(() => {
-    document.documentElement.lang = locale;
-    document.documentElement.dir = dir(locale);
-  }, [locale]);
 
   return (
     <LanguageProvider defaultCurrency={store.currency as 'USD' | 'BDT'}>
