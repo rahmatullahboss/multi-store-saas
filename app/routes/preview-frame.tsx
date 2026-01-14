@@ -169,60 +169,8 @@ export default function PreviewFrame() {
             config={liveConfig}
             currency="৳"
             isPreview={true}
+            customSections={(liveConfig as any).customSections}
           />
-          
-          {/* Custom HTML Sections (imported designs) - CSS Isolated */}
-          {(liveConfig as any).customSections?.map((section: { id: string; html: string; css?: string }) => (
-            <div 
-              key={section.id} 
-              className="custom-html-section"
-              style={{
-                all: 'revert',
-                display: 'block',
-                isolation: 'isolate',
-              }}
-            >
-              {/* Scoped styles for this section only */}
-              <style dangerouslySetInnerHTML={{ __html: `
-                .custom-html-section-${section.id} * {
-                  all: revert;
-                }
-                ${section.css || ''}
-              ` }} />
-              {/* Render HTML content in an iframe for complete CSS isolation */}
-              <iframe
-                title={`custom-section-${section.id}`}
-                srcDoc={`
-                  <!DOCTYPE html>
-                  <html>
-                    <head>
-                      <meta charset="UTF-8">
-                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                      <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { font-family: system-ui, sans-serif; }
-                        ${section.css || ''}
-                      </style>
-                    </head>
-                    <body>${section.html}</body>
-                  </html>
-                `}
-                style={{
-                  width: '100%',
-                  border: 'none',
-                  display: 'block',
-                  minHeight: '200px',
-                }}
-                onLoad={(e) => {
-                  // Auto-resize iframe to content height
-                  const iframe = e.target as HTMLIFrameElement;
-                  if (iframe.contentWindow?.document.body) {
-                    iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
-                  }
-                }}
-              />
-            </div>
-          ))}
           
           {/* Custom Body Code injection (chat widgets, etc.) */}
           {liveConfig.customBodyCode && (
