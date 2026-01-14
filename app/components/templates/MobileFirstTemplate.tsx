@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 import { useCartTracking } from '~/hooks/useCartTracking';
+import { getButtonStyles } from './theme-utils';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -404,7 +405,8 @@ export function MobileFirstTemplate({
                   <button
                     type="submit"
                     disabled={fetcher.state === 'submitting'}
-                    className="w-full py-4 bg-emerald-600 text-white font-bold text-lg rounded-xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 hover:bg-emerald-700"
+                    className="w-full py-4 text-white font-bold text-lg rounded-xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 hover:opacity-90"
+                    style={getButtonStyles(editableConfig.primaryColor)}
                   >
                      {fetcher.state === 'submitting' ? 'অর্ডার হচ্ছে...' : (
                         <>
@@ -690,7 +692,8 @@ export function MobileFirstTemplate({
               <div className="flex gap-3">
                  <button 
                     onClick={scrollToOrder}
-                    className="flex-1 bg-emerald-600 text-white font-bold text-lg h-[50px] rounded-xl flex items-center justify-center gap-2 shadow-emerald-500/30 shadow-lg active:scale-95 transition-transform"
+                    className="flex-1 text-white font-bold text-lg h-[50px] rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+                    style={getButtonStyles(editableConfig.primaryColor)}
                  >
                     <span>অর্ডার করুন</span>
                     <span className="bg-emerald-700 px-2 py-0.5 rounded text-sm min-w-[60px]">

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 import { useCartTracking } from '~/hooks/useCartTracking';
+import { getButtonStyles } from './theme-utils';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -196,7 +197,8 @@ export function OrganicTemplate({
                         )}
                         <a 
                           href="#order-form"
-                          className="bg-emerald-700 hover:bg-emerald-800 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-full font-bold text-sm md:text-base shadow-lg shadow-emerald-700/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                          className="text-white px-6 md:px-8 py-3 md:py-3.5 rounded-full font-bold text-sm md:text-base shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                          style={getButtonStyles(editableConfig.primaryColor)}
                         >
                           Shop Naturally <ArrowRight size={18} />
                         </a>
@@ -775,7 +777,8 @@ export function OrganicTemplate({
                    <button
                      type="submit"
                      disabled={fetcher.state === 'submitting'}
-                     className="w-full bg-emerald-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-700/20 hover:bg-emerald-800 hover:shadow-emerald-800/20 active:scale-[0.98] transition-all"
+                     className="w-full text-white font-bold py-4 rounded-2xl shadow-lg hover:opacity-90 active:scale-[0.98] transition-all"
+                     style={getButtonStyles(editableConfig.primaryColor)}
                    >
                      {fetcher.state === 'submitting' ? 'Processing...' : 'Confirm Order Now'}
                    </button>
@@ -790,7 +793,8 @@ export function OrganicTemplate({
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-stone-200 p-4 shadow-2xl safe-area-pb">
         <a
           href="#order-form"
-          className="w-full py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-lg"
+          className="w-full py-4 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-lg"
+          style={getButtonStyles(editableConfig.primaryColor)}
         >
           <Leaf size={18} /> Order Now — {formatPrice(product.price)}
         </a>
