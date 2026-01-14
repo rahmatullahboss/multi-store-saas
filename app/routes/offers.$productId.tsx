@@ -69,6 +69,9 @@ interface LoaderData {
   landingConfig: LandingConfig;
   isCustomerAiEnabled: boolean;
   planType: string;
+  // Tracking
+  facebookPixelId?: string;
+  googleAnalyticsId?: string;
 }
 
 // ============================================================================
@@ -198,6 +201,9 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
       landingConfig,
       isCustomerAiEnabled: (resolvedStore as Store & { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled ?? false,
       planType: resolvedStore.planType || 'free',
+      // Tracking IDs from Store Settings
+      facebookPixelId: (resolvedStore as any).facebookPixelId || undefined,
+      googleAnalyticsId: (resolvedStore as any).googleAnalyticsId || undefined,
     };
 
     return json(loaderData);
@@ -225,7 +231,36 @@ export default function OfferProductPage() {
         <style dangerouslySetInnerHTML={{ __html: data.landingConfig.customCSS }} />
       )}
       
-      {/* Custom Head Code injection (FB Pixel, GA4, etc.) */}
+      {/* Facebook Pixel from Store Settings (automatic) */}
+      {data.facebookPixelId && (
+        <script dangerouslySetInnerHTML={{ __html: `
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '${data.facebookPixelId}');
+          fbq('track', 'PageView');
+        ` }} />
+      )}
+      
+      {/* Google Analytics 4 from Store Settings (automatic) */}
+      {data.googleAnalyticsId && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${data.googleAnalyticsId}`} />
+          <script dangerouslySetInnerHTML={{ __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${data.googleAnalyticsId}');
+          ` }} />
+        </>
+      )}
+      
+      {/* Custom Head Code injection (additional scripts) */}
       {data.landingConfig.customHeadCode && (
         <div 
           dangerouslySetInnerHTML={{ __html: data.landingConfig.customHeadCode }} 
