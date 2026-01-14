@@ -1,33 +1,50 @@
 # Landing Page Template Building Guide
 
 > **Last Updated:** January 2026  
-> **System Version:** Multi-Store SaaS with Shared Components
+> **System Version:** Multi-Store SaaS with Modular Sections & ThemeConfig
 
 ---
 
-## Quick Start
-
-New template তৈরি করতে এই steps follow করুন:
+## 🚀 Quick Start (New Architecture)
 
 ```tsx
-// 1. Import shared components
+// 1. Import shared components + ThemeConfig
+import { SectionRenderer } from './SectionRenderer';
 import { FloatingButtons } from './FloatingButtons';
 import { getButtonStyles } from './theme-utils';
+import { PREMIUM_BD_THEME, applyCustomColors } from './sections/types';
 import type { TemplateProps } from '~/templates/registry';
 
 // 2. Template component
-export function NewTemplate({ product, config, ... }: TemplateProps) {
-  const editableConfig = { ...defaultConfig, ...config };
+export function NewTemplate({ product, config, storeName, storeId, ... }: TemplateProps) {
+  const editableConfig = config;
+
+  // Use preset theme with custom color overrides
+  const theme = applyCustomColors(PREMIUM_BD_THEME, editableConfig.primaryColor, editableConfig.accentColor);
 
   return (
-    <div>
-      {/* Your template content */}
+    <div className={`min-h-screen ${theme.bgPrimary} ${theme.textPrimary}`}>
+      {/* Dynamic Section Renderer - renders all sections */}
+      <SectionRenderer
+        sectionOrder={editableConfig.sectionOrder}
+        hiddenSections={editableConfig.hiddenSections}
+        config={editableConfig}
+        product={product}
+        storeName={storeName}
+        theme={theme}
+        formatPrice={formatPrice}
+        productVariants={[]}
+        orderBumps={[]}
+        currency={currency}
+        storeId={storeId}
+        isPreview={isPreview}
+        planType={planType}
+      />
 
-      {/* Always include FloatingButtons at the end */}
+      {/* Floating Buttons at end */}
       <FloatingButtons
         whatsappEnabled={editableConfig.whatsappEnabled}
         whatsappNumber={editableConfig.whatsappNumber}
-        whatsappMessage={editableConfig.whatsappMessage}
         callEnabled={editableConfig.callEnabled}
         callNumber={editableConfig.callNumber}
         productTitle={product.title}
@@ -39,219 +56,214 @@ export function NewTemplate({ product, config, ... }: TemplateProps) {
 
 ---
 
-## Shared Components
+## 🎨 ThemeConfig System
 
-These components are **centralized** - edit once, updates everywhere:
+All templates use **preset themes** from `sections/types.ts`:
 
-| Component             | Location                        | Purpose                          |
-| --------------------- | ------------------------------- | -------------------------------- |
-| `FloatingButtons`     | `templates/FloatingButtons.tsx` | WhatsApp + Call floating buttons |
-| `theme-utils`         | `templates/theme-utils.ts`      | Dynamic color styling            |
-| `CountdownTimer`      | `components/landing/`           | Sale countdown timer             |
-| `OrderBumpsContainer` | `components/landing/`           | Add-on products                  |
+### Available Preset Themes
 
-### FloatingButtons Props
+| Theme Name            | ID            | Style                    |
+| --------------------- | ------------- | ------------------------ |
+| `FLASH_SALE_THEME`    | flash-sale    | Red/Yellow urgency, dark |
+| `MODERN_DARK_THEME`   | modern-dark   | Zinc/Orange, dark        |
+| `MINIMAL_LIGHT_THEME` | minimal-light | Clean white              |
+| `ORGANIC_THEME`       | organic       | Green/Nature             |
+| `LUXE_THEME`          | luxe          | Gold/Black luxury        |
+| `VIDEO_FOCUS_THEME`   | video-focus   | Purple/Violet            |
+| `PREMIUM_BD_THEME`    | premium-bd    | Orange/Green             |
 
-```tsx
-interface FloatingButtonsProps {
-  whatsappEnabled?: boolean;
-  whatsappNumber?: string;
-  whatsappMessage?: string;
-  callEnabled?: boolean;
-  callNumber?: string;
-  productTitle?: string;
+### ThemeConfig Interface
+
+```typescript
+interface ThemeConfig {
+  isDark: boolean;
+  primary: string; // Hex color for primary
+  accent: string; // Hex color for accent
+  bgPrimary: string; // Tailwind class
+  bgSecondary: string; // Tailwind class
+  textPrimary: string; // Tailwind class
+  textSecondary: string; // Tailwind class
+  cardBg: string; // Tailwind class
+  cardBorder: string; // Tailwind class
+  ctaBg: string; // Tailwind class
+  ctaText: string; // Tailwind class
+  headerBg: string; // Tailwind class
+  footerBg: string; // Tailwind class
+  footerText: string; // Tailwind class
+  urgencyBg?: string; // Optional urgency bar
 }
 ```
 
-### Theme Utils
+### Customize Theme with User Colors
 
 ```tsx
-import { getButtonStyles, getGradientButtonStyles } from './theme-utils';
+import { MODERN_DARK_THEME, applyCustomColors } from "./sections/types";
 
-// Solid color button
-<button style={getButtonStyles(config.primaryColor)}>Order Now</button>
-
-// Gradient button
-<button style={getGradientButtonStyles(config.primaryColor, config.accentColor)}>
-  Order Now
-</button>
+// Apply user's primaryColor and accentColor to the preset
+const theme = applyCustomColors(
+  MODERN_DARK_THEME,
+  config.primaryColor, // User's selected primary
+  config.accentColor // User's selected accent
+);
 ```
 
 ---
 
-## Template Structure
+## 📦 Modular Sections
+
+Sections are now **reusable components** in `sections/` folder:
 
 ```
 templates/
-├── FloatingButtons.tsx      # Shared floating buttons (REUSABLE)
-├── theme-utils.ts           # Color utilities (REUSABLE)
-├── PremiumBDTemplate.tsx    # Template 1
-├── MobileFirstTemplate.tsx  # Template 2
-├── OrganicTemplate.tsx      # Template 3
-├── LuxeTemplate.tsx         # Template 4
-├── FlashSaleTemplate.tsx    # Template 5
-├── ShowcaseTemplate.tsx     # Template 6
-└── LandingPageTemplate.tsx  # Default template
+├── SectionRenderer.tsx      # Main renderer for all sections
+├── FloatingButtons.tsx      # Shared floating buttons
+├── theme-utils.ts           # Color utilities
+├── sections/
+│   ├── types.ts             # ThemeConfig + SectionProps + Preset Themes
+│   ├── HeroSection.tsx      # Hero with product showcase
+│   ├── TrustSection.tsx     # Trust badges
+│   ├── FeaturesSection.tsx  # Product features
+│   ├── GallerySection.tsx   # Image gallery
+│   ├── VideoSection.tsx     # Video embed
+│   ├── BenefitsSection.tsx  # Why buy section
+│   ├── ComparisonSection.tsx # Before/After
+│   ├── TestimonialsSection.tsx # Customer reviews
+│   ├── SocialProofSection.tsx # Social proof bar
+│   ├── DeliverySection.tsx  # Delivery info
+│   ├── FAQSection.tsx       # FAQ accordion
+│   ├── GuaranteeSection.tsx # Guarantee section
+│   ├── OrderFormSection.tsx # Order form (CTA)
+│   └── ContactSection.tsx   # Contact info
 ```
 
----
-
-## Config Fields (LandingConfig)
-
-All templates receive these via `config` prop:
+### SectionProps (All sections receive)
 
 ```typescript
-// Core Content
-headline?: string;
-subHeadline?: string;
-ctaText?: string;
-urgencyText?: string;
-
-// Colors
-primaryColor?: string;      // Button/accent color
-accentColor?: string;       // Secondary color
-backgroundColor?: string;
-textColor?: string;
-
-// Features
-whatsappEnabled?: boolean;
-whatsappNumber?: string;
-whatsappMessage?: string;
-callEnabled?: boolean;
-callNumber?: string;
-
-// Sections
-hiddenSections?: string[];  // Array of section IDs to hide
-sectionOrder?: string[];    // Custom section ordering
-
-// Custom HTML
-customSections?: CustomSection[];
-```
-
----
-
-## Section Visibility
-
-Use `isSectionVisible` helper:
-
-```tsx
-const isSectionVisible = (sectionId: string, hiddenSections?: string[]) => {
-  if (!hiddenSections?.length) return true;
-  return !hiddenSections.includes(sectionId);
-};
-
-// Usage
-{
-  isSectionVisible("testimonials", config.hiddenSections) && (
-    <TestimonialsSection />
-  );
+interface SectionProps {
+  config: LandingConfig;
+  product: any;
+  storeName: string;
+  theme: ThemeConfig; // Required - use preset
+  isPreview?: boolean;
+  isEditMode?: boolean;
+  onUpdate?: (sectionId: string, newData: any) => void;
+  formatPrice: (price: number) => string;
+  productVariants?: any[];
+  orderBumps?: any[];
+  storeId?: number | string;
+  planType?: string;
 }
 ```
 
 ---
 
-## Responsive Design Rules
+## 🔧 Creating a New Template
 
-| Breakpoint | Prefix      | Use Case   |
-| ---------- | ----------- | ---------- |
-| Mobile     | _(default)_ | All phones |
-| Tablet     | `md:`       | >= 768px   |
-| Desktop    | `lg:`       | >= 1024px  |
+### Step 1: Choose a Preset Theme
 
-### FloatingButtons Position
-
+```tsx
+import { LUXE_THEME, applyCustomColors } from "./sections/types";
 ```
-Mobile:  bottom-28 (112px) - Above sticky order bar
-Desktop: bottom-12 (48px)  - Near page bottom
-Gap:     16px between Call and WhatsApp
+
+### Step 2: Use SectionRenderer
+
+```tsx
+<SectionRenderer
+  sectionOrder={['hero', 'trust', 'features', 'testimonials', 'cta']}
+  hiddenSections={config.hiddenSections}
+  config={editableConfig}
+  product={product}
+  theme={theme}
+  formatPrice={formatPrice}
+  ...
+/>
+```
+
+### Step 3: Add Template-Specific Headers/Footers
+
+```tsx
+{/* Custom Header */}
+<header className={theme.headerBg}>
+  <h1>{storeName}</h1>
+</header>
+
+<SectionRenderer ... />
+
+{/* Custom Footer */}
+<footer className={theme.footerBg}>
+  <p className={theme.footerText}>© {storeName}</p>
+</footer>
 ```
 
 ---
 
-## Template Registration
+## ✅ Checklist for New Templates
 
-Register in `templates/registry.ts`:
+- [ ] Import preset theme from `./sections/types`
+- [ ] Use `applyCustomColors()` for user color overrides
+- [ ] Use `SectionRenderer` for section rendering
+- [ ] Pass `theme` prop to SectionRenderer
+- [ ] Add `FloatingButtons` at template end
+- [ ] Add Ozzyl branding for `planType === 'free'`
+- [ ] Register in `templates/registry.ts`
+
+---
+
+## 📋 Template Registration
 
 ```tsx
+// templates/registry.ts
+import { NewTemplate } from "~/components/templates/NewTemplate";
+
 export const TEMPLATES: TemplateDefinition[] = [
   {
     id: "new-template",
     name: "New Template",
     description: "Description here",
-    thumbnail: "/thumbnails/new-template.png",
+    thumbnail: "/templates/new-template.png",
     component: NewTemplate,
-    category: "modern",
   },
-  // ...
 ];
 ```
 
 ---
 
-## Checklist for New Templates
+## 🎯 Section Order
 
-- [ ] Import `FloatingButtons` from `./FloatingButtons`
-- [ ] Import `getButtonStyles` from `./theme-utils`
-- [ ] Use `config.primaryColor` for buttons (not hardcoded colors)
-- [ ] Add `FloatingButtons` component at template end
-- [ ] Check section visibility with `isSectionVisible()`
-- [ ] Add responsive classes for mobile/desktop
-- [ ] Register in `templates/registry.ts`
-- [ ] Add Ozzyl branding for free plan users
+Default section order (customizable via `config.sectionOrder`):
 
----
-
-## Example: Minimal Template
-
-```tsx
-import { FloatingButtons } from "./FloatingButtons";
-import { getButtonStyles } from "./theme-utils";
-import type { TemplateProps } from "~/templates/registry";
-
-export function MinimalTemplate({
-  product,
-  config,
-  storeName,
-  currency,
-}: TemplateProps) {
-  const editableConfig = { ...DEFAULT_CONFIG, ...config };
-
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Hero */}
-      <section className="py-20 text-center">
-        <h1 className="text-4xl font-bold">{editableConfig.headline}</h1>
-        <button
-          style={getButtonStyles(editableConfig.primaryColor)}
-          className="mt-8 px-8 py-4 text-white rounded-xl"
-        >
-          {editableConfig.ctaText}
-        </button>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-8 bg-gray-900 text-white text-center">
-        <p>
-          © {new Date().getFullYear()} {storeName}
-        </p>
-      </footer>
-
-      {/* Floating Buttons - Always include */}
-      <FloatingButtons
-        whatsappEnabled={editableConfig.whatsappEnabled}
-        whatsappNumber={editableConfig.whatsappNumber}
-        whatsappMessage={editableConfig.whatsappMessage}
-        callEnabled={editableConfig.callEnabled}
-        callNumber={editableConfig.callNumber}
-        productTitle={product.title}
-      />
-    </div>
-  );
-}
+```typescript
+const DEFAULT_ORDER = [
+  "hero",
+  "trust",
+  "features",
+  "gallery",
+  "video",
+  "benefits",
+  "comparison",
+  "testimonials",
+  "social",
+  "delivery",
+  "faq",
+  "guarantee",
+  "cta",
+  "contact",
+];
 ```
+
+Template-specific sections:
+
+- `showcase-hero` - Showcase template hero
+- `mobile-first-hero` - Mobile-first hero
+- `modern-dark-hero` - Modern dark hero
+- `video-focus-hero` - Video-focused hero
 
 ---
 
 ## Support
 
-Questions? Check existing templates in `app/components/templates/` for patterns.
+Check existing templates for patterns:
+
+- `PremiumBDTemplate.tsx` - Light theme example
+- `FlashSaleTemplate.tsx` - Dark urgency theme
+- `ModernDark.tsx` - Dark gradient theme
