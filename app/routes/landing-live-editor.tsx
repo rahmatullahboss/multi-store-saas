@@ -404,10 +404,6 @@ export default function LiveEditorPage() {
   const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
   const [customCSS, setCustomCSS] = useState(store.landingConfig.customCSS || '');
   const [fontFamily, setFontFamily] = useState(store.landingConfig.fontFamily || 'inter');
-  
-  // Theme Colors (for button customization to match imported designs)
-  const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '#10b981');
-  const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '#059669');
 
   // New section states
   const [galleryImages, setGalleryImages] = useState<string[]>(store.landingConfig.galleryImages || []);
