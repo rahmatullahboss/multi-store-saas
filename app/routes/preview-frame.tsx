@@ -189,9 +189,37 @@ export default function PreviewFrame() {
                 }
                 ${section.css || ''}
               ` }} />
-              <div 
-                className={`custom-html-section-${section.id}`}
-                dangerouslySetInnerHTML={{ __html: section.html }} 
+              {/* Render HTML content in an iframe for complete CSS isolation */}
+              <iframe
+                title={`custom-section-${section.id}`}
+                srcDoc={`
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta charset="UTF-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: system-ui, sans-serif; }
+                        ${section.css || ''}
+                      </style>
+                    </head>
+                    <body>${section.html}</body>
+                  </html>
+                `}
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  display: 'block',
+                  minHeight: '200px',
+                }}
+                onLoad={(e) => {
+                  // Auto-resize iframe to content height
+                  const iframe = e.target as HTMLIFrameElement;
+                  if (iframe.contentWindow?.document.body) {
+                    iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+                  }
+                }}
               />
             </div>
           ))}

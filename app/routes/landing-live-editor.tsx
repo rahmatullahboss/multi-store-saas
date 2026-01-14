@@ -20,7 +20,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, Code2, AlertCircle
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, AlertCircle
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
@@ -1625,65 +1625,6 @@ export default function LiveEditorPage() {
                   {language === 'bn' ? '👥 সোশ্যাল প্রুফ' : '👥 Social Proof'}
                 </span>
               </label>
-            </div>
-          </AccordionSection>
-
-          {/* Group 4: Advanced */}
-          <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 uppercase tracking-wider text-[10px] font-bold text-gray-500 mt-2">
-            {language === 'bn' ? 'অ্যাডভান্সড' : 'Advanced'}
-          </div>
-
-          <AccordionSection
-            title={language === 'bn' ? 'কাস্টম কোড' : 'Custom Code'}
-            icon={Code2}
-            isOpen={openSection === 'advanced'}
-            onToggle={() => setOpenSection(openSection === 'advanced' ? '' : 'advanced')}
-          >
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Custom CSS
-                </label>
-                <textarea
-                  value={customCSS}
-                  onChange={(e) => setCustomCSS(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
-                  placeholder=".my-class { color: red; }"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'bn' ? 'হেড কোড (FB Pixel, GA4)' : 'Head Code (FB Pixel, GA4)'}
-                </label>
-                <textarea
-                  value={customHeadCode}
-                  onChange={(e) => setCustomHeadCode(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
-                  placeholder={`<!-- Facebook Pixel -->\n<script>...</script>`}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'bn' ? 'এই কোড <head> এ যোগ হবে' : 'Injected in <head>'}
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'bn' ? 'বডি কোড (চ্যাট উইজেট)' : 'Body Code (Chat widgets)'}
-                </label>
-                <textarea
-                  value={customBodyCode}
-                  onChange={(e) => setCustomBodyCode(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
-                  placeholder={`<!-- Chat Widget -->\n<script>...</script>`}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'bn' ? 'এই কোড </body> এর আগে যোগ হবে' : 'Injected before </body>'}
-                </p>
-              </div>
             </div>
           </AccordionSection>
         </aside>
