@@ -19,14 +19,7 @@ import { useChangeLanguage } from 'remix-i18next/react';
 import { useEffect } from 'react';
 
 export const links: LinksFunction = () => [
-  // Critical font preloading for faster LCP
-  { 
-    rel: 'preload', 
-    href: 'https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hiA.woff2',
-    as: 'font',
-    type: 'font/woff2',
-    crossOrigin: 'anonymous',
-  },
+  // Preconnect for faster font loading
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
   { 
