@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 import { useCartTracking } from '~/hooks/useCartTracking';
+import { getButtonStyles } from './theme-utils';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -221,7 +222,8 @@ export function ShowcaseTemplate({
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
                     <a 
                       href="#order-form"
-                      className="w-full sm:w-auto px-8 py-4 bg-rose-600 hover:bg-rose-500 text-white font-bold tracking-widest uppercase text-sm transition-all duration-300 shadow-[0_0_30px_rgba(225,29,72,0.3)] hover:shadow-[0_0_50px_rgba(225,29,72,0.5)] flex items-center justify-center gap-3"
+                      className="w-full sm:w-auto px-8 py-4 text-white font-bold tracking-widest uppercase text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-3 hover:opacity-90"
+                      style={getButtonStyles(editableConfig.primaryColor || '#e11d48')}
                     >
                       <span>Order Now</span>
                       <ArrowRight size={16} />
@@ -714,7 +716,8 @@ export function ShowcaseTemplate({
                      <button
                         type="submit"
                         disabled={fetcher.state === 'submitting'}
-                        className="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold uppercase tracking-widest py-4 rounded mt-4 transition-all duration-300 shadow-lg shadow-rose-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full text-white font-bold uppercase tracking-widest py-4 rounded mt-4 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                        style={getButtonStyles(editableConfig.primaryColor || '#e11d48')}
                      >
                         {fetcher.state === 'submitting' ? 'Processing...' : `Confirm Order - ${formatPrice(totalPrice)}`}
                      </button>
@@ -769,7 +772,8 @@ export function ShowcaseTemplate({
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 border-t border-zinc-800 p-4 pb-safe">
         <a
           href="#order-form"
-          className="block w-full bg-rose-600 text-white text-center font-bold py-3 rounded uppercase tracking-wider"
+          className="block w-full text-white text-center font-bold py-3 rounded uppercase tracking-wider hover:opacity-90"
+          style={getButtonStyles(editableConfig.primaryColor || '#e11d48')}
         >
           Order Now
         </a>

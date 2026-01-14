@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 import { useCartTracking } from '~/hooks/useCartTracking';
+import { getButtonStyles } from './theme-utils';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -723,7 +724,8 @@ export function LuxeTemplate({
                   <button
                     type="submit"
                     disabled={fetcher.state === 'submitting'}
-                    className="w-full bg-white text-black font-medium uppercase tracking-[0.2em] py-5 hover:bg-amber-400 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-black font-medium uppercase tracking-[0.2em] py-5 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                    style={getButtonStyles(editableConfig.primaryColor || '#f59e0b')}
                   >
                     {fetcher.state === 'submitting' ? 'Processing...' : 'Confirm Order'}
                   </button>
@@ -742,7 +744,8 @@ export function LuxeTemplate({
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black border-t border-zinc-800 p-4 shadow-2xl safe-area-pb">
         <a
           href="#order-form"
-          className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase tracking-wider rounded-none flex items-center justify-center gap-2 transition-colors"
+          className="w-full py-4 text-black font-bold uppercase tracking-wider rounded-none flex items-center justify-center gap-2 transition-colors hover:opacity-90"
+          style={getButtonStyles(editableConfig.primaryColor || '#f59e0b')}
         >
           Order Now — {formatPrice(product.price)}
         </a>

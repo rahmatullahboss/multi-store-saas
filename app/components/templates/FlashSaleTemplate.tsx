@@ -17,6 +17,7 @@ import { Clock, ShoppingCart, Truck, Shield, AlertTriangle, CheckCircle2, Phone,
 import { BD_DIVISIONS, DEFAULT_SHIPPING_CONFIG, calculateShipping } from '~/utils/shipping';
 import { useCartTracking } from '~/hooks/useCartTracking';
 import { OrderBumpsContainer } from '~/components/landing/OrderBumpCheckbox';
+import { getButtonStyles } from './theme-utils';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -858,13 +859,12 @@ export function FlashSaleTemplate({
                 disabled={isSubmitting || countdown.expired || isPreview}
                 className={`
                   w-full py-5 rounded-2xl text-xl font-extrabold
-                  bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500
-                  text-black shadow-lg shadow-yellow-500/30
-                  hover:from-yellow-300 hover:via-yellow-400 hover:to-orange-400
+                  text-white shadow-lg
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  transform transition-all
+                  transform transition-all hover:opacity-90
                   ${!isSubmitting && !countdown.expired ? 'animate-[shake_2s_ease-in-out_infinite]' : ''}
                 `}
+                style={getButtonStyles(editableConfig.primaryColor || '#f59e0b')}
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
