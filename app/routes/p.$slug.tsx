@@ -265,14 +265,100 @@ export default function PublishedPageRoute() {
             }
           }
           
+          // === CRITICAL: Initialize Order Forms with Store ID and AJAX ===
+          function initOrderForms() {
+            var forms = document.querySelectorAll('form[action*="create-order"], form[action*="/api/"]');
+            console.log('[OrderForm] Found ' + forms.length + ' order form(s)');
+            
+            forms.forEach(function(form) {
+              // 1. Inject hidden store_id field if not present
+              if (!form.querySelector('input[name="store_id"]')) {
+                var storeIdInput = document.createElement('input');
+                storeIdInput.type = 'hidden';
+                storeIdInput.name = 'store_id';
+                storeIdInput.value = config.storeId;
+                form.appendChild(storeIdInput);
+                console.log('[OrderForm] Injected store_id:', config.storeId);
+              }
+              
+              // 2. Convert to AJAX submission for same-page error handling
+              form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                var formData = new FormData(form);
+                var data = {};
+                formData.forEach(function(value, key) {
+                  // Convert numeric fields
+                  if (key === 'store_id' || key === 'product_id' || key === 'quantity') {
+                    data[key] = parseInt(value) || 0;
+                  } else {
+                    data[key] = value;
+                  }
+                });
+                
+                // Set default quantity if not provided
+                if (!data.quantity) data.quantity = 1;
+                
+                var submitBtn = form.querySelector('button[type="submit"]');
+                var originalText = submitBtn ? submitBtn.textContent : '';
+                if (submitBtn) {
+                  submitBtn.disabled = true;
+                  submitBtn.textContent = 'প্রসেসিং...';
+                }
+                
+                // Remove any existing error messages
+                var existingError = form.querySelector('.order-error-message');
+                if (existingError) existingError.remove();
+                
+                fetch('/api/create-order', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(data)
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(result) {
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                  }
+                  
+                  if (result.success && result.orderId) {
+                    // Redirect to thank you page
+                    window.location.href = '/thank-you/' + result.orderId;
+                  } else {
+                    // Show error on same page
+                    var errorDiv = document.createElement('div');
+                    errorDiv.className = 'order-error-message';
+                    errorDiv.style.cssText = 'padding:12px 16px;margin-top:12px;background:#FEE2E2;border:1px solid #EF4444;border-radius:8px;color:#B91C1C;font-size:14px;';
+                    errorDiv.textContent = result.error || 'অর্ডার করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।';
+                    form.appendChild(errorDiv);
+                    
+                    // Auto-remove after 5 seconds
+                    setTimeout(function() { errorDiv.remove(); }, 5000);
+                  }
+                })
+                .catch(function(err) {
+                  console.error('[OrderForm] Error:', err);
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                  }
+                  showToast('নেটওয়ার্ক সমস্যা। আবার চেষ্টা করুন।');
+                });
+              });
+            });
+          }
+          
           if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
               initHandlers();
               initIcons();
+              initOrderForms();
             });
           } else {
             initHandlers();
             initIcons();
+            initOrderForms();
           }
         })();
       `}} />

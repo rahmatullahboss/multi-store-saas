@@ -58,6 +58,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   }
 
   return json({
+    storeId, // CRITICAL: Order forms need this
     pageName: page.name,
     storeName: store?.name || 'Store',
     html: page.htmlContent || '',
@@ -67,7 +68,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 }
 
 export default function PageBuilderPreview() {
-  const { pageName, storeName, html, css, isPublished } = useLoaderData<typeof loader>();
+  const { storeId, pageName, storeName, html, css, isPublished } = useLoaderData<typeof loader>();
 
   // If no content, show empty state
   if (!html && !css) {
@@ -188,6 +189,8 @@ export default function PageBuilderPreview() {
         {/* Button Action Handler Script */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
+            var storeId = ${storeId};
+            
             function initHandlers() {
               var buttons = document.querySelectorAll('[data-ozzyl-action]');
               buttons.forEach(function(button) {
@@ -233,10 +236,53 @@ export default function PageBuilderPreview() {
               console.log('[ButtonActionHandler] Initialized ' + buttons.length + ' button(s)');
             }
             
+            // === Order Form Handling ===
+            function initOrderForms() {
+              var forms = document.querySelectorAll('form[action*="create-order"], form[action*="/api/"]');
+              console.log('[OrderForm] Found ' + forms.length + ' form(s)');
+              
+              forms.forEach(function(form) {
+                // Inject store_id if missing
+                if (!form.querySelector('input[name="store_id"]')) {
+                  var input = document.createElement('input');
+                  input.type = 'hidden';
+                  input.name = 'store_id';
+                  input.value = storeId;
+                  form.appendChild(input);
+                }
+                
+                // AJAX submission
+                form.addEventListener('submit', function(e) {
+                  e.preventDefault();
+                  var formData = new FormData(form);
+                  var data = {};
+                  formData.forEach(function(v, k) {
+                    data[k] = (k === 'store_id' || k === 'product_id' || k === 'quantity') ? parseInt(v) || 0 : v;
+                  });
+                  if (!data.quantity) data.quantity = 1;
+                  
+                  fetch('/api/create-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+                    .then(function(r) { return r.json(); })
+                    .then(function(res) {
+                      if (res.success && res.orderId) {
+                        window.location.href = '/thank-you/' + res.orderId;
+                      } else {
+                        alert(res.error || 'Order failed');
+                      }
+                    })
+                    .catch(function(err) { alert('Network error'); });
+                });
+              });
+            }
+            
             if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', initHandlers);
+              document.addEventListener('DOMContentLoaded', function() {
+                initHandlers();
+                initOrderForms();
+              });
             } else {
               initHandlers();
+              initOrderForms();
             }
           })();
         ` }} />
