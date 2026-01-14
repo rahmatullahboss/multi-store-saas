@@ -171,13 +171,28 @@ export default function PreviewFrame() {
             isPreview={true}
           />
           
-          {/* Custom HTML Sections (imported designs) */}
+          {/* Custom HTML Sections (imported designs) - CSS Isolated */}
           {(liveConfig as any).customSections?.map((section: { id: string; html: string; css?: string }) => (
-            <div key={section.id} className="custom-html-section">
-              {section.css && (
-                <style dangerouslySetInnerHTML={{ __html: section.css }} />
-              )}
-              <div dangerouslySetInnerHTML={{ __html: section.html }} />
+            <div 
+              key={section.id} 
+              className="custom-html-section"
+              style={{
+                all: 'revert',
+                display: 'block',
+                isolation: 'isolate',
+              }}
+            >
+              {/* Scoped styles for this section only */}
+              <style dangerouslySetInnerHTML={{ __html: `
+                .custom-html-section-${section.id} * {
+                  all: revert;
+                }
+                ${section.css || ''}
+              ` }} />
+              <div 
+                className={`custom-html-section-${section.id}`}
+                dangerouslySetInnerHTML={{ __html: section.html }} 
+              />
             </div>
           ))}
           
