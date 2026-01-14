@@ -112,6 +112,7 @@ import { CountdownTimer, StockCounter, SocialProofPopup, WhatsAppOrderButton } f
 import { OrderBumpsContainer } from '~/components/landing/OrderBumpCheckbox';
 import { WhatsAppButton } from '~/components/WhatsAppButton';
 import { Phone } from 'lucide-react';
+import { FloatingButtons } from './FloatingButtons';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -1600,25 +1601,15 @@ export function LandingPageTemplate({
 
       {/* Social Proof Popup - REMOVED: Fake buyer notifications are misleading */}
 
-      {/* WhatsApp Floating Button - Shows on all devices */}
-      {editableConfig.whatsappEnabled && editableConfig.whatsappNumber && (
-        <WhatsAppButton
-          phoneNumber={editableConfig.whatsappNumber}
-          message={editableConfig.whatsappMessage || `হ্যালো, আমি ${product.title} প্রোডাক্টটি সম্পর্কে জানতে চাই।`}
-          storeName={storeName}
-        />
-      )}
-
-      {/* Call Floating Button */}
-      {editableConfig.callEnabled && editableConfig.callNumber && (
-        <a
-          href={`tel:${editableConfig.callNumber}`}
-          className="fixed bottom-24 md:bottom-8 left-4 z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 animate-bounce"
-          title="Call us"
-        >
-          <Phone className="w-7 h-7 text-white" />
-        </a>
-      )}
+      {/* Floating Action Buttons - WhatsApp and Call */}
+      <FloatingButtons
+        whatsappEnabled={editableConfig.whatsappEnabled}
+        whatsappNumber={editableConfig.whatsappNumber}
+        whatsappMessage={editableConfig.whatsappMessage || `হ্যালো, আমি ${product.title} প্রোডাক্টটি সম্পর্কে জানতে চাই।`}
+        callEnabled={editableConfig.callEnabled}
+        callNumber={editableConfig.callNumber}
+        productTitle={product.title}
+      />
     </div>
   );
 }

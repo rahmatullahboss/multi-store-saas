@@ -17,6 +17,7 @@ import { getThemeColors, getFontConfig } from '~/lib/theme';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { WhatsAppButton } from '~/components/WhatsAppButton';
+import { FloatingButtons } from './FloatingButtons';
 
 // Serialized product type
 interface SerializedProduct {
@@ -545,13 +546,15 @@ export function StoreLayout({
         </div>
       </footer>
 
-      {/* WhatsApp Floating Button */}
-      {socialLinks?.whatsapp && (
-        <WhatsAppButton
-          phoneNumber={socialLinks.whatsapp}
-          storeName={storeName}
-        />
-      )}
+      {/* Floating Action Buttons - WhatsApp */}
+      <FloatingButtons
+        whatsappEnabled={!!socialLinks?.whatsapp}
+        whatsappNumber={socialLinks?.whatsapp}
+        whatsappMessage={`Hi, I'm interested in your products at ${storeName}`}
+        callEnabled={!!businessInfo?.phone}
+        callNumber={businessInfo?.phone}
+        productTitle={storeName}
+      />
     </div>
     </>
   );
