@@ -975,7 +975,7 @@ export default function LiveEditorPage() {
     // Trust badges, delivery, custom sections
     trustBadges,
     deliveryInfo,
-    customSections,
+    customSections: customSections as any,
     // Custom code injection
     customHeadCode,
     customBodyCode,

@@ -1073,6 +1073,32 @@ function SectionManagerBase({
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Position Selector */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {language === 'bn' ? 'পজিশন (কোথায় দেখাবে)' : 'Position'}
+                  </label>
+                  <select
+                    value={(section as any).position || 'after-hero'}
+                    onChange={(e) => {
+                      const newSections = [...customSections];
+                      (newSections[index] as any).position = e.target.value;
+                      onCustomSectionsChange?.(newSections);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                  >
+                    <option value="before-hero">{language === 'bn' ? 'Hero এর আগে' : 'Before Hero'}</option>
+                    <option value="after-hero">{language === 'bn' ? 'Hero এর পরে' : 'After Hero'}</option>
+                    <option value="before-features">{language === 'bn' ? 'Features এর আগে' : 'Before Features'}</option>
+                    <option value="after-features">{language === 'bn' ? 'Features এর পরে' : 'After Features'}</option>
+                    <option value="before-testimonials">{language === 'bn' ? 'Testimonials এর আগে' : 'Before Testimonials'}</option>
+                    <option value="after-testimonials">{language === 'bn' ? 'Testimonials এর পরে' : 'After Testimonials'}</option>
+                    <option value="before-form">{language === 'bn' ? 'অর্ডার ফর্ম এর আগে' : 'Before Order Form'}</option>
+                    <option value="after-form">{language === 'bn' ? 'অর্ডার ফর্ম এর পরে' : 'After Order Form'}</option>
+                    <option value="before-footer">{language === 'bn' ? 'Footer এর আগে' : 'Before Footer'}</option>
+                  </select>
+                </div>
                 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
