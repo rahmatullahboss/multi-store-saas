@@ -2,8 +2,8 @@
  * Floating Action Buttons - WhatsApp and Call buttons
  * 
  * Shared component for all templates to ensure consistent behavior and positioning.
- * - On mobile: Buttons appear above sticky order bar (bottom-24)
- * - On desktop: Buttons at bottom right (bottom-8)
+ * - On mobile: Buttons appear above sticky order bar (bottom-28 = 112px)
+ * - On desktop: Buttons at bottom right (bottom-8 = 32px)
  * - Call button appears above WhatsApp button
  */
 
@@ -31,10 +31,8 @@ export function FloatingButtons({
   
   if (!hasWhatsApp && !hasCall) return null;
 
-  // Calculate bottom positions:
-  // - Mobile: above sticky order bar (bottom-24 = 96px)
-  // - Desktop: near bottom (bottom-8 = 32px)
-  // WhatsApp is at base position, Call is above WhatsApp (+ 64px for button height + gap)
+  // Mobile order bar is ~80px, so buttons at bottom-28 (112px) will be above it
+  // Call button is 56px (w-14) + 8px gap above WhatsApp
   
   return (
     <>
@@ -44,8 +42,8 @@ export function FloatingButtons({
           href={`tel:${callNumber}`}
           className={`fixed z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 animate-pulse right-4 ${
             hasWhatsApp 
-              ? 'bottom-[152px] md:bottom-[88px]'  // Above WhatsApp 
-              : 'bottom-24 md:bottom-8'             // Base position if no WhatsApp
+              ? 'bottom-[176px] md:bottom-[88px]'  // Above WhatsApp (112+64=176)
+              : 'bottom-28 md:bottom-8'             // Base position if no WhatsApp
           }`}
           title="কল করুন"
         >
@@ -53,7 +51,7 @@ export function FloatingButtons({
         </a>
       )}
 
-      {/* WhatsApp Button - Base position */}
+      {/* WhatsApp Button - Base position above order bar */}
       {hasWhatsApp && (
         <a
           href={`https://wa.me/${whatsappNumber!.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
@@ -61,7 +59,7 @@ export function FloatingButtons({
           )}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-24 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+          className="fixed bottom-28 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
           title="Chat on WhatsApp"
         >
           <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white">
