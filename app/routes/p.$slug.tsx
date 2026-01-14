@@ -91,10 +91,10 @@ export default function PublishedPageRoute() {
       {/* Swiper JS - Same as editor canvas */}
       <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
       
-      {/* Base styles for published pages */}
+      {/* Base styles - SAME as preview route */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .published-page-root { font-family: 'Hind Siliguri', sans-serif; }
-        .published-page-root * { box-sizing: border-box; }
+        body { font-family: 'Hind Siliguri', sans-serif; }
+        * { box-sizing: border-box; }
         
         /* CSS variables for theme colors */
         :root {
@@ -186,10 +186,7 @@ export default function PublishedPageRoute() {
       <style dangerouslySetInnerHTML={{ __html: page.cssContent || '' }} />
       
       {/* Render HTML Content */}
-      <div 
-        className="published-page-root"
-        dangerouslySetInnerHTML={{ __html: page.htmlContent || '' }} 
-      />
+      <div dangerouslySetInnerHTML={{ __html: page.htmlContent || '' }} />
       
       {/* Button Action Handler Runtime Script */}
       <script dangerouslySetInnerHTML={{ __html: `
