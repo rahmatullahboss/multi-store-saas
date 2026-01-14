@@ -199,6 +199,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const trustBadges = JSON.parse(formData.get('trustBadges') as string || '[]');
   const deliveryInfo = JSON.parse(formData.get('deliveryInfo') as string || '{"title":"","description":"","areas":[]}');
   const customSections = JSON.parse(formData.get('customSections') as string || '[]');
+  
+  // Custom code injection (for FB Pixel, Google Analytics, etc.)
+  const customHeadCode = formData.get('customHeadCode') as string || '';
+  const customBodyCode = formData.get('customBodyCode') as string || '';
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newConfig: LandingConfig & Record<string, any> = {
@@ -247,6 +251,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     customSections: customSections.filter((s: {id: string; html: string}) => s.html),
     // Custom CSS
     customCSS: customCSS || undefined,
+    // Custom code injection
+    customHeadCode: customHeadCode || undefined,
+    customBodyCode: customBodyCode || undefined,
     // Font Family
     fontFamily,
     // Landing Language
@@ -432,6 +439,14 @@ export default function LiveEditorPage() {
   // Custom Sections (new)
   const [customSections, setCustomSections] = useState<Array<{ id: string; name: string; html: string; css?: string }>>(
     (store.landingConfig as any).customSections || []
+  );
+
+  // Custom Code Injection (FB Pixel, Google Analytics, etc.)
+  const [customHeadCode, setCustomHeadCode] = useState<string>(
+    (store.landingConfig as any).customHeadCode || ''
+  );
+  const [customBodyCode, setCustomBodyCode] = useState<string>(
+    (store.landingConfig as any).customBodyCode || ''
   );
 
   // Landing Page Language (for visitor default view)
@@ -739,6 +754,9 @@ export default function LiveEditorPage() {
       formData.append('trustBadges', JSON.stringify(trustBadges));
       formData.append('deliveryInfo', JSON.stringify(deliveryInfo));
       formData.append('customSections', JSON.stringify(customSections));
+      // Custom code injection
+      formData.append('customHeadCode', customHeadCode);
+      formData.append('customBodyCode', customBodyCode);
       
       autoSaveFetcher.submit(formData, { method: 'post' });
     }, 2000); // 2 seconds debounce
@@ -748,7 +766,7 @@ export default function LiveEditorPage() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, trustBadges, deliveryInfo, customSections, autoSaveFetcher]);
+  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, trustBadges, deliveryInfo, customSections, customHeadCode, customBodyCode, autoSaveFetcher]);
 
   // Handle auto-save response
   useEffect(() => {
@@ -955,6 +973,9 @@ export default function LiveEditorPage() {
     trustBadges,
     deliveryInfo,
     customSections,
+    // Custom code injection
+    customHeadCode,
+    customBodyCode,
     // Landing language
     landingLanguage,
   }), [
@@ -963,7 +984,7 @@ export default function LiveEditorPage() {
     callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter,
     lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor,
     galleryImages, benefits, comparison, socialProof, orderFormVariant, trustBadges, deliveryInfo,
-    customSections, landingLanguage
+    customSections, customHeadCode, customBodyCode, landingLanguage
   ]);
 
   // Mock product for preview
@@ -1626,10 +1647,42 @@ export default function LiveEditorPage() {
                 <textarea
                   value={customCSS}
                   onChange={(e) => setCustomCSS(e.target.value)}
-                  rows={5}
+                  rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
                   placeholder=".my-class { color: red; }"
                 />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'হেড কোড (FB Pixel, GA4)' : 'Head Code (FB Pixel, GA4)'}
+                </label>
+                <textarea
+                  value={customHeadCode}
+                  onChange={(e) => setCustomHeadCode(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
+                  placeholder={`<!-- Facebook Pixel -->\n<script>...</script>`}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'bn' ? 'এই কোড <head> এ যোগ হবে' : 'Injected in <head>'}
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'বডি কোড (চ্যাট উইজেট)' : 'Body Code (Chat widgets)'}
+                </label>
+                <textarea
+                  value={customBodyCode}
+                  onChange={(e) => setCustomBodyCode(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
+                  placeholder={`<!-- Chat Widget -->\n<script>...</script>`}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'bn' ? 'এই কোড </body> এর আগে যোগ হবে' : 'Injected before </body>'}
+                </p>
               </div>
             </div>
           </AccordionSection>

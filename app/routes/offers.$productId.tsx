@@ -219,17 +219,39 @@ export default function OfferProductPage() {
   useTrackVisit(data.storeId);
 
   return (
-    <TemplateComponent
-      storeName={data.storeName}
-      storeId={data.storeId}
-      product={data.product}
-      config={data.landingConfig}
-      currency={data.currency}
-      isPreview={false}
-      isEditMode={false}
-      isCustomerAiEnabled={data.isCustomerAiEnabled}
-      planType={data.planType}
-    />
+    <>
+      {/* Custom CSS injection */}
+      {data.landingConfig.customCSS && (
+        <style dangerouslySetInnerHTML={{ __html: data.landingConfig.customCSS }} />
+      )}
+      
+      {/* Custom Head Code injection (FB Pixel, GA4, etc.) */}
+      {data.landingConfig.customHeadCode && (
+        <div 
+          dangerouslySetInnerHTML={{ __html: data.landingConfig.customHeadCode }} 
+          style={{ display: 'none' }}
+        />
+      )}
+      
+      <TemplateComponent
+        storeName={data.storeName}
+        storeId={data.storeId}
+        product={data.product}
+        config={data.landingConfig}
+        currency={data.currency}
+        isPreview={false}
+        isEditMode={false}
+        isCustomerAiEnabled={data.isCustomerAiEnabled}
+        planType={data.planType}
+      />
+      
+      {/* Custom Body Code injection (chat widgets, etc.) */}
+      {data.landingConfig.customBodyCode && (
+        <div 
+          dangerouslySetInnerHTML={{ __html: data.landingConfig.customBodyCode }} 
+        />
+      )}
+    </>
   );
 }
 

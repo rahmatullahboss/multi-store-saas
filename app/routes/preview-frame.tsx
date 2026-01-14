@@ -149,6 +149,19 @@ export default function PreviewFrame() {
     <ClientOnly fallback={<PreviewSkeleton />}>
       {() => (
         <div className="min-h-screen">
+          {/* Custom CSS injection */}
+          {liveConfig.customCSS && (
+            <style dangerouslySetInnerHTML={{ __html: liveConfig.customCSS }} />
+          )}
+          
+          {/* Custom Head Code injection (scripts, meta tags) */}
+          {liveConfig.customHeadCode && (
+            <div 
+              dangerouslySetInnerHTML={{ __html: liveConfig.customHeadCode }} 
+              style={{ display: 'none' }}
+            />
+          )}
+          
           <TemplateComponent 
             storeName={store.name}
             storeId={store.id}
@@ -157,6 +170,13 @@ export default function PreviewFrame() {
             currency="৳"
             isPreview={true}
           />
+          
+          {/* Custom Body Code injection (chat widgets, etc.) */}
+          {liveConfig.customBodyCode && (
+            <div 
+              dangerouslySetInnerHTML={{ __html: liveConfig.customBodyCode }} 
+            />
+          )}
         </div>
       )}
     </ClientOnly>

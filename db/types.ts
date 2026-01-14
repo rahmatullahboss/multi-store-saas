@@ -114,6 +114,9 @@ export interface LandingConfig {
   orderFormVariant?: 'full-width' | 'compact'; // Default: 'full-width'
   // Custom CSS for advanced styling
   customCSS?: string;
+  // Custom code injection (for FB Pixel, Google Analytics, etc.)
+  customHeadCode?: string; // Injected in <head>
+  customBodyCode?: string; // Injected before </body>
   // Font Family
   fontFamily?: string;
   // Landing Page Language (for visitor default view)
