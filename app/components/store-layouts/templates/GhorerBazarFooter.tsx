@@ -72,7 +72,7 @@ export function GhorerBazarFooter({ storeName, logo, socialLinks, footerConfig, 
           {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
             <div className="pt-4 border-t border-white/10 w-full flex justify-center items-center">
               <a 
-                href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-[10px] text-white/50 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"

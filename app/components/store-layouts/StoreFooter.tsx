@@ -144,7 +144,7 @@ export function StoreFooter({
           {(planType === 'free' || showPoweredBy) && (
             <div className={`mt-6 pt-4 border-t ${borderColor} flex justify-center items-center`}>
               <a 
-                href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className={`text-xs ${mutedColor} hover:text-indigo-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0`}

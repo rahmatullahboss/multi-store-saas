@@ -10,7 +10,7 @@ import { useState, memo, useCallback } from 'react';
 import { 
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
-  Image, CheckCircle, Layers, Users, Loader2, GripVertical
+  Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -154,6 +154,15 @@ export const LANDING_SECTIONS = [
     required: true,
     editable: true,
   },
+  {
+    id: 'custom',
+    name: 'কাস্টম কোড',
+    nameEn: 'Custom Code',
+    description: 'HTML/CSS কোড ইমপোর্ট করুন',
+    descriptionEn: 'Import custom HTML/CSS code',
+    icon: Code,
+    editable: true,
+  },
 ];
 
 // Default section order
@@ -241,6 +250,10 @@ interface SectionManagerProps {
   // Order Form Layout
   orderFormVariant?: 'full-width' | 'compact';
   onOrderFormVariantChange?: (variant: 'full-width' | 'compact') => void;
+  // Custom code sections
+  customSections?: Array<{ id: string; name: string; html: string; css?: string }>;
+  onCustomSectionsChange?: (sections: Array<{ id: string; name: string; html: string; css?: string }>) => void;
+  onAddCustomSection?: () => void;
 }
 
 function SectionManagerBase({
@@ -287,6 +300,10 @@ function SectionManagerBase({
   // Order form layout
   orderFormVariant = 'full-width',
   onOrderFormVariantChange,
+  // Custom code sections
+  customSections = [],
+  onCustomSectionsChange,
+  onAddCustomSection,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -996,6 +1013,105 @@ function SectionManagerBase({
                 </div>
               </button>
             </div>
+          </div>
+        );
+
+      case 'custom':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <p className="text-xs text-gray-500">
+              {language === 'bn' 
+                ? 'কাস্টম HTML/CSS কোড পেস্ট করুন। এটি একটি আলাদা সেকশন হিসেবে দেখাবে।' 
+                : 'Paste custom HTML/CSS code. It will render as a separate section.'}
+            </p>
+            
+            {customSections.length === 0 && (
+              <div className="text-center py-6 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p className="mb-1">
+                  {language === 'bn' ? 'কোনো কাস্টম সেকশন নেই' : 'No custom sections yet'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {language === 'bn' ? 'নিচের বাটনে ক্লিক করে কাস্টম HTML যোগ করুন' : 'Click the button below to add custom HTML'}
+                </p>
+              </div>
+            )}
+
+            {customSections.map((section, index) => (
+              <div key={section.id} className="p-4 bg-white rounded-lg border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <input
+                    type="text"
+                    value={section.name}
+                    onChange={(e) => {
+                      const newSections = [...customSections];
+                      newSections[index].name = e.target.value;
+                      onCustomSectionsChange?.(newSections);
+                    }}
+                    placeholder={language === 'bn' ? 'সেকশনের নাম' : 'Section name'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onCustomSectionsChange?.(customSections.filter((_, i) => i !== index))}
+                    className="ml-2 p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    HTML
+                  </label>
+                  <textarea
+                    value={section.html}
+                    onChange={(e) => {
+                      const newSections = [...customSections];
+                      newSections[index].html = e.target.value;
+                      onCustomSectionsChange?.(newSections);
+                    }}
+                    placeholder={language === 'bn' ? '<div>আপনার HTML কোড এখানে</div>' : '<div>Your HTML code here</div>'}
+                    rows={6}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    CSS ({language === 'bn' ? 'ঐচ্ছিক' : 'Optional'})
+                  </label>
+                  <textarea
+                    value={section.css || ''}
+                    onChange={(e) => {
+                      const newSections = [...customSections];
+                      newSections[index].css = e.target.value;
+                      onCustomSectionsChange?.(newSections);
+                    }}
+                    placeholder=".my-class { color: red; }"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono bg-gray-50"
+                  />
+                </div>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => {
+                const newSection = {
+                  id: `custom-${Date.now()}`,
+                  name: language === 'bn' ? 'নতুন কাস্টম সেকশন' : 'New Custom Section',
+                  html: '',
+                  css: '',
+                };
+                onCustomSectionsChange?.([...customSections, newSection]);
+              }}
+              className="w-full py-3 border-2 border-dashed border-emerald-300 rounded-lg text-sm text-emerald-600 hover:border-emerald-500 hover:bg-emerald-50 flex items-center justify-center gap-2 transition"
+            >
+              <Plus className="w-4 h-4" />
+              {language === 'bn' ? 'কাস্টম সেকশন যোগ করুন' : 'Add Custom Section'}
+            </button>
           </div>
         );
 

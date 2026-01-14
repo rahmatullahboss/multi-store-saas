@@ -888,7 +888,7 @@ export function PremiumBDTemplate({
           {planType === 'free' && (
             <div className="mt-8 pt-6 border-t border-white/5 flex justify-center items-center">
               <a 
-                href="https://ozzy.com?utm_source=campaign-branding&utm_medium=referral" 
+                href="https://ozzyl.com?utm_source=campaign-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"

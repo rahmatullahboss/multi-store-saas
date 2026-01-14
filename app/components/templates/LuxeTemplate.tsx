@@ -768,7 +768,7 @@ export function LuxeTemplate({
           {planType === 'free' && (
             <div className="mt-8 pt-6 border-t border-zinc-900 flex justify-center items-center">
               <a 
-                href="https://ozzy.com?utm_source=luxe-campaign-branding&utm_medium=referral" 
+                href="https://ozzyl.com?utm_source=luxe-campaign-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-xs text-zinc-600 hover:text-amber-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"

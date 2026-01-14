@@ -1576,7 +1576,7 @@ export function LandingPageTemplate({
           {planType === 'free' && (
             <div className="mt-8 pt-4 border-t border-gray-100/10 flex justify-center items-center">
               <a 
-                href="https://ozzy.com?utm_source=landing-page-branding&utm_medium=referral" 
+                href="https://ozzyl.com?utm_source=landing-page-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-[10px] text-gray-400 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"

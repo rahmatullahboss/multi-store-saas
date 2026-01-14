@@ -126,7 +126,7 @@ export function ZenithRiseFooter({
           {/* Viral Loop / Branding */}
           {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
             <a 
-              href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+              href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
               target="_blank" 
               rel="noopener noreferrer"
               className="group flex items-center gap-2 px-4 py-2 bg-slate-900 rounded-full border border-slate-800 hover:border-indigo-500/50 transition-all"

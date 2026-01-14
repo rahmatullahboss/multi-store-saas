@@ -532,7 +532,7 @@ export function StoreLayout({
           {planType === 'free' && (
             <div className="mt-8 pt-4 border-t border-gray-800 flex justify-center items-center">
               <a 
-                href="https://ozzy.com?utm_source=store-layout-branding&utm_medium=referral" 
+                href="https://ozzyl.com?utm_source=store-layout-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-[10px] text-gray-500 hover:text-blue-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"

@@ -153,7 +153,7 @@ export function MinimalLightTemplate({ storeName, storeId, product, config, plan
           {planType === 'free' && (
             <div className="mt-6 pt-4 border-t border-gray-200 flex justify-center items-center">
               <a 
-                href="https://ozzy.com?utm_source=minimal-light-campaign-branding&utm_medium=referral" 
+                href="https://ozzyl.com?utm_source=minimal-light-campaign-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-[10px] text-gray-400 hover:text-emerald-600 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"

@@ -374,7 +374,7 @@ export function TechModernTemplate({
             {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
               <div className="flex justify-center items-center">
                 <a 
-                  href="https://ozzy.com?utm_source=footer-branding&utm_medium=referral" 
+                  href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-[10px] text-white/30 hover:text-blue-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"

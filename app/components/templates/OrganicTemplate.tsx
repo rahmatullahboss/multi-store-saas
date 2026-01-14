@@ -842,7 +842,7 @@ export function OrganicTemplate({
           {planType === 'free' && (
             <div className="mt-8 pt-6 border-t border-emerald-900 flex justify-center items-center">
               <a 
-                href="https://ozzy.com?utm_source=organic-campaign-branding&utm_medium=referral" 
+                href="https://ozzyl.com?utm_source=organic-campaign-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-xs text-emerald-400/60 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
