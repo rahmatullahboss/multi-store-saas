@@ -772,6 +772,7 @@ export const dashboard = {
   draft: 'ড্রাফট',
   exitEditor: 'এডিটর থেকে বের হন',
   editingPage: 'পেজ এডিট করা হচ্ছে',
+  viewPublished: 'লাইভ দেখুন',
   autoSaveActive: 'অটো-সেভ সক্রিয়',
   bootingCanvas: 'বিল্ডার ক্যানভাস চালু হচ্ছে...',
   pageSettings: 'পেজ সেটিংস',

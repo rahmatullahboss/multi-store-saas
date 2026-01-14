@@ -769,6 +769,7 @@ export const dashboard = {
   draft: 'Draft',
   exitEditor: 'EXIT EDITOR',
   editingPage: 'Editing Page',
+  viewPublished: 'View Live',
   autoSaveActive: 'Auto-save Active',
   bootingCanvas: 'Booting Builder Canvas...',
   pageSettings: 'Page Settings',

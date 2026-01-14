@@ -58,13 +58,31 @@ export default function PublishedPageRoute() {
 
   return (
     <>
-      {/* Inject custom CSS */}
+      {/* External CSS Dependencies - Load FIRST */}
+      {/* Using Tailwind Play CDN for full color palette support */}
+      <script src="https://cdn.tailwindcss.com"></script>
+      <script dangerouslySetInnerHTML={{ __html: `
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+              }
+            }
+          }
+        }
+      `}} />
+      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      
+      {/* Base styles for published pages */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .published-page-root { font-family: 'Hind Siliguri', sans-serif; }
+        .published-page-root * { box-sizing: border-box; }
+      `}} />
+
+      {/* Inject custom CSS from GrapesJS AFTER Tailwind */}
       <style dangerouslySetInnerHTML={{ __html: page.cssContent || '' }} />
       
-      {/* External CSS Dependencies (like Tailwind if used in canvas) */}
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
-      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
       {/* Render HTML Content */}
       <div 
         className="published-page-root"
