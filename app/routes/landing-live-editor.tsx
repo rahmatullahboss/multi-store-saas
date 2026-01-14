@@ -1318,10 +1318,24 @@ export default function LiveEditorPage() {
                   onChange={(e) => setFontFamily(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="inter">Inter (Modern)</option>
-                  <option value="roboto">Roboto (Clean)</option>
-                  <option value="hind-siliguri">Hind Siliguri (Bengali)</option>
-                  <option value="tirobi">Tiro Bangla</option>
+                  <optgroup label={language === 'bn' ? 'বাংলা ফন্ট' : 'Bengali Fonts'}>
+                    <option value="hind-siliguri">Hind Siliguri</option>
+                    <option value="noto-sans-bengali">Noto Sans Bengali</option>
+                    <option value="noto-serif-bengali">Noto Serif Bengali</option>
+                    <option value="baloo-da">Baloo Da 2</option>
+                    <option value="tiro-bangla">Tiro Bangla</option>
+                    <option value="anek-bangla">Anek Bangla</option>
+                  </optgroup>
+                  <optgroup label={language === 'bn' ? 'ইংরেজি ফন্ট' : 'English Fonts'}>
+                    <option value="inter">Inter (Modern)</option>
+                    <option value="roboto">Roboto (Clean)</option>
+                    <option value="poppins">Poppins</option>
+                    <option value="montserrat">Montserrat</option>
+                    <option value="playfair">Playfair Display</option>
+                    <option value="lato">Lato</option>
+                    <option value="open-sans">Open Sans</option>
+                    <option value="nunito">Nunito</option>
+                  </optgroup>
                 </select>
               </div>
             </div>

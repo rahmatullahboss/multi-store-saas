@@ -43,7 +43,7 @@ export const LANDING_SECTIONS = [
     descriptionEn: 'What visitors see first',
     icon: Type,
     required: true,
-    editable: false,
+    editable: true,
   },
   {
     id: 'trust',
@@ -52,7 +52,7 @@ export const LANDING_SECTIONS = [
     description: 'গ্যারান্টি ও নিরাপত্তা',
     descriptionEn: 'Guarantee & safety indicators',
     icon: ShieldCheck,
-    editable: false,
+    editable: true,
   },
   {
     id: 'features',
@@ -70,7 +70,7 @@ export const LANDING_SECTIONS = [
     description: 'প্রোডাক্ট ইমেজ গ্যালারি',
     descriptionEn: 'Product image gallery',
     icon: Image,
-    editable: false,
+    editable: true,
   },
   {
     id: 'video',
@@ -88,7 +88,7 @@ export const LANDING_SECTIONS = [
     description: 'কেন আমাদের থেকে কিনবেন',
     descriptionEn: 'Why buy from us',
     icon: CheckCircle,
-    editable: false,
+    editable: true,
   },
   {
     id: 'comparison',
@@ -97,7 +97,7 @@ export const LANDING_SECTIONS = [
     description: 'আগে/পরে বা প্রতিযোগী তুলনা',
     descriptionEn: 'Before/After or competitor comparison',
     icon: Layers,
-    editable: false,
+    editable: true,
   },
   {
     id: 'testimonials',
@@ -115,7 +115,7 @@ export const LANDING_SECTIONS = [
     description: 'অর্ডার/ভিজিটর সংখ্যা',
     descriptionEn: 'Orders/visitors count',
     icon: Users,
-    editable: false,
+    editable: true,
   },
   {
     id: 'delivery',
@@ -124,7 +124,7 @@ export const LANDING_SECTIONS = [
     description: 'শিপিং ও ডেলিভারি তথ্য',
     descriptionEn: 'Shipping & delivery details',
     icon: Truck,
-    editable: false,
+    editable: true,
   },
   {
     id: 'faq',
@@ -201,6 +201,19 @@ interface SectionManagerProps {
   hiddenSections: string[];
   onOrderChange: (newOrder: string[]) => void;
   onVisibilityChange: (sectionId: string, visible: boolean) => void;
+  // Hero section
+  headline?: string;
+  onHeadlineChange?: (headline: string) => void;
+  subheadline?: string;
+  onSubheadlineChange?: (subheadline: string) => void;
+  ctaText?: string;
+  onCtaTextChange?: (ctaText: string) => void;
+  // Trust badges
+  trustBadges?: Array<{ icon: string; text: string }>;
+  onTrustBadgesChange?: (badges: Array<{ icon: string; text: string }>) => void;
+  // Delivery info
+  deliveryInfo?: { title: string; description: string; areas?: string[] };
+  onDeliveryInfoChange?: (info: { title: string; description: string; areas?: string[] }) => void;
   // Content editing props
   features?: Feature[];
   onFeaturesChange?: (features: Feature[]) => void;
@@ -235,6 +248,20 @@ function SectionManagerBase({
   hiddenSections,
   onOrderChange,
   onVisibilityChange,
+  // Hero section
+  headline = '',
+  onHeadlineChange,
+  subheadline = '',
+  onSubheadlineChange,
+  ctaText = '',
+  onCtaTextChange,
+  // Trust badges
+  trustBadges = [],
+  onTrustBadgesChange,
+  // Delivery info
+  deliveryInfo = { title: '', description: '', areas: [] },
+  onDeliveryInfoChange,
+  // Features
   features = [],
   onFeaturesChange,
   faq = [],
@@ -318,6 +345,153 @@ function SectionManagerBase({
   // Render inline editor for each section type
   const renderSectionEditor = (sectionId: string) => {
     switch (sectionId) {
+      case 'hero':
+        return (
+          <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'হেডলাইন' : 'Headline'}
+              </label>
+              <input
+                type="text"
+                value={headline}
+                onChange={(e) => onHeadlineChange?.(e.target.value)}
+                placeholder={language === 'bn' ? 'আপনার প্রোডাক্টের নাম' : 'Your product name'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'সাবহেডলাইন' : 'Subheadline'}
+              </label>
+              <textarea
+                value={subheadline}
+                onChange={(e) => onSubheadlineChange?.(e.target.value)}
+                placeholder={language === 'bn' ? 'প্রোডাক্টের সংক্ষিপ্ত বর্ণনা' : 'Short product description'}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'বাটন টেক্সট' : 'Button Text'}
+              </label>
+              <input
+                type="text"
+                value={ctaText}
+                onChange={(e) => onCtaTextChange?.(e.target.value)}
+                placeholder={language === 'bn' ? 'এখনই অর্ডার করুন' : 'Order Now'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        );
+
+      case 'trust':
+        return (
+          <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            <p className="text-xs text-gray-500">
+              {language === 'bn' ? 'কাস্টমারদের বিশ্বাস অর্জনের জন্য ব্যাজ যোগ করুন' : 'Add badges to build customer trust'}
+            </p>
+            {trustBadges.length === 0 && (
+              <div className="text-center py-4 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                <p className="mb-1">
+                  {language === 'bn' ? '🛡️ ট্রাস্ট ব্যাজ যোগ করুন' : '🛡️ Add trust badges'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {language === 'bn' ? 'যেমন: ✅ ফ্রি ডেলিভারি, 🔒 সিকিউর পেমেন্ট' : 'e.g., ✅ Free Delivery, 🔒 Secure Payment'}
+                </p>
+              </div>
+            )}
+            {trustBadges.map((badge, index) => (
+              <div key={index} className="flex gap-2 items-center p-3 bg-white rounded-lg border border-gray-200">
+                <input
+                  type="text"
+                  value={badge.icon}
+                  onChange={(e) => {
+                    const newBadges = [...trustBadges];
+                    newBadges[index].icon = e.target.value;
+                    onTrustBadgesChange?.(newBadges);
+                  }}
+                  placeholder="✅"
+                  className="w-14 px-2 py-2 border border-gray-300 rounded-lg text-sm text-center"
+                />
+                <input
+                  type="text"
+                  value={badge.text}
+                  onChange={(e) => {
+                    const newBadges = [...trustBadges];
+                    newBadges[index].text = e.target.value;
+                    onTrustBadgesChange?.(newBadges);
+                  }}
+                  placeholder={language === 'bn' ? 'ব্যাজ টেক্সট' : 'Badge text'}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => onTrustBadgesChange?.(trustBadges.filter((_, i) => i !== index))}
+                  className="text-red-500 hover:text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => onTrustBadgesChange?.([...trustBadges, { icon: '✅', text: '' }])}
+              className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              {language === 'bn' ? 'ব্যাজ যোগ করুন' : 'Add Badge'}
+            </button>
+          </div>
+        );
+
+      case 'delivery':
+        return (
+          <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'ডেলিভারি শিরোনাম' : 'Delivery Title'}
+              </label>
+              <input
+                type="text"
+                value={deliveryInfo.title}
+                onChange={(e) => onDeliveryInfoChange?.({ ...deliveryInfo, title: e.target.value })}
+                placeholder={language === 'bn' ? 'সারাদেশে ক্যাশ অন ডেলিভারি' : 'Cash on Delivery Nationwide'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'ডেলিভারি বিবরণ' : 'Delivery Description'}
+              </label>
+              <textarea
+                value={deliveryInfo.description}
+                onChange={(e) => onDeliveryInfoChange?.({ ...deliveryInfo, description: e.target.value })}
+                placeholder={language === 'bn' ? 'ঢাকায় ১-২ দিন, ঢাকার বাইরে ২-৩ দিন' : 'Dhaka 1-2 days, Outside Dhaka 2-3 days'}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'ডেলিভারি এরিয়া (প্রতিটি লাইনে একটি)' : 'Delivery Areas (one per line)'}
+              </label>
+              <textarea
+                value={deliveryInfo.areas?.join('\n') || ''}
+                onChange={(e) => onDeliveryInfoChange?.({ 
+                  ...deliveryInfo, 
+                  areas: e.target.value.split('\n').filter(a => a.trim()) 
+                })}
+                placeholder={language === 'bn' ? 'ঢাকা\nচট্টগ্রাম\nসিলেট' : 'Dhaka\nChittagong\nSylhet'}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        );
+
       case 'features':
         return (
           <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">

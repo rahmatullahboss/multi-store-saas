@@ -228,7 +228,7 @@ export default function StorePreviewFrame() {
 
       {/* Inject Google Fonts - English + Bengali */}
       <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;500;600;700&family=Baloo+Da+2:wght@400;500;600;700&family=Tiro+Bangla&family=Anek+Bangla:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Lato:wght@400;700&family=Open+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;500;600;700&family=Baloo+Da+2:wght@400;500;600;700&family=Tiro+Bangla&family=Anek+Bangla:wght@400;500;600;700&display=swap"
         rel="stylesheet"
       />
 
@@ -261,6 +261,9 @@ function getFontFamily(fontId: string): string {
     'roboto': "'Roboto', sans-serif",
     'playfair': "'Playfair Display', serif",
     'montserrat': "'Montserrat', sans-serif",
+    'lato': "'Lato', sans-serif",
+    'open-sans': "'Open Sans', sans-serif",
+    'nunito': "'Nunito', sans-serif",
     // Bengali
     'hind-siliguri': "'Hind Siliguri', sans-serif",
     'noto-sans-bengali': "'Noto Sans Bengali', sans-serif",
