@@ -5,6 +5,7 @@ export function FeaturesSection({
   config,
   isEditMode,
   onUpdate,
+  theme,
   lang = 'bn',
 }: SectionProps) {
   const t = (key: string) => {
@@ -31,25 +32,25 @@ export function FeaturesSection({
       onUpdate={(newData) => onUpdate?.('features', newData)}
       isEditable={isEditMode}
     >
-      <section className="py-16 bg-white">
+      <section className={`py-16 ${theme.bgPrimary}`}>
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+            <h2 className={`text-3xl md:text-4xl font-black ${theme.textPrimary} mb-4`}>
               {t('productFeatures')}
             </h2>
-            <p className="text-xl text-gray-600">{t('whyThisProductSpecial')}</p>
+            <p className={`text-xl ${theme.textSecondary}`}>{t('whyThisProductSpecial')}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {config.features.map((feature, i) => (
-              <div key={i} className="flex items-start gap-4 bg-gray-50 rounded-2xl p-6">
-                <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
+              <div key={i} className={`flex items-start gap-4 ${theme.cardBg} rounded-2xl p-6 border ${theme.cardBorder}`}>
+                <div className={`${theme.isDark ? 'bg-white/10' : 'bg-white'} w-14 h-14 rounded-xl flex items-center justify-center text-3xl shadow-sm flex-shrink-0`}>
                   {feature.icon}
                 </div>
                 <div>
-                  <h4 className="text-lg font-bold text-gray-900">{feature.title}</h4>
+                  <h4 className={`text-lg font-bold ${theme.textPrimary}`}>{feature.title}</h4>
                   {feature.description && (
-                    <p className="text-gray-600 mt-1">{feature.description}</p>
+                    <p className={`${theme.textSecondary} mt-1`}>{feature.description}</p>
                   )}
                 </div>
               </div>

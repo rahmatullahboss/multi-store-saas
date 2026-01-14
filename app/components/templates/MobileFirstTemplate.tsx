@@ -102,6 +102,7 @@ export function MobileFirstTemplate({
         isPreview={isPreview}
         planType={planType}
         onUpdate={handleSectionUpdate}
+        templateId="mobile-first"
       />
 
       {/* STICKY FOOTER (Mobile Only Action) */}

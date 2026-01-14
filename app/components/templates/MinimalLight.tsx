@@ -16,7 +16,8 @@ export function MinimalLightTemplate({
   storeName,
   storeId,
   product,
-  config,
+   config,
+  currency,
   onConfigChange,
   isPreview,
   planType = 'free',
@@ -72,12 +73,13 @@ export function MinimalLightTemplate({
         storeName={storeName}
         theme={theme}
         formatPrice={formatPrice}
-        productVariants={(product as any).variants || []}
-        orderBumps={(editableConfig as any).orderBumps || []}
-        currency={(product as any).currency || 'BDT'}
+        productVariants={[]}
+        orderBumps={[]}
+        currency={currency}
         storeId={storeId}
         isPreview={isPreview}
         planType={planType}
+        templateId="minimal-light"
         onUpdate={handleSectionUpdate}
       />
 

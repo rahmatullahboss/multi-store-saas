@@ -74,6 +74,7 @@ export function ModernDarkTemplate({
         storeId={storeId}
         isPreview={isPreview}
         planType={planType}
+        templateId="modern-dark"
         onUpdate={handleSectionUpdate}
       />
 

@@ -117,8 +117,8 @@ export function LandingPageTemplate({
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher();
   const isSubmitting = fetcher.state === 'submitting';
-  const isSuccess = fetcher.data?.success;
-  const hasError = fetcher.data && !fetcher.data.success;
+  const isSuccess = (fetcher.data as any)?.success;
+  const hasError = (fetcher.data as any) && !(fetcher.data as any).success;
 
   // Format price using context (responds to language/currency toggle)
   const formatPrice = useFormatPrice();
@@ -204,6 +204,7 @@ export function LandingPageTemplate({
         formatPrice={formatPrice}
         productVariants={productVariants}
         orderBumps={orderBumps}
+        templateId={editableConfig.templateId}
       />
 
       {/* Mobile Sticky Footer - Scroll to Form */}

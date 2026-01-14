@@ -92,6 +92,7 @@ export function ShowcaseTemplate({
         storeId={storeId}
         isPreview={isPreview}
         planType={planType}
+        templateId="showcase"
         onUpdate={handleSectionUpdate}
       />
 

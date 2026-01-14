@@ -57,12 +57,13 @@ export function OrganicTemplate({
         storeName={storeName}
         theme={theme}
         formatPrice={formatPrice}
-        productVariants={(product as any).variants || []}
-        orderBumps={(editableConfig as any).orderBumps || []}
+        productVariants={[]}
+        orderBumps={[]}
         currency={currency}
         storeId={storeId}
         isPreview={isPreview}
         planType={planType}
+        templateId="organic"
         onUpdate={handleSectionUpdate}
       />
 

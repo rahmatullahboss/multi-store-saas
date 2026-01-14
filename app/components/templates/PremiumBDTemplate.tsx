@@ -84,6 +84,7 @@ export function PremiumBDTemplate({
         storeId={storeId}
         isPreview={isPreview}
         planType={planType}
+        templateId="premium-bd"
         onUpdate={handleSectionUpdate}
       />
 

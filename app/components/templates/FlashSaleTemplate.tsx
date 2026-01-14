@@ -197,6 +197,7 @@ export function FlashSaleTemplate({
         storeId={storeId}
         isPreview={isPreview}
         planType={planType}
+        templateId="flash-sale"
       />
 
 

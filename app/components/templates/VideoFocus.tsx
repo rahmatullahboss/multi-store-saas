@@ -65,6 +65,7 @@ export function VideoFocusTemplate({
         storeId={storeId}
         isPreview={isPreview}
         planType={planType}
+        templateId="video-focus"
         onUpdate={handleSectionUpdate}
       />
 

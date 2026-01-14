@@ -34,6 +34,7 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<any>> = {
   faq: FAQSection,
   guarantee: GuaranteeSection,
   cta: OrderFormSection,
+  'order-form': OrderFormSection,  // Alias for cta
   contact: ContactSection,
   'showcase-hero': ShowcaseHero,
   'showcase-gallery-grid': ShowcaseGalleryGrid,
@@ -45,6 +46,7 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<any>> = {
 interface SectionRendererProps extends SectionProps {
   sectionOrder?: string[];
   hiddenSections?: string[];
+  templateId?: string;
 }
 
 const DEFAULT_ORDER = [
@@ -62,16 +64,12 @@ const DEFAULT_ORDER = [
   'guarantee',
   'cta',
   'contact',
-  'showcase-hero',
-  'showcase-gallery-grid',
-  'mobile-first-hero',
-  'modern-dark-hero',
-  'video-focus-hero'
 ];
 
 export function SectionRenderer({
   sectionOrder,
   hiddenSections = [],
+  templateId,
   ...props
 }: SectionRendererProps & { formatPrice: (price: number) => string }) {
   const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_ORDER;
@@ -82,7 +80,21 @@ export function SectionRenderer({
         // Skip hidden sections
         if (hiddenSections.includes(sectionId)) return null;
 
-        const Component = SECTION_COMPONENTS[sectionId];
+        let Component = SECTION_COMPONENTS[sectionId];
+
+        // Template-specific overrides
+        if (sectionId === 'hero') {
+          if (templateId === 'modern-dark') Component = ModernDarkHero;
+          if (templateId === 'flash-sale') Component = HeroSection; // Flash Sale uses default for now or specialized if we create one
+          if (templateId === 'showcase') Component = ShowcaseHero;
+          if (templateId === 'mobile-first' || templateId === 'premium-bd') Component = MobileFirstHero;
+          if (templateId === 'video-focus') Component = VideoFocusHero;
+        }
+
+        if (sectionId === 'gallery' && templateId === 'showcase') {
+          Component = ShowcaseGalleryGrid;
+        }
+
         if (!Component) return null;
 
         return <Component key={sectionId} {...props} />;
