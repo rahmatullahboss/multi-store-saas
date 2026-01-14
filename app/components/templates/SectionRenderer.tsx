@@ -17,6 +17,12 @@ import { ShowcaseGalleryGrid } from './sections/ShowcaseGalleryGrid';
 import { MobileFirstHero } from './sections/MobileFirstHero';
 import { ModernDarkHero } from './sections/ModernDarkHero';
 import { VideoFocusHero } from './sections/VideoFocusHero';
+import { FlashSaleHero } from './sections/FlashSaleHero';
+import { MinimalLightHero } from './sections/MinimalLightHero';
+import { OrganicHero } from './sections/OrganicHero';
+import { LuxeHero } from './sections/LuxeHero';
+import { ModernPremiumHero } from './sections/ModernPremiumHero';
+import { PremiumBDHero } from './sections/PremiumBDHero';
 import { AddSectionButton } from './AddSectionButton';
 import type { SectionProps } from './sections/types';
 
@@ -42,6 +48,12 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'mobile-first-hero': MobileFirstHero,
   'modern-dark-hero': ModernDarkHero,
   'video-focus-hero': VideoFocusHero,
+  'flash-sale-hero': FlashSaleHero,
+  'minimal-light-hero': MinimalLightHero,
+  'organic-hero': OrganicHero,
+  'luxe-hero': LuxeHero,
+  'modern-premium-hero': ModernPremiumHero,
+  'premium-bd-hero': PremiumBDHero,
 };
 
 interface SectionRendererProps extends SectionProps {
@@ -80,18 +92,40 @@ export function SectionRenderer({
   // Filter out hidden sections first to get the visible ones
   const visibleSections = order.filter(sectionId => !hiddenSections.includes(sectionId));
 
+  // FORCE ORDERING: Hero at top, Order Form at bottom
+  const finalSections = [...visibleSections];
+  
+  // 1. Ensure Hero is at the top if present
+  const heroIndex = finalSections.findIndex(id => id === 'hero' || id.includes('-hero'));
+  if (heroIndex > 0) {
+    const heroSection = finalSections.splice(heroIndex, 1)[0];
+    finalSections.unshift(heroSection);
+  }
+
+  // 2. Ensure Order Form is at the bottom if present
+  const ctaIndex = finalSections.findIndex(id => id === 'cta' || id === 'order-form');
+  if (ctaIndex !== -1 && ctaIndex !== finalSections.length - 1) {
+    const ctaSection = finalSections.splice(ctaIndex, 1)[0];
+    finalSections.push(ctaSection);
+  }
+
   return (
     <>
-      {visibleSections.map((sectionId, index) => {
+      {finalSections.map((sectionId, index) => {
         let Component = SECTION_COMPONENTS[sectionId];
 
         // Template-specific overrides
         if (sectionId === 'hero') {
           if (templateId === 'modern-dark') Component = ModernDarkHero;
-          if (templateId === 'flash-sale') Component = HeroSection;
+          if (templateId === 'flash-sale') Component = FlashSaleHero;
           if (templateId === 'showcase') Component = ShowcaseHero;
-          if (templateId === 'mobile-first' || templateId === 'premium-bd') Component = MobileFirstHero;
+          if (templateId === 'mobile-first') Component = MobileFirstHero;
+          if (templateId === 'premium-bd') Component = PremiumBDHero;
           if (templateId === 'video-focus') Component = VideoFocusHero;
+          if (templateId === 'minimal-light') Component = MinimalLightHero;
+          if (templateId === 'organic') Component = OrganicHero;
+          if (templateId === 'luxury') Component = LuxeHero;
+          if (templateId === 'modern-premium') Component = ModernPremiumHero;
         }
 
         if (sectionId === 'gallery' && templateId === 'showcase') {
@@ -107,7 +141,7 @@ export function SectionRenderer({
               <AddSectionButton position={`before-${sectionId}`} />
             )}
             
-            <Component {...props} />
+            <Component {...props} templateId={templateId} />
             
             {/* Add button after each section */}
             {isPreview && (

@@ -7,7 +7,7 @@ import {
   useLoaderData,
   useRouteError,
 } from '@remix-run/react';
-import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 
 import './styles/tailwind.css';
@@ -37,6 +37,18 @@ export const links: LinksFunction = () => [
   { rel: 'manifest', href: '/manifest.webmanifest' },
 ];
 
+
+/**
+ * Default Meta - Provides fallback title for all pages
+ * Child routes can override this with their own meta exports
+ */
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  const storeName = data?.store?.name || 'Ozzyl';
+  return [
+    { title: storeName },
+    { name: 'description', content: `Welcome to ${storeName}` },
+  ];
+};
 
 /**
  * Root Loader - Load store information for all pages
@@ -89,32 +101,32 @@ export default function App() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <title>{store.name}</title>
         
-        {/* Google Analytics 4 - Load gtag.js library */}
+        {/* 
+          Analytics scripts are rendered unconditionally with data attributes.
+          This prevents hydration mismatches from conditional rendering.
+          Scripts will only fire if the tracking IDs are present.
+        */}
         {store.googleAnalyticsId && (
           <script async src={getGA4ScriptUrl(store.googleAnalyticsId)} />
         )}
         
-        {/* Google Analytics 4 - Initialize */}
         {store.googleAnalyticsId && (
           <script
             dangerouslySetInnerHTML={{ __html: getGA4InitScript(store.googleAnalyticsId) }}
           />
         )}
         
-        {/* Facebook Pixel - Conversion Tracking (Merchant + Master Pixel) */}
         {(store.facebookPixelId || masterPixelId) && (
           <script
             dangerouslySetInnerHTML={{ 
               __html: store.facebookPixelId 
                 ? getFacebookPixelInitScript(store.facebookPixelId, masterPixelId)
-                : getFacebookPixelInitScript(masterPixelId!, null) // Only master pixel if no merchant pixel
+                : getFacebookPixelInitScript(masterPixelId!, null)
             }}
           />
         )}
         
-        {/* Facebook Pixel - Noscript Fallback */}
         {(store.facebookPixelId || masterPixelId) && (
           <noscript>
             <img 

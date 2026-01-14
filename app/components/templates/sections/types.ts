@@ -45,6 +45,7 @@ export interface SectionProps {
   orderBumps?: any[];
   storeId?: number | string;
   planType?: string;
+  templateId?: string;
 }
 
 export type SectionType = 
@@ -67,7 +68,13 @@ export type SectionType =
   | 'showcase-gallery-grid'
   | 'mobile-first-hero'
   | 'modern-dark-hero'
-  | 'video-focus-hero';
+  | 'video-focus-hero'
+  | 'modern-premium-hero'
+  | 'flash-sale-hero'
+  | 'minimal-light-hero'
+  | 'organic-hero'
+  | 'luxe-hero'
+  | 'premium-bd-hero';
 
 // ============================================================================
 // PRESET THEMES - Ready-to-use themes for each template
@@ -230,6 +237,25 @@ export const MOBILE_FIRST_THEME: ThemeConfig = {
   footerBg: 'bg-gray-900',
   footerText: 'text-gray-400',
   urgencyBg: 'bg-orange-100',
+};
+
+// Modern Premium Template - Sleek glassmorphism/blue gradient theme
+export const MODERN_PREMIUM_THEME: ThemeConfig = {
+  isDark: false,
+  primary: '#2563eb', // blue-600
+  accent: '#4f46e5', // indigo-600
+  bgPrimary: 'bg-white',
+  bgSecondary: 'bg-slate-50',
+  textPrimary: 'text-slate-900',
+  textSecondary: 'text-slate-500',
+  cardBg: 'bg-white/80',
+  cardBorder: 'border-slate-200',
+  ctaBg: 'bg-gradient-to-r from-blue-600 to-indigo-600',
+  ctaText: 'text-white',
+  headerBg: 'bg-white/80',
+  footerBg: 'bg-slate-900',
+  footerText: 'text-slate-400',
+  urgencyBg: 'bg-blue-50',
 };
 
 // Helper to customize theme with user-selected colors

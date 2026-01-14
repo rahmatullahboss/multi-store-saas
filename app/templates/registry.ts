@@ -95,6 +95,7 @@ import { ShowcaseTemplate } from '~/components/templates/ShowcaseTemplate';
 import { ModernDarkTemplate } from '~/components/templates/ModernDark';
 import { MinimalLightTemplate } from '~/components/templates/MinimalLight';
 import { VideoFocusTemplate } from '~/components/templates/VideoFocus';
+import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTemplate';
 
 // ============================================================================
 // TEMPLATES REGISTRY - All templates use same component, different themes
@@ -162,6 +163,13 @@ export const TEMPLATES: TemplateDefinition[] = [
     description: 'Premium dark aesthetic designed to showcase product details with a gallery grid. Perfect for luxury items.',
     thumbnail: '/templates/showcase.png', // We will need to generate this later
     component: ShowcaseTemplate,
+  },
+  {
+    id: 'modern-premium',
+    name: 'Modern Premium',
+    description: 'Sleek glassmorphism design with premium typography and dark mode support.',
+    thumbnail: '/templates/modern-premium.png',
+    component: ModernPremiumTemplate,
   },
 ];
 
