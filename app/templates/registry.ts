@@ -61,6 +61,14 @@ export interface TemplateProps {
       imageUrl?: string | null;
     };
   }>;
+  // Custom HTML sections to render at specified positions
+  customSections?: Array<{
+    id: string;
+    name: string;
+    html: string;
+    css?: string;
+    position?: string;
+  }>;
 }
 
 // ============================================================================

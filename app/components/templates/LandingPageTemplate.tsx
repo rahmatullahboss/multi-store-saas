@@ -113,6 +113,7 @@ import { OrderBumpsContainer } from '~/components/landing/OrderBumpCheckbox';
 import { WhatsAppButton } from '~/components/WhatsAppButton';
 import { Phone } from 'lucide-react';
 import { FloatingButtons } from './FloatingButtons';
+import { CustomSectionRenderer } from './CustomSectionRenderer';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -166,6 +167,14 @@ interface LandingPageTemplateProps {
     };
   }>;
   planType?: string;
+  // Custom HTML sections
+  customSections?: Array<{
+    id: string;
+    name: string;
+    html: string;
+    css?: string;
+    position?: string;
+  }>;
 }
 
 export function LandingPageTemplate({
@@ -181,6 +190,7 @@ export function LandingPageTemplate({
   productVariants = [],
   orderBumps = [],
   planType = 'free',
+  customSections = [],
 }: LandingPageTemplateProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -1558,6 +1568,9 @@ export function LandingPageTemplate({
 
       {/* Footer Spacer for Mobile */}
       <div className="lg:hidden h-24" />
+
+      {/* Custom Sections - Before Footer position */}
+      <CustomSectionRenderer customSections={customSections} position="before-footer" />
 
       {/* Footer */}
       <footer className={`${theme.footerBg} ${theme.footerText} py-8 border-t ${theme.isDark ? 'border-gray-800' : 'border-gray-200'}`}>
