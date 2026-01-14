@@ -171,6 +171,16 @@ export default function PreviewFrame() {
             isPreview={true}
           />
           
+          {/* Custom HTML Sections (imported designs) */}
+          {(liveConfig as any).customSections?.map((section: { id: string; html: string; css?: string }) => (
+            <div key={section.id} className="custom-html-section">
+              {section.css && (
+                <style dangerouslySetInnerHTML={{ __html: section.css }} />
+              )}
+              <div dangerouslySetInnerHTML={{ __html: section.html }} />
+            </div>
+          ))}
+          
           {/* Custom Body Code injection (chat widgets, etc.) */}
           {liveConfig.customBodyCode && (
             <div 

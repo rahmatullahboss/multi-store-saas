@@ -245,6 +245,16 @@ export default function OfferProductPage() {
         planType={data.planType}
       />
       
+      {/* Custom HTML Sections (imported designs) */}
+      {(data.landingConfig as any).customSections?.map((section: { id: string; html: string; css?: string }) => (
+        <div key={section.id} className="custom-html-section">
+          {section.css && (
+            <style dangerouslySetInnerHTML={{ __html: section.css }} />
+          )}
+          <div dangerouslySetInnerHTML={{ __html: section.html }} />
+        </div>
+      ))}
+      
       {/* Custom Body Code injection (chat widgets, etc.) */}
       {data.landingConfig.customBodyCode && (
         <div 
