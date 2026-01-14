@@ -6,7 +6,7 @@
  * Phase 2: Added drag and drop using @dnd-kit/sortable
  */
 
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { 
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
@@ -230,7 +230,7 @@ interface SectionManagerProps {
   onOrderFormVariantChange?: (variant: 'full-width' | 'compact') => void;
 }
 
-export function SectionManager({
+function SectionManagerBase({
   sectionOrder,
   hiddenSections,
   onOrderChange,
@@ -881,7 +881,9 @@ export function SectionManager({
   );
 }
 
-// Sortable Section Item Component
+// Memoized export to prevent flickering from parent re-renders
+export const SectionManager = memo(SectionManagerBase);
+
 interface SortableSectionItemProps {
   id: string;
   section: typeof LANDING_SECTIONS[0];
@@ -893,8 +895,8 @@ interface SortableSectionItemProps {
   onToggleVisibility: () => void;
   renderEditor: () => React.ReactNode;
 }
-
-function SortableSectionItem({
+// Sortable Section Item Component (memoized to prevent flickering)
+const SortableSectionItem = memo(function SortableSectionItem({
   id,
   section,
   isHidden,
@@ -1008,7 +1010,7 @@ function SortableSectionItem({
       {isExpanded && renderEditor()}
     </div>
   );
-}
+});
 
 // Preview component showing section order
 interface SectionPreviewProps {
