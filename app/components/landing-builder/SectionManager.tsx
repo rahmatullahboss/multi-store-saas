@@ -154,19 +154,10 @@ export const LANDING_SECTIONS = [
     required: true,
     editable: true,
   },
-  {
-    id: 'custom',
-    name: 'কাস্টম কোড',
-    nameEn: 'Custom Code',
-    description: 'HTML/CSS কোড ইমপোর্ট করুন',
-    descriptionEn: 'Import custom HTML/CSS code',
-    icon: Code,
-    editable: true,
-  },
 ];
 
 // Default section order
-export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta', 'custom'];
+export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'];
 
 // Types for section content
 export interface Feature {
@@ -1030,130 +1021,6 @@ function SectionManagerBase({
           </div>
         );
 
-      case 'custom':
-        return (
-          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
-            <p className="text-xs text-gray-500">
-              {language === 'bn' 
-                ? 'কাস্টম HTML/CSS কোড পেস্ট করুন। এটি একটি আলাদা সেকশন হিসেবে দেখাবে।' 
-                : 'Paste custom HTML/CSS code. It will render as a separate section.'}
-            </p>
-            
-            {customSections.length === 0 && (
-              <div className="text-center py-6 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
-                <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p className="mb-1">
-                  {language === 'bn' ? 'কোনো কাস্টম সেকশন নেই' : 'No custom sections yet'}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {language === 'bn' ? 'নিচের বাটনে ক্লিক করে কাস্টম HTML যোগ করুন' : 'Click the button below to add custom HTML'}
-                </p>
-              </div>
-            )}
-
-            {customSections.map((section, index) => (
-              <div key={section.id} className="p-4 bg-white rounded-lg border border-gray-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <input
-                    type="text"
-                    value={section.name}
-                    onChange={(e) => {
-                      const newSections = [...customSections];
-                      newSections[index].name = e.target.value;
-                      onCustomSectionsChange?.(newSections);
-                    }}
-                    placeholder={language === 'bn' ? 'সেকশনের নাম' : 'Section name'}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => onCustomSectionsChange?.(customSections.filter((_, i) => i !== index))}
-                    className="ml-2 p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Position Selector */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    {language === 'bn' ? 'পজিশন (কোথায় দেখাবে)' : 'Position'}
-                  </label>
-                  <select
-                    value={(section as any).position || 'after-hero'}
-                    onChange={(e) => {
-                      const newSections = [...customSections];
-                      (newSections[index] as any).position = e.target.value;
-                      onCustomSectionsChange?.(newSections);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
-                  >
-                    <option value="before-hero">{language === 'bn' ? 'Hero এর আগে' : 'Before Hero'}</option>
-                    <option value="after-hero">{language === 'bn' ? 'Hero এর পরে' : 'After Hero'}</option>
-                    <option value="before-features">{language === 'bn' ? 'Features এর আগে' : 'Before Features'}</option>
-                    <option value="after-features">{language === 'bn' ? 'Features এর পরে' : 'After Features'}</option>
-                    <option value="before-testimonials">{language === 'bn' ? 'Testimonials এর আগে' : 'Before Testimonials'}</option>
-                    <option value="after-testimonials">{language === 'bn' ? 'Testimonials এর পরে' : 'After Testimonials'}</option>
-                    <option value="before-form">{language === 'bn' ? 'অর্ডার ফর্ম এর আগে' : 'Before Order Form'}</option>
-                    <option value="after-form">{language === 'bn' ? 'অর্ডার ফর্ম এর পরে' : 'After Order Form'}</option>
-                    <option value="before-footer">{language === 'bn' ? 'Footer এর আগে' : 'Before Footer'}</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    HTML
-                  </label>
-                  <textarea
-                    value={section.html}
-                    onChange={(e) => {
-                      const newSections = [...customSections];
-                      newSections[index].html = e.target.value;
-                      onCustomSectionsChange?.(newSections);
-                    }}
-                    placeholder={language === 'bn' ? '<div>আপনার HTML কোড এখানে</div>' : '<div>Your HTML code here</div>'}
-                    rows={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono bg-gray-50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    CSS ({language === 'bn' ? 'ঐচ্ছিক' : 'Optional'})
-                  </label>
-                  <textarea
-                    value={section.css || ''}
-                    onChange={(e) => {
-                      const newSections = [...customSections];
-                      newSections[index].css = e.target.value;
-                      onCustomSectionsChange?.(newSections);
-                    }}
-                    placeholder=".my-class { color: red; }"
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono bg-gray-50"
-                  />
-                </div>
-              </div>
-            ))}
-
-            <button
-              type="button"
-              onClick={() => {
-                const newSection = {
-                  id: `custom-${Date.now()}`,
-                  name: language === 'bn' ? 'নতুন কাস্টম সেকশন' : 'New Custom Section',
-                  html: '',
-                  css: '',
-                };
-                onCustomSectionsChange?.([...customSections, newSection]);
-              }}
-              className="w-full py-3 border-2 border-dashed border-emerald-300 rounded-lg text-sm text-emerald-600 hover:border-emerald-500 hover:bg-emerald-50 flex items-center justify-center gap-2 transition"
-            >
-              <Plus className="w-4 h-4" />
-              {language === 'bn' ? 'কাস্টম সেকশন যোগ করুন' : 'Add Custom Section'}
-            </button>
-          </div>
-        );
 
       default:
         return null;

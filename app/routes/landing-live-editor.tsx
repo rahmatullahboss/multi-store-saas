@@ -20,7 +20,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, AlertCircle
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, AlertCircle, Code
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
@@ -1628,6 +1628,136 @@ export default function LiveEditorPage() {
                   {language === 'bn' ? '👥 সোশ্যাল প্রুফ' : '👥 Social Proof'}
                 </span>
               </label>
+            </div>
+          </AccordionSection>
+
+          {/* Custom HTML/CSS Section - Outside Section Manager */}
+          <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 uppercase tracking-wider text-[10px] font-bold text-gray-500 mt-2">
+            {language === 'bn' ? 'কাস্টম ডিজাইন' : 'Custom Design'}
+          </div>
+
+          <AccordionSection
+            title={language === 'bn' ? 'কাস্টম HTML/CSS' : 'Custom HTML/CSS'}
+            icon={Code}
+            isOpen={openSection === 'customhtml'}
+            onToggle={() => setOpenSection(openSection === 'customhtml' ? '' : 'customhtml')}
+          >
+            <div className="space-y-4">
+              <p className="text-xs text-gray-500">
+                {language === 'bn' 
+                  ? 'কাস্টম HTML ও CSS একসাথে পেস্ট করুন। এটি সঠিক পজিশনে দেখাবে।' 
+                  : 'Paste HTML and CSS together. It will render at the selected position.'}
+              </p>
+              
+              {customSections.length === 0 && (
+                <div className="text-center py-6 text-gray-500 text-sm bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                  <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p className="mb-1">
+                    {language === 'bn' ? 'কোনো কাস্টম ডিজাইন নেই' : 'No custom designs yet'}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {language === 'bn' ? 'নিচের বাটনে ক্লিক করে যোগ করুন' : 'Click the button below to add'}
+                  </p>
+                </div>
+              )}
+
+              {customSections.map((section, index) => (
+                <div key={section.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <input
+                      type="text"
+                      value={section.name}
+                      onChange={(e) => {
+                        const newSections = [...customSections];
+                        newSections[index].name = e.target.value;
+                        setCustomSections(newSections);
+                      }}
+                      placeholder={language === 'bn' ? 'সেকশনের নাম' : 'Section name'}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCustomSections(customSections.filter((_, i) => i !== index))}
+                      className="ml-2 p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Position Selector */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      {language === 'bn' ? 'পজিশন (কোথায় দেখাবে)' : 'Position'}
+                    </label>
+                    <select
+                      value={(section as any).position || 'after-hero'}
+                      onChange={(e) => {
+                        const newSections = [...customSections];
+                        (newSections[index] as any).position = e.target.value;
+                        setCustomSections(newSections);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                    >
+                      <option value="before-hero">{language === 'bn' ? 'Hero এর আগে' : 'Before Hero'}</option>
+                      <option value="after-hero">{language === 'bn' ? 'Hero এর পরে' : 'After Hero'}</option>
+                      <option value="before-features">{language === 'bn' ? 'Features এর আগে' : 'Before Features'}</option>
+                      <option value="after-features">{language === 'bn' ? 'Features এর পরে' : 'After Features'}</option>
+                      <option value="before-testimonials">{language === 'bn' ? 'Testimonials এর আগে' : 'Before Testimonials'}</option>
+                      <option value="after-testimonials">{language === 'bn' ? 'Testimonials এর পরে' : 'After Testimonials'}</option>
+                      <option value="before-form">{language === 'bn' ? 'অর্ডার ফর্ম এর আগে' : 'Before Order Form'}</option>
+                      <option value="after-form">{language === 'bn' ? 'অর্ডার ফর্ম এর পরে' : 'After Order Form'}</option>
+                      <option value="before-footer">{language === 'bn' ? 'Footer এর আগে' : 'Before Footer'}</option>
+                    </select>
+                  </div>
+                  
+                  {/* Combined HTML+CSS Textarea */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      {language === 'bn' ? 'HTML + CSS কোড' : 'HTML + CSS Code'}
+                    </label>
+                    <textarea
+                      value={section.css ? `<style>${section.css}</style>\n${section.html}` : section.html}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const newSections = [...customSections];
+                        // Parse style tag if present
+                        const styleMatch = value.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                        if (styleMatch) {
+                          newSections[index].css = styleMatch[1].trim();
+                          newSections[index].html = value.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').trim();
+                        } else {
+                          newSections[index].css = '';
+                          newSections[index].html = value;
+                        }
+                        setCustomSections(newSections);
+                      }}
+                      placeholder={language === 'bn' 
+                        ? '<style>\n  .my-class { color: red; }\n</style>\n\n<div class="my-class">আপনার কোড</div>' 
+                        : '<style>\n  .my-class { color: red; }\n</style>\n\n<div class="my-class">Your code</div>'}
+                      rows={10}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono bg-white"
+                    />
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const newSection = {
+                    id: `custom-${Date.now()}`,
+                    name: language === 'bn' ? 'নতুন কাস্টম ডিজাইন' : 'New Custom Design',
+                    html: '',
+                    css: '',
+                    position: 'after-hero',
+                  };
+                  setCustomSections([...customSections, newSection]);
+                }}
+                className="w-full py-3 border-2 border-dashed border-emerald-300 rounded-lg text-sm text-emerald-600 hover:border-emerald-500 hover:bg-emerald-50 flex items-center justify-center gap-2 transition"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? '+ কাস্টম ডিজাইন যোগ করুন' : '+ Add Custom Design'}
+              </button>
             </div>
           </AccordionSection>
         </aside>
