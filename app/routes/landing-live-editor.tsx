@@ -36,6 +36,7 @@ import {
 } from '~/components/landing-builder';
 import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
 import { getTemplateComponent } from '~/templates/registry';
+import { designCustomSection, callAIWithSystemPrompt } from '~/services/ai.server';
 
 // Default features
 const DEFAULT_FEATURES_EN = [
@@ -130,6 +131,47 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // Check intent: 'save_draft' (auto-save) or 'publish' (go live)
   const intent = formData.get('intent') as string || 'save_draft';
+
+  // ==========================================================================
+  // INTENT: AI GENERATION
+  // ==========================================================================
+  if (intent === 'GENERATE_CUSTOM_SECTION') {
+    const prompt = formData.get('prompt') as string;
+    const sectionIndex = parseInt(formData.get('sectionIndex') as string);
+    const currentHtml = formData.get('currentHtml') as string || '';
+    
+    if (!prompt) return json({ error: 'Prompt is required' }, { status: 400 });
+
+    try {
+      const apiKey = context.cloudflare.env.OPENROUTER_API_KEY;
+      if (!apiKey) return json({ error: 'AI API Key not configured' }, { status: 500 });
+
+      // Fetch product info if featuredProductId is available
+      const featuredProductId = formData.get('featuredProductId') as string;
+      let productInfo = null;
+      if (featuredProductId) {
+        const productResult = await db
+          .select()
+          .from(products)
+          .where(eq(products.id, parseInt(featuredProductId)))
+          .limit(1);
+        
+        if (productResult[0]) {
+          productInfo = {
+            title: productResult[0].title,
+            description: productResult[0].description || undefined,
+            price: productResult[0].price
+          };
+        }
+      }
+
+      const result = await designCustomSection(apiKey, prompt, currentHtml, productInfo);
+      return json({ success: true, data: result, sectionIndex });
+    } catch (error: any) {
+      console.error('[AI] Custom Section Generation Error:', error);
+      return json({ error: error.message || 'AI generation failed' }, { status: 500 });
+    }
+  }
 
   function safeJSONParse<T>(str: string | null, fallback: T): T {
     if (!str) return fallback;
@@ -488,6 +530,44 @@ export default function LiveEditorPage() {
   // AI GENERATOR MODAL STATE
   // ============================================================================
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  
+  // AI Custom Section Generation
+  const [aiPromptIndex, setAiPromptIndex] = useState<number | null>(null);
+  const [aiPromptText, setAiPromptText] = useState('');
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const aiSectionFetcher = useFetcher<{ success?: boolean; data?: { html: string; css?: string }; sectionIndex?: number; error?: string }>();
+  
+  // Handle AI section generation response
+  useEffect(() => {
+    if (aiSectionFetcher.state === 'idle' && aiSectionFetcher.data?.success && aiSectionFetcher.data.data) {
+      const { html, css } = aiSectionFetcher.data.data;
+      const sectionIndex = aiSectionFetcher.data.sectionIndex;
+      if (typeof sectionIndex === 'number') {
+        const newSections = [...customSections];
+        newSections[sectionIndex].html = html;
+        newSections[sectionIndex].css = css || '';
+        setCustomSections(newSections);
+      }
+      setAiPromptIndex(null);
+      setAiPromptText('');
+      setIsAiGenerating(false);
+    } else if (aiSectionFetcher.state === 'idle' && aiSectionFetcher.data?.error) {
+      setIsAiGenerating(false);
+      // Optionally show toast
+    }
+  }, [aiSectionFetcher.state, aiSectionFetcher.data, customSections]);
+  
+  const handleAiGenerate = (index: number) => {
+    if (!aiPromptText.trim()) return;
+    setIsAiGenerating(true);
+    const formData = new FormData();
+    formData.append('intent', 'GENERATE_CUSTOM_SECTION');
+    formData.append('prompt', aiPromptText);
+    formData.append('sectionIndex', String(index));
+    formData.append('currentHtml', customSections[index]?.html || '');
+    formData.append('featuredProductId', featuredProductId);
+    aiSectionFetcher.submit(formData, { method: 'post' });
+  };
   
   // Handle AI generation response
   useEffect(() => {
@@ -1022,16 +1102,34 @@ export default function LiveEditorPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeReady, setIframeReady] = useState(false);
 
-  // Listen for iframe ready signal
+  // Listen for iframe ready signal and ADD_CUSTOM_SECTION messages
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'PREVIEW_FRAME_READY') {
         setIframeReady(true);
       }
+      
+      // Handle add custom section from canvas
+      if (event.data && event.data.type === 'ADD_CUSTOM_SECTION') {
+        const position = event.data.position || 'after-hero';
+        // Create a new custom section with the specified position
+        const newSection = {
+          id: `custom-${Date.now()}`,
+          name: language === 'bn' ? 'নতুন কাস্টম সেকশন' : 'New Custom Section',
+          html: '',
+          css: '',
+          position,
+        };
+        setCustomSections([...customSections, newSection]);
+        // Open the custom design accordion
+        setOpenSection('customhtml');
+        // Auto-focus the new section's prompt
+        setAiPromptIndex(customSections.length);
+      }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [customSections, language]);
 
   // Send config updates to iframe whenever config changes
   useEffect(() => {
@@ -1712,9 +1810,49 @@ export default function LiveEditorPage() {
                   
                   {/* Combined HTML+CSS Textarea */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      {language === 'bn' ? 'HTML + CSS কোড' : 'HTML + CSS Code'}
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-gray-700">
+                        {language === 'bn' ? 'HTML + CSS কোড' : 'HTML + CSS Code'}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (aiPromptIndex === index) setAiPromptIndex(null);
+                          else { setAiPromptIndex(index); setAiPromptText(''); }
+                        }}
+                        className="text-xs text-violet-600 hover:text-violet-700 flex items-center gap-1 font-medium"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        {language === 'bn' ? 'AI দিয়ে তৈরি করুন' : 'Generate with AI'}
+                      </button>
+                    </div>
+                    
+                    {/* AI Prompt Input (inline, collapsible) */}
+                    {aiPromptIndex === index && (
+                      <div className="mb-2 p-3 bg-violet-50 rounded-lg border border-violet-200 space-y-2">
+                        <input
+                          type="text"
+                          value={aiPromptText}
+                          onChange={(e) => setAiPromptText(e.target.value)}
+                          placeholder={language === 'bn' ? 'বর্ণনা দিন (যেমন: ডেলিভারি টাইমলাইন সেকশন)' : 'Describe the section (e.g., delivery timeline section)'}
+                          className="w-full px-3 py-2 border border-violet-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-400 outline-none"
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleAiGenerate(index); }}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button type="button" onClick={() => setAiPromptIndex(null)} className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+                          <button
+                            type="button"
+                            onClick={() => handleAiGenerate(index)}
+                            disabled={isAiGenerating || !aiPromptText.trim()}
+                            className="px-4 py-1.5 bg-violet-600 text-white text-xs font-medium rounded-lg hover:bg-violet-700 disabled:opacity-50 flex items-center gap-1"
+                          >
+                            {isAiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                            {language === 'bn' ? 'জেনারেট' : 'Generate'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
                     <textarea
                       value={section.css ? `<style>${section.css}</style>\n${section.html}` : section.html}
                       onChange={(e) => {

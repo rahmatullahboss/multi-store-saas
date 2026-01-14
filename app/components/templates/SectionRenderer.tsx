@@ -17,6 +17,7 @@ import { ShowcaseGalleryGrid } from './sections/ShowcaseGalleryGrid';
 import { MobileFirstHero } from './sections/MobileFirstHero';
 import { ModernDarkHero } from './sections/ModernDarkHero';
 import { VideoFocusHero } from './sections/VideoFocusHero';
+import { AddSectionButton } from './AddSectionButton';
 import type { SectionProps } from './sections/types';
 
 // Map of section IDs to components
@@ -47,6 +48,7 @@ interface SectionRendererProps extends SectionProps {
   sectionOrder?: string[];
   hiddenSections?: string[];
   templateId?: string;
+  isPreview?: boolean;
 }
 
 const DEFAULT_ORDER = [
@@ -70,22 +72,23 @@ export function SectionRenderer({
   sectionOrder,
   hiddenSections = [],
   templateId,
+  isPreview = false,
   ...props
 }: SectionRendererProps & { formatPrice: (price: number) => string }) {
   const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_ORDER;
 
+  // Filter out hidden sections first to get the visible ones
+  const visibleSections = order.filter(sectionId => !hiddenSections.includes(sectionId));
+
   return (
     <>
-      {order.map((sectionId) => {
-        // Skip hidden sections
-        if (hiddenSections.includes(sectionId)) return null;
-
+      {visibleSections.map((sectionId, index) => {
         let Component = SECTION_COMPONENTS[sectionId];
 
         // Template-specific overrides
         if (sectionId === 'hero') {
           if (templateId === 'modern-dark') Component = ModernDarkHero;
-          if (templateId === 'flash-sale') Component = HeroSection; // Flash Sale uses default for now or specialized if we create one
+          if (templateId === 'flash-sale') Component = HeroSection;
           if (templateId === 'showcase') Component = ShowcaseHero;
           if (templateId === 'mobile-first' || templateId === 'premium-bd') Component = MobileFirstHero;
           if (templateId === 'video-focus') Component = VideoFocusHero;
@@ -97,7 +100,21 @@ export function SectionRenderer({
 
         if (!Component) return null;
 
-        return <Component key={sectionId} {...props} />;
+        return (
+          <div key={sectionId}>
+            {/* Add button before first section */}
+            {index === 0 && isPreview && (
+              <AddSectionButton position={`before-${sectionId}`} />
+            )}
+            
+            <Component {...props} />
+            
+            {/* Add button after each section */}
+            {isPreview && (
+              <AddSectionButton position={`after-${sectionId}`} />
+            )}
+          </div>
+        );
       })}
     </>
   );
