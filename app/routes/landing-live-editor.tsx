@@ -436,9 +436,12 @@ export default function LiveEditorPage() {
     (store.landingConfig as any).deliveryInfo || { title: '', description: '', areas: [] }
   );
 
-  // Custom Sections (new)
-  const [customSections, setCustomSections] = useState<Array<{ id: string; name: string; html: string; css?: string }>>(
-    (store.landingConfig as any).customSections || []
+  // Custom Sections (with position support)
+  const [customSections, setCustomSections] = useState<Array<{ id: string; name: string; html: string; css?: string; position: string }>>(
+    ((store.landingConfig as any).customSections || []).map((s: any) => ({
+      ...s,
+      position: s.position || 'after-hero'
+    }))
   );
 
   // Custom Code Injection (FB Pixel, Google Analytics, etc.)

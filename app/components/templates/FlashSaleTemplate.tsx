@@ -864,7 +864,7 @@ export function FlashSaleTemplate({
                   transform transition-all hover:opacity-90
                   ${!isSubmitting && !countdown.expired ? 'animate-[shake_2s_ease-in-out_infinite]' : ''}
                 `}
-                style={getButtonStyles(editableConfig.primaryColor || '#f59e0b')}
+                style={getButtonStyles(config.primaryColor || '#f59e0b')}
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">

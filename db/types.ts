@@ -121,6 +121,28 @@ export interface LandingConfig {
   fontFamily?: string;
   // Landing Page Language (for visitor default view)
   landingLanguage?: 'bn' | 'en';
+  // Custom HTML Sections (positionable)
+  customSections?: CustomSection[];
+}
+
+// Custom HTML Section with position support
+export type CustomSectionPosition = 
+  | 'before-hero' 
+  | 'after-hero' 
+  | 'before-features' 
+  | 'after-features' 
+  | 'before-testimonials' 
+  | 'after-testimonials' 
+  | 'before-form' 
+  | 'after-form' 
+  | 'before-footer';
+
+export interface CustomSection {
+  id: string;
+  name: string;
+  html: string;
+  css?: string;
+  position: CustomSectionPosition;
 }
 
 // Store template configuration for full store mode
