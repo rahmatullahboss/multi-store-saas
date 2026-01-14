@@ -166,45 +166,46 @@ export default function PageBuilderRoute() {
   const navigation = useNavigation();
   const fetcher = useFetcher();
 
-  console.log('DEBUG: PageBuilderRoute render', { pageId });
-
-  // Ensure client-side only rendering for GrapesJS editor to prevent hydration mismatch
+  // Ensure client-side only rendering to prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // If pageId is selected, show the editor in FULL SCREEN mode
-  // If pageId is selected, show the editor in FULL SCREEN mode
-  if (pageId) {
-    // 1. Server + Initial Client Render (Hydration Phase)
-    // We render a static loading skeleton to ensure strict HTML matching.
-    if (!isMounted) {
-       return (
-        <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden">
-            {/* Skeleton Header */}
-            <div className="bg-gray-900 px-4 py-2 flex items-center justify-between h-[50px]">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-bold border border-gray-700 opacity-50">
-                        <span>← Back</span>
-                    </div>
-                </div>
-            </div>
-            {/* Skeleton Canvas */}
-            <div className="flex-1 bg-gray-50 flex items-center justify-center">
-                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
-                    <p className="text-gray-400 font-medium">Loading Editor...</p>
-                 </div>
-            </div>
+  // ==========================================================================
+  // ROUTE-LEVEL HYDRATION GUARD
+  // Server + Initial Client Render: Show a neutral loading screen.
+  // This guarantees the HTML from server and client match exactly.
+  // ==========================================================================
+  if (!isMounted) {
+    return (
+      <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
+        <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div>
+            <div className="h-7 w-48 bg-gray-200 rounded-lg animate-pulse mb-2" />
+            <div className="h-4 w-64 bg-gray-100 rounded animate-pulse" />
+          </div>
+          <div className="h-12 w-40 bg-gray-200 rounded-xl animate-pulse" />
         </div>
-       );
-    }
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 h-56 animate-pulse">
+              <div className="w-12 h-12 bg-gray-100 rounded-2xl mb-4" />
+              <div className="h-5 w-3/4 bg-gray-100 rounded mb-2" />
+              <div className="h-4 w-1/2 bg-gray-50 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-    // 2. Client Render (Post-Hydration)
-    // Safe to render GrapesJS and complex UI
+  // ==========================================================================
+  // CLIENT RENDER: Editor Mode (Full Screen)
+  // ==========================================================================
+  if (pageId) {
     return (
       <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden">
-        {/* Full screen header/nav specifically for being in "Editor Mode" */}
+        {/* Editor Header */}
         <div className="bg-gray-900 px-4 py-2 flex items-center justify-between">
              <div className="flex items-center gap-4">
                   <button 
@@ -286,7 +287,9 @@ export default function PageBuilderRoute() {
     );
   }
 
-  // Otherwise show the Page Management UI
+  // ==========================================================================
+  // CLIENT RENDER: Page Management UI
+  // ==========================================================================
   return (
     <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -462,3 +465,4 @@ export default function PageBuilderRoute() {
     </div>
   );
 }
+
