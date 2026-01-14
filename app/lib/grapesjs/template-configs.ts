@@ -243,4 +243,31 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       fontBody: 'Hind Siliguri',
     },
   },
+  'turbo-sale': {
+    id: 'turbo-sale',
+    name: 'টার্বো সেল (High Conversion)',
+    nameEn: 'Turbo Sale',
+    description: 'ভিডিও এবং আর্জেন্সি ফোকাসড ডিজাইন (BD Special)',
+    descriptionEn: 'Video & Urgency focused design (BD Special)',
+    category: 'sales',
+    emoji: '🚀',
+    blocks: [
+      'bd-urgency-timer',
+      'bd-header',
+      'bd-hero-video',
+      'bd-social-proof',
+      'bd-features-zigzag',
+      'bd-comparison-advanced',
+      'bd-testimonials-marquee',
+      'bd-faq',
+      'bd-order-form-premium',
+      'bd-sticky-footer'
+    ],
+    themeColors: {
+      primaryColor: '#DC2626', // Red
+      secondaryColor: '#FEF08A', // Yellow
+      fontHeading: 'Hind Siliguri',
+      fontBody: 'Hind Siliguri',
+    },
+  },
 };

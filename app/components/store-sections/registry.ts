@@ -27,7 +27,11 @@ export type SectionType =
   | 'related-products'
   | 'collection-header'
   | 'cart-items'
-  | 'cart-summary';
+  | 'cart-summary'
+  | 'zenith-hero'
+  | 'zenith-features'
+  | 'turbo-hero'
+  | 'urgency-bar';
 
 
 export interface SectionAction {
@@ -127,6 +131,10 @@ import BannerSection from './BannerSection';
 import FAQSection, { FAQ_AI_SCHEMA } from './FAQSection';
 import ModernHeroSection from './ModernHeroSection';
 import ModernFeaturesSection from './ModernFeaturesSection';
+import ZenithHeroSection, { ZENITH_HERO_AI_SCHEMA } from '../store-templates/zenith-rise/sections/HeroSection';
+import ZenithFeaturesSection, { ZENITH_FEATURES_AI_SCHEMA } from '../store-templates/zenith-rise/sections/FeaturesSection';
+import TurboHeroSection, { TURBO_HERO_AI_SCHEMA } from '../store-templates/turbo-sale/sections/HeroSection';
+import UrgencyBarSection, { URGENCY_BAR_AI_SCHEMA } from '../store-templates/turbo-sale/sections/UrgencyBarSection';
 
 
 import RichTextSection, { RICH_TEXT_AI_SCHEMA } from './RichTextSection';
@@ -190,6 +198,61 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     },
     component: ModernFeaturesSection,
     allowedPages: ['home']
+  },
+  'zenith-hero': {
+    type: 'zenith-hero',
+    name: 'Zenith Hero',
+    icon: 'Zap',
+    description: 'High-impact gradient hero for SaaS/Digital products.',
+    defaultSettings: {
+      heading: 'Supercharge Your Workflow',
+      titleHighlight: 'Workflow',
+      subheading: 'The ultimate platform for modern creators.',
+      primaryAction: { label: 'Get Started', url: '/signup' }
+    },
+    component: ZenithHeroSection as any,
+    aiSchema: ZENITH_HERO_AI_SCHEMA,
+    allowedPages: ['home']
+  },
+  'zenith-features': {
+    type: 'zenith-features',
+    name: 'Zenith Bento Grid',
+    icon: 'Grid',
+    description: 'Modern bento-grid style features display.',
+    defaultSettings: {
+      heading: 'Everything you need',
+      subheading: 'No compromise on features.',
+    },
+    component: ZenithFeaturesSection as any,
+    aiSchema: ZENITH_FEATURES_AI_SCHEMA,
+    allowedPages: ['home']
+  },
+  'turbo-hero': {
+    type: 'turbo-hero',
+    name: 'Turbo Hero (Video)',
+    icon: 'Play',
+    description: 'Video-first hero section with direct order comparison. BD-Conversion focused.',
+    defaultSettings: {
+      heading: 'সমস্যার স্থায়ী সমাধান',
+      offerText: '৫০% ছাড়',
+      videoUrl: 'https://youtube.com/...'
+    },
+    component: TurboHeroSection as any,
+    aiSchema: TURBO_HERO_AI_SCHEMA,
+    allowedPages: ['home']
+  },
+  'urgency-bar': {
+    type: 'urgency-bar',
+    name: 'Urgency / Stock Bar',
+    icon: 'Activity',
+    description: 'Countdown timer and stock scarcity indicator.',
+    defaultSettings: {
+      message: 'অফার শেষ হতে বাকি:',
+      stockLeft: 10
+    },
+    component: UrgencyBarSection as any,
+    aiSchema: URGENCY_BAR_AI_SCHEMA,
+    allowedPages: ['home', 'product']
   },
   'rich-text': {
     type: 'rich-text',

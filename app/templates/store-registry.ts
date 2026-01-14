@@ -226,6 +226,28 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: FRESHNESS_THEME.footerBg,
     footerText: FRESHNESS_THEME.footerText,
   },
+  'zenith-rise': {
+    primary: ZENITH_RISE_THEME.primary,
+    accent: ZENITH_RISE_THEME.accent,
+    background: ZENITH_RISE_THEME.background,
+    text: ZENITH_RISE_THEME.text,
+    muted: ZENITH_RISE_THEME.textMuted,
+    cardBg: ZENITH_RISE_THEME.surface,
+    headerBg: 'rgba(2, 6, 23, 0.7)',
+    footerBg: ZENITH_RISE_THEME.secondary,
+    footerText: ZENITH_RISE_THEME.text,
+  },
+  'turbo-sale': {
+    primary: TURBO_SALE_THEME.primary,
+    accent: TURBO_SALE_THEME.accent,
+    background: TURBO_SALE_THEME.background,
+    text: TURBO_SALE_THEME.text,
+    muted: TURBO_SALE_THEME.textMuted,
+    cardBg: TURBO_SALE_THEME.surface,
+    headerBg: TURBO_SALE_THEME.headerBg,
+    footerBg: TURBO_SALE_THEME.footerBg,
+    footerText: '#FFFFFF',
+  },
 };
 
 // ============================================================================
@@ -233,6 +255,8 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
 // ============================================================================
 import React from 'react';
 import { FRESHNESS_THEME } from '~/components/store-templates/FreshnessTheme';
+import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styles/tokens';
+import { TURBO_SALE_THEME } from '~/components/store-templates/turbo-sale/styles/tokens';
 
 const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/LuxeBoutique').then(m => ({ default: m.LuxeBoutiqueTemplate })));
 const TechModernTemplate = React.lazy(() => import('~/components/store-templates/TechModern').then(m => ({ default: m.TechModernTemplate })));
@@ -245,6 +269,8 @@ const NovaLuxTemplate = React.lazy(() => import('~/components/store-templates/No
 const EclipseTemplate = React.lazy(() => import('~/components/store-templates/EclipseTemplate').then(m => ({ default: m.EclipseTemplate })));
 const AuroraMinimalTemplate = React.lazy(() => import('~/components/store-templates/AuroraMinimalTemplate').then(m => ({ default: m.AuroraMinimalTemplate })));
 const FreshnessTemplate = React.lazy(() => import('~/components/store-templates/FreshnessTemplate').then(m => ({ default: m.FreshnessTemplate })));
+const ZenithRiseTemplate = React.lazy(() => import('~/components/store-templates/zenith-rise/index').then(m => ({ default: m.ZenithRiseTemplate })));
+const TurboSaleTemplate = React.lazy(() => import('~/components/store-templates/turbo-sale/index').then(m => ({ default: m.TurboSaleTemplate })));
 
 // Header Components
 const DarazHeader = React.lazy(() => import('~/components/store-layouts/templates/DarazHeader').then(m => ({ default: m.DarazHeader })));
@@ -259,6 +285,8 @@ const NovaLuxFooter = React.lazy(() => import('~/components/store-layouts/templa
 const EclipseFooter = React.lazy(() => import('~/components/store-layouts/templates/EclipseFooter').then(m => ({ default: m.EclipseFooter })));
 const BDShopFooter = React.lazy(() => import('~/components/store-layouts/templates/BDShopFooter').then(m => ({ default: m.BDShopFooter })));
 const GhorerBazarFooter = React.lazy(() => import('~/components/store-layouts/templates/GhorerBazarFooter').then(m => ({ default: m.GhorerBazarFooter })));
+const ZenithRiseHeader = React.lazy(() => import('~/components/store-templates/zenith-rise/sections/Header').then(m => ({ default: m.ZenithRiseHeader })));
+const ZenithRiseFooter = React.lazy(() => import('~/components/store-templates/zenith-rise/sections/Footer').then(m => ({ default: m.ZenithRiseFooter })));
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -416,6 +444,37 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'system-ui',
     },
     component: FreshnessTemplate,
+  },
+  {
+    id: 'zenith-rise',
+    name: 'Zenith Rise (2025)',
+    description: 'World-Class Conversion Focused Template. Dark mode, glassmorphism, and high-impact aesthetics defining 2025 design trends.',
+    thumbnail: '/templates/zenith-rise.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['zenith-rise'],
+    fonts: {
+      heading: 'Outfit',
+      body: 'Inter',
+    },
+    component: ZenithRiseTemplate,
+    Header: ZenithRiseHeader,
+    Footer: ZenithRiseFooter,
+  },
+  {
+    id: 'turbo-sale',
+    name: 'Turbo Sale (BD)',
+    description: 'High urgency, video-first template optimized for the Bangladeshi market. Features comparison tables and sticky mobile CTAs.',
+    thumbnail: '/templates/turbo-sale.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['turbo-sale'],
+    fonts: {
+      heading: 'Hind Siliguri',
+      body: 'Hind Siliguri',
+    },
+    component: TurboSaleTemplate,
+    // Using GhorerBazar headers for now as per design
+    Header: GhorerBazarHeader,
+    Footer: GhorerBazarFooter,
   },
 ];
 
