@@ -79,7 +79,7 @@ export default function GrapesEditor({
   
   // UI state
   const [isBlockLibraryOpen, setIsBlockLibraryOpen] = useState(false);
-  const [isAISidebarOpen, setIsAISidebarOpen] = useState(true); // AI Sidebar open by default
+  const [isAISidebarOpen, setIsAISidebarOpen] = useState(false); // AI Sidebar closed by default
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [activeSidebarTab, setActiveSidebarTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
   

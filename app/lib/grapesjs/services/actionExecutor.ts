@@ -27,9 +27,17 @@ export class ActionExecutor {
 
   /**
    * Execute all actions in AI response
+   * Uses GrapesJS native UndoManager for proper undo/redo support
    */
   async execute(response: AIResponse): Promise<ExecutionResult> {
     const results: ActionResult[] = [];
+
+    // Start GrapesJS UndoManager transaction - groups all changes as one undo step
+    try {
+      this.editor.UndoManager?.start();
+    } catch (e) {
+      console.warn('[ActionExecutor] Could not start UndoManager transaction');
+    }
 
     for (const action of response.actions) {
       const component = this.getComponent(action.targetId);
@@ -43,7 +51,7 @@ export class ActionExecutor {
         continue;
       }
 
-      // Capture state before change for undo
+      // Capture state before change for custom undo (backup)
       const previousState = this.contextBuilder.captureState(component);
       this.undoStack.push({
         componentId: action.targetId,
@@ -61,6 +69,13 @@ export class ActionExecutor {
           error: error instanceof Error ? error.message : String(error) 
         });
       }
+    }
+
+    // Stop GrapesJS UndoManager transaction - completes the undo group
+    try {
+      this.editor.UndoManager?.stop();
+    } catch (e) {
+      console.warn('[ActionExecutor] Could not stop UndoManager transaction');
     }
 
     return {
