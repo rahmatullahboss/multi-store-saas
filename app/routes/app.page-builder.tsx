@@ -174,25 +174,39 @@ export default function PageBuilderRoute() {
   }, []);
 
   // If pageId is selected, show the editor in FULL SCREEN mode
+  // If pageId is selected, show the editor in FULL SCREEN mode
   if (pageId) {
+    // 1. Server + Initial Client Render (Hydration Phase)
+    // We render a static loading skeleton to ensure strict HTML matching.
+    if (!isMounted) {
+       return (
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden">
+            {/* Skeleton Header */}
+            <div className="bg-gray-900 px-4 py-2 flex items-center justify-between h-[50px]">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-bold border border-gray-700 opacity-50">
+                        <span>← Back</span>
+                    </div>
+                </div>
+            </div>
+            {/* Skeleton Canvas */}
+            <div className="flex-1 bg-gray-50 flex items-center justify-center">
+                 <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
+                    <p className="text-gray-400 font-medium">Loading Editor...</p>
+                 </div>
+            </div>
+        </div>
+       );
+    }
+
+    // 2. Client Render (Post-Hydration)
+    // Safe to render GrapesJS and complex UI
     return (
       <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden">
         {/* Full screen header/nav specifically for being in "Editor Mode" */}
         <div className="bg-gray-900 px-4 py-2 flex items-center justify-between">
-           <ClientOnly fallback={
              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-xs font-bold border border-gray-700">
-                  <span>← Back</span>
-                </div>
-                <div className="h-4 w-[1px] bg-gray-700" />
-                <div className="flex flex-col">
-                   <div className="h-2 w-16 bg-gray-800 rounded mb-1" />
-                   <div className="h-3 w-32 bg-gray-800 rounded" />
-                </div>
-             </div>
-           }>
-             <>
-               <div className="flex items-center gap-4">
                   <button 
                     onClick={() => setSearchParams({})}
                     className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 hover:text-white rounded-lg transition text-xs font-bold border border-gray-700"
@@ -206,9 +220,9 @@ export default function PageBuilderRoute() {
                         {pages.find((p: any) => p.id.toString() === pageId)?.name || (lang === 'bn' ? 'লোড হচ্ছে...' : 'Loading...')}
                      </h2>
                   </div>
-               </div>
+             </div>
                
-               <div className="flex items-center gap-2">
+             <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full min-w-[120px] justify-center">
                      {storageStatus === 'saving' ? (
                        <>
@@ -244,22 +258,10 @@ export default function PageBuilderRoute() {
                       {t('viewPublished') || 'View Live'}
                     </a>
                   )}
-               </div>
-             </>
-           </ClientOnly>
+             </div>
         </div>
 
         <div className="flex-1 relative flex flex-col overflow-hidden">
-          <ClientOnly fallback={
-            <div className="flex items-center justify-center h-full bg-gray-50/50">
-               <div className="animate-pulse flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                     <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                  <p className="text-gray-400 font-medium">Loading Canvas...</p>
-               </div>
-            </div>
-          }>
             <Suspense fallback={
               <div className="flex items-center justify-center h-full bg-gray-50/50">
                  <div className="animate-pulse flex flex-col items-center gap-4">
@@ -279,7 +281,6 @@ export default function PageBuilderRoute() {
                 initialProjectData={initialProjectData}
               />
             </Suspense>
-          </ClientOnly>
         </div>
       </div>
     );
