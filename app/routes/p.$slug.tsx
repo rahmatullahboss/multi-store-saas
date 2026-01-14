@@ -67,6 +67,8 @@ export default function PublishedPageRoute() {
             extend: {
               colors: {
                 emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                primary: '#059669',
+                secondary: '#2563eb',
               }
             }
           }
@@ -74,10 +76,23 @@ export default function PublishedPageRoute() {
       `}} />
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       
+      {/* Lucide Icons CDN for icon support */}
+      <script src="https://unpkg.com/lucide@latest"></script>
+      
       {/* Base styles for published pages */}
       <style dangerouslySetInnerHTML={{ __html: `
         .published-page-root { font-family: 'Hind Siliguri', sans-serif; }
         .published-page-root * { box-sizing: border-box; }
+        /* CSS variables for theme colors */
+        :root {
+          --primary-color: #059669;
+          --secondary-color: #2563eb;
+        }
+        .text-primary { color: var(--primary-color) !important; }
+        .bg-primary { background-color: var(--primary-color) !important; }
+        .border-primary { border-color: var(--primary-color) !important; }
+        .text-secondary { color: var(--secondary-color) !important; }
+        .bg-secondary { background-color: var(--secondary-color) !important; }
       `}} />
 
       {/* Inject custom CSS from GrapesJS AFTER Tailwind */}
@@ -88,6 +103,95 @@ export default function PublishedPageRoute() {
         className="published-page-root"
         dangerouslySetInnerHTML={{ __html: page.htmlContent || '' }} 
       />
+      
+      {/* Button Action Handler Runtime Script */}
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          var config = {
+            storeId: ${page.storeId}
+          };
+          
+          function initHandlers() {
+            var buttons = document.querySelectorAll('[data-ozzyl-action]');
+            console.log('[ButtonActionHandler] Found ' + buttons.length + ' connected button(s)');
+            
+            buttons.forEach(function(button) {
+              var action = button.getAttribute('data-ozzyl-action');
+              var productId = button.getAttribute('data-ozzyl-product') || config.productId;
+              var phoneNumber = button.getAttribute('data-ozzyl-phone') || config.phoneNumber;
+              var message = button.getAttribute('data-ozzyl-message') || config.messageTemplate;
+              
+              button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (action === 'order') {
+                  var orderForm = document.querySelector('#order-form, #order, [data-order-form], .order-form');
+                  if (orderForm) {
+                    orderForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else {
+                    window.dispatchEvent(new CustomEvent('ozzyl:show-order-form', { detail: { productId: productId } }));
+                  }
+                } else if (action === 'cart') {
+                  if (productId) {
+                    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                    var idx = cart.findIndex(function(item) { return item.productId == productId; });
+                    if (idx >= 0) { cart[idx].quantity += 1; } else { cart.push({ productId: parseInt(productId), quantity: 1 }); }
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    window.dispatchEvent(new Event('cart-updated'));
+                    showToast('Added to cart! 🛒');
+                  }
+                } else if (action === 'whatsapp') {
+                  if (phoneNumber) {
+                    var phone = phoneNumber.replace(/[^0-9]/g, '');
+                    if (phone.startsWith('01') && phone.length === 11) phone = '880' + phone.substring(1);
+                    var url = 'https://wa.me/' + phone;
+                    if (message) url += '?text=' + encodeURIComponent(message);
+                    window.open(url, '_blank');
+                  } else {
+                    console.warn('[ButtonActionHandler] No phone number for WhatsApp');
+                  }
+                } else if (action === 'call') {
+                  if (phoneNumber) {
+                    window.location.href = 'tel:' + phoneNumber.replace(/[^0-9+]/g, '');
+                  }
+                }
+              });
+            });
+          }
+          
+          function showToast(message) {
+            var container = document.getElementById('ozzyl-toast-container');
+            if (!container) {
+              container = document.createElement('div');
+              container.id = 'ozzyl-toast-container';
+              container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;';
+              document.body.appendChild(container);
+            }
+            var toast = document.createElement('div');
+            toast.style.cssText = 'padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;color:white;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 20px rgba(0,0,0,0.15);animation:slideIn 0.3s ease;';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
+          }
+          
+          // Initialize Lucide icons
+          function initIcons() {
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          }
+          
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+              initHandlers();
+              initIcons();
+            });
+          } else {
+            initHandlers();
+            initIcons();
+          }
+        })();
+      `}} />
     </>
   );
 }
