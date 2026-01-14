@@ -409,6 +409,9 @@ export function LandingPageTemplate({
         </div>
       )}
 
+      {/* Custom Sections - Before Hero position */}
+      <CustomSectionRenderer customSections={customSections} position="before-hero" />
+
       {/* ============================================ */}
       {/* SECTION 1: Hero Section */}
       {/* ============================================ */}
@@ -540,6 +543,9 @@ export function LandingPageTemplate({
         </section>
       </MagicSectionWrapper>
 
+      {/* Custom Sections - After Hero position */}
+      <CustomSectionRenderer customSections={customSections} position="after-hero" />
+
       {/* ============================================ */}
       {/* SECTION 2: Trust Badges */}
       {/* ============================================ */}
@@ -616,6 +622,9 @@ export function LandingPageTemplate({
         </div>
       </section>
 
+      {/* Custom Sections - Before Features position */}
+      <CustomSectionRenderer customSections={customSections} position="before-features" />
+
       {/* ============================================ */}
       {/* SECTION 4: Features (from config) */}
       {/* ============================================ */}
@@ -656,6 +665,9 @@ export function LandingPageTemplate({
           </section>
         </MagicSectionWrapper>
       )}
+
+      {/* Custom Sections - After Features position */}
+      <CustomSectionRenderer customSections={customSections} position="after-features" />
 
       {/* ============================================ */}
       {/* SECTION 5: Video Embed */}
@@ -876,6 +888,9 @@ export function LandingPageTemplate({
         </div>
       </section>
 
+      {/* Custom Sections - Before Testimonials position */}
+      <CustomSectionRenderer customSections={customSections} position="before-testimonials" />
+
       {/* ============================================ */}
       {/* SECTION 7: Testimonials (Photo-focused) */}
       {/* ============================================ */}
@@ -939,6 +954,9 @@ export function LandingPageTemplate({
           </section>
         </MagicSectionWrapper>
       )}
+
+      {/* Custom Sections - After Testimonials position */}
+      <CustomSectionRenderer customSections={customSections} position="after-testimonials" />
 
       {/* ============================================ */}
       {/* SECTION 8: Delivery Information */}
@@ -1147,6 +1165,9 @@ export function LandingPageTemplate({
           </div>
         </div>
       </section>
+
+      {/* Custom Sections - Before Form position */}
+      <CustomSectionRenderer customSections={customSections} position="before-form" />
 
       {/* ============================================ */}
       {/* SECTION 13: Order Form Section (Inline) - Full Width 2-Column */}

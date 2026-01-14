@@ -940,16 +940,14 @@ export function FlashSaleTemplate({
       <div className="md:hidden h-20" />
 
       {/* Floating Action Buttons - WhatsApp and Call */}
-      {!isPreview && (
-        <FloatingButtons
-          whatsappEnabled={config.whatsappEnabled}
-          whatsappNumber={config.whatsappNumber}
-          whatsappMessage={config.whatsappMessage}
-          callEnabled={config.callEnabled}
-          callNumber={config.callNumber}
-          productTitle={product.title}
-        />
-      )}
+      <FloatingButtons
+        whatsappEnabled={config.whatsappEnabled}
+        whatsappNumber={config.whatsappNumber}
+        whatsappMessage={config.whatsappMessage}
+        callEnabled={config.callEnabled}
+        callNumber={config.callNumber}
+        productTitle={product.title}
+      />
 
       {/* ================================================================
           CSS KEYFRAMES FOR SHAKE ANIMATION
