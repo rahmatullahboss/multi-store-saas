@@ -51,7 +51,7 @@ import {
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
 import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { TranslationKey } from '~/utils/i18n/index';
 
 // Custom Ozzyl Icon Component (for nav)
@@ -316,14 +316,21 @@ export default function AppLayout() {
   const location = useLocation();
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [dismissedNotifications, setDismissedNotifications] = useState<number[]>(() => {
-    // Load dismissed notifications from localStorage
+  const [dismissedNotifications, setDismissedNotifications] = useState<number[]>([]);
+  
+  // Load dismissed notifications from localStorage AFTER hydration to prevent mismatch
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('dismissedNotifications');
-      return saved ? JSON.parse(saved) : [];
+      try {
+        const saved = localStorage.getItem('dismissedNotifications');
+        if (saved) {
+          setDismissedNotifications(JSON.parse(saved));
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
     }
-    return [];
-  });
+  }, []);
 
   // Build store URL
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
