@@ -1533,6 +1533,16 @@ export default function LiveEditorPage() {
                 />
                 <span className="text-sm text-gray-700">Call Button</span>
               </label>
+
+              {callEnabled && (
+                <input
+                  type="text"
+                  value={callNumber}
+                  onChange={(e) => setCallNumber(e.target.value)}
+                  placeholder="01XXXXXXXXX"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              )}
             </div>
           </AccordionSection>
 
