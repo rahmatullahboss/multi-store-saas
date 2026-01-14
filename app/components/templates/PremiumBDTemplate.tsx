@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 import { useCartTracking } from '~/hooks/useCartTracking';
+import { getGradientButtonStyles, getAccentStyles, getPrimaryTextStyle, getIconBgStyle, getIconColorStyle } from './theme-utils';
 
 // Helper to check if section should be visible
 const isSectionVisible = (sectionId: string, hiddenSections?: string[]): boolean => {
@@ -267,9 +268,13 @@ export function PremiumBDTemplate({
 
             {/* CTA Button (Desktop) */}
             <div className="mt-10 text-center hidden md:block">
-              <a href="#order-form" className="group relative inline-flex items-center gap-3 px-12 py-5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-full font-black text-2xl shadow-xl shadow-emerald-200 hover:shadow-2xl hover:scale-105 transition transform overflow-hidden">
+              <a 
+                href="#order-form" 
+                className="group relative inline-flex items-center gap-3 px-12 py-5 text-white rounded-full font-black text-2xl hover:shadow-2xl hover:scale-105 transition transform overflow-hidden"
+                style={getGradientButtonStyles(editableConfig.primaryColor, editableConfig.accentColor)}
+              >
                 <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
-                <span className="relative">অর্ডার করতে ক্লিক করুন</span>
+                <span className="relative">{editableConfig.ctaText || 'অর্ডার করতে ক্লিক করুন'}</span>
                 <ChevronRight className="relative animate-bounce-x" />
               </a>
               <p className="mt-4 text-base font-medium text-red-500 animate-pulse">🔥 স্টক সীমিত! দ্রুত অর্ডার করুন</p>
