@@ -92,6 +92,9 @@ import { FlashSaleTemplate } from '~/components/templates/FlashSaleTemplate';
 import { LuxeTemplate } from '~/components/templates/LuxeTemplate';
 import { OrganicTemplate } from '~/components/templates/OrganicTemplate';
 import { ShowcaseTemplate } from '~/components/templates/ShowcaseTemplate';
+import { ModernDarkTemplate } from '~/components/templates/ModernDark';
+import { MinimalLightTemplate } from '~/components/templates/MinimalLight';
+import { VideoFocusTemplate } from '~/components/templates/VideoFocus';
 
 // ============================================================================
 // TEMPLATES REGISTRY - All templates use same component, different themes
@@ -137,21 +140,21 @@ export const TEMPLATES: TemplateDefinition[] = [
     name: 'Modern Dark',
     description: 'Bold gradients, urgency colors, and high-converting dark theme design.',
     thumbnail: '/templates/modern-dark.png',
-    component: LandingPageTemplate,
+    component: ModernDarkTemplate,
   },
   {
     id: 'minimal-light',
     name: 'Minimal Light',
     description: 'Clean white background with centered typography and elegant simplicity.',
     thumbnail: '/templates/minimal-light.png',
-    component: LandingPageTemplate,
+    component: MinimalLightTemplate,
   },
   {
     id: 'video-focus',
     name: 'Video Focus',
     description: 'Video-first design with full-width hero video and overlay CTA.',
     thumbnail: '/templates/video-focus.png',
-    component: LandingPageTemplate,
+    component: VideoFocusTemplate,
   },
   {
     id: 'showcase',
