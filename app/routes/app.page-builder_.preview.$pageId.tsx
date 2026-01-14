@@ -119,7 +119,11 @@ export default function PageBuilderPreview() {
 
       {/* Page Content */}
       <div className="pt-10">
-        {/* Tailwind Play CDN for full color palette support */}
+        {/* ==============================================
+            EXACT SAME CDN/RESOURCES AS GRAPESJS EDITOR CANVAS
+            ============================================== */}
+        
+        {/* Tailwind Play CDN - Same as editor canvas */}
         <script src="https://cdn.tailwindcss.com"></script>
         <script dangerouslySetInnerHTML={{ __html: `
           tailwind.config = {
@@ -135,24 +139,44 @@ export default function PageBuilderPreview() {
           }
         `}} />
         
-        {/* Fonts */}
-        <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        {/* Google Fonts - EXACT SAME as editor canvas */}
+        <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Galada&family=Tiro+Bangla&family=Mina:wght@400;700&family=Atma:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        
+        {/* Swiper CSS - Same as editor canvas */}
+        <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet" />
         
         {/* Lucide Icons */}
         <script src="https://unpkg.com/lucide@latest"></script>
         
-        {/* Theme CSS Variables */}
+        {/* Swiper JS */}
+        <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+        
+        {/* CSS Fallbacks for gradient text, animations, etc */}
         <style dangerouslySetInnerHTML={{ __html: `
+          body { font-family: 'Hind Siliguri', sans-serif; }
+          
+          /* Theme colors */
           :root {
             --primary-color: #059669;
             --secondary-color: #2563eb;
           }
-          body { font-family: 'Hind Siliguri', sans-serif; }
           .text-primary { color: var(--primary-color) !important; }
           .bg-primary { background-color: var(--primary-color) !important; }
-          .border-primary { border-color: var(--primary-color) !important; }
           .text-secondary { color: var(--secondary-color) !important; }
           .bg-secondary { background-color: var(--secondary-color) !important; }
+          
+          /* Gradient text support */
+          .bg-clip-text, [class*="bg-clip-text"] {
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+          }
+          .text-transparent, [class*="text-transparent"] {
+            color: transparent !important;
+          }
+          
+          /* SVG Icons */
+          svg { display: inline-block; vertical-align: middle; }
+          svg:not([fill]) { fill: currentColor; }
         `}} />
         
         {/* GrapesJS CSS */}

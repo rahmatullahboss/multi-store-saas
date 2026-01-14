@@ -58,8 +58,12 @@ export default function PublishedPageRoute() {
 
   return (
     <>
-      {/* External CSS Dependencies - Load FIRST */}
-      {/* Using Tailwind Play CDN for full color palette support */}
+      {/* ==============================================
+          EXACT SAME CDN/RESOURCES AS GRAPESJS EDITOR CANVAS
+          This ensures WYSIWYG - what you see is what you get
+          ============================================== */}
+      
+      {/* Tailwind Play CDN - Same as editor canvas */}
       <script src="https://cdn.tailwindcss.com"></script>
       <script dangerouslySetInnerHTML={{ __html: `
         tailwind.config = {
@@ -74,15 +78,24 @@ export default function PublishedPageRoute() {
           }
         }
       `}} />
-      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      
+      {/* Google Fonts - EXACT SAME as editor canvas */}
+      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Galada&family=Tiro+Bangla&family=Mina:wght@400;700&family=Atma:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      
+      {/* Swiper CSS - Same as editor canvas */}
+      <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet" />
       
       {/* Lucide Icons CDN for icon support */}
       <script src="https://unpkg.com/lucide@latest"></script>
+      
+      {/* Swiper JS - Same as editor canvas */}
+      <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
       
       {/* Base styles for published pages */}
       <style dangerouslySetInnerHTML={{ __html: `
         .published-page-root { font-family: 'Hind Siliguri', sans-serif; }
         .published-page-root * { box-sizing: border-box; }
+        
         /* CSS variables for theme colors */
         :root {
           --primary-color: #059669;
@@ -93,6 +106,80 @@ export default function PublishedPageRoute() {
         .border-primary { border-color: var(--primary-color) !important; }
         .text-secondary { color: var(--secondary-color) !important; }
         .bg-secondary { background-color: var(--secondary-color) !important; }
+        
+        /* ==============================================
+           CRITICAL: Gradient Text Support
+           bg-clip-text needs webkit prefix for Safari/Chrome
+           ============================================== */
+        .bg-clip-text, [class*="bg-clip-text"] {
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+        }
+        .text-transparent, [class*="text-transparent"] {
+          color: transparent !important;
+        }
+        
+        /* ==============================================
+           SVG Icon Visibility Fixes
+           ============================================== */
+        svg {
+          display: inline-block;
+          vertical-align: middle;
+        }
+        svg:not([fill]) {
+          fill: currentColor;
+        }
+        .whatsapp-link svg, 
+        [class*="whatsapp"] svg,
+        a[href*="wa.me"] svg {
+          width: 20px;
+          height: 20px;
+          fill: currentColor;
+          flex-shrink: 0;
+        }
+        
+        /* ==============================================
+           Animation Support
+           ============================================== */
+        .animate-pulse {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: .5; }
+        }
+        
+        .animate-bounce {
+          animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+          50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+        }
+        
+        /* Marquee scroll animation */
+        @keyframes scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        [class*="animate-"][class*="scroll"] {
+          animation: scroll 20s linear infinite;
+        }
+        
+        /* ==============================================
+           Backdrop Filter Support
+           ============================================== */
+        .backdrop-blur-sm { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+        .backdrop-blur-md { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+        .backdrop-blur-lg { -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+        .backdrop-blur-xl { -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+        
+        /* ==============================================
+           Flexbox Gap Fallback (older browsers)
+           ============================================== */
+        .flex.gap-2 > * + * { margin-left: 0.5rem; }
+        .flex.gap-3 > * + * { margin-left: 0.75rem; }
+        .flex.gap-4 > * + * { margin-left: 1rem; }
       `}} />
 
       {/* Inject custom CSS from GrapesJS AFTER Tailwind */}
