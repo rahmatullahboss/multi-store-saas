@@ -37,6 +37,7 @@ import {
 import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
 import { getTemplateComponent } from '~/templates/registry';
 import { designCustomSection, callAIWithSystemPrompt } from '~/services/ai.server';
+import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
 
 // Default features
 const DEFAULT_FEATURES_EN = [
@@ -111,6 +112,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       featuredProductId: store.featuredProductId,
       landingConfig,
       hasUnpublishedChanges,
+      aiCredits: store.aiCredits || 0,
     },
     products: storeProducts,
     saasDomain,
@@ -139,8 +141,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const prompt = formData.get('prompt') as string;
     const sectionIndex = parseInt(formData.get('sectionIndex') as string);
     const currentHtml = formData.get('currentHtml') as string || '';
+    const position = formData.get('position') as string || 'after-hero';
     
     if (!prompt) return json({ error: 'Prompt is required' }, { status: 400 });
+
+    // Check credits first
+    const creditCost = CREDIT_COSTS.DESIGN_CUSTOM_SECTION;
+    const creditCheck = await checkCredits(db, storeId, creditCost);
+    if (!creditCheck.allowed) {
+      return json({ 
+        error: 'Insufficient credits', 
+        needsRecharge: true,
+        currentBalance: creditCheck.currentBalance,
+        required: creditCost
+      }, { status: 402 });
+    }
 
     try {
       const apiKey = context.cloudflare.env.OPENROUTER_API_KEY;
@@ -166,7 +181,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       const result = await designCustomSection(apiKey, prompt, currentHtml, productInfo);
-      return json({ success: true, data: result, sectionIndex });
+      
+      // Deduct credits after successful generation
+      await deductCredits(db, storeId, creditCost, 'Custom Section AI Generation', {
+        prompt,
+        position,
+      });
+      
+      return json({ success: true, data: result, sectionIndex, position });
     } catch (error: any) {
       console.error('[AI] Custom Section Generation Error:', error);
       return json({ error: error.message || 'AI generation failed' }, { status: 500 });
