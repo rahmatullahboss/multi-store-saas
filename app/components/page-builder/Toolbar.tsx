@@ -584,24 +584,63 @@ export default function EditorToolbar({
             
             connections.forEach(conn => {
               // Find components matching the selector pattern
-              const components = wrapper.findType('*').filter((comp: any) => {
-                const tagName = comp.get('tagName') || '';
-                const classes = comp.getClasses().join(' ');
+              const allComponents = wrapper.findType('*');
+              let matched = false;
+              
+              const components = allComponents.filter((comp: any) => {
+                const tagName = (comp.get('tagName') || '').toLowerCase();
+                const classes = comp.getClasses().join(' ').toLowerCase();
                 const id = comp.get('id') || '';
+                const text = (comp.get('content') || comp.view?.el?.textContent || '').trim().toLowerCase();
                 
                 // Match by ID
                 if (conn.selector.startsWith('#') && id === conn.selector.slice(1)) {
+                  matched = true;
                   return true;
                 }
-                // Match by tag and class
+                
+                // Match by tag and class (e.g., "a.btn.order-btn")
                 if (conn.selector.includes('.')) {
-                  const [tag, ...classNames] = conn.selector.split('.');
-                  const hasTag = !tag || tagName.toLowerCase() === tag.toLowerCase();
-                  const hasClasses = classNames.every(c => classes.includes(c));
-                  return hasTag && hasClasses;
+                  const parts = conn.selector.split('.');
+                  const selectorTag = parts[0].toLowerCase();
+                  const selectorClasses = parts.slice(1).map(c => c.toLowerCase());
+                  
+                  const hasTag = !selectorTag || tagName === selectorTag;
+                  const hasClasses = selectorClasses.every(c => classes.includes(c));
+                  
+                  if (hasTag && hasClasses) {
+                    matched = true;
+                    return true;
+                  }
                 }
+                
+                // Match by nth-of-type (fallback for elements without ID/class)
+                if (conn.selector.includes(':nth-of-type')) {
+                  const selectorTag = conn.selector.split(':')[0].toLowerCase();
+                  if (tagName === selectorTag) {
+                    // For nth-of-type, we need to check all and match first one
+                    // This is a simplified match
+                    matched = true;
+                    return true;
+                  }
+                }
+                
+                // Text-based fallback for buttons
+                // If the button text matches patterns, connect it
+                if (text && text.length < 50) {
+                  const lowerSelector = conn.selector.toLowerCase();
+                  if (text.includes('অর্ডার') && conn.actionType === 'order') return true;
+                  if (text.includes('order') && conn.actionType === 'order') return true;
+                  if (text.includes('whatsapp') && conn.actionType === 'whatsapp') return true;
+                  if (text.includes('হোয়াটসঅ্যাপ') && conn.actionType === 'whatsapp') return true;
+                  if (text.includes('কল') && conn.actionType === 'call') return true;
+                  if (text.includes('call') && conn.actionType === 'call') return true;
+                }
+                
                 return false;
               });
+              
+              console.log(`[ButtonConnector] Selector: ${conn.selector}, Matched: ${components.length}`);
               
               // Apply attributes to matched components
               components.forEach((comp: any) => {
@@ -611,6 +650,7 @@ export default function EditorToolbar({
                   ...(conn.phoneNumber && { 'data-ozzyl-phone': conn.phoneNumber }),
                   ...(conn.messageTemplate && { 'data-ozzyl-message': conn.messageTemplate })
                 });
+                console.log(`[ButtonConnector] Applied ${conn.actionType} to component`);
               });
             });
             

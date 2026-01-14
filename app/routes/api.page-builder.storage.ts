@@ -85,8 +85,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const { pageConfig: _, ...projectDataOnly } = data;
 
     // Determine slug and name from config or body
-    const slug = rawPageConfig.slug || data.slug || `page-${Date.now()}`;
+    // IMPORTANT: For existing pages, preserve the original slug to prevent 404s
+    let slug = rawPageConfig.slug || data.slug;
     const name = rawPageConfig.metaTitle || data.name || 'Untitled Page';
+    
+    // If updating existing page and no slug provided, fetch current slug
+    if (pageId && !slug) {
+      const existingPage = await db
+        .select({ slug: landingPages.slug })
+        .from(landingPages)
+        .where(
+          and(
+            eq(landingPages.id, parseInt(pageId)),
+            eq(landingPages.storeId, storeId)
+          )
+        )
+        .limit(1);
+      
+      if (existingPage.length > 0) {
+        slug = existingPage[0].slug;
+        console.log(`[Storage] Preserving existing slug: ${slug}`);
+      }
+    }
+    
+    // Only generate new slug for new pages
+    if (!slug) {
+      slug = `page-${Date.now()}`;
+    }
 
     // ========================================================================
     // PROCESS IMAGES: Move from 'temp/' to 'uploads/' on Save

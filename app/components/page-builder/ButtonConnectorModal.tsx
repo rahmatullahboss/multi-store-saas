@@ -118,8 +118,14 @@ export default function ButtonConnectorModal({
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, 'text/html');
       
-      // Find all buttons and anchor elements
-      const elements = doc.querySelectorAll('button, a, [role="button"], .btn, [class*="button"]');
+      // Find all buttons, anchors, and floating action elements
+      // Extended selectors to catch floating WhatsApp, call buttons, etc.
+      const elements = doc.querySelectorAll(
+        'button, a, [role="button"], .btn, [class*="button"], ' +
+        '.whatsapp-link, [data-whatsapp], a[href*="wa.me"], a[href*="whatsapp"], ' +
+        'a[href^="tel:"], .floating-btn, [class*="floating"], [class*="whatsapp"], ' +
+        '[class*="call-btn"], [class*="order-btn"], [data-action]'
+      );
       const buttons: DetectedButton[] = [];
       
       elements.forEach((el, index) => {
