@@ -166,7 +166,7 @@ export const LANDING_SECTIONS = [
 ];
 
 // Default section order
-export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'];
+export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta', 'custom'];
 
 // Types for section content
 export interface Feature {
@@ -308,10 +308,19 @@ function SectionManagerBase({
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
-  // Get ordered sections
-  const orderedSections = sectionOrder
-    .map((id) => LANDING_SECTIONS.find((s) => s.id === id))
-    .filter(Boolean) as typeof LANDING_SECTIONS;
+  // Get ordered sections - include any missing sections from LANDING_SECTIONS
+  const orderedSections = (() => {
+    const ordered = sectionOrder
+      .map((id) => LANDING_SECTIONS.find((s) => s.id === id))
+      .filter(Boolean) as typeof LANDING_SECTIONS;
+    
+    // Add any sections not in the current order (for backwards compatibility)
+    const missingSection = LANDING_SECTIONS.filter(
+      (section) => !sectionOrder.includes(section.id)
+    );
+    
+    return [...ordered, ...missingSection];
+  })();
 
   // Drag and drop sensors
   const sensors = useSensors(
