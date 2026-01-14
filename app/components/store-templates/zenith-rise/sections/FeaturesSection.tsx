@@ -66,7 +66,7 @@ function ZenithFeaturesSectionBase({ settings, theme }: ZenithFeaturesSectionPro
       case 'Zap': return <Zap className="w-6 h-6 text-amber-400" />;
       case 'Shield': return <Shield className="w-6 h-6 text-emerald-400" />;
       case 'Globe': return <Globe className="w-6 h-6 text-blue-400" />;
-      case 'BarChart': return <BarChart className="w-6 h-6 text-purple-400" />;
+      case 'BarChart': return <BarChart3 className="w-6 h-6 text-purple-400" />;
       case 'Smartphone': return <Smartphone className="w-6 h-6 text-pink-400" />;
       default: return <Box className="w-6 h-6 text-indigo-400" />;
     }

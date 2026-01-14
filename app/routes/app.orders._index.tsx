@@ -198,21 +198,19 @@ export default function DashboardOrdersPage() {
     }).format(price);
   };
 
+  /* 
+   * Hydration safe date formatting
+   * Note: Relative time (e.g. "5 mins ago") causes hydration mismatches because "now" changes 
+   * between server render and client hydration.
+   * For now, we return a stable absolute date format.
+   */
   const formatDate = (date: string | Date | null) => {
     if (!date) return '—';
     const d = new Date(date);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    const agoText = t('ago');
-    if (diffMins < 60) return `${diffMins} ${t('minShort')} ${agoText}`;
-    if (diffHours < 24) return `${diffHours}${t('hourShort')} ${agoText}`;
-    if (diffDays < 7) return `${diffDays}${t('dayShort')} ${agoText}`;
     
+    // Stable format for both server and client
     return d.toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-BD', {
+      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',

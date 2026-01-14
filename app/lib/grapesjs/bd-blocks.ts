@@ -1180,7 +1180,100 @@ export const bdBlocksPlugin = (editor: Editor) => {
         <a href="#order" class="inline-block bg-white text-gray-900 font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-gray-100 transition">অর্ডার করুন</a>
       </div>
     `,
-    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-indigo-500" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 10v4M10 12h4"/></svg>',
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-green-400" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M12 8v8m-4-4h8" /></svg>',
+  });
+
+  // 22. Gadget Neon Showcase (Cyberpunk)
+  Blocks.add('gadget-neon-showcase', {
+    label: 'Neon Showcase',
+    category: 'World Class UI',
+    content: `
+      <section class="py-20 bg-black overflow-hidden relative">
+         <!-- Neon Background Elements -->
+         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-pink-500/20 via-transparent to-transparent opacity-50"></div>
+         <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-pink-500 to-transparent box-shadow-[0_0_20px_#ec4899]"></div>
+         
+         <div class="max-w-7xl mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center gap-12">
+            <div class="w-full md:w-1/2">
+               <div class="relative group">
+                  <div class="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 rounded-3xl blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
+                  <img src="https://images.unsplash.com/photo-1592842232655-e5d3451ea1cd?w=800&q=80" alt="Cyber Gadget" class="relative w-full rounded-3xl border border-white/10 shadow-2xl z-10" />
+                  
+                  <!-- Floating specs -->
+                  <div class="absolute -right-4 top-10 bg-black/80 backdrop-blur-md border border-pink-500/50 p-4 rounded-xl z-20 shadow-[0_0_15px_rgba(236,72,153,0.3)] animate-pulse">
+                     <div class="text-pink-400 font-bold text-xs uppercase tracking-widest">Processor</div>
+                     <div class="text-white font-black text-xl">M2 Ultra</div>
+                  </div>
+               </div>
+            </div>
+            
+            <div class="w-full md:w-1/2 text-left">
+               <h2 class="text-5xl md:text-7xl font-black text-white mb-6 uppercase italic tracking-tighter" style="font-family: 'Orbitron', sans-serif;">
+                  Level <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-400">Up.</span>
+               </h2>
+               <p class="text-slate-400 text-lg mb-8 border-l-4 border-pink-500 pl-6">
+                  Dominate the competition with hardware forged for victory. Ultra-responsive inputs and zero-latency transmission.
+               </p>
+               
+               <div class="grid grid-cols-2 gap-4 mb-10">
+                  <div class="bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition">
+                     <div class="text-yellow-400 font-bold text-2xl mb-1">1ms</div>
+                     <div class="text-slate-500 text-xs uppercase">Response Time</div>
+                  </div>
+                  <div class="bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition">
+                     <div class="text-pink-400 font-bold text-2xl mb-1">RGB</div>
+                     <div class="text-slate-500 text-xs uppercase">Chroma Sync</div>
+                  </div>
+               </div>
+               
+               <a href="#order" class="inline-block w-full text-center py-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-black uppercase tracking-widest rounded-none border border-white/20 hover:border-white/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.5)] transition clip-path-polygon">
+                  Deploy System
+               </a>
+            </div>
+         </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-pink-500" stroke-width="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></svg>',
+  });
+
+  // 23. Luxe Elegant Hero (Minimalist)
+  Blocks.add('luxe-elegant-hero', {
+    label: 'Elegant Hero',
+    category: 'World Class UI',
+    content: `
+      <section class="py-20 bg-[#faf9f6] text-[#1a1a1a]">
+         <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-stretch min-h-[600px]">
+               <!-- Text Content -->
+               <div class="w-full md:w-5/12 flex flex-col justify-center pr-0 md:pr-12 mb-10 md:mb-0">
+                  <div class="w-16 h-px bg-[#1a1a1a] mb-8"></div>
+                  <h1 class="text-5xl md:text-7xl font-serif leading-tight mb-8">
+                     Timeless <br/> 
+                     <span class="italic text-[#8b8b8b]">Elegance</span>
+                  </h1>
+                  <p class="text-lg text-[#555] leading-relaxed mb-12 font-light">
+                     Discover the new collection defined by subtle hues and impeccable craftsmanship. Defining modern luxury for the discerning individual.
+                  </p>
+                  <a href="#collection" class="group flex items-center gap-4 text-sm font-bold uppercase tracking-[0.2em] hover:opacity-70 transition">
+                     View Collection
+                     <span class="w-12 h-px bg-[#1a1a1a] group-hover:w-20 transition-all duration-300"></span>
+                  </a>
+               </div>
+               
+               <!-- Image Grid -->
+               <div class="w-full md:w-7/12 grid grid-cols-2 gap-4">
+                  <div class="mt-12">
+                     <img src="https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=600&q=80" class="w-full h-full object-cover rounded-tl-[4rem] shadow-sm transform hover:translate-y-2 transition duration-700" />
+                  </div>
+                  <div class="-mb-12">
+                     <img src="https://images.unsplash.com/photo-1596462502278-27bfdd403348?w=600&q=80" class="w-full h-full object-cover rounded-br-[4rem] shadow-sm transform hover:-translate-y-2 transition duration-700" />
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-slate-800" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
   });
   // 17. Simple Footer
   Blocks.add('bd-footer-simple', {
@@ -1461,5 +1554,153 @@ export const bdBlocksPlugin = (editor: Editor) => {
     `,
     media: '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="w-12 h-12 text-emerald-500"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>',
   });
-};
 
+  // 24. BD Hero Minimal
+  Blocks.add('bd-hero-minimal', {
+    label: 'Hero Minimal (BD)',
+    category: 'BD Landing',
+    content: `
+      <section class="py-16 bg-white border-b border-gray-100">
+         <div class="max-w-5xl mx-auto px-4 flex flex-col items-center text-center">
+            <h1 class="text-3xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
+               আপনার সমস্যার <span class="text-primary product-name">একমাত্র সমাধান</span>
+            </h1>
+            <p class="text-lg text-gray-600 mb-8 max-w-2xl">
+               অযথা সময় নষ্ট না করে আজই বেছে নিন আমাদের প্রিমিয়াম কোয়ালিটি পণ্য। ১০০% অরিজিনাল এবং গ্যারান্টিযুক্ত।
+            </p>
+            <div class="w-full max-w-2xl mb-10 overflow-hidden rounded-2xl border border-gray-100 shadow-xl">
+               <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1000&q=80" alt="Product" class="w-full h-auto hover:scale-105 transition duration-700" />
+            </div>
+            <a href="#order" class="px-10 py-4 bg-primary text-white font-bold text-xl rounded-full shadow-lg hover:bg-red-700 transition animate-bounce">
+               অর্ডার করুন - ১২৫০৳
+            </a>
+         </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-gray-500" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 14h16"/></svg>',
+  });
+
+  // 25. BD Features List (Checkmarks)
+  Blocks.add('bd-features-list', {
+    label: 'Feature List',
+    category: 'BD Landing',
+    content: `
+      <section class="py-12 bg-gray-50 px-4">
+         <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl border border-gray-200 shadow-sm">
+            <h2 class="text-2xl font-bold text-center text-gray-900 mb-8 pb-4 border-b border-gray-100">
+               এই পণ্যটি কিনলে যা যা পাচ্ছেন
+            </h2>
+            <ul class="space-y-4">
+               <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                  <span class="text-lg text-gray-700">উন্নত মানের ম্যাটেরিয়ালে তৈরি, তাই দীর্ঘদিন ব্যবহার করা যাবে।</span>
+               </li>
+               <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                  <span class="text-lg text-gray-700">ওয়াটারপ্রুফ এবং ডাস্টপ্রুফ টেকনোলজি।</span>
+               </li>
+               <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                  <span class="text-lg text-gray-700">আমরা দিচ্ছি ১ বছরের রিপ্লেসমেন্ট গ্যারান্টি।</span>
+               </li>
+               <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                  <span class="text-lg text-gray-700">ফাস্ট চার্জিং সাপোর্ট (Type-C)।</span>
+               </li>
+               <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                  <span class="text-lg text-gray-700">সাথে পাচ্ছেন একটি আকর্ষণীয় গিফট বক্স।</span>
+               </li>
+            </ul>
+         </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-green-500" stroke-width="1.5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  });
+
+  // 26. BD Video Gallery (Reviews)
+  Blocks.add('bd-video-gallery', {
+    label: 'Video Review Grid',
+    category: 'BD Landing',
+    content: `
+      <section class="py-12 bg-white px-4">
+         <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center text-gray-900 mb-10">কাস্টমার রিভিউ ভিডিও</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div class="aspect-video bg-gray-100 rounded-2xl overflow-hidden border-2 border-gray-100 shadow-lg">
+                  <iframe class="w-full h-full" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Customer Review 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+               </div>
+               <div class="aspect-video bg-gray-100 rounded-2xl overflow-hidden border-2 border-gray-100 shadow-lg">
+                  <iframe class="w-full h-full" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Customer Review 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+               </div>
+            </div>
+         </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-red-500" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M2 12h20"/></svg>',
+  });
+
+  // 27. BD Order Form Simple (Compact)
+  Blocks.add('bd-order-form-simple', {
+    label: 'Order Form (Simple)',
+    category: 'BD Landing',
+    content: `
+      <section id="order" class="py-12 bg-blue-50 px-4">
+         <div class="max-w-lg mx-auto bg-white p-6 rounded-2xl shadow-xl">
+            <h2 class="text-xl font-bold text-center text-gray-900 mb-6">দ্রুত অর্ডার করুন</h2>
+            <form action="/api/create-order" method="POST" class="space-y-4">
+               <input type="text" name="customer_name" placeholder="আপনার নাম" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary outline-none" required />
+               <input type="tel" name="phone" placeholder="ফোন নম্বর" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary outline-none" required />
+               <textarea name="address" placeholder="ঠিকানা (এলাকা, থানা, জেলা)" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-primary outline-none h-20" required></textarea>
+               
+               <div class="flex justify-between items-center py-2 bg-gray-50 px-3 rounded-lg">
+                  <span class="text-sm font-bold text-gray-500">মোট বিল</span>
+                  <span class="text-lg font-black text-primary">১২৫০ টাকা</span>
+               </div>
+               
+               <button type="submit" class="w-full bg-primary text-white text-lg font-bold py-3 rounded-xl shadow hover:bg-red-700 transition">অর্ডার কনফার্ম করুন</button>
+            </form>
+         </div>
+      </section>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-blue-500" stroke-width="1.5"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>',
+  });
+
+  // 28. BD Footer Detailed
+  Blocks.add('bd-footer-detailed', {
+    label: 'Footer (Detailed)',
+    category: 'BD Landing',
+    content: `
+      <footer class="bg-gray-900 text-gray-300 py-12 px-6">
+         <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div>
+               <h4 class="text-white font-bold text-lg mb-4">আমাদের সম্পর্কে</h4>
+               <p class="text-sm leading-relaxed text-gray-400">
+                  আমরা দিচ্ছি বাংলাদেশের সেরা মানের গ্যাজেট এবং এক্সেসরিজ। আমাদের লক্ষ্য গ্রাহকের সন্তুষ্টি এবং বিশ্বাস অর্জন।
+               </p>
+            </div>
+            <div>
+               <h4 class="text-white font-bold text-lg mb-4">যোগাযোগ</h4>
+               <ul class="space-y-2 text-sm">
+                  <li class="flex items-center gap-2"><span class="text-primary">📞</span> 017XXXXXXXX</li>
+                  <li class="flex items-center gap-2"><span class="text-primary">📧</span> support@example.com</li>
+                  <li class="flex items-center gap-2"><span class="text-primary">📍</span> বাড়ি-১২, রোড-৫, উত্তরা, ঢাকা</li>
+               </ul>
+            </div>
+            <div>
+               <h4 class="text-white font-bold text-lg mb-4">গুরুত্বপূর্ণ লিঙ্ক</h4>
+               <ul class="space-y-2 text-sm">
+                  <li><a href="/privacy" class="hover:text-white transition">প্রাইভেসি পলিসি</a></li>
+                  <li><a href="/terms" class="hover:text-white transition">শর্তাবলী</a></li>
+                  <li><a href="/refund" class="hover:text-white transition">রিফান্ড পলিসি</a></li>
+               </ul>
+            </div>
+         </div>
+         <div class="border-t border-gray-800 pt-8 text-center text-xs text-gray-500">
+            &copy; 2025 All rights reserved. Designed with ❤️ in Bangladesh.
+         </div>
+      </footer>
+    `,
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12 stroke-gray-400" stroke-width="1.5"><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M2 14h20"/><path d="M6 18h2M10 18h8"/></svg>',
+  });
+};

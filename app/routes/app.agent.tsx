@@ -213,7 +213,7 @@ export default function AgentDashboard() {
                 {/* Chart Section */}
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">{t('activityOverview7Days')}</h3>
-                    <div className="h-[300px] w-full">
+                    <div className="h-[300px] w-full" style={{ width: '100%', height: 300, minHeight: 300 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={stats?.daily && stats.daily.length > 0 ? stats.daily : [{date: 'Today', count: 0}]}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />

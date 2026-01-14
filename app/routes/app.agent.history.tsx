@@ -16,40 +16,53 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const selectedConvId = url.searchParams.get('id');
 
   // 1. Get Agent
-  const agent = await db.query.agents.findFirst({
-    where: eq(schema.agents.storeId, storeId)
-  });
+  let agent;
+  try {
+    agent = await db.query.agents.findFirst({
+      where: eq(schema.agents.storeId, storeId)
+    });
+  } catch (error) {
+    console.error("Error fetching agent:", error);
+    // Be resilient if table doesn't exist yet
+    return json({ conversations: [], selectedConversation: null, agent: null });
+  }
 
   if (!agent) {
     return json({ conversations: [], selectedConversation: null, agent: null });
   }
 
   // 2. Get Conversations List
-  const conversations = await db.query.conversations.findMany({
-    where: eq(schema.conversations.agentId, agent.id),
-    orderBy: [desc(schema.conversations.lastMessageAt)],
-    limit: 50, // Pagination can be added later
-    with: {
-        // We might want to fetch last message snippet if schema allows relation, 
-        // but for now relying on existing schema fields
-    }
-  });
+  let conversations: typeof schema.conversations.$inferSelect[] = [];
+  try {
+    conversations = await db.query.conversations.findMany({
+      where: eq(schema.conversations.agentId, agent.id),
+      orderBy: [desc(schema.conversations.lastMessageAt)],
+      limit: 50,
+    });
+  } catch (error) {
+    console.error("Error fetching conversations:", error);
+    conversations = [];
+  }
 
   // 3. Get Selected Conversation Details
   let selectedConversation = null;
   if (selectedConvId) {
-    const conv = await db.query.conversations.findFirst({
-        where: eq(schema.conversations.id, parseInt(selectedConvId)),
-        with: {
-            messages: {
-                orderBy: (messages, { asc }) => [asc(messages.createdAt)]
-            }
-        }
-    });
-    
-    // Security check: ensure this conversation belongs to the store's agent
-    if (conv && conv.agentId === agent.id) {
-        selectedConversation = conv;
+    try {
+      const conv = await db.query.conversations.findFirst({
+          where: eq(schema.conversations.id, parseInt(selectedConvId)),
+          with: {
+              messages: {
+                  orderBy: (messages, { asc }) => [asc(messages.createdAt)]
+              }
+          }
+      });
+      
+      if (conv && conv.agentId === agent.id) {
+          selectedConversation = conv;
+      }
+    } catch (error) {
+       console.error("Error fetching selected conversation:", error);
+       selectedConversation = null;
     }
   }
 

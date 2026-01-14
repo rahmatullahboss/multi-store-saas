@@ -37,14 +37,9 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch Event - Network First pattern for dynamic content
-self.addEventListener('fetch', (event) => {
-   // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-  
-  // Custom logic can be added here
-});
+// Note: We removed the empty fetch listener to allow the browser to handle requests normally 
+// and prevent "message channel closed" errors when the SW is active but not responding.
+// self.addEventListener('fetch', (event) => { ... });
 
 // Push Notification Event
 self.addEventListener('push', function(event) {

@@ -4,7 +4,7 @@ import {
   Facebook, Twitter, Instagram, Linkedin, 
   Mail, MapPin, Phone, ArrowUpRight 
 } from 'lucide-react';
-import { ZENITH_RISE_THEME } from '~/components/store-templates/ZenithRiseTheme';
+import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styles/tokens';
 import type { SocialLinks, FooterConfig } from '@db/types';
 
 interface ZenithRiseFooterProps {

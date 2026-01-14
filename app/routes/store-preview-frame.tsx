@@ -136,7 +136,7 @@ export default function StorePreviewFrame() {
     storeTemplateId: data.themeConfig.storeTemplateId,
     sections: data.themeConfig.sections,
     productSections: data.themeConfig.productSections,
-    logo: data.logo,
+    logo: data.logo ?? undefined,
     businessInfo: data.businessInfo,
     socialLinks: data.socialLinks,
     headerLayout: data.themeConfig.headerLayout,
