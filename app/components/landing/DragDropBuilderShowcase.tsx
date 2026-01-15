@@ -97,13 +97,14 @@ export function DragDropBuilderShowcase() {
         await new Promise(r => setTimeout(r, 400)); // Hovering
 
         setAnimationStep(3); // Drop
-        setCanvasElements(prev => [...prev, { id: 3, type: 'review', height: 'h-32' }]);
+        const newId = Date.now(); // Unique ID for this animation cycle
+        setCanvasElements(prev => [...prev, { id: newId, type: 'review', height: 'h-32' }]);
         setActiveDrop(null);
         
         await new Promise(r => setTimeout(r, 2000)); // Show result
 
-        // Reset canvas for next loop
-        setCanvasElements(prev => prev.filter(el => el.id !== 3));
+        // Reset canvas for next loop - remove any review elements
+        setCanvasElements(prev => prev.filter(el => el.type !== 'review'));
       }
     };
     sequence();

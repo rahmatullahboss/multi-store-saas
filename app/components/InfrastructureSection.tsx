@@ -280,30 +280,32 @@ const DataFlowLine = ({ from, to, delay, isMobile = false }: DataFlowLineProps) 
         transition={{ delay, duration: 1.5, ease: 'easeOut' }}
       />
       
-      {/* Animated data packet */}
-      <motion.circle
+      {/* Animated data packet - using regular circle with CSS animation */}
+      <circle
         r="2"
-        fill={COLORS.cyan}
-        filter={isMobile ? undefined : "url(#glow)"}
         cx={`${from.x}%`}
         cy={`${from.y}%`}
-        initial={{ opacity: 0 }}
-        animate={{
-          cx: [`${from.x}%`, `${to.x}%`],
-          cy: [`${from.y}%`, `${to.y}%`],
-          opacity: [0, 1, 1, 0],
-        }}
-        transition={{
-          delay: delay + 1,
-          duration: 2,
-          repeat: Infinity,
-          repeatDelay: 3,
-          ease: 'easeInOut',
-        }}
+        fill={COLORS.cyan}
+        filter={isMobile ? undefined : "url(#glow)"}
         style={{
           filter: isMobile ? undefined : `drop-shadow(0 0 4px ${COLORS.cyan})`,
         }}
-      />
+      >
+        <animate
+          attributeName="opacity"
+          values="0;1;1;0"
+          dur="2s"
+          begin={`${delay + 1}s`}
+          repeatCount="indefinite"
+        />
+        <animateMotion
+          path={`M 0,0 L ${to.x - from.x},${to.y - from.y}`}
+          dur="2s"
+          begin={`${delay + 1}s`}
+          repeatCount="indefinite"
+          calcMode="linear"
+        />
+      </circle>
     </svg>
   );
 };
