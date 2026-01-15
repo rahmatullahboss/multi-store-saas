@@ -7,7 +7,7 @@
  * - Theme: Red, Yellow, Black
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AlertTriangle, Flame, Zap } from 'lucide-react';
 import type { TemplateProps } from '~/templates/registry';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
@@ -17,17 +17,23 @@ import { FLASH_SALE_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
 import { StickyBuyButton } from '../_core/StickyBuyButton';
 
-// Countdown Hook
-function useCountdown(endTime: Date | null) {
-  // Calculate initial state without triggering effects
-  const calculateTimeLeft = (targetEnd: Date | null) => {
-    if (!targetEnd) {
+// Countdown Hook - accepts string to avoid Date object reference issues
+function useCountdown(endTimeStr: string | undefined | null) {
+  // Memoize the Date object to prevent new reference on each render
+  const endTime = useMemo(() => {
+    if (!endTimeStr) return null;
+    const date = new Date(endTimeStr);
+    return isNaN(date.getTime()) ? null : date;
+  }, [endTimeStr]);
+
+  // Calculate time left from a timestamp
+  const calculateTimeLeft = (endTimestamp: number | null) => {
+    if (endTimestamp === null) {
       return { hours: 0, minutes: 0, seconds: 0, expired: true };
     }
     
-    const now = new Date().getTime();
-    const end = targetEnd.getTime();
-    const difference = end - now;
+    const now = Date.now();
+    const difference = endTimestamp - now;
 
     if (difference <= 0) {
       return { hours: 0, minutes: 0, seconds: 0, expired: true };
@@ -41,26 +47,34 @@ function useCountdown(endTime: Date | null) {
     };
   };
 
-  // Initialize state with computed value (no effect trigger on mount)
-  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(endTime));
+  // Get stable timestamp from memoized Date
+  const endTimestamp = endTime?.getTime() ?? null;
+
+  // Initialize state with computed value
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(endTimestamp));
 
   useEffect(() => {
-    // If no endTime, just set expired once and exit
-    if (!endTime) {
-      setTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
+    // Calculate and set initial state
+    setTimeLeft(calculateTimeLeft(endTimestamp));
+    
+    // If no valid timestamp, don't set up interval
+    if (endTimestamp === null) {
       return;
     }
 
-    // Update immediately for the current endTime
-    setTimeLeft(calculateTimeLeft(endTime));
-    
     // Set up interval for countdown
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft(endTime));
+      const newTimeLeft = calculateTimeLeft(endTimestamp);
+      setTimeLeft(newTimeLeft);
+      
+      // Clear interval if expired
+      if (newTimeLeft.expired) {
+        clearInterval(timer);
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [endTime]);
+  }, [endTimestamp]);
 
   return timeLeft;
 }
@@ -80,8 +94,7 @@ export function FlashSaleTemplate({
   const formatPrice = useFormatPrice();
   
   const theme = applyCustomColors(FLASH_SALE_THEME, config.primaryColor, config.accentColor);
-  const endTimeStr = config.countdownEndTime;
-  const countdown = useCountdown(endTimeStr ? new Date(endTimeStr) : null);
+  const countdown = useCountdown(config.countdownEndTime);
 
   return (
     <div className="min-h-screen bg-black text-white">
