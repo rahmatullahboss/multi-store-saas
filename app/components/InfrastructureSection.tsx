@@ -285,6 +285,8 @@ const DataFlowLine = ({ from, to, delay, isMobile = false }: DataFlowLineProps) 
         r="2"
         fill={COLORS.cyan}
         filter={isMobile ? undefined : "url(#glow)"}
+        cx={`${from.x}%`}
+        cy={`${from.y}%`}
         initial={{ opacity: 0 }}
         animate={{
           cx: [`${from.x}%`, `${to.x}%`],
