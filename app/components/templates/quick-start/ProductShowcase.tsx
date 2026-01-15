@@ -66,7 +66,7 @@ export function ProductShowcase({ product, theme, config }: SectionProps) {
             </p>
 
             <ul className="space-y-4 mb-8">
-              {(config.features?.length ? config.features : [
+              {((config as any).showcaseData?.features?.length ? (config as any).showcaseData.features : config.features?.length ? config.features : [
                 { title: "প্রিমিয়াম কোয়ালিটি ম্যাটেরিয়াল" },
                 { title: "দীর্ঘ স্থায়িত্ব ও টেকসই ডিজাইন" },
                 { title: "ব্যবহার করা সহজ" },

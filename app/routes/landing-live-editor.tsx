@@ -264,6 +264,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const deliveryInfo = JSON.parse(formData.get('deliveryInfo') as string || '{"title":"","description":"","areas":[]}');
   const customSections = JSON.parse(formData.get('customSections') as string || '[]');
   const problemSolution = JSON.parse(formData.get('problemSolution') as string || '{"problems":[],"solutions":[]}');
+  const pricingData = JSON.parse(formData.get('pricingData') as string || '{"features":[]}');
+  const showcaseData = JSON.parse(formData.get('showcaseData') as string || '{"features":[]}');
+  const howToOrderData = JSON.parse(formData.get('howToOrderData') as string || '{"steps":[]}');
   
   // Custom code injection (for FB Pixel, Google Analytics, etc.)
   const customHeadCode = formData.get('customHeadCode') as string || '';
@@ -316,6 +319,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     customSections: customSections.filter((s: {id: string; html: string}) => s.html),
     // Problem & Solution section
     problemSolution: problemSolution.problems?.length > 0 || problemSolution.solutions?.length > 0 ? problemSolution : undefined,
+    pricingData: pricingData.features?.length > 0 ? pricingData : undefined,
+    showcaseData: showcaseData.features?.length > 0 ? showcaseData : undefined,
+    howToOrderData: howToOrderData.steps?.length > 0 ? howToOrderData : undefined,
     // Custom CSS
     customCSS: customCSS || undefined,
     // Custom code injection
@@ -514,6 +520,45 @@ export default function LiveEditorPage() {
   // Problem & Solution section data
   const [problemSolution, setProblemSolution] = useState<{ problems: string[]; solutions: string[] }>(
     (store.landingConfig as any).problemSolution || { problems: [], solutions: [] }
+  );
+
+  // Pricing Section Data
+  const [pricingData, setPricingData] = useState<{ features: string[] }>(
+    (store.landingConfig as any).pricingData || { 
+      features: [
+        'প্রিমিয়াম প্রোডাক্ট (১ পিস)',
+        'ফ্রি গিফট আইটেম',
+        'প্রিমিয়াম প্যাকেজিং',
+        'ঢাকায় ফ্রি ডেলিভারি',
+        '১ বছর ওয়ারেন্টি',
+        '৭ দিনে রিটার্ন গ্যারান্টি'
+      ] 
+    }
+  );
+
+  // Showcase Section Data
+  const [showcaseData, setShowcaseData] = useState<{ features: string[] }>(
+     (store.landingConfig as any).showcaseData || {
+       features: [
+         'প্রিমিয়াম কোয়ালিটি ম্যাটেরিয়াল',
+         'দীর্ঘ স্থায়িত্ব ও টেকসই ডিজাইন',
+         'ব্যবহার করা সহজ',
+         '১ বছরের ওয়ারেন্টি',
+         'ফ্রি গাইডলাইন ভিডিও'
+       ]
+     }
+  );
+
+  // How to Order Section Data
+  const [howToOrderData, setHowToOrderData] = useState<{ steps: Array<{ title: string; description: string }> }>(
+    (store.landingConfig as any).howToOrderData || {
+      steps: [
+        { title: "ফর্ম পূরণ করুন", description: "উপরের অর্ডার ফর্মে আপনার নাম, ফোন ও ঠিকানা দিন" },
+        { title: "কল কনফার্মেশন", description: "আমাদের টিম আপনাকে কল করে অর্ডার কনফার্ম করবে" },
+        { title: "দ্রুত ডেলিভারি", description: "ঢাকায় ২৪ ঘণ্টায়, সারাদেশে ৩-৫ দিনে ডেলিভারি" },
+        { title: "টাকা দিন", description: "প্রোডাক্ট হাতে পেয়ে চেক করে টাকা দিন" }
+      ]
+    }
   );
 
   // Custom Code Injection (FB Pixel, Google Analytics, etc.)
@@ -1091,13 +1136,19 @@ export default function LiveEditorPage() {
     customBodyCode,
     // Landing language
     landingLanguage,
+    // Quick Start sections (NEW)
+    problemSolution,
+    pricingData,
+    showcaseData,
+    howToOrderData,
   }), [
     templateId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText,
     features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage,
     callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter,
     lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor,
     galleryImages, benefits, comparison, socialProof, orderFormVariant, trustBadges, deliveryInfo,
-    customSections, customHeadCode, customBodyCode, landingLanguage
+    customSections, customHeadCode, customBodyCode, landingLanguage,
+    problemSolution, pricingData, showcaseData, howToOrderData
   ]);
 
   // Mock product for preview
@@ -1338,6 +1389,9 @@ export default function LiveEditorPage() {
               <input type="hidden" name="landingLanguage" value={landingLanguage} />
               <input type="hidden" name="problemSolution" value={JSON.stringify(problemSolution)} />
               <input type="hidden" name="trustBadges" value={JSON.stringify(trustBadges)} />
+              <input type="hidden" name="pricingData" value={JSON.stringify(pricingData)} />
+              <input type="hidden" name="showcaseData" value={JSON.stringify(showcaseData)} />
+              <input type="hidden" name="howToOrderData" value={JSON.stringify(howToOrderData)} />
               <input type="hidden" name="deliveryInfo" value={JSON.stringify(deliveryInfo)} />
               <input type="hidden" name="customSections" value={JSON.stringify(customSections)} />
               
@@ -1655,6 +1709,13 @@ export default function LiveEditorPage() {
               // Problem & Solution section
               problemSolution={problemSolution}
               onProblemSolutionChange={setProblemSolution}
+              // New Section Data
+              pricingData={pricingData}
+              onPricingDataChange={setPricingData}
+              showcaseData={showcaseData}
+              onShowcaseDataChange={setShowcaseData}
+              howToOrderData={howToOrderData}
+              onHowToOrderDataChange={setHowToOrderData}
             />
           </AccordionSection>
 

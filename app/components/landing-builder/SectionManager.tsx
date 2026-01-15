@@ -10,7 +10,8 @@ import { useState, memo, useCallback } from 'react';
 import { 
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
-  Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code, AlertCircle, MessageCircle
+  Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code, AlertCircle, MessageCircle,
+  Tag, Box, ListOrdered
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -154,11 +155,38 @@ export const LANDING_SECTIONS = [
     required: true,
     editable: true,
   },
+  {
+    id: 'pricing',
+    name: 'প্রাইসিং',
+    nameEn: 'Pricing',
+    description: 'প্রাইসিং প্ল্যান এবং ফিচার',
+    descriptionEn: 'Pricing plans and features',
+    icon: Tag,
+    editable: true,
+  },
+  {
+    id: 'how-to-order',
+    name: 'অর্ডার প্রক্রিয়া',
+    nameEn: 'How to Order',
+    description: 'অর্ডার করার নিয়মাবলী',
+    descriptionEn: 'Instructions on how to order',
+    icon: ListOrdered,
+    editable: true,
+  },
+  {
+    id: 'showcase',
+    name: 'প্রোডাক্ট ডিটেইলস',
+    nameEn: 'Product Details',
+    description: 'প্রোডাক্টের বিস্তারিত বর্ণনা',
+    descriptionEn: 'Detailed product description',
+    icon: Box,
+    editable: true,
+  },
 ];
 
 
 // Default section order
-export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'];
+export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'showcase', 'pricing', 'how-to-order', 'problem-solution', 'cta'];
 
 // Types for section content
 export interface Feature {
@@ -200,6 +228,21 @@ export interface SocialProof {
 export interface ProblemSolution {
   problems: string[];
   solutions: string[];
+}
+
+export interface PricingData {
+  features: string[];
+}
+
+export interface ShowcaseData {
+  features: string[];
+}
+
+export interface HowToOrderData {
+  steps: {
+    title: string;
+    description: string;
+  }[];
 }
 
 interface SectionManagerProps {
@@ -254,6 +297,13 @@ interface SectionManagerProps {
   // Problem & Solution section
   problemSolution?: ProblemSolution;
   onProblemSolutionChange?: (data: ProblemSolution) => void;
+  // New section editors
+  pricingData?: PricingData;
+  onPricingDataChange?: (data: PricingData) => void;
+  showcaseData?: ShowcaseData;
+  onShowcaseDataChange?: (data: ShowcaseData) => void;
+  howToOrderData?: HowToOrderData;
+  onHowToOrderDataChange?: (data: HowToOrderData) => void;
 }
 
 function SectionManagerBase({
@@ -297,6 +347,12 @@ function SectionManagerBase({
   onComparisonChange,
   socialProof = { count: 0, text: '' },
   onSocialProofChange,
+  pricingData = { features: [] },
+  onPricingDataChange,
+  showcaseData = { features: [] },
+  onShowcaseDataChange,
+  howToOrderData = { steps: [] },
+  onHowToOrderDataChange,
   // Order form layout
   orderFormVariant = 'full-width',
   onOrderFormVariantChange,
@@ -1137,6 +1193,184 @@ function SectionManagerBase({
               >
                 <Plus className="w-4 h-4" />
                 {language === 'bn' ? 'সমাধান যোগ করুন' : 'Add Solution'}
+              </button>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+           renderNewSectionEditors(sectionId)
+        );
+    }
+  };
+
+  const renderNewSectionEditors = (sectionId: string) => {
+    switch (sectionId) {
+      case 'pricing':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'প্রাইসিং ফিচারসমূহ' : 'Pricing Features'}
+              </label>
+              {pricingData.features.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'ফিচার যোগ করুন' : 'Add features'}
+                </div>
+              )}
+              {pricingData.features.map((feature, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={feature}
+                    onChange={(e) => {
+                      const newFeatures = [...pricingData.features];
+                      newFeatures[index] = e.target.value;
+                      onPricingDataChange?.({ ...pricingData, features: newFeatures });
+                    }}
+                    placeholder={language === 'bn' ? 'ফিচার লিখুন' : 'Enter feature'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFeatures = pricingData.features.filter((_, i) => i !== index);
+                      onPricingDataChange?.({ ...pricingData, features: newFeatures });
+                    }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onPricingDataChange?.({ 
+                  ...pricingData, 
+                  features: [...pricingData.features, ''] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'ফিচার যোগ করুন' : 'Add Feature'}
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'showcase':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'প্রোডাক্ট হাইলাইট' : 'Product Highlights'}
+              </label>
+              {showcaseData.features.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'হাইলাইট যোগ করুন' : 'Add highlights'}
+                </div>
+              )}
+              {showcaseData.features.map((feature, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={feature}
+                    onChange={(e) => {
+                      const newFeatures = [...showcaseData.features];
+                      newFeatures[index] = e.target.value;
+                      onShowcaseDataChange?.({ ...showcaseData, features: newFeatures });
+                    }}
+                    placeholder={language === 'bn' ? 'হাইলাইট লিখুন' : 'Enter highlight'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFeatures = showcaseData.features.filter((_, i) => i !== index);
+                      onShowcaseDataChange?.({ ...showcaseData, features: newFeatures });
+                    }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onShowcaseDataChange?.({ 
+                  ...showcaseData, 
+                  features: [...showcaseData.features, ''] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'হাইলাইট যোগ করুন' : 'Add Highlight'}
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'how-to-order':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'অর্ডার ধাপসমূহ' : 'Order Steps'}
+              </label>
+              {howToOrderData.steps.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add steps'}
+                </div>
+              )}
+              {howToOrderData.steps.map((step, index) => (
+                <div key={index} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                    <span>{language === 'bn' ? `ধাপ ${index + 1}` : `Step ${index + 1}`}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSteps = howToOrderData.steps.filter((_, i) => i !== index);
+                        onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                      }}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={step.title}
+                    onChange={(e) => {
+                      const newSteps = [...howToOrderData.steps];
+                      newSteps[index] = { ...newSteps[index], title: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের শিরোনাম' : 'Step Title'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <textarea
+                    value={step.description}
+                    onChange={(e) => {
+                      const newSteps = [...howToOrderData.steps];
+                      newSteps[index] = { ...newSteps[index], description: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের বিবরণ' : 'Step Description'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[60px]"
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onHowToOrderDataChange?.({ 
+                  ...howToOrderData, 
+                  steps: [...howToOrderData.steps, { title: '', description: '' }] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add Step'}
               </button>
             </div>
           </div>

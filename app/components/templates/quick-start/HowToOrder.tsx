@@ -1,8 +1,8 @@
 import { ClipboardList, PhoneCall, Truck, Banknote } from 'lucide-react';
 import type { SectionProps } from '../_core/types';
 
-export function HowToOrder({ theme }: SectionProps) {
-  const steps = [
+export function HowToOrder({ theme, config }: SectionProps) {
+  const defaultSteps = [
     {
       icon: <ClipboardList size={32} />,
       title: "ফর্ম পূরণ করুন",
@@ -24,6 +24,13 @@ export function HowToOrder({ theme }: SectionProps) {
       description: "প্রোডাক্ট হাতে পেয়ে চেক করে টাকা দিন"
     }
   ];
+
+  const steps = (config as any).howToOrderData?.steps?.length 
+    ? (config as any).howToOrderData.steps.map((step: any, index: number) => ({
+        ...step,
+        icon: defaultSteps[index]?.icon || <ClipboardList size={32} />
+      }))
+    : defaultSteps;
 
   return (
     <section className="py-20 bg-[#F8F9FA]">

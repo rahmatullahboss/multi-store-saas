@@ -96,14 +96,14 @@ export function Pricing({ product, theme, formatPrice, config }: SectionProps) {
 
             {/* Features List */}
             <div className="grid md:grid-cols-2 gap-4 text-left max-w-2xl mx-auto mb-10">
-              {[
+              {((config as any).pricingData?.features?.length ? (config as any).pricingData.features : [
                 `প্রিমিয়াম প্রোডাক্ট (১ পিস)`,
                 "ফ্রি গিফট আইটেম",
                 "প্রিমিয়াম প্যাকেজিং",
                 "ঢাকায় ফ্রি ডেলিভারি",
                 "১ বছর ওয়ারেন্টি",
                 "৭ দিনে রিটার্ন গ্যারান্টি"
-              ].map((item, i) => (
+              ]).map((item: string, i: number) => (
                 <div key={i} className="flex items-center gap-3 text-[#1A1A2E] font-medium">
                   <CheckCircle className="text-[#2A9D8F] shrink-0" size={20} />
                   <span>{item}</span>
