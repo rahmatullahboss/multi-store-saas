@@ -656,6 +656,47 @@ export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ on
 }));
 
 // ============================================================================
+// PUBLISHED PAGES TABLE - Pre-rendered HTML cache for landing pages
+// ============================================================================
+export const publishedPages = sqliteTable('published_pages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  
+  // Page identification
+  pageType: text('page_type').$type<'landing' | 'product'>().default('landing'),
+  productId: integer('product_id').references(() => products.id), // For product-specific landing pages
+  
+  // Cached content
+  htmlContent: text('html_content').notNull(), // Full rendered HTML
+  cssContent: text('css_content'), // Extracted/bundled CSS
+  metaTags: text('meta_tags'), // JSON: { title, description, ogImage }
+  
+  // Cache metadata
+  templateId: text('template_id'), // Template used for rendering
+  configHash: text('config_hash'), // Hash of landingConfig for cache invalidation
+  
+  // Timestamps
+  publishedAt: integer('published_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }), // Optional expiry
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('published_pages_store_id_idx').on(table.storeId),
+  index('published_pages_config_hash_idx').on(table.storeId, table.configHash),
+]);
+
+export const publishedPagesRelations = relations(publishedPages, ({ one }) => ({
+  store: one(stores, {
+    fields: [publishedPages.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [publishedPages.productId],
+    references: [products.id],
+  }),
+}));
+
+// ============================================================================
 // LANDING PAGES TABLE - GrapesJS Custom Pages
 // ============================================================================
 export const landingPages = sqliteTable('landing_pages', {
@@ -1182,6 +1223,8 @@ export type EmailCampaign = typeof emailCampaigns.$inferSelect;
 export type NewEmailCampaign = typeof emailCampaigns.$inferInsert;
 export type SavedLandingConfig = typeof savedLandingConfigs.$inferSelect;
 export type NewSavedLandingConfig = typeof savedLandingConfigs.$inferInsert;
+export type PublishedPage = typeof publishedPages.$inferSelect;
+export type NewPublishedPage = typeof publishedPages.$inferInsert;
 export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
 export type SystemNotification = typeof systemNotifications.$inferSelect;
