@@ -288,7 +288,7 @@ function ArtisanProductCard({ product, storeId, formatPrice, isPreview }: Artisa
         {product.category && (
           <span 
             className="text-xs font-medium uppercase tracking-wider"
-            style={{ color: THEME.accent }}
+            style={{ color: ARTISAN_MARKET_THEME.accent }}
           >
             {product.category}
           </span>

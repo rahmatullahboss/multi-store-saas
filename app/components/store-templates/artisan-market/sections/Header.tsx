@@ -1,31 +1,43 @@
 import { Link } from '@remix-run/react';
+import React, { useState } from 'react';
 import { ShoppingBasket, Search, Menu, X, Heart, Leaf, ChevronRight } from 'lucide-react';
 import { ARTISAN_MARKET_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useCartCount } from '~/hooks/useCartCount';
 
 interface ArtisanMarketHeaderProps {
   storeName: string;
   logo?: string | null;
-  categories: string[];
+  categories: (string | null)[];
   currentCategory?: string | null;
   config?: any;
-  count: number;
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (open: boolean) => void;
+  count?: number;
+  mobileMenuOpen?: boolean;
+  setMobileMenuOpen?: (open: boolean) => void;
 }
 
 export function ArtisanMarketHeader({
   storeName,
   logo,
-  categories,
+  categories = [],
   currentCategory,
   config,
-  count,
-  mobileMenuOpen,
-  setMobileMenuOpen,
+  count: countProp,
+  mobileMenuOpen: mobileMenuOpenProp,
+  setMobileMenuOpen: setMobileMenuOpenProp,
 }: ArtisanMarketHeaderProps) {
   const { t } = useTranslation();
   const theme = ARTISAN_MARKET_THEME;
+
+  // Local state for when props aren't provided (e.g. in StorePageWrapper)
+  const [localMobileMenuOpen, setLocalMobileMenuOpen] = useState(false);
+  const cartCount = useCartCount();
+
+  const mobileMenuOpen = mobileMenuOpenProp ?? localMobileMenuOpen;
+  const setMobileMenuOpen = setMobileMenuOpenProp ?? setLocalMobileMenuOpen;
+  const count = countProp ?? cartCount;
+
+  const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
     <header 
@@ -85,7 +97,7 @@ export function ArtisanMarketHeader({
             >
               All Products
             </Link>
-            {categories.slice(0, 5).map((category) => (
+            {validCategories.slice(0, 5).map((category) => (
               <Link
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
@@ -142,7 +154,7 @@ export function ArtisanMarketHeader({
               All Products
               <ChevronRight className="w-5 h-5" />
             </Link>
-            {categories.map((category) => (
+            {validCategories.map((category) => (
               <Link
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}

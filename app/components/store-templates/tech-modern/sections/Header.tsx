@@ -1,35 +1,50 @@
 import { Link } from '@remix-run/react';
+import React, { useState } from 'react';
 import { ShoppingCart, Search, Menu, X, Zap, ChevronRight } from 'lucide-react';
 import { TECH_MODERN_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useCartCount } from '~/hooks/useCartCount';
 
 interface TechModernHeaderProps {
   storeName: string;
   logo?: string | null;
-  categories: string[];
+  categories: (string | null)[];
   currentCategory?: string | null;
   config?: any;
-  count: number;
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (open: boolean) => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
+  count?: number;
+  mobileMenuOpen?: boolean;
+  setMobileMenuOpen?: (open: boolean) => void;
+  searchQuery?: string;
+  setSearchQuery?: (query: string) => void;
 }
 
 export function TechModernHeader({
   storeName,
   logo,
-  categories,
+  categories = [],
   currentCategory,
   config,
-  count,
-  mobileMenuOpen,
-  setMobileMenuOpen,
-  searchQuery,
-  setSearchQuery,
+  count: countProp,
+  mobileMenuOpen: mobileMenuOpenProp,
+  setMobileMenuOpen: setMobileMenuOpenProp,
+  searchQuery: searchQueryProp,
+  setSearchQuery: setSearchQueryProp,
 }: TechModernHeaderProps) {
   const { t } = useTranslation();
   const theme = TECH_MODERN_THEME;
+
+  // Local state for when props aren't provided (e.g. in StorePageWrapper)
+  const [localMobileMenuOpen, setLocalMobileMenuOpen] = useState(false);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const cartCount = useCartCount();
+
+  const mobileMenuOpen = mobileMenuOpenProp ?? localMobileMenuOpen;
+  const setMobileMenuOpen = setMobileMenuOpenProp ?? setLocalMobileMenuOpen;
+  const searchQuery = searchQueryProp ?? localSearchQuery;
+  const setSearchQuery = setSearchQueryProp ?? setLocalSearchQuery;
+  const count = countProp ?? cartCount;
+
+  const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
     <header
@@ -95,7 +110,7 @@ export function TechModernHeader({
             >
               All Products
             </Link>
-            {categories.slice(0, 5).map((category) => (
+            {validCategories.slice(0, 5).map((category) => (
               <Link
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
@@ -163,7 +178,7 @@ export function TechModernHeader({
               All Products
               <ChevronRight className="w-5 h-5" />
             </Link>
-            {categories.map((category) => (
+            {validCategories.map((category) => (
               <Link
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}

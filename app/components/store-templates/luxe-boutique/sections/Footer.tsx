@@ -5,10 +5,11 @@ import type { SocialLinks, FooterConfig } from '@db/types';
 
 interface LuxeBoutiqueFooterProps {
   storeName: string;
-  footerConfig?: FooterConfig;
+  footerConfig?: any | null;
   businessInfo?: any;
-  socialLinks?: SocialLinks;
+  socialLinks?: any;
   planType?: string;
+  categories: (string | null)[];
 }
 
 export function LuxeBoutiqueFooter({
@@ -17,8 +18,10 @@ export function LuxeBoutiqueFooter({
   businessInfo,
   socialLinks,
   planType = 'free',
+  categories = [],
 }: LuxeBoutiqueFooterProps) {
   const theme = LUXE_BOUTIQUE_THEME;
+  const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
     <footer style={{ backgroundColor: theme.footerBg, color: theme.footerText }}>

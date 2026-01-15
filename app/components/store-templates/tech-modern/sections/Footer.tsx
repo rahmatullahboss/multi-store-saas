@@ -4,121 +4,128 @@ import { TECH_MODERN_THEME } from '../theme';
 
 interface TechModernFooterProps {
   storeName: string;
-  footerConfig?: any;
+  logo?: string | null;
+  footerConfig?: any | null;
   businessInfo?: any;
   socialLinks?: any;
   planType?: string;
+  categories: (string | null)[];
 }
 
 export function TechModernFooter({
   storeName,
+  logo,
   footerConfig,
   businessInfo,
   socialLinks,
   planType = 'free',
+  categories = [],
 }: TechModernFooterProps) {
   const theme = TECH_MODERN_THEME;
+  const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
     <footer style={{ backgroundColor: theme.footerBg, color: theme.footerText }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Brand */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: theme.accent }}
-              >
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold">{storeName}</span>
-            </div>
-            <p className="text-white/60 max-w-md mb-6">
-              {footerConfig?.description || 'Your trusted destination for cutting-edge technology and electronics.'}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+          {/* Brand Info */}
+          <div className="space-y-6">
+            <Link to="/" className="flex items-center gap-2">
+              {logo ? (
+                <img src={logo} alt={storeName} className="h-8 object-contain" />
+              ) : (
+                <div className="flex items-center gap-2 font-bold text-xl">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.accent }}>
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  {storeName}
+                </div>
+              )}
+            </Link>
+            <p className="text-sm opacity-70 leading-relaxed max-w-xs">
+              {footerConfig?.description || 'Cutting-edge technology and premium electronics for the modern world.'}
             </p>
-
-            {/* Newsletter */}
-            <div className="flex gap-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-blue-500"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 rounded-xl font-semibold transition-colors"
-                style={{ backgroundColor: theme.accent, color: 'white' }}
-              >
-                Subscribe
-              </button>
+            <div className="flex items-center gap-4">
+              <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <Twitter className="w-5 h-5" />
+              </a>
+              <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <Linkedin className="w-5 h-5" />
+              </a>
+              <a href="#" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <Youtube className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h5 className="font-semibold mb-4">Quick Links</h5>
-            <ul className="space-y-3 text-white/60">
-              <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
-              <li><Link to="/" className="hover:text-white transition-colors">Products</Link></li>
-              <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
-              <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+            <h4 className="text-sm font-bold uppercase tracking-wider mb-6">Explore</h4>
+            <ul className="space-y-4">
+              {validCategories.slice(0, 5).map((category) => (
+                <li key={category}>
+                  <Link to={`/?category=${encodeURIComponent(category)}`} className="text-sm opacity-70 hover:opacity-100 hover:text-blue-400 transition-colors">
+                    {category}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Contact & Social */}
+          {/* Support */}
           <div>
-            <h5 className="font-semibold mb-4">Connect</h5>
-            <ul className="space-y-3 text-white/60 text-sm">
-              {businessInfo?.email && <li>{businessInfo.email}</li>}
-              {businessInfo?.phone && <li>{businessInfo.phone}</li>}
+            <h4 className="text-sm font-bold uppercase tracking-wider mb-6">Support</h4>
+            <ul className="space-y-4">
+              <li><Link to="/contact" className="text-sm opacity-70 hover:opacity-100 transition-colors">Contact Us</Link></li>
+              <li><Link to="/about" className="text-sm opacity-70 hover:opacity-100 transition-colors">About TechStore</Link></li>
+              <li><Link to="/shipping" className="text-sm opacity-70 hover:opacity-100 transition-colors">Shipping Policy</Link></li>
+              <li><Link to="/returns" className="text-sm opacity-70 hover:opacity-100 transition-colors">Returns & Exchanges</Link></li>
             </ul>
+          </div>
 
-            <div className="flex gap-3 mt-6">
-              {socialLinks?.twitter && (
-                <a
-                  href={socialLinks.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                >
-                  <Twitter className="w-5 h-5" />
-                </a>
-              )}
-              <a className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                <Youtube className="w-5 h-5" />
-              </a>
+          {/* Contact Info */}
+          <div className="space-y-6">
+            <h4 className="text-sm font-bold uppercase tracking-wider mb-6">Newsletter</h4>
+            <p className="text-sm opacity-70">Subscribe to get special offers and first look at new products.</p>
+            <div className="relative group">
+              <input
+                type="email"
+                placeholder="email@example.com"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+              />
+              <button 
+                className="mt-3 w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.98]"
+                style={{ backgroundColor: theme.accent }}
+              >
+                Join Now
+              </button>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-white/10 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/50">
-          <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
-          
-          {/* Viral Loop / Branding */}
-          {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-            <div className="flex justify-center items-center">
+        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-xs opacity-50">
+            © {new Date().getFullYear()} {storeName}. Built for enthusiasts.
+          </p>
+
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 grayscale opacity-50">
+              <Smartphone className="w-4 h-4" />
+              <span className="text-[10px] font-bold tracking-tighter uppercase">TechPay Verified</span>
+            </div>
+            
+            {/* Powered by Ozzyl branding */}
+            {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
               <a 
                 href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-[10px] text-white/30 hover:text-blue-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+                className="text-[10px] opacity-40 hover:opacity-100 transition-opacity flex items-center gap-1.5"
               >
                 <span>Powered by</span>
-                <span className="font-bold tracking-tight text-sm text-white/60">Ozzyl</span>
+                <span className="font-bold tracking-tight text-sm text-blue-400">Ozzyl</span>
               </a>
-            </div>
-          )}
-
-          <div className="flex gap-6">
-            <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+            )}
           </div>
         </div>
       </div>

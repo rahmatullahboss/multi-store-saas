@@ -1,6 +1,6 @@
 # The Ultimate Store Theme Building Guide: "Pure UI" Architecture
 
-**Version 2.0 | Production-Ready Standard**
+**Version 3.0 | Production-Ready Standard (Feature Folder Architecture)**
 
 > **Core Philosophy:** _Every store shares the same brain (logic), but wears a different skin (design). Like Shopify, but with AI-native DNA._
 
@@ -75,243 +75,252 @@ export function TemplateWrapper({ config, children }: any) {
 
 ---
 
-## **Phase 3: Theme File Structure**
+## **Phase 3: Theme File Structure (Feature Folder Architecture)**
 
-### **3.1 Directory Structure**
+### **3.1 Directory Structure (Current Standard)**
+
+All store templates live in `/app/components/store-templates/`. Each template is a self-contained **Feature Folder**.
 
 ```
-/app
-  /components
-    /store-templates          # Theme folder
-      /modern-v2              # Each theme in its own folder
-        /sections             # Like Shopify sections
-          HeroSection.tsx
-          ProductGridSection.tsx
-          FooterSection.tsx
-        /blocks               # Reusable blocks
-          ProductCard.tsx
-          Button.tsx
-          ReviewStars.tsx
-        /styles               # Theme-specific styles
-          tokens.ts           # Color, font tokens
-          animations.ts       # Animation definitions
-        /config
-          schema.ts           # AI-editable schema
-          defaults.ts         # Default settings
-        index.tsx             # Theme export
+/app/components/store-templates/
+  /[template-id]/                   # e.g., /luxe-boutique/, /tech-modern/
+    index.tsx                       # Main template component (StoreTemplateProps)
+    theme.ts                        # Design tokens & color palette
+    /sections/
+      Header.tsx                    # Self-contained Header component
+      Footer.tsx                    # Self-contained Footer component
+    /blocks/                        # (Optional) Reusable UI blocks
+      ProductCard.tsx
+      Button.tsx
+    /styles/                        # (Optional) Animation, font tokens
+      tokens.ts
+      animations.ts
 ```
+
+### **3.2 Key Files Explained**
+
+| File                  | Purpose                                                                                                              |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `index.tsx`           | Exports the main `[TemplateName]Template` component. This is registered in `store-registry.ts`.                      |
+| `theme.ts`            | Exports a constant like `LUXE_BOUTIQUE_THEME` containing all colors, fonts, and shadows.                             |
+| `sections/Header.tsx` | A fully self-contained header. Uses internal state for `mobileMenuOpen`, `searchQuery`, etc. if props aren't passed. |
+| `sections/Footer.tsx` | A fully self-contained footer. Renders branding, categories, and business info.                                      |
 
 ---
 
-### **3.2 Theme Index File**
+### **3.3 Template Index File Example**
 
-`themes/modern-v2/index.tsx`:
-
-```typescript
-import { StoreTemplateProps } from "~/types/store-templates";
-import { HeroSection } from "./sections/HeroSection";
-import { ProductGridSection } from "./sections/ProductGridSection";
-import { FooterSection } from "./sections/FooterSection";
-import { MODERN_TOKENS } from "./styles/tokens";
-import { MODERN_SCHEMA } from "./config/schema";
-
-// Theme Metadata
-export const themeMetadata = {
-  name: "Modern V2",
-  version: "2.0.0",
-  author: "Your Platform",
-  description: "Clean, minimal theme for fashion stores",
-  aiReady: true,
-  categories: ["fashion", "electronics", "home"],
-};
-
-// Main Theme Component
-export function ModernV2Template({ config, settings }: StoreTemplateProps) {
-  return (
-    <ThemeProvider tokens={MODERN_TOKENS}>
-      <div className="min-h-screen flex flex-col">
-        {settings.sections.map((section) => {
-          const SectionComponent = SECTION_MAP[section.type];
-          return (
-            <SectionComponent
-              key={section.id}
-              {...section.settings}
-              config={config}
-            />
-          );
-        })}
-        <FooterSection config={config} />
-      </div>
-    </ThemeProvider>
-  );
-}
-
-// AI-Editable Schema Export
-export const aiSchema = MODERN_SCHEMA;
-```
-
----
-
-## **Phase 4: Section and Block System**
-
-### **4.1 Section Registry**
-
-`app/components/store-sections/registry.ts`:
+`app/components/store-templates/luxe-boutique/index.tsx`:
 
 ```typescript
-export const SECTION_REGISTRY = {
-  hero: {
-    component: HeroSection,
-    schema: HERO_SECTION_AI_SCHEMA,
-    defaultSettings: {
-      title: "Welcome to {storeName}",
-      subtitle: "Discover amazing products",
-      background: { type: "color", value: "#ffffff" },
-      cta: { text: "Shop Now", link: "/products" },
-      layout: "full-width",
-    },
-    allowedBlocks: ["button", "text", "image"],
-  },
-} as const;
-```
+import { LuxeBoutiqueHeader } from "./sections/Header";
+import { LuxeBoutiqueFooter } from "./sections/Footer";
+import { LUXE_BOUTIQUE_THEME } from "./theme";
+import type { StoreTemplateProps } from "~/templates/store-registry";
 
----
-
-### **4.2 Block System (Nested)**
-
-`themes/modern-v2/blocks/ProductCard.tsx`:
-
-```typescript
-export function ProductCard({
-  product,
-  layout = "grid",
-  theme,
-}: ProductCardProps) {
-  // Business logic ONLY from hooks
-  const { finalPrice, compareAtPrice, badge } = useProductPrice(product);
-  const { isInWishlist, toggleWishlist } = useWishlist();
+export function LuxeBoutiqueTemplate({
+  storeName,
+  products,
+  categories,
+  config,
+  footerConfig,
+  socialLinks,
+  businessInfo,
+  planType,
+  isPreview,
+}: StoreTemplateProps) {
+  const theme = LUXE_BOUTIQUE_THEME;
 
   return (
-    <article
-      className={`product-card ${layout}`}
-      style={{
-        borderRadius: theme.borderRadius.md,
-        boxShadow: theme.shadows.card,
-      }}
-    >
-      <OptimizedImage
-        src={product.images[0]}
-        alt={product.title}
-        aspectRatio={theme.imageRatios.product}
+    <div style={{ backgroundColor: theme.background }}>
+      <LuxeBoutiqueHeader storeName={storeName} categories={categories} />
+      {/* ... Product Grid, Hero, etc. ... */}
+      <LuxeBoutiqueFooter
+        storeName={storeName}
+        footerConfig={footerConfig}
+        categories={categories}
+        planType={planType}
       />
-
-      <div className="p-4">
-        <h3>{product.title}</h3>
-        <div className="price-wrapper">
-          <span className="final-price">{formatPrice(finalPrice)}</span>
-          {compareAtPrice && (
-            <span
-              className="compare-price"
-              style={{ textDecoration: "line-through" }}
-            >
-              {formatPrice(compareAtPrice)}
-            </span>
-          )}
-        </div>
-      </div>
-    </article>
+    </div>
   );
 }
 ```
 
 ---
 
-## **Phase 5: Design Token System**
+### **3.4 Self-Contained Header Example**
 
-`themes/modern-v2/styles/tokens.ts`:
+Headers must be **self-contained**: they handle their own state if props aren't provided. This allows them to work seamlessly in both `StorePageWrapper` and the `LiveEditor`.
+
+`app/components/store-templates/luxe-boutique/sections/Header.tsx`:
 
 ```typescript
-export const MODERN_TOKENS = {
-  colors: {
-    primary: { DEFAULT: "#000000", hover: "#333333" },
-    accent: { DEFAULT: "#ff6b6b" },
-  },
-  typography: {
-    fontFamily: { sans: ["Inter", "sans-serif"] },
-    fontSize: { base: "1rem", lg: "1.125rem" },
-  },
-  spacing: { 4: "1rem", 8: "2rem" },
-  borderRadius: { md: "0.375rem" },
-  imageRatios: { product: "3/4", hero: "16/9" },
-} as const;
+import React, { useState } from "react";
+import { useCartCount } from "~/hooks/useCartCount";
+import { LUXE_BOUTIQUE_THEME } from "../theme";
+
+interface LuxeBoutiqueHeaderProps {
+  storeName: string;
+  categories: (string | null)[];
+  count?: number; // Optional: passed by parent OR from hook
+  mobileMenuOpen?: boolean; // Optional: controlled OR local state
+  setMobileMenuOpen?: (open: boolean) => void;
+}
+
+export function LuxeBoutiqueHeader({
+  storeName,
+  categories = [],
+  count: countProp,
+  mobileMenuOpen: mobileMenuOpenProp,
+  setMobileMenuOpen: setMobileMenuOpenProp,
+}: LuxeBoutiqueHeaderProps) {
+  const theme = LUXE_BOUTIQUE_THEME;
+
+  // === Self-Contained State ===
+  const [localMobileMenuOpen, setLocalMobileMenuOpen] = useState(false);
+  const cartCount = useCartCount(); // Hook for cart count
+
+  const mobileMenuOpen = mobileMenuOpenProp ?? localMobileMenuOpen;
+  const setMobileMenuOpen = setMobileMenuOpenProp ?? setLocalMobileMenuOpen;
+  const count = countProp ?? cartCount;
+
+  // Filter null categories for safe iteration
+  const validCategories = categories.filter((c): c is string => Boolean(c));
+
+  return (
+    <header style={{ backgroundColor: theme.headerBg }}>
+      {/* ... Header JSX ... */}
+    </header>
+  );
+}
 ```
 
 ---
 
-## **Phase 6: AI-Editable Schema (Your Unique Advantage)**
+### **3.5 Theme Tokens File Example**
 
-`themes/modern-v2/config/schema.ts`:
+`app/components/store-templates/luxe-boutique/theme.ts`:
 
 ```typescript
-export const HERO_SECTION_AI_SCHEMA = {
-  component: "hero",
-  metadata: {
-    description: "Hero section with background and CTA",
-  },
-  properties: {
-    title: {
-      type: "text",
-      aiEditable: true,
-      label: "Hero Title",
-      aiPrompt: "Generate compelling hero title for {storeType} store",
-      examples: ["Welcome to {storeName}"],
-    },
-    background: {
-      type: "object",
-      aiEditable: true,
-      properties: {
-        color: { type: "color", aiCanGenerate: true },
-        image: { type: "image", aiCanGenerate: true },
-      },
-    },
-  },
+export const LUXE_BOUTIQUE_THEME = {
+  // Core Palette
+  primary: "#1a1a1a",
+  accent: "#c9a961",
+  background: "#faf9f7",
+  text: "#1a1a1a",
+  textMuted: "#6b6b6b",
+
+  // Component Styles
+  headerBg: "#ffffff",
+  footerBg: "#1a1a1a",
+  footerText: "#faf9f7",
+  cardBg: "#ffffff",
+  border: "#e0e0e0",
+
+  // Typography
+  fontHeading: "'Playfair Display', serif",
+  fontBody: "'Inter', sans-serif",
+
+  // Shadows
+  cardShadow: "0 4px 6px rgba(0,0,0,0.05)",
 };
 ```
 
 ---
 
-## **Phase 7: Performance Optimization**
+## **Phase 4: Registering Templates**
 
-### **7.1 Image Optimization**
+All store templates are registered in `app/templates/store-registry.ts`. This is the **Single Source of Truth** for available templates.
 
-Use the project's `<OptimizedImage />` component.
+### **4.1 Adding a New Template to the Registry**
+
+```typescript
+// In app/templates/store-registry.ts
+
+// 1. Import theme tokens for the registry's theme map
+import { MY_NEW_THEME } from "~/components/store-templates/my-new-template/theme";
+
+// 2. Lazy load the component
+const MyNewTemplate = React.lazy(() =>
+  import("~/components/store-templates/my-new-template/index").then((m) => ({
+    default: m.MyNewTemplate,
+  }))
+);
+const MyNewHeader = React.lazy(() =>
+  import("~/components/store-templates/my-new-template/sections/Header").then(
+    (m) => ({ default: m.MyNewHeader })
+  )
+);
+const MyNewFooter = React.lazy(() =>
+  import("~/components/store-templates/my-new-template/sections/Footer").then(
+    (m) => ({ default: m.MyNewFooter })
+  )
+);
+
+// 3. Add to STORE_TEMPLATE_THEMES
+export const STORE_TEMPLATE_THEMES = {
+  // ... other themes
+  "my-new-template": {
+    primary: MY_NEW_THEME.primary,
+    accent: MY_NEW_THEME.accent,
+    // ...
+  },
+};
+
+// 4. Add to STORE_TEMPLATES array
+export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
+  // ... other templates
+  {
+    id: "my-new-template",
+    name: "My New Template",
+    description: "Description of the template.",
+    thumbnail: "/templates/my-new-template.png",
+    category: "modern",
+    theme: STORE_TEMPLATE_THEMES["my-new-template"],
+    fonts: { heading: "Inter", body: "Inter" },
+    component: MyNewTemplate,
+    Header: MyNewHeader,
+    Footer: MyNewFooter,
+  },
+];
+```
+
+---
+
+## **Phase 5: Design Token Best Practices**
+
+- **No hardcoded hex codes in JSX.** All colors must come from the `theme.ts` file.
+- **Use relative imports** (`../theme`) within the template folder.
+- **Consistent naming:** `primary`, `accent`, `headerBg`, `footerBg`, etc.
+
+---
+
+## **Phase 6: Performance & Bundle Optimization**
+
+### **6.1 Image Optimization**
+
+Use the project's `<OptimizedImage />` component for all images.
 
 ```tsx
 import { OptimizedImage } from "~/components/OptimizedImage";
 
 function ProductImage({ src, alt }) {
-  return (
-    <OptimizedImage
-      src={src}
-      alt={alt}
-      priority={false} // Set true for above-the-fold images
-    />
-  );
+  return <OptimizedImage src={src} alt={alt} />;
 }
 ```
 
-### **7.2 Bundle Size Reduction**
+### **6.2 Lazy Loading Templates**
 
-All templates should be loaded via `React.lazy` and `Suspense` in the main registry to ensure small entry bundles.
+Templates are loaded via `React.lazy` in `store-registry.ts`. This keeps the initial bundle size small.
 
 ---
 
-## **Phase 8: Final Checklist for World-Class Themes**
+## **Phase 7: Final Checklist for World-Class Themes**
 
-- [ ] **Zero business logic** (Hooks only: `useProductPrice`, `useWishlist`, `useCartCount`)
-- [ ] **AI schema** defined for all sections
-- [ ] **Theme tokens** used consistently (No hardcoded hex codes)
-- [ ] **Wrapped in `ClientOnly`** for hydration safety
+- [ ] **Zero business logic** in components (Use hooks: `useProductPrice`, `useWishlist`, `useCartCount`)
+- [ ] **Self-contained Headers/Footers** with local state fallbacks
+- [ ] **Theme tokens** defined in `theme.ts` and used consistently
+- [ ] **Registered in `store-registry.ts`** with Header and Footer components
+- [ ] **Wrapped in `ClientOnly`** for hydration safety where needed
 - [ ] **Responsive** (Mobile-first design)
-- [ ] **Performance** (Lazy loading, OptimizedImage)
-- [ ] **Type-safe** (TypeScript strict mode)
+- [ ] **Type-safe** (TypeScript strict mode, `StoreTemplateProps`)

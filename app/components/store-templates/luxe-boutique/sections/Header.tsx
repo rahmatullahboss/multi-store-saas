@@ -1,36 +1,51 @@
 import { Link } from '@remix-run/react';
+import React, { useState } from 'react';
 import { Menu, X, Search, Heart, ShoppingBag } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useCartCount } from '~/hooks/useCartCount';
 import type { ThemeConfig } from '@db/types';
 
 interface LuxeBoutiqueHeaderProps {
   storeName: string;
   logo?: string | null;
-  categories: string[];
+  categories: (string | null)[];
   currentCategory?: string | null;
   socialLinks?: any;
   config?: any;
-  count: number;
-  mobileMenuOpen: boolean;
-  setMobileMenuOpen: (open: boolean) => void;
-  searchOpen: boolean;
-  setSearchOpen: (open: boolean) => void;
+  count?: number;
+  mobileMenuOpen?: boolean;
+  setMobileMenuOpen?: (open: boolean) => void;
+  searchOpen?: boolean;
+  setSearchOpen?: (open: boolean) => void;
 }
 
 export function LuxeBoutiqueHeader({
   storeName,
   logo,
-  categories,
+  categories = [],
   currentCategory,
-  count,
-  mobileMenuOpen,
-  setMobileMenuOpen,
-  searchOpen,
-  setSearchOpen,
+  count: countProp,
+  mobileMenuOpen: mobileMenuOpenProp,
+  setMobileMenuOpen: setMobileMenuOpenProp,
+  searchOpen: searchOpenProp,
+  setSearchOpen: setSearchOpenProp,
 }: LuxeBoutiqueHeaderProps) {
   const { t } = useTranslation();
   const theme = LUXE_BOUTIQUE_THEME;
+  
+  // Local state for when props aren't provided (e.g. in StorePageWrapper)
+  const [localMobileMenuOpen, setLocalMobileMenuOpen] = useState(false);
+  const [localSearchOpen, setLocalSearchOpen] = useState(false);
+  const cartCount = useCartCount();
+
+  const mobileMenuOpen = mobileMenuOpenProp ?? localMobileMenuOpen;
+  const setMobileMenuOpen = setMobileMenuOpenProp ?? setLocalMobileMenuOpen;
+  const searchOpen = searchOpenProp ?? localSearchOpen;
+  const setSearchOpen = setSearchOpenProp ?? setLocalSearchOpen;
+  const count = countProp ?? cartCount;
+
+  const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
     <header 
@@ -77,7 +92,7 @@ export function LuxeBoutiqueHeader({
             >
               {t('allProducts')}
             </Link>
-            {categories.slice(0, 5).map((category) => (
+            {validCategories.slice(0, 5).map((category) => (
               <Link
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
@@ -146,7 +161,7 @@ export function LuxeBoutiqueHeader({
             >
               {t('allProducts')}
             </Link>
-            {categories.map((category) => (
+            {validCategories.map((category) => (
               <Link
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}

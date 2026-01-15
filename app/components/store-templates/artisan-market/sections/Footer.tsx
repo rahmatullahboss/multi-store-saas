@@ -1,129 +1,134 @@
 import { Link } from '@remix-run/react';
-import { Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Instagram, Facebook, Twitter } from 'lucide-react';
 import { ARTISAN_MARKET_THEME } from '../theme';
 
 interface ArtisanMarketFooterProps {
   storeName: string;
-  footerConfig?: any;
+  logo?: string | null;
+  footerConfig?: any | null;
   businessInfo?: any;
   socialLinks?: any;
   planType?: string;
+  categories: (string | null)[];
 }
 
 export function ArtisanMarketFooter({
   storeName,
+  logo,
   footerConfig,
   businessInfo,
   socialLinks,
   planType = 'free',
+  categories = [],
 }: ArtisanMarketFooterProps) {
   const theme = ARTISAN_MARKET_THEME;
+  const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
     <footer style={{ backgroundColor: theme.footerBg, color: theme.footerText }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Brand */}
-          <div className="lg:col-span-2">
-            <h3 
-              className="text-2xl font-semibold mb-4"
-              style={{ fontFamily: "'Newsreader', serif" }}
-            >
-              {storeName}
-            </h3>
-            <p className="text-white/70 mb-6 max-w-md leading-relaxed">
-              {footerConfig?.description || 'Connecting artisans with appreciators of handcrafted beauty. Every purchase supports traditional craftsmanship.'}
+          {/* Brand Info */}
+          <div className="space-y-6">
+            <Link to="/" className="flex items-center">
+              {logo ? (
+                <img src={logo} alt={storeName} className="h-12 object-contain" />
+              ) : (
+                <span className="text-3xl font-semibold" style={{ fontFamily: "'Newsreader', serif", color: theme.accent }}>
+                  {storeName}
+                </span>
+              )}
+            </Link>
+            <p className="opacity-70 leading-relaxed italic">
+              {footerConfig?.description || 'Curating the finest handmade goods from local artisans around the world.'}
             </p>
-            
-            {/* Social Links */}
-            <div className="flex gap-3">
-              {socialLinks?.instagram && (
-                <a 
-                  href={socialLinks.instagram} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
-              )}
-              {socialLinks?.facebook && (
-                <a 
-                  href={socialLinks.facebook} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                >
-                  <Facebook className="w-5 h-5" />
-                </a>
-              )}
+            <div className="flex items-center gap-4">
+              <a href="#" className="p-2 transition-colors hover:opacity-70" style={{ color: theme.accent }}>
+                <Instagram className="w-5 h-5" />
+              </a>
+              <a href="#" className="p-2 transition-colors hover:opacity-70" style={{ color: theme.accent }}>
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a href="#" className="p-2 transition-colors hover:opacity-70" style={{ color: theme.accent }}>
+                <Twitter className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Categories */}
           <div>
-            <h5 className="font-semibold mb-4 uppercase tracking-wider text-sm" style={{ color: theme.accent }}>
-              Explore
-            </h5>
-            <ul className="space-y-3 text-white/70">
-              <li><Link to="/" className="hover:text-white transition-colors">Shop All</Link></li>
-              <li><Link to="/about" className="hover:text-white transition-colors">Our Story</Link></li>
-              <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+            <h4 className="text-lg font-bold mb-6" style={{ fontFamily: "'Newsreader', serif" }}>Categories</h4>
+            <ul className="space-y-4">
+              {validCategories.slice(0, 5).map((category) => (
+                <li key={category}>
+                  <Link to={`/?category=${encodeURIComponent(category)}`} className="opacity-70 hover:opacity-100 transition-opacity">
+                    {category}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h5 className="font-semibold mb-4 uppercase tracking-wider text-sm" style={{ color: theme.accent }}>
-              Get in Touch
-            </h5>
-            <ul className="space-y-3 text-white/70">
-              {businessInfo?.email && (
-                <li className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm">{businessInfo.email}</span>
-                </li>
-              )}
-              {businessInfo?.phone && (
-                <li className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm">{businessInfo.phone}</span>
-                </li>
-              )}
-              {businessInfo?.address && (
-                <li className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm">{businessInfo.address}</span>
-                </li>
-              )}
+            <h4 className="text-lg font-bold mb-6" style={{ fontFamily: "'Newsreader', serif" }}>Contact</h4>
+            <ul className="space-y-4 text-sm">
+              <li className="flex items-center gap-3 opacity-70">
+                <MapPin className="w-4 h-4" />
+                <span>{businessInfo?.address || '123 Artisan Way, Handcrafted City'}</span>
+              </li>
+              <li className="flex items-center gap-3 opacity-70">
+                <Phone className="w-4 h-4" />
+                <span>{businessInfo?.phone || '+1 (234) 567-890'}</span>
+              </li>
+              <li className="flex items-center gap-3 opacity-70">
+                <Mail className="w-4 h-4" />
+                <span>{businessInfo?.email || `hello@${storeName.toLowerCase().replace(/\s/g, '')}.com`}</span>
+              </li>
             </ul>
           </div>
-        </div>
-      </div>
 
-      {/* Bottom Bar & Branding */}
-      <div className="border-t border-white/10 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4 text-center">
-          <p className="text-sm text-white/50 flex items-center justify-center gap-2">
-            Made with <span className="text-red-400">❤️</span> by passionate artisans
+          {/* Newsletter */}
+          <div>
+            <h4 className="text-lg font-bold mb-6" style={{ fontFamily: "'Newsreader', serif" }}>Newsletter</h4>
+            <p className="text-sm opacity-70 mb-4">Join our community for stories behind the products.</p>
+            <div className="flex flex-col gap-2">
+              <input 
+                type="email" 
+                placeholder="Enter your email" 
+                className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-amber-500 transition-all"
+              />
+              <button 
+                className="py-2.5 rounded-lg font-bold transition-all active:scale-[0.98]"
+                style={{ backgroundColor: theme.accent, color: 'white' }}
+              >
+                Subscribe
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-sm opacity-50">
+            © {new Date().getFullYear()} {storeName}. Every product has a story.
           </p>
-          <p className="text-xs text-white/40">© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
-          
-          {/* Viral Loop / Branding */}
-          {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-            <div className="pt-2">
+
+          <div className="flex items-center gap-8">
+            <span className="text-xs opacity-50 uppercase tracking-widest">Handcrafted with Love</span>
+            
+            {/* Powered by Ozzyl branding */}
+            {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
               <a 
                 href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-[10px] text-white/30 hover:text-amber-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
-                style={{ color: theme.accent }}
+                className="text-[10px] opacity-40 hover:opacity-100 transition-opacity flex items-center gap-1.5 grayscale"
               >
-                <span style={{ color: 'rgba(255,255,255,0.3)' }}>Powered by</span>
-                <span className="font-bold tracking-tight text-sm">Ozzyl</span>
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm" style={{ color: theme.accent }}>Ozzyl</span>
               </a>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </footer>
