@@ -1,7 +1,7 @@
 # Landing Page Template Building Guide
 
 > **Last Updated:** January 2026  
-> **System Version:** Multi-Store SaaS with Isolated Feature Folders & ThemeConfig
+> **System Version:** Multi-Store SaaS with Isolated Feature Folders, ThemeConfig & Product Variants
 
 ---
 
@@ -83,7 +83,8 @@ app/components/templates/
 │   ├── Testimonials.tsx
 │   ├── Gallery.tsx
 │   ├── FAQ.tsx
-│   └── OrderForm.tsx
+│   ├── OrderForm.tsx
+│   └── StickyBuyButton.tsx # Optional: Mobile sticky CTA
 ├── luxe/                     # Luxe Template
 ├── organic/                  # Organic Template
 ├── modern-dark/              # Modern Dark Template
@@ -203,11 +204,102 @@ interface SectionProps {
   isEditMode?: boolean;
   onUpdate?: (sectionId: string, newData: any) => void;
   formatPrice: (price: number) => string;
-  productVariants?: any[];
+  productVariants?: LandingProductVariant[]; // Product variants (weight, color, etc.)
   orderBumps?: any[];
   storeId?: number | string;
   planType?: string;
 }
+```
+
+---
+
+## 🛒 Order Form Features
+
+The `OrderForm.tsx` component in each template supports the following features:
+
+### Product Variant Selection
+
+Users can select product variants (e.g., weight, color, size) directly within the order form. The selected variant's price dynamically updates the subtotal and total.
+
+```tsx
+// In OrderForm.tsx
+const [formData, setFormData] = useState({
+  customer_name: "",
+  phone: "",
+  address: "",
+  division: "dhaka" as DivisionValue,
+  quantity: 1,
+  selectedVariant: config.productVariants?.[0] || null, // Default to first variant
+});
+
+// Dynamic price calculation
+const subtotal =
+  (formData.selectedVariant?.price || product.price) * formData.quantity;
+```
+
+### Variant Selector UI
+
+```tsx
+{
+  config.productVariants && config.productVariants.length > 0 && (
+    <div className="...">
+      <span>পণ্য নির্বাচন করুন</span>
+      <div className="flex flex-wrap gap-2">
+        {config.productVariants.map((variant) => (
+          <button
+            key={variant.id}
+            onClick={() =>
+              setFormData({ ...formData, selectedVariant: variant })
+            }
+            className={
+              formData.selectedVariant?.id === variant.id
+                ? "active-style"
+                : "inactive-style"
+            }
+          >
+            {variant.name}
+            {variant.price && <span>({formatPrice(variant.price)})</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### Delivery Area & Dynamic Shipping
+
+Shipping costs are calculated based on the selected delivery area (Inside Dhaka vs Outside Dhaka) using `config.shippingConfig`.
+
+```tsx
+import {
+  calculateShipping,
+  DEFAULT_SHIPPING_CONFIG,
+  type DivisionValue,
+} from "~/utils/shipping";
+
+const shippingCost = calculateShipping(
+  config.shippingConfig || DEFAULT_SHIPPING_CONFIG,
+  formData.division,
+  subtotal
+).cost;
+```
+
+### Quantity Selector
+
+All order forms include a quantity selector with +/- buttons.
+
+```tsx
+<button onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}> - </button>
+<span>{formData.quantity}</span>
+<button onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}> + </button>
+```
+
+### Form Submission with Variant
+
+```tsx
+if (formData.selectedVariant)
+  submitData.set("variant_name", formData.selectedVariant.name);
 ```
 
 ---
@@ -292,6 +384,11 @@ export const TEMPLATES: TemplateDefinition[] = [
 - [ ] Import types from `../_core/types`
 - [ ] Use `applyCustomColors()` for user color overrides
 - [ ] Add `FloatingButtons` from `../_core/FloatingButtons`
+- [ ] Add `StickyBuyButton` for mobile CTA (optional)
+- [ ] Implement product variant selection in `OrderForm.tsx`
+- [ ] Implement delivery area selection (Dhaka / Outside Dhaka)
+- [ ] Implement quantity selector with +/- controls
+- [ ] Use `calculateShipping()` for dynamic shipping costs
 - [ ] Add Ozzyl branding for `planType === 'free'`
 - [ ] Register in `templates/registry.ts`
 
