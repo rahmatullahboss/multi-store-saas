@@ -7,3 +7,4 @@ export { SectionManager, SectionPreview, LANDING_SECTIONS, DEFAULT_SECTION_ORDER
 export { WhatsAppConfig, WHATSAPP_MESSAGE_TEMPLATES } from './WhatsAppConfig';
 export { AddSectionModal } from './AddSectionModal';
 export { default as SEOPanel } from './SEOPanel';
+export { VersionHistory } from './VersionHistory';

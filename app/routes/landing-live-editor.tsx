@@ -12,8 +12,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, Link, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
-import { stores, products } from '@db/schema';
+import { eq, and, sql } from 'drizzle-orm';
+import { stores, products, pageVersions } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig, type TypographySettings } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { 
@@ -96,6 +96,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(products.storeId, storeId))
     .limit(50);
 
+  // Fetch version history (last 20)
+  const versions = await db
+    .select({
+      id: pageVersions.id,
+      versionLabel: pageVersions.versionLabel,
+      publishedAt: pageVersions.publishedAt,
+      createdAt: pageVersions.createdAt,
+    })
+    .from(pageVersions)
+    .where(eq(pageVersions.storeId, storeId))
+    .orderBy(sql`${pageVersions.id} DESC`)
+    .limit(20);
+
   // Load draft config if exists, otherwise fall back to published config
   const draftConfig = parseLandingConfig(store.landingConfigDraft as string | null);
   const publishedConfig = parseLandingConfig(store.landingConfig as string | null);
@@ -118,6 +131,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       aiCredits: store.aiCredits || 0,
     },
     products: storeProducts,
+    versions,
     saasDomain,
   });
 }
@@ -138,8 +152,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const intent = formData.get('intent') as string || 'save_draft';
 
   // ==========================================================================
-  // INTENT: AI GENERATION
+  // INTENT: RESTORE VERSION
   // ==========================================================================
+  if (intent === 'restore-version') {
+    const versionId = parseInt(formData.get('versionId') as string);
+    if (!versionId) return json({ error: 'Version ID required' }, { status: 400 });
+    
+    const version = await db.select({ configJson: pageVersions.configJson })
+      .from(pageVersions)
+      .where(and(eq(pageVersions.id, versionId), eq(pageVersions.storeId, storeId)))
+      .limit(1);
+    
+    if (version.length === 0) return json({ error: 'Version not found' }, { status: 404 });
+    
+    // Restore to draft
+    await db.update(stores).set({
+      landingConfigDraft: version[0].configJson,
+      updatedAt: new Date(),
+    }).where(eq(stores.id, storeId));
+    
+    return json({ success: true, message: 'Version restored to draft' });
+  }
   if (intent === 'GENERATE_CUSTOM_SECTION') {
     const prompt = formData.get('prompt') as string;
     const sectionIndex = parseInt(formData.get('sectionIndex') as string);
@@ -360,6 +393,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
+
+    // Save version history
+    await db.insert(pageVersions).values({
+      storeId,
+      configJson,
+      versionLabel: `Published ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+      publishedAt: new Date(),
+      createdAt: new Date(),
+    });
 
     return json({ success: true, message: 'Published!', published: true });
   } else {

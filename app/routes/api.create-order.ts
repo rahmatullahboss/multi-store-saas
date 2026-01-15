@@ -14,7 +14,7 @@
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers } from '@db/schema';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers, templateAnalytics } from '@db/schema';
 import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { sendPushNotification } from '~/services/push.server';
@@ -26,6 +26,8 @@ import { createDb } from '~/lib/db.server';
 import { sendSmartNotification } from '~/services/messaging.server';
 import { addLoyaltyPoints } from '~/services/loyalty.server';
 import { triggerAutomation } from '~/services/automation.server';
+import { parseLandingConfig } from '@db/types';
+
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -694,6 +696,42 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }).catch(e => console.error('[FB CAPI] Purchase event failed:', e))
       );
     }
+    
+    // ========== TEMPLATE ANALYTICS TRACKING ==========
+    // Track which template generated this order for conversion analytics
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        const landingConfig = parseLandingConfig(storeData.landingConfig as string | null);
+        const templateId = landingConfig?.templateId || 'unknown';
+        
+        // Try to update existing analytics record, or insert new one
+        const existing = await db.select({ id: templateAnalytics.id, ordersGenerated: templateAnalytics.ordersGenerated, revenueGenerated: templateAnalytics.revenueGenerated })
+          .from(templateAnalytics)
+          .where(and(eq(templateAnalytics.storeId, input.store_id), eq(templateAnalytics.templateId, templateId)))
+          .limit(1);
+        
+        if (existing.length > 0) {
+          await db.update(templateAnalytics)
+            .set({
+              ordersGenerated: (existing[0].ordersGenerated || 0) + 1,
+              revenueGenerated: (existing[0].revenueGenerated || 0) + total,
+              updatedAt: new Date(),
+            })
+            .where(eq(templateAnalytics.id, existing[0].id));
+        } else {
+          await db.insert(templateAnalytics).values({
+            storeId: input.store_id,
+            templateId,
+            ordersGenerated: 1,
+            revenueGenerated: total,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+      } catch (e) {
+        console.error('[Template Analytics] Tracking failed:', e);
+      }
+    })());
     
     // Check Upsell
     let upsellUrl;
