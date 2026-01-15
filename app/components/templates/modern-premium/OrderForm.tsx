@@ -28,11 +28,9 @@ export function ModernPremiumOrderForm({
     address: '',
     division: 'dhaka' as DivisionValue,
     quantity: 1,
+    selectedVariant: config.productVariants?.[0] || null,
   });
 
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-    productVariants.length > 0 ? productVariants[0].id : null
-  );
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
@@ -40,13 +38,12 @@ export function ModernPremiumOrderForm({
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
 
-  const selectedVariant = selectedVariantId 
-    ? productVariants.find(v => v.id === selectedVariantId)
-    : null;
-  
-  const effectivePrice = selectedVariant?.price ?? product.price;
-  const subtotal = effectivePrice * formData.quantity;
-  const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
+  const subtotal = (formData.selectedVariant?.price || product.price) * formData.quantity;
+  const shippingCost = calculateShipping(
+    config.shippingConfig || DEFAULT_SHIPPING_CONFIG, 
+    formData.division, 
+    subtotal
+  ).cost;
   
   const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
     const bump = orderBumps.find(b => b.id === bumpId);
@@ -82,7 +79,7 @@ export function ModernPremiumOrderForm({
     submitData.set('address', formData.address);
     submitData.set('division', formData.division);
     submitData.set('quantity', String(formData.quantity));
-    if (selectedVariantId) submitData.set('variant_id', String(selectedVariantId));
+    if (formData.selectedVariant) submitData.set('variant_name', formData.selectedVariant.name);
     if (selectedBumpIds.length > 0) submitData.set('bump_ids', JSON.stringify(selectedBumpIds));
     
     fetcher.submit(submitData, { method: 'POST', action: '/api/create-order' });
@@ -140,6 +137,54 @@ export function ModernPremiumOrderForm({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex items-center justify-between bg-white border-2 border-gray-50 rounded-[2rem] px-10 py-6 shadow-sm mb-2">
+              <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Unit Quantity</span>
+              <div className="flex items-center gap-8">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                  className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-950 font-black flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95"
+                >
+                  -
+                </button>
+                <span className="text-gray-950 text-3xl font-black italic w-6 text-center">{formData.quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                  className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-950 font-black flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {config.productVariants && config.productVariants.length > 0 && (
+              <div className="bg-white border-2 border-gray-50 rounded-[2rem] px-10 py-8 shadow-sm mb-2 text-center">
+                <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] block mb-6">Model Choice</span>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  {config.productVariants.map((variant) => (
+                    <button
+                      key={variant.id}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, selectedVariant: variant })}
+                      className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
+                        formData.selectedVariant?.id === variant.id
+                          ? 'bg-black text-white border-black shadow-lg shadow-black/10'
+                          : 'bg-white text-gray-400 border-gray-50 hover:border-gray-200'
+                      }`}
+                    >
+                      {variant.name}
+                      {variant.price && variant.price !== product.price && (
+                        <span className="ml-2 opacity-40 font-bold">
+                          [{formatPrice(variant.price)}]
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <input
               type="text"
               required
@@ -156,6 +201,32 @@ export function ModernPremiumOrderForm({
               value={formData.phone}
               onChange={(e) => setFormData({...formData, phone: e.target.value})}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, division: 'dhaka'})}
+                className={`py-6 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all border-2 ${
+                  formData.division === 'dhaka' 
+                    ? 'bg-black text-white border-black shadow-lg' 
+                    : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
+                }`}
+              >
+                Inside Dhaka
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, division: 'chittagong'})}
+                className={`py-6 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all border-2 ${
+                  formData.division !== 'dhaka' 
+                    ? 'bg-black text-white border-black shadow-lg' 
+                    : 'bg-white text-gray-400 border-gray-100 hover:border-gray-200'
+                }`}
+              >
+                Outside Dhaka
+              </button>
+            </div>
+
             <textarea
               required
               className="w-full bg-white border-2 border-gray-100 rounded-[2rem] px-10 py-8 text-gray-950 font-bold focus:border-black outline-none transition-all placeholder:text-gray-300 text-xl shadow-sm resize-none"

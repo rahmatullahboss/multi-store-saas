@@ -10,7 +10,7 @@ export function LuxeGuarantee({ config }: SectionProps) {
       <div className="container mx-auto px-4 text-center">
         <div className="max-w-3xl mx-auto relative px-10 py-20 border border-amber-500/10">
           <div className="absolute -top-1 px-8 bg-stone-950 left-1/2 -translate-x-1/2 text-amber-500 font-serif italic text-xl">
-             Legacy
+             {config.guaranteeBadgeLabel || 'ঐতিহ্য'}
           </div>
           
           <div className="w-20 h-20 bg-stone-900 border border-stone-800 rounded-lg flex items-center justify-center text-3xl mx-auto mb-12 transform rotate-45">
@@ -24,7 +24,7 @@ export function LuxeGuarantee({ config }: SectionProps) {
           <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-8"></div>
           
           <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-stone-600">
-            Artisanal Integrity Confirmed
+            {config.guaranteeBadgeLabel || 'আভিজাত্যের নিশ্চয়তা নিশ্চিত'}
           </p>
 
           <div className="absolute -bottom-1 px-8 bg-stone-950 left-1/2 -translate-x-1/2 text-stone-800 font-serif italic text-sm">

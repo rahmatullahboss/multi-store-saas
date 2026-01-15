@@ -11,7 +11,7 @@ export function PremiumBDComparison({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-4 underline decoration-orange-500 decoration-4 underline-offset-8">
-            পার্থক্য নিজেই দেখুন
+            {config.comparisonTitle || 'পার্থক্য নিজেই দেখুন'}
           </h2>
           {comparison.description && (
             <p className="text-gray-600 font-bold max-w-2xl mx-auto mt-6">

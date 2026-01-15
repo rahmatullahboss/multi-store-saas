@@ -10,7 +10,7 @@ export function MinimalLightBenefits({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-20 max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-light text-stone-900 tracking-tight mb-6">
-            Everything you need, <span className="italic font-serif">nothing you don't.</span>
+            {config.benefitsTitle || 'আপনার যা প্রয়োজন সব এখানে আছে।'}
           </h2>
           <div className="h-px w-12 bg-stone-200 mx-auto"></div>
         </div>

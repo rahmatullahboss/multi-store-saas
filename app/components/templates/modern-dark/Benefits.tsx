@@ -10,7 +10,7 @@ export function ModernDarkBenefits({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 italic">
-            Why Choose <span className="text-orange-500">The Best?</span>
+            {config.benefitsTitle || 'কেন আমাদের পছন্দ করবেন?'}
           </h2>
           <div className="h-1.5 w-24 bg-orange-500 mx-auto rounded-full"></div>
         </div>

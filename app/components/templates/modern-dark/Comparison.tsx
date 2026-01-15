@@ -12,7 +12,7 @@ export function ModernDarkComparison({ config }: SectionProps) {
         <div className="flex flex-col md:flex-row items-center gap-16 max-w-6xl mx-auto">
           <div className="md:w-1/3 text-center md:text-left">
             <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 italic leading-none">
-              The <span className="text-orange-500">Ultimate</span> Upgrade
+              {config.comparisonTitle || 'সেরা আপডেট দেখুন'}
             </h2>
             <div className="h-1.5 w-24 bg-orange-500 mb-8 rounded-full hidden md:block"></div>
             {comparison.description && (
@@ -33,7 +33,7 @@ export function ModernDarkComparison({ config }: SectionProps) {
                 )}
               </div>
               <div className="absolute bottom-4 left-4 right-4 bg-zinc-900/90 backdrop-blur-sm text-zinc-400 font-bold px-4 py-2 rounded-xl uppercase text-[10px] tracking-widest text-center border border-zinc-800">
-                {comparison.beforeLabel || 'Ordinary'}
+                {comparison.beforeLabel || 'আগে'}
               </div>
             </div>
 
@@ -47,7 +47,7 @@ export function ModernDarkComparison({ config }: SectionProps) {
                 )}
               </div>
               <div className="absolute bottom-4 left-4 right-4 bg-orange-500 text-white font-black px-4 py-2 rounded-xl uppercase text-[10px] tracking-widest text-center shadow-2xl">
-                {comparison.afterLabel || 'Premium'}
+                {comparison.afterLabel || 'পরে'}
               </div>
             </div>
           </div>

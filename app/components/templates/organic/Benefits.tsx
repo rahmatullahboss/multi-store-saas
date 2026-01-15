@@ -11,7 +11,7 @@ export function OrganicBenefits({ config }: SectionProps) {
         <div className="text-center mb-20">
           <span className="text-emerald-600 font-bold uppercase tracking-[0.3em] text-[10px] mb-4 block">Our Promise</span>
           <h2 className="text-3xl md:text-5xl font-bold text-slate-800 tracking-tight mb-6">
-            Pure ingredients, <span className="text-emerald-600 italic font-serif">honest results.</span>
+            {config.benefitsTitle || 'বিশুদ্ধ উপাদান, সেরা ফলাফল।'}
           </h2>
           <div className="h-1 w-16 bg-emerald-200 mx-auto rounded-full"></div>
         </div>

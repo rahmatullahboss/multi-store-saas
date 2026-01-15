@@ -17,12 +17,12 @@ export function ShowcaseGuarantee({ config }: SectionProps) {
           </h2>
           <div className="flex items-center justify-center gap-4 mb-12">
              <div className="h-px w-12 bg-gray-200"></div>
-             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400">Authenticity Guarantee</p>
+             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400">{config.guaranteeBadgeLabel || 'আসল পন্যের নিশ্চয়তা'}</p>
              <div className="h-px w-12 bg-gray-200"></div>
           </div>
           
           <div className="inline-block bg-rose-500 text-white px-10 py-5 rounded-full font-black uppercase tracking-widest text-xs shadow-2xl shadow-rose-500/30">
-             Official Showcase Certificate
+             {config.guaranteeBadgeLabel || 'অফিসিয়াল নিশ্চয়তা সার্টিফিকেট'}
           </div>
         </div>
       </div>

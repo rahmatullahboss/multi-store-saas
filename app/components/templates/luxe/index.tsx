@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { LuxeSectionRenderer } from './SectionRenderer';
 import { LUXE_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function LuxeTemplate({
   storeName,
@@ -69,17 +70,14 @@ export function LuxeTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky Footer */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-t border-white/5 p-4 pb-safe">
-          <a
-            href="#order-form"
-            className="block w-full bg-amber-500 text-black text-center font-bold py-4 rounded uppercase tracking-[0.2em] text-xs shadow-2xl"
-          >
-            Aquire Now — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "Aquire Now"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-24" />
 

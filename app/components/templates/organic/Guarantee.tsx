@@ -17,7 +17,7 @@ export function OrganicGuarantee({ config }: SectionProps) {
           </h2>
           <div className="h-0.5 w-12 bg-emerald-100 mx-auto mb-12"></div>
           <p className="text-xs font-black uppercase tracking-[0.4em] text-emerald-700">
-            Our Earth Integrity Seal
+            {config.guaranteeBadgeLabel || 'আমাদের বিশুদ্ধতার নিশ্চয়তা'}
           </p>
         </div>
       </div>

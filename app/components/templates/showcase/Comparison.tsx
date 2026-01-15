@@ -11,7 +11,7 @@ export function ShowcaseComparison({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-gray-900 tracking-tight leading-none mb-6">
-            Compare the <span className="text-rose-500 italic">Visuals</span>
+            {config.comparisonTitle || 'পার্থক্য নিজেই দেখুন'}
           </h2>
           {comparison.description && (
             <p className="text-gray-500 font-medium max-w-2xl mx-auto">
@@ -27,11 +27,11 @@ export function ShowcaseComparison({ config }: SectionProps) {
               {comparison.beforeImage ? (
                 <OptimizedImage src={comparison.beforeImage} alt="Before" className="w-full h-full object-cover grayscale" />
               ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">Regular</div>
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 font-bold uppercase tracking-widest text-xs">আগে</div>
               )}
             </div>
             <div className="absolute top-8 left-8 bg-black/80 backdrop-blur-md text-white font-bold px-6 py-2 rounded-full text-[10px] uppercase tracking-[0.2em]">
-              {comparison.beforeLabel || 'Old Standard'}
+              {comparison.beforeLabel || 'আগের সংস্করণ'}
             </div>
           </div>
 
@@ -47,11 +47,11 @@ export function ShowcaseComparison({ config }: SectionProps) {
               {comparison.afterImage ? (
                 <OptimizedImage src={comparison.afterImage} alt="After" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-rose-50 flex items-center justify-center text-rose-200">Showcase</div>
+                <div className="w-full h-full bg-rose-50 flex items-center justify-center text-rose-200 font-bold uppercase tracking-widest text-xs">পরে</div>
               )}
             </div>
             <div className="absolute top-8 left-8 bg-rose-500 text-white font-bold px-6 py-2 rounded-full text-[10px] uppercase tracking-[0.2em] shadow-xl">
-              {comparison.afterLabel || 'Signature Edition'}
+              {comparison.afterLabel || 'প্রিমিয়াম এডিশন'}
             </div>
           </div>
         </div>

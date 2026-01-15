@@ -10,10 +10,10 @@ export function ModernPremiumBenefits({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-24 max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold text-slate-900 tracking-tight leading-tight mb-8">
-            Designed for <span className="text-indigo-600">Perfection.</span>
+            {config.benefitsTitle || 'নিখুঁতভাবে তৈরি।'}
           </h2>
           <p className="text-xl text-slate-500 font-medium tracking-tight">
-            Crafted with precision to deliver an experience beyond compare.
+            সেরা অভিজ্ঞতা নিশ্চিত করতে নিখুঁতভাবে তৈরি।
           </p>
         </div>
         

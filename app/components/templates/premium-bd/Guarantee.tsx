@@ -14,7 +14,7 @@ export function PremiumBDGuarantee({ config }: SectionProps) {
             {guaranteeText}
           </h2>
           <div className="mt-12 inline-flex items-center gap-3 bg-white/20 backdrop-blur-md px-8 py-4 rounded-2xl border border-white/30 text-white font-black uppercase italic tracking-widest text-sm">
-            Trusted by 5000+ Customers
+            {config.guaranteeBadgeLabel || '৫০০০+ কাস্টমারের বিশ্বস্ত'}
           </div>
         </div>
       </div>

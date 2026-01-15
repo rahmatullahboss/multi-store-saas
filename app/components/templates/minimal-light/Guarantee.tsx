@@ -17,7 +17,7 @@ export function MinimalLightGuarantee({ config }: SectionProps) {
           </h2>
           <div className="h-px w-8 bg-stone-200 mx-auto mb-8"></div>
           <p className="text-[10px] uppercase tracking-widest font-bold text-stone-400 italic">
-            Quality Assurance Standard
+            {config.guaranteeBadgeLabel || 'মান নিশ্চিতকরণের মানদণ্ড'}
           </p>
         </div>
       </div>

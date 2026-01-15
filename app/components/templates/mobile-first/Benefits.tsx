@@ -10,7 +10,7 @@ export function MobileFirstBenefits({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
-            কেন আমাদের পছন্দ করবেন?
+            {config.benefitsTitle || 'কেন আমাদের পছন্দ করবেন?'}
           </h2>
           <div className="h-1 w-12 bg-blue-500 mx-auto rounded-full"></div>
         </div>

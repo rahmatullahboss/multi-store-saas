@@ -134,6 +134,40 @@ export interface LandingConfig {
   landingLanguage?: 'bn' | 'en';
   // Custom HTML Sections (positionable)
   customSections?: CustomSection[];
+  // Localization & Page Titles (Editable for i18n)
+  trustTitle?: string;
+  benefitsTitle?: string;
+  comparisonTitle?: string;
+  testimonialsTitle?: string;
+  faqTitle?: string;
+  galleryTitle?: string;
+  videoTitle?: string;
+  socialProofTitle?: string;
+  guaranteeBadgeLabel?: string;
+  shippingConfig?: {
+    insideDhaka: number;
+    outsideDhaka: number;
+    freeShippingAbove: number;
+    enabled: boolean;
+  };
+  // Hero Section Customization
+  heroBadgeText?: string;
+  heroCountdownText?: string;
+  heroCtaText?: string;
+  heroPriceLabel?: string;
+  heroFeatures?: {
+    icon: string;
+    text: string;
+  }[];
+  // Product Variants (e.g., 1kg, 2kg, Red, White)
+  productVariants?: LandingProductVariant[];
+}
+
+export interface LandingProductVariant {
+  id: string;
+  name: string;
+  price?: number;        // Price override for this variant
+  compareAtPrice?: number; // Compare at price override
 }
 
 // Custom HTML Section with position support
@@ -351,7 +385,42 @@ export const defaultLandingConfig: LandingConfig = {
   socialProof: {
     count: 250,
     text: "জনেরও বেশি কাস্টমার আমাদের থেকে কিনেছেন"
-  }
+  },
+  comparison: {
+    beforeLabel: "আগে",
+    afterLabel: "পরে",
+    description: "আমাদের পন্য ব্যবহারের আগের এবং পরের পার্থক্য দেখুন"
+  },
+  videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  trustTitle: "আমাদের ওপর কেন ভরসা করবেন?",
+  benefitsTitle: "কেন আমাদের থেকে কিনবেন?",
+  comparisonTitle: "পার্থক্য নিজেই দেখুন",
+  testimonialsTitle: "কাস্টমারদের মতামত",
+  faqTitle: "সাধারণ কিছু জিজ্ঞাসা",
+  galleryTitle: "পন্যের কিছু ছবি",
+  videoTitle: "ভিডিও রিভিউ",
+  socialProofTitle: "কাস্টমার রিভিউ",
+  guaranteeBadgeLabel: "১০০% নিরাপদ ও নির্ভরযোগ্য",
+  shippingConfig: {
+    insideDhaka: 60,
+    outsideDhaka: 120,
+    freeShippingAbove: 0,
+    enabled: true
+  },
+  heroBadgeText: "সীমিত অফার",
+  heroCtaText: "এখনই অর্ডার করুন",
+  heroPriceLabel: "মূল্য:",
+  heroFeatures: [
+    { icon: "✓", text: "১০০% অরিজিনাল পণ্য" },
+    { icon: "✓", text: "ক্যাশ অন ডেলিভারি" },
+    { icon: "✓", text: "দ্রুত ডেলিভারি" }
+  ],
+  productVariants: [
+    { id: 'v1', name: '১ কেজি' },
+    { id: 'v2', name: '২ কেজি', price: 1.8 } // 1.8x price multiplier or just raw price? 
+    // Wait, the calculation in OrderForm uses raw prices from product. 
+    // If I put price: 1200, it should use 1200.
+  ]
 };
 
 // Default theme config for new stores

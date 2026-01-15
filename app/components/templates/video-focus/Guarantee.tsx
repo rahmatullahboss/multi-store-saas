@@ -20,7 +20,7 @@ export function VideoFocusGuarantee({ config }: SectionProps) {
           <div className="h-0.5 w-16 bg-red-600 mx-auto mb-10"></div>
           
           <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-600">
-             Official Cinematic Integrity Verified
+             {config.guaranteeBadgeLabel || 'সিনেমেটিক বিশুদ্ধতা নিশ্চিত'}
           </p>
 
           <div className="mt-12 flex justify-center gap-2">

@@ -12,7 +12,7 @@ export function MinimalLightComparison({ config }: SectionProps) {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-2xl md:text-3xl font-light text-stone-900 tracking-tight mb-4">
-              The Evolution of <span className="italic font-serif">Consistency</span>
+              {config.comparisonTitle || 'সেরা অভিজ্ঞতা'}
             </h2>
             {comparison.description && (
               <p className="text-stone-500 font-light text-sm max-w-lg mx-auto">
@@ -35,7 +35,7 @@ export function MinimalLightComparison({ config }: SectionProps) {
               </div>
               <div className="text-center">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                  {comparison.beforeLabel || 'Previous'}
+                  {comparison.beforeLabel || 'আগের'}
                 </span>
               </div>
             </div>
@@ -53,7 +53,7 @@ export function MinimalLightComparison({ config }: SectionProps) {
               </div>
               <div className="text-center">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-stone-900">
-                  {comparison.afterLabel || 'Refined'}
+                  {comparison.afterLabel || 'নতুন'}
                 </span>
               </div>
             </div>

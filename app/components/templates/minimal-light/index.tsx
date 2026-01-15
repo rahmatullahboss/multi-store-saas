@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { MinimalLightSectionRenderer } from './SectionRenderer';
 import { MINIMAL_LIGHT_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function MinimalLightTemplate({
   storeName,
@@ -77,17 +78,14 @@ export function MinimalLightTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky CTA */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%]">
-          <a
-            href="#order-form"
-            className="block w-full bg-gray-950 text-white text-center font-black py-5 rounded-none uppercase tracking-[0.3em] text-[10px] shadow-2xl active:scale-95 transition-all"
-          >
-            ORDER NOW — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "ORDER NOW"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-28" />
 

@@ -13,9 +13,9 @@ export function MobileFirstGuarantee({ config }: SectionProps) {
           <h2 className="text-lg font-black text-gray-900 leading-relaxed mb-6">
             {guaranteeText}
           </h2>
-          <div className="inline-block bg-blue-600 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-            100% Secure Transaction
-          </div>
+            <div className="inline-block bg-blue-600 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+              {config.guaranteeBadgeLabel || '১০০% নিরাপদ লেনদেন'}
+            </div>
         </div>
       </div>
     </section>

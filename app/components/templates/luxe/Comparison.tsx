@@ -11,7 +11,7 @@ export function LuxeComparison({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-serif text-white tracking-tight mb-6">
-            The <span className="text-amber-500 italic">Signature</span> Distinction
+            {config.comparisonTitle || 'সেরা আভিজাত্য'}
           </h2>
           {comparison.description && (
             <p className="text-stone-500 font-light text-sm max-w-lg mx-auto italic uppercase tracking-[0.2em]">
@@ -33,7 +33,7 @@ export function LuxeComparison({ config }: SectionProps) {
               </div>
             </div>
             <div className="absolute top-8 left-8 bg-stone-900/80 backdrop-blur-md text-stone-500 font-bold px-6 py-2 rounded-sm text-[10px] uppercase tracking-[0.3em] border border-stone-800">
-              {comparison.beforeLabel || 'Prestige'}
+              {comparison.beforeLabel || 'সাধারণ'}
             </div>
           </div>
 
@@ -49,7 +49,7 @@ export function LuxeComparison({ config }: SectionProps) {
               </div>
             </div>
             <div className="absolute top-8 left-8 bg-amber-600 text-white font-bold px-6 py-2 rounded-sm text-[10px] uppercase tracking-[0.3em] shadow-2xl">
-              {comparison.afterLabel || 'Masterpiece'}
+              {comparison.afterLabel || 'আভিজাত্য'}
             </div>
           </div>
         </div>

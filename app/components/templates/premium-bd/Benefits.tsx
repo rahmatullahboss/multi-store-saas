@@ -10,7 +10,7 @@ export function PremiumBDBenefits({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-4 underline decoration-orange-500 decoration-4 underline-offset-8">
-            কেন আমাদের থেকে কিনবেন?
+            {config.benefitsTitle || 'কেন আমাদের থেকে কিনবেন?'}
           </h2>
         </div>
         

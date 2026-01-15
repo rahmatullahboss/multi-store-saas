@@ -39,7 +39,7 @@ export function FlashSaleHero({
                 className="inline-flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-black uppercase italic tracking-tighter"
               >
                 <Zap size={18} fill="currentColor" />
-                Flash Sale ends in 02:45:10
+                {config.heroCountdownText || 'Flash Sale ends in'} 02:45:10
               </motion.div>
 
               <h1 className="text-5xl lg:text-8xl font-black italic uppercase tracking-tighter leading-[0.9]">
@@ -64,7 +64,7 @@ export function FlashSaleHero({
                   </div>
                   {discount > 0 && (
                     <div className="bg-yellow-400 text-black px-2 py-0.5 rounded text-xs font-black uppercase mt-2 inline-block">
-                      মহা ছাড়: {discount}% OFF
+                      {config.heroPriceLabel || 'মহা ছাড়'}: {discount}% OFF
                     </div>
                   )}
                 </div>
@@ -76,9 +76,9 @@ export function FlashSaleHero({
                   className="group relative inline-flex items-center gap-4 bg-white text-red-600 px-8 py-5 rounded-2xl font-black text-2xl uppercase italic tracking-tighter transition-all hover:scale-105 active:scale-95 shadow-[0_10px_40px_rgba(255,255,255,0.2)] lg:w-auto w-full justify-center"
                 >
                   <ShoppingCart className="fill-current" />
-                  এখনই অর্ডার করুন
+                  {config.heroCtaText || 'এখনই অর্ডার করুন'}
                   <div className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full animate-bounce">
-                    LIMITED
+                    {config.heroBadgeText || 'LIMITED'}
                   </div>
                 </a>
               </div>
@@ -98,7 +98,11 @@ export function FlashSaleHero({
               </div>
               {/* Badge Decorations */}
               <div className="absolute -bottom-6 -left-6 z-20 bg-yellow-400 text-black p-6 rounded-3xl shadow-2xl -rotate-12 border-4 border-white font-black text-2xl tracking-tighter uppercase italic leading-none text-center">
-                গরম<br/>অফার
+                {config.heroBadgeText === 'LIMITED' ? (
+                  <>গরম<br/>অফার</>
+                ) : (
+                  config.heroBadgeText || <>গরম<br/>অফার</>
+                )}
               </div>
             </motion.div>
           </div>

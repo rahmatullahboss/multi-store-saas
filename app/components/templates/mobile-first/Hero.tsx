@@ -25,7 +25,7 @@ export function MobileFirstHero({
           {/* Discount Badge */}
           {discount > 0 && (
             <div className="absolute top-4 left-4 z-10 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-sm">
-              -{discount}% OFF
+              -{discount}% {config.heroBadgeText || 'OFF'}
             </div>
           )}
           
@@ -77,9 +77,9 @@ export function MobileFirstHero({
               {/* Rating */}
               <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
                 <Star size={16} className="text-amber-400 fill-amber-400" />
-                <span>4.9/5 রেটিং</span>
+                <span>{config.heroCountdownText || '4.9/5 রেটিং'}</span>
                 <span className="text-gray-300">|</span>
-                <span className="text-green-600">ইন স্টক</span>
+                <span className="text-green-600">{config.heroBadgeText || 'ইন স্টক'}</span>
               </div>
             </div>
           </MagicSectionWrapper>
@@ -90,7 +90,7 @@ export function MobileFirstHero({
               onClick={() => setIsDescOpen(!isDescOpen)}
               className="w-full flex items-center justify-between text-lg font-bold text-gray-900 mb-2"
             >
-              <span>পণ্যের বিবরণ</span>
+              <span>{config.socialProofTitle || 'পণ্যের বিবরণ'}</span>
               {isDescOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
             
@@ -113,20 +113,35 @@ export function MobileFirstHero({
 
           {/* TRUST BADGES (Compact) */}
           <section className="grid grid-cols-2 gap-3 mb-8">
-            <div className="flex items-center gap-2.5 bg-gray-50 p-3 rounded-lg border border-gray-100">
-              <Truck className="text-emerald-600 shrink-0" size={20} />
-              <div className="text-xs">
-                <p className="font-bold text-gray-800">দ্রুত ডেলিভারি</p>
-                <p className="text-gray-500">২-৩ দিন</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5 bg-gray-50 p-3 rounded-lg border border-gray-100">
-              <ShieldCheck className="text-emerald-600 shrink-0" size={20} />
-              <div className="text-xs">
-                <p className="font-bold text-gray-800">গ্যারান্টিযুক্ত</p>
-                <p className="text-gray-500">১০০% আসল</p>
-              </div>
-            </div>
+            {config.heroFeatures && config.heroFeatures.length > 0 ? (
+              config.heroFeatures.slice(0, 2).map((feature, i) => (
+                <div key={i} className="flex items-center gap-2.5 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="text-emerald-600 shrink-0 text-lg font-bold">
+                    {feature.icon || '✓'}
+                  </div>
+                  <div className="text-xs">
+                    <p className="font-bold text-gray-800">{feature.text}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="flex items-center gap-2.5 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <Truck className="text-emerald-600 shrink-0" size={20} />
+                  <div className="text-xs">
+                    <p className="font-bold text-gray-800">দ্রুত ডেলিভারি</p>
+                    <p className="text-gray-500">২-৩ দিন</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <ShieldCheck className="text-emerald-600 shrink-0" size={20} />
+                  <div className="text-xs">
+                    <p className="font-bold text-gray-800">গ্যারান্টিযুক্ত</p>
+                    <p className="text-gray-500">১০০% আসল</p>
+                  </div>
+                </div>
+              </>
+            )}
           </section>
         </div>
       </div>

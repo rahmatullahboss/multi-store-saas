@@ -28,11 +28,9 @@ export function MinimalLightOrderForm({
     address: '',
     division: 'dhaka' as DivisionValue,
     quantity: 1,
+    selectedVariant: config.productVariants?.[0] || null,
   });
 
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-    productVariants.length > 0 ? productVariants[0].id : null
-  );
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
@@ -40,13 +38,12 @@ export function MinimalLightOrderForm({
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
 
-  const selectedVariant = selectedVariantId 
-    ? productVariants.find(v => v.id === selectedVariantId)
-    : null;
-  
-  const effectivePrice = selectedVariant?.price ?? product.price;
-  const subtotal = effectivePrice * formData.quantity;
-  const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
+  const subtotal = (formData.selectedVariant?.price || product.price) * formData.quantity;
+  const shippingCost = calculateShipping(
+    config.shippingConfig || DEFAULT_SHIPPING_CONFIG, 
+    formData.division, 
+    subtotal
+  ).cost;
   
   const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
     const bump = orderBumps.find(b => b.id === bumpId);
@@ -82,7 +79,7 @@ export function MinimalLightOrderForm({
     submitData.set('address', formData.address);
     submitData.set('division', formData.division);
     submitData.set('quantity', String(formData.quantity));
-    if (selectedVariantId) submitData.set('variant_id', String(selectedVariantId));
+    if (formData.selectedVariant) submitData.set('variant_name', formData.selectedVariant.name);
     if (selectedBumpIds.length > 0) submitData.set('bump_ids', JSON.stringify(selectedBumpIds));
     
     fetcher.submit(submitData, { method: 'POST', action: '/api/create-order' });
@@ -120,11 +117,60 @@ export function MinimalLightOrderForm({
               Simple <br /> Acquisition
             </h2>
             
-            <div className="space-y-10">
-              <div className="flex justify-between items-end border-b border-gray-200 pb-4">
-                <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Investment</span>
-                <span className="text-5xl font-bold text-gray-950 tracking-tighter">{formatPrice(totalPrice)}</span>
-              </div>
+              <div className="space-y-10">
+                <div className="bg-white p-6 border border-gray-100 space-y-4">
+                  <div className="flex justify-between items-center border-b border-gray-50 pb-4">
+                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Quantity</span>
+                    <div className="flex items-center gap-6">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                        className="w-10 h-10 border border-gray-200 text-gray-900 font-bold flex items-center justify-center hover:bg-gray-50 transition-all active:scale-95"
+                      >
+                        -
+                      </button>
+                      <span className="text-gray-950 text-xl font-bold w-4 text-center">{formData.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                        className="w-10 h-10 border border-gray-200 text-gray-900 font-bold flex items-center justify-center hover:bg-gray-50 transition-all active:scale-95"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {config.productVariants && config.productVariants.length > 0 && (
+                    <div className="border-b border-gray-50 pb-4">
+                      <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] block mb-4">Selection</span>
+                      <div className="flex flex-wrap gap-2">
+                        {config.productVariants.map((variant) => (
+                          <button
+                            key={variant.id}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, selectedVariant: variant })}
+                            className={`px-4 py-2 text-xs font-bold border transition-all ${
+                              formData.selectedVariant?.id === variant.id
+                                ? 'border-gray-900 bg-gray-950 text-white'
+                                : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
+                            }`}
+                          >
+                            {variant.name}
+                            {variant.price && variant.price !== product.price && (
+                              <span className="ml-1 text-[8px] opacity-60">
+                                ({formatPrice(variant.price)})
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-end">
+                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Investment</span>
+                    <span className="text-5xl font-bold text-gray-950 tracking-tighter">{formatPrice(totalPrice)}</span>
+                  </div>
+                </div>
               
               <div className="flex items-center gap-3 text-gray-400 font-bold text-xs uppercase tracking-widest">
                 <ShieldCheck size={18} className="text-gray-900" /> Secure Protocol • Cash on Delivery
@@ -149,6 +195,32 @@ export function MinimalLightOrderForm({
               value={formData.phone}
               onChange={(e) => setFormData({...formData, phone: e.target.value})}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, division: 'dhaka'})}
+                className={`py-5 font-bold border transition-all rounded-none ${
+                  formData.division === 'dhaka' 
+                    ? 'border-gray-950 bg-gray-950 text-white' 
+                    : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
+                }`}
+              >
+                INSIDE DHAKA
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, division: 'chittagong'})}
+                className={`py-5 font-bold border transition-all rounded-none ${
+                  formData.division !== 'dhaka' 
+                    ? 'border-gray-950 bg-gray-950 text-white' 
+                    : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
+                }`}
+              >
+                OUTSIDE DHAKA
+              </button>
+            </div>
+
             <textarea
               required
               className="w-full bg-white border border-gray-200 rounded-none px-6 py-6 text-gray-950 font-medium focus:border-gray-950 outline-none transition-all placeholder:text-gray-300 resize-none"

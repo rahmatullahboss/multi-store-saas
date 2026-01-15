@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { ModernPremiumSectionRenderer } from './SectionRenderer';
 import { MODERN_PREMIUM_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function ModernPremiumTemplate({
   storeName,
@@ -91,17 +92,14 @@ export function ModernPremiumTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky Action */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-8 left-6 right-6 z-50">
-          <a
-            href="#order-form"
-            className="block w-full bg-black text-white text-center font-black py-7 rounded-3xl uppercase tracking-[0.2em] text-xs shadow-[0_40px_100px_rgba(0,0,0,0.5)] border-t border-white/20 active:scale-95 transition-all italic"
-          >
-            ORDER ELITE — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "ORDER ELITE"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-28" />
 

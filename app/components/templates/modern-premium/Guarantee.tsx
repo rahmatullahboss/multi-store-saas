@@ -18,7 +18,7 @@ export function ModernPremiumGuarantee({ config }: SectionProps) {
           </h2>
           <div className="h-0.5 w-16 bg-indigo-600 mx-auto mb-12"></div>
           <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-slate-300">
-             Official Quality Benchmark Certification
+             {config.guaranteeBadgeLabel || 'অফিসিয়াল কোয়ালিটি সার্টিফিকেট'}
           </p>
 
           <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white px-4 flex gap-2">

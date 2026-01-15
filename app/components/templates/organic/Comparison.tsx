@@ -11,7 +11,7 @@ export function OrganicComparison({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-800 tracking-tight mb-4">
-            Nature's <span className="text-emerald-600">Difference</span>
+            {config.comparisonTitle || 'প্রকৃতির পার্থক্য দেখুন'}
           </h2>
           {comparison.description && (
             <p className="text-slate-500 font-medium max-w-xl mx-auto">
@@ -31,7 +31,7 @@ export function OrganicComparison({ config }: SectionProps) {
               )}
             </div>
             <div className="absolute top-6 left-6 bg-slate-800 text-white font-bold px-5 py-2 rounded-full text-xs uppercase shadow-xl">
-              {comparison.beforeLabel || 'Conventional'}
+              {comparison.beforeLabel || 'সাধারণ'}
             </div>
           </div>
 
@@ -45,7 +45,7 @@ export function OrganicComparison({ config }: SectionProps) {
               )}
             </div>
             <div className="absolute top-6 left-6 bg-emerald-600 text-white font-bold px-5 py-2 rounded-full text-xs uppercase shadow-xl">
-              {comparison.afterLabel || 'Our Way'}
+              {comparison.afterLabel || 'অরগানিক'}
             </div>
           </div>
         </div>

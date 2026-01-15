@@ -11,7 +11,7 @@ export function VideoFocusComparison({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
-            Reality vs <span className="text-red-600">Enhanced</span>
+            {config.comparisonTitle || 'বাস্তবতা বনাম উন্নত অভিজ্ঞতা'}
           </h2>
           {comparison.description && (
             <p className="text-zinc-500 font-bold max-w-xl mx-auto uppercase tracking-widest text-xs">
@@ -27,13 +27,13 @@ export function VideoFocusComparison({ config }: SectionProps) {
               {comparison.beforeImage ? (
                 <OptimizedImage src={comparison.beforeImage} alt="Before" className="w-full h-full object-cover grayscale opacity-50 transition-all duration-700 group-hover:scale-110" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-700">Ordinary Lineup</div>
+                <div className="w-full h-full flex items-center justify-center text-zinc-700">সাধারণ</div>
               )}
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-bottom p-8">
                <div className="mt-auto">
                  <span className="text-white font-black uppercase text-xl italic tracking-tighter">
-                   {comparison.beforeLabel || 'Conventional'}
+                   {comparison.beforeLabel || 'আগের'}
                  </span>
                </div>
             </div>
@@ -45,13 +45,13 @@ export function VideoFocusComparison({ config }: SectionProps) {
               {comparison.afterImage ? (
                 <OptimizedImage src={comparison.afterImage} alt="After" className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-700">Next Level</div>
+                <div className="w-full h-full flex items-center justify-center text-zinc-700">সেরা</div>
               )}
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-red-600/80 to-transparent flex items-bottom p-8">
                <div className="mt-auto">
                  <span className="text-white font-black uppercase text-xl italic tracking-tighter">
-                   {comparison.afterLabel || 'Cinematic Pro'}
+                   {comparison.afterLabel || 'সেরা'}
                  </span>
                </div>
             </div>

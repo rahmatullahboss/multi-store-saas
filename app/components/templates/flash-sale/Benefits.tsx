@@ -10,7 +10,7 @@ export function FlashSaleBenefits({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
-            Don't Wait! <span className="text-red-600">Buy Original.</span>
+            {config.benefitsTitle || 'দেরি করবেন না! আসল পন্য কিনুন।'}
           </h2>
           <div className="h-1 w-20 bg-yellow-400 mx-auto"></div>
         </div>

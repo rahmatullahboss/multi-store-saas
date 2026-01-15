@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { ModernDarkSectionRenderer } from './SectionRenderer';
 import { MODERN_DARK_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function ModernDarkTemplate({
   storeName,
@@ -68,17 +69,14 @@ export function ModernDarkTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky Footer */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-t border-zinc-800 p-4 pb-safe">
-          <a
-            href="#order-form"
-            className="block w-full bg-orange-500 text-white text-center font-black py-5 rounded-2xl uppercase tracking-widest text-sm shadow-[0_10px_30px_rgba(249,115,22,0.4)] italic"
-          >
-            Get it Now — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "Get it Now"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-28" />
 

@@ -15,6 +15,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { FlashSaleSectionRenderer } from './SectionRenderer';
 import { FLASH_SALE_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 // Countdown Hook
 function useCountdown(endTime: Date | null) {
@@ -152,17 +153,14 @@ export function FlashSaleTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky Footer */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-black border-t border-gray-800 p-3 shadow-2xl safe-area-pb">
-          <a
-            href="#order-form"
-            className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-lg rounded-xl flex items-center justify-center gap-2 shadow-lg animate-pulse"
-          >
-            <Zap size={20} /> {config.ctaText || 'অর্ডার করুন'} — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "অর্ডার করুন"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-20" />
 

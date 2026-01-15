@@ -10,7 +10,7 @@ export function LuxeBenefits({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-20 max-w-2xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-serif italic text-white tracking-tight mb-8">
-            Exquisite <span className="text-amber-500">Excellence.</span>
+            {config.benefitsTitle || 'অনন্য উৎকর্ষ।'}
           </h2>
           <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto"></div>
         </div>

@@ -36,7 +36,7 @@ export function ModernPremiumHero({
                   className="inline-flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-1.5 rounded-full text-zinc-400 text-xs font-bold uppercase tracking-widest"
                 >
                   <Sparkles size={14} className="text-blue-500" />
-                  Premium Edition
+                  {config.heroBadgeText || 'Premium Edition'}
                 </motion.div>
                 <h1 className="text-5xl lg:text-8xl font-black text-white leading-[1.05] tracking-tighter">
                   {config.headline}
@@ -48,20 +48,33 @@ export function ModernPremiumHero({
 
               {/* Mini Bento Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl space-y-3 hover:border-blue-500/30 transition-colors">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                    <Zap size={20} />
-                  </div>
-                  <p className="text-white font-bold text-sm">Ultra Fast</p>
-                </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl space-y-3 hover:border-emerald-500/30 transition-colors">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                    <Shield size={20} />
-                  </div>
-                  <p className="text-white font-bold text-sm">Secure</p>
-                </div>
+                {config.heroFeatures && config.heroFeatures.length > 0 ? (
+                  config.heroFeatures.slice(0, 2).map((feature, i) => (
+                    <div key={i} className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl space-y-3 hover:border-blue-500/30 transition-colors">
+                      <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 text-sm font-bold">
+                        {feature.icon || '✓'}
+                      </div>
+                      <p className="text-white font-bold text-sm">{feature.text}</p>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl space-y-3 hover:border-blue-500/30 transition-colors">
+                      <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                        <Zap size={20} />
+                      </div>
+                      <p className="text-white font-bold text-sm">Ultra Fast</p>
+                    </div>
+                    <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl space-y-3 hover:border-emerald-500/30 transition-colors">
+                      <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                        <Shield size={20} />
+                      </div>
+                      <p className="text-white font-bold text-sm">Secure</p>
+                    </div>
+                  </>
+                )}
                 <div className="col-span-2 lg:col-span-1 bg-gradient-to-br from-violet-600 to-purple-700 p-6 rounded-3xl flex flex-col justify-between shadow-lg shadow-purple-500/20">
-                  <p className="text-white/80 text-xs font-bold uppercase tracking-widest">Special Price</p>
+                  <p className="text-white/80 text-xs font-bold uppercase tracking-widest">{config.heroPriceLabel || 'Special Price'}</p>
                   <p className="text-white font-black text-2xl mt-4">{formatPrice(product.price)}</p>
                 </div>
               </div>
@@ -102,7 +115,7 @@ export function ModernPremiumHero({
                   href="#order-form"
                   className="inline-flex items-center gap-4 px-12 py-5 bg-white text-black font-black text-xl rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_20px_60px_rgba(255,255,255,0.1)]"
                 >
-                  Confirm Order
+                  {config.heroCtaText || 'Confirm Order'}
                   <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
                     <Zap size={16} fill="currentColor" />
                   </div>

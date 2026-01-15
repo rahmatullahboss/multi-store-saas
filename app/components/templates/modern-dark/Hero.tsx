@@ -46,7 +46,7 @@ export function ModernDarkHero({
           <div className="relative">
             {discount > 0 && (
               <div className="absolute top-4 left-4 z-10 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-lg shadow-lg">
-                {discount}% OFF!
+                {discount}% {config.heroBadgeText || 'OFF!'}
               </div>
             )}
             <div className="aspect-square rounded-2xl overflow-hidden bg-gray-700 shadow-2xl ring-4 ring-yellow-500/20">

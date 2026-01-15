@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { PremiumBDSectionRenderer } from './SectionRenderer';
 import { PREMIUM_BD_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function PremiumBDTemplate({
   storeName,
@@ -77,17 +78,14 @@ export function PremiumBDTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky Footer */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4 pb-safe bg-white/80 backdrop-blur-md border-t border-gray-100">
-          <a
-            href="#order-form"
-            className="block w-full bg-gray-950 text-white text-center font-black py-5 rounded-2xl uppercase tracking-widest text-sm shadow-2xl border-b-4 border-orange-500 active:translate-y-1 active:border-b-0 transition-all"
-          >
-            অর্ডার করতে ক্লিক করুন — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "অর্ডার করতে ক্লিক করুন"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-28" />
 

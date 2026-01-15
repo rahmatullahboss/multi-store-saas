@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { ShowcaseSectionRenderer } from './SectionRenderer';
 import { SHOWCASE_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function ShowcaseTemplate({
   storeName,
@@ -80,17 +81,14 @@ export function ShowcaseTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky Footer */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-6 left-4 right-4 z-50">
-          <a
-            href="#order-form"
-            className="block w-full bg-rose-600 text-white text-center font-bold py-5 rounded-2xl uppercase tracking-[0.15em] text-xs shadow-[0_20px_40px_rgba(244,63,94,0.4)] italic backdrop-blur-md border border-rose-500/20"
-          >
-            Claim Yours — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "Claim Yours"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-28" />
 

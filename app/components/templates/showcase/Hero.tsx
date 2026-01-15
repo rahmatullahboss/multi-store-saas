@@ -40,7 +40,7 @@ export function ShowcaseHero({
           >
             <div className="inline-flex items-center gap-2 border border-rose-500/30 rounded-full px-4 py-1 mb-8 bg-rose-950/30 backdrop-blur-md">
               <Star size={12} className="text-rose-400 fill-rose-400" />
-              <span className="text-xs uppercase tracking-[0.2em] text-rose-200">New Arrival</span>
+              <span className="text-xs uppercase tracking-[0.2em] text-rose-200">{config.heroBadgeText || 'New Arrival'}</span>
               <Star size={12} className="text-rose-400 fill-rose-400" />
             </div>
 
@@ -58,7 +58,7 @@ export function ShowcaseHero({
                 className="w-full sm:w-auto px-8 py-4 text-white font-bold tracking-widest uppercase text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-3 hover:opacity-90"
                 style={getButtonStyles(config.primaryColor || '#e11d48')}
               >
-                <span>Order Now</span>
+                <span>{config.heroCtaText || 'Order Now'}</span>
                 <ArrowRight size={16} />
               </a>
               <span className="text-lg font-heading text-rose-400">

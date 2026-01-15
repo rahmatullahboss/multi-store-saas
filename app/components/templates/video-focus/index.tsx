@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { VideoFocusSectionRenderer } from './SectionRenderer';
 import { VIDEO_FOCUS_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function VideoFocusTemplate({
   storeName,
@@ -85,17 +86,14 @@ export function VideoFocusTemplate({
         </div>
       </footer>
 
-      {/* Mobile High-Impact CTA */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-6 left-6 right-6 z-50">
-          <a
-            href="#order-form"
-            className="block w-full bg-red-600 text-white text-center font-black py-5 rounded-2xl uppercase tracking-[0.2em] text-xs shadow-[0_20px_50px_rgba(220,38,38,0.3)] border-t border-white/20 active:scale-95 transition-all"
-          >
-            CONFIRM ACCESS — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "CONFIRM ACCESS"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-28" />
 

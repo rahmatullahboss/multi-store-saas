@@ -31,20 +31,34 @@ export function PremiumBDHero({
         <div className="container mx-auto max-w-7xl relative z-10">
           {/* Top Trust Bar */}
           <div className="flex flex-wrap items-center justify-center gap-6 mb-12 py-3 border-y border-gray-100">
-            <div className="flex items-center gap-2 text-blue-800 text-sm font-bold uppercase tracking-wide">
-              <CheckCircle2 size={16} className="text-blue-600" />
-              ক্যাশ অন ডেলিভারি
-            </div>
-            <div className="w-px h-4 bg-gray-200 hidden md:block" />
-            <div className="flex items-center gap-2 text-blue-800 text-sm font-bold uppercase tracking-wide">
-              <CheckCircle2 size={16} className="text-blue-600" />
-              সরাসরি আমদানিকৃত পণ্য
-            </div>
-            <div className="w-px h-4 bg-gray-200 hidden md:block" />
-            <div className="flex items-center gap-2 text-blue-800 text-sm font-bold uppercase tracking-wide">
-              <CheckCircle2 size={16} className="text-blue-600" />
-              ৭ দিনের সহজ রিটার্ন
-            </div>
+            {config.heroFeatures && config.heroFeatures.length > 0 ? (
+              config.heroFeatures.map((feature, i) => (
+                <div key={i} className="flex items-center gap-6">
+                  <div className="flex items-center gap-2 text-blue-800 text-sm font-bold uppercase tracking-wide">
+                    {feature.icon ? <span className="text-blue-600">{feature.icon}</span> : <CheckCircle2 size={16} className="text-blue-600" />}
+                    {feature.text}
+                  </div>
+                  {config.heroFeatures && i < config.heroFeatures.length - 1 && <div className="w-px h-4 bg-gray-200 hidden md:block" />}
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-blue-800 text-sm font-bold uppercase tracking-wide">
+                  <CheckCircle2 size={16} className="text-blue-600" />
+                  ক্যাশ অন ডেলিভারি
+                </div>
+                <div className="w-px h-4 bg-gray-200 hidden md:block" />
+                <div className="flex items-center gap-2 text-blue-800 text-sm font-bold uppercase tracking-wide">
+                  <CheckCircle2 size={16} className="text- blue-600" />
+                  সরাসরি আমদানিকৃত পণ্য
+                </div>
+                <div className="w-px h-4 bg-gray-200 hidden md:block" />
+                <div className="flex items-center gap-2 text-blue-800 text-sm font-bold uppercase tracking-wide">
+                  <CheckCircle2 size={16} className="text-blue-600" />
+                  ৭ দিনের সহজ রিটার্ন
+                </div>
+              </>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -63,7 +77,7 @@ export function PremiumBDHero({
                 {discount > 0 && (
                   <div className="absolute top-6 left-6 z-20 bg-red-600 text-white w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-xl border-4 border-white animate-pulse">
                     <span className="text-2xl font-black">{discount}%</span>
-                    <span className="text-[10px] uppercase font-bold">DISCOUNT</span>
+                    <span className="text-[10px] uppercase font-bold">{config.heroBadgeText || 'DISCOUNT'}</span>
                   </div>
                 )}
               </div>
@@ -110,7 +124,7 @@ export function PremiumBDHero({
                     className="flex-1 flex items-center justify-center gap-3 py-5 bg-blue-700 text-white font-black text-xl rounded-2xl transition-all hover:bg-blue-800 hover:shadow-2xl shadow-lg active:scale-95"
                   >
                     <ShoppingCart size={22} />
-                    অর্ডার করতে ক্লিক করুন
+                    {config.heroCtaText || 'অর্ডার করতে ক্লিক করুন'}
                   </a>
                   {config.callNumber && (
                     <a
@@ -118,7 +132,7 @@ export function PremiumBDHero({
                       className="flex items-center justify-center gap-3 px-8 py-5 bg-white border-2 border-blue-100 text-blue-700 font-black text-xl rounded-2xl transition-all hover:bg-blue-50 active:scale-95"
                     >
                       <Phone size={22} className="fill-current" />
-                      কল দিন
+                      {config.heroPriceLabel || 'কল দিন'}
                     </a>
                   )}
                 </div>

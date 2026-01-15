@@ -10,7 +10,7 @@ export function VideoFocusBenefits({ config }: SectionProps) {
       <div className="container mx-auto px-4">
         <div className="text-center mb-20">
           <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter mb-4">
-            Powerful <span className="text-red-600">Performance.</span>
+            {config.benefitsTitle || 'শক্তিশালী পারফরম্যান্স।'}
           </h2>
           <div className="h-1.5 w-24 bg-red-600 mx-auto rounded-full"></div>
         </div>

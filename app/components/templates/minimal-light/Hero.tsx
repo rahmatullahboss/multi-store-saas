@@ -45,7 +45,7 @@ export function MinimalLightHero({
               
               {/* Minimal Price Tag */}
               <div className="absolute -top-6 -right-6 bg-white p-6 rounded-3xl shadow-2xl border border-gray-50 flex flex-col items-center">
-                <span className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">Price</span>
+                <span className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">{config.heroPriceLabel || 'Price'}</span>
                 <span className="text-2xl font-bold text-zinc-900">{formatPrice(product.price)}</span>
               </div>
             </motion.div>
@@ -58,7 +58,7 @@ export function MinimalLightHero({
                     <Star key={i} size={14} fill="currentColor" />
                   ))}
                 </div>
-                <span className="text-zinc-400 text-xs font-medium tracking-widest uppercase">Verified Quality</span>
+                <span className="text-zinc-400 text-xs font-medium tracking-widest uppercase">{config.heroBadgeText || 'Verified Quality'}</span>
               </div>
 
               <div className="space-y-6">
@@ -76,7 +76,7 @@ export function MinimalLightHero({
                   className="w-full sm:w-auto px-10 py-5 bg-zinc-900 text-white font-medium rounded-full text-lg transition-all hover:bg-zinc-800 active:scale-95 flex items-center justify-center gap-3"
                 >
                   <ShoppingBag size={20} />
-                  Shop Now
+                  {config.heroCtaText || 'Shop Now'}
                 </a>
                 <div className="flex items-center gap-3 py-4">
                   <div className="flex -space-x-2">
@@ -84,7 +84,7 @@ export function MinimalLightHero({
                       <div key={i} className="w-8 h-8 rounded-full bg-zinc-200 border-2 border-white" />
                     ))}
                   </div>
-                  <span className="text-zinc-400 text-sm font-medium">1.2k+ Satisfied customers</span>
+                  <span className="text-zinc-400 text-sm font-medium">1.2k+ {config.socialProofTitle || 'Satisfied customers'}</span>
                 </div>
               </div>
             </div>

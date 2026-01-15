@@ -11,14 +11,14 @@ export function FlashSaleComparison({ config }: SectionProps) {
       {/* Caution tape background */}
       <div className="absolute top-0 w-full h-8 bg-yellow-400 flex items-center overflow-hidden whitespace-nowrap opacity-20 rotate-1">
         {[...Array(20)].map((_, i) => (
-          <span key={i} className="text-black font-black text-xs uppercase mx-4">CAUTION ⚠ DON'T BUY FAKES ⚠ </span>
+          <span key={i} className="text-black font-black text-xs uppercase mx-4">সাবধান ⚠ নকল পন্য কিনবেন না ⚠ </span>
         ))}
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16 mt-8">
           <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
-             Fake vs <span className="text-yellow-400">Authentic</span>
+             {config.comparisonTitle || 'নকাল বনাম আসল'}
           </h2>
           {comparison.description && (
             <p className="text-zinc-400 font-bold text-sm max-w-lg mx-auto uppercase tracking-wide">
@@ -38,7 +38,7 @@ export function FlashSaleComparison({ config }: SectionProps) {
               )}
             </div>
             <div className="absolute top-2 left-2 bg-red-600 text-white font-black px-4 py-1.5 rounded text-[10px] uppercase italic shadow-2xl">
-              ❌ {comparison.beforeLabel || 'Ordinary'}
+              ❌ {comparison.beforeLabel || 'নকল'}
             </div>
           </div>
 
@@ -52,7 +52,7 @@ export function FlashSaleComparison({ config }: SectionProps) {
               )}
             </div>
             <div className="absolute top-2 left-2 bg-yellow-400 text-black font-black px-4 py-1.5 rounded text-[10px] uppercase italic shadow-2xl">
-              ✅ {comparison.afterLabel || 'Authentic'}
+              ✅ {comparison.afterLabel || 'আসল'}
             </div>
           </div>
         </div>

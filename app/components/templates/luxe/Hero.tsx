@@ -37,7 +37,7 @@ export function LuxeHero({
                 className="inline-flex items-center gap-3 border border-amber-500/30 px-6 py-2 rounded-full bg-amber-950/20 backdrop-blur-sm"
               >
                 <Star size={14} className="text-amber-500 fill-amber-500" />
-                <span className="text-xs uppercase tracking-[0.3em] text-amber-200 font-sans">Premiere Collection</span>
+                <span className="text-xs uppercase tracking-[0.3em] text-amber-200 font-sans">{config.heroBadgeText || 'Premiere Collection'}</span>
                 <Star size={14} className="text-amber-500 fill-amber-500" />
               </motion.div>
 
@@ -60,25 +60,36 @@ export function LuxeHero({
                   href="#order-form"
                   className="group relative w-full sm:w-auto px-12 py-5 bg-amber-500 text-black font-black uppercase tracking-widest text-sm transition-all hover:bg-amber-400 active:scale-95 flex items-center justify-center gap-4 shadow-[0_20px_50px_rgba(180,140,80,0.3)]"
                 >
-                  Order Now
+                  {config.heroCtaText || 'Order Now'}
                   <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                 </a>
                 
                 <div className="flex flex-col items-center lg:items-start">
-                  <span className="text-amber-200/40 text-xs uppercase tracking-widest mb-1">Price</span>
+                  <span className="text-amber-200/40 text-xs uppercase tracking-widest mb-1">{config.heroPriceLabel || 'Price'}</span>
                   <span className="text-3xl font-light text-white tracking-wider">{formatPrice(product.price)}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-center lg:justify-start gap-8 pt-8 border-t border-white/5 font-sans">
-                <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase tracking-widest">
-                  <ShieldCheck size={16} className="text-amber-500/50" />
-                  Authenticity Guaranteed
-                </div>
-                <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase tracking-widest">
-                  <Star size={16} className="text-amber-500/50" />
-                  Premium Packaging
-                </div>
+                {config.heroFeatures && config.heroFeatures.length > 0 ? (
+                  config.heroFeatures.slice(0, 2).map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-zinc-500 text-xs uppercase tracking-widest">
+                      <Star size={16} className="text-amber-500/50" />
+                      {feature.text}
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase tracking-widest">
+                      <ShieldCheck size={16} className="text-amber-500/50" />
+                      Authenticity Guaranteed
+                    </div>
+                    <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase tracking-widest">
+                      <Star size={16} className="text-amber-500/50" />
+                      Premium Packaging
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

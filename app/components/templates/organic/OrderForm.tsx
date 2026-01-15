@@ -28,11 +28,9 @@ export function OrganicOrderForm({
     address: '',
     division: 'dhaka' as DivisionValue,
     quantity: 1,
+    selectedVariant: config.productVariants?.[0] || null,
   });
 
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-    productVariants.length > 0 ? productVariants[0].id : null
-  );
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
@@ -40,13 +38,12 @@ export function OrganicOrderForm({
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
 
-  const selectedVariant = selectedVariantId 
-    ? productVariants.find(v => v.id === selectedVariantId)
-    : null;
-  
-  const effectivePrice = selectedVariant?.price ?? product.price;
-  const subtotal = effectivePrice * formData.quantity;
-  const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
+  const subtotal = (formData.selectedVariant?.price || product.price) * formData.quantity;
+  const shippingCost = calculateShipping(
+    config.shippingConfig || DEFAULT_SHIPPING_CONFIG, 
+    formData.division, 
+    subtotal
+  ).cost;
   
   const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
     const bump = orderBumps.find(b => b.id === bumpId);
@@ -82,7 +79,7 @@ export function OrganicOrderForm({
     submitData.set('address', formData.address);
     submitData.set('division', formData.division);
     submitData.set('quantity', String(formData.quantity));
-    if (selectedVariantId) submitData.set('variant_id', String(selectedVariantId));
+    if (formData.selectedVariant) submitData.set('variant_name', formData.selectedVariant.name);
     if (selectedBumpIds.length > 0) submitData.set('bump_ids', JSON.stringify(selectedBumpIds));
     
     fetcher.submit(submitData, { method: 'POST', action: '/api/create-order' });
@@ -138,6 +135,54 @@ export function OrganicOrderForm({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 bg-white p-8 lg:p-10 rounded-[2.5rem] shadow-lg border border-green-100">
+              <div className="flex items-center justify-between border border-green-50 bg-green-50/30 p-4 rounded-2xl mb-2">
+                <span className="text-gray-500 font-bold text-sm uppercase">Quantity</span>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                    className="w-10 h-10 rounded-xl bg-white border border-green-100 text-green-600 font-bold flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                  >
+                    -
+                  </button>
+                  <span className="text-gray-900 text-xl font-bold w-4 text-center">{formData.quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                    className="w-10 h-10 rounded-xl bg-white border border-green-100 text-green-600 font-bold flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {config.productVariants && config.productVariants.length > 0 && (
+                <div className="border border-green-50 bg-green-50/30 p-4 rounded-2xl mb-2">
+                  <span className="text-gray-500 font-bold text-sm uppercase block mb-3">Choice</span>
+                  <div className="flex flex-wrap gap-2">
+                    {config.productVariants.map((variant) => (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, selectedVariant: variant })}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
+                          formData.selectedVariant?.id === variant.id
+                            ? 'bg-green-600 text-white border-green-600 shadow-md'
+                            : 'bg-white border-green-100 text-green-600 hover:border-green-200 shadow-sm'
+                        }`}
+                      >
+                        {variant.name}
+                        {variant.price && variant.price !== product.price && (
+                          <span className="ml-1 text-[8px] opacity-70">
+                            ({formatPrice(variant.price)})
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <input
                 type="text"
                 required
@@ -154,6 +199,32 @@ export function OrganicOrderForm({
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
               />
+
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, division: 'dhaka'})}
+                  className={`py-4 rounded-2xl font-bold border transition-all ${
+                    formData.division === 'dhaka' 
+                      ? 'bg-green-600 text-white border-green-600 shadow-md' 
+                      : 'bg-green-50/30 text-gray-400 border-green-100 hover:border-green-200'
+                  }`}
+                >
+                  Inside Dhaka
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, division: 'chittagong'})}
+                  className={`py-4 rounded-2xl font-bold border transition-all ${
+                    formData.division !== 'dhaka' 
+                      ? 'bg-green-600 text-white border-green-600 shadow-md' 
+                      : 'bg-green-50/30 text-gray-400 border-green-100 hover:border-green-200'
+                  }`}
+                >
+                  Outside Dhaka
+                </button>
+              </div>
+
               <textarea
                 required
                 className="w-full bg-green-50/30 border border-green-100 rounded-2xl px-6 py-5 text-gray-900 font-medium focus:border-green-500 outline-none transition-all placeholder:text-gray-400 resize-none"

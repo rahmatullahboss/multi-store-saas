@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { MobileFirstSectionRenderer } from './SectionRenderer';
 import { MOBILE_FIRST_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function MobileFirstTemplate({
   storeName,
@@ -72,21 +73,14 @@ export function MobileFirstTemplate({
         )}
       </footer>
 
-      {/* Mobile Sticky CTA Bar */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4 pb-safe bg-white/90 backdrop-blur-2xl border-t border-indigo-50 flex items-center gap-3">
-          <div className="flex-1">
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Price</p>
-            <p className="text-xl font-black text-gray-950">{formatPrice(product.price)}</p>
-          </div>
-          <a
-            href="#order-form"
-            className="flex-[1.5] bg-indigo-600 text-white text-center font-black py-4 rounded-xl uppercase tracking-widest text-xs shadow-lg shadow-indigo-100 active:scale-95 transition-transform"
-          >
-            Buy Now
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "Buy Now"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-24" />
 

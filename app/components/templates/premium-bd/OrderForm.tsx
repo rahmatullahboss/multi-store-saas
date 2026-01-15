@@ -28,11 +28,9 @@ export function PremiumBDOrderForm({
     address: '',
     division: 'dhaka' as DivisionValue,
     quantity: 1,
+    selectedVariant: config.productVariants?.[0] || null,
   });
 
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-    productVariants.length > 0 ? productVariants[0].id : null
-  );
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
@@ -40,13 +38,12 @@ export function PremiumBDOrderForm({
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
 
-  const selectedVariant = selectedVariantId 
-    ? productVariants.find(v => v.id === selectedVariantId)
-    : null;
-  
-  const effectivePrice = selectedVariant?.price ?? product.price;
-  const subtotal = effectivePrice * formData.quantity;
-  const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
+  const subtotal = (formData.selectedVariant?.price || product.price) * formData.quantity;
+  const shippingCost = calculateShipping(
+    config.shippingConfig || DEFAULT_SHIPPING_CONFIG, 
+    formData.division, 
+    subtotal
+  ).cost;
   
   const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
     const bump = orderBumps.find(b => b.id === bumpId);
@@ -82,7 +79,7 @@ export function PremiumBDOrderForm({
     submitData.set('address', formData.address);
     submitData.set('division', formData.division);
     submitData.set('quantity', String(formData.quantity));
-    if (selectedVariantId) submitData.set('variant_id', String(selectedVariantId));
+    if (formData.selectedVariant) submitData.set('variant_name', formData.selectedVariant.name);
     if (selectedBumpIds.length > 0) submitData.set('bump_ids', JSON.stringify(selectedBumpIds));
     
     fetcher.submit(submitData, { method: 'POST', action: '/api/create-order' });
@@ -126,9 +123,58 @@ export function PremiumBDOrderForm({
               </h2>
               
               <div className="space-y-4">
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex justify-between items-center">
-                  <span className="text-gray-500 font-bold uppercase tracking-wider text-xs">মোট টাকার পরিমাণ</span>
-                  <span className="text-3xl font-black text-gray-950">{formatPrice(totalPrice)}</span>
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col gap-4">
+                  <div className="flex justify-between items-center border-b border-gray-50 pb-4">
+                    <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">পণ্যের পরিমাণ</span>
+                    <div className="flex items-center gap-6">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                        className="w-10 h-10 rounded-xl bg-gray-50 text-gray-950 font-black flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all shadow-sm"
+                      >
+                        -
+                      </button>
+                      <span className="text-gray-950 text-2xl font-black w-4 text-center">{formData.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                        className="w-10 h-10 rounded-xl bg-gray-50 text-gray-950 font-black flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all shadow-sm"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {config.productVariants && config.productVariants.length > 0 && (
+                    <div className="border-b border-gray-50 pb-4">
+                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px] block mb-3">পণ্য নির্বাচন করুন</span>
+                      <div className="flex flex-wrap gap-2">
+                        {config.productVariants.map((variant) => (
+                          <button
+                            key={variant.id}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, selectedVariant: variant })}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                              formData.selectedVariant?.id === variant.id
+                                ? 'border-orange-500 bg-orange-50 text-orange-600'
+                                : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
+                            }`}
+                          >
+                            {variant.name}
+                            {variant.price && variant.price !== product.price && (
+                              <span className="ml-1 text-[10px] opacity-70">
+                                ({formatPrice(variant.price)})
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 font-bold uppercase tracking-wider text-xs">মোট টাকার পরিমাণ</span>
+                    <span className="text-3xl font-black text-gray-950">{formatPrice(totalPrice)}</span>
+                  </div>
                 </div>
                 
                 <div className="flex flex-wrap gap-4">
@@ -159,6 +205,32 @@ export function PremiumBDOrderForm({
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
               />
+
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, division: 'dhaka'})}
+                  className={`py-4 rounded-2xl font-bold border-2 transition-all ${
+                    formData.division === 'dhaka' 
+                      ? 'border-orange-500 bg-orange-50 text-orange-600' 
+                      : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
+                  }`}
+                >
+                  ঢাকার ভেতরে
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, division: 'chittagong'})}
+                  className={`py-4 rounded-2xl font-bold border-2 transition-all ${
+                    formData.division !== 'dhaka' 
+                      ? 'border-orange-500 bg-orange-50 text-orange-600' 
+                      : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
+                  }`}
+                >
+                  ঢাকার বাইরে
+                </button>
+              </div>
+
               <textarea
                 required
                 className="w-full bg-white border-2 border-gray-100 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-orange-500 outline-none transition-all placeholder:text-gray-300 resize-none"

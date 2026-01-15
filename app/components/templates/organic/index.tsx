@@ -8,6 +8,7 @@ import { FloatingButtons } from '../_core/FloatingButtons';
 import { OrganicSectionRenderer } from './SectionRenderer';
 import { ORGANIC_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
+import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 export function OrganicTemplate({
   storeName,
@@ -68,17 +69,14 @@ export function OrganicTemplate({
         </div>
       </footer>
 
-      {/* Mobile Sticky Footer */}
-      {!isPreview && (
-        <div className="md:hidden fixed bottom-6 left-4 right-4 z-50">
-          <a
-            href="#order-form"
-            className="block w-full bg-green-600 text-white text-center font-bold py-5 rounded-full uppercase tracking-widest text-xs shadow-xl shadow-green-900/40 border-2 border-green-500"
-          >
-            Organic Order — {formatPrice(product.price)}
-          </a>
-        </div>
-      )}
+      {/* Mobile Sticky Buy Button */}
+      <StickyBuyButton
+        ctaText={config.ctaText || "Organic Order"}
+        price={product.price}
+        formatPrice={formatPrice}
+        theme={theme}
+        isPreview={isPreview}
+      />
 
       <div className="md:hidden h-28" />
 

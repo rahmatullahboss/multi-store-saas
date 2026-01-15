@@ -40,7 +40,7 @@ export function OrganicHero({
               className="inline-flex items-center gap-2 bg-green-800 text-green-50 px-5 py-2 rounded-full mb-10 text-sm font-medium tracking-wide shadow-sm"
             >
               <Leaf size={14} fill="currentColor" />
-              100% ন্যাচারাল এবং অর্গানিক
+              {config.heroBadgeText || '100% ন্যাচারাল এবং অর্গানিক'}
             </motion.div>
 
             <h1 className="text-4xl lg:text-7xl font-bold text-green-950 mb-8 leading-[1.2] max-w-4xl tracking-tight">
@@ -71,14 +71,25 @@ export function OrganicHero({
               {/* Action Column */}
               <div className="text-left space-y-8 lg:order-2 order-1">
                 <div className="space-y-4">
-                  {['প্রাকৃতিক উপাদানে তৈরি', 'কোনো পার্শ্বপ্রতিক্রিয়া নেই', 'দ্রুত হোম ডেলিভারি'].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 text-green-900 font-medium">
-                      <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-800">
-                        <Check size={14} strokeWidth={3} />
+                  {config.heroFeatures && config.heroFeatures.length > 0 ? (
+                    config.heroFeatures.map((feature, i) => (
+                      <div key={i} className="flex items-center gap-3 text-green-900 font-medium">
+                        <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-800">
+                          {feature.icon ? feature.icon : <Check size={14} strokeWidth={3} />}
+                        </div>
+                        {feature.text}
                       </div>
-                      {item}
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    ['প্রাকৃতিক উপাদানে তৈরি', 'কোনো পার্শ্বপ্রতিক্রিয়া নেই', 'দ্রুত হোম ডেলিভারি'].map((item, i) => (
+                      <div key={i} className="flex items-center gap-3 text-green-900 font-medium">
+                        <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-800">
+                          <Check size={14} strokeWidth={3} />
+                        </div>
+                        {item}
+                      </div>
+                    ))
+                  )}
                 </div>
 
                 <div className="bg-white p-8 rounded-3xl border border-green-100 shadow-xl shadow-green-900/5">
@@ -91,7 +102,9 @@ export function OrganicHero({
                         <span className="text-lg text-red-500 line-through font-bold leading-none">
                           {formatPrice(product.compareAtPrice)}
                         </span>
-                        <span className="text-xs text-green-600 font-bold uppercase mt-1">Special Deal</span>
+                        <span className="text-xs text-green-600 font-bold uppercase mt-1">
+                          {config.heroPriceLabel || 'Special Deal'}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -101,7 +114,7 @@ export function OrganicHero({
                     className="flex items-center justify-center gap-3 w-full py-5 bg-green-800 text-white font-bold text-xl rounded-2xl transition-all hover:bg-green-700 hover:shadow-2xl hover:shadow-green-900/20 active:scale-95 shadow-xl shadow-green-900/10"
                   >
                     <ShoppingBag size={22} />
-                    অর্ডার করতে ক্লিক করুন
+                    {config.heroCtaText || 'অর্ডার করতে ক্লিক করুন'}
                   </a>
                 </div>
               </div>

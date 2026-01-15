@@ -28,11 +28,9 @@ export function ShowcaseOrderForm({
     address: '',
     division: 'dhaka' as DivisionValue,
     quantity: 1,
+    selectedVariant: config.productVariants?.[0] || null,
   });
 
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-    productVariants.length > 0 ? productVariants[0].id : null
-  );
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [selectedBumpIds, setSelectedBumpIds] = useState<number[]>([]);
@@ -40,13 +38,12 @@ export function ShowcaseOrderForm({
   const isSubmitting = fetcher.state === 'submitting';
   const isSuccess = fetcher.data?.success;
 
-  const selectedVariant = selectedVariantId 
-    ? productVariants.find(v => v.id === selectedVariantId)
-    : null;
-  
-  const effectivePrice = selectedVariant?.price ?? product.price;
-  const subtotal = effectivePrice * formData.quantity;
-  const shippingCost = calculateShipping(DEFAULT_SHIPPING_CONFIG, formData.division, subtotal).cost;
+  const subtotal = (formData.selectedVariant?.price || product.price) * formData.quantity;
+  const shippingCost = calculateShipping(
+    config.shippingConfig || DEFAULT_SHIPPING_CONFIG, 
+    formData.division, 
+    subtotal
+  ).cost;
   
   const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
     const bump = orderBumps.find(b => b.id === bumpId);
@@ -82,7 +79,7 @@ export function ShowcaseOrderForm({
     submitData.set('address', formData.address);
     submitData.set('division', formData.division);
     submitData.set('quantity', String(formData.quantity));
-    if (selectedVariantId) submitData.set('variant_id', String(selectedVariantId));
+    if (formData.selectedVariant) submitData.set('variant_name', formData.selectedVariant.name);
     if (selectedBumpIds.length > 0) submitData.set('bump_ids', JSON.stringify(selectedBumpIds));
     
     fetcher.submit(submitData, { method: 'POST', action: '/api/create-order' });
@@ -142,6 +139,54 @@ export function ShowcaseOrderForm({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex items-center justify-between bg-zinc-950/50 p-6 rounded-2xl border border-white/5 mb-4">
+                <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Select Quantity</span>
+                <div className="flex items-center gap-6">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                    className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 text-white font-bold flex items-center justify-center hover:border-rose-500 hover:text-rose-500 transition-all shadow-[0_4px_15px_rgba(0,0,0,0.3)]"
+                  >
+                    -
+                  </button>
+                  <span className="text-white text-3xl font-bold w-6 text-center tracking-tighter">{formData.quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                    className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 text-white font-bold flex items-center justify-center hover:border-rose-500 hover:text-rose-500 transition-all shadow-[0_4px_15px_rgba(0,0,0,0.3)]"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {config.productVariants && config.productVariants.length > 0 && (
+                <div className="bg-zinc-950/50 p-6 rounded-2xl border border-white/5 mb-4">
+                  <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest block mb-4">Version Selection</span>
+                  <div className="flex flex-wrap gap-2">
+                    {config.productVariants.map((variant) => (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, selectedVariant: variant })}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                          formData.selectedVariant?.id === variant.id
+                            ? 'bg-rose-600 text-white border-rose-600 shadow-[0_0_20px_rgba(244,63,94,0.3)]'
+                            : 'bg-zinc-900 text-zinc-500 border-white/10 hover:border-rose-500/30'
+                        }`}
+                      >
+                        {variant.name}
+                        {variant.price && variant.price !== product.price && (
+                          <span className="ml-2 opacity-50">
+                            ({formatPrice(variant.price)})
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 gap-4">
                 <input
                   type="text"
@@ -159,6 +204,32 @@ export function ShowcaseOrderForm({
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, division: 'dhaka'})}
+                    className={`py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all border ${
+                      formData.division === 'dhaka' 
+                        ? 'bg-rose-600 text-white border-rose-600 shadow-[0_0_30px_rgba(244,63,94,0.3)]' 
+                        : 'bg-zinc-950 text-zinc-500 border-white/10 hover:border-rose-500/30'
+                    }`}
+                  >
+                    Inside Dhaka
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, division: 'chittagong'})}
+                    className={`py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all border ${
+                      formData.division !== 'dhaka' 
+                        ? 'bg-rose-600 text-white border-rose-600 shadow-[0_0_30px_rgba(244,63,94,0.3)]' 
+                        : 'bg-zinc-950 text-zinc-500 border-white/10 hover:border-rose-500/30'
+                    }`}
+                  >
+                    Outside Dhaka
+                  </button>
+                </div>
+
                 <textarea
                   required
                   className="w-full bg-zinc-950 border border-white/5 rounded-2xl px-6 py-5 text-white font-bold focus:border-rose-500/50 outline-none transition-all placeholder:text-zinc-700 resize-none"

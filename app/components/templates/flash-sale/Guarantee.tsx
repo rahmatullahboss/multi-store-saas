@@ -19,7 +19,7 @@ export function FlashSaleGuarantee({ config }: SectionProps) {
             {guaranteeText}
           </h2>
           <div className="inline-block bg-black text-white px-8 py-4 rounded-full font-black uppercase italic tracking-widest text-xs shadow-2xl -rotate-1 border-2 border-white">
-            100% Secure & Reliable
+            {config.guaranteeBadgeLabel || '১০০% নিরাপদ ও নির্ভরযোগ্য'}
           </div>
         </div>
       </div>
