@@ -186,7 +186,25 @@ export const LANDING_SECTIONS = [
 
 
 // Default section order
-export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'showcase', 'pricing', 'how-to-order', 'problem-solution', 'cta'];
+export const DEFAULT_SECTION_ORDER = [
+  'hero',
+  'video',
+  'trust',
+  'problem-solution',
+  'features',
+  'benefits',
+  'showcase',
+  'comparison',
+  'gallery',
+  'social',
+  'testimonials',
+  'delivery',
+  'pricing',
+  'guarantee',
+  'how-to-order',
+  'cta', // Order Form
+  'faq',
+];
 
 // Types for section content
 export interface Feature {
@@ -304,6 +322,8 @@ interface SectionManagerProps {
   onShowcaseDataChange?: (data: ShowcaseData) => void;
   howToOrderData?: HowToOrderData;
   onHowToOrderDataChange?: (data: HowToOrderData) => void;
+  // Generic Image Upload
+  onImageUpload?: (file: File) => Promise<string>;
 }
 
 function SectionManagerBase({
@@ -363,6 +383,8 @@ function SectionManagerBase({
   // Problem & Solution
   problemSolution = { problems: [], solutions: [] },
   onProblemSolutionChange,
+  // Generic Image Upload
+  onImageUpload,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);

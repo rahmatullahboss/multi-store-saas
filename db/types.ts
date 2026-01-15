@@ -165,6 +165,26 @@ export interface LandingConfig {
   // Problem/Solution Section
   problems?: string[];
   solutions?: string[];
+  // Structured Problem & Solution
+  problemSolution?: {
+    problems: string[];
+    solutions: string[];
+  };
+  // Showcase Data
+  showcaseData?: {
+    features: string[];
+  };
+  // Pricing Data
+  pricingData?: {
+    features: string[];
+  };
+  // How To Order Data
+  howToOrderData?: {
+    steps: {
+      title: string;
+      description: string;
+    }[];
+  };
 }
 
 export interface LandingProductVariant {

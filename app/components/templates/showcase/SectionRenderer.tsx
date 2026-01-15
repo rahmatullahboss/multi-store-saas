@@ -15,7 +15,14 @@ import { ShowcaseComparison } from './Comparison';
 import { ShowcaseSocialProof } from './SocialProof';
 import { ShowcaseDeliveryInfo } from './DeliveryInfo';
 import { ShowcaseGuarantee } from './Guarantee';
+// New Components
+import { ShowcaseProblemSolution } from './ProblemSolution';
+import { ShowcaseHowToOrder } from './HowToOrder';
+import { ShowcaseShowcase } from './Showcase';
+import { ShowcasePricing } from './Pricing';
+
 import type { SectionProps } from '../_core/types';
+import { DEFAULT_SECTION_ORDER } from '../../landing-builder/SectionManager';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: ShowcaseHero,
@@ -32,23 +39,12 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   guarantee: ShowcaseGuarantee,
   'order-form': ShowcaseOrderForm,
   cta: ShowcaseOrderForm,
+  // New Sections
+  'problem-solution': ShowcaseProblemSolution,
+  showcase: ShowcaseShowcase,
+  pricing: ShowcasePricing,
+  'how-to-order': ShowcaseHowToOrder,
 };
-
-const DEFAULT_ORDER = [
-  'hero',
-  'trust',
-  'features',
-  'gallery',
-  'video',
-  'benefits',
-  'comparison',
-  'testimonials',
-  'social',
-  'delivery',
-  'faq',
-  'guarantee',
-  'order-form',
-];
 
 interface ShowcaseSectionRendererProps extends SectionProps {
   sectionOrder?: string[];
@@ -60,28 +56,18 @@ export function ShowcaseSectionRenderer({
   hiddenSections = [],
   ...props
 }: ShowcaseSectionRendererProps) {
-  const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_ORDER;
+  // Use global default order if no custom order is provided
+  const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER;
+
+  // Filter out hidden sections
   const visibleSections = order.filter(sectionId => !hiddenSections.includes(sectionId));
-
-  const finalSections = [...visibleSections];
-  
-  const heroIndex = finalSections.findIndex(id => id === 'hero');
-  if (heroIndex > 0) {
-    const heroSection = finalSections.splice(heroIndex, 1)[0];
-    finalSections.unshift(heroSection);
-  }
-
-  const ctaIndex = finalSections.findIndex(id => id === 'cta' || id === 'order-form');
-  if (ctaIndex !== -1 && ctaIndex !== finalSections.length - 1) {
-    const ctaSection = finalSections.splice(ctaIndex, 1)[0];
-    finalSections.push(ctaSection);
-  }
 
   return (
     <>
-      {finalSections.map((sectionId) => {
+      {visibleSections.map((sectionId) => {
         const Component = SECTION_COMPONENTS[sectionId];
         if (!Component) return null;
+
         return <Component key={sectionId} {...props} />;
       })}
     </>

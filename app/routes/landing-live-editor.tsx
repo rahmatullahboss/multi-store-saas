@@ -601,6 +601,43 @@ export default function LiveEditorPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
 
+  // Generic Image Upload Handler (for new sections)
+  const handleImageUpload = useCallback(async (file: File): Promise<string> => {
+    try {
+      // 1. Client-side compression
+      const compressedFile = await compressImage(file, {
+        maxWidth: 1200,
+        quality: 0.8,
+        format: 'webp' // Convert to WebP for better performance
+      });
+
+      // 2. Upload to R2 via API
+      const formData = new FormData();
+      formData.append('image', compressedFile);
+      
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json<{ success: boolean; url: string; error?: string }>();
+      
+      if (!data.success || !data.url) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      return data.url;
+    } catch (error) {
+      console.error('Image upload error:', error);
+      // Fallback: return object URL if upload fails (for offline testing) or throw
+      throw error;
+    }
+  }, []);
+
   // ============================================================================
   // AI GENERATOR MODAL STATE
   // ============================================================================
@@ -811,7 +848,7 @@ export default function LiveEditorPage() {
     }
     setHasChanges(true);
     setHasUnpublishedChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, problemSolution, pricingData, showcaseData, howToOrderData]);
 
   // Auto-populate data when product changes
   useEffect(() => {
@@ -912,6 +949,11 @@ export default function LiveEditorPage() {
       formData.append('trustBadges', JSON.stringify(trustBadges));
       formData.append('deliveryInfo', JSON.stringify(deliveryInfo));
       formData.append('customSections', JSON.stringify(customSections));
+      // Problem-Solution, Pricing, Showcase, HowToOrder section data
+      formData.append('problemSolution', JSON.stringify(problemSolution));
+      formData.append('pricingData', JSON.stringify(pricingData));
+      formData.append('showcaseData', JSON.stringify(showcaseData));
+      formData.append('howToOrderData', JSON.stringify(howToOrderData));
       // Custom code injection
       formData.append('customHeadCode', customHeadCode);
       formData.append('customBodyCode', customBodyCode);
@@ -924,7 +966,7 @@ export default function LiveEditorPage() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, trustBadges, deliveryInfo, customSections, customHeadCode, customBodyCode, autoSaveFetcher]);
+  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, trustBadges, deliveryInfo, customSections, customHeadCode, customBodyCode, problemSolution, pricingData, showcaseData, howToOrderData, autoSaveFetcher]);
 
   // Handle auto-save response
   useEffect(() => {
@@ -1716,6 +1758,8 @@ export default function LiveEditorPage() {
               onShowcaseDataChange={setShowcaseData}
               howToOrderData={howToOrderData}
               onHowToOrderDataChange={setHowToOrderData}
+              // Generic Image Upload
+              onImageUpload={handleImageUpload}
             />
           </AccordionSection>
 

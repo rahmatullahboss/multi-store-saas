@@ -17,7 +17,14 @@ import { FlashSaleComparison } from './Comparison';
 import { FlashSaleSocialProof } from './SocialProof';
 import { FlashSaleDeliveryInfo } from './DeliveryInfo';
 import { FlashSaleGuarantee } from './Guarantee';
+// New Components
+import { FlashSaleProblemSolution } from './ProblemSolution';
+import { FlashSaleHowToOrder } from './HowToOrder';
+import { FlashSaleShowcase } from './Showcase';
+import { FlashSalePricing } from './Pricing';
+
 import type { SectionProps } from '../_core/types';
+import { DEFAULT_SECTION_ORDER } from '../../landing-builder/SectionManager';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: FlashSaleHero,
@@ -34,23 +41,12 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   guarantee: FlashSaleGuarantee,
   'order-form': FlashSaleOrderForm,
   cta: FlashSaleOrderForm,
+  // New Sections
+  'problem-solution': FlashSaleProblemSolution,
+  showcase: FlashSaleShowcase,
+  pricing: FlashSalePricing,
+  'how-to-order': FlashSaleHowToOrder,
 };
-
-const DEFAULT_ORDER = [
-  'hero',
-  'trust',
-  'features',
-  'gallery',
-  'video',
-  'benefits',
-  'comparison',
-  'testimonials',
-  'social',
-  'delivery',
-  'faq',
-  'guarantee',
-  'order-form',
-];
 
 interface FlashSaleSectionRendererProps extends SectionProps {
   sectionOrder?: string[];
@@ -62,29 +58,15 @@ export function FlashSaleSectionRenderer({
   hiddenSections = [],
   ...props
 }: FlashSaleSectionRendererProps) {
-  const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_ORDER;
+  // Use global default order if no custom order is provided
+  const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER;
 
   // Filter out hidden sections
   const visibleSections = order.filter(sectionId => !hiddenSections.includes(sectionId));
 
-  // Force Hero at top, Order Form at bottom
-  const finalSections = [...visibleSections];
-  
-  const heroIndex = finalSections.findIndex(id => id === 'hero');
-  if (heroIndex > 0) {
-    const heroSection = finalSections.splice(heroIndex, 1)[0];
-    finalSections.unshift(heroSection);
-  }
-
-  const ctaIndex = finalSections.findIndex(id => id === 'cta' || id === 'order-form');
-  if (ctaIndex !== -1 && ctaIndex !== finalSections.length - 1) {
-    const ctaSection = finalSections.splice(ctaIndex, 1)[0];
-    finalSections.push(ctaSection);
-  }
-
   return (
     <>
-      {finalSections.map((sectionId) => {
+      {visibleSections.map((sectionId) => {
         const Component = SECTION_COMPONENTS[sectionId];
         if (!Component) return null;
 

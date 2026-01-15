@@ -419,3 +419,31 @@ Check existing templates for patterns:
 - `luxe/` - Luxury gold theme
 - `modern-dark/` - Dark gradient theme
 - `minimal-light/` - Clean light theme
+
+---
+
+## 📚 Available Sections (Section Manager)
+
+Total Sections: **16**
+
+The following sections are available in the Quick Builder's `SectionManager`:
+
+| ID | Name (BN) | Name (EN) | Description (BN) | Icon |
+|Keys: **bold** | ----------------- | ------------------- | ---------------------------- | -------------- |
+| `hero` | হেডার | Header | প্রথমে যা দেখা যাবে | Type |
+| `video` | ভিডিও | Video | প্রোডাক্ট ভিডিও/ডেমো | Video |
+| `trust` | বিশ্বাসযোগ্যতা | Trust Badges | গ্যারান্টি ও নিরাপত্তা | ShieldCheck |
+| `problem-solution`| সমস্যা ও সমাধান | Problem Solution | সমস্যা এবং সমাধান তুলে ধরুন | AlertCircle |
+| `features` | বৈশিষ্ট্য | Features | প্রোডাক্টের সুবিধাসমূহ | Star |
+| `benefits` | কেন কিনবেন | Why Buy Us | কেন আমাদের থেকে কিনবেন | CheckCircle |
+| `showcase` | প্রোডাক্ট ডিটেইলস | Product Details | প্রোডাক্টের বিস্তারিত বর্ণনা | Box |
+| `comparison` | তুলনা | Comparison | আগে/পরে বা প্রতিযোগী তুলনা | Layers |
+| `gallery` | ফটো গ্যালারি | Photo Gallery | প্রোডাক্ট ইমেজ গ্যালারি | Image |
+| `social` | সোশ্যাল প্রুফ | Social Proof | অর্ডার/ভিজিটর সংখ্যা | Users |
+| `testimonials` | টেস্টিমোনিয়াল | Testimonials | কাস্টমার রিভিউ | MessageSquare |
+| `delivery` | ডেলিভারি | Delivery Info | শিপিং ও ডেলিভারি তথ্য | Truck |
+| `pricing` | প্রাইসিং | Pricing | প্রাইসিং প্ল্যান এবং ফিচার | Tag |
+| `guarantee` | গ্যারান্টি | Guarantee | রিটার্ন ও রিফান্ড পলিসি | ShieldCheck |
+| `how-to-order` | অর্ডার প্রক্রিয়া | How to Order | অর্ডার করার নিয়মাবলী | ListOrdered |
+| `cta` | অর্ডার ফর্ম | Order Form | যেখানে কাস্টমার অর্ডার করবে | ShoppingCart |
+| `faq` | FAQ | FAQ | সচরাচর জিজ্ঞাসা | HelpCircle |

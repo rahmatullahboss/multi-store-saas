@@ -15,7 +15,14 @@ import { VideoFocusComparison } from './Comparison';
 import { VideoFocusSocialProof } from './SocialProof';
 import { VideoFocusDeliveryInfo } from './DeliveryInfo';
 import { VideoFocusGuarantee } from './Guarantee';
+// New Components
+import { VideoFocusProblemSolution } from './ProblemSolution';
+import { VideoFocusHowToOrder } from './HowToOrder';
+import { VideoFocusShowcase } from './Showcase';
+import { VideoFocusPricing } from './Pricing';
+
 import type { SectionProps } from '../_core/types';
+import { DEFAULT_SECTION_ORDER } from '../../landing-builder/SectionManager';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: VideoFocusHero,
@@ -32,23 +39,12 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   guarantee: VideoFocusGuarantee,
   'order-form': VideoFocusOrderForm,
   cta: VideoFocusOrderForm,
+  // New Sections
+  'problem-solution': VideoFocusProblemSolution,
+  showcase: VideoFocusShowcase,
+  pricing: VideoFocusPricing,
+  'how-to-order': VideoFocusHowToOrder,
 };
-
-const DEFAULT_ORDER = [
-  'hero',
-  'trust',
-  'features',
-  'gallery',
-  'video',
-  'benefits',
-  'comparison',
-  'testimonials',
-  'social',
-  'delivery',
-  'faq',
-  'guarantee',
-  'order-form',
-];
 
 interface VideoFocusSectionRendererProps extends SectionProps {
   sectionOrder?: string[];
@@ -60,28 +56,18 @@ export function VideoFocusSectionRenderer({
   hiddenSections = [],
   ...props
 }: VideoFocusSectionRendererProps) {
-  const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_ORDER;
+  // Use global default order if no custom order is provided
+  const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER;
+
+  // Filter out hidden sections
   const visibleSections = order.filter(sectionId => !hiddenSections.includes(sectionId));
-
-  const finalSections = [...visibleSections];
-  
-  const heroIndex = finalSections.findIndex(id => id === 'hero');
-  if (heroIndex > 0) {
-    const heroSection = finalSections.splice(heroIndex, 1)[0];
-    finalSections.unshift(heroSection);
-  }
-
-  const ctaIndex = finalSections.findIndex(id => id === 'cta' || id === 'order-form');
-  if (ctaIndex !== -1 && ctaIndex !== finalSections.length - 1) {
-    const ctaSection = finalSections.splice(ctaIndex, 1)[0];
-    finalSections.push(ctaSection);
-  }
 
   return (
     <>
-      {finalSections.map((sectionId) => {
+      {visibleSections.map((sectionId) => {
         const Component = SECTION_COMPONENTS[sectionId];
         if (!Component) return null;
+
         return <Component key={sectionId} {...props} />;
       })}
     </>
