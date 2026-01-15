@@ -224,3 +224,10 @@
 - [x] **Centralized Core Types**: Shared interfaces and helper functions moved to `_core/types.ts` for clean reusability.
 - [x] **Dispatcher Architecture**: Refactored `LandingPageTemplate` into a lightweight dispatcher to maintain backward compatibility while maximizing performance.
 - [x] **Registry Optimization**: Updated `registry.ts` and `store-registry.ts` to utilize the new modular structure.
+
+### Phase 25: Advanced Builder Operations & Analytics (Completed) 📊
+
+- [x] **Landing Page Version History**: Automated snapshots on publish with one-click restoration in the Live Editor.
+- [x] **Template Performance Tracking**: Dynamic tracking of page views, unique visitors, orders, and revenue attributed to specific landing page templates.
+- [x] **Advanced Conversion Analytics**: Dedicated dashboard showing real-time conversion rates and ROI for comparison across different marketing designs.
+- [x] **SEO & Schema Automation**: Automatic JSON-LD Schema markup and meta-tag optimization integrated into the builder.
