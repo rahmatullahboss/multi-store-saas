@@ -20,7 +20,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, AlertCircle, Code
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, AlertCircle, Code, History
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
@@ -34,7 +34,8 @@ import {
   DEFAULT_SECTION_ORDER,
   LANDING_TEMPLATES,
   mergeSectionOrder,
-  SEOPanel 
+  SEOPanel,
+  VersionHistory 
 } from '~/components/landing-builder';
 import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
 import { Search } from 'lucide-react';
@@ -466,7 +467,7 @@ function AccordionSection({
 // MAIN COMPONENT
 // ============================================================================
 export default function LiveEditorPage() {
-  const { store, products: storeProducts, saasDomain } = useLoaderData<typeof loader>();
+  const { store, products: storeProducts, saasDomain, versions } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { lang: language } = useTranslation();
@@ -2178,6 +2179,19 @@ export default function LiveEditorPage() {
               onSeoTitleChange={setSeoTitle}
               onSeoDescriptionChange={setSeoDescription}
               onOgImageChange={setOgImage}
+            />
+          </AccordionSection>
+
+          {/* Version History Section */}
+          <AccordionSection
+            title={language === 'bn' ? 'ভার্সন হিস্ট্রি' : 'Version History'}
+            icon={History}
+            isOpen={openSection === 'versions'}
+            onToggle={() => setOpenSection(openSection === 'versions' ? '' : 'versions')}
+          >
+            <VersionHistory
+              versions={versions}
+              language={language}
             />
           </AccordionSection>
         </aside>
