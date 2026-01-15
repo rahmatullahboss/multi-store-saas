@@ -38,6 +38,7 @@ export interface TemplateProps {
   selectedSection?: string | null;  // Currently selected section for highlighting in editor
   manualPaymentConfig?: ManualPaymentConfig | null; // For checkout
   onConfigChange?: (newConfig: LandingConfig) => void;
+  landingPageId?: number; // For Analytics Attribution
   // Product variants for variant selection in order forms
   productVariants?: Array<{
     id: number;

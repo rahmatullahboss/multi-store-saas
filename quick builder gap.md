@@ -11,13 +11,14 @@
 | Version History DB  | ✅     | `6648bc0` |
 | Version History UI  | ✅     | `2604a2c` |
 | Template Analytics  | ✅     | `53fe461` |
+| Multi-page Landing  | ✅     | `latest`  |
+
 
 ---
 
 ## 🔶 Optional Improvements
 
 - **Analytics Dashboard** - UI to view template conversion stats
-- **Multi-page Landing** - Multiple landing pages per store
 - **A/B Testing UI** - UI for existing A/B test tables
 - **Templates in DB** - Store template metadata in database
 

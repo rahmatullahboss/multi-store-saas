@@ -231,3 +231,11 @@
 - [x] **Template Performance Tracking**: Dynamic tracking of page views, unique visitors, orders, and revenue attributed to specific landing page templates.
 - [x] **Advanced Conversion Analytics**: Dedicated dashboard showing real-time conversion rates and ROI for comparison across different marketing designs.
 - [x] **SEO & Schema Automation**: Automatic JSON-LD Schema markup and meta-tag optimization integrated into the builder.
+
+### Phase 26: E-commerce Core Upgrade (Completed) 🛍️
+
+- [x] **Relational Collections System**: Upgraded from simple string categories to a robust relational database model (`collections` & `product_collections` tables).
+- [x] **Multi-Page Landing Architecture**: Enabled creation of unlimited, distinct landing pages (`/p/[slug]`) separate from the main store homepage.
+- [x] **Campaign Attribution**: Implemented full order tracking linking specific campaign pages to orders and revenue metrics.
+- [x] **Hybrid Rendering Engine**: Seamless integration of React-based templates and GrapesJS builder for maximum flexibility.
+

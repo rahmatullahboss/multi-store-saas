@@ -13,6 +13,7 @@ export function MobileFirstOrderForm({
   theme,
   productVariants = [],
   orderBumps = [],
+  landingPageId,
 }: SectionProps) {
   const fetcher = useFetcher<{
     success: boolean;
@@ -40,21 +41,21 @@ export function MobileFirstOrderForm({
 
   const subtotal = (formData.selectedVariant?.price || product.price) * formData.quantity;
   const shippingCost = calculateShipping(
-    config.shippingConfig || DEFAULT_SHIPPING_CONFIG, 
-    formData.division, 
+    config.shippingConfig || DEFAULT_SHIPPING_CONFIG,
+    formData.division,
     subtotal
   ).cost;
-  
+
   const bumpTotal = selectedBumpIds.reduce((total, bumpId) => {
     const bump = orderBumps.find(b => b.id === bumpId);
     if (!bump) return total;
     const originalPrice = bump.bumpProduct.price;
-    const discountedPrice = bump.discount > 0 
-      ? originalPrice * (1 - bump.discount / 100) 
+    const discountedPrice = bump.discount > 0
+      ? originalPrice * (1 - bump.discount / 100)
       : originalPrice;
     return total + discountedPrice;
   }, 0);
-  
+
   const totalPrice = subtotal + bumpTotal + shippingCost;
 
   const validateForm = (): boolean => {
@@ -70,7 +71,7 @@ export function MobileFirstOrderForm({
     e.preventDefault();
     if (isPreview || !storeId) return;
     if (!validateForm()) return;
-    
+
     const submitData = new FormData();
     submitData.set('store_id', String(storeId));
     submitData.set('product_id', String(product.id));
@@ -81,7 +82,8 @@ export function MobileFirstOrderForm({
     submitData.set('quantity', String(formData.quantity));
     if (formData.selectedVariant) submitData.set('variant_name', formData.selectedVariant.name);
     if (selectedBumpIds.length > 0) submitData.set('bump_ids', JSON.stringify(selectedBumpIds));
-    
+    if (landingPageId) submitData.set('landing_page_id', String(landingPageId));
+
     fetcher.submit(submitData, { method: 'POST', action: '/api/create-order' });
   };
 
@@ -115,7 +117,7 @@ export function MobileFirstOrderForm({
       <div className="max-w-xl mx-auto">
         <div className="bg-indigo-50 rounded-[2.5rem] border border-indigo-50 p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 blur-[40px] pointer-events-none" />
-          
+
           <div className="space-y-8 relative z-10">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-10 bg-indigo-600 rounded-full" />
@@ -123,14 +125,14 @@ export function MobileFirstOrderForm({
                 অর্ডার করতে <br /><span className="text-indigo-600">নিচের ফর্মটি পূরণ করুন</span>
               </h2>
             </div>
-            
+
             <div className="bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm space-y-4">
               <div className="flex justify-between items-center bg-indigo-50/50 p-4 rounded-2xl mb-2">
                 <span className="text-gray-500 font-bold text-xs uppercase tracking-widest">পরিমাণ</span>
                 <div className="flex items-center gap-6">
                   <button
                     type="button"
-                    onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                    onClick={() => setFormData({ ...formData, quantity: Math.max(1, formData.quantity - 1) })}
                     className="w-10 h-10 rounded-xl bg-white border border-indigo-100 text-indigo-600 font-bold flex items-center justify-center active:scale-90 transition-transform"
                   >
                     -
@@ -138,7 +140,7 @@ export function MobileFirstOrderForm({
                   <span className="text-gray-950 text-xl font-black w-4 text-center">{formData.quantity}</span>
                   <button
                     type="button"
-                    onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                    onClick={() => setFormData({ ...formData, quantity: formData.quantity + 1 })}
                     className="w-10 h-10 rounded-xl bg-white border border-indigo-100 text-indigo-600 font-bold flex items-center justify-center active:scale-90 transition-transform"
                   >
                     +
@@ -155,16 +157,15 @@ export function MobileFirstOrderForm({
                         key={variant.id}
                         type="button"
                         onClick={() => setFormData({ ...formData, selectedVariant: variant })}
-                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all border ${
-                          formData.selectedVariant?.id === variant.id
+                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all border ${formData.selectedVariant?.id === variant.id
                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                             : 'bg-white text-gray-400 border-indigo-50 hover:border-indigo-100'
-                        }`}
+                          }`}
                       >
                         {variant.name}
                         {variant.price && variant.price !== product.price && (
                           <span className="ml-1 opacity-60 text-[10px]">
-                             • {formatPrice(variant.price)}
+                            • {formatPrice(variant.price)}
                           </span>
                         )}
                       </button>
@@ -189,7 +190,7 @@ export function MobileFirstOrderForm({
                 className="w-full bg-white border-2 border-indigo-50 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-indigo-500 outline-none transition-all placeholder:text-gray-300"
                 placeholder="আপনার নাম"
                 value={formData.customer_name}
-                onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
               />
               <input
                 type="tel"
@@ -197,29 +198,27 @@ export function MobileFirstOrderForm({
                 className="w-full bg-white border-2 border-indigo-50 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-indigo-500 outline-none transition-all placeholder:text-gray-300"
                 placeholder="ফোন নম্বর"
                 value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
 
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, division: 'dhaka'})}
-                  className={`py-4 rounded-2xl font-black text-xs transition-all border-2 ${
-                    formData.division === 'dhaka' 
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' 
+                  onClick={() => setFormData({ ...formData, division: 'dhaka' })}
+                  className={`py-4 rounded-2xl font-black text-xs transition-all border-2 ${formData.division === 'dhaka'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
                       : 'bg-white text-gray-400 border-indigo-50 hover:border-indigo-200'
-                  }`}
+                    }`}
                 >
                   ঢাকার ভেতরে
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, division: 'chittagong'})}
-                  className={`py-4 rounded-2xl font-black text-xs transition-all border-2 ${
-                    formData.division !== 'dhaka' 
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' 
+                  onClick={() => setFormData({ ...formData, division: 'chittagong' })}
+                  className={`py-4 rounded-2xl font-black text-xs transition-all border-2 ${formData.division !== 'dhaka'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
                       : 'bg-white text-gray-400 border-indigo-50 hover:border-indigo-200'
-                  }`}
+                    }`}
                 >
                   ঢাকার বাইরে
                 </button>
@@ -231,9 +230,9 @@ export function MobileFirstOrderForm({
                 placeholder="পূর্ণ ঠিকানা"
                 rows={3}
                 value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               />
-              
+
               <button
                 type="submit"
                 disabled={isSubmitting}

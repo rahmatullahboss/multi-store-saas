@@ -5,21 +5,21 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql } from 'drizzle-orm';
 import { stores, templateAnalytics } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Cell,
   Legend
 } from 'recharts';
-import { 
-  TrendingUp, 
-  ShoppingCart, 
-  Eye, 
+import {
+  TrendingUp,
+  ShoppingCart,
+  Eye,
   DollarSign,
   ArrowLeft,
   Layout,
@@ -50,7 +50,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
-  
+
   const currency = storeData[0]?.currency || 'BDT';
 
   // Fetch all template analytics for this store
@@ -70,7 +70,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return {
       ...item,
       name: registryInfo?.name || item.templateId,
-      thumbnail: registryInfo?.thumbnail || '',
+      thumbnail: registryInfo?.preview || '',
       category: registryInfo?.category || 'General',
       conversionRate: parseFloat(convRate.toFixed(2)),
       revenue: item.revenueGenerated || 0,
@@ -128,8 +128,8 @@ export default function TemplateAnalyticsPage() {
       {/* Breadcrumbs & Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <Link 
-            to="/app/analytics" 
+          <Link
+            to="/app/analytics"
             className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2 group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -185,16 +185,16 @@ export default function TemplateAnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis 
-                    dataKey="name" 
-                    angle={-45} 
-                    textAnchor="end" 
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
                     interval={0}
                     height={80}
                     tick={{ fontSize: 12, fill: '#64748b' }}
                   />
                   <YAxis tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `${val}%`} />
-                  <Tooltip 
+                  <Tooltip
                     cursor={{ fill: 'rgba(243, 244, 246, 0.5)' }}
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
                   />
@@ -262,11 +262,10 @@ export default function TemplateAnalyticsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-2 w-20 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              item.conversionRate > 5 ? 'bg-emerald-500' : 
-                              item.conversionRate > 2 ? 'bg-blue-500' : 'bg-amber-500'
-                            }`}
+                          <div
+                            className={`h-full rounded-full ${item.conversionRate > 5 ? 'bg-emerald-500' :
+                                item.conversionRate > 2 ? 'bg-blue-500' : 'bg-amber-500'
+                              }`}
                             style={{ width: `${Math.min(item.conversionRate * 10, 100)}%` }}
                           />
                         </div>

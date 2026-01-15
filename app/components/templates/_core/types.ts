@@ -53,6 +53,7 @@ export interface SectionProps {
   storeId?: number | string;
   planType?: string;
   formatPrice: (price: number) => string;
+  landingPageId?: number; // For Analytics Attribution
 }
 
 // Helper to customize theme with user-selected colors

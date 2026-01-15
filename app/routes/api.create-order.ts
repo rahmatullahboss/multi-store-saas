@@ -60,6 +60,7 @@ const OrderSchema = z.object({
     method: z.string().optional(),
   }).optional(),
   bump_ids: z.array(z.number().int().positive()).optional(), // Order bump product IDs
+  landing_page_id: z.number().int().optional(), // Campaign Page ID for attribution
 });
 
 type OrderInput = z.infer<typeof OrderSchema>;
@@ -88,7 +89,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Parse request body - handle both JSON and FormData
     let body: Record<string, unknown>;
     const contentType = request.headers.get('Content-Type') || '';
-    
+
     if (contentType.includes('application/json')) {
       body = await request.json();
     } else {
@@ -97,7 +98,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       body = {};
       for (const [key, value] of formData.entries()) {
         // Parse numbers for numeric fields
-        if (['store_id', 'product_id', 'quantity', 'variant_id'].includes(key)) {
+        if (['store_id', 'product_id', 'quantity', 'variant_id', 'landing_page_id'].includes(key)) {
           body[key] = parseInt(value as string, 10);
         } else if (key === 'bump_ids') {
           try {
@@ -120,28 +121,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const ExtendedOrderSchema = OrderSchema.extend({
       // Optional now because we might have cart_items
-      product_id: z.number().int().positive().optional(), 
+      product_id: z.number().int().positive().optional(),
       quantity: z.number().int().min(1).max(99).default(1),
-      
+
       cart_items: z.array(CartItemSchema).optional(),
     }).refine(data => {
-        // Either product_id (single) OR cart_items (multi) must be present
-        return data.product_id || (data.cart_items && data.cart_items.length > 0);
+      // Either product_id (single) OR cart_items (multi) must be present
+      return data.product_id || (data.cart_items && data.cart_items.length > 0);
     }, {
-        message: "Either product_id or cart_items must be provided",
-        path: ["product_id"] // Attach error to product_id
+      message: "Either product_id or cart_items must be provided",
+      path: ["product_id"] // Attach error to product_id
     });
-    
+
     // Validate input
     const parseResult = ExtendedOrderSchema.safeParse(body);
-    
+
     if (!parseResult.success) {
       const errors = parseResult.error.flatten();
       return json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'ভ্যালিডেশন ব্যর্থ',
-          details: errors.fieldErrors 
+          details: errors.fieldErrors
         },
         { status: 400 }
       );
@@ -151,19 +152,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Normalize input to a list of items
     let orderItemsData: { productId: number; quantity: number; variantId?: number }[] = [];
-    
+
     if (input.cart_items && input.cart_items.length > 0) {
-        orderItemsData = input.cart_items.map(item => ({
-            productId: item.product_id,
-            quantity: item.quantity,
-            variantId: item.variant_id
-        }));
+      orderItemsData = input.cart_items.map(item => ({
+        productId: item.product_id,
+        quantity: item.quantity,
+        variantId: item.variant_id
+      }));
     } else if (input.product_id) {
-        orderItemsData = [{
-            productId: input.product_id,
-            quantity: input.quantity,
-            variantId: input.variant_id
-        }];
+      orderItemsData = [{
+        productId: input.product_id,
+        quantity: input.quantity,
+        variantId: input.variant_id
+      }];
     }
 
     // Verify store exists and is active
@@ -186,7 +187,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // PLAN LIMIT CHECK - Block orders if monthly limit reached
     // ========================================================================
     const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, input.store_id, 'order');
-    
+
     if (!limitCheck.allowed) {
       return json(
         {
@@ -205,62 +206,62 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ========================================================================
     const productIds = orderItemsData.map(i => i.productId);
     const dbProducts = await db.select().from(products)
-        .where(and(eq(products.storeId, input.store_id), inArray(products.id, productIds)));
-    
+      .where(and(eq(products.storeId, input.store_id), inArray(products.id, productIds)));
+
     // Fetch variants if involved
     const variantIds = orderItemsData.map(i => i.variantId).filter(Boolean) as number[];
     let dbVariants: any[] = [];
     if (variantIds.length > 0) {
-        dbVariants = await db.select().from(productVariants)
-            .where(inArray(productVariants.id, variantIds));
+      dbVariants = await db.select().from(productVariants)
+        .where(inArray(productVariants.id, variantIds));
     }
 
     let subtotal = 0;
     const finalOrderItems = [];
 
     for (const item of orderItemsData) {
-        const product = dbProducts.find(p => p.id === item.productId);
-        if (!product || !product.isPublished) {
-             return json({ success: false, error: `Product ID ${item.productId} not found or unavailable` }, { status: 400 });
+      const product = dbProducts.find(p => p.id === item.productId);
+      if (!product || !product.isPublished) {
+        return json({ success: false, error: `Product ID ${item.productId} not found or unavailable` }, { status: 400 });
+      }
+
+      let unitPrice = product.price;
+      let variantInfo = null;
+      let currentStock = product.inventory || 0;
+      let isVariantStock = false;
+      let variantIdToUpdate = null;
+
+      if (item.variantId) {
+        const variant = dbVariants.find(v => v.id === item.variantId);
+        if (variant) {
+          unitPrice = variant.price || unitPrice;
+          currentStock = variant.inventory || 0;
+          variantInfo = [variant.option1Value, variant.option2Value].filter(Boolean).join(' - ');
+          variantIdToUpdate = variant.id;
+          isVariantStock = true;
         }
+      }
 
-        let unitPrice = product.price;
-        let variantInfo = null;
-        let currentStock = product.inventory || 0;
-        let isVariantStock = false;
-        let variantIdToUpdate = null;
+      // Check Stock
+      if (currentStock < item.quantity) {
+        return json({ success: false, error: `Stock unavailable for ${product.title}` }, { status: 400 });
+      }
 
-        if (item.variantId) {
-            const variant = dbVariants.find(v => v.id === item.variantId);
-            if (variant) {
-                unitPrice = variant.price || unitPrice;
-                currentStock = variant.inventory || 0;
-                variantInfo = [variant.option1Value, variant.option2Value].filter(Boolean).join(' - ');
-                variantIdToUpdate = variant.id;
-                isVariantStock = true;
-            }
-        }
+      // Add to list for atomic update later (or do optimistic check here)
+      finalOrderItems.push({
+        ...item,
+        title: variantInfo ? `${product.title} (${variantInfo})` : product.title,
+        variantTitle: variantInfo,
+        unitPrice,
+        total: unitPrice * item.quantity,
+        isVariantStock,
+        variantIdToUpdate,
+        product // keep ref
+      });
 
-        // Check Stock
-        if (currentStock < item.quantity) {
-             return json({ success: false, error: `Stock unavailable for ${product.title}` }, { status: 400 });
-        }
-
-        // Add to list for atomic update later (or do optimistic check here)
-        finalOrderItems.push({
-            ...item,
-            title: variantInfo ? `${product.title} (${variantInfo})` : product.title,
-            variantTitle: variantInfo,
-            unitPrice,
-            total: unitPrice * item.quantity,
-            isVariantStock,
-            variantIdToUpdate,
-            product // keep ref
-        });
-
-        subtotal += unitPrice * item.quantity;
+      subtotal += unitPrice * item.quantity;
     }
-    
+
     // Handle Order Bumps (Only support bumps for the "first" main product logic or general logic?)
     // Decision: Supports bumps only relative to the PRIMARY product if single, or just add them.
     // Logic: Bumps are separate items.
@@ -272,10 +273,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       discountedPrice: number;
     }
     const bumpItems: BumpItem[] = [];
-    
+
     if (input.bump_ids && input.bump_ids.length > 0) {
-       // Fetch active bumps based on IDs (we trust IDs belong to store)
-       // We only validate store_id
+      // Fetch active bumps based on IDs (we trust IDs belong to store)
+      // We only validate store_id
       const activeBumps = await db
         .select({
           id: orderBumps.id,
@@ -291,18 +292,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
             inArray(orderBumps.id, input.bump_ids)
           )
         );
-      
+
       if (activeBumps.length > 0) {
         const bumpProductIds = activeBumps.map(b => b.bumpProductId);
-        const bumpProducts = await db.select({id: products.id, title: products.title, price: products.price})
+        const bumpProducts = await db.select({ id: products.id, title: products.title, price: products.price })
           .from(products).where(and(eq(products.storeId, input.store_id), inArray(products.id, bumpProductIds)));
-        
+
         for (const bump of activeBumps) {
           const bumpProduct = bumpProducts.find(p => p.id === bump.bumpProductId);
           if (bumpProduct) {
             const discountValue = bump.discount ?? 0;
             const discountedPrice = discountValue > 0 ? bumpProduct.price * (1 - discountValue / 100) : bumpProduct.price;
-            
+
             bumpItems.push({
               bumpId: bump.id,
               productId: bumpProduct.id,
@@ -313,22 +314,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
             subtotal += discountedPrice;
           }
         }
-        
+
         // Update stats
         context.cloudflare.ctx.waitUntil(
-            Promise.all(input.bump_ids!.map(bumpId => 
-              context.cloudflare.env.DB.prepare('UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?').bind(bumpId).run()
-            )).catch(e => console.error('Failed to update bump conversions:', e))
+          Promise.all(input.bump_ids!.map(bumpId =>
+            context.cloudflare.env.DB.prepare('UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?').bind(bumpId).run()
+          )).catch(e => console.error('Failed to update bump conversions:', e))
         );
       }
     }
-    
+
     // Calculate shipping
     const shippingConfig = parseShippingConfig(storeData.shippingConfig as string | null);
     const shippingResult = calculateShipping(shippingConfig, input.division, subtotal);
     const shipping = shippingResult.cost;
     const tax = 0;
-    
+
     const total = subtotal + tax + shipping;
 
     // Generate order number
@@ -342,41 +343,41 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // We need to loop and update. If any fails, we must rollback previous ones.
     // Since D1 doesn't have full ACID transactions across multiple calls easily without batch,
     // we will optimistic-update and rollback if needed.
-    
+
     const inventoryRollbacks: { type: 'product' | 'variant', id: number, qty: number }[] = [];
-    
+
     try {
-        for (const item of finalOrderItems) {
-            let res;
-            if (item.isVariantStock && item.variantIdToUpdate) {
-                res = await db.update(productVariants)
-                    .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
-                    .where(and(eq(productVariants.id, item.variantIdToUpdate), gte(productVariants.inventory, item.quantity)))
-                    .returning({ id: productVariants.id });
-                if (res.length > 0) inventoryRollbacks.push({ type: 'variant', id: item.variantIdToUpdate, qty: item.quantity });
-            } else {
-                res = await db.update(products)
-                    .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
-                    .where(and(eq(products.id, item.product.id), gte(products.inventory, item.quantity)))
-                    .returning({ id: products.id });
-                if (res.length > 0) inventoryRollbacks.push({ type: 'product', id: item.product.id, qty: item.quantity });
-            }
-            
-            if (res.length === 0) {
-                throw new Error(`Stock unavailable for ${item.title}`);
-            }
+      for (const item of finalOrderItems) {
+        let res;
+        if (item.isVariantStock && item.variantIdToUpdate) {
+          res = await db.update(productVariants)
+            .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
+            .where(and(eq(productVariants.id, item.variantIdToUpdate), gte(productVariants.inventory, item.quantity)))
+            .returning({ id: productVariants.id });
+          if (res.length > 0) inventoryRollbacks.push({ type: 'variant', id: item.variantIdToUpdate, qty: item.quantity });
+        } else {
+          res = await db.update(products)
+            .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
+            .where(and(eq(products.id, item.product.id), gte(products.inventory, item.quantity)))
+            .returning({ id: products.id });
+          if (res.length > 0) inventoryRollbacks.push({ type: 'product', id: item.product.id, qty: item.quantity });
         }
+
+        if (res.length === 0) {
+          throw new Error(`Stock unavailable for ${item.title}`);
+        }
+      }
     } catch (stockError) {
-        // Rollback inventory
-        console.error('Stock deduction failed, rolling back:', stockError);
-        for (const rb of inventoryRollbacks) {
-            if (rb.type === 'variant') {
-                await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
-            } else {
-                await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
-            }
+      // Rollback inventory
+      console.error('Stock deduction failed, rolling back:', stockError);
+      for (const rb of inventoryRollbacks) {
+        if (rb.type === 'variant') {
+          await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
+        } else {
+          await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
         }
-        return json({ success: false, error: stockError instanceof Error ? stockError.message : 'Inventory Error' }, { status: 400 });
+      }
+      return json({ success: false, error: stockError instanceof Error ? stockError.message : 'Inventory Error' }, { status: 400 });
     }
 
     // Check if this is the first order (for celebration email)
@@ -387,49 +388,50 @@ export async function action({ request, context }: ActionFunctionArgs) {
     let orderId: number | undefined;
     try {
       const orderResult = await db.insert(orders).values({
-          storeId: input.store_id,
-          orderNumber,
-          status: 'pending',
-          paymentStatus: 'pending',
-          paymentMethod: input.payment_method,
-          transactionId: input.transaction_id || null,
-          manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
-          customerName: input.customer_name,
-          customerPhone: input.phone,
-          customerEmail: input.customer_email || '',
-          shippingAddress: input.address,
-          billingAddress: null,
-          subtotal,
-          tax,
-          shipping,
-          total,
-          notes: input.notes || null,
-          createdAt: now,
-          updatedAt: now,
-        }).returning({ id: orders.id });
+        storeId: input.store_id,
+        orderNumber,
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: input.payment_method,
+        transactionId: input.transaction_id || null,
+        manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
+        customerName: input.customer_name,
+        customerPhone: input.phone,
+        customerEmail: input.customer_email || '',
+        shippingAddress: input.address,
+        billingAddress: null,
+        subtotal,
+        tax,
+        shipping,
+        total,
+        notes: input.notes || null,
+        landingPageId: input.landing_page_id || null, // ATTRIBUTION
+        createdAt: now,
+        updatedAt: now,
+      }).returning({ id: orders.id });
 
       orderId = orderResult[0].id;
 
       // 3. INSERT ITEMS
       await db.insert(orderItems).values([
-          ...finalOrderItems.map(item => ({
-              orderId: orderId!,
-              productId: item.productId,
-              variantId: item.variantId || null,
-              title: item.title,
-              variantTitle: item.variantTitle || null,
-              quantity: item.quantity,
-              price: item.unitPrice,
-              total: item.total
-          })),
-          ...bumpItems.map(bump => ({
-              orderId: orderId!,
-              productId: bump.productId,
-              title: `[Bump] ${bump.title}`,
-              quantity: 1,
-              price: bump.discountedPrice,
-              total: bump.discountedPrice
-          }))
+        ...finalOrderItems.map(item => ({
+          orderId: orderId!,
+          productId: item.productId,
+          variantId: item.variantId || null,
+          title: item.title,
+          variantTitle: item.variantTitle || null,
+          quantity: item.quantity,
+          price: item.unitPrice,
+          total: item.total
+        })),
+        ...bumpItems.map(bump => ({
+          orderId: orderId!,
+          productId: bump.productId,
+          title: `[Bump] ${bump.title}`,
+          quantity: 1,
+          price: bump.discountedPrice,
+          total: bump.discountedPrice
+        }))
       ]);
 
       // ========== WEBHOOK: ORDER CREATED ==========
@@ -460,26 +462,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
 
     } catch (orderError) {
-        console.error('Order creation failed, rolling back inventory:', orderError);
-        // Rollback Order
-        if (orderId) await db.delete(orders).where(eq(orders.id, orderId));
-        
-        // Rollback Inventory
-        for (const rb of inventoryRollbacks) {
-            if (rb.type === 'variant') {
-                await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
-            } else {
-                await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
-            }
+      console.error('Order creation failed, rolling back inventory:', orderError);
+      // Rollback Order
+      if (orderId) await db.delete(orders).where(eq(orders.id, orderId));
+
+      // Rollback Inventory
+      for (const rb of inventoryRollbacks) {
+        if (rb.type === 'variant') {
+          await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
+        } else {
+          await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
         }
-        throw orderError;
+      }
+      throw orderError;
     }
 
     // ============================================================================
     // CUSTOMER CREATION/UPDATE (For Segmentation & Marketing)
     // ============================================================================
     let finalCustomerId: number | undefined;
-    
+
     context.cloudflare.ctx.waitUntil((async () => {
       try {
         // Check if customer exists (by phone or email)
@@ -495,20 +497,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
             )
           )
           .limit(1);
-        
+
         if (existingCustomer.length > 0) {
           // UPDATE existing customer stats
           const customer = existingCustomer[0];
           finalCustomerId = customer.id;
           const newTotalOrders = (customer.totalOrders || 0) + 1;
           const newTotalSpent = (customer.totalSpent || 0) + total;
-          
+
           // Determine new segment
           let newSegment: 'vip' | 'regular' = 'regular';
           if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
             newSegment = 'vip';
           }
-          
+
           await db.update(customers)
             .set({
               totalOrders: newTotalOrders,
@@ -520,15 +522,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
               updatedAt: now,
             })
             .where(eq(customers.id, customer.id));
-          
+
           // Link customer to order
           await db.update(orders)
             .set({ customerId: customer.id })
             .where(eq(orders.id, orderId!));
-          
+
           // ========== LOYALTY POINTS INTEGRATION ==========
           await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`);
-            
+
         } else {
           // CREATE new customer
           const [newCustomer] = await db.insert(customers).values({
@@ -542,17 +544,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
             lastOrderAt: now,
             segment: 'regular', // First order = regular
           }).returning({ id: customers.id });
-          
+
           finalCustomerId = newCustomer.id;
-          
+
           // Link customer to order
           await db.update(orders)
             .set({ customerId: newCustomer.id })
             .where(eq(orders.id, orderId!));
-          
+
           // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
           await addLoyaltyPoints(db, newCustomer.id, input.store_id, total, `First Order ${orderNumber}`);
-          
+
           // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
           dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
             customerId: newCustomer.id,
@@ -562,7 +564,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             firstOrderNumber: orderNumber,
           }).catch(e => console.error('[Webhook] customer.created failed:', e));
         }
-        
+
         // ========== FIRE AUTOMATION TRIGGERS ==========
         if (input.customer_email && !input.customer_email.includes('@phone.local')) {
           await triggerAutomation(
@@ -582,7 +584,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             context.cloudflare.env.RESEND_API_KEY
           );
         }
-        
+
       } catch (customerError) {
         console.error('Customer creation/update failed:', customerError);
         // Non-blocking - order already created
@@ -612,35 +614,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
           })
         );
       }
-      
-      // Merchant Alert
-       const merchantUser = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
-       if (merchantUser.length > 0 && merchantUser[0].email) {
-         context.cloudflare.ctx.waitUntil(
-           emailService.sendNewOrderAlert({
-             merchantEmail: merchantUser[0].email,
-             storeName: storeData.name,
-             orderNumber,
-             customerName: input.customer_name,
-             total,
-             currency: storeData.currency || 'BDT',
-             itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-           })
-         );
 
-         // Fire Celebration Email if it's the First Sale!
-         if (isFirstOrder) {
-            context.cloudflare.ctx.waitUntil(
-                emailService.sendFirstSaleCelebration({
-                    merchantEmail: merchantUser[0].email,
-                    merchantName: merchantUser[0].name || 'Merchant',
-                    storeName: storeData.name,
-                    orderNumber,
-                    amount: `${storeData.currency || 'BDT'} ${total}`
-                })
-            );
-         }
-       }
+      // Merchant Alert
+      const merchantUser = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
+      if (merchantUser.length > 0 && merchantUser[0].email) {
+        context.cloudflare.ctx.waitUntil(
+          emailService.sendNewOrderAlert({
+            merchantEmail: merchantUser[0].email,
+            storeName: storeData.name,
+            orderNumber,
+            customerName: input.customer_name,
+            total,
+            currency: storeData.currency || 'BDT',
+            itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+          })
+        );
+
+        // Fire Celebration Email if it's the First Sale!
+        if (isFirstOrder) {
+          context.cloudflare.ctx.waitUntil(
+            emailService.sendFirstSaleCelebration({
+              merchantEmail: merchantUser[0].email,
+              merchantName: merchantUser[0].name || 'Merchant',
+              storeName: storeData.name,
+              orderNumber,
+              amount: `${storeData.currency || 'BDT'} ${total}`
+            })
+          );
+        }
+      }
     }
 
     // Smart Notification (WhatsApp / SMS) - Marketing Research Feature
@@ -657,26 +659,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Push Notifications
     context.cloudflare.ctx.waitUntil((async () => {
-        try {
-            const subscriptions = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.storeId, input.store_id));
-            if (subscriptions.length > 0) {
-                const payload = {
-                    title: `New Order: ${orderNumber}`,
-                    body: `${input.customer_name} - ${storeData.currency} ${total}`,
-                    url: `/admin/orders/${orderNumber}`,
-                };
-                await Promise.all(subscriptions.map(sub => sendPushNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload, context.cloudflare.env)));
-            }
-        } catch(e) { console.error('Push failed', e); }
+      try {
+        const subscriptions = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.storeId, input.store_id));
+        if (subscriptions.length > 0) {
+          const payload = {
+            title: `New Order: ${orderNumber}`,
+            body: `${input.customer_name} - ${storeData.currency} ${total}`,
+            url: `/admin/orders/${orderNumber}`,
+          };
+          await Promise.all(subscriptions.map(sub => sendPushNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload, context.cloudflare.env)));
+        }
+      } catch (e) { console.error('Push failed', e); }
     })());
 
     // Recover Abandoned Carts
     context.cloudflare.ctx.waitUntil((async () => {
-        try {
-             await db.update(abandonedCarts).set({ status: 'recovered', recoveredAt: now })
-                .where(and(eq(abandonedCarts.storeId, input.store_id), eq(abandonedCarts.status, 'abandoned'), 
-                 or(eq(abandonedCarts.customerPhone, input.phone), input.customer_email ? eq(abandonedCarts.customerEmail, input.customer_email) : undefined)));
-        } catch(e) { console.error('Abandon update failed', e); }
+      try {
+        await db.update(abandonedCarts).set({ status: 'recovered', recoveredAt: now })
+          .where(and(eq(abandonedCarts.storeId, input.store_id), eq(abandonedCarts.status, 'abandoned'),
+            or(eq(abandonedCarts.customerPhone, input.phone), input.customer_email ? eq(abandonedCarts.customerEmail, input.customer_email) : undefined)));
+      } catch (e) { console.error('Abandon update failed', e); }
     })());
 
     // FB CAPI
@@ -696,20 +698,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }).catch(e => console.error('[FB CAPI] Purchase event failed:', e))
       );
     }
-    
+
     // ========== TEMPLATE ANALYTICS TRACKING ==========
     // Track which template generated this order for conversion analytics
     context.cloudflare.ctx.waitUntil((async () => {
       try {
         const landingConfig = parseLandingConfig(storeData.landingConfig as string | null);
         const templateId = landingConfig?.templateId || 'unknown';
-        
+
         // Try to update existing analytics record, or insert new one
         const existing = await db.select({ id: templateAnalytics.id, ordersGenerated: templateAnalytics.ordersGenerated, revenueGenerated: templateAnalytics.revenueGenerated })
           .from(templateAnalytics)
           .where(and(eq(templateAnalytics.storeId, input.store_id), eq(templateAnalytics.templateId, templateId)))
           .limit(1);
-        
+
         if (existing.length > 0) {
           await db.update(templateAnalytics)
             .set({
@@ -731,27 +733,42 @@ export async function action({ request, context }: ActionFunctionArgs) {
       } catch (e) {
         console.error('[Template Analytics] Tracking failed:', e);
       }
+
+
+      // CAMPAIGN PAGE ANALYTICS
+      if (input.landing_page_id) {
+        try {
+          await db.update(savedLandingConfigs)
+            .set({
+              orders: sql`orders + 1`,
+              revenue: sql`revenue + ${total}`
+            })
+            .where(eq(savedLandingConfigs.id, input.landing_page_id));
+        } catch (e) {
+          console.error('[Campaign Analytics] Tracking failed:', e);
+        }
+      }
     })());
-    
+
     // Check Upsell
     let upsellUrl;
     // ... Upsell logic can be complicated for multi-item (which product triggers it?). 
     // Simplified: Check upsell for the FIRST product in loop.
     if (finalOrderItems.length > 0) {
-       try {
-          const firstItem = finalOrderItems[0];
-          const upsellOffer = await db.select({ id: upsellOffers.id }).from(upsellOffers)
-            .where(and(eq(upsellOffers.storeId, input.store_id), eq(upsellOffers.productId, firstItem.productId), eq(upsellOffers.isActive, true)))
-            .orderBy(upsellOffers.displayOrder).limit(1);
-          
-          if (upsellOffer.length > 0) {
-             const token = crypto.randomUUID();
-             await db.insert(upsellTokens).values({ orderId: orderId!, token, offerId: upsellOffer[0].id, expiresAt: new Date(Date.now() + 15 * 60 * 1000) });
-             upsellUrl = `/upsell/${token}`;
-          }
-       } catch (e) {
-         console.error('Upsell check failed', e);
-       }
+      try {
+        const firstItem = finalOrderItems[0];
+        const upsellOffer = await db.select({ id: upsellOffers.id }).from(upsellOffers)
+          .where(and(eq(upsellOffers.storeId, input.store_id), eq(upsellOffers.productId, firstItem.productId), eq(upsellOffers.isActive, true)))
+          .orderBy(upsellOffers.displayOrder).limit(1);
+
+        if (upsellOffer.length > 0) {
+          const token = crypto.randomUUID();
+          await db.insert(upsellTokens).values({ orderId: orderId!, token, offerId: upsellOffer[0].id, expiresAt: new Date(Date.now() + 15 * 60 * 1000) });
+          upsellUrl = `/upsell/${token}`;
+        }
+      } catch (e) {
+        console.error('Upsell check failed', e);
+      }
     }
 
     return json({
@@ -766,7 +783,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   } catch (error) {
     const errorDetails = { message: error instanceof Error ? error.message : 'Unknown error', timestamp: new Date().toISOString() };
     console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
-    
+
     return json({ success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।', debug: errorDetails.message }, { status: 500 });
   }
 }

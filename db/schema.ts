@@ -256,6 +256,12 @@ export const orders = sqliteTable('orders', {
   reviewRequestSent: integer('review_request_sent', { mode: 'boolean' }).default(false),
   reviewRequestSentAt: integer('review_request_sent_at', { mode: 'timestamp' }),
 
+  // Attribution Tracking (Analytics)
+  landingPageId: integer('landing_page_id').references(() => savedLandingConfigs.id), // Campaign Page ID
+  utmSource: text('utm_source'), // e.g. "facebook", "google"
+  utmMedium: text('utm_medium'), // e.g. "cpc", "email"
+  utmCampaign: text('utm_campaign'), // e.g. "summer_sale"
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
@@ -683,9 +689,14 @@ export const savedLandingConfigs = sqliteTable('saved_landing_configs', {
   landingConfig: text('landing_config').notNull(), // Full JSON config
   offerSlug: text('offer_slug'), // Custom slug like "old-home"
   isHomepageBackup: integer('is_homepage_backup', { mode: 'boolean' }).default(false),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  viewCount: integer('view_count').default(0),
+  orders: integer('orders').default(0),
+  revenue: real('revenue').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('saved_landing_configs_store_id_idx').on(table.storeId),
+  index('saved_landing_configs_slug_idx').on(table.storeId, table.offerSlug), // Added index for slug lookup
 ]);
 
 export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ one }) => ({
