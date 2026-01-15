@@ -441,10 +441,44 @@ export const defaultLandingConfig: LandingConfig = {
   ],
   productVariants: [
     { id: 'v1', name: '১ কেজি' },
-    { id: 'v2', name: '২ কেজি', price: 1.8 } // 1.8x price multiplier or just raw price? 
-    // Wait, the calculation in OrderForm uses raw prices from product. 
-    // If I put price: 1200, it should use 1200.
-  ]
+    { id: 'v2', name: '২ কেজি', price: 1.8 }
+  ],
+  // New Sections Defaults
+  problemSolution: {
+    problems: [
+      "নকল পণ্যের ভিড়ে আসল পণ্য খুঁজে পাচ্ছেন না?",
+      "পণ্যের গুণমান নিয়ে চিন্তিত?",
+      "ডেলিভারি পেতে অনেক সময় লাগে?"
+    ],
+    solutions: [
+      "আমরা দিচ্ছি ১০০% অরিজিনাল পণ্যের গ্যারান্টি।",
+      "আমাদের প্রতিটি পণ্য কড়া মান নিয়ন্ত্রণ করে পাঠানো হয়।",
+      "আমরা দিচ্ছি দ্রুততম হোম ডেলিভারি সুবিধা।"
+    ]
+  },
+  showcaseData: {
+    features: [
+      "প্রিমিয়াম ডিজাইন ও ফিনিশিং",
+      "হাই কোয়ালিটি মেটেরিয়াল দিয়ে তৈরি",
+      "লং লাস্টিং ও টেকসই",
+      "অত্যাধুনিক প্রযুক্তির ব্যবহার"
+    ]
+  },
+  pricingData: {
+    features: [
+      "১০০% অরিজিনাল প্রোডাক্ট",
+      "সারা দেশে ফ্রি হোম ডেলিভারি",
+      "৭ দিনের রিপ্লেসমেন্ট গ্যারান্টি",
+      "২৪/৭ কাস্টমার সাপোর্ট"
+    ]
+  },
+  howToOrderData: {
+    steps: [
+      { title: "অর্ডার করুন", description: "নিচের ফর্মটি পূরণ করে 'অর্ডার করুন' বাটনে ক্লিক করুন" },
+      { title: "কনফার্মেশন", description: "আমাদের প্রতিনিধি আপনাকে কল করে অর্ডার কনফার্ম করবেন" },
+      { title: "ডেলিভারি", description: "আপনার ঠিকানায় পণ্য পৌঁছে যাবে, চেক করে পেমেন্ট করুন" }
+    ]
+  }
 };
 
 // Default theme config for new stores

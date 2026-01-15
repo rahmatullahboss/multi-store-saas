@@ -32,7 +32,10 @@ import {
   SectionManager, 
   WhatsAppConfig,
   DEFAULT_SECTION_ORDER,
-  LANDING_TEMPLATES 
+  LANDING_TEMPLATES,
+  DevicePreviewToggle,
+  getPreviewWidth,
+  type PreviewDevice
 } from '~/components/landing-builder';
 import { getTemplateComponent, type TemplateProps } from '~/templates/registry';
 
@@ -509,6 +512,16 @@ export default function LandingBuilderPage() {
       setHiddenSections(hiddenSections.filter(id => id !== sectionId));
     } else {
       setHiddenSections([...hiddenSections, sectionId]);
+    }
+  };
+
+  // Handler to add a new section
+  const handleAddSection = (sectionId: string) => {
+    // Only add if not already in the order
+    if (!sectionOrder.includes(sectionId)) {
+      setSectionOrder([...sectionOrder, sectionId]);
+      // Make sure it's not hidden
+      setHiddenSections(hiddenSections.filter(id => id !== sectionId));
     }
   };
 
@@ -1068,6 +1081,7 @@ export default function LandingBuilderPage() {
                 hiddenSections={hiddenSections}
                 onOrderChange={setSectionOrder}
                 onVisibilityChange={handleVisibilityChange}
+                onAddSection={handleAddSection}
               />
             )}
 
