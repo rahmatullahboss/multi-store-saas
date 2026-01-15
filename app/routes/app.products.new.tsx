@@ -24,6 +24,8 @@ import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
+import { RichTextEditor } from '~/components/RichTextEditor';
+import { ClientOnly } from 'remix-utils/client-only';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Ozzyl' }];
@@ -72,13 +74,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // ========================================================================
   const { checkUsageLimit } = await import('~/utils/plans.server');
   const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
-  
+
   if (!limitCheck.allowed) {
     console.warn(`[SECURITY] Store ${storeId} attempted to exceed product limit`);
-    return json({ 
-      errors: { 
-        form: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.' 
-      } 
+    return json({
+      errors: {
+        form: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.'
+      }
     }, { status: 403 });
   }
 
@@ -129,7 +131,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .from(products)
     .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
     .limit(2);
-  
+
   // If this is the only (first) product, set it as featured and publish the store
   if (allProducts.length === 1) {
     await db.update(stores).set({
@@ -146,11 +148,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     const { createAIService } = await import('~/services/ai.server');
     const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
-      context: context.cloudflare.env 
+      context: context.cloudflare.env
     });
 
     const productText = `Product: ${title}\nCategory: ${category || 'Uncategorized'}\nPrice: ${price}\nDescription: ${description || ''}`;
-    
+
     // Fire and forget (don't await to block UI)
     context.cloudflare.ctx.waitUntil(
       ai.insertVector(productText, {
@@ -199,39 +201,39 @@ export default function NewProductPage() {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Variants state
   const [variants, setVariants] = useState<Variant[]>([]);
   const [basePrice, setBasePrice] = useState<number>(0);
-  
+
   // Category state (for dynamic variant suggestions)
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  
+
   // Form dirty state (track if user has made changes)
   const [formTitle, setFormTitle] = useState<string>('');
   const [formPrice, setFormPrice] = useState<string>('');
   const [formDescription, setFormDescription] = useState<string>('');
-  
+
   // SEO state
   const [seoExpanded, setSeoExpanded] = useState(false);
   const [formSeoTitle, setFormSeoTitle] = useState<string>('');
   const [formSeoDescription, setFormSeoDescription] = useState<string>('');
   const [formSeoKeywords, setFormSeoKeywords] = useState<string>('');
-  
+
   // Auto-generate SEO values
   const autoSeoTitle = formTitle;
   const autoSeoDescription = formDescription.slice(0, 155);
-  
+
   // Check if form has unsaved changes
   const hasUnsavedChanges = !!(formTitle || formPrice || formDescription || imageUrl || variants.length > 0);
-  
+
   // Cleanup callback for orphaned images
   const handleAbandon = useCallback(() => {
     if (imageUrl) {
       deleteOrphanedImage(imageUrl);
     }
   }, [imageUrl]);
-  
+
   // Unsaved changes warning hook
   const { ConfirmationModal } = useUnsavedChanges({
     hasUnsavedChanges: hasUnsavedChanges && !isSubmitting,
@@ -300,7 +302,7 @@ export default function NewProductPage() {
         body: deleteFormData,
       }).catch(err => console.warn('Failed to delete image from R2:', err));
     }
-    
+
     setImageUrl('');
     setImagePreview('');
     if (fileInputRef.current) {
@@ -340,7 +342,7 @@ export default function NewProductPage() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             {t('productImage')}
           </label>
-          
+
           {imagePreview ? (
             <div className="relative inline-block">
               <img
@@ -477,15 +479,10 @@ export default function NewProductPage() {
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               {t('description')}
             </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={4}
-              value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-              placeholder={t('describeProduct')}
-            />
+            <input type="hidden" name="description" value={formDescription} />
+            <ClientOnly fallback={<div className="h-32 bg-gray-50 rounded border" />}>
+              {() => <RichTextEditor content={formDescription} onChange={setFormDescription} placeholder={t('describeProduct')} />}
+            </ClientOnly>
           </div>
         </div>
 
@@ -511,7 +508,7 @@ export default function NewProductPage() {
               <ChevronDown className="w-5 h-5 text-gray-400" />
             )}
           </button>
-          
+
           {seoExpanded && (
             <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
               {/* Google Preview */}
@@ -525,7 +522,7 @@ export default function NewProductPage() {
                   {formSeoDescription || autoSeoDescription || t('seoDescriptionPreview')}
                 </p>
               </div>
-              
+
               {/* Meta Title */}
               <div>
                 <label htmlFor="seoTitle" className="block text-sm font-medium text-gray-700 mb-1">
@@ -544,7 +541,7 @@ export default function NewProductPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">{(formSeoTitle || autoSeoTitle).length}/60 characters</p>
               </div>
-              
+
               {/* Meta Description */}
               <div>
                 <label htmlFor="seoDescription" className="block text-sm font-medium text-gray-700 mb-1">
@@ -563,7 +560,7 @@ export default function NewProductPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">{(formSeoDescription || autoSeoDescription).length}/160 characters</p>
               </div>
-              
+
               {/* Keywords */}
               <div>
                 <label htmlFor="seoKeywords" className="block text-sm font-medium text-gray-700 mb-1">
