@@ -23,6 +23,7 @@ import { ShowcasePricing } from './Pricing';
 
 import type { SectionProps } from '../_core/types';
 import { DEFAULT_SECTION_ORDER } from '../../landing-builder/SectionManager';
+import { SectionWrapper, getSectionDisplayName } from '../_core/SectionWrapper';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: ShowcaseHero,
@@ -49,26 +50,39 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
 interface ShowcaseSectionRendererProps extends SectionProps {
   sectionOrder?: string[];
   hiddenSections?: string[];
+  selectedSection?: string | null;
 }
 
 export function ShowcaseSectionRenderer({
   sectionOrder,
   hiddenSections = [],
+  selectedSection,
   ...props
 }: ShowcaseSectionRendererProps) {
-  // Use global default order if no custom order is provided
   const order = sectionOrder && sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER;
-
-  // Filter out hidden sections
   const visibleSections = order.filter(sectionId => !hiddenSections.includes(sectionId));
 
   return (
     <>
-      {visibleSections.map((sectionId) => {
+      {visibleSections.map((sectionId, index) => {
         const Component = SECTION_COMPONENTS[sectionId];
         if (!Component) return null;
-
-        return <Component key={sectionId} {...props} />;
+        const sectionNames = getSectionDisplayName(sectionId);
+        return (
+          <SectionWrapper
+            key={sectionId}
+            sectionId={sectionId}
+            sectionName={sectionNames.name}
+            sectionNameEn={sectionNames.nameEn}
+            isPreview={props.isPreview}
+            isSelected={selectedSection === sectionId}
+            canMoveUp={index > 0}
+            canMoveDown={index < visibleSections.length - 1}
+            lang={props.config.landingLanguage || 'bn'}
+          >
+            <Component {...props} />
+          </SectionWrapper>
+        );
       })}
     </>
   );
