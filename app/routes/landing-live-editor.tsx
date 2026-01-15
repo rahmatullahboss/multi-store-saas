@@ -1817,6 +1817,8 @@ export default function LiveEditorPage() {
               onHowToOrderDataChange={setHowToOrderData}
               // Generic Image Upload
               onImageUpload={handleImageUpload}
+              // Interactive section selection
+              selectedSection={selectedSection}
             />
           </AccordionSection>
 

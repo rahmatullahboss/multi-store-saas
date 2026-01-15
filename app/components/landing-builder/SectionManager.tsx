@@ -6,7 +6,7 @@
  * Phase 2: Added drag and drop using @dnd-kit/sortable
  */
 
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useEffect } from 'react';
 import { AddSectionModal } from './AddSectionModal';
 import { 
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
@@ -371,6 +371,8 @@ interface SectionManagerProps {
   onImageUpload?: (file: File) => Promise<string>;
   // Add Section callback
   onAddSection?: (sectionId: string) => void;
+  // Interactive editing - external section selection
+  selectedSection?: string | null;
 }
 
 function SectionManagerBase({
@@ -434,10 +436,19 @@ function SectionManagerBase({
   onImageUpload,
   // Add Section
   onAddSection,
+  // Interactive editing
+  selectedSection,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
+
+  // Auto-expand selected section when it changes from external source
+  useEffect(() => {
+    if (selectedSection) {
+      setExpandedSection(selectedSection);
+    }
+  }, [selectedSection]);
 
   // Generic Image Upload Handler
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
