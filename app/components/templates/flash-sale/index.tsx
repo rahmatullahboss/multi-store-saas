@@ -19,38 +19,45 @@ import { StickyBuyButton } from '../_core/StickyBuyButton';
 
 // Countdown Hook
 function useCountdown(endTime: Date | null) {
-  const [timeLeft, setTimeLeft] = useState<{
-    hours: number;
-    minutes: number;
-    seconds: number;
-    expired: boolean;
-  }>({ hours: 0, minutes: 0, seconds: 0, expired: false });
+  // Calculate initial state without triggering effects
+  const calculateTimeLeft = (targetEnd: Date | null) => {
+    if (!targetEnd) {
+      return { hours: 0, minutes: 0, seconds: 0, expired: true };
+    }
+    
+    const now = new Date().getTime();
+    const end = targetEnd.getTime();
+    const difference = end - now;
+
+    if (difference <= 0) {
+      return { hours: 0, minutes: 0, seconds: 0, expired: true };
+    }
+
+    return {
+      hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((difference % (1000 * 60)) / 1000),
+      expired: false,
+    };
+  };
+
+  // Initialize state with computed value (no effect trigger on mount)
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(endTime));
 
   useEffect(() => {
+    // If no endTime, just set expired once and exit
     if (!endTime) {
       setTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
       return;
     }
 
-    const calculateTimeLeft = () => {
-      const now = new Date().getTime();
-      const end = endTime.getTime();
-      const difference = end - now;
-
-      if (difference <= 0) {
-        return { hours: 0, minutes: 0, seconds: 0, expired: true };
-      }
-
-      return {
-        hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((difference % (1000 * 60)) / 1000),
-        expired: false,
-      };
-    };
-
-    setTimeLeft(calculateTimeLeft());
-    const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
+    // Update immediately for the current endTime
+    setTimeLeft(calculateTimeLeft(endTime));
+    
+    // Set up interval for countdown
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(endTime));
+    }, 1000);
 
     return () => clearInterval(timer);
   }, [endTime]);
