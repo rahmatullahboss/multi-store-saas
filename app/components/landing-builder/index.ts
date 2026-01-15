@@ -6,3 +6,4 @@ export { LandingTemplateGallery, TemplateCategoryFilter, LANDING_TEMPLATES } fro
 export { SectionManager, SectionPreview, LANDING_SECTIONS, DEFAULT_SECTION_ORDER, mergeSectionOrder } from './SectionManager';
 export { WhatsAppConfig, WHATSAPP_MESSAGE_TEMPLATES } from './WhatsAppConfig';
 export { AddSectionModal } from './AddSectionModal';
+export { default as SEOPanel } from './SEOPanel';

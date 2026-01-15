@@ -185,6 +185,10 @@ export interface LandingConfig {
       description: string;
     }[];
   };
+  // SEO Settings for Landing Page
+  seoTitle?: string;
+  seoDescription?: string;
+  ogImage?: string;
 }
 
 export interface LandingProductVariant {

@@ -33,9 +33,11 @@ import {
   WhatsAppConfig,
   DEFAULT_SECTION_ORDER,
   LANDING_TEMPLATES,
-  mergeSectionOrder 
+  mergeSectionOrder,
+  SEOPanel 
 } from '~/components/landing-builder';
 import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
+import { Search } from 'lucide-react';
 import { getTemplateComponent } from '~/templates/registry';
 import { designCustomSection, callAIWithSystemPrompt } from '~/services/ai.server';
 import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
@@ -272,6 +274,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Custom code injection (for FB Pixel, Google Analytics, etc.)
   const customHeadCode = formData.get('customHeadCode') as string || '';
   const customBodyCode = formData.get('customBodyCode') as string || '';
+  
+  // SEO Settings
+  const seoTitle = formData.get('seoTitle') as string || '';
+  const seoDescription = formData.get('seoDescription') as string || '';
+  const ogImage = formData.get('ogImage') as string || '';
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newConfig: LandingConfig & Record<string, any> = {
@@ -332,7 +339,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     fontFamily,
     // Landing Language
     landingLanguage,
+    // SEO Settings
+    seoTitle: seoTitle || undefined,
+    seoDescription: seoDescription || undefined,
+    ogImage: ogImage || undefined,
   };
+
 
   const configJson = JSON.stringify(newConfig);
 
@@ -574,6 +586,11 @@ export default function LiveEditorPage() {
   const [landingLanguage, setLandingLanguage] = useState<'bn' | 'en'>(
     store.landingConfig.landingLanguage || 'bn'
   );
+
+  // SEO Settings
+  const [seoTitle, setSeoTitle] = useState((store.landingConfig as any).seoTitle || '');
+  const [seoDescription, setSeoDescription] = useState((store.landingConfig as any).seoDescription || '');
+  const [ogImage, setOgImage] = useState((store.landingConfig as any).ogImage || '');
 
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
@@ -1493,6 +1510,9 @@ export default function LiveEditorPage() {
               <input type="hidden" name="howToOrderData" value={JSON.stringify(howToOrderData)} />
               <input type="hidden" name="deliveryInfo" value={JSON.stringify(deliveryInfo)} />
               <input type="hidden" name="customSections" value={JSON.stringify(customSections)} />
+              <input type="hidden" name="seoTitle" value={seoTitle} />
+              <input type="hidden" name="seoDescription" value={seoDescription} />
+              <input type="hidden" name="ogImage" value={ogImage} />
               
               <button
                 type="submit"
@@ -2098,6 +2118,25 @@ export default function LiveEditorPage() {
                 {language === 'bn' ? '+ কাস্টম ডিজাইন যোগ করুন' : '+ Add Custom Design'}
               </button>
             </div>
+          </AccordionSection>
+
+          {/* SEO Settings Section */}
+          <AccordionSection
+            title={language === 'bn' ? 'SEO সেটিংস' : 'SEO Settings'}
+            icon={Search}
+            isOpen={openSection === 'seo'}
+            onToggle={() => setOpenSection(openSection === 'seo' ? '' : 'seo')}
+          >
+            <SEOPanel
+              seoTitle={seoTitle}
+              seoDescription={seoDescription}
+              ogImage={ogImage}
+              storeName={store.name}
+              subdomain={store.subdomain || ''}
+              onSeoTitleChange={setSeoTitle}
+              onSeoDescriptionChange={setSeoDescription}
+              onOgImageChange={setOgImage}
+            />
           </AccordionSection>
         </aside>
 
