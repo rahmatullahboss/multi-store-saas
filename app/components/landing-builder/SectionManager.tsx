@@ -57,6 +57,15 @@ export const LANDING_SECTIONS = [
     editable: true,
   },
   {
+    id: 'problem-solution',
+    name: 'সমস্যা ও সমাধান',
+    nameEn: 'Problem & Solution',
+    description: 'সমস্যা এবং সমাধান দেখান',
+    descriptionEn: 'Show problems and solutions',
+    icon: AlertCircle,
+    editable: true,
+  },
+  {
     id: 'features',
     name: 'বৈশিষ্ট্য',
     nameEn: 'Features',

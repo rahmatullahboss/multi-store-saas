@@ -390,7 +390,7 @@ export const defaultLandingConfig: LandingConfig = {
   ctaSubtext: "ক্যাশ অন ডেলিভারি সুবিধা",
   urgencyText: "সীমিত সময়ের অফার!",
   guaranteeText: "১০০% অরিজিনাল পন্যের নিশ্চয়তা। পন্য হাতে পেয়ে পেমেন্ট করার সুবিধা।",
-  sectionOrder: ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'],
+  sectionOrder: ['hero', 'video', 'trust', 'problem-solution', 'features', 'benefits', 'showcase', 'comparison', 'gallery', 'social', 'testimonials', 'delivery', 'pricing', 'guarantee', 'how-to-order', 'cta', 'faq'],
   trustBadges: [
     { icon: '✅', text: 'অরিজিনাল প্রোডাক্ট' },
     { icon: '🚚', text: 'দ্রুত ডেলিভারি' },
