@@ -11,13 +11,13 @@ export function FlashSaleFAQ({
 }: SectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  if (!config.faqs || config.faqs.length === 0) return null;
+  if (!config.faq || config.faq.length === 0) return null;
 
   return (
     <MagicSectionWrapper
       sectionId="faq"
       sectionLabel="FAQ"
-      data={{ faqs: config.faqs }}
+      data={{ faq: config.faq }}
       onUpdate={(data) => onUpdate?.('faq', data)}
       isEditable={isEditMode}
     >
@@ -28,24 +28,28 @@ export function FlashSaleFAQ({
           </h2>
 
           <div className="space-y-3">
-            {config.faqs.map((faq, i) => (
+            {config.faq.map((item, i) => (
               <div 
                 key={i} 
-                className={`${theme.cardBg} rounded-2xl border ${theme.cardBorder} overflow-hidden`}
+                className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden"
               >
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                  className={`w-full p-6 flex items-center justify-between text-left ${theme.textPrimary} font-bold text-lg hover:bg-white/5 transition-colors`}
+                  className="w-full p-6 flex items-center justify-between text-left group"
                 >
-                  <span>{faq.question}</span>
+                  <span className="font-bold text-gray-900 group-hover:text-red-600 transition-colors">
+                    {item.question}
+                  </span>
                   <ChevronDown 
-                    className={`w-5 h-5 transition-transform ${openIndex === i ? 'rotate-180' : ''}`} 
+                    className={`w-5 h-5 text-gray-400 transition-transform ${openIndex === i ? 'rotate-180 text-red-500' : ''}`} 
                   />
                 </button>
                 
                 {openIndex === i && (
-                  <div className={`px-6 pb-6 ${theme.textSecondary} leading-relaxed`}>
-                    {faq.answer}
+                  <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
+                    <p className="text-gray-600 leading-relaxed">
+                      {item.answer}
+                    </p>
                   </div>
                 )}
               </div>

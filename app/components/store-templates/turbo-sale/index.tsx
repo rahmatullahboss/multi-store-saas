@@ -17,8 +17,8 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { TURBO_SALE_THEME } from './styles/tokens';
-import { GhorerBazarHeader } from '~/components/store-layouts/templates/GhorerBazarHeader';
-import { GhorerBazarFooter } from '~/components/store-layouts/templates/GhorerBazarFooter';
+import { GhorerBazarHeader } from '~/components/store-templates/ghorer-bazar/sections/Header';
+import { GhorerBazarFooter } from '~/components/store-templates/ghorer-bazar/sections/Footer';
 import { Phone, MessageCircle, ShoppingBag } from 'lucide-react';
 import { Link } from '@remix-run/react';
 

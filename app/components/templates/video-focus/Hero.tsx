@@ -1,5 +1,5 @@
 import { MagicSectionWrapper } from '~/components/editor';
-import type { SectionProps } from './types';
+import type { SectionProps } from '../_core/types';
 
 function getYouTubeEmbedUrl(url: string): string {
   const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);

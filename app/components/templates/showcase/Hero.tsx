@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion';
 import { Star, ArrowRight } from 'lucide-react';
 import { MagicSectionWrapper } from '~/components/editor';
-import { getButtonStyles } from '../theme-utils';
-import type { SectionProps } from './types';
+import { getButtonStyles, type SectionProps } from '../_core/types';
 
 export function ShowcaseHero({
   config,

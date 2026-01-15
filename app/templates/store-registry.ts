@@ -258,33 +258,43 @@ import { FRESHNESS_THEME } from '~/components/store-templates/FreshnessTheme';
 import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styles/tokens';
 import { TURBO_SALE_THEME } from '~/components/store-templates/turbo-sale/styles/tokens';
 
-const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/LuxeBoutique').then(m => ({ default: m.LuxeBoutiqueTemplate })));
-const TechModernTemplate = React.lazy(() => import('~/components/store-templates/TechModern').then(m => ({ default: m.TechModernTemplate })));
-const ArtisanMarketTemplate = React.lazy(() => import('~/components/store-templates/ArtisanMarket').then(m => ({ default: m.ArtisanMarketTemplate })));
-const ModernPremiumTemplate = React.lazy(() => import('~/components/templates/ModernPremiumTemplate').then(m => ({ default: m.ModernPremiumTemplate })));
-const DarazTemplate = React.lazy(() => import('~/components/store-templates/DarazTemplate').then(m => ({ default: m.DarazTemplate })));
-const BDShopTemplate = React.lazy(() => import('~/components/store-templates/BDShopTemplate').then(m => ({ default: m.BDShopTemplate })));
-const GhorerBazarTemplate = React.lazy(() => import('~/components/store-templates/GhorerBazarTemplate').then(m => ({ default: m.GhorerBazarTemplate })));
-const NovaLuxTemplate = React.lazy(() => import('~/components/store-templates/NovaLuxTemplate').then(m => ({ default: m.NovaLuxTemplate })));
-const EclipseTemplate = React.lazy(() => import('~/components/store-templates/EclipseTemplate').then(m => ({ default: m.EclipseTemplate })));
+const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/luxe-boutique/index').then(m => ({ default: m.LuxeBoutiqueTemplate })));
+const TechModernTemplate = React.lazy(() => import('~/components/store-templates/tech-modern/index').then(m => ({ default: m.TechModernTemplate })));
+const ArtisanMarketTemplate = React.lazy(() => import('~/components/store-templates/artisan-market/index').then(m => ({ default: m.ArtisanMarketTemplate })));
+const ModernPremiumTemplate = React.lazy(() => import('~/components/templates/modern-premium/index').then(m => ({ 
+  default: (props: any) => {
+    // Landing templates expect a single 'product', store templates provide 'products'
+    const landingProps = {
+      ...props,
+      product: props.products?.[0] || { id: 0, title: 'Sample Product', price: 0 },
+      config: props.config || {}
+    };
+    return React.createElement(m.ModernPremiumTemplate as any, landingProps);
+  }
+})));
+const DarazTemplate = React.lazy(() => import('~/components/store-templates/daraz/index').then(m => ({ default: m.DarazTemplate })));
+const BDShopTemplate = React.lazy(() => import('~/components/store-templates/bdshop/index').then(m => ({ default: m.BDShopTemplate })));
+const GhorerBazarTemplate = React.lazy(() => import('~/components/store-templates/ghorer-bazar/index').then(m => ({ default: m.GhorerBazarTemplate })));
+const NovaLuxTemplate = React.lazy(() => import('~/components/store-templates/nova-lux/index').then(m => ({ default: m.NovaLuxTemplate })));
+const EclipseTemplate = React.lazy(() => import('~/components/store-templates/eclipse/index').then(m => ({ default: m.EclipseTemplate })));
 const AuroraMinimalTemplate = React.lazy(() => import('~/components/store-templates/AuroraMinimalTemplate').then(m => ({ default: m.AuroraMinimalTemplate })));
 const FreshnessTemplate = React.lazy(() => import('~/components/store-templates/FreshnessTemplate').then(m => ({ default: m.FreshnessTemplate })));
 const ZenithRiseTemplate = React.lazy(() => import('~/components/store-templates/zenith-rise/index').then(m => ({ default: m.ZenithRiseTemplate })));
 const TurboSaleTemplate = React.lazy(() => import('~/components/store-templates/turbo-sale/index').then(m => ({ default: m.TurboSaleTemplate })));
 
 // Header Components
-const DarazHeader = React.lazy(() => import('~/components/store-layouts/templates/DarazHeader').then(m => ({ default: m.DarazHeader })));
-const NovaLuxHeader = React.lazy(() => import('~/components/store-layouts/templates/NovaLuxHeader').then(m => ({ default: m.NovaLuxHeader })));
-const EclipseHeader = React.lazy(() => import('~/components/store-layouts/templates/EclipseHeader').then(m => ({ default: m.EclipseHeader })));
-const BDShopHeader = React.lazy(() => import('~/components/store-layouts/templates/BDShopHeader').then(m => ({ default: m.BDShopHeader })));
-const GhorerBazarHeader = React.lazy(() => import('~/components/store-layouts/templates/GhorerBazarHeader').then(m => ({ default: m.GhorerBazarHeader })));
+const DarazHeader = React.lazy(() => import('~/components/store-templates/daraz/sections/Header').then(m => ({ default: m.DarazHeader })));
+const NovaLuxHeader = React.lazy(() => import('~/components/store-templates/nova-lux/sections/Header').then(m => ({ default: m.NovaLuxHeader })));
+const EclipseHeader = React.lazy(() => import('~/components/store-templates/eclipse/sections/Header').then(m => ({ default: m.EclipseHeader })));
+const BDShopHeader = React.lazy(() => import('~/components/store-templates/bdshop/sections/Header').then(m => ({ default: m.BDShopHeader })));
+const GhorerBazarHeader = React.lazy(() => import('~/components/store-templates/ghorer-bazar/sections/Header').then(m => ({ default: m.GhorerBazarHeader })));
 
 // Footer Components
-const DarazFooter = React.lazy(() => import('~/components/store-layouts/templates/DarazFooter').then(m => ({ default: m.DarazFooter })));
-const NovaLuxFooter = React.lazy(() => import('~/components/store-layouts/templates/NovaLuxFooter').then(m => ({ default: m.NovaLuxFooter })));
-const EclipseFooter = React.lazy(() => import('~/components/store-layouts/templates/EclipseFooter').then(m => ({ default: m.EclipseFooter })));
-const BDShopFooter = React.lazy(() => import('~/components/store-layouts/templates/BDShopFooter').then(m => ({ default: m.BDShopFooter })));
-const GhorerBazarFooter = React.lazy(() => import('~/components/store-layouts/templates/GhorerBazarFooter').then(m => ({ default: m.GhorerBazarFooter })));
+const DarazFooter = React.lazy(() => import('~/components/store-templates/daraz/sections/Footer').then(m => ({ default: m.DarazFooter })));
+const NovaLuxFooter = React.lazy(() => import('~/components/store-templates/nova-lux/sections/Footer').then(m => ({ default: m.NovaLuxFooter })));
+const EclipseFooter = React.lazy(() => import('~/components/store-templates/eclipse/sections/Footer').then(m => ({ default: m.EclipseFooter })));
+const BDShopFooter = React.lazy(() => import('~/components/store-templates/bdshop/sections/Footer').then(m => ({ default: m.BDShopFooter })));
+const GhorerBazarFooter = React.lazy(() => import('~/components/store-templates/ghorer-bazar/sections/Footer').then(m => ({ default: m.GhorerBazarFooter })));
 const ZenithRiseHeader = React.lazy(() => import('~/components/store-templates/zenith-rise/sections/Header').then(m => ({ default: m.ZenithRiseHeader })));
 const ZenithRiseFooter = React.lazy(() => import('~/components/store-templates/zenith-rise/sections/Footer').then(m => ({ default: m.ZenithRiseFooter })));
 

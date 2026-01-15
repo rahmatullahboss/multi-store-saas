@@ -215,3 +215,11 @@
 - [ ] **Freemium Gating**: Automated usage limits and upgrade triggers (Products, AI Commands).
 - [ ] **Marketing Strategy Doc**: Formalized [MARKETING_STRATEGY.md](file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/MARKETING_STRATEGY.md).
 - [ ] **Setup Fee Automation**: AI-driven store setup as a paid micro-service.
+
+### Phase 24: Landing Template Isolation & Modularity (Completed) 🏗️
+
+- [x] **Feature Folders Refactoring**: Migrated 10 landing templates to independent, self-contained directories.
+- [x] **Isolated Section Logic**: Each template now has its own unique section implementations (Hero, Features, etc.) and dedicated `SectionRenderer`.
+- [x] **Centralized Core Types**: Shared interfaces and helper functions moved to `_core/types.ts` for clean reusability.
+- [x] **Dispatcher Architecture**: Refactored `LandingPageTemplate` into a lightweight dispatcher to maintain backward compatibility while maximizing performance.
+- [x] **Registry Optimization**: Updated `registry.ts` and `store-registry.ts` to utilize the new modular structure.

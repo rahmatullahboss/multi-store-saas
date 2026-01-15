@@ -6,13 +6,14 @@
  * Note: 'FreshnessTemplate' is the preferred export name for the Freshness theme.
  */
 
-export { LuxeBoutiqueTemplate } from './LuxeBoutique';
-export { TechModernTemplate } from './TechModern';
-export { NovaLuxTemplate } from './NovaLuxTemplate';
-export { EclipseTemplate } from './EclipseTemplate';
-export { ArtisanMarketTemplate } from './ArtisanMarket';
-export { BDShopTemplate } from './BDShopTemplate';
-export { DarazTemplate } from './DarazTemplate';
-export { GhorerBazarTemplate } from './GhorerBazarTemplate';
+export { LuxeBoutiqueTemplate } from './luxe-boutique';
+export { TechModernTemplate } from './tech-modern';
+export { NovaLuxTemplate } from './nova-lux';
+export { EclipseTemplate } from './eclipse';
+export { ArtisanMarketTemplate } from './artisan-market';
+export { BDShopTemplate } from './bdshop';
+export { DarazTemplate } from './daraz';
+export { GhorerBazarTemplate } from './ghorer-bazar';
 export { AuroraMinimalTemplate } from './AuroraMinimalTemplate';
 export { FreshnessTemplate } from './FreshnessTemplate';
+

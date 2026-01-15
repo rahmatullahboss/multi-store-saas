@@ -1,8 +1,8 @@
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { MagicSectionWrapper } from '~/components/editor';
-import type { SectionProps } from './types';
+import type { SectionProps } from '../_core/types';
 import { Star } from 'lucide-react';
-import { getButtonStyles } from '../theme-utils';
+import { getButtonStyles } from '../_core/types';
 
 export function ModernDarkHero({
   config,

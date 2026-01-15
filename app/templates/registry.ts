@@ -85,17 +85,26 @@ export interface TemplateDefinition {
 // ============================================================================
 // SINGLE UNIFIED TEMPLATE - Same component for Preview & Live
 // ============================================================================
-import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
-import { PremiumBDTemplate } from '~/components/templates/PremiumBDTemplate';
-import { MobileFirstTemplate } from '~/components/templates/MobileFirstTemplate';
+// Isolated Template Imports
+import { PremiumBDTemplate } from '~/components/templates/premium-bd';
+import { MobileFirstTemplate } from '~/components/templates/mobile-first';
 import { FlashSaleTemplate } from '~/components/templates/flash-sale';
-import { LuxeTemplate } from '~/components/templates/LuxeTemplate';
-import { OrganicTemplate } from '~/components/templates/OrganicTemplate';
-import { ShowcaseTemplate } from '~/components/templates/ShowcaseTemplate';
-import { ModernDarkTemplate } from '~/components/templates/ModernDark';
-import { MinimalLightTemplate } from '~/components/templates/MinimalLight';
-import { VideoFocusTemplate } from '~/components/templates/VideoFocus';
-import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTemplate';
+import { LuxeTemplate } from '~/components/templates/luxe';
+import { OrganicTemplate } from '~/components/templates/organic';
+import { ShowcaseTemplate } from '~/components/templates/showcase';
+import { ModernDarkTemplate } from '~/components/templates/modern-dark';
+import { MinimalLightTemplate } from '~/components/templates/minimal-light';
+import { VideoFocusTemplate } from '~/components/templates/video-focus';
+import { ModernPremiumTemplate } from '~/components/templates/modern-premium';
+
+
+
+
+
+
+
+
+
 
 
 // ============================================================================

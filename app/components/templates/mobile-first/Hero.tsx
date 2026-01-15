@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronDown, ChevronUp, ShoppingCart, Truck, ShieldCheck } from 'lucide-react';
 import { MagicSectionWrapper } from '~/components/editor';
 import { OptimizedImage } from '~/components/OptimizedImage';
-import type { SectionProps } from './types';
+import type { SectionProps } from '../_core/types';
 
 export function MobileFirstHero({
   config,

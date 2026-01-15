@@ -31,7 +31,7 @@ export function FlashSaleTestimonials({
             {config.testimonials.map((testimonial, i) => (
               <div 
                 key={i} 
-                className={`${theme.cardBg} p-6 rounded-2xl border ${theme.cardBorder} relative group`}
+                className={`${theme.cardBg} p-6 rounded-2xl border ${theme.cardBorder} relative group shadow-sm`}
               >
                 {/* Verified Badge */}
                 <div className="absolute -top-3 right-4 bg-yellow-500 text-black text-xs px-3 py-1 rounded-full font-bold">
@@ -39,29 +39,21 @@ export function FlashSaleTestimonials({
                 </div>
 
                 {/* Stars */}
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} className="text-yellow-400 fill-yellow-400" />
-                  ))}
+                <div className="flex gap-1 mb-4 text-yellow-500">
+                  {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
                 </div>
-
-                <p className={`${theme.textPrimary} mb-6 text-lg italic`}>
-                  "{testimonial.content}"
+                
+                <p className={`${theme.textPrimary} text-lg leading-relaxed mb-6 italic`}>
+                  "{testimonial.text}"
                 </p>
 
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center text-xl font-bold text-yellow-400">
-                    {testimonial.author?.[0] || 'U'}
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold text-xl uppercase">
+                    {testimonial.name?.[0]}
                   </div>
                   <div>
-                    <p className={`font-bold ${theme.textPrimary}`}>
-                      {testimonial.author}
-                    </p>
-                    {testimonial.location && (
-                      <p className={`text-sm ${theme.textSecondary}`}>
-                        📍 {testimonial.location}
-                      </p>
-                    )}
+                    <h4 className={`font-bold ${theme.textPrimary}`}>{testimonial.name}</h4>
+                    <p className={`${theme.textSecondary} text-xs font-bold`}>Verified Buyer</p>
                   </div>
                 </div>
               </div>

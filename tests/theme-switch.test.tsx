@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { TechModernTemplate } from '~/components/store-templates/TechModern';
+import { TechModernTemplate } from '~/components/store-templates/tech-modern';
 import { AuroraMinimalTemplate } from '~/components/store-templates/AuroraMinimalTemplate';
 import { createRemixStub } from '@remix-run/testing';
 

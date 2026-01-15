@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Phone, CheckCircle2, ShoppingCart, ShieldCheck } from 'lucide-react';
 import { MagicSectionWrapper } from '~/components/editor';
 import { OptimizedImage } from '~/components/OptimizedImage';
-import type { SectionProps } from './types';
+import type { SectionProps } from '../_core/types';
 
 export function PremiumBDHero({
   config,
