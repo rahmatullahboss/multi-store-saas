@@ -32,10 +32,7 @@ import {
   SectionManager, 
   WhatsAppConfig,
   DEFAULT_SECTION_ORDER,
-  LANDING_TEMPLATES,
-  DevicePreviewToggle,
-  getPreviewWidth,
-  type PreviewDevice
+  LANDING_TEMPLATES
 } from '~/components/landing-builder';
 import { getTemplateComponent, type TemplateProps } from '~/templates/registry';
 

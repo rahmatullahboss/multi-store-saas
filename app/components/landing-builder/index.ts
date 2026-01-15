@@ -6,5 +6,3 @@ export { LandingTemplateGallery, TemplateCategoryFilter, LANDING_TEMPLATES } fro
 export { SectionManager, SectionPreview, LANDING_SECTIONS, DEFAULT_SECTION_ORDER } from './SectionManager';
 export { WhatsAppConfig, WHATSAPP_MESSAGE_TEMPLATES } from './WhatsAppConfig';
 export { AddSectionModal } from './AddSectionModal';
-export { DevicePreviewToggle, getPreviewWidth, type PreviewDevice } from './DevicePreviewToggle';
-
