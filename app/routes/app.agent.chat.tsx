@@ -28,8 +28,15 @@ export default function AgentChatSimulator() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Generate a temporary conversation ID for testing
-  const [conversationId] = useState(() => Math.floor(Math.random() * 100000));
+  // Generate a temporary conversation ID for testing - client-only to prevent hydration mismatch
+  const [conversationId, setConversationId] = useState(0);
+  
+  useEffect(() => {
+    // Generate random ID only on client side
+    if (conversationId === 0) {
+      setConversationId(Math.floor(Math.random() * 100000));
+    }
+  }, [conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
