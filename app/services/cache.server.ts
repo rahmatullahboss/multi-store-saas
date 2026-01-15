@@ -5,10 +5,13 @@
  * Uses the published_pages table for storage.
  */
 
-import { drizzle, type D1Database } from 'drizzle-orm/d1';
+import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { publishedPages, type NewPublishedPage } from '@db/schema';
 import type { LandingConfig } from '@db/types';
+
+// Use D1Database type from Cloudflare
+type D1Database = import('@cloudflare/workers-types').D1Database;
 
 /**
  * Generate a hash from landing config for cache invalidation
