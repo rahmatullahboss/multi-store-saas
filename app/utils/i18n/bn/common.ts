@@ -134,6 +134,7 @@ export const common = {
   navCredits: 'AI ক্রেডিট',
   navAllSettings: 'সব সেটিংস',
   navPlanManagement: 'প্ল্যান ম্যানেজমেন্ট',
+  navCustomers: 'কাস্টমারস',
   navPayouts: 'পেআউট',
   navDomainRequests: 'ডোমেইন রিকোয়েস্ট',
   navTutorials: 'টিউটোরিয়াল',

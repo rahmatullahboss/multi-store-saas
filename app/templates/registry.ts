@@ -96,6 +96,8 @@ import { ModernDarkTemplate } from '~/components/templates/modern-dark';
 import { MinimalLightTemplate } from '~/components/templates/minimal-light';
 import { VideoFocusTemplate } from '~/components/templates/video-focus';
 import { ModernPremiumTemplate } from '~/components/templates/modern-premium';
+import { QuickStartTemplate } from '~/components/templates/quick-start';
+
 
 
 
@@ -181,6 +183,14 @@ export const TEMPLATES: TemplateDefinition[] = [
     thumbnail: '/templates/modern-premium.png',
     component: ModernPremiumTemplate,
   },
+  {
+    id: 'quick-start',
+    name: '⚡ Quick Start (High Conversion)',
+    description: 'Proven high-conversion template with scrolling narrative: specific problem -> solution -> benefits -> social proof -> offer. Perfect for single product stores.',
+    thumbnail: '/templates/quick-start.png',
+    component: QuickStartTemplate,
+  },
+
 ];
 
 // ============================================================================

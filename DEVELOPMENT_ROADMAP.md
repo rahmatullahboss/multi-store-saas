@@ -13,6 +13,7 @@
 
 - [x] **Store Creation**: Subdomain provisioning, Onboarding flow.
 - [x] **Product Management**: Variants, Inventory, Categories.
+- [x] **Customer Management**: Customer list, details, stats, and search.
 - [x] **Order Management**: Order list, Status updates, Courier integration (Steadfast, Pathao).
 - [x] **Storefront**: Dynamic themes, "Landing Mode" vs "Store Mode".
 - [x] **Checkout**: bKash/COD support, Upsell offers.

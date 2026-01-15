@@ -10,7 +10,7 @@ import { useState, memo, useCallback } from 'react';
 import { 
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
-  Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code
+  Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code, AlertCircle, MessageCircle
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -156,6 +156,7 @@ export const LANDING_SECTIONS = [
   },
 ];
 
+
 // Default section order
 export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'];
 
@@ -194,6 +195,11 @@ export interface Comparison {
 export interface SocialProof {
   count: number;
   text: string;
+}
+
+export interface ProblemSolution {
+  problems: string[];
+  solutions: string[];
 }
 
 interface SectionManagerProps {
@@ -245,6 +251,9 @@ interface SectionManagerProps {
   customSections?: Array<{ id: string; name: string; html: string; css?: string; position?: string }>;
   onCustomSectionsChange?: (sections: Array<{ id: string; name: string; html: string; css?: string; position?: string }>) => void;
   onAddCustomSection?: () => void;
+  // Problem & Solution section
+  problemSolution?: ProblemSolution;
+  onProblemSolutionChange?: (data: ProblemSolution) => void;
 }
 
 function SectionManagerBase({
@@ -295,6 +304,9 @@ function SectionManagerBase({
   customSections = [],
   onCustomSectionsChange,
   onAddCustomSection,
+  // Problem & Solution
+  problemSolution = { problems: [], solutions: [] },
+  onProblemSolutionChange,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -809,10 +821,13 @@ function SectionManagerBase({
               className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              {language === 'bn' ? 'ফটো যোগ করুন' : 'Add Photo'}
+              {language === 'bn' ? 'ছবি যোগ করুন' : 'Add Image'}
             </button>
           </div>
         );
+
+
+
 
       case 'benefits':
         return (
@@ -1021,6 +1036,111 @@ function SectionManagerBase({
           </div>
         );
 
+
+      case 'problem-solution':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            {/* Problems Section */}
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? '❌ সমস্যা (কাস্টমার যা ফেস করে)' : '❌ Problems (What customers face)'}
+              </label>
+              {problemSolution.problems.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                  <p className="text-xs text-gray-400">
+                    {language === 'bn' ? 'কাস্টমার কী সমস্যার সম্মুখীন হয় তা যোগ করুন' : 'Add problems customers face'}
+                  </p>
+                </div>
+              )}
+              {problemSolution.problems.map((problem, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={problem}
+                    onChange={(e) => {
+                      const newProblems = [...problemSolution.problems];
+                      newProblems[index] = e.target.value;
+                      onProblemSolutionChange?.({ ...problemSolution, problems: newProblems });
+                    }}
+                    placeholder={language === 'bn' ? 'সমস্যা লিখুন' : 'Enter a problem'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newProblems = problemSolution.problems.filter((_, i) => i !== index);
+                      onProblemSolutionChange?.({ ...problemSolution, problems: newProblems });
+                    }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onProblemSolutionChange?.({ 
+                  ...problemSolution, 
+                  problems: [...problemSolution.problems, ''] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-red-200 rounded-lg text-sm text-red-600 hover:border-red-400 hover:text-red-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'সমস্যা যোগ করুন' : 'Add Problem'}
+              </button>
+            </div>
+
+            {/* Solutions Section */}
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? '✅ সমাধান (আপনার সমাধান)' : '✅ Solutions (Your solutions)'}
+              </label>
+              {problemSolution.solutions.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                  <p className="text-xs text-gray-400">
+                    {language === 'bn' ? 'আপনার সমাধান যোগ করুন' : 'Add your solutions'}
+                  </p>
+                </div>
+              )}
+              {problemSolution.solutions.map((solution, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={solution}
+                    onChange={(e) => {
+                      const newSolutions = [...problemSolution.solutions];
+                      newSolutions[index] = e.target.value;
+                      onProblemSolutionChange?.({ ...problemSolution, solutions: newSolutions });
+                    }}
+                    placeholder={language === 'bn' ? 'সমাধান লিখুন' : 'Enter a solution'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSolutions = problemSolution.solutions.filter((_, i) => i !== index);
+                      onProblemSolutionChange?.({ ...problemSolution, solutions: newSolutions });
+                    }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onProblemSolutionChange?.({ 
+                  ...problemSolution, 
+                  solutions: [...problemSolution.solutions, ''] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'সমাধান যোগ করুন' : 'Add Solution'}
+              </button>
+            </div>
+          </div>
+        );
 
       default:
         return null;

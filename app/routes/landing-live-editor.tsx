@@ -263,6 +263,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const trustBadges = JSON.parse(formData.get('trustBadges') as string || '[]');
   const deliveryInfo = JSON.parse(formData.get('deliveryInfo') as string || '{"title":"","description":"","areas":[]}');
   const customSections = JSON.parse(formData.get('customSections') as string || '[]');
+  const problemSolution = JSON.parse(formData.get('problemSolution') as string || '{"problems":[],"solutions":[]}');
   
   // Custom code injection (for FB Pixel, Google Analytics, etc.)
   const customHeadCode = formData.get('customHeadCode') as string || '';
@@ -313,6 +314,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     trustBadges: trustBadges.filter((b: {icon: string; text: string}) => b.icon || b.text),
     deliveryInfo: deliveryInfo.title || deliveryInfo.description ? deliveryInfo : undefined,
     customSections: customSections.filter((s: {id: string; html: string}) => s.html),
+    // Problem & Solution section
+    problemSolution: problemSolution.problems?.length > 0 || problemSolution.solutions?.length > 0 ? problemSolution : undefined,
     // Custom CSS
     customCSS: customCSS || undefined,
     // Custom code injection
@@ -506,6 +509,11 @@ export default function LiveEditorPage() {
       ...s,
       position: s.position || 'after-hero'
     }))
+  );
+
+  // Problem & Solution section data
+  const [problemSolution, setProblemSolution] = useState<{ problems: string[]; solutions: string[] }>(
+    (store.landingConfig as any).problemSolution || { problems: [], solutions: [] }
   );
 
   // Custom Code Injection (FB Pixel, Google Analytics, etc.)
@@ -1328,6 +1336,10 @@ export default function LiveEditorPage() {
               <input type="hidden" name="customCSS" value={customCSS} />
               <input type="hidden" name="fontFamily" value={fontFamily} />
               <input type="hidden" name="landingLanguage" value={landingLanguage} />
+              <input type="hidden" name="problemSolution" value={JSON.stringify(problemSolution)} />
+              <input type="hidden" name="trustBadges" value={JSON.stringify(trustBadges)} />
+              <input type="hidden" name="deliveryInfo" value={JSON.stringify(deliveryInfo)} />
+              <input type="hidden" name="customSections" value={JSON.stringify(customSections)} />
               
               <button
                 type="submit"
@@ -1640,6 +1652,9 @@ export default function LiveEditorPage() {
               // Custom code sections
               customSections={customSections}
               onCustomSectionsChange={setCustomSections}
+              // Problem & Solution section
+              problemSolution={problemSolution}
+              onProblemSolutionChange={setProblemSolution}
             />
           </AccordionSection>
 

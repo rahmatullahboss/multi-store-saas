@@ -46,7 +46,8 @@ import {
   Rocket,
   AlertCircle,
   BookOpen,
-  UserPen
+  UserPen,
+  Users
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -264,6 +265,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarOrders',
     items: [
       { to: '/app/orders', labelKey: 'navAllOrders', icon: ShoppingCart },
+      { to: '/app/customers', labelKey: 'navCustomers', icon: Users },
       { to: '/app/abandoned-carts', labelKey: 'navAbandonedCarts', icon: ShoppingBag },
     ],
   },

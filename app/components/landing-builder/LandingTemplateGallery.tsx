@@ -146,6 +146,22 @@ export const LANDING_TEMPLATES = [
     },
     preview: '/templates/showcase.png',
   },
+  {
+    id: 'quick-start',
+    name: 'কুইক স্টার্ট',
+    nameEn: '⚡ Quick Start (High Conversion)',
+    description: 'স্ক্রলিং ন্যারেটিভ সহ হাই-কনভার্শন টেমপ্লেট',
+    descriptionEn: 'Proven high-conversion narrative template',
+    category: 'sales',
+    emoji: '⚡',
+    colors: {
+      primary: '#1D3557',
+      accent: '#E63946',
+      bg: 'linear-gradient(135deg, #1D3557 0%, #0D1B2A 100%)',
+    },
+    preview: '/templates/quick-start.png',
+  },
+
 ];
 
 interface LandingTemplateGalleryProps {

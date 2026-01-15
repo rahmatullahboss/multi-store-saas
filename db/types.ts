@@ -160,7 +160,11 @@ export interface LandingConfig {
     text: string;
   }[];
   // Product Variants (e.g., 1kg, 2kg, Red, White)
+  // Product Variants (e.g., 1kg, 2kg, Red, White)
   productVariants?: LandingProductVariant[];
+  // Problem/Solution Section
+  problems?: string[];
+  solutions?: string[];
 }
 
 export interface LandingProductVariant {

@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import { drizzle } from "drizzle-orm/d1";
 import { stores, products } from "../../../../../db/schema";
 import { eq, and, gt } from "drizzle-orm";
