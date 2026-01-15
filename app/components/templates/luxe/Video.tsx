@@ -19,6 +19,11 @@ export function LuxeVideo({ config }: SectionProps) {
     <section className="py-24 bg-stone-950">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto rounded-lg overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-stone-800 aspect-video relative group">
+           {config.videoTitle && (
+             <div className="absolute top-0 left-0 w-full p-6 bg-gradient-to-b from-black/80 to-transparent z-10 pointer-events-none">
+               <h3 className="text-white font-serif-display tracking-wider uppercase text-lg opacity-80">{config.videoTitle}</h3>
+             </div>
+           )}
            <div className="absolute inset-0 bg-amber-900/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
           <iframe
             src={embedUrl}

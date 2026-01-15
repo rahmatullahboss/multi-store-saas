@@ -21,7 +21,7 @@ export function LuxeShowcase({
       <section className="py-24 bg-black relative">
         <div className="container mx-auto px-4 text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-serif-display text-white mb-4 tracking-wider uppercase">
-            Unboxing Experience
+            {config.showcaseData.title || 'Unboxing Experience'}
           </h2>
           <div className="w-24 h-px bg-amber-500 mx-auto" />
         </div>
@@ -35,9 +35,19 @@ export function LuxeShowcase({
             <div className="absolute bottom-0 right-0 w-2 h-2 bg-amber-500" />
 
             <div className="grid md:grid-cols-2 gap-8">
-               <div className="flex flex-col items-center justify-center p-8 border border-amber-500/10 bg-amber-900/5">
-                 <Package className="w-20 h-20 text-amber-500/80 stroke-1 mb-4" />
-                 <span className="text-amber-500/60 uppercase tracking-widest text-xs">Premium Packaging</span>
+               <div className="flex flex-col items-center justify-center p-8 border border-amber-500/10 bg-amber-900/5 relative overflow-hidden group">
+                 {config.showcaseData.image ? (
+                   <img 
+                    src={config.showcaseData.image} 
+                    alt="Product Box" 
+                    className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" 
+                   />
+                 ) : (
+                   <>
+                    <Package className="w-20 h-20 text-amber-500/80 stroke-1 mb-4" />
+                    <span className="text-amber-500/60 uppercase tracking-widest text-xs">Premium Packaging</span>
+                   </>
+                 )}
                </div>
                
                <div className="space-y-4 flex flex-col justify-center">

@@ -58,6 +58,8 @@ export interface LandingConfig {
   socialProof?: {
     count: number; // e.g., "500+ sold"
     text: string;
+    title?: string;
+    images?: string[];
   };
   // === NEW: Landing Page Builder Fields ===
   faq?: {
@@ -138,12 +140,16 @@ export interface LandingConfig {
   trustTitle?: string;
   benefitsTitle?: string;
   comparisonTitle?: string;
-  testimonialsTitle?: string;
-  faqTitle?: string;
+  testimonialsTitle?: string; // "What They Say"
+  reviewsSubtitle?: string;   // "Patron Reviews"
+  faqTitle?: string;          // "Concierge Service"
+  faqSubtitle?: string;       // "Frequently Asked Questions"
   galleryTitle?: string;
   videoTitle?: string;
   socialProofTitle?: string;
+  featuresTitle?: string;     // "Exclusive Features"
   guaranteeBadgeLabel?: string;
+  establishedDate?: string;   // "Est. 2024"
   shippingConfig?: {
     insideDhaka: number;
     outsideDhaka: number;
@@ -167,24 +173,80 @@ export interface LandingConfig {
   solutions?: string[];
   // Structured Problem & Solution
   problemSolution?: {
+    beforeTitle?: string;
+    afterTitle?: string;
     problems: string[];
     solutions: string[];
   };
   // Showcase Data
   showcaseData?: {
+    title?: string;
+    image?: string;
     features: string[];
   };
   // Pricing Data
   pricingData?: {
     features: string[];
+    title?: string;
+    buttonText?: string;
   };
   // How To Order Data
   howToOrderData?: {
+    title?: string;
     steps: {
       title: string;
       description: string;
     }[];
   };
+  // Order Form & Footer Text Customization
+  orderFormText?: {
+    // Labels
+    headline?: string;
+    subheadline?: string;
+    nameLabel?: string;
+    phoneLabel?: string;
+    addressLabel?: string;
+    quantityLabel?: string;
+    variantLabel?: string;
+    shippingLabel?: string;
+    totalLabel?: string;
+    codLabel?: string;
+    
+    // Delivery & Shipping Labels
+    deliveryAreaLabel?: string;
+    insideDhakaLabel?: string;
+    outsideDhakaLabel?: string;
+    deliveryChargeLabel?: string;
+    freeShippingText?: string;
+
+    // Price Summary Labels
+    productPriceLabel?: string;
+
+    // Trust & Support Labels
+    authenticProductGuarantee?: string;
+    fastDelivery?: string;
+    callForSupport?: string;
+
+    // Section Titles
+    billingInfoTitle?: string;
+    
+    // Buttons
+    placeOrderButtonLabel?: string;
+    submitButtonText?: string;
+    processingButtonText?: string;
+    
+    // Placeholders
+    namePlaceholder?: string;
+    phonePlaceholder?: string;
+    addressPlaceholder?: string;
+    
+    // Footer
+    footerTagline?: string;
+    copyrightText?: string;
+    footerCopyright?: string;
+    secureCheckoutLabel?: string;
+  };
+  
   // SEO Settings for Landing Page
   seoTitle?: string;
   seoDescription?: string;

@@ -118,131 +118,138 @@ export function MinimalLightOrderForm({
             </h2>
             
               <div className="space-y-10">
-                <div className="bg-white p-6 border border-gray-100 space-y-4">
-                  <div className="flex justify-between items-center border-b border-gray-50 pb-4">
-                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Quantity</span>
-                    <div className="flex items-center gap-6">
-                      <button
-                        type="button"
-                        onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
-                        className="w-10 h-10 border border-gray-200 text-gray-900 font-bold flex items-center justify-center hover:bg-gray-50 transition-all active:scale-95"
-                      >
-                        -
-                      </button>
-                      <span className="text-gray-950 text-xl font-bold w-4 text-center">{formData.quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
-                        className="w-10 h-10 border border-gray-200 text-gray-900 font-bold flex items-center justify-center hover:bg-gray-50 transition-all active:scale-95"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  {config.productVariants && config.productVariants.length > 0 && (
-                    <div className="border-b border-gray-50 pb-4">
-                      <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] block mb-4">Selection</span>
-                      <div className="flex flex-wrap gap-2">
-                        {config.productVariants.map((variant) => (
-                          <button
-                            key={variant.id}
-                            type="button"
-                            onClick={() => setFormData({ ...formData, selectedVariant: variant })}
-                            className={`px-4 py-2 text-xs font-bold border transition-all ${
-                              formData.selectedVariant?.id === variant.id
-                                ? 'border-gray-900 bg-gray-950 text-white'
-                                : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
-                            }`}
-                          >
-                            {variant.name}
-                            {variant.price && variant.price !== product.price && (
-                              <span className="ml-1 text-[8px] opacity-60">
-                                ({formatPrice(variant.price)})
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-end">
-                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Investment</span>
-                    <span className="text-5xl font-bold text-gray-950 tracking-tighter">{formatPrice(totalPrice)}</span>
-                  </div>
+                <div className="space-y-6">
+              <div className="flex justify-between items-center pb-6 border-b border-gray-100">
+                <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                  {config.orderFormText?.quantityLabel || 'Quantity'}
+                </span>
+                <div className="flex items-center gap-6">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-gray-900 transition-colors"
+                  >
+                    -
+                  </button>
+                  <span className="text-xl font-light w-8 text-center">{formData.quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-gray-900 transition-colors"
+                  >
+                    +
+                  </button>
                 </div>
-              
-              <div className="flex items-center gap-3 text-gray-400 font-bold text-xs uppercase tracking-widest">
-                <ShieldCheck size={18} className="text-gray-900" /> Secure Protocol • Cash on Delivery
+              </div>
+
+              {config.productVariants && config.productVariants.length > 0 && (
+                <div className="pb-6 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide block mb-3">
+                      {config.orderFormText?.variantLabel || 'Option'}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                    {config.productVariants.map((variant) => (
+                        <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, selectedVariant: variant })}
+                        className={`px-4 py-2 rounded-full text-sm transition-all border ${
+                            formData.selectedVariant?.id === variant.id
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                        }`}
+                        >
+                        {variant.name}
+                        {variant.price && variant.price !== product.price && (
+                            <span className="ml-1 opacity-70">
+                            ({formatPrice(variant.price)})
+                            </span>
+                        )}
+                        </button>
+                    ))}
+                    </div>
+                </div>
+                )}
+
+              <div className="flex justify-between items-baseline">
+                <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                  {config.orderFormText?.totalLabel || 'Total'}
+                </span>
+                <span className="text-3xl font-light text-gray-900">{formatPrice(totalPrice)}</span>
               </div>
             </div>
-          </div>
+              </div>
+              </div>
+            <form onSubmit={handleSubmit} className="space-y-4 pt-6 border-t border-gray-100">
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  required
+                  className="w-full bg-gray-50 border-0 rounded-lg px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:ring-gray-900 transition-all font-light"
+                  placeholder={config.orderFormText?.namePlaceholder || "Full Name"}
+                  value={formData.customer_name}
+                  onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
+                />
+                <input
+                  type="tel"
+                  required
+                  className="w-full bg-gray-50 border-0 rounded-lg px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:ring-gray-900 transition-all font-light"
+                  placeholder={config.orderFormText?.phonePlaceholder || "Phone Number"}
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                />
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              required
-              className="w-full bg-white border border-gray-200 rounded-none px-6 py-6 text-gray-950 font-medium focus:border-gray-950 outline-none transition-all placeholder:text-gray-300"
-              placeholder="YOUR FULL NAME"
-              value={formData.customer_name}
-              onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
-            />
-            <input
-              type="tel"
-              required
-              className="w-full bg-white border border-gray-200 rounded-none px-6 py-6 text-gray-950 font-medium focus:border-gray-950 outline-none transition-all placeholder:text-gray-300"
-              placeholder="PHONE NUMBER"
-              value={formData.phone}
-              onChange={(e) => setFormData({...formData, phone: e.target.value})}
-            />
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, division: 'dhaka'})}
+                  className={`py-3 rounded-lg text-sm font-medium transition-all border ${
+                    formData.division === 'dhaka' 
+                      ? 'border-gray-900 bg-gray-900 text-white' 
+                      : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  {config.orderFormText?.insideDhakaLabel || 'Inside Dhaka'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, division: 'chittagong'})}
+                  className={`py-3 rounded-lg text-sm font-medium transition-all border ${
+                    formData.division !== 'dhaka' 
+                      ? 'border-gray-900 bg-gray-900 text-white' 
+                      : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  {config.orderFormText?.outsideDhakaLabel || 'Outside Dhaka'}
+                </button>
+              </div>
 
-            <div className="grid grid-cols-2 gap-4">
+              <textarea
+                required
+                className="w-full bg-gray-50 border-0 rounded-lg px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:ring-gray-900 transition-all resize-none font-light"
+                placeholder={config.orderFormText?.addressPlaceholder || "Detailed Address"}
+                rows={3}
+                value={formData.address}
+                onChange={(e) => setFormData({...formData, address: e.target.value})}
+              />
+              
               <button
-                type="button"
-                onClick={() => setFormData({...formData, division: 'dhaka'})}
-                className={`py-5 font-bold border transition-all rounded-none ${
-                  formData.division === 'dhaka' 
-                    ? 'border-gray-950 bg-gray-950 text-white' 
-                    : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
-                }`}
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 bg-gray-900 text-white font-medium text-lg rounded-lg hover:bg-black transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
               >
-                INSIDE DHAKA
+                {isSubmitting ? (config.orderFormText?.processingButtonText || 'Processing') : (
+                  <>
+                    <span>{config.orderFormText?.submitButtonText || 'Place Order'}</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
               </button>
-              <button
-                type="button"
-                onClick={() => setFormData({...formData, division: 'chittagong'})}
-                className={`py-5 font-bold border transition-all rounded-none ${
-                  formData.division !== 'dhaka' 
-                    ? 'border-gray-950 bg-gray-950 text-white' 
-                    : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
-                }`}
-              >
-                OUTSIDE DHAKA
-              </button>
-            </div>
-
-            <textarea
-              required
-              className="w-full bg-white border border-gray-200 rounded-none px-6 py-6 text-gray-950 font-medium focus:border-gray-950 outline-none transition-all placeholder:text-gray-300 resize-none"
-              placeholder="SHIPPING ADDRESS"
-              rows={4}
-              value={formData.address}
-              onChange={(e) => setFormData({...formData, address: e.target.value})}
-            />
-            
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="group w-full py-7 bg-gray-950 hover:bg-black text-white font-black text-xl rounded-none transition-all active:scale-[0.99] flex items-center justify-center gap-4 uppercase tracking-[0.2em]"
-            >
-              {isSubmitting ? 'PROCESSING...' : (
-                <>
-                  COMPLETE ORDER
-                  <ArrowRight size={24} className="group-hover:translate-x-3 transition-transform" />
-                </>
-              )}
-            </button>
-          </form>
+              <p className="text-center text-xs text-gray-400 uppercase tracking-widest">
+                  {config.orderFormText?.codLabel || 'Cash on Delivery Available'}
+              </p>
+            </form>
         </div>
       </div>
     </section>

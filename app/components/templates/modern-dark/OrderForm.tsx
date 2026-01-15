@@ -126,7 +126,9 @@ export function ModernDarkOrderForm({
               <div className="space-y-4">
                 <div className="bg-zinc-950/50 p-6 rounded-2xl border border-white/5 space-y-4">
                   <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                    <span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Select Quantity</span>
+                    <span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">
+                      {config.orderFormText?.quantityLabel || 'Select Quantity'}
+                    </span>
                     <div className="flex items-center gap-6">
                       <button
                         type="button"
@@ -148,7 +150,9 @@ export function ModernDarkOrderForm({
 
                   {config.productVariants && config.productVariants.length > 0 && (
                     <div className="border-b border-white/5 pb-4">
-                      <span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] block mb-3">Choose Option</span>
+                      <span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] block mb-3">
+                         {config.orderFormText?.variantLabel || 'Choose Option'}
+                      </span>
                       <div className="flex flex-wrap gap-3">
                         {config.productVariants.map((variant) => (
                           <button
@@ -173,14 +177,18 @@ export function ModernDarkOrderForm({
                     </div>
                   )}
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Total Amount</span>
+                    <span className="text-zinc-500 font-bold uppercase tracking-widest text-xs">
+                       {config.orderFormText?.totalLabel || 'Total Amount'}
+                    </span>
                     <span className="text-3xl font-black text-white tracking-tight">{formatPrice(totalPrice)}</span>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1 bg-zinc-950/30 p-4 rounded-xl border border-white/5 flex items-center justify-center gap-3">
                     <ShieldCheck className="text-orange-500" size={20} />
-                    <span className="text-white font-bold text-xs uppercase">Secure Checkout</span>
+                    <span className="text-white font-bold text-xs uppercase">
+                       {config.orderFormText?.secureCheckoutLabel || 'Secure Checkout'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -191,7 +199,7 @@ export function ModernDarkOrderForm({
                 type="text"
                 required
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-white font-bold focus:border-orange-500 outline-none transition-all placeholder:text-zinc-700"
-                placeholder="YOUR FULL NAME"
+                placeholder={config.orderFormText?.namePlaceholder || "YOUR FULL NAME"}
                 value={formData.customer_name}
                 onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
               />
@@ -199,7 +207,7 @@ export function ModernDarkOrderForm({
                 type="tel"
                 required
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-white font-bold focus:border-orange-500 outline-none transition-all placeholder:text-zinc-700"
-                placeholder="YOUR PHONE NUMBER"
+                placeholder={config.orderFormText?.phonePlaceholder || "YOUR PHONE NUMBER"}
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
               />
@@ -214,7 +222,7 @@ export function ModernDarkOrderForm({
                       : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:border-zinc-700'
                   }`}
                 >
-                  Inside Dhaka
+                  {config.orderFormText?.insideDhakaLabel || 'Inside Dhaka'}
                 </button>
                 <button
                   type="button"
@@ -225,14 +233,14 @@ export function ModernDarkOrderForm({
                       : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:border-zinc-700'
                   }`}
                 >
-                  Outside Dhaka
+                  {config.orderFormText?.outsideDhakaLabel || 'Outside Dhaka'}
                 </button>
               </div>
 
               <textarea
                 required
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-white font-bold focus:border-orange-500 outline-none transition-all placeholder:text-zinc-700 resize-none"
-                placeholder="YOUR FULL SHIPPING ADDRESS"
+                placeholder={config.orderFormText?.addressPlaceholder || "YOUR FULL SHIPPING ADDRESS"}
                 rows={3}
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
@@ -243,9 +251,9 @@ export function ModernDarkOrderForm({
                 disabled={isSubmitting}
                 className="group w-full py-6 bg-orange-500 hover:bg-orange-400 text-white font-black text-2xl rounded-[1.5rem] transition-all active:scale-[0.97] shadow-[0_15px_40px_rgba(249,115,22,0.3)] flex items-center justify-center gap-4 italic"
               >
-                {isSubmitting ? 'PROCESSING...' : (
+                {isSubmitting ? (config.orderFormText?.processingButtonText || 'PROCESSING...') : (
                   <>
-                    COMPLETE ORDER
+                    {config.orderFormText?.submitButtonText || 'COMPLETE ORDER'}
                     <ArrowRight size={24} className="group-hover:translate-x-3 transition-all" />
                   </>
                 )}

@@ -28,7 +28,7 @@ export function LuxeGuarantee({ config }: SectionProps) {
           </p>
 
           <div className="absolute -bottom-1 px-8 bg-stone-950 left-1/2 -translate-x-1/2 text-stone-800 font-serif italic text-sm">
-             Est. 2024
+             {config.establishedDate || 'Est. 2024'}
           </div>
         </div>
       </div>

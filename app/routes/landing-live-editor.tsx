@@ -593,8 +593,9 @@ export default function LiveEditorPage() {
   );
 
   // Showcase Section Data
-  const [showcaseData, setShowcaseData] = useState<{ features: string[] }>(
+  const [showcaseData, setShowcaseData] = useState<{ title?: string; image?: string; features: string[] }>(
      (store.landingConfig as any).showcaseData || {
+       title: 'Unboxing Experience',
        features: [
          'প্রিমিয়াম কোয়ালিটি ম্যাটেরিয়াল',
          'দীর্ঘ স্থায়িত্ব ও টেকসই ডিজাইন',
@@ -606,8 +607,9 @@ export default function LiveEditorPage() {
   );
 
   // How to Order Section Data
-  const [howToOrderData, setHowToOrderData] = useState<{ steps: Array<{ title: string; description: string }> }>(
+  const [howToOrderData, setHowToOrderData] = useState<{ title?: string; steps: { title: string; description: string }[] }>(
     (store.landingConfig as any).howToOrderData || {
+      title: 'Acquisition',
       steps: [
         { title: "ফর্ম পূরণ করুন", description: "উপরের অর্ডার ফর্মে আপনার নাম, ফোন ও ঠিকানা দিন" },
         { title: "কল কনফার্মেশন", description: "আমাদের টিম আপনাকে কল করে অর্ডার কনফার্ম করবে" },
@@ -615,6 +617,13 @@ export default function LiveEditorPage() {
         { title: "টাকা দিন", description: "প্রোডাক্ট হাতে পেয়ে চেক করে টাকা দিন" }
       ]
     }
+  );
+
+  // Hero Section Customization
+  const [heroBadgeText, setHeroBadgeText] = useState((store.landingConfig as any).heroBadgeText || '');
+  const [heroPriceLabel, setHeroPriceLabel] = useState((store.landingConfig as any).heroPriceLabel || '');
+  const [heroFeatures, setHeroFeatures] = useState<Array<{ icon: string; text: string }>>(
+    (store.landingConfig as any).heroFeatures || []
   );
 
   // Custom Code Injection (FB Pixel, Google Analytics, etc.)
@@ -629,6 +638,21 @@ export default function LiveEditorPage() {
   const [landingLanguage, setLandingLanguage] = useState<'bn' | 'en'>(
     store.landingConfig.landingLanguage || 'bn'
   );
+
+  // New Editable Section Titles
+  const [featuresTitle, setFeaturesTitle] = useState((store.landingConfig as any).featuresTitle || '');
+  const [faqTitle, setFaqTitle] = useState((store.landingConfig as any).faqTitle || '');
+  const [faqSubtitle, setFaqSubtitle] = useState((store.landingConfig as any).faqSubtitle || '');
+  const [testimonialsTitle, setTestimonialsTitle] = useState((store.landingConfig as any).testimonialsTitle || '');
+  const [reviewsSubtitle, setReviewsSubtitle] = useState((store.landingConfig as any).reviewsSubtitle || '');
+  const [guaranteeBadgeLabel, setGuaranteeBadgeLabel] = useState((store.landingConfig as any).guaranteeBadgeLabel || '');
+  const [establishedDate, setEstablishedDate] = useState((store.landingConfig as any).establishedDate || '');
+  const [socialProofTitle, setSocialProofTitle] = useState((store.landingConfig as any).socialProofTitle || '');
+  const [videoTitle, setVideoTitle] = useState((store.landingConfig as any).videoTitle || '');
+  const [galleryTitle, setGalleryTitle] = useState((store.landingConfig as any).galleryTitle || '');
+  
+  // Order Form Text Customization
+  const [orderFormText, setOrderFormText] = useState((store.landingConfig as any).orderFormText || {});
 
   // SEO Settings
   const [seoTitle, setSeoTitle] = useState((store.landingConfig as any).seoTitle || '');
@@ -677,7 +701,10 @@ export default function LiveEditorPage() {
 
       // 2. Upload to R2 via API
       const formData = new FormData();
-      formData.append('image', compressedFile);
+      // Ensure we send 'file' as expected by the API, and wrap Blob in File to preserve name/type
+      const filename = file.name.split('.')[0] + '.webp';
+      const fileToSend = new File([compressedFile], filename, { type: 'image/webp' });
+      formData.append('file', fileToSend);
       
       const response = await fetch('/api/upload-image', {
         method: 'POST',
@@ -694,7 +721,8 @@ export default function LiveEditorPage() {
         throw new Error(data.error || 'Upload failed');
       }
 
-      return data.url;
+      // Use proxy to bypass CORS issues ensuring immediate preview
+      return `/api/proxy-image?url=${encodeURIComponent(data.url)}`;
     } catch (error) {
       console.error('Image upload error:', error);
       // Fallback: return object URL if upload fails (for offline testing) or throw
@@ -811,7 +839,10 @@ export default function LiveEditorPage() {
     socialProof,
     orderFormVariant,
     landingLanguage,
-  }), [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, customCSS, fontFamily, galleryImages, benefits, comparison, socialProof, orderFormVariant, landingLanguage]);
+    heroBadgeText,
+    heroPriceLabel,
+    heroFeatures,
+  }), [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, customCSS, fontFamily, galleryImages, benefits, comparison, socialProof, orderFormVariant, landingLanguage, heroBadgeText, heroPriceLabel, heroFeatures]);
 
   const initialSnapshot = useRef(createStateSnapshot());
   
@@ -884,6 +915,9 @@ export default function LiveEditorPage() {
       setSocialProof(historyState.socialProof ?? socialProof);
       setOrderFormVariant(historyState.orderFormVariant ?? orderFormVariant);
       setLandingLanguage(historyState.landingLanguage ?? landingLanguage);
+      setHeroBadgeText(historyState.heroBadgeText ?? heroBadgeText);
+      setHeroPriceLabel(historyState.heroPriceLabel ?? heroPriceLabel);
+      setHeroFeatures(historyState.heroFeatures ?? heroFeatures);
     }
   // Only run when historyState reference changes (undo/redo)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -912,7 +946,7 @@ export default function LiveEditorPage() {
     }
     setHasChanges(true);
     setHasUnpublishedChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, problemSolution, pricingData, showcaseData, howToOrderData]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, problemSolution, pricingData, showcaseData, howToOrderData, heroBadgeText, heroPriceLabel, heroFeatures]);
 
   // Auto-populate data when product changes
   useEffect(() => {
@@ -1021,6 +1055,23 @@ export default function LiveEditorPage() {
       // Custom code injection
       formData.append('customHeadCode', customHeadCode);
       formData.append('customBodyCode', customBodyCode);
+      // Hero section customization
+      formData.append('heroBadgeText', heroBadgeText);
+      formData.append('heroPriceLabel', heroPriceLabel);
+      formData.append('heroFeatures', JSON.stringify(heroFeatures));
+
+      // Global Titles
+      formData.append('featuresTitle', featuresTitle);
+      formData.append('faqTitle', faqTitle);
+      formData.append('faqSubtitle', faqSubtitle);
+      formData.append('testimonialsTitle', testimonialsTitle);
+      formData.append('reviewsSubtitle', reviewsSubtitle);
+      formData.append('guaranteeBadgeLabel', guaranteeBadgeLabel);
+      formData.append('establishedDate', establishedDate);
+      formData.append('socialProofTitle', socialProofTitle);
+      formData.append('videoTitle', videoTitle);
+      formData.append('galleryTitle', galleryTitle);
+      formData.append('orderFormText', JSON.stringify(orderFormText));
       
       autoSaveFetcher.submit(formData, { method: 'post' });
     }, 2000); // 2 seconds debounce
@@ -1030,7 +1081,7 @@ export default function LiveEditorPage() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, trustBadges, deliveryInfo, customSections, customHeadCode, customBodyCode, problemSolution, pricingData, showcaseData, howToOrderData, autoSaveFetcher]);
+  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, trustBadges, deliveryInfo, customSections, customHeadCode, customBodyCode, problemSolution, pricingData, showcaseData, howToOrderData, heroBadgeText, heroPriceLabel, heroFeatures, autoSaveFetcher, featuresTitle, faqTitle, faqSubtitle, testimonialsTitle, reviewsSubtitle, guaranteeBadgeLabel, establishedDate, socialProofTitle, videoTitle, galleryTitle, orderFormText]);
 
   // Handle auto-save response
   useEffect(() => {
@@ -1878,10 +1929,36 @@ export default function LiveEditorPage() {
               onShowcaseDataChange={setShowcaseData}
               howToOrderData={howToOrderData}
               onHowToOrderDataChange={setHowToOrderData}
+
               // Generic Image Upload
               onImageUpload={handleImageUpload}
               // Interactive section selection
               selectedSection={selectedSection}
+              // New Editable Titles
+              featuresTitle={featuresTitle}
+              onFeaturesTitleChange={setFeaturesTitle}
+              faqTitle={faqTitle}
+              onFaqTitleChange={setFaqTitle}
+              faqSubtitle={faqSubtitle}
+              onFaqSubtitleChange={setFaqSubtitle}
+              testimonialsTitle={testimonialsTitle}
+              onTestimonialsTitleChange={setTestimonialsTitle}
+              reviewsSubtitle={reviewsSubtitle}
+              onReviewsSubtitleChange={setReviewsSubtitle}
+              guaranteeBadgeLabel={guaranteeBadgeLabel}
+              onGuaranteeBadgeLabelChange={setGuaranteeBadgeLabel}
+              establishedDate={establishedDate}
+              onEstablishedDateChange={setEstablishedDate}
+              socialProofTitle={socialProofTitle}
+              onSocialProofTitleChange={setSocialProofTitle}
+              // Gallery & Video
+              videoTitle={videoTitle}
+              onVideoTitleChange={setVideoTitle}
+              galleryTitle={galleryTitle}
+              onGalleryTitleChange={setGalleryTitle}
+              // Order Form Text
+              orderFormText={orderFormText}
+              onOrderFormTextChange={setOrderFormText}
             />
           </AccordionSection>
 

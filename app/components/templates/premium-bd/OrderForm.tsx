@@ -127,7 +127,9 @@ export function PremiumBDOrderForm({
               <div className="space-y-4">
                 <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col gap-4">
                   <div className="flex justify-between items-center border-b border-gray-50 pb-4">
-                    <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">পণ্যের পরিমাণ</span>
+                    <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">
+                      {config.orderFormText?.quantityLabel || 'পণ্যের পরিমাণ'}
+                    </span>
                     <div className="flex items-center gap-6">
                       <button
                         type="button"
@@ -149,7 +151,9 @@ export function PremiumBDOrderForm({
 
                   {config.productVariants && config.productVariants.length > 0 && (
                     <div className="border-b border-gray-50 pb-4">
-                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px] block mb-3">পণ্য নির্বাচন করুন</span>
+                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px] block mb-3">
+                         {config.orderFormText?.variantLabel || 'পণ্য নির্বাচন করুন'}
+                      </span>
                       <div className="flex flex-wrap gap-2">
                         {config.productVariants.map((variant) => (
                           <button
@@ -173,17 +177,19 @@ export function PremiumBDOrderForm({
                     </div>
                   )}
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-bold uppercase tracking-wider text-xs">মোট টাকার পরিমাণ</span>
+                    <span className="text-gray-500 font-bold uppercase tracking-wider text-xs">
+                       {config.orderFormText?.totalLabel || 'মোট টাকার পরিমাণ'}
+                    </span>
                     <span className="text-3xl font-black text-gray-950">{formatPrice(totalPrice)}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap gap-4">
                   <div className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-xl text-xs font-bold border border-green-100">
-                    <ShieldCheck size={16} /> ১০০% নিরাপদ পেমেন্ট
+                    <ShieldCheck size={16} /> {config.orderFormText?.secureCheckoutLabel || '১০০% নিরাপদ পেমেন্ট'}
                   </div>
                   <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-xs font-bold border border-blue-100">
-                    <MapPin size={16} /> সারা বাংলাদেশে ক্যাশ অন ডেলিভারি
+                    <MapPin size={16} /> {config.orderFormText?.codLabel || 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি'}
                   </div>
                 </div>
               </div>
@@ -194,7 +200,7 @@ export function PremiumBDOrderForm({
                 type="text"
                 required
                 className="w-full bg-white border-2 border-gray-100 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-orange-500 outline-none transition-all placeholder:text-gray-300"
-                placeholder="আপনার নাম"
+                placeholder={config.orderFormText?.namePlaceholder || "আপনার নাম"}
                 value={formData.customer_name}
                 onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
               />
@@ -202,7 +208,7 @@ export function PremiumBDOrderForm({
                 type="tel"
                 required
                 className="w-full bg-white border-2 border-gray-100 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-orange-500 outline-none transition-all placeholder:text-gray-300"
-                placeholder="ফোন নম্বর"
+                placeholder={config.orderFormText?.phonePlaceholder || "ফোন নম্বর"}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
@@ -216,7 +222,7 @@ export function PremiumBDOrderForm({
                       : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
                     }`}
                 >
-                  ঢাকার ভেতরে
+                  {config.orderFormText?.insideDhakaLabel || 'ঢাকার ভেতরে'}
                 </button>
                 <button
                   type="button"
@@ -226,14 +232,14 @@ export function PremiumBDOrderForm({
                       : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
                     }`}
                 >
-                  ঢাকার বাইরে
+                  {config.orderFormText?.outsideDhakaLabel || 'ঢাকার বাইরে'}
                 </button>
               </div>
 
               <textarea
                 required
                 className="w-full bg-white border-2 border-gray-100 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-orange-500 outline-none transition-all placeholder:text-gray-300 resize-none"
-                placeholder="পূর্ণ ঠিকানা"
+                placeholder={config.orderFormText?.addressPlaceholder || "পূর্ণ ঠিকানা"}
                 rows={3}
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -244,9 +250,9 @@ export function PremiumBDOrderForm({
                 disabled={isSubmitting}
                 className="group w-full py-6 bg-gray-950 hover:bg-black text-white font-black text-2xl rounded-2xl transition-all active:scale-[0.98] shadow-xl flex items-center justify-center gap-4 border-b-4 border-orange-500"
               >
-                {isSubmitting ? 'প্রসেসিং হচ্ছে...' : (
+                {isSubmitting ? (config.orderFormText?.processingButtonText || 'প্রসেসিং হচ্ছে...') : (
                   <>
-                    অর্ডার কনফার্ম করুন
+                    {config.orderFormText?.submitButtonText || 'অর্ডার কনফার্ম করুন'}
                     <ArrowRight size={26} className="group-hover:translate-x-3 transition-transform" />
                   </>
                 )}

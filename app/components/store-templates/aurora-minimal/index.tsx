@@ -260,6 +260,7 @@ export function AuroraMinimalTemplate({
                 socialLinks={socialLinks} 
                 planType={planType}
                 themeColors={THEME}
+                categories={validCategories}
               />
 
               {/* ==================== MOBILE BOTTOM NAVIGATION ==================== */}

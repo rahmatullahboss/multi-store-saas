@@ -20,7 +20,7 @@ export function LuxeFeatures({
       <section className={`py-16 md:py-24 bg-black border-y border-amber-500/10`}>
         <div className="max-w-6xl mx-auto px-4 text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-serif-display text-white mb-4 tracking-wider uppercase">
-            Exclusive Features
+            {config.featuresTitle || 'Exclusive Features'}
           </h2>
           <div className="w-24 h-px bg-amber-500 mx-auto" />
         </div>

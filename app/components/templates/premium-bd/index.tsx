@@ -55,11 +55,15 @@ export function PremiumBDTemplate({
         <div className="container mx-auto px-4">
           <h3 className="text-3xl font-black text-white mb-6 uppercase italic tracking-tighter decoration-orange-500 underline decoration-2 underline-offset-4">{storeName}</h3>
           <p className="text-gray-400 text-lg max-w-md mx-auto mb-10 font-bold">
-            অরিজিনাল এবং প্রিমিয়াম প্রডাক্টের নির্ভরযোগ্য প্রতিষ্ঠান। প্রতিটি ডেলিভারি আমাদের জন্য বিশেষ।
+            {config.orderFormText?.footerTagline || 'অরিজিনাল এবং প্রিমিয়াম প্রডাক্টের নির্ভরযোগ্য প্রতিষ্ঠান। প্রতিটি ডেলিভারি আমাদের জন্য বিশেষ।'}
           </p>
           
           <div className="text-gray-600 text-xs font-black uppercase tracking-[0.3em] mb-12">
-            © {new Date().getFullYear()} • {storeName} • Trusted e-Commerce BD
+            {config.orderFormText?.footerCopyright ? (
+              <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
+            ) : (
+              <>© {new Date().getFullYear()} • {storeName} • Trusted e-Commerce BD</>
+            )}
           </div>
 
           {planType === 'free' && (

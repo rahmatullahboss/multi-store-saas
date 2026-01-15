@@ -99,15 +99,15 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                 {/* Bill Summary */}
                 <div className="space-y-3 border-t border-gray-200 pt-6">
                    <div className="flex justify-between text-gray-600 text-lg">
-                      <span>প্রোডাক্ট প্রাইস ({formData.quantity}টি)</span>
+                      <span>{config.orderFormText?.productPriceLabel || `প্রোডাক্ট প্রাইস (${formData.quantity}টি)`}</span>
                       <span className="font-bold text-[#1D3557]">{formatPrice(subtotal)}</span>
                    </div>
                    <div className="flex justify-between text-gray-600 text-lg">
-                      <span>ডেলিভারি চার্জ</span>
-                      <span className="font-bold text-[#1D3557]">{shippingCost === 0 ? 'ফ্রি' : formatPrice(shippingCost)}</span>
+                      <span>{config.orderFormText?.deliveryChargeLabel || 'ডেলিভারি চার্জ'}</span>
+                      <span className="font-bold text-[#1D3557]">{shippingCost === 0 ? (config.orderFormText?.freeShippingText || 'ফ্রি') : formatPrice(shippingCost)}</span>
                    </div>
                    <div className="flex justify-between text-xl font-bold text-[#E63946] border-t-2 border-dashed border-gray-300 pt-3 mt-3">
-                      <span>সর্বমোট</span>
+                      <span>{config.orderFormText?.totalLabel || 'সর্বমোট'}</span>
                       <span>{formatPrice(total)}</span>
                    </div>
                 </div>
@@ -117,15 +117,15 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
               <div className="mt-8 space-y-4">
                  <div className="flex items-center gap-3 text-gray-700 font-medium p-3 bg-white rounded-lg border border-gray-100">
                     <ShieldCheck className="text-green-600 shrink-0" size={24} />
-                    <span>১০০% অথেনটিক প্রোডাক্ট গ্যারান্টি</span>
+                    <span>{config.orderFormText?.authenticProductGuarantee || '১০০% অথেনটিক প্রোডাক্ট গ্যারান্টি'}</span>
                  </div>
                  <div className="flex items-center gap-3 text-gray-700 font-medium p-3 bg-white rounded-lg border border-gray-100">
                     <Truck className="text-blue-600 shrink-0" size={24} />
-                    <span>দ্রুত সারা বাংলাদেশে ডেলিভারি</span>
+                    <span>{config.orderFormText?.fastDelivery || 'দ্রুত সারা বাংলাদেশে ডেলিভারি'}</span>
                  </div>
                  <div className="flex items-center gap-3 text-gray-700 font-medium p-3 bg-white rounded-lg border border-gray-100">
                     <PhoneCall className="text-[#E63946] shrink-0" size={24} />
-                    <span>প্রয়োজনে কল করুন: {config.callNumber}</span>
+                    <span>{config.orderFormText?.callForSupport || 'প্রয়োজনে কল করুন'}: {config.callNumber}</span>
                  </div>
               </div>
             </div>
@@ -134,27 +134,27 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
             <div className="lg:col-span-7 p-8 md:p-12">
               <form onSubmit={handleSubmit} className="space-y-6">
                 
-                <h3 className="text-2xl font-bold text-[#1D3557] mb-6">বিলিং তথ্য দিন</h3>
+                <h3 className="text-2xl font-bold text-[#1D3557] mb-6">{config.orderFormText?.billingInfoTitle || 'বিলিং তথ্য দিন'}</h3>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-[#1D3557]">আপনার নাম <span className="text-[#E63946]">*</span></label>
+                    <label className="text-sm font-bold text-[#1D3557]">{config.orderFormText?.nameLabel || 'আপনার নাম'} <span className="text-[#E63946]">*</span></label>
                     <input 
                       type="text" 
                       required
                       className="w-full p-4 rounded-xl border-2 border-[#E5E5E5] focus:border-[#1D3557] focus:outline-none transition-colors bg-gray-50 focus:bg-white"
-                      placeholder="আপনার নাম"
+                      placeholder={config.orderFormText?.namePlaceholder || 'আপনার নাম'}
                       value={formData.name}
                       onChange={e => setFormData({...formData, name: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-[#1D3557]">মোবাইল নম্বর <span className="text-[#E63946]">*</span></label>
+                    <label className="text-sm font-bold text-[#1D3557]">{config.orderFormText?.phoneLabel || 'মোবাইল নম্বর'} <span className="text-[#E63946]">*</span></label>
                     <input 
                       type="tel" 
                       required
                       className="w-full p-4 rounded-xl border-2 border-[#E5E5E5] focus:border-[#1D3557] focus:outline-none transition-colors bg-gray-50 focus:bg-white"
-                      placeholder="০১XXXXXXXXX"
+                      placeholder={config.orderFormText?.phonePlaceholder || '০১XXXXXXXXX'}
                       value={formData.phone}
                       onChange={e => setFormData({...formData, phone: e.target.value})}
                     />
@@ -162,12 +162,12 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-[#1D3557]">সম্পূর্ণ ঠিকানা <span className="text-[#E63946]">*</span></label>
+                  <label className="text-sm font-bold text-[#1D3557]">{config.orderFormText?.addressLabel || 'সম্পূর্ণ ঠিকানা'} <span className="text-[#E63946]">*</span></label>
                   <input 
                     type="text"
                     required
                     className="w-full p-4 rounded-xl border-2 border-[#E5E5E5] focus:border-[#1D3557] focus:outline-none transition-colors bg-gray-50 focus:bg-white"
-                    placeholder="বাসা নং, রোড, এলাকা, থানা, জেলা"
+                    placeholder={config.orderFormText?.addressPlaceholder || 'বাসা নং, রোড, এলাকা, থানা, জেলা'}
                     value={formData.address}
                     onChange={e => setFormData({...formData, address: e.target.value})}
                   />
@@ -176,7 +176,7 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                 {/* Delivery & Quantity Row */}
                 <div className="grid md:grid-cols-2 gap-6 pt-2">
                    <div className="space-y-2">
-                     <label className="block text-sm font-bold text-[#1D3557]">ডেলিভারি এলাকা</label>
+                     <label className="block text-sm font-bold text-[#1D3557]">{config.orderFormText?.deliveryAreaLabel || 'ডেলিভারি এলাকা'}</label>
                      <div className="flex flex-col gap-3">
                         <label className={`cursor-pointer p-3 rounded-xl border-2 flex items-center gap-3 font-bold transition-all ${formData.division === 'dhaka' ? 'border-[#1D3557] bg-[#EAF2FF] text-[#1D3557]' : 'border-[#E5E5E5] bg-white text-gray-500'}`}>
                             <input 
@@ -187,7 +187,7 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                               onChange={() => setFormData({...formData, division: 'dhaka'})}
                               className="accent-[#1D3557] w-5 h-5" 
                             />
-                            ঢাকার ভিতরে
+                            {config.orderFormText?.insideDhakaLabel || 'ঢাকার ভিতরে'}
                         </label>
                         <label className={`cursor-pointer p-3 rounded-xl border-2 flex items-center gap-3 font-bold transition-all ${formData.division === 'other' ? 'border-[#1D3557] bg-[#EAF2FF] text-[#1D3557]' : 'border-[#E5E5E5] bg-white text-gray-500'}`}>
                             <input 
@@ -198,13 +198,13 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                               onChange={() => setFormData({...formData, division: 'other'})}
                               className="accent-[#1D3557] w-5 h-5" 
                             />
-                            ঢাকার বাইরে
+                            {config.orderFormText?.outsideDhakaLabel || 'ঢাকার বাইরে'}
                         </label>
                      </div>
                    </div>
 
                    <div className="space-y-2">
-                     <label className="block text-sm font-bold text-[#1D3557]">পরিমাণ</label>
+                     <label className="block text-sm font-bold text-[#1D3557]">{config.orderFormText?.quantityLabel || 'পরিমাণ'}</label>
                      <div className="flex items-center gap-0 h-[104px]">
                         <button 
                           type="button"

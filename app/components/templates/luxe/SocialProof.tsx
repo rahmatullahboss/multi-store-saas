@@ -11,17 +11,31 @@ export function LuxeSocialProof({ config }: SectionProps) {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col items-center gap-12">
-          <div className="flex -space-x-4">
-             {[1,2,3,4,5].map(i => (
-               <div key={i} className="w-20 h-20 rounded-full border-2 border-stone-800 bg-stone-900 overflow-hidden shadow-2xl grayscale hover:grayscale-0 transition-all duration-1000">
-                 <img src={`https://i.pravatar.cc/100?u=luxe_${i}`} alt="Connoisseur" className="w-full h-full object-cover" />
-               </div>
-             ))}
-          </div>
+           <div className="flex -space-x-4">
+              {(socialProof.images && socialProof.images.length > 0 ? socialProof.images : [1,2,3,4,5]).map((img, i) => (
+                <div key={i} className="w-20 h-20 rounded-full border-2 border-stone-800 bg-stone-900 overflow-hidden shadow-2xl grayscale hover:grayscale-0 transition-all duration-1000">
+                  <img 
+                    src={typeof img === 'string' ? img : `https://i.pravatar.cc/100?u=luxe_${img}`} 
+                    alt="Connoisseur" 
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
+              ))}
+           </div>
           
           <div className="max-w-4xl">
             <h2 className="text-4xl md:text-7xl font-serif italic tracking-tight mb-8">
-              The choice of <span className="text-amber-500 font-sans font-black">{socialProof.count.toLocaleString()}</span> connoisseurs.
+              {socialProof.title ? (
+                // Safe way to render formatted number inside user text
+                <span dangerouslySetInnerHTML={{ 
+                  __html: socialProof.title.replace(
+                    '{{count}}', 
+                    `<span class="text-amber-500 font-sans font-black">${socialProof.count.toLocaleString()}</span>`
+                  ) 
+                }} />
+              ) : (
+                <>The choice of <span className="text-amber-500 font-sans font-black">{socialProof.count.toLocaleString()}</span> connoisseurs.</>
+              )}
             </h2>
             <p className="text-xl font-light text-stone-400 leading-relaxed max-w-2xl mx-auto italic">
               "{socialProof.text}"

@@ -128,7 +128,9 @@ export function MobileFirstOrderForm({
 
             <div className="bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm space-y-4">
               <div className="flex justify-between items-center bg-indigo-50/50 p-4 rounded-2xl mb-2">
-                <span className="text-gray-500 font-bold text-xs uppercase tracking-widest">পরিমাণ</span>
+                <span className="text-gray-500 font-bold text-xs uppercase tracking-widest">
+                  {config.orderFormText?.quantityLabel || 'পরিমাণ'}
+                </span>
                 <div className="flex items-center gap-6">
                   <button
                     type="button"
@@ -150,7 +152,9 @@ export function MobileFirstOrderForm({
 
               {config.productVariants && config.productVariants.length > 0 && (
                 <div className="bg-indigo-50/50 p-4 rounded-2xl mb-2">
-                  <span className="text-gray-500 font-bold text-xs uppercase tracking-widest block mb-3">পণ্য নির্বাচন</span>
+                  <span className="text-gray-500 font-bold text-xs uppercase tracking-widest block mb-3">
+                     {config.orderFormText?.variantLabel || 'পণ্য নির্বাচন'}
+                  </span>
                   <div className="flex flex-wrap gap-2">
                     {config.productVariants.map((variant) => (
                       <button
@@ -175,11 +179,11 @@ export function MobileFirstOrderForm({
               )}
 
               <div className="flex justify-between items-center text-sm font-bold text-gray-500 uppercase tracking-widest pt-2">
-                <span>মোট বিল</span>
+                <span>{config.orderFormText?.totalLabel || 'মোট বিল'}</span>
                 <span className="text-2xl font-black text-gray-950">{formatPrice(totalPrice)}</span>
               </div>
               <div className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] border-t border-gray-50 pt-4">
-                <Truck size={14} /> নিরাপদ হোম ডেলিভারি
+                <Truck size={14} /> {config.orderFormText?.codLabel || 'নিরাপদ হোম ডেলিভারি'}
               </div>
             </div>
 
@@ -188,7 +192,7 @@ export function MobileFirstOrderForm({
                 type="text"
                 required
                 className="w-full bg-white border-2 border-indigo-50 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-indigo-500 outline-none transition-all placeholder:text-gray-300"
-                placeholder="আপনার নাম"
+                placeholder={config.orderFormText?.namePlaceholder || "আপনার নাম"}
                 value={formData.customer_name}
                 onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
               />
@@ -196,7 +200,7 @@ export function MobileFirstOrderForm({
                 type="tel"
                 required
                 className="w-full bg-white border-2 border-indigo-50 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-indigo-500 outline-none transition-all placeholder:text-gray-300"
-                placeholder="ফোন নম্বর"
+                placeholder={config.orderFormText?.phonePlaceholder || "ফোন নম্বর"}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
@@ -210,7 +214,7 @@ export function MobileFirstOrderForm({
                       : 'bg-white text-gray-400 border-indigo-50 hover:border-indigo-200'
                     }`}
                 >
-                  ঢাকার ভেতরে
+                  {config.orderFormText?.insideDhakaLabel || 'ঢাকার ভেতরে'}
                 </button>
                 <button
                   type="button"
@@ -220,14 +224,14 @@ export function MobileFirstOrderForm({
                       : 'bg-white text-gray-400 border-indigo-50 hover:border-indigo-200'
                     }`}
                 >
-                  ঢাকার বাইরে
+                  {config.orderFormText?.outsideDhakaLabel || 'ঢাকার বাইরে'}
                 </button>
               </div>
 
               <textarea
                 required
                 className="w-full bg-white border-2 border-indigo-50 rounded-2xl px-6 py-5 text-gray-950 font-bold focus:border-indigo-500 outline-none transition-all placeholder:text-gray-300 resize-none"
-                placeholder="পূর্ণ ঠিকানা"
+                placeholder={config.orderFormText?.addressPlaceholder || "পূর্ণ ঠিকানা"}
                 rows={3}
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -238,9 +242,9 @@ export function MobileFirstOrderForm({
                 disabled={isSubmitting}
                 className="group w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-2xl transition-all active:scale-[0.97] shadow-lg shadow-indigo-100 flex items-center justify-center gap-3"
               >
-                {isSubmitting ? 'প্রসেসিং হচ্ছে...' : (
+                {isSubmitting ? (config.orderFormText?.processingButtonText || 'প্রসেসিং হচ্ছে...') : (
                   <>
-                    অর্ডার কনফার্ম করুন
+                    {config.orderFormText?.submitButtonText || 'অর্ডার কনফার্ম করুন'}
                     <ArrowRight size={22} className="group-hover:translate-x-2 transition-transform" />
                   </>
                 )}

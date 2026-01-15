@@ -26,7 +26,7 @@ export function LuxePricing({
              <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
             <span className="inline-block text-amber-500 text-xs font-bold tracking-[0.3em] uppercase mb-8 border border-amber-500/30 px-4 py-2">
-              Exclusive Offer
+              {config.pricingData.title || 'Exclusive Offer'}
             </span>
 
             <div className="flex flex-col items-center mb-10">
@@ -53,7 +53,7 @@ export function LuxePricing({
               href="#order-form"
               className="block w-full bg-amber-600 hover:bg-amber-500 text-black font-serif-display uppercase tracking-widest py-4 transition-colors duration-300"
             >
-              Purchase Now
+              {config.pricingData.buttonText || 'Purchase Now'}
             </a>
           </div>
         </div>

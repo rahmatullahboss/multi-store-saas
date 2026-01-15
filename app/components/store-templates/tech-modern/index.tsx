@@ -141,6 +141,7 @@ export function TechModernTemplate({
         businessInfo={businessInfo} 
         socialLinks={socialLinks} 
         planType={planType}
+        categories={validCategories}
       />
 
       {/* Mobile Bottom Navigation */}

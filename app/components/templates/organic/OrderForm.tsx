@@ -129,106 +129,118 @@ export function OrganicOrderForm({
                   <span className="text-3xl font-bold text-gray-900">{formatPrice(totalPrice)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-green-700 font-bold text-sm">
-                  <ShieldCheck size={20} /> Honest Pricing • Secure Connection
+                  <div className="flex justify-between items-center text-sm font-bold text-gray-600">
+                    <span>{config.orderFormText?.quantityLabel || 'পরিমাণ'}</span>
+                    <div className="flex items-center gap-4 bg-white rounded-lg p-1 shadow-sm border border-stone-200">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
+                        className="w-8 h-8 rounded-md bg-stone-100 flex items-center justify-center hover:bg-emerald-100 hover:text-emerald-700 transition"
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center text-lg text-gray-900">{formData.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
+                        className="w-8 h-8 rounded-md bg-stone-100 flex items-center justify-center hover:bg-emerald-100 hover:text-emerald-700 transition"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {config.productVariants && config.productVariants.length > 0 && (
+                    <div>
+                      <span className="text-sm font-bold text-gray-600 block mb-2">
+                        {config.orderFormText?.variantLabel || 'পণ্য নির্বাচন'}
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {config.productVariants.map((variant) => (
+                          <button
+                            key={variant.id}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, selectedVariant: variant })}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
+                              formData.selectedVariant?.id === variant.id
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                : 'bg-white text-gray-500 border-stone-200 hover:border-emerald-300'
+                            }`}
+                          >
+                            {variant.name}
+                            {variant.price && variant.price !== product.price && (
+                              <span className="ml-1 opacity-70">
+                                ({formatPrice(variant.price)})
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-4 border-t border-stone-200">
+                    <span className="text-lg font-bold text-emerald-800">
+                       {config.orderFormText?.totalLabel || 'সর্বমোট'}
+                    </span>
+                    <span className="text-3xl font-black text-emerald-600">{formatPrice(totalPrice)}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-500 bg-emerald-50 py-2 rounded-lg">
+                    <ShieldCheck size={14} className="text-emerald-600" />
+                    <span>{config.orderFormText?.codLabel || 'ক্যাশ অন ডেলিভারি এভেলেবল'}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 bg-white p-8 lg:p-10 rounded-[2.5rem] shadow-lg border border-green-100">
-              <div className="flex items-center justify-between border border-green-50 bg-green-50/30 p-4 rounded-2xl mb-2">
-                <span className="text-gray-500 font-bold text-sm uppercase">Quantity</span>
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
-                    className="w-10 h-10 rounded-xl bg-white border border-green-100 text-green-600 font-bold flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
-                  >
-                    -
-                  </button>
-                  <span className="text-gray-900 text-xl font-bold w-4 text-center">{formData.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
-                    className="w-10 h-10 rounded-xl bg-white border border-green-100 text-green-600 font-bold flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {config.productVariants && config.productVariants.length > 0 && (
-                <div className="border border-green-50 bg-green-50/30 p-4 rounded-2xl mb-2">
-                  <span className="text-gray-500 font-bold text-sm uppercase block mb-3">Choice</span>
-                  <div className="flex flex-wrap gap-2">
-                    {config.productVariants.map((variant) => (
-                      <button
-                        key={variant.id}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, selectedVariant: variant })}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
-                          formData.selectedVariant?.id === variant.id
-                            ? 'bg-green-600 text-white border-green-600 shadow-md'
-                            : 'bg-white border-green-100 text-green-600 hover:border-green-200 shadow-sm'
-                        }`}
-                      >
-                        {variant.name}
-                        {variant.price && variant.price !== product.price && (
-                          <span className="ml-1 text-[8px] opacity-70">
-                            ({formatPrice(variant.price)})
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+            <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 type="text"
                 required
-                className="w-full bg-green-50/30 border border-green-100 rounded-2xl px-6 py-5 text-gray-900 font-medium focus:border-green-500 outline-none transition-all placeholder:text-gray-400"
-                placeholder="Your Full Name"
+                className="w-full bg-white border-2 border-stone-200 rounded-xl px-4 py-3 text-gray-900 font-bold focus:border-emerald-500 outline-none transition-all placeholder:text-gray-300"
+                placeholder={config.orderFormText?.namePlaceholder || "আপনার নাম"}
                 value={formData.customer_name}
                 onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
               />
               <input
                 type="tel"
                 required
-                className="w-full bg-green-50/30 border border-green-100 rounded-2xl px-6 py-5 text-gray-900 font-medium focus:border-green-500 outline-none transition-all placeholder:text-gray-400"
-                placeholder="Active Phone Number"
+                className="w-full bg-white border-2 border-stone-200 rounded-xl px-4 py-3 text-gray-900 font-bold focus:border-emerald-500 outline-none transition-all placeholder:text-gray-300"
+                placeholder={config.orderFormText?.phonePlaceholder || "ফোন নম্বর"}
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, division: 'dhaka'})}
-                  className={`py-4 rounded-2xl font-bold border transition-all ${
+                  className={`py-3 rounded-xl font-bold text-sm border-2 transition-all ${
                     formData.division === 'dhaka' 
-                      ? 'bg-green-600 text-white border-green-600 shadow-md' 
-                      : 'bg-green-50/30 text-gray-400 border-green-100 hover:border-green-200'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' 
+                      : 'bg-white text-gray-400 border-stone-200 hover:border-emerald-200'
                   }`}
                 >
-                  Inside Dhaka
+                  {config.orderFormText?.insideDhakaLabel || 'ঢাকার ভেতরে'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, division: 'chittagong'})}
-                  className={`py-4 rounded-2xl font-bold border transition-all ${
+                  className={`py-3 rounded-xl font-bold text-sm border-2 transition-all ${
                     formData.division !== 'dhaka' 
-                      ? 'bg-green-600 text-white border-green-600 shadow-md' 
-                      : 'bg-green-50/30 text-gray-400 border-green-100 hover:border-green-200'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' 
+                      : 'bg-white text-gray-400 border-stone-200 hover:border-emerald-200'
                   }`}
                 >
-                  Outside Dhaka
+                  {config.orderFormText?.outsideDhakaLabel || 'ঢাকার বাইরে'}
                 </button>
               </div>
 
               <textarea
                 required
-                className="w-full bg-green-50/30 border border-green-100 rounded-2xl px-6 py-5 text-gray-900 font-medium focus:border-green-500 outline-none transition-all placeholder:text-gray-400 resize-none"
-                placeholder="Shipping Address"
+                className="w-full bg-white border-2 border-stone-200 rounded-xl px-4 py-3 text-gray-900 font-bold focus:border-emerald-500 outline-none transition-all placeholder:text-gray-300 resize-none"
+                placeholder={config.orderFormText?.addressPlaceholder || "পূর্ণ ঠিকানা"}
                 rows={3}
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
@@ -237,12 +249,12 @@ export function OrganicOrderForm({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-6 bg-green-600 hover:bg-green-700 text-white font-bold text-xl rounded-2xl transition-all active:scale-[0.98] shadow-lg shadow-green-200 flex items-center justify-center gap-4"
+                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xl rounded-xl transition-all shadow-lg hover:shadow-xl shadow-emerald-200 active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                {isSubmitting ? 'SECURELY SAVING...' : (
+                {isSubmitting ? (config.orderFormText?.processingButtonText || 'অপেক্ষা করুন...') : (
                   <>
-                    CONFIRM ORDER
-                    <ArrowRight size={22} />
+                    <span>{config.orderFormText?.submitButtonText || 'অর্ডার কনফার্ম করুন'}</span>
+                    <ArrowRight size={20} />
                   </>
                 )}
               </button>

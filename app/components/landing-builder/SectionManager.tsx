@@ -12,7 +12,7 @@ import {
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
   Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code, AlertCircle, MessageCircle,
-  Tag, Box, ListOrdered
+  Tag, Box, ListOrdered, Package
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -286,26 +286,67 @@ export interface Comparison {
 export interface SocialProof {
   count: number;
   text: string;
+  title?: string;
+  images?: string[];
 }
 
 export interface ProblemSolution {
+  beforeTitle?: string;
+  afterTitle?: string;
   problems: string[];
   solutions: string[];
 }
 
 export interface PricingData {
   features: string[];
+  title?: string;
+  buttonText?: string;
 }
 
 export interface ShowcaseData {
+  title?: string;
+  image?: string;
   features: string[];
 }
 
 export interface HowToOrderData {
+  title?: string;
   steps: {
     title: string;
     description: string;
   }[];
+}
+
+export interface OrderFormText {
+  headline?: string;
+  subheadline?: string;
+  submitButtonText?: string;
+  successMessage?: string;
+  successHeadline?: string;
+  nameLabel?: string;
+  phoneLabel?: string;
+  addressLabel?: string;
+  divisionLabel?: string;
+  insideDhakaLabel?: string;
+  outsideDhakaLabel?: string;
+  quantityLabel?: string;
+  variantLabel?: string;
+  summaryTitle?: string;
+  totalLabel?: string;
+  shippingLabel?: string;
+  subtotalLabel?: string;
+  namePlaceholder?: string;
+  phonePlaceholder?: string;
+  addressPlaceholder?: string;
+  processingButtonText?: string;
+  nameError?: string;
+  phoneError?: string;
+  addressError?: string;
+  secureCheckoutLabel?: string;
+  codLabel?: string;
+  stockText?: string;
+  footerTagline?: string;
+  footerCopyright?: string;
 }
 
 interface SectionManagerProps {
@@ -320,6 +361,13 @@ interface SectionManagerProps {
   onSubheadlineChange?: (subheadline: string) => void;
   ctaText?: string;
   onCtaTextChange?: (ctaText: string) => void;
+  // Hero specific
+  heroBadgeText?: string;
+  onHeroBadgeTextChange?: (text: string) => void;
+  heroPriceLabel?: string;
+  onHeroPriceLabelChange?: (text: string) => void;
+  heroFeatures?: { icon: string; text: string }[];
+  onHeroFeaturesChange?: (features: { icon: string; text: string }[]) => void;
   // Trust badges
   trustBadges?: Array<{ icon: string; text: string }>;
   onTrustBadgesChange?: (badges: Array<{ icon: string; text: string }>) => void;
@@ -348,11 +396,37 @@ interface SectionManagerProps {
   onBenefitsChange?: (benefits: Benefit[]) => void;
   comparison?: Comparison;
   onComparisonChange?: (comparison: Comparison) => void;
+  // Social Proof
   socialProof?: SocialProof;
   onSocialProofChange?: (socialProof: SocialProof) => void;
+  socialProofTitle?: string;
+  onSocialProofTitleChange?: (text: string) => void;
   // Order Form Layout
   orderFormVariant?: 'full-width' | 'compact';
   onOrderFormVariantChange?: (variant: 'full-width' | 'compact') => void;
+  // Section Titles & Subtitles (New)
+  featuresTitle?: string;
+  onFeaturesTitleChange?: (text: string) => void;
+  faqTitle?: string;
+  onFaqTitleChange?: (text: string) => void;
+  faqSubtitle?: string;
+  onFaqSubtitleChange?: (text: string) => void;
+  testimonialsTitle?: string; // "What They Say"
+  onTestimonialsTitleChange?: (text: string) => void;
+  reviewsSubtitle?: string;   // "Patron Reviews"
+  onReviewsSubtitleChange?: (text: string) => void;
+  guaranteeBadgeLabel?: string;
+  onGuaranteeBadgeLabelChange?: (text: string) => void;
+  establishedDate?: string;
+  onEstablishedDateChange?: (text: string) => void;
+  // Video & Gallery Titles
+  videoTitle?: string;
+  onVideoTitleChange?: (text: string) => void;
+  galleryTitle?: string;
+  onGalleryTitleChange?: (text: string) => void;
+  // Order Form Text
+  orderFormText?: OrderFormText;
+  onOrderFormTextChange?: (text: OrderFormText) => void;
   // Custom code sections
   customSections?: Array<{ id: string; name: string; html: string; css?: string; position?: string }>;
   onCustomSectionsChange?: (sections: Array<{ id: string; name: string; html: string; css?: string; position?: string }>) => void;
@@ -387,6 +461,12 @@ function SectionManagerBase({
   onSubheadlineChange,
   ctaText = '',
   onCtaTextChange,
+  heroBadgeText = '',
+  onHeroBadgeTextChange,
+  heroPriceLabel = '',
+  onHeroPriceLabelChange,
+  heroFeatures = [],
+  onHeroFeaturesChange,
   // Trust badges
   trustBadges = [],
   onTrustBadgesChange,
@@ -416,11 +496,11 @@ function SectionManagerBase({
   onComparisonChange,
   socialProof = { count: 0, text: '' },
   onSocialProofChange,
-  pricingData = { features: [] },
+  pricingData = { features: [], title: '', buttonText: '' },
   onPricingDataChange,
-  showcaseData = { features: [] },
+  showcaseData,
   onShowcaseDataChange,
-  howToOrderData = { steps: [] },
+  howToOrderData,
   onHowToOrderDataChange,
   // Order form layout
   orderFormVariant = 'full-width',
@@ -438,6 +518,20 @@ function SectionManagerBase({
   onAddSection,
   // Interactive editing
   selectedSection,
+  // New Title Props
+  featuresTitle, onFeaturesTitleChange,
+  faqTitle, onFaqTitleChange,
+  faqSubtitle, onFaqSubtitleChange,
+  testimonialsTitle, onTestimonialsTitleChange,
+  reviewsSubtitle, onReviewsSubtitleChange,
+  guaranteeBadgeLabel, onGuaranteeBadgeLabelChange,
+  establishedDate, onEstablishedDateChange,
+  socialProofTitle, onSocialProofTitleChange,
+  // Video & Gallery
+  videoTitle, onVideoTitleChange,
+  galleryTitle, onGalleryTitleChange,
+  // Order Form Text
+  orderFormText, onOrderFormTextChange,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -573,6 +667,75 @@ function SectionManagerBase({
                 placeholder={language === 'bn' ? 'এখনই অর্ডার করুন' : 'Order Now'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
+            </div>
+
+            {/* Hero Additional Fields */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'ব্যাজ টেক্সট' : 'Badge Text'}
+                </label>
+                <input
+                  type="text"
+                  value={heroBadgeText}
+                  onChange={(e) => onHeroBadgeTextChange?.(e.target.value)}
+                  placeholder="PREMIERE COLLECTION"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'প্রাইস লেবেল' : 'Price Label'}
+                </label>
+                <input
+                  type="text"
+                  value={heroPriceLabel}
+                  onChange={(e) => onHeroPriceLabelChange?.(e.target.value)}
+                  placeholder="PRICE"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                {language === 'bn' ? 'হিরো ফিচারসমূহ' : 'Hero Features'}
+              </label>
+              <div className="space-y-2">
+                {heroFeatures.map((feature, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={feature.text}
+                      onChange={(e) => {
+                        const newFeatures = [...heroFeatures];
+                        newFeatures[index] = { ...feature, text: e.target.value };
+                        onHeroFeaturesChange?.(newFeatures);
+                      }}
+                      className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-sm"
+                      placeholder="Feature text"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newFeatures = heroFeatures.filter((_, i) => i !== index);
+                        onHeroFeaturesChange?.(newFeatures);
+                      }}
+                      className="text-red-500 hover:text-red-600 p-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => onHeroFeaturesChange?.([...heroFeatures, { icon: 'check', text: '' }])}
+                  className="flex items-center gap-1 text-xs text-emerald-600 font-medium mt-1 hover:text-emerald-700"
+                >
+                  <Plus className="w-3 h-3" />
+                  {language === 'bn' ? 'ফিচার যোগ করুন' : 'Add Feature'}
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -756,10 +919,23 @@ function SectionManagerBase({
 
       case 'video':
         return (
-          <div className="p-4 bg-gray-50 border-t border-gray-200">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              {language === 'bn' ? 'ভিডিও URL (YouTube/Vimeo)' : 'Video URL (YouTube/Vimeo)'}
-            </label>
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'সেকশন টাইটেল' : 'Section Title'}
+              </label>
+              <input
+                type="text"
+                value={videoTitle || ''}
+                onChange={(e) => onVideoTitleChange?.(e.target.value)}
+                placeholder="Video Title"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'ভিডিও লিংক (YouTube Embed)' : 'Video URL (YouTube Embed)'}
+              </label>
             <input
               type="url"
               value={videoUrl}
@@ -768,6 +944,7 @@ function SectionManagerBase({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
             />
           </div>
+        </div>
         );
 
       case 'testimonials':
@@ -1260,6 +1437,18 @@ function SectionManagerBase({
           <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'টাইটেল ({{count}} লিখলে অটোমেটিক সংখ্যা বসবে)' : 'Title (Use {{count}} for dynamic number)'}
+              </label>
+              <input
+                type="text"
+                value={socialProof.title || ''}
+                onChange={(e) => onSocialProofChange?.({ ...socialProof, title: e.target.value })}
+                placeholder={language === 'bn' ? 'The choice of {{count}} connoisseurs.' : 'The choice of {{count}} connoisseurs.'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 {language === 'bn' ? 'সংখ্যা' : 'Count'}
               </label>
               <input
@@ -1282,6 +1471,65 @@ function SectionManagerBase({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
             </div>
+
+            {/* Image Management */}
+            <div>
+               <label className="block text-xs font-medium text-gray-700 mb-2">
+                {language === 'bn' ? 'কাস্টমার ছবি' : 'Customer Images'}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {(socialProof.images || []).map((img, index) => (
+                  <div key={index} className="relative group w-12 h-12">
+                    <img 
+                      src={img} 
+                      alt="Social proof" 
+                      className="w-full h-full object-cover rounded-full border border-gray-200" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newImages = [...(socialProof.images || [])];
+                        newImages.splice(index, 1);
+                        onSocialProofChange?.({ ...socialProof, images: newImages });
+                      }}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Upload Button */}
+                {onImageUpload && (
+                   <label className="w-12 h-12 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-full hover:border-emerald-500 hover:text-emerald-600 cursor-pointer transition text-gray-400">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleGenericUpload(file, 'social-proof-upload', (url) => {
+                               const newImages = [...(socialProof.images || []), url];
+                               onSocialProofChange?.({ ...socialProof, images: newImages });
+                            });
+                          }
+                          e.target.value = '';
+                        }}
+                        disabled={uploadingKey === 'social-proof-upload'}
+                      />
+                      {uploadingKey === 'social-proof-upload' ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+                      ) : (
+                        <Plus className="w-4 h-4" />
+                      )}
+                   </label>
+                )}
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">
+                {language === 'bn' ? 'ছবি না দিলে ডিফল্ট ছবি দেখাবে' : 'Default images will show if empty'}
+              </p>
+            </div>
           </div>
         );
 
@@ -1297,37 +1545,28 @@ function SectionManagerBase({
                 onClick={() => onOrderFormVariantChange?.('full-width')}
                 className={`p-3 rounded-lg border text-center transition ${
                   orderFormVariant === 'full-width'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/20'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                 }`}
               >
-                <div className="w-8 h-6 mx-auto mb-2 border-2 border-current rounded flex">
-                  <div className="w-1/2 bg-current opacity-30"></div>
-                  <div className="w-1/2 bg-current opacity-60"></div>
-                </div>
-                <div className="font-medium text-sm">
-                  {language === 'bn' ? 'ফুল উইডথ' : 'Full Width'}
-                </div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {language === 'bn' ? '২ কলাম' : '2 Columns'}
-                </div>
+                <div className="h-6 bg-gray-200 rounded mb-2 w-full"></div>
+                <span className="text-xs font-medium">Full Width</span>
               </button>
+              
               <button
                 type="button"
                 onClick={() => onOrderFormVariantChange?.('compact')}
                 className={`p-3 rounded-lg border text-center transition ${
                   orderFormVariant === 'compact'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/20'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                 }`}
               >
-                <div className="w-5 h-6 mx-auto mb-2 border-2 border-current rounded bg-current opacity-40"></div>
-                <div className="font-medium text-sm">
-                  {language === 'bn' ? 'কম্প্যাক্ট' : 'Compact'}
+                <div className="flex gap-1 mb-2">
+                  <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-6 bg-gray-200 rounded w-1/2"></div>
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {language === 'bn' ? '১ কলাম' : '1 Column'}
-                </div>
+                <span className="text-xs font-medium">Compact</span>
               </button>
             </div>
           </div>
@@ -1451,6 +1690,35 @@ function SectionManagerBase({
       case 'pricing':
         return (
           <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            {/* Title & Button Text */}
+             <div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'অফার টাইটেল' : 'Offer Title'}
+                </label>
+                <input
+                  type="text"
+                  value={pricingData.title}
+                  onChange={(e) => onPricingDataChange?.({ ...pricingData, title: e.target.value })}
+                  placeholder="EXCLUSIVE OFFER"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'বাটন টেক্সট' : 'Button Text'}
+                </label>
+                <input
+                  type="text"
+                  value={pricingData.buttonText}
+                  onChange={(e) => onPricingDataChange?.({ ...pricingData, buttonText: e.target.value })}
+                  placeholder="PURCHASE NOW"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Features Section */}
             <div className="space-y-3">
               <label className="block text-xs font-medium text-gray-700">
                 {language === 'bn' ? 'প্রাইসিং ফিচারসমূহ' : 'Pricing Features'}
@@ -1500,27 +1768,242 @@ function SectionManagerBase({
           </div>
         );
 
+      case 'order-form':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+              <div className="space-y-4">
+                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 block">Form Controls</h4>
+                 
+                 <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <button className="w-full px-4 py-2 bg-gray-50 text-left text-xs font-bold text-gray-700 uppercase flex justify-between items-center" onClick={(e) => e.currentTarget.nextElementSibling?.classList.toggle('hidden')}>
+                       Input Labels (Form) <span>▼</span>
+                    </button>
+                    <div className="p-4 bg-white space-y-3 hidden">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Name Label</label>
+                          <input type="text" value={orderFormText?.nameLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, nameLabel: e.target.value })} placeholder="Full Name / আপনার নাম" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Phone Label</label>
+                          <input type="text" value={orderFormText?.phoneLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, phoneLabel: e.target.value })} placeholder="Contact Number / ফোন নম্বর" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Address Label</label>
+                          <input type="text" value={orderFormText?.addressLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, addressLabel: e.target.value })} placeholder="Shipping Address / ঠিকান" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                    </div>
+                 </div>
+
+                 <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <button className="w-full px-4 py-2 bg-gray-50 text-left text-xs font-bold text-gray-700 uppercase flex justify-between items-center" onClick={(e) => e.currentTarget.nextElementSibling?.classList.toggle('hidden')}>
+                       Input Placeholders <span>▼</span>
+                    </button>
+                    <div className="p-4 bg-white space-y-3 hidden">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Name Placeholder</label>
+                          <input type="text" value={orderFormText?.namePlaceholder || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, namePlaceholder: e.target.value })} placeholder="Ex: John Doe" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Phone Placeholder</label>
+                          <input type="text" value={orderFormText?.phonePlaceholder || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, phonePlaceholder: e.target.value })} placeholder="Ex: 017..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Address Placeholder</label>
+                          <input type="text" value={orderFormText?.addressPlaceholder || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, addressPlaceholder: e.target.value })} placeholder="Ex: House 12, Road 5..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                    </div>
+                 </div>
+
+                 <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <button className="w-full px-4 py-2 bg-gray-50 text-left text-xs font-bold text-gray-700 uppercase flex justify-between items-center" onClick={(e) => e.currentTarget.nextElementSibling?.classList.toggle('hidden')}>
+                       Order Summary Labels <span>▼</span>
+                    </button>
+                    <div className="p-4 bg-white space-y-3 hidden">
+                        <div className="grid grid-cols-2 gap-3">
+                           <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
+                              <input type="text" value={orderFormText?.quantityLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, quantityLabel: e.target.value })} placeholder="Quantity" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                           </div>
+                           <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Variant</label>
+                              <input type="text" value={orderFormText?.variantLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, variantLabel: e.target.value })} placeholder="Variant" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                           </div>
+                           <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Subtotal</label>
+                              <input type="text" value={orderFormText?.subtotalLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, subtotalLabel: e.target.value })} placeholder="Price/Value" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                           </div>
+                           <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Shipping</label>
+                              <input type="text" value={orderFormText?.shippingLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, shippingLabel: e.target.value })} placeholder="Delivery Charge" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                           </div>
+                           <div className="col-span-2">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Total</label>
+                              <input type="text" value={orderFormText?.totalLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, totalLabel: e.target.value })} placeholder="Total" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                           </div>
+                        </div>
+                    </div>
+                 </div>
+
+                 <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <button className="w-full px-4 py-2 bg-gray-50 text-left text-xs font-bold text-gray-700 uppercase flex justify-between items-center" onClick={(e) => e.currentTarget.nextElementSibling?.classList.toggle('hidden')}>
+                       Buttons & Messages <span>▼</span>
+                    </button>
+                    <div className="p-4 bg-white space-y-3 hidden">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Submit Button</label>
+                          <input type="text" value={orderFormText?.submitButtonText || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, submitButtonText: e.target.value })} placeholder="Confirm Order" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Processing Text</label>
+                          <input type="text" value={orderFormText?.processingButtonText || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, processingButtonText: e.target.value })} placeholder="Processing..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                           <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Inside Dhaka</label>
+                              <input type="text" value={orderFormText?.insideDhakaLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, insideDhakaLabel: e.target.value })} placeholder="Inside Dhaka" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                           </div>
+                           <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Outside Dhaka</label>
+                              <input type="text" value={orderFormText?.outsideDhakaLabel || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, outsideDhakaLabel: e.target.value })} placeholder="Outside Dhaka" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                           </div>
+                        </div>
+                    </div>
+                 </div>
+
+                 <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <button className="w-full px-4 py-2 bg-gray-50 text-left text-xs font-bold text-gray-700 uppercase flex justify-between items-center" onClick={(e) => e.currentTarget.nextElementSibling?.classList.toggle('hidden')}>
+                       Footer & Copyright <span>▼</span>
+                    </button>
+                    <div className="p-4 bg-white space-y-3 hidden">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Footer Tagline</label>
+                          <input type="text" value={orderFormText?.footerTagline || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, footerTagline: e.target.value })} placeholder="Trusted eCommerce..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Copyright Text</label>
+                          <input type="text" value={orderFormText?.footerCopyright || ''} onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, footerCopyright: e.target.value })} placeholder="All rights reserved." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                        </div>
+                    </div>
+                 </div>
+
+              </div>
+              
+              <div>
+                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Validation Messages</h4>
+                 <div className="grid grid-cols-1 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Name Error</label>
+                      <input
+                        type="text"
+                        value={orderFormText?.nameError || ''}
+                        onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, nameError: e.target.value })}
+                        placeholder="Name required"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                    </div>
+                     <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Phone Error</label>
+                      <input
+                        type="text"
+                        value={orderFormText?.phoneError || ''}
+                        onChange={(e) => onOrderFormTextChange?.({ ...orderFormText!, phoneError: e.target.value })}
+                        placeholder="Phone required"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                    </div>
+                 </div>
+              </div>
+          </div>
+        );
+
       case 'showcase':
         return (
           <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            {/* Title & Image */}
+            <div className="grid gap-3 p-3 bg-white rounded-lg border border-gray-200">
+               <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'সেকশন টাইটেল' : 'Section Title'}
+                </label>
+                <input
+                  type="text"
+                  value={showcaseData?.title || ''}
+                  onChange={(e) => onShowcaseDataChange?.({ features: [], ...showcaseData, title: e.target.value })}
+                  placeholder="UNBOXING EXPERIENCE"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  {language === 'bn' ? 'প্রোডাক্ট ফটো' : 'Product Image'}
+                </label>
+                <div className="flex gap-3 items-center">
+                  {showcaseData?.image ? (
+                    <div className="relative w-16 h-16 rounded-md border border-gray-200 overflow-hidden group">
+                      <img src={showcaseData?.image} alt="Showcase" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => onShowcaseDataChange?.({ ...showcaseData, image: undefined })}
+                        className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300">
+                      <Package className="w-8 h-8" />
+                    </div>
+                  )}
+                  
+                  {onImageUpload && (
+                    <label className="flex-1 cursor-pointer">
+                      <div className="flex items-center justify-center gap-2 py-2 px-3 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:border-emerald-500 hover:text-emerald-600 transition">
+                         {uploadingKey === 'showcase-image' ? (
+                           <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+                         ) : (
+                           <Upload className="w-4 h-4" />
+                         )}
+                         <span>{language === 'bn' ? 'ফটো আপলোড' : 'Upload Photo'}</span>
+                      </div>
+                       <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleGenericUpload(file, 'showcase-image', (url) => {
+                              onShowcaseDataChange?.({ features: [], ...showcaseData, image: url });
+                            });
+                          }
+                          e.target.value = ''; // Reset input
+                        }}
+                        disabled={uploadingKey === 'showcase-image'}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-3">
               <label className="block text-xs font-medium text-gray-700">
                 {language === 'bn' ? 'প্রোডাক্ট হাইলাইট' : 'Product Highlights'}
               </label>
-              {showcaseData.features.length === 0 && (
+              {showcaseData?.features && showcaseData.features.length === 0 && (
                 <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
                    {language === 'bn' ? 'হাইলাইট যোগ করুন' : 'Add highlights'}
                 </div>
               )}
-              {showcaseData.features.map((feature, index) => (
+              {showcaseData?.features && showcaseData.features.map((feature, index) => (
                 <div key={index} className="flex gap-2 items-center">
                   <input
                     type="text"
                     value={feature}
                     onChange={(e) => {
-                      const newFeatures = [...showcaseData.features];
+                      const newFeatures = [...(showcaseData?.features || [])];
                       newFeatures[index] = e.target.value;
-                      onShowcaseDataChange?.({ ...showcaseData, features: newFeatures });
+                      onShowcaseDataChange?.({ ...showcaseData, features: newFeatures, title: showcaseData?.title });
                     }}
                     placeholder={language === 'bn' ? 'হাইলাইট লিখুন' : 'Enter highlight'}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
@@ -1528,8 +2011,8 @@ function SectionManagerBase({
                   <button
                     type="button"
                     onClick={() => {
-                      const newFeatures = showcaseData.features.filter((_, i) => i !== index);
-                      onShowcaseDataChange?.({ ...showcaseData, features: newFeatures });
+                      const newFeatures = (showcaseData?.features || []).filter((_, i) => i !== index);
+                      onShowcaseDataChange?.({ ...showcaseData, features: newFeatures, title: showcaseData?.title });
                     }}
                     className="text-red-500 hover:text-red-600"
                   >
@@ -1540,13 +2023,275 @@ function SectionManagerBase({
               <button
                 type="button"
                 onClick={() => onShowcaseDataChange?.({ 
-                  ...showcaseData, 
-                  features: [...showcaseData.features, ''] 
+                  features: [...(showcaseData?.features || []), ''],
+                  title: showcaseData?.title 
                 })}
                 className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 {language === 'bn' ? 'হাইলাইট যোগ করুন' : 'Add Highlight'}
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'features':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'সেকশন টাইটেল' : 'Section Title'}
+              </label>
+              <input
+                type="text"
+                value={featuresTitle || 'Exclusive Features'}
+                onChange={(e) => onFeaturesTitleChange?.(e.target.value)}
+                placeholder="Exclusive Features"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'অর্ডার ধাপসমূহ' : 'Order Steps'}
+              </label>
+              {howToOrderData?.steps && howToOrderData.steps.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add steps'}
+                </div>
+              )}
+              {howToOrderData?.steps && howToOrderData.steps.map((step, index) => (
+                <div key={index} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                    <span>{language === 'bn' ? `ধাপ ${index + 1}` : `Step ${index + 1}`}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSteps = (howToOrderData?.steps || []).filter((_, i) => i !== index);
+                        onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                      }}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={step.title}
+                    onChange={(e) => {
+                      const newSteps = [...(howToOrderData?.steps || [])];
+                      newSteps[index] = { ...newSteps[index], title: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের শিরোনাম' : 'Step Title'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <textarea
+                    value={step.description}
+                    onChange={(e) => {
+                      const newSteps = [...(howToOrderData?.steps || [])];
+                      newSteps[index] = { ...newSteps[index], description: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের বিবরণ' : 'Step Description'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[60px]"
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onHowToOrderDataChange?.({ 
+                  title: howToOrderData?.title,
+                  steps: [...(howToOrderData?.steps || []), { title: '', description: '' }] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add Step'}
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'problem-solution':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'বাম পাশের টাইটেল' : 'Left Title (Before)'}
+                </label>
+                <input
+                  type="text"
+                  value={problemSolution?.beforeTitle || 'Before'}
+                  onChange={(e) => onProblemSolutionChange?.({ ...problemSolution!, beforeTitle: e.target.value })}
+                  placeholder="Before"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'ডান পাশের টাইটেল' : 'Right Title (After)'}
+                </label>
+                <input
+                  type="text"
+                  value={problemSolution?.afterTitle || 'After'}
+                  onChange={(e) => onProblemSolutionChange?.({ ...problemSolution!, afterTitle: e.target.value })}
+                  placeholder="After"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'অর্ডার ধাপসমূহ' : 'Order Steps'}
+              </label>
+              {howToOrderData?.steps && howToOrderData.steps.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add steps'}
+                </div>
+              )}
+              {howToOrderData?.steps && howToOrderData.steps.map((step, index) => (
+                <div key={index} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                    <span>{language === 'bn' ? `ধাপ ${index + 1}` : `Step ${index + 1}`}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSteps = (howToOrderData?.steps || []).filter((_, i) => i !== index);
+                        onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                      }}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={step.title}
+                    onChange={(e) => {
+                      const newSteps = [...(howToOrderData?.steps || [])];
+                      newSteps[index] = { ...newSteps[index], title: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের শিরোনাম' : 'Step Title'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <textarea
+                    value={step.description}
+                    onChange={(e) => {
+                      const newSteps = [...(howToOrderData?.steps || [])];
+                      newSteps[index] = { ...newSteps[index], description: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের বিবরণ' : 'Step Description'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[60px]"
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onHowToOrderDataChange?.({ 
+                  title: howToOrderData?.title,
+                  steps: [...(howToOrderData?.steps || []), { title: '', description: '' }] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add Step'}
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'faq':
+        return (
+           <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div className="grid gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'সেকশন টাইটেল' : 'Section Title'}
+                </label>
+                <input
+                  type="text"
+                  value={faqTitle || 'Concierge Service'}
+                  onChange={(e) => onFaqTitleChange?.(e.target.value)}
+                  placeholder="Concierge Service"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'bn' ? 'সাব-টাইটেল' : 'Subtitle'}
+                </label>
+                <input
+                  type="text"
+                  value={faqSubtitle || 'Frequently Asked Questions'}
+                  onChange={(e) => onFaqSubtitleChange?.(e.target.value)}
+                  placeholder="Frequently Asked Questions"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'অর্ডার ধাপসমূহ' : 'Order Steps'}
+              </label>
+              {howToOrderData?.steps && howToOrderData.steps.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add steps'}
+                </div>
+              )}
+              {howToOrderData?.steps && howToOrderData.steps.map((step, index) => (
+                <div key={index} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                    <span>{language === 'bn' ? `ধাপ ${index + 1}` : `Step ${index + 1}`}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSteps = (howToOrderData?.steps || []).filter((_, i) => i !== index);
+                        onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                      }}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={step.title}
+                    onChange={(e) => {
+                      const newSteps = [...(howToOrderData?.steps || [])];
+                      newSteps[index] = { ...newSteps[index], title: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের শিরোনাম' : 'Step Title'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <textarea
+                    value={step.description}
+                    onChange={(e) => {
+                      const newSteps = [...(howToOrderData?.steps || [])];
+                      newSteps[index] = { ...newSteps[index], description: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের বিবরণ' : 'Step Description'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[60px]"
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onHowToOrderDataChange?.({ 
+                  title: howToOrderData?.title,
+                  steps: [...(howToOrderData?.steps || []), { title: '', description: '' }] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add Step'}
               </button>
             </div>
           </div>
@@ -1559,20 +2304,20 @@ function SectionManagerBase({
               <label className="block text-xs font-medium text-gray-700">
                 {language === 'bn' ? 'অর্ডার ধাপসমূহ' : 'Order Steps'}
               </label>
-              {howToOrderData.steps.length === 0 && (
+              {howToOrderData?.steps && howToOrderData.steps.length === 0 && (
                 <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
                    {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add steps'}
                 </div>
               )}
-              {howToOrderData.steps.map((step, index) => (
+              {howToOrderData?.steps && howToOrderData.steps.map((step, index) => (
                 <div key={index} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
                   <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
                     <span>{language === 'bn' ? `ধাপ ${index + 1}` : `Step ${index + 1}`}</span>
                     <button
                       type="button"
                       onClick={() => {
-                        const newSteps = howToOrderData.steps.filter((_, i) => i !== index);
-                        onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                        const newSteps = (howToOrderData?.steps || []).filter((_, i) => i !== index);
+                        onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
                       }}
                       className="text-red-500 hover:text-red-600"
                     >
@@ -1583,9 +2328,9 @@ function SectionManagerBase({
                     type="text"
                     value={step.title}
                     onChange={(e) => {
-                      const newSteps = [...howToOrderData.steps];
+                      const newSteps = [...(howToOrderData?.steps || [])];
                       newSteps[index] = { ...newSteps[index], title: e.target.value };
-                      onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                      onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
                     }}
                     placeholder={language === 'bn' ? 'ধাপের শিরোনাম' : 'Step Title'}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
@@ -1593,9 +2338,9 @@ function SectionManagerBase({
                   <textarea
                     value={step.description}
                     onChange={(e) => {
-                      const newSteps = [...howToOrderData.steps];
+                      const newSteps = [...(howToOrderData?.steps || [])];
                       newSteps[index] = { ...newSteps[index], description: e.target.value };
-                      onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                      onHowToOrderDataChange?.({ ...howToOrderData, title: howToOrderData?.title, steps: newSteps });
                     }}
                     placeholder={language === 'bn' ? 'ধাপের বিবরণ' : 'Step Description'}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[60px]"
@@ -1605,8 +2350,8 @@ function SectionManagerBase({
               <button
                 type="button"
                 onClick={() => onHowToOrderDataChange?.({ 
-                  ...howToOrderData, 
-                  steps: [...howToOrderData.steps, { title: '', description: '' }] 
+                  title: howToOrderData?.title,
+                  steps: [...(howToOrderData?.steps || []), { title: '', description: '' }] 
                 })}
                 className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
               >

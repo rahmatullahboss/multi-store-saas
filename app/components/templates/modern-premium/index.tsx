@@ -68,12 +68,17 @@ export function ModernPremiumTemplate({
       <footer className="bg-black py-40">
         <div className="container mx-auto px-4 text-center">
           <h3 className="text-5xl md:text-8xl font-black text-white italic mb-12 tracking-tighter uppercase leading-none">{storeName}</h3>
-          <p className="text-gray-500 text-xl max-w-lg mx-auto mb-20 font-bold leading-relaxed tracking-tight">
-            Setting the global benchmark for excellence. Trusted by elites worldwide.
+          <p className="text-gray-500 mb-8 max-w-md mx-auto">
+            {config.orderFormText?.footerTagline || 'Premium Quality • Exceptional Service'}
           </p>
-          
-          <div className="text-gray-800 text-[10px] font-black uppercase tracking-[0.6em] mb-24">
-            © {new Date().getFullYear()} • Premium Elite Division
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 font-medium mb-24">
+            <span className="w-1 h-1 rounded-full bg-amber-500/50"></span>
+            {config.orderFormText?.footerCopyright ? (
+              <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
+            ) : (
+              <>© {new Date().getFullYear()} {storeName}. All rights reserved.</>
+            )}
+            <span className="w-1 h-1 rounded-full bg-amber-500/50"></span>
           </div>
 
           {planType === 'free' && (

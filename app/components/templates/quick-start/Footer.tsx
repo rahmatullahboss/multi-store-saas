@@ -28,7 +28,7 @@ export function Footer({ storeName, config, planType }: SectionProps) {
           <div>
             <h3 className="text-2xl font-bold mb-4">{storeName}</h3>
             <p className="text-white/70 leading-relaxed">
-              আমরা বাংলাদেশের সবচেয়ে বিশ্বস্ত অনলাইন শপগুলোর একটি। ১০০% অরিজিনাল প্রোডাক্ট, ক্যাশ অন ডেলিভারি এবং সেরা কাস্টমার সার্ভিস দিয়ে আমরা আপনার সেবায় প্রস্তুত।
+              {config.orderFormText?.footerTagline || "আমরা বাংলাদেশের সবচেয়ে বিশ্বস্ত অনলাইন শপগুলোর একটি। ১০০% অরিজিনাল প্রোডাক্ট, ক্যাশ অন ডেলিভারি এবং সেরা কাস্টমার সার্ভিস দিয়ে আমরা আপনার সেবায় প্রস্তুত।"}
             </p>
           </div>
           
@@ -64,7 +64,7 @@ export function Footer({ storeName, config, planType }: SectionProps) {
         </div>
 
         <div className="border-t border-white/10 pt-8 text-center text-white/50 text-sm">
-           <p>© {new Date().getFullYear()} {storeName}. সর্বস্বত্ব সংরক্ষিত।</p>
+           <p>{config.orderFormText?.copyrightText || `© ${new Date().getFullYear()} ${storeName}. সর্বস্বত্ব সংরক্ষিত।`}</p>
            
            {planType === 'free' && (
             <div className="mt-4 flex justify-center">

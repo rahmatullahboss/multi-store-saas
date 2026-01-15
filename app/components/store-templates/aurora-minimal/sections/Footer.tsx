@@ -10,6 +10,7 @@ interface AuroraMinimalFooterProps {
   socialLinks?: any;
   planType?: string;
   categories: (string | null)[];
+  themeColors?: any;
 }
 
 export function AuroraMinimalFooter({
@@ -20,8 +21,9 @@ export function AuroraMinimalFooter({
   socialLinks,
   planType = 'free',
   categories = [],
+  themeColors,
 }: AuroraMinimalFooterProps) {
-  const theme = AURORA_THEME;
+  const theme = themeColors || AURORA_THEME;
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (

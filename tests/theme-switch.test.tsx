@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { TechModernTemplate } from '~/components/store-templates/tech-modern';
-import { AuroraMinimalTemplate } from '~/components/store-templates/AuroraMinimalTemplate';
+import { AuroraMinimalTemplate } from '~/components/store-templates/aurora-minimal';
 import { createRemixStub } from '@remix-run/testing';
 
 // Mock matchMedia for components that might use it

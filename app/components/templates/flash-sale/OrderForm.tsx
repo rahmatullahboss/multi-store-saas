@@ -124,15 +124,17 @@ export function FlashSaleOrderForm({
                 <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">অর্ডার করুন এখনই!</h2>
                 <div className="space-y-3 bg-white/5 rounded-2xl p-6 border border-white/10">
                   <div className="flex justify-between text-gray-400 font-bold uppercase text-xs">
-                    <span>পণ্যের মূল্য</span>
+                    <span>{config.orderFormText?.productPriceLabel || 'পণ্যের মূল্য'}</span>
                     <span className="text-white">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-gray-400 font-bold uppercase text-xs">
-                    <span>ডেলিভারি চার্জ</span>
+                    <span>{config.orderFormText?.shippingLabel || 'ডেলিভারি চার্জ'}</span>
                     <span className="text-white">{formatPrice(shippingCost)}</span>
                   </div>
                   <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                    <span className="text-yellow-500 font-black text-xl italic uppercase">সর্বমোট</span>
+                    <span className="text-yellow-500 font-black text-xl italic uppercase">
+                       {config.orderFormText?.totalLabel || 'সর্বমোট'}
+                    </span>
                     <span className="text-3xl font-black text-white tracking-tighter animate-pulse">{formatPrice(totalPrice)}</span>
                   </div>
                 </div>
@@ -140,7 +142,9 @@ export function FlashSaleOrderForm({
               <div className="flex-1">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="bg-white/5 p-4 rounded-xl border border-white/10 mb-2 flex items-center justify-between">
-                    <span className="text-white font-bold text-sm uppercase italic">পরিমাণ (QTY)</span>
+                    <span className="text-white font-bold text-sm uppercase italic">
+                      {config.orderFormText?.quantityLabel || 'পরিমাণ (QTY)'}
+                    </span>
                     <div className="flex items-center gap-4">
                       <button
                         type="button"
@@ -162,7 +166,9 @@ export function FlashSaleOrderForm({
 
                   {config.productVariants && config.productVariants.length > 0 && (
                     <div className="bg-white/5 p-4 rounded-xl border border-white/10 mb-2">
-                      <span className="text-white font-bold text-sm uppercase italic block mb-3">পণ্য নির্বাচন করুন</span>
+                      <span className="text-white font-bold text-sm uppercase italic block mb-3">
+                         {config.orderFormText?.variantLabel || 'পণ্য নির্বাচন করুন'}
+                      </span>
                       <div className="flex flex-wrap gap-2">
                         {config.productVariants.map((variant) => (
                           <button
@@ -191,7 +197,7 @@ export function FlashSaleOrderForm({
                       type="text"
                       required
                       className="w-full bg-white rounded-xl px-5 py-4 text-gray-900 font-bold focus:ring-4 focus:ring-yellow-500/50 outline-none"
-                      placeholder="NAME"
+                      placeholder={config.orderFormText?.namePlaceholder || "NAME"}
                       value={formData.customer_name}
                       onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
                     />
@@ -199,7 +205,7 @@ export function FlashSaleOrderForm({
                       type="tel"
                       required
                       className="w-full bg-white rounded-xl px-5 py-4 text-gray-900 font-bold focus:ring-4 focus:ring-yellow-500/50 outline-none"
-                      placeholder="PHONE"
+                      placeholder={config.orderFormText?.phonePlaceholder || "PHONE"}
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
@@ -214,7 +220,7 @@ export function FlashSaleOrderForm({
                           : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/20'
                         }`}
                     >
-                      ঢাকার ভেতরে
+                      {config.orderFormText?.insideDhakaLabel || 'ঢাকার ভেতরে'}
                     </button>
                     <button
                       type="button"
@@ -224,14 +230,14 @@ export function FlashSaleOrderForm({
                           : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/20'
                         }`}
                     >
-                      ঢাকার বাইরে
+                      {config.orderFormText?.outsideDhakaLabel || 'ঢাকার বাইরে'}
                     </button>
                   </div>
 
                   <textarea
                     required
                     className="w-full bg-white rounded-xl px-5 py-4 text-gray-900 font-bold focus:ring-4 focus:ring-yellow-500/50 outline-none resize-none"
-                    placeholder="FULL SHIPPING ADDRESS"
+                    placeholder={config.orderFormText?.addressPlaceholder || "FULL SHIPPING ADDRESS"}
                     rows={2}
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -241,14 +247,16 @@ export function FlashSaleOrderForm({
                     disabled={isSubmitting}
                     className="w-full py-6 bg-yellow-500 hover:bg-yellow-400 text-black font-black text-2xl rounded-xl transition-all active:scale-95 shadow-[0_10px_0_rgba(202,138,4,1)] mb-2"
                   >
-                    {isSubmitting ? '...' : (
+                    {isSubmitting ? (config.orderFormText?.processingButtonText || '...') : (
                       <div className="flex items-center justify-center gap-3">
                         <ShoppingCart className="fill-black" />
-                        CONFIRM ORDER!
+                        {config.orderFormText?.submitButtonText || 'CONFIRM ORDER!'}
                       </div>
                     )}
                   </button>
-                  <p className="text-center text-gray-500 text-[10px] font-bold uppercase tracking-widest opacity-50">🔒 Secure Checkout • Cash on Delivery</p>
+                  <p className="text-center text-gray-500 text-[10px] font-bold uppercase tracking-widest opacity-50">
+                     {config.orderFormText?.codLabel || '🔒 Secure Checkout • Cash on Delivery'}
+                  </p>
                 </form>
               </div>
             </div>

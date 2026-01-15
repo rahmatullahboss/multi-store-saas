@@ -46,12 +46,11 @@ export function LuxeTemplate({
         <div className="container mx-auto px-4">
           <h3 className="text-2xl font-serif-display text-white tracking-widest uppercase mb-6">{storeName}</h3>
           <p className="text-zinc-600 text-sm max-w-sm mx-auto mb-12 font-sans font-light italic leading-relaxed">
-            Reserved for those who seek the exceptional. 
-            Excellence in every detail.
+            {config.orderFormText?.footerTagline || 'Reserved for those who seek the exceptional. Excellence in every detail.'}
           </p>
           
           <div className="text-zinc-800 text-[10px] uppercase tracking-[0.5em] mb-12">
-            © {new Date().getFullYear()} {storeName} • All Rights Reserved
+            {config.orderFormText?.copyrightText || `© ${new Date().getFullYear()} ${storeName} • All Rights Reserved`}
           </div>
 
           {planType === 'free' && (

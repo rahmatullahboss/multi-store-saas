@@ -145,6 +145,7 @@ export function ArtisanMarketTemplate({
         businessInfo={businessInfo} 
         socialLinks={socialLinks} 
         planType={planType}
+        categories={validCategories}
       />
 
       {/* Mobile Bottom Navigation */}

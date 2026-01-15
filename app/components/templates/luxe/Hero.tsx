@@ -60,7 +60,7 @@ export function LuxeHero({
                   href="#order-form"
                   className="group relative w-full sm:w-auto px-12 py-5 bg-amber-500 text-black font-black uppercase tracking-widest text-sm transition-all hover:bg-amber-400 active:scale-95 flex items-center justify-center gap-4 shadow-[0_20px_50px_rgba(180,140,80,0.3)]"
                 >
-                  {config.heroCtaText || 'Order Now'}
+                  {config.ctaText || 'Order Now'}
                   <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                 </a>
                 

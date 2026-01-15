@@ -46,11 +46,15 @@ export function ModernDarkTemplate({
         <div className="container mx-auto px-4">
           <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-6">{storeName}</h3>
           <p className="text-zinc-500 text-lg max-w-md mx-auto mb-12">
-            Pushing the boundaries of what's possible. Join the future today.
+            {config.orderFormText?.footerTagline || "Pushing the boundaries of what's possible. Join the future today."}
           </p>
           
           <div className="text-zinc-700 text-xs font-bold uppercase tracking-[0.3em] mb-12">
-            © {new Date().getFullYear()} • {storeName} • High Performance Guaranteed
+            {config.orderFormText?.footerCopyright ? (
+              <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
+            ) : (
+              <>© {new Date().getFullYear()} • {storeName} • High Performance Guaranteed</>
+            )}
           </div>
 
           {planType === 'free' && (

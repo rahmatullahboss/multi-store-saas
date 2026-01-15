@@ -14,6 +14,6 @@ export { ArtisanMarketTemplate } from './artisan-market';
 export { BDShopTemplate } from './bdshop';
 export { DarazTemplate } from './daraz';
 export { GhorerBazarTemplate } from './ghorer-bazar';
-export { AuroraMinimalTemplate } from './AuroraMinimalTemplate';
-export { FreshnessTemplate } from './FreshnessTemplate';
+export { AuroraMinimalTemplate } from './aurora-minimal';
+export { FreshnessTemplate } from './freshness';
 

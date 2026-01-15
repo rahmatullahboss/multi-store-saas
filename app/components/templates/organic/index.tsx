@@ -45,12 +45,17 @@ export function OrganicTemplate({
       <footer className="bg-green-900 py-24 text-center">
         <div className="container mx-auto px-4">
           <h3 className="text-4xl font-bold text-white mb-6 tracking-tight italic">{storeName}</h3>
-          <p className="text-green-200 text-lg max-w-sm mx-auto mb-12 font-medium">
-            Rooted in nature. Committed to your well-being and a sustainable future.
+          <p className="text-gray-500 mb-8 max-w-md mx-auto">
+            {config.orderFormText?.footerTagline || 'Pure & Organic Products'}
           </p>
-          
-          <div className="text-green-400 text-xs font-bold uppercase tracking-[0.2em] mb-12 opacity-50">
-            © {new Date().getFullYear()} • {storeName} • Purely Organic
+          <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
+            <span className="w-1 h-1 rounded-full bg-emerald-500/50"></span>
+            {config.orderFormText?.footerCopyright ? (
+              <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
+            ) : (
+              <>© {new Date().getFullYear()} {storeName}. All rights reserved.</>
+            )}
+            <span className="w-1 h-1 rounded-full bg-emerald-500/50"></span>
           </div>
 
           {planType === 'free' && (

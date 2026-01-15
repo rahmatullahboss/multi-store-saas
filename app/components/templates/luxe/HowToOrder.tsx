@@ -20,7 +20,7 @@ export function LuxeHowToOrder({
       <section className="py-24 bg-black border-y border-amber-500/10">
         <div className="container mx-auto px-4 mb-20 text-center">
             <h2 className="text-3xl md:text-5xl font-serif-display text-white mb-4 tracking-wider uppercase">
-            Acquisition
+            {config.howToOrderData?.title || 'Acquisition'}
             </h2>
             <div className="w-24 h-px bg-amber-500 mx-auto" />
         </div>

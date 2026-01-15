@@ -114,24 +114,30 @@ export function LuxeOrderForm({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           <div className="lg:col-span-5 space-y-12">
             <div>
-              <span className="text-amber-500 text-xs uppercase tracking-[0.4em] mb-4 block">Reservation</span>
+              <span className="text-amber-500 text-xs uppercase tracking-[0.4em] mb-4 block">
+                {config.orderFormText?.subheadline || 'Reservation'}
+              </span>
               <h2 className="text-4xl lg:text-6xl font-serif-display text-white tracking-widest uppercase leading-none">
-                Secure Your <span className="text-amber-200 block italic font-light mt-2">Selection</span>
+                {config.orderFormText?.headline ? (
+                   <span dangerouslySetInnerHTML={{ __html: config.orderFormText.headline }} />
+                ) : (
+                  <>Secure Your <span className="text-amber-200 block italic font-light mt-2">Selection</span></>
+                )}
               </h2>
             </div>
 
             <div className="space-y-6 bg-zinc-900/50 p-10 rounded-2xl border border-white/5 backdrop-blur-md">
               <div className="flex justify-between items-center text-zinc-500 text-[10px] uppercase tracking-widest">
-                <span>Value</span>
+                <span>{config.orderFormText?.productPriceLabel || 'Value'}</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between items-center text-zinc-500 text-[10px] uppercase tracking-widest">
-                <span>Concierge Delivery</span>
+                <span>{config.orderFormText?.deliveryChargeLabel || 'Concierge Delivery'}</span>
                 <span>{formatPrice(shippingCost)}</span>
               </div>
               <div className="h-px bg-white/5 my-6" />
               <div className="flex justify-between items-end">
-                <span className="text-amber-500 text-xs uppercase tracking-[0.3em]">Total Endowment</span>
+                <span className="text-amber-500 text-xs uppercase tracking-[0.3em]">{config.orderFormText?.totalLabel || 'Total Endowment'}</span>
                 <span className="text-4xl font-light text-white tracking-tight">{formatPrice(totalPrice)}</span>
               </div>
             </div>
@@ -140,7 +146,7 @@ export function LuxeOrderForm({
           <div className="lg:col-span-7">
             <form onSubmit={handleSubmit} className="space-y-8 bg-zinc-950/80 p-12 lg:p-16 rounded-[2.5rem] border border-white/5 relative shadow-3xl">
               <div className="flex items-center justify-between border-b border-white/5 pb-6">
-                <span className="text-amber-200/50 text-[10px] uppercase tracking-widest">Quantity Selection</span>
+                <span className="text-amber-200/50 text-[10px] uppercase tracking-widest">{config.orderFormText?.quantityLabel || 'Quantity Selection'}</span>
                 <div className="flex items-center gap-6">
                   <button
                     type="button"
@@ -162,7 +168,7 @@ export function LuxeOrderForm({
 
               {config.productVariants && config.productVariants.length > 0 && (
                 <div className="border-b border-white/5 pb-6">
-                  <span className="text-amber-200/50 text-[10px] uppercase tracking-widest block mb-4">Choice Selection</span>
+                  <span className="text-amber-200/50 text-[10px] uppercase tracking-widest block mb-4">{config.orderFormText?.variantLabel || 'Choice Selection'}</span>
                   <div className="flex flex-wrap gap-3">
                     {config.productVariants.map((variant) => (
                       <button
@@ -189,7 +195,9 @@ export function LuxeOrderForm({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
-                  <label className="text-amber-200/50 text-[10px] uppercase tracking-widest ml-1">Full Name</label>
+                  <label className="text-amber-200/50 text-[10px] uppercase tracking-widest ml-1">
+                    {config.orderFormText?.nameLabel || 'Full Name'}
+                  </label>
                   <input
                     type="text"
                     required
@@ -200,7 +208,9 @@ export function LuxeOrderForm({
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-amber-200/50 text-[10px] uppercase tracking-widest ml-1">Contact Number</label>
+                  <label className="text-amber-200/50 text-[10px] uppercase tracking-widest ml-1">
+                     {config.orderFormText?.phoneLabel || 'Contact Number'}
+                  </label>
                   <input
                     type="tel"
                     required
@@ -222,7 +232,7 @@ export function LuxeOrderForm({
                       : 'bg-black text-zinc-500 border-white/10 hover:border-amber-500/50'
                   }`}
                 >
-                  Inside Dhaka
+                  {config.orderFormText?.insideDhakaLabel || 'Inside Dhaka'}
                 </button>
                 <button
                   type="button"
@@ -233,12 +243,14 @@ export function LuxeOrderForm({
                       : 'bg-black text-zinc-500 border-white/10 hover:border-amber-500/50'
                   }`}
                 >
-                  Outside Dhaka
+                   {config.orderFormText?.outsideDhakaLabel || 'Outside Dhaka'}
                 </button>
               </div>
 
               <div className="space-y-2">
-                <label className="text-amber-200/50 text-[10px] uppercase tracking-widest ml-1">Acquisition Address</label>
+                <label className="text-amber-200/50 text-[10px] uppercase tracking-widest ml-1">
+                   {config.orderFormText?.addressLabel || 'Acquisition Address'}
+                </label>
                 <textarea
                   required
                   className="w-full bg-black border-b border-white/10 px-0 py-4 text-white font-light focus:border-amber-500 outline-none transition-colors text-lg resize-none"
@@ -256,7 +268,7 @@ export function LuxeOrderForm({
               >
                 {isSubmitting ? 'Finalizing...' : (
                   <>
-                    Confirm Selection
+                     {config.orderFormText?.submitButtonText || 'Confirm Selection'}
                     <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                   </>
                 )}

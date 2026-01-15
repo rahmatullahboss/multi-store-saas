@@ -22,6 +22,14 @@ export function LuxeGallery({
     >
       <section className={`py-24 bg-black`}>
         <div className="container mx-auto px-4">
+          {config.galleryTitle && (
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-serif-display text-white mb-4 tracking-wider uppercase">
+                {config.galleryTitle}
+              </h2>
+              <div className="w-24 h-px bg-amber-500 mx-auto" />
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {images.map((img: string, i: number) => (
               <div 

@@ -139,6 +139,7 @@ export function LuxeBoutiqueTemplate({
           footerConfig={footerConfig || undefined} 
           businessInfo={businessInfo}
           planType={planType}
+          categories={validCategories}
         />
 
       {/* Mobile Bottom Navigation */}
