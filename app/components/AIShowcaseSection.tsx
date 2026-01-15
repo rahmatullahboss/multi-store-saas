@@ -2,116 +2,61 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, ShoppingBag, Store, Sparkles, Wand2, MessageSquare, ArrowRight, Zap, Target, BrainCircuit } from 'lucide-react';
-import { useLanguage } from '~/contexts/LanguageContext';
+import { useTranslation } from '~/contexts/LanguageContext';
 
-const aiFeatures = {
-  en: {
-    sectionTitle: "AI Everywhere — For You, For Your Customers",
-    sectionSubtitle: "Not just one, but three powerful AIs working together to grow your business",
-    tabs: [
-      {
-        id: 'visitor',
-        title: 'Visitor AI',
-        role: 'For Shoppers',
-        icon: MessageSquare,
-        color: 'from-blue-500 to-cyan-500',
-        description: 'Personal shopping assistant for every visitor',
-        features: [
-          'Instant product recommendations',
-          '24/7 Question answering in Bangla',
-          'Smart search assistance',
-          'Automated lead capture'
-        ],
-        visual: 'chat-demo' 
-      },
-      {
-        id: 'merchant',
-        title: 'Merchant AI',
-        role: 'For You',
-        icon: BrainCircuit,
-        color: 'from-emerald-500 to-green-500',
-        description: 'Your intelligent business co-pilot',
-        features: [
-          'Auto-generate product descriptions',
-          'Smart inventory predictions',
-          'Marketing copy generation',
-          'Business insights & alerts'
-        ],
-        visual: 'dashboard-demo'
-      },
-      {
-        id: 'customer',
-        title: 'Customer AI',
-        role: 'Post-Purchase',
-        icon: ShoppingBag,
-        color: 'from-purple-500 to-pink-500',
-        description: 'Automated retention & support system',
-        features: [
-          'Order status updates via WhatsApp',
-          'Smart upsell after purchase',
-          'Personalized return offers',
-          'Automated review collection'
-        ],
-        visual: 'notification-demo'
-      }
-    ]
-  },
-  bn: {
-    sectionTitle: "🤖 AI সব জায়গায় — আপনার জন্য, কাস্টমারের জন্য",
-    sectionSubtitle: "একটা নয়, তিনটা AI — সবার জন্য সাহায্যকারী",
-    tabs: [
-      {
-        id: 'visitor',
-        title: 'ভিজিটর AI',
-        role: 'ক্রেতাদের জন্য',
-        icon: MessageSquare,
-        color: 'from-blue-500 to-cyan-500',
-        description: 'প্রত্যেক ভিজিটর পাবে পার্সোনাল শপিং অ্যাসিস্ট্যান্ট',
-        features: [
-          'তাৎক্ষণিক প্রোডাক্ট রিকমেন্ডেশন',
-          '২৪/৭ প্রশ্নের উত্তর (বাংলায়)',
-          'স্মার্ট সার্চ অ্যাসিস্ট্যান্ট',
-          'অটোমেটেড লিড কালেকশন'
-        ],
-        visual: 'chat-demo'
-      },
-      {
-        id: 'merchant',
-        title: 'মার্চেন্ট AI',
-        role: 'আপনার জন্য',
-        icon: BrainCircuit,
-        color: 'from-emerald-500 to-green-500',
-        description: 'আপনার বুদ্ধিমান বিজনেস কো-পাইলট',
-        features: [
-          'অটোমেটিক প্রোডাক্ট ডেসক্রিপশন',
-          'স্মার্ট ইনভেন্টরি প্রেডিকশন',
-          'মার্কেটিং কপি জেনারেশন',
-          'বিজনেস ইনসাইট এবং অ্যালার্ট'
-        ],
-        visual: 'dashboard-demo'
-      },
-      {
-        id: 'customer',
-        title: 'কাস্টমার AI',
-        role: 'বিক্রয়ের পরে',
-        icon: ShoppingBag,
-        color: 'from-purple-500 to-pink-500',
-        description: 'অটোমেটেড সাপোর্ট এবং রিটেনশন সিস্টেম',
-        features: [
-          'অর্ডার স্ট্যাটাস আপডেট (WhatsApp)',
-          'স্মার্ট আপসেল অফার',
-          'পার্সোনালাইজড রিটার্ন অফার',
-          'অটোমেটেড রিভিউ কালেকশন'
-        ],
-        visual: 'notification-demo'
-      }
-    ]
-  }
-};
+// Content moved to translation files
 
 export function AIShowcaseSection() {
-  const { lang } = useLanguage();
-  const content = aiFeatures[lang];
+  const { t } = useTranslation();
+  
+  const tabs = [
+    {
+      id: 'visitor',
+      title: t('showcaseVisitorTitle'),
+      role: t('showcaseVisitorRole'),
+      icon: MessageSquare,
+      color: 'from-blue-500 to-cyan-500',
+      description: t('showcaseVisitorDesc'),
+      features: [
+        t('showcaseVisitorF1'),
+        t('showcaseVisitorF2'),
+        t('showcaseVisitorF3'),
+        t('showcaseVisitorF4')
+      ],
+      visual: 'chat-demo' 
+    },
+    {
+      id: 'merchant',
+      title: t('showcaseMerchantTitle'),
+      role: t('showcaseMerchantRole'),
+      icon: BrainCircuit,
+      color: 'from-emerald-500 to-green-500',
+      description: t('showcaseMerchantDesc'),
+      features: [
+        t('showcaseMerchantF1'),
+        t('showcaseMerchantF2'),
+        t('showcaseMerchantF3'),
+        t('showcaseMerchantF4')
+      ],
+      visual: 'dashboard-demo'
+    },
+    {
+      id: 'customer',
+      title: t('showcaseCustomerTitle'),
+      role: t('showcaseCustomerRole'),
+      icon: ShoppingBag,
+      color: 'from-purple-500 to-pink-500',
+      description: t('showcaseCustomerDesc'),
+      features: [
+        t('showcaseCustomerF1'),
+        t('showcaseCustomerF2'),
+        t('showcaseCustomerF3'),
+        t('showcaseCustomerF4')
+      ],
+      visual: 'notification-demo'
+    }
+  ];
+
   const [activeTab, setActiveTab] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const rotationTimer = useRef<NodeJS.Timeout | null>(null);
@@ -120,16 +65,16 @@ export function AIShowcaseSection() {
   useEffect(() => {
     if (!isPaused) {
       rotationTimer.current = setInterval(() => {
-        setActiveTab((prev) => (prev + 1) % content.tabs.length);
+        setActiveTab((prev) => (prev + 1) % tabs.length);
       }, 5000);
     }
 
     return () => {
       if (rotationTimer.current) clearInterval(rotationTimer.current);
     };
-  }, [isPaused, content.tabs.length]);
+  }, [isPaused, tabs.length]);
 
-  const CurrentIcon = content.tabs[activeTab].icon;
+  const CurrentIcon = tabs[activeTab].icon;
 
   return (
     <section className="relative py-24 overflow-hidden">
@@ -159,7 +104,7 @@ export function AIShowcaseSection() {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight"
           >
-            {content.sectionTitle}
+            {t('showcaseSectionTitle')}
           </motion.h2>
           
           <motion.p 
@@ -169,7 +114,7 @@ export function AIShowcaseSection() {
             transition={{ delay: 0.2 }}
             className="text-lg text-white/60"
           >
-            {content.sectionSubtitle}
+            {t('showcaseSectionSubtitle')}
           </motion.p>
         </div>
 
@@ -181,7 +126,7 @@ export function AIShowcaseSection() {
         >
           {/* Tabs Column */}
           <div className="w-full lg:w-1/3 flex flex-col gap-4">
-            {content.tabs.map((tab, index) => {
+            {tabs.map((tab, index) => {
               const isActive = activeTab === index;
               const Icon = tab.icon;
 
@@ -235,21 +180,21 @@ export function AIShowcaseSection() {
                 className="h-full min-h-[500px] bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-md relative overflow-hidden group"
               >
                 {/* Decorative Gradients */}
-                <div className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${content.tabs[activeTab].color} rounded-full blur-[100px] opacity-20 -translate-y-1/2 translate-x-1/2`} />
+                <div className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${tabs[activeTab].color} rounded-full blur-[100px] opacity-20 -translate-y-1/2 translate-x-1/2`} />
                 
                 {/* Content */}
                 <div className="relative z-10 h-full flex flex-col">
                   {/* Header */}
                   <div className="flex items-center gap-3 mb-8">
-                    <div className={`p-2 rounded-lg bg-gradient-to-br ${content.tabs[activeTab].color} opacity-80`}>
+                    <div className={`p-2 rounded-lg bg-gradient-to-br ${tabs[activeTab].color} opacity-80`}>
                       <CurrentIcon className="w-5 h-5 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white">{content.tabs[activeTab].title}</h3>
+                    <h3 className="text-2xl font-bold text-white">{tabs[activeTab].title}</h3>
                   </div>
 
                   {/* Feature Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                    {content.tabs[activeTab].features.map((feature, i) => (
+                    {tabs[activeTab].features.map((feature, i) => (
                       <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -275,7 +220,7 @@ export function AIShowcaseSection() {
                               <Bot className="w-4 h-4 text-blue-400" />
                            </div>
                            <div className="bg-white/10 p-3 rounded-2xl rounded-tl-none max-w-[80%]">
-                             <p className="text-sm text-white/90">Hi! Looking for running shoes under 5000 BDT?</p>
+                             <p className="text-sm text-white/90">{t('showcaseDemoVisitorQ')}</p>
                            </div>
                          </div>
                          <div className="flex gap-4 flex-row-reverse mb-4">
@@ -283,7 +228,7 @@ export function AIShowcaseSection() {
                               <div className="w-2 h-2 rounded-full bg-emerald-400" />
                            </div>
                            <div className="bg-emerald-600/20 p-3 rounded-2xl rounded-tr-none max-w-[80%] border border-emerald-500/20">
-                             <p className="text-sm text-white/90">Yes, preferably black color.</p>
+                             <p className="text-sm text-white/90">{t('showcaseDemoVisitorUser')}</p>
                            </div>
                          </div>
                          <div className="flex gap-4">
@@ -291,7 +236,7 @@ export function AIShowcaseSection() {
                               <Bot className="w-4 h-4 text-blue-400" />
                            </div>
                            <div className="bg-white/10 p-3 rounded-2xl rounded-tl-none max-w-[80%] animate-pulse">
-                             <p className="text-sm text-white/70">Searching best matches...</p>
+                             <p className="text-sm text-white/70">{t('showcaseDemoVisitorSearching')}</p>
                            </div>
                          </div>
                        </div>
@@ -303,23 +248,23 @@ export function AIShowcaseSection() {
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent" />
                         <div className="grid grid-cols-2 gap-4">
                            <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                              <p className="text-xs text-white/50 mb-1">Stock Prediction</p>
-                              <p className="text-xl font-bold text-white mb-2">Low Stock</p>
+                              <p className="text-xs text-white/50 mb-1">{t('showcaseDemoMerchantStock')}</p>
+                              <p className="text-xl font-bold text-white mb-2">{t('showcaseDemoMerchantLowStock')}</p>
                               <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                                 <div className="h-full w-[80%] bg-red-400 rounded-full" />
                               </div>
                            </div>
                            <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                              <p className="text-xs text-white/50 mb-1">Generated Copy</p>
+                              <p className="text-xs text-white/50 mb-1">{t('showcaseDemoMerchantGenerated')}</p>
                               <div className="flex items-center gap-2">
                                 <Sparkles className="w-4 h-4 text-emerald-400" />
-                                <span className="text-sm text-white">Ready</span>
+                                <span className="text-sm text-white">{t('showcaseDemoMerchantReady')}</span>
                               </div>
                            </div>
                            <div className="col-span-2 bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between">
                               <div>
-                                <p className="text-xs text-white/50">Daily Insight</p>
-                                <p className="text-sm text-white font-medium">Sales trending up by 24%</p>
+                                <p className="text-xs text-white/50">{t('showcaseDemoMerchantDaily')}</p>
+                                <p className="text-sm text-white font-medium">{t('showcaseDemoMerchantSales')}</p>
                               </div>
                               <Target className="w-8 h-8 text-emerald-500/50" />
                            </div>
@@ -339,9 +284,9 @@ export function AIShowcaseSection() {
                           </div>
                           <div className="bg-green-500/20 border border-green-500/30 px-4 py-2 rounded-full flex items-center gap-2 mb-2">
                             <MessageSquare className="w-4 h-4 text-green-400" />
-                            <span className="text-sm font-medium text-green-300">WhatsApp Update Sent</span>
+                            <span className="text-sm font-medium text-green-300">{t('showcaseDemoCustomerSent')}</span>
                           </div>
-                          <p className="text-white/60 text-sm">Automated order updates & review requests sent to 142 customers today</p>
+                          <p className="text-white/60 text-sm">{t('showcaseDemoCustomerDesc')}</p>
                        </div>
                     )}
                   </div>

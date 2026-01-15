@@ -316,7 +316,7 @@ export function VariantSelector({
               disabled={variant.stock === 0}
             >
               {variant.name} {variant.stock === 0 ? t('landingProduct_outOfStock') : ''}
-              {variant.price ? ` (+${lang === 'bn' ? '৳' : '৳'}${lang === 'bn' ? variant.price.toLocaleString('bn-BD') : variant.price.toLocaleString()})` : ''}
+              {variant.price ? ` (+৳${lang === 'bn' ? variant.price.toLocaleString('bn-BD') : variant.price.toLocaleString()})` : ''}
             </option>
           ))}
         </select>
@@ -348,7 +348,7 @@ export function VariantSelector({
               `}
             >
               {variant.name}
-              {variant.price ? <span className="text-sm ml-1">(+${lang === 'bn' ? '৳' : '৳'}${lang === 'bn' ? variant.price.toLocaleString('bn-BD') : variant.price.toLocaleString()})</span> : ''}
+              {variant.price ? <span className="text-sm ml-1">(+৳{lang === 'bn' ? variant.price.toLocaleString('bn-BD') : variant.price.toLocaleString()})</span> : ''}
             </button>
           );
         })}

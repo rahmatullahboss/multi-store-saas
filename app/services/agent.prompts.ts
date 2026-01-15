@@ -141,8 +141,27 @@ ${config.product_list || ragContext || 'See catalog.'}
 
 ## ${l.rules}:
 - ${l.noFakeProducts}
+- ${l.noFakeProducts}
 - ${l.noWrongPrice}
-- ${l.bePolite}`;
+- ${l.bePolite}
+
+## STRUCTURED RESPONSE FORMAT (FOR RICH UI):
+For data-heavy answers (stats, warnings, lists), return a JSON object (NOT markdown):
+1. **Insight Cards** (For Sales/Stats):
+   \`{ "type": "insight_cards", "data": [{ "title": "Sales", "value": "৳5000", "trend": 12, "color": "green", "icon": "sales" }] }\`
+2. **Alerts** (For Errors/Warnings):
+   \`{ "type": "alert", "data": { "severity": "warning", "title": "Notice", "message": "Stock low!" } }\`
+3. **Action Chips** (For Suggestions):
+   \`{ "type": "action_chips", "data": [{ "label": "View Orders", "url": "/app/orders" }] }\`
+4. **Mixed** (Text + Cards):
+   \`{ "type": "mixed", "items": [{ "type": "text", "data": "Summary:" }, { "type": "insight_cards", "data": [...] }] }\`
+
+Use plain text for simple chats. NEVER use Markdown for data tables.
+
+## STRICT RULES (ANTI-HALLUCINATION):
+- NEVER invent an Order Status. You MUST use 'checkOrderStatus' function.
+- If 'checkOrderStatus' returns "not found", tell the user exactly that. Do NOT say it is processing or shipped if the tool says otherwise.
+- If user does not provide Order ID, ask for it. Do NOT guess.`;
 }
 
 export const ECOMMERCE_FUNCTION_DEFINITIONS = [
@@ -181,6 +200,18 @@ export const ECOMMERCE_FUNCTION_DEFINITIONS = [
         value: { type: 'string' },
       },
       required: ['key', 'value'],
+    },
+  },
+  {
+    name: 'checkOrderStatus',
+    description: 'Check the status of an existing order. Ask for Order ID if not provided.',
+    parameters: {
+      type: 'object',
+      properties: {
+        order_id: { type: 'string', description: 'The Order ID (e.g. 1205)' },
+        phone_number: { type: 'string', description: 'Customer phone number for verification (optional if already known)' },
+      },
+      required: ['order_id'],
     },
   },
 ];

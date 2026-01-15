@@ -43,11 +43,17 @@ export interface OrderTrackingData {
 
 /**
  * Generate Facebook Pixel initialization script (for head injection)
+ * Supports dual-pixel mode: merchant pixel + master pixel for platform-wide tracking
  */
-export function getFacebookPixelInitScript(pixelId: string): string {
+export function getFacebookPixelInitScript(pixelId: string, masterPixelId?: string | null): string {
+  const pixelInits = [
+    `fbq('init', '${pixelId}');`,
+    masterPixelId ? `fbq('init', '${masterPixelId}');` : '',
+  ].filter(Boolean).join('\n    ');
+
   return `
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '${pixelId}');
+    ${pixelInits}
     fbq('track', 'PageView');
   `;
 }

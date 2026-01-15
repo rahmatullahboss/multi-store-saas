@@ -1,171 +1,326 @@
-# Template Building Guide
+# The Ultimate Store Theme Building Guide: "Pure UI" Architecture
 
-This guide outlines the best practices and requirements for creating new store templates in the Multi-Store SaaS platform. Follow these guidelines to ensure consistency, performance, and full feature support.
+**Version 3.0 | Production-Ready Standard (Feature Folder Architecture)**
 
-## 1. Core Structure
+> **Core Philosophy:** _Every store shares the same brain (logic), but wears a different skin (design). Like Shopify, but with AI-native DNA._
 
-All store templates reside in `app/components/store-templates/`. A basic template structure looks like this:
+---
 
-```tsx
-import type { StoreTemplateProps } from "~/templates/store-registry";
-// ... other imports
+## **Phase 1: Core Architecture Principles**
 
-export function MyNewTemplate({
-  storeName,
-  storeId,
-  logo,
-  products,
-  categories,
-  currentCategory,
-  config,
-  currency,
-  socialLinks,
-  footerConfig,
-  businessInfo,
-  isPreview,
-}: StoreTemplateProps) {
-  // ... hook calls
+### **1.1 "Logic Centralization" Pattern**
 
+**Difference from Shopify:** In Shopify, each theme has logic in `.liquid` files. In your system, **themes contain NO logic, only UI**.
+
+```typescript
+// ❌ WRONG (Shopify-Style): Logic inside the theme
+// themes/modern/components/ProductCard.tsx
+function ProductCard({ product }) {
+  const price = product.price * (1 - discount); // Logic in the wrong place
+  return <div>{price}</div>;
+}
+
+// ✅ CORRECT (Pure UI): Logic only in hooks
+// themes/modern/components/ProductCard.tsx
+function ProductCard({ product }) {
+  const { finalPrice, discountLabel } = useProductPrice(product); // Fetch from hook
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      {/* Dynamic Sections */}
-      {/* Footer */}
+    <div>
+      {finalPrice} {discountLabel}
     </div>
   );
 }
 ```
 
-## 2. Reactive Cart Logic (CRITICAL)
+**How it works:**
 
-**Do NOT implement manual `localStorage` listeners or `window` event handlers for the cart.**
+- Every theme calls the same `useProductPrice` hook.
+- The hook fetches `StoreSettings` from the backend.
+- The theme only handles rendering.
 
-Use the centralized `useCartCount` hook. This hook handles hydration safety, `localStorage` parsing, and real-time updates across tabs and components.
+---
 
-```tsx
-import { useCartCount } from "~/hooks/useCartCount";
+### **1.2 Data Flow Architecture**
 
-// Inside your component:
-const count = useCartCount();
+```mermaid
+graph TD
+    A[Store Settings DB] -->|API| B[useProductPrice Hook]
+    C[Theme Config DB] -->|API| D[Theme Component]
+    B -->|finalPrice| D
+    D -->|UI| E[Browser]
 
-// Usage in JSX:
-<Link to="/cart">
-  <ShoppingCartIcon />
-  <span>{count}</span>
-</Link>;
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style D fill:#bfb,stroke:#333,stroke-width:2px
 ```
 
-## 3. Dynamic Section Rendering
+**Important:** `Store Settings` are completely decoupled from the theme.
 
-Templates must support the drag-and-drop section builder. Do not hardcode the homepage layout.
+---
 
-Use the `SECTION_REGISTRY` to render sections based on `config.sections`.
+## **Phase 2: Hydration & SSR Safety (Crucial)**
+
+Templates rely on client-side storage for Cart and Wishlist. To prevent **Hydration Mismatches**, you **MUST** use the `ClientOnly` wrapper.
 
 ```tsx
-import {
-  SECTION_REGISTRY,
-  DEFAULT_SECTIONS,
-} from "~/components/store-sections/registry";
+import { ClientOnly } from "remix-utils/client-only";
+import { SkeletonLoader } from "~/components/SkeletonLoader";
 
-// ... inside the return statement:
-{
-  (config?.sections ?? DEFAULT_SECTIONS).map((section: any) => {
-    const SectionComponent = SECTION_REGISTRY[section.type]?.component;
-    if (!SectionComponent) return null;
-
-    return (
-      <SectionComponent
-        key={section.id}
-        settings={section.settings}
-        theme={THEME} // Your theme constants
-        products={products}
-        categories={categories}
-        storeId={storeId}
-        currency={currency}
-        store={{
-          name: storeName,
-          email: businessInfo?.email,
-          phone: businessInfo?.phone,
-          address: businessInfo?.address,
-          currency: currency,
-        }}
-        // Optional: Pass custom card components if needed
-        // ProductCardComponent={MyCustomProductCard}
-      />
-    );
-  });
+export function TemplateWrapper({ config, children }: any) {
+  return (
+    <ClientOnly fallback={<SkeletonLoader />}>{() => children}</ClientOnly>
+  );
 }
 ```
 
-## 4. Theme Configuration & Fallbacks
+---
 
-Always define a theme constant object for consistent styling, but allow overriding from `config` if applicable (future proofing).
+## **Phase 3: Theme File Structure (Feature Folder Architecture)**
 
-```tsx
-const THEME = {
-  primary: "#...",
-  accent: "#...",
-  background: "#...",
-  // ...
+### **3.1 Directory Structure (Current Standard)**
+
+All store templates live in `/app/components/store-templates/`. Each template is a self-contained **Feature Folder**.
+
+```
+/app/components/store-templates/
+  /[template-id]/                   # e.g., /luxe-boutique/, /tech-modern/
+    index.tsx                       # Main template component (StoreTemplateProps)
+    theme.ts                        # Design tokens & color palette
+    /sections/
+      Header.tsx                    # Self-contained Header component
+      Footer.tsx                    # Self-contained Footer component
+    /blocks/                        # (Optional) Reusable UI blocks
+      ProductCard.tsx
+      Button.tsx
+    /styles/                        # (Optional) Animation, font tokens
+      tokens.ts
+      animations.ts
+```
+
+### **3.2 Key Files Explained**
+
+| File                  | Purpose                                                                                                              |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `index.tsx`           | Exports the main `[TemplateName]Template` component. This is registered in `store-registry.ts`.                      |
+| `theme.ts`            | Exports a constant like `LUXE_BOUTIQUE_THEME` containing all colors, fonts, and shadows.                             |
+| `sections/Header.tsx` | A fully self-contained header. Uses internal state for `mobileMenuOpen`, `searchQuery`, etc. if props aren't passed. |
+| `sections/Footer.tsx` | A fully self-contained footer. Renders branding, categories, and business info.                                      |
+
+---
+
+### **3.3 Template Index File Example**
+
+`app/components/store-templates/luxe-boutique/index.tsx`:
+
+```typescript
+import { LuxeBoutiqueHeader } from "./sections/Header";
+import { LuxeBoutiqueFooter } from "./sections/Footer";
+import { LUXE_BOUTIQUE_THEME } from "./theme";
+import type { StoreTemplateProps } from "~/templates/store-registry";
+
+export function LuxeBoutiqueTemplate({
+  storeName,
+  products,
+  categories,
+  config,
+  footerConfig,
+  socialLinks,
+  businessInfo,
+  planType,
+  isPreview,
+}: StoreTemplateProps) {
+  const theme = LUXE_BOUTIQUE_THEME;
+
+  return (
+    <div style={{ backgroundColor: theme.background }}>
+      <LuxeBoutiqueHeader storeName={storeName} categories={categories} />
+      {/* ... Product Grid, Hero, etc. ... */}
+      <LuxeBoutiqueFooter
+        storeName={storeName}
+        footerConfig={footerConfig}
+        categories={categories}
+        planType={planType}
+      />
+    </div>
+  );
+}
+```
+
+---
+
+### **3.4 Self-Contained Header Example**
+
+Headers must be **self-contained**: they handle their own state if props aren't provided. This allows them to work seamlessly in both `StorePageWrapper` and the `LiveEditor`.
+
+`app/components/store-templates/luxe-boutique/sections/Header.tsx`:
+
+```typescript
+import React, { useState } from "react";
+import { useCartCount } from "~/hooks/useCartCount";
+import { LUXE_BOUTIQUE_THEME } from "../theme";
+
+interface LuxeBoutiqueHeaderProps {
+  storeName: string;
+  categories: (string | null)[];
+  count?: number; // Optional: passed by parent OR from hook
+  mobileMenuOpen?: boolean; // Optional: controlled OR local state
+  setMobileMenuOpen?: (open: boolean) => void;
+}
+
+export function LuxeBoutiqueHeader({
+  storeName,
+  categories = [],
+  count: countProp,
+  mobileMenuOpen: mobileMenuOpenProp,
+  setMobileMenuOpen: setMobileMenuOpenProp,
+}: LuxeBoutiqueHeaderProps) {
+  const theme = LUXE_BOUTIQUE_THEME;
+
+  // === Self-Contained State ===
+  const [localMobileMenuOpen, setLocalMobileMenuOpen] = useState(false);
+  const cartCount = useCartCount(); // Hook for cart count
+
+  const mobileMenuOpen = mobileMenuOpenProp ?? localMobileMenuOpen;
+  const setMobileMenuOpen = setMobileMenuOpenProp ?? setLocalMobileMenuOpen;
+  const count = countProp ?? cartCount;
+
+  // Filter null categories for safe iteration
+  const validCategories = categories.filter((c): c is string => Boolean(c));
+
+  return (
+    <header style={{ backgroundColor: theme.headerBg }}>
+      {/* ... Header JSX ... */}
+    </header>
+  );
+}
+```
+
+---
+
+### **3.5 Theme Tokens File Example**
+
+`app/components/store-templates/luxe-boutique/theme.ts`:
+
+```typescript
+export const LUXE_BOUTIQUE_THEME = {
+  // Core Palette
+  primary: "#1a1a1a",
+  accent: "#c9a961",
+  background: "#faf9f7",
+  text: "#1a1a1a",
+  textMuted: "#6b6b6b",
+
+  // Component Styles
+  headerBg: "#ffffff",
+  footerBg: "#1a1a1a",
+  footerText: "#faf9f7",
+  cardBg: "#ffffff",
+  border: "#e0e0e0",
+
+  // Typography
+  fontHeading: "'Playfair Display', serif",
+  fontBody: "'Inter', sans-serif",
+
+  // Shadows
+  cardShadow: "0 4px 6px rgba(0,0,0,0.05)",
 };
 ```
 
-Ensure robust fallbacks for all optional props (`socialLinks`, `businessInfo`, `storeName`).
+---
 
-## 5. Icons & Assets
+## **Phase 4: Registering Templates**
 
-- **Icons**: Use `lucide-react` for all UI icons to maintain consistency.
-- **Images**: Use the `OptimizedImage` component (if available locally) or standard `img` tags with proper `alt` text.
+All store templates are registered in `app/templates/store-registry.ts`. This is the **Single Source of Truth** for available templates.
 
-## 6. URLs & Navigation
+### **4.1 Adding a New Template to the Registry**
 
-- **Internal Links**: Use Remix's `<Link to="...">` component.
-- **Categories**: Use query parameters: `<Link to="/?category=example">`.
-- **Cart**: Link to `/cart`.
-- **Checkout**: Link to `/checkout`.
+```typescript
+// In app/templates/store-registry.ts
 
-## 7. Mobile Responsiveness
+// 1. Import theme tokens for the registry's theme map
+import { MY_NEW_THEME } from "~/components/store-templates/my-new-template/theme";
 
-All templates must be fully responsive.
+// 2. Lazy load the component
+const MyNewTemplate = React.lazy(() =>
+  import("~/components/store-templates/my-new-template/index").then((m) => ({
+    default: m.MyNewTemplate,
+  }))
+);
+const MyNewHeader = React.lazy(() =>
+  import("~/components/store-templates/my-new-template/sections/Header").then(
+    (m) => ({ default: m.MyNewHeader })
+  )
+);
+const MyNewFooter = React.lazy(() =>
+  import("~/components/store-templates/my-new-template/sections/Footer").then(
+    (m) => ({ default: m.MyNewFooter })
+  )
+);
 
-- Implement a mobile menu (hamburger).
-- Ensure product grids collapse to 1 or 2 columns on mobile.
-- Verify touch targets (buttons/links) are at least 44px height.
+// 3. Add to STORE_TEMPLATE_THEMES
+export const STORE_TEMPLATE_THEMES = {
+  // ... other themes
+  "my-new-template": {
+    primary: MY_NEW_THEME.primary,
+    accent: MY_NEW_THEME.accent,
+    // ...
+  },
+};
 
-## 8. Internationalization
+// 4. Add to STORE_TEMPLATES array
+export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
+  // ... other templates
+  {
+    id: "my-new-template",
+    name: "My New Template",
+    description: "Description of the template.",
+    thumbnail: "/templates/my-new-template.png",
+    category: "modern",
+    theme: STORE_TEMPLATE_THEMES["my-new-template"],
+    fonts: { heading: "Inter", body: "Inter" },
+    component: MyNewTemplate,
+    Header: MyNewHeader,
+    Footer: MyNewFooter,
+  },
+];
+```
 
-Use existing translation hooks where possible.
+---
+
+## **Phase 5: Design Token Best Practices**
+
+- **No hardcoded hex codes in JSX.** All colors must come from the `theme.ts` file.
+- **Use relative imports** (`../theme`) within the template folder.
+- **Consistent naming:** `primary`, `accent`, `headerBg`, `footerBg`, etc.
+
+---
+
+## **Phase 6: Performance & Bundle Optimization**
+
+### **6.1 Image Optimization**
+
+Use the project's `<OptimizedImage />` component for all images.
 
 ```tsx
-import { useTranslation } from "~/contexts/LanguageContext";
+import { OptimizedImage } from "~/components/OptimizedImage";
 
-const { t } = useTranslation();
-
-// Usage:
-{
-  t("addToCart");
+function ProductImage({ src, alt }) {
+  return <OptimizedImage src={src} alt={alt} />;
 }
 ```
 
-## 9. World-Class Performance & Quality Standards
+### **6.2 Lazy Loading Templates**
 
-To maintain a premium standard, all templates must adhere to:
+Templates are loaded via `React.lazy` in `store-registry.ts`. This keeps the initial bundle size small.
 
-### Performance
+---
 
-- **LCP (Largest Contentful Paint)**: Core content must load within 2.5s. Use `fetchPriority="high"` on hero images.
-- **CLS (Cumulative Layout Shift)**: Must be < 0.1. Always set `width` and `height` on images or use aspect-ratio containers.
-- **Code Splitting**: Dynamic sections are automatically code-split. Do not import heavy libraries (e.g., `framer-motion`) in the main bundle unless necessary.
+## **Phase 7: Final Checklist for World-Class Themes**
 
-### Accessibility (a11y)
-
-- **Semantic HTML**: Use `<header>`, `<main>`, `<nav>`, `<footer>`, `<article>`.
-- **Keyboard Navigation**: Ensure all interactive elements are focusable and have visible focus states.
-- **Color Contrast**: Text must meet WCAG AA standards (4.5:1 ratio).
-- **ARIA**: Use `aria-label` for icon-only buttons (e.g., Search, Cart).
-
-### Clean Code
-
-- **Type Safety**: No `any` types. Define proper interfaces for all props.
-- **Prop Drilling**: Use Context for deep state, but prefer composition.
-- **Comments**: Explain _why_, not _what_, for complex logic.
+- [ ] **Zero business logic** in components (Use hooks: `useProductPrice`, `useWishlist`, `useCartCount`)
+- [ ] **Self-contained Headers/Footers** with local state fallbacks
+- [ ] **Theme tokens** defined in `theme.ts` and used consistently
+- [ ] **Registered in `store-registry.ts`** with Header and Footer components
+- [ ] **Wrapped in `ClientOnly`** for hydration safety where needed
+- [ ] **Responsive** (Mobile-first design)
+- [ ] **Type-safe** (TypeScript strict mode, `StoreTemplateProps`)

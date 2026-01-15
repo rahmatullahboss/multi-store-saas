@@ -16,6 +16,8 @@ interface StoreFooterProps {
   templateId: string;
   socialLinks?: SocialLinks | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  planType?: string;
+  showPoweredBy?: boolean;
 }
 
 export function StoreFooter({ 
@@ -24,7 +26,9 @@ export function StoreFooter({
   theme, 
   templateId,
   socialLinks,
-  businessInfo
+  businessInfo,
+  planType = 'free',
+  showPoweredBy = true
 }: StoreFooterProps) {
   const isDarkTheme = templateId === 'modern-premium' || templateId === 'tech-modern';
   
@@ -135,6 +139,21 @@ export function StoreFooter({
               </Link>
             </div>
           </div>
+          
+          {/* Viral Loop / Branding */}
+          {(planType === 'free' || showPoweredBy) && (
+            <div className={`mt-6 pt-4 border-t ${borderColor} flex justify-center items-center`}>
+              <a 
+                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`text-xs ${mutedColor} hover:text-indigo-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0`}
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </footer>

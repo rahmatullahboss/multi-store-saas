@@ -1,0 +1,201 @@
+# E2E Tests with Playwright
+# Runs on push to main/master and weekly schedule
+
+name: E2E Tests
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  schedule:
+    # Run every Sunday at midnight UTC
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  e2e-tests:
+    name: 🎭 Playwright E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🎭 Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: 📝 Create .dev.vars for Wrangler
+        run: |
+          cat > .dev.vars << EOF
+          SESSION_SECRET=e2e-test-session-secret-32chars
+          COOKIE_SECRET=e2e-test-cookie-secret-32chars
+          NODE_ENV=test
+          EOF
+
+      - name: 🗄️ Run migrations (Local DB)
+        run: npx wrangler d1 migrations apply DB --local
+
+      - name: 🌱 Seed E2E test data
+        run: node db/seeds/seed-e2e.mjs
+
+      - name: 🧪 Run E2E tests
+        run: npx playwright test --project=chromium
+        env:
+          E2E_BASE_URL: http://localhost:5173
+          E2E_MERCHANT_EMAIL: ${{ secrets.E2E_MERCHANT_EMAIL }}
+          E2E_MERCHANT_PASSWORD: ${{ secrets.E2E_MERCHANT_PASSWORD }}
+          SESSION_SECRET: test-session-secret-for-e2e
+          COOKIE_SECRET: test-cookie-secret-for-e2e
+          NODE_ENV: test
+
+      - name: 📊 Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: 📊 Upload test videos
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-videos
+          path: test-results/
+          retention-days: 7
+
+  # Multi-browser tests (only on main branch)
+  cross-browser:
+    name: 🌐 Cross-Browser Tests
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: e2e-tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🎭 Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: 📝 Create .dev.vars for Wrangler
+        run: |
+          cat > .dev.vars << EOF
+          SESSION_SECRET=e2e-test-session-secret-32chars
+          COOKIE_SECRET=e2e-test-cookie-secret-32chars
+          NODE_ENV=test
+          EOF
+
+      - name: 🗄️ Run migrations (Local DB)
+        run: npx wrangler d1 migrations apply DB --local
+
+      - name: 🌱 Seed E2E test data
+        run: node db/seeds/seed-e2e.mjs
+
+      - name: 🧪 Run ${{ matrix.browser }} tests
+        run: npx playwright test --project=${{ matrix.browser }}
+        env:
+          E2E_BASE_URL: http://localhost:5173
+          SESSION_SECRET: test-session-secret-for-e2e
+          COOKIE_SECRET: test-cookie-secret-for-e2e
+          NODE_ENV: test
+
+      - name: 📊 Upload ${{ matrix.browser }} report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: playwright-report/
+          retention-days: 7
+
+  # Mobile tests
+  mobile-tests:
+    name: 📱 Mobile Tests
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: e2e-tests
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🎭 Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: 📝 Create .dev.vars for Wrangler
+        run: |
+          cat > .dev.vars << EOF
+          SESSION_SECRET=e2e-test-session-secret-32chars
+          COOKIE_SECRET=e2e-test-cookie-secret-32chars
+          NODE_ENV=test
+          EOF
+
+      - name: 🗄️ Run migrations (Local DB)
+        run: npx wrangler d1 migrations apply DB --local
+
+      - name: 🌱 Seed E2E test data
+        run: node db/seeds/seed-e2e.mjs
+
+      - name: 📱 Run mobile tests
+        run: |
+          npx playwright test --project="Mobile Chrome"
+          npx playwright test --project="Mobile Safari"
+        env:
+          E2E_BASE_URL: http://localhost:5173
+          SESSION_SECRET: test-session-secret-for-e2e
+          COOKIE_SECRET: test-cookie-secret-for-e2e
+          NODE_ENV: test
+
+      - name: 📊 Upload mobile report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-mobile
+          path: playwright-report/
+          retention-days: 7

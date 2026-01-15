@@ -77,11 +77,12 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
     content: customContent || policy.content,
     isCustom: !!customContent,
     policyType,
+    planType: store.planType || 'free',
   });
 }
 
 export default function PolicyPage() {
-  const { storeName, logo, title, content, policyType } = useLoaderData<typeof loader>();
+  const { storeName, logo, title, content, policyType, planType } = useLoaderData<typeof loader>();
   
   // Parse markdown-style headers and content
   const renderContent = (text: string) => {
@@ -254,10 +255,25 @@ export default function PolicyPage() {
       </main>
       
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-8 mt-12">
+      <footer className="bg-gray-900 text-gray-400 py-12 mt-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <p className="font-medium text-white mb-2">{storeName}</p>
           <p className="text-sm">© {new Date().getFullYear()} All rights reserved.</p>
+
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-8 pt-6 border-t border-white/5 flex justify-center items-center">
+              <a 
+                href="https://ozzyl.com?utm_source=policy-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-gray-300">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </footer>
     </div>

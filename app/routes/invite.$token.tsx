@@ -21,8 +21,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const storeName = data && 'storeName' in data ? data.storeName : null;
   return [{ 
     title: storeName 
-      ? `Join ${storeName} - Multi-Store SaaS` 
-      : 'Accept Invitation - Multi-Store SaaS' 
+      ? `Join ${storeName} - Ozzyl` 
+      : 'Accept Invitation - Ozzyl' 
   }];
 };
 

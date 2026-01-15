@@ -38,7 +38,7 @@
   "navPlanManagement": "Plans",
   "navPayouts": "Payouts",
   "navDomainRequests": "Domain Requests",
-  "actionItems": "Action Items",
+  "activeStores": "Active Stores",
   "pendingOrdersTitle": "Pending Orders",
   "pendingOrdersDesc": "{{count}} order needs processing",
   "pendingOrdersDesc_plural": "{{count}} orders need processing",
@@ -127,6 +127,7 @@
   "stepBusiness": "Business",
   "stepPlan": "Plan",
   "stepDone": "Done",
+  "subdomainTaken": "The subdomain \"{{subdomain}}\" is already taken. Please choose another one.",
   
   "validEmailRequired": "Valid email required",
   "passwordMinChars": "Password must be at least 6 characters",
@@ -135,12 +136,22 @@
   "storeNameRequired": "Store name is required",
   "subdomainMinChars": "Subdomain must be at least 3 characters",
   "trxIdRequired": "Please enter TRX ID",
+  "emailRequired": "Email is required",
+  "passwordRequired": "Password is required",
+  "invalidCredentials": "Invalid email or password",
+  "orderNow": "Order Now",
+  "cashOnDelivery": "Cash on Delivery",
+  "satisfiedCustomer": "Satisfied Customer",
+  "satisfiedCustomerText": "Great product, fast delivery!",
+  "limitedTimeOffer": "🔥 Limited Time Offer!",
+  "satisfactionGuarantee": "100% Satisfaction Guarantee",
+  "forgotPassword": "Forgot Password?",
+  "storeNotFound": "Your store could not be found. Please contact support or sign up for a new account.",
   
   "freeDelivery": "Free Delivery",
   "freeDeliveryInDhaka": "Free delivery inside Dhaka",
   "originalProduct": "100% Original",
   "originalGuarantee": "Authenticity guaranteed",
-  "cashOnDelivery": "Cash on Delivery",
   "payOnReceive": "Pay when you receive",
   "easyReturn": "Easy Return",
   "returnPolicy": "7 days return policy",
@@ -154,7 +165,6 @@
   "support247": "24/7 Support",
   "support247Desc": "Always here to help you",
   
-  "orderNow": "Order Now",
   "buyNow": "Buy Now",
   "addToCart": "Add to Cart",
   "callNow": "Call Now",
@@ -180,7 +190,6 @@
   "faqSubtitle": "Common questions answered",
   
   "specialOffer": "Special Offer",
-  "limitedTimeOffer": "Limited Time Offer",
   "orderConfirm": "Order Confirmed",
   "thankYouOrder": "Thank you for your order",
   
@@ -358,5 +367,14 @@
   "startDate": "Start Date",
   "endDate": "End Date",
   "records": "records",
-  "noSalesData": "No sales data found"
+  "noSalesData": "No sales data found",
+  "backToHome": "Back to Home",
+  "templatePreviewMode": "Template Preview Mode",
+  "templatePreviewDesc": "This is a preview with demo content. Your actual data will look different.",
+  "close": "Close",
+  "comingSoon": "Coming Soon",
+  "storeUnderConstruction": "This store is being set up.",
+  "howItWorks": "How it Works",
+  "createFreeStore": "Create Free Store",
+  "watchDemo": "Watch Demo"
 }

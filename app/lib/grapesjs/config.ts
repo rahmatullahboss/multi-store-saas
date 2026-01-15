@@ -129,18 +129,51 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
 
     storageManager: {
       type: 'remote',
-      stepsBeforeSave: 3,
-      contentTypeJson: true,
+      stepsBeforeSave: 1,
+      autosave: true,
+      autoload: false, // Changed to false per Context7 docs - load manually after onReady to prevent blocking
       options: {
         remote: {
           urlLoad: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
           urlStore: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
-          // The data GrapesJS sends
-          onStore: (data: any) => ({
-            ...data,
-            html: data.html,
-            css: data.css,
-          }),
+          
+          // Include credentials for session cookies
+          credentials: 'include',
+          
+          // Content type for requests
+          contentTypeJson: true,
+          
+          // Transform data before storing - include HTML and CSS
+          // Note: data may already contain publish flag from storage:start:store event
+          onStore: (data: any, editor: any) => {
+            console.log('[GrapesJS] onStore called, publish flag:', data.publish);
+            return {
+              ...data,
+              html: editor.getHtml(),
+              css: editor.getCss(),
+              // Preserve publish flag if set
+              publish: data.publish || (editor as any).isPublishing || false,
+            };
+          },
+          
+          // Extract project data from server response
+          onLoad: (result: any) => {
+            // If it's an error response or no valid data, return empty object
+            if (result.error || !result) {
+              console.warn('[GrapesJS] Load error or empty:', result?.error);
+              return {};
+            }
+            // Server returns projectData directly (already parsed in loader)
+            return result;
+          },
+          
+          // Error handlers for debugging
+          onStoreError: (error: any) => {
+            console.error('[GrapesJS] Store failed:', error);
+          },
+          onLoadError: (error: any) => {
+            console.error('[GrapesJS] Load failed:', error);
+          },
         }
       }
     },
@@ -278,21 +311,25 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
         { name: 'active', label: 'Active' },
       ],
     },
-    projectData: {
-      assets: [],
-      pages: [
-        {
-          name: 'Home',
-          components: `
-            <div class="p-10 text-center font-sans">
-              <h1 class="text-4xl font-bold text-gray-800 mb-4">স্বাগতম আপনার নতুন ল্যান্ডিং পেজে!</h1>
-              <p class="text-lg text-gray-600 mb-8">এখান থেকে আপনি আপনার পছন্দের ডিজাইন তৈরি করতে পারবেন। বাম দিকের ব্লকগুলো টেনে এখানে আনুন।</p>
-              <a href="#order" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 transition inline-block">অর্ডার করুন</a>
-            </div>
-          `,
-        },
-      ],
-    },
+    // Only provide default projectData for NEW pages (no pageId)
+    // For existing pages, let autoload fetch from server
+    ...(pageId ? {} : {
+      projectData: {
+        assets: [],
+        pages: [
+          {
+            name: 'Home',
+            components: `
+              <div class="p-10 text-center font-sans">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">স্বাগতম আপনার নতুন ল্যান্ডিং পেজে!</h1>
+                <p class="text-lg text-gray-600 mb-8">এখান থেকে আপনি আপনার পছন্দের ডিজাইন তৈরি করতে পারবেন। বাম দিকের ব্লকগুলো টেনে এখানে আনুন।</p>
+                <a href="#order" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 transition inline-block">অর্ডার করুন</a>
+              </div>
+            `,
+          },
+        ],
+      },
+    }),
     canvas: {
       styles: [
         // Tailwind CDN for Editor ONLY (published pages use compiled CSS)
@@ -302,24 +339,29 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
         'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Galada&family=Tiro+Bangla&family=Mina:wght@400;700&family=Atma:wght@300;400;500;600;700&display=swap',
         // Animation CSS for entrance effects
         '/animations.css',
+        'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', // Swiper CSS
       ],
       scripts: [
         // Tailwind Play CDN for JIT (editor only)
-        'https://cdn.tailwindcss.com'
+        'https://cdn.tailwindcss.com',
+        'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', // Swiper JS
       ],
     },
     deviceManager: {
       devices: [
         {
+          id: 'desktop',
           name: 'Desktop',
           width: '', 
         },
         {
+          id: 'tablet',
           name: 'Tablet',
           width: '768px',
           widthMedia: '1024px',
         },
         {
+          id: 'mobile',
           name: 'Mobile',
           width: '375px',
           widthMedia: '480px',

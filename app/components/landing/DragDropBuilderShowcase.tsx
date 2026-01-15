@@ -97,13 +97,14 @@ export function DragDropBuilderShowcase() {
         await new Promise(r => setTimeout(r, 400)); // Hovering
 
         setAnimationStep(3); // Drop
-        setCanvasElements(prev => [...prev, { id: 3, type: 'review', height: 'h-32' }]);
+        const newId = Date.now(); // Unique ID for this animation cycle
+        setCanvasElements(prev => [...prev, { id: newId, type: 'review', height: 'h-32' }]);
         setActiveDrop(null);
         
         await new Promise(r => setTimeout(r, 2000)); // Show result
 
-        // Reset canvas for next loop
-        setCanvasElements(prev => prev.filter(el => el.id !== 3));
+        // Reset canvas for next loop - remove any review elements
+        setCanvasElements(prev => prev.filter(el => el.type !== 'review'));
       }
     };
     sequence();
@@ -186,7 +187,7 @@ export function DragDropBuilderShowcase() {
                  <AnimatePresence>
                    {canvasElements.map((el) => (
                      <motion.div
-                       key={el.id}
+                       key={`${el.type}-${el.id}`}
                        initial={{ opacity: 0, height: 0 }}
                        animate={{ opacity: 1, height: 'auto' }}
                        exit={{ opacity: 0, height: 0 }}
@@ -219,7 +220,7 @@ export function DragDropBuilderShowcase() {
                            {el.type === 'review' && (
                              <div className="grid grid-cols-3 gap-4 w-full px-4">
                                {[1,2,3].map(i => (
-                                 <div key={i} className="bg-[#1a1f1d] p-4 rounded-lg border border-white/5">
+                                 <div key={`review-star-${i}`} className="bg-[#1a1f1d] p-4 rounded-lg border border-white/5">
                                    <div className="flex gap-1 mb-2 text-yellow-500">
                                      <Star className="w-3 h-3 fill-current" />
                                      <Star className="w-3 h-3 fill-current" />

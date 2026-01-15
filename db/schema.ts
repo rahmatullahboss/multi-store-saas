@@ -6,7 +6,7 @@
  */
 
 import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 export * from './schema_agent';
 
 // ============================================================================
@@ -97,6 +97,7 @@ export const stores = sqliteTable('stores', {
   aiAgentRequestStatus: text('ai_agent_request_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
   aiAgentRequestedAt: integer('ai_agent_requested_at', { mode: 'timestamp' }),
   aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
+  aiCredits: integer('ai_credits').default(50), // Default 50 credits for new stores
   
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
@@ -175,11 +176,27 @@ export const customers = sqliteTable('customers', {
   // Fraud check cache
   riskScore: integer('risk_score'), // 0-100 (higher = more risky)
   riskCheckedAt: integer('risk_checked_at', { mode: 'timestamp' }), // Last check time
+  
+  // === SEGMENTATION FIELDS (AI Marketing) ===
+  totalOrders: integer('total_orders').default(0), // Auto-calculated from orders
+  totalSpent: real('total_spent').default(0), // Auto-calculated from orders total
+  lastOrderAt: integer('last_order_at', { mode: 'timestamp' }), // Last purchase date
+  // Segment: vip (>3 orders OR >10k spent), churn_risk (>60 days inactive), 
+  // window_shopper (has abandoned carts, 0 orders), new (0 orders), regular (default)
+  segment: text('segment').$type<'vip' | 'churn_risk' | 'window_shopper' | 'new' | 'regular'>().default('new'),
+  tags: text('tags'), // JSON array for manual tagging ["high-value", "repeat-buyer"]
+  
+  // === LOYALTY FIELDS (Phase 10) ===
+  loyaltyPoints: integer('loyalty_points').default(0),
+  loyaltyTier: text('loyalty_tier').$type<'bronze' | 'silver' | 'gold' | 'platinum'>().default('bronze'),
+  referredBy: integer('referred_by'), // ID of existing customer who referred this user
+  
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('customers_store_id_idx').on(table.storeId),
   index('customers_email_idx').on(table.storeId, table.email),
+  index('customers_segment_idx').on(table.storeId, table.segment),
 ]);
 
 // ============================================================================
@@ -210,6 +227,10 @@ export const orders = sqliteTable('orders', {
   shipping: real('shipping').default(0),
   total: real('total').notNull(),
   notes: text('notes'),
+  // Marketing Automation (Phase 11)
+  reviewRequestSent: integer('review_request_sent', { mode: 'boolean' }).default(false),
+  reviewRequestSentAt: integer('review_request_sent_at', { mode: 'timestamp' }),
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
@@ -428,6 +449,7 @@ export const discounts = sqliteTable('discounts', {
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
   code: text('code').notNull(),
   type: text('type').$type<'percentage' | 'fixed'>().default('percentage'),
+  ruleType: text('rule_type').$type<'standard' | 'segment' | 'behavior'>().default('standard'), // Changed for Advanced Rules
   value: real('value').notNull(), // Percentage (0-100) or fixed amount
   minOrderAmount: real('min_order_amount'), // Minimum order to apply
   maxDiscountAmount: real('max_discount_amount'), // Cap for percentage discounts
@@ -634,6 +656,47 @@ export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ on
 }));
 
 // ============================================================================
+// PUBLISHED PAGES TABLE - Pre-rendered HTML cache for landing pages
+// ============================================================================
+export const publishedPages = sqliteTable('published_pages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  
+  // Page identification
+  pageType: text('page_type').$type<'landing' | 'product'>().default('landing'),
+  productId: integer('product_id').references(() => products.id), // For product-specific landing pages
+  
+  // Cached content
+  htmlContent: text('html_content').notNull(), // Full rendered HTML
+  cssContent: text('css_content'), // Extracted/bundled CSS
+  metaTags: text('meta_tags'), // JSON: { title, description, ogImage }
+  
+  // Cache metadata
+  templateId: text('template_id'), // Template used for rendering
+  configHash: text('config_hash'), // Hash of landingConfig for cache invalidation
+  
+  // Timestamps
+  publishedAt: integer('published_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }), // Optional expiry
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('published_pages_store_id_idx').on(table.storeId),
+  index('published_pages_config_hash_idx').on(table.storeId, table.configHash),
+]);
+
+export const publishedPagesRelations = relations(publishedPages, ({ one }) => ({
+  store: one(stores, {
+    fields: [publishedPages.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [publishedPages.productId],
+    references: [products.id],
+  }),
+}));
+
+// ============================================================================
 // LANDING PAGES TABLE - GrapesJS Custom Pages
 // ============================================================================
 export const landingPages = sqliteTable('landing_pages', {
@@ -818,17 +881,25 @@ export const upsellTokensRelations = relations(upsellTokens, ({ one }) => ({
 export const abTests = sqliteTable('ab_tests', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }), // For landing page tests
   name: text('name').notNull(),
-  status: text('status').$type<'draft' | 'running' | 'paused' | 'completed'>().default('draft'),
-  winningVariantId: integer('winning_variant_id'),
+  testKey: text('test_key').notNull(),
+  variantA: text('variant_a').notNull(),
+  variantB: text('variant_b').notNull(),
+  trafficSplit: integer('traffic_split').default(50),
+  status: text('status').$type<'active' | 'paused' | 'concluded'>().default('active'),
+  viewsA: integer('views_a').default(0),
+  conversionsA: integer('conversions_a').default(0),
+  viewsB: integer('views_b').default(0),
+  conversionsB: integer('conversions_b').default(0),
+  winner: text('winner'), // 'A' or 'B'
   startedAt: integer('started_at', { mode: 'timestamp' }),
   endedAt: integer('ended_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
-  index('ab_tests_store_idx').on(table.storeId),
+  index('ab_tests_store_key_idx').on(table.storeId, table.testKey),
   index('ab_tests_status_idx').on(table.storeId, table.status),
 ]);
+
 
 // ============================================================================
 // PUSH SUBSCRIPTIONS TABLE - Web Push Notifications
@@ -860,17 +931,7 @@ export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one })
 
 
 
-export const abTestsRelations = relations(abTests, ({ one, many }) => ({
-  store: one(stores, {
-    fields: [abTests.storeId],
-    references: [stores.id],
-  }),
-  product: one(products, {
-    fields: [abTests.productId],
-    references: [products.id],
-  }),
-  variants: many(abTestVariants),
-}));
+
 
 // ============================================================================
 // A/B TEST VARIANTS TABLE - Individual test variants
@@ -1162,6 +1223,8 @@ export type EmailCampaign = typeof emailCampaigns.$inferSelect;
 export type NewEmailCampaign = typeof emailCampaigns.$inferInsert;
 export type SavedLandingConfig = typeof savedLandingConfigs.$inferSelect;
 export type NewSavedLandingConfig = typeof savedLandingConfigs.$inferInsert;
+export type PublishedPage = typeof publishedPages.$inferSelect;
+export type NewPublishedPage = typeof publishedPages.$inferInsert;
 export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
 export type SystemNotification = typeof systemNotifications.$inferSelect;
@@ -1293,6 +1356,35 @@ export const webhooksRelations = relations(webhooks, ({ one }) => ({
 
 export type Webhook = typeof webhooks.$inferSelect;
 export type NewWebhook = typeof webhooks.$inferInsert;
+
+// ============================================================================
+// WEBHOOK DELIVERY LOGS - Track delivery attempts
+// ============================================================================
+export const webhookDeliveryLogs = sqliteTable('webhook_delivery_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  webhookId: integer('webhook_id').notNull().references(() => webhooks.id, { onDelete: 'cascade' }),
+  eventType: text('event_type').notNull(), // order.created, order.updated, etc.
+  payload: text('payload').notNull(), // JSON payload sent
+  statusCode: integer('status_code'), // HTTP response code
+  responseBody: text('response_body'), // Response from endpoint
+  success: integer('success', { mode: 'boolean' }).default(false),
+  errorMessage: text('error_message'),
+  attemptCount: integer('attempt_count').default(1),
+  deliveredAt: integer('delivered_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('webhook_logs_webhook_idx').on(table.webhookId),
+  index('webhook_logs_event_idx').on(table.eventType),
+]);
+
+export const webhookDeliveryLogsRelations = relations(webhookDeliveryLogs, ({ one }) => ({
+  webhook: one(webhooks, {
+    fields: [webhookDeliveryLogs.webhookId],
+    references: [webhooks.id],
+  }),
+}));
+
+export type WebhookDeliveryLog = typeof webhookDeliveryLogs.$inferSelect;
+export type NewWebhookDeliveryLog = typeof webhookDeliveryLogs.$inferInsert;
 // ============================================================================
 // VISITOR CHAT & LEAD CAPTURE
 // ============================================================================
@@ -1409,3 +1501,247 @@ export const storeThemesRelations = relations(storeThemes, ({ one }) => ({
   }),
 }));
 
+// ============================================================================
+// CREDIT USAGE LOGS - Track every credit transaction
+// ============================================================================
+export const creditUsageLogs = sqliteTable('credit_usage_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  amount: integer('amount').notNull(), // Positive for add, Negative for deduct
+  type: text('type').$type<'purchase' | 'usage' | 'bonus' | 'refund' | 'adjustment'>().notNull(),
+  description: text('description'), // E.g. "Generated Landing Page", "Purchased Starter Pack"
+  metadata: text('metadata'), // JSON: { feature: 'ai_chat', relatedId: 'order_123' }
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+});
+
+export const creditUsageLogsRelations = relations(creditUsageLogs, ({ one }) => ({
+  store: one(stores, {
+    fields: [creditUsageLogs.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// MERCHANT AI AGENTS TABLE - Store's AI chatbot configuration
+// ============================================================================
+export const agents = sqliteTable('agents', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(), // Agent display name e.g. "সাহায্যকারী বট"
+  
+  // AI Configuration
+  agentSettings: text('agent_settings'), // JSON: AgentConfig from agent.prompts.ts
+  systemPrompt: text('system_prompt'), // Custom system prompt override
+  tone: text('tone').$type<'friendly' | 'formal' | 'urgent'>().default('friendly'),
+  language: text('language').$type<'bn' | 'en' | 'banglish'>().default('bn'),
+  objectives: text('objectives'), // JSON array: ['answer_only', 'lead_gen', 'order']
+  
+  // RAG Knowledge Base
+  knowledgeBaseId: text('knowledge_base_id'), // Vectorize namespace
+  
+  // Channel Settings
+  enabledChannels: text('enabled_channels'), // JSON: ['web', 'whatsapp', 'messenger']
+  whatsappPhoneId: text('whatsapp_phone_id'), // WhatsApp Business Phone ID
+  messengerPageId: text('messenger_page_id'), // Facebook Page ID
+  
+  // Status
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('agents_store_id_idx').on(table.storeId),
+]);
+
+export const agentsRelations = relations(agents, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [agents.storeId],
+    references: [stores.id],
+  }),
+  conversations: many(aiConversations),
+}));
+
+// ============================================================================
+// AI CONVERSATIONS TABLE - Chat sessions with customers
+// ============================================================================
+export const aiConversations = sqliteTable('ai_conversations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  agentId: integer('agent_id').notNull().references(() => agents.id, { onDelete: 'cascade' }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  
+  // Customer Identification
+  customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  visitorId: text('visitor_id'), // Anonymous visitor tracking
+  customerPhone: text('customer_phone'),
+  customerName: text('customer_name'),
+  
+  // Channel
+  channel: text('channel').$type<'web' | 'whatsapp' | 'messenger'>().default('web'),
+  externalId: text('external_id'), // WhatsApp/Messenger conversation ID
+  
+  // Status
+  status: text('status').$type<'active' | 'closed' | 'transferred'>().default('active'),
+  lastMessageAt: integer('last_message_at', { mode: 'timestamp' }),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('ai_conversations_agent_idx').on(table.agentId),
+  index('ai_conversations_store_idx').on(table.storeId),
+  index('ai_conversations_customer_idx').on(table.customerId),
+]);
+
+export const aiConversationsRelations = relations(aiConversations, ({ one, many }) => ({
+  agent: one(agents, {
+    fields: [aiConversations.agentId],
+    references: [agents.id],
+  }),
+  store: one(stores, {
+    fields: [aiConversations.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [aiConversations.customerId],
+    references: [customers.id],
+  }),
+  messages: many(messages),
+  leadsData: many(leadsData),
+}));
+
+// ============================================================================
+// MESSAGES TABLE - Individual chat messages
+// ============================================================================
+export const messages = sqliteTable('messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  conversationId: integer('conversation_id').notNull().references(() => aiConversations.id, { onDelete: 'cascade' }),
+  
+  role: text('role').$type<'user' | 'assistant' | 'system'>().notNull(),
+  content: text('content').notNull(),
+  
+  // Function calls (if AI called a tool)
+  functionName: text('function_name'),
+  functionArgs: text('function_args'), // JSON
+  functionResult: text('function_result'),
+  
+  // Metadata
+  tokensUsed: integer('tokens_used'),
+  creditsUsed: integer('credits_used').default(1), // Each message costs 1 credit
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('messages_conversation_idx').on(table.conversationId),
+]);
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(aiConversations, {
+    fields: [messages.conversationId],
+    references: [aiConversations.id],
+  }),
+}));
+
+// ============================================================================
+// LEADS DATA TABLE - Information captured by AI during conversations
+// ============================================================================
+export const leadsData = sqliteTable('leads_data', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  conversationId: integer('conversation_id').notNull().references(() => aiConversations.id, { onDelete: 'cascade' }),
+  
+  key: text('key').notNull(), // 'phone', 'name', 'budget', 'product_interest'
+  value: text('value').notNull(),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('leads_data_conversation_idx').on(table.conversationId),
+]);
+
+export const leadsDataRelations = relations(leadsData, ({ one }) => ({
+  conversation: one(aiConversations, {
+    fields: [leadsData.conversationId],
+    references: [aiConversations.id],
+  }),
+}));
+
+
+// ============================================================================
+// LOYALTY TRANSACTIONS - History of points earned/redeemed
+// ============================================================================
+export const loyaltyTransactions = sqliteTable('loyalty_transactions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
+  
+  points: integer('points').notNull(), // Positive = Earned, Negative = Redeemed
+  type: text('type').$type<'purchase' | 'referral' | 'signup' | 'redemption' | 'manual_adjustment'>().notNull(),
+  description: text('description'), // "Order #1234", "Referral Bonus"
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('loyalty_tx_customer_idx').on(table.customerId),
+  index('loyalty_tx_store_idx').on(table.storeId),
+]);
+
+export const loyaltyTransactionsRelations = relations(loyaltyTransactions, ({ one }) => ({
+  store: one(stores, {
+    fields: [loyaltyTransactions.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [loyaltyTransactions.customerId],
+    references: [customers.id],
+  }),
+}));
+// ============================================================================
+// A/B TESTS TABLE - Split testing framework
+// ============================================================================
+
+
+// ============================================================================
+// PRODUCT RECOMMENDATIONS CACHE TABLE - Pre-calculated recommendations
+// ============================================================================
+export const productRecommendations = sqliteTable('product_recommendations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  sourceProductId: integer('source_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  recommendedProductId: integer('recommended_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  score: real('score').default(0), // Relevance score
+  reason: text('reason').default('similar_category'), // 'bought_together', 'similar_category'
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('prod_recs_source_idx').on(table.storeId, table.sourceProductId),
+]);
+
+export const productRecommendationsRelations = relations(productRecommendations, ({ one }) => ({
+  store: one(stores, {
+    fields: [productRecommendations.storeId],
+    references: [stores.id],
+  }),
+  sourceProduct: one(products, {
+    fields: [productRecommendations.sourceProductId],
+    references: [products.id],
+  }),
+  recommendedProduct: one(products, {
+    fields: [productRecommendations.recommendedProductId],
+    references: [products.id],
+  }),
+}));
+
+// ============================================================================
+// CACHE STORE - Performance critical key-value storage
+// ============================================================================
+export const cacheStore = sqliteTable('cache_store', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  expiresAt: integer('expires_at').notNull(),
+}, (table) => [
+  index('idx_cache_expires').on(table.expiresAt),
+]);
+
+// ============================================================================
+// AI CACHE - AI generated responses cache
+// ============================================================================
+export const aiCache = sqliteTable('ai_cache', {
+  key: text('key').primaryKey(),
+  response: text('response').notNull(),
+  expiresAt: integer('expires_at').notNull(),
+}, (table) => [
+  index('idx_ai_cache_expires').on(table.expiresAt),
+]);

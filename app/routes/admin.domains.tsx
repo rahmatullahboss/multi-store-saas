@@ -121,7 +121,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const failedDomains = domains.filter(d => d.customDomain && d.sslStatus === 'failed');
   
   // DNS target for CNAME records
-  const dnsTarget = 'multi-store-saas.pages.dev';
+  const dnsTarget = 'ozzyl-saas.pages.dev';
   
   return json({ 
     domains,

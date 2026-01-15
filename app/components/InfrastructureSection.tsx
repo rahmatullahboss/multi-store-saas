@@ -13,6 +13,7 @@
 import { motion, useMotionValue, useSpring, useInView } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { Globe, Zap, Shield, Clock, Server, Activity } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { useIsMobile } from '~/hooks/useIsMobile';
 
 // ============================================================================
@@ -279,28 +280,32 @@ const DataFlowLine = ({ from, to, delay, isMobile = false }: DataFlowLineProps) 
         transition={{ delay, duration: 1.5, ease: 'easeOut' }}
       />
       
-      {/* Animated data packet */}
-      <motion.circle
+      {/* Animated data packet - using regular circle with CSS animation */}
+      <circle
         r="2"
+        cx={`${from.x}%`}
+        cy={`${from.y}%`}
         fill={COLORS.cyan}
         filter={isMobile ? undefined : "url(#glow)"}
-        initial={{ opacity: 0 }}
-        animate={{
-          cx: [`${from.x}%`, `${to.x}%`],
-          cy: [`${from.y}%`, `${to.y}%`],
-          opacity: [0, 1, 1, 0],
-        }}
-        transition={{
-          delay: delay + 1,
-          duration: 2,
-          repeat: Infinity,
-          repeatDelay: 3,
-          ease: 'easeInOut',
-        }}
         style={{
           filter: isMobile ? undefined : `drop-shadow(0 0 4px ${COLORS.cyan})`,
         }}
-      />
+      >
+        <animate
+          attributeName="opacity"
+          values="0;1;1;0"
+          dur="2s"
+          begin={`${delay + 1}s`}
+          repeatCount="indefinite"
+        />
+        <animateMotion
+          path={`M 0,0 L ${to.x - from.x},${to.y - from.y}`}
+          dur="2s"
+          begin={`${delay + 1}s`}
+          repeatCount="indefinite"
+          calcMode="linear"
+        />
+      </circle>
     </svg>
   );
 };
@@ -434,6 +439,7 @@ const BrandTrustBar = () => {
 // ============================================================================
 const LiveLatencyCounter = () => {
   const [latency, setLatency] = useState(5);
+  const { t } = useTranslation();
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -465,7 +471,7 @@ const LiveLatencyCounter = () => {
         transition={{ duration: 1, repeat: Infinity }}
       />
       <span className="text-sm" style={{ color: COLORS.textMuted }}>
-        Live Latency:{' '}
+        {t('infraLiveLatency')}:{' '}
         <motion.span
           className="font-mono font-bold"
           style={{ color: COLORS.primary }}
@@ -487,6 +493,7 @@ export function InfrastructureSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   
   // Find Dhaka location for data flow lines
   const dhakaLocation = SERVER_LOCATIONS.find(s => s.id === 'dhaka')!;
@@ -541,7 +548,7 @@ export function InfrastructureSection() {
           >
             <Zap className="w-4 h-4" style={{ color: COLORS.cyan }} />
             <span style={{ color: COLORS.cyan }} className="text-sm font-medium">
-              WORLD-CLASS INFRASTRUCTURE
+              {t('infraBadge')}
             </span>
           </motion.div>
           
@@ -553,15 +560,7 @@ export function InfrastructureSection() {
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
             style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
           >
-            Facebook-Google এর Technology,{' '}
-            <span 
-              className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.cyan} 100%)`,
-              }}
-            >
-              আপনার হাতের মুঠোয়
-            </span>
+            {t('infraTitle')}
           </motion.h2>
           
           {/* Subheadline */}
@@ -572,8 +571,7 @@ export function InfrastructureSection() {
             className="text-lg max-w-2xl mx-auto mb-6"
             style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
-            Cloudflare CDN দিয়ে আপনার Store, বিশ্বের যেকোনো জায়গা থেকে 
-            <span className="text-white font-semibold"> ১ সেকেন্ডের কম সময়ে</span> লোড হবে।
+            {t('infraSubtitle')}
           </motion.p>
           
           {/* Live latency indicator */}
@@ -635,14 +633,14 @@ export function InfrastructureSection() {
                   className="w-2 h-2 rounded-full"
                   style={{ background: COLORS.accent }}
                 />
-                <span style={{ color: COLORS.textMuted }}>আপনার অবস্থান (BD)</span>
+                <span style={{ color: COLORS.textMuted }}>{t('infraLabelLocation')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div 
                   className="w-2 h-2 rounded-full"
                   style={{ background: COLORS.cyan }}
                 />
-                <span style={{ color: COLORS.textMuted }}>Edge Servers</span>
+                <span style={{ color: COLORS.textMuted }}>{t('infraLabelEdge')}</span>
               </div>
             </motion.div>
             
@@ -660,7 +658,7 @@ export function InfrastructureSection() {
               <div className="flex items-center gap-2 text-sm">
                 <Activity className="w-4 h-4" style={{ color: COLORS.primary }} />
                 <span style={{ color: COLORS.textMuted }}>
-                  Nearest: <span className="text-white font-medium">Dhaka Edge (~5ms) 🇧🇩</span>
+                  {t('infraLabelNearest')}: <span className="text-white font-medium">{t('infraDhakaEdge')}</span>
                 </span>
               </div>
             </motion.div>
@@ -672,24 +670,24 @@ export function InfrastructureSection() {
           <StatCard
             icon={Server}
             value="310+"
-            label="Global Servers"
-            sublabel="৬ মহাদেশে ছড়িয়ে"
+            label={t('infraGlobalServers')}
+            sublabel={t('infraSixContinents')}
             delay={0.4}
             color={COLORS.primary}
           />
           <StatCard
             icon={Clock}
             value="<10ms"
-            label="Loading Time"
-            sublabel="ঢাকা Edge Server থেকে"
+            label={t('infraLoadingTime')}
+            sublabel={t('infraFromDhaka')}
             delay={0.5}
             color={COLORS.cyan}
           />
           <StatCard
             icon={Shield}
             value="99.99%"
-            label="Uptime Guarantee"
-            sublabel="এন্টারপ্রাইজ রিলায়েবিলিটি"
+            label={t('infraUptime')}
+            sublabel={t('infraEnterpriseRel')}
             delay={0.6}
             color={COLORS.accent}
           />
@@ -707,7 +705,7 @@ export function InfrastructureSection() {
             style={{ color: COLORS.textSubtle, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             <Globe className="w-4 h-4" />
-            যারা Cloudflare ব্যবহার করে:
+            {t('infraWhoUses')}
           </p>
           
           <BrandTrustBar />
@@ -719,7 +717,7 @@ export function InfrastructureSection() {
             className="text-xs mt-4"
             style={{ color: COLORS.textSubtle }}
           >
-            এবং আরো ৪০+ মিলিয়ন ওয়েবসাইট
+            {t('infraAndMillionsMore')}
           </motion.p>
         </motion.div>
         

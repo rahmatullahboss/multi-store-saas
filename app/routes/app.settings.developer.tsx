@@ -128,11 +128,11 @@ export default function DeveloperSettings() {
             to="/app/settings" 
             className="p-2 hover:bg-gray-100 rounded-lg transition"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-slate-600" />
           </Link>
           <div>
-            <h2 className="text-xl font-semibold text-slate-800 dark:text-white">{t('developerApi')}</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <h2 className="text-xl font-semibold text-slate-800">{t('developerApi')}</h2>
+            <p className="text-sm text-slate-500 mt-1">
               {t('developerApiDesc')}
             </p>
           </div>
@@ -140,13 +140,13 @@ export default function DeveloperSettings() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800">
+      <div className="flex border-b border-slate-200">
           <button
             onClick={() => setActiveTab('keys')}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
                 activeTab === 'keys' 
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
               {t('apiKeys')}
@@ -155,8 +155,8 @@ export default function DeveloperSettings() {
             onClick={() => setActiveTab('webhooks')}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
                 activeTab === 'webhooks' 
-                ? 'border-purple-500 text-purple-600 dark:text-purple-400' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'border-purple-500 text-purple-600' 
+                : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
               {t('webhooks')}
@@ -167,7 +167,7 @@ export default function DeveloperSettings() {
       {activeTab === 'keys' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="flex justify-between items-end">
-                <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg flex gap-3 text-amber-800 dark:text-amber-200 text-sm max-w-2xl">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg flex gap-3 text-amber-800 text-sm max-w-2xl">
                     <ShieldAlert className="w-5 h-5 flex-shrink-0" />
                     <p>
                     {t('keysSecretWarning')}
@@ -178,7 +178,7 @@ export default function DeveloperSettings() {
                         type="text" 
                         name="name" 
                         placeholder={t('keyName')}
-                        className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                         required
                     />
                     <button 
@@ -193,10 +193,10 @@ export default function DeveloperSettings() {
                 </Form>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <table className="w-full text-left text-sm">
                 <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-slate-800">
+                    <tr className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
                     <th className="px-6 py-3">{t('name')}</th>
                     <th className="px-6 py-3">{t('keyPrefix')}</th>
                     <th className="px-6 py-3">{t('keyCreated')}</th>
@@ -204,20 +204,20 @@ export default function DeveloperSettings() {
                     <th className="px-6 py-3 text-right">{t('actions')}</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200">
                     {keys.length === 0 ? (
                         <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">{t('noApiKeys')}</td></tr>
                     ) : (
                         keys.map((key) => (
                             <tr key={key.id} className={key.revokedAt ? 'opacity-50' : ''}>
-                                <td className="px-6 py-3 font-medium text-slate-900 dark:text-white">{key.name}</td>
+                                <td className="px-6 py-3 font-medium text-slate-900">{key.name}</td>
                                 <td className="px-6 py-3 font-mono text-slate-500">{key.keyPrefix}...</td>
                                 <td className="px-6 py-3 text-slate-500">{new Date(key.createdAt!).toLocaleDateString()}</td>
                                 <td className="px-6 py-3">
                                     {key.revokedAt ? (
-                                        <span className="px-2 py-1 bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded text-xs">{t('revoked')}</span>
+                                        <span className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs">{t('revoked')}</span>
                                     ) : (
-                                        <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded text-xs">{t('active')}</span>
+                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-600 rounded text-xs">{t('active')}</span>
                                     )}
                                 </td>
                                 <td className="px-6 py-3 text-right">
@@ -242,20 +242,20 @@ export default function DeveloperSettings() {
       {activeTab === 'webhooks' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
              <div className="flex justify-between items-end">
-                <div className="p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/50 rounded-lg flex gap-3 text-purple-800 dark:text-purple-200 text-sm max-w-2xl">
+                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg flex gap-3 text-purple-800 text-sm max-w-2xl">
                     <Network className="w-5 h-5 flex-shrink-0" />
                     <div>
                         <p className="font-medium">{t('realtimeUpdates')}</p>
                         <p className="opacity-80">{t('webhooksDesc')} {t('signaturesValidVia')} `X-Shop-Hmac-Sha256`.</p>
                     </div>
                 </div>
-                <Form method="post" className="flex items-end gap-2" ref={webhookFormRef}>
+                <Form method="post" className="flex items-start gap-2" ref={webhookFormRef}>
                     <div className="flex flex-col">
                         <input 
                             type="url" 
                             name="url" 
                             placeholder="https://your-api.com/webhook" 
-                            className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 w-64"
+                            className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 w-64"
                             required
                         />
                          <span className="text-[10px] text-slate-500 mt-1 ml-1">{t('topics')}: order.created</span>
@@ -265,38 +265,38 @@ export default function DeveloperSettings() {
                         name="intent" 
                         value="createWebhook"
                         disabled={isSubmitting}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition flex items-center gap-2 disabled:opacity-50 h-[38px] mb-[22px]"
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
                     >
                         {isSubmitting ? t('adding') : <><Plus className="w-4 h-4" /> {t('addWebhook')}</>}
                     </button>
                 </Form>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <table className="w-full text-left text-sm">
                 <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-slate-800">
+                    <tr className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
                     <th className="px-6 py-3">{t('url')}</th>
                     <th className="px-6 py-3">{t('topics')}</th>
                     <th className="px-6 py-3">{t('active')}</th>
                     <th className="px-6 py-3 text-right">{t('actions')}</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200">
                     {hooks.length === 0 ? (
                         <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">{t('noResults')}</td></tr>
                     ) : (
                         hooks.map((hook) => (
                             <tr key={hook.id}>
-                                <td className="px-6 py-3 font-mono text-slate-700 dark:text-slate-300 break-all max-w-xs">{hook.url}</td>
+                                <td className="px-6 py-3 font-mono text-slate-700 break-all max-w-xs">{hook.url}</td>
                                 <td className="px-6 py-3">
-                                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs text-slate-600 dark:text-slate-400">
+                                    <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600">
                                         order.created
                                     </span>
                                 </td>
                                 <td className="px-6 py-3">
                                     {hook.isActive ? (
-                                        <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded text-xs">{t('active')}</span>
+                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-600 rounded text-xs">{t('active')}</span>
                                     ) : (
                                         <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-xs">{t('inactive')}</span>
                                     )}
@@ -318,25 +318,25 @@ export default function DeveloperSettings() {
             {/* Webhook Secret Modal */}
             {showWebhookSecret && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-200">
-                <div className="bg-white dark:bg-slate-900 rounded-xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+                <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
                     <div className="flex items-center gap-3 text-purple-500">
-                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-500/20 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                                 <Network className="w-6 h-6" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('webhookSecretTitle')}</h3>
+                        <h3 className="text-lg font-bold text-slate-900">{t('webhookSecretTitle')}</h3>
                     </div>
                     
-                    <p className="text-slate-600 dark:text-slate-300 text-sm">
+                    <p className="text-slate-600 text-sm">
                         {t('webhookSecretDesc')} (`X-Shop-Hmac-Sha256`).
                     </p>
 
-                    <div className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-black rounded-lg border border-slate-200 dark:border-slate-800 group relative">
-                        <code className="flex-1 font-mono text-slate-800 dark:text-purple-400 text-sm break-all">
+                    <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg border border-slate-200 group relative">
+                        <code className="flex-1 font-mono text-slate-800 text-sm break-all">
                             {showWebhookSecret}
                         </code>
                         <button 
                             onClick={() => copyToClipboard(showWebhookSecret)}
-                            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
+                            className="p-2 hover:bg-slate-200 rounded-md text-slate-500 hover:text-slate-900 transition"
                         >
                             <Copy className="w-4 h-4" />
                         </button>
@@ -345,7 +345,7 @@ export default function DeveloperSettings() {
                     <div className="flex justify-end pt-2">
                         <button 
                             onClick={() => setShowWebhookSecret(null)}
-                            className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium rounded-lg hover:opacity-90 transition"
+                            className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:opacity-90 transition"
                         >
                             {t('done')}
                         </button>
@@ -355,29 +355,29 @@ export default function DeveloperSettings() {
             )}
         </div>
       )}
-
+      
       {/* API Key Modal (Reused) */}
       {showKeyModal && createdKey && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-200">
-           <div className="bg-white dark:bg-slate-900 rounded-xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+           <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
                <div className="flex items-center gap-3 text-emerald-500">
-                   <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center">
+                   <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
                         <Check className="w-6 h-6" />
                    </div>
-                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('apiKeyCreatedTitle')}</h3>
+                   <h3 className="text-lg font-bold text-slate-900">{t('apiKeyCreatedTitle')}</h3>
                </div>
                
-               <p className="text-slate-600 dark:text-slate-300 text-sm">
+               <p className="text-slate-600 text-sm">
                    {t('copyKeyNow')}
                </p>
 
-               <div className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-black rounded-lg border border-slate-200 dark:border-slate-800 group relative">
-                   <code className="flex-1 font-mono text-slate-800 dark:text-emerald-400 text-sm break-all">
+               <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg border border-slate-200 group relative">
+                   <code className="flex-1 font-mono text-slate-800 text-sm break-all">
                        {createdKey}
                    </code>
                    <button 
                       onClick={() => copyToClipboard(createdKey)}
-                      className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
+                      className="p-2 hover:bg-slate-200 rounded-md text-slate-500 hover:text-slate-900 transition"
                    >
                        <Copy className="w-4 h-4" />
                    </button>
@@ -386,7 +386,7 @@ export default function DeveloperSettings() {
                <div className="flex justify-end pt-2">
                    <button 
                        onClick={() => setShowKeyModal(false)}
-                       className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium rounded-lg hover:opacity-90 transition"
+                       className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:opacity-90 transition"
                    >
                        {t('savedIt')}
                    </button>

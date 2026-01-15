@@ -275,7 +275,8 @@ export async function checkUsageLimit(
     : dbBinding as ReturnType<typeof drizzle>;
   
   const { planType, aiPlan } = await getStorePlans(db, storeId);
-  const limits = PLAN_LIMITS[planType];
+  // Safeguard: Use getPlanLimitsSafe to handle invalid/missing plan types
+  const limits = getPlanLimitsSafe(planType);
   
   if (type === 'order') {
     const currentCount = await getMonthlyOrderCount(db, storeId);
@@ -559,7 +560,7 @@ export function canUseCustomDomain(planType: PlanType): boolean {
 // UTILITY: Check if store can use AI features
 // ============================================================================
 export function canUseAI(planType: PlanType): boolean {
-  return planType !== 'free';
+  return true; // Everyone can use AI (Credit System)
 }
 
 // ============================================================================

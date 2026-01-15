@@ -2,7 +2,7 @@
  * Authentication Service
  * 
  * Handles session management, password hashing, and auth utilities
- * for the Multi-Store SaaS platform.
+ * for the Ozzyl platform.
  * 
  * Uses Web Crypto API for password hashing (Cloudflare Workers compatible)
  */

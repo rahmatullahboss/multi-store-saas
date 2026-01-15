@@ -26,7 +26,7 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Add Product - Multi-Store SaaS' }];
+  return [{ title: 'Add Product - Ozzyl' }];
 };
 
 // ============================================================================
@@ -517,7 +517,7 @@ export default function NewProductPage() {
               {/* Google Preview */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-xs text-gray-500 mb-2">{t('googlePreview')}</p>
-                <p className="text-sm text-emerald-700 truncate">yourstore.digitalcare.site/products/...</p>
+                <p className="text-sm text-emerald-700 truncate">yourstore.ozzyl.com/products/...</p>
                 <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
                   {formSeoTitle || autoSeoTitle || t('productTitle')}
                 </h4>

@@ -31,7 +31,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Reviews - Multi-Store SaaS' }];
+  return [{ title: 'Reviews - Ozzyl' }];
 };
 
 // ============================================================================

@@ -23,7 +23,7 @@ import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'New Campaign - Multi-Store SaaS' }];
+  return [{ title: 'New Campaign - Ozzyl' }];
 };
 
 // ============================================================================

@@ -1,7 +1,7 @@
 
 import { json, LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, sql, desc } from 'drizzle-orm';
+import { eq, sql, desc, and } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { processMessage } from '~/services/agent.server';
 
@@ -15,20 +15,17 @@ interface Env {
   OPENROUTER_API_KEY?: string;
 }
 
-// Helper to find agent by different platform IDs using JSON path
-// Note: We use raw sql because Drizzle's query builder doesn't support json_extract easily in filters without sql operator
-async function findAgentByPlatformId(db: any, platform: 'whatsapp' | 'messenger' | 'instagram', id: string) {
-  let query;
+// 1. Find Agent by ID (Direct Column Match)
+async function findAgentByPlatformId(db: any, platform: 'whatsapp' | 'messenger', id: string) {
   if (platform === 'whatsapp') {
-    query = sql`json_extract(${schema.agents.platformConfig}, '$.whatsapp_phone_id') = ${id}`;
-  } else if (platform === 'messenger') {
-    query = sql`json_extract(${schema.agents.platformConfig}, '$.fb_page_id') = ${id}`;
+    return await db.query.agents.findFirst({
+        where: eq(schema.agents.whatsappPhoneId, id)
+    });
   } else {
-    query = sql`json_extract(${schema.agents.platformConfig}, '$.instagram_id') = ${id}`;
+    return await db.query.agents.findFirst({
+        where: eq(schema.agents.messengerPageId, id)
+    });
   }
-
-  const agent = await db.select().from(schema.agents).where(query).limit(1).get();
-  return agent;
 }
 
 // Verify Webhook (GET)
@@ -40,6 +37,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const token = url.searchParams.get('hub.verify_token');
   const challenge = url.searchParams.get('hub.challenge');
 
+  // Verify token from Env (Global verification token for simplicity)
   if (mode === 'subscribe' && token === env.META_VERIFY_TOKEN) {
     return new Response(challenge, { status: 200 });
   }
@@ -54,7 +52,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   try {
     const payload = await request.json();
     
-    // Process in background to avoid timeouts (Remix context.waitUntil)
+    // Process in background to avoid timeouts
     (context as any).waitUntil(processWebhookEvent(payload, env));
     
     return json({ status: 'received' });
@@ -90,22 +88,21 @@ async function processWebhookEvent(payload: any, env: Env) {
     }
   }
 
-  // Handle Messenger / Instagram (Check 'object' type)
-  if (payload.object === 'page' || payload.object === 'instagram') {
+  // Handle Messenger
+  if (payload.object === 'page') {
     for (const entry of payload.entry) {
         if (entry.messaging) {
             for (const event of entry.messaging) {
                 if (event.message && !event.message.is_echo && event.message.text) {
-                    const platform = payload.object === 'instagram' ? 'instagram' : 'messenger';
-                    const accountId = entry.id; // Page ID or IG Account ID
+                    const accountId = entry.id; // Page ID
                     
                     await handleMessage(
                         db, env, 
-                        platform, 
+                        'messenger', 
                         accountId, 
                         event.sender.id, 
                         event.message.text, 
-                        'User' // Name not always available immediately
+                        'User' // Name not available immediately
                     );
                 }
             }
@@ -117,7 +114,7 @@ async function processWebhookEvent(payload: any, env: Env) {
 async function handleMessage(
     db: any, 
     env: Env, 
-    platform: 'whatsapp' | 'messenger' | 'instagram', 
+    platform: 'whatsapp' | 'messenger', 
     platformId: string, 
     senderId: string, 
     text: string,
@@ -128,17 +125,20 @@ async function handleMessage(
     if (!agent || !agent.isActive) return;
 
     // 2. Find/Create Conversation
-    let conversation = await db.query.conversations.findFirst({
-        where: platform === 'whatsapp' 
-            ? eq(schema.conversations.customerPhone, senderId) 
-            : eq(schema.conversations.customerFbId, senderId)
+    let conversation = await db.query.aiConversations.findFirst({
+        where: and(
+            eq(schema.aiConversations.agentId, agent.id),
+            eq(schema.aiConversations.externalId, senderId),
+            eq(schema.aiConversations.channel, platform)
+        )
     });
 
     if (!conversation) {
-        const result = await db.insert(schema.conversations).values({
+        const result = await db.insert(schema.aiConversations).values({
             agentId: agent.id,
-            customerPhone: platform === 'whatsapp' ? senderId : null,
-            customerFbId: platform !== 'whatsapp' ? senderId : null,
+            storeId: agent.storeId,
+            channel: platform,
+            externalId: senderId,
             customerName: senderName,
             status: 'active',
             lastMessageAt: new Date(),
@@ -146,39 +146,25 @@ async function handleMessage(
         conversation = result[0];
     } else {
         // Update timestamp
-        await db.update(schema.conversations)
+        await db.update(schema.aiConversations)
             .set({ lastMessageAt: new Date() })
-            .where(eq(schema.conversations.id, conversation.id));
+            .where(eq(schema.aiConversations.id, conversation.id));
     }
 
-    // 3. Save User Message
-    await db.insert(schema.messages).values({
-        conversationId: conversation.id,
-        role: 'user',
-        content: text
-    });
-
-    // 4. Process with AI
-    // Note: agent.server.ts processMessage fetches history from DB. 
-    // Since we just inserted the message, it will be included. 
-    // We rely on processMessage to handle the prompting correctly.
+    // 3. Process with AI (processMessage handles saving user msg, AI response, credit deduction)
     const aiResponse = await processMessage(agent.id, text, conversation.id, env);
     
-    // 5. Save Assistant Message
-    await db.insert(schema.messages).values({
-        conversationId: conversation.id,
-        role: 'assistant',
-        content: aiResponse.text
-    });
-
-    // 6. Send Response
-    // Get Access Token overrides if any
-    const platformConfig = JSON.parse(agent.platformConfig || '{}');
-    const accessToken = platformConfig.access_token || env.META_ACCESS_TOKEN; // Allow override or global
+    // 4. Send Response via Platform API
+    // Note: We need a Merchant implementation of sending messages.
+    // Ideally, we should use the merchant's access token if we had stored it.
+    // For now, assuming we use a System User token or the merchant provided one.
+    // Since we don't have per-merchant Access Token storage in `agents` yet (only IDs), 
+    // we might need to rely on the Env token or future implementation.
+    
+    const accessToken = env.META_ACCESS_TOKEN; 
 
     if (platform === 'whatsapp') {
-        const whatsappPhoneId = platformConfig.whatsapp_phone_id || platformId;
-        await sendWhatsAppMessage(senderId, aiResponse.text, whatsappPhoneId, accessToken);
+        await sendWhatsAppMessage(senderId, aiResponse.text, platformId, accessToken);
     } else {
         await sendMessengerMessage(senderId, aiResponse.text, accessToken);
     }

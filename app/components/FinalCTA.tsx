@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
 import { ArrowRight, Check, Phone, Mail, Bell, Sparkles, Diamond, Users } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { ScrollReveal } from '~/components/animations';
 
 // ============================================================================
@@ -59,6 +60,7 @@ interface FinalCTAProps {
 const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRecentSignups }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (recentSignups.length === 0) return;
@@ -102,11 +104,11 @@ const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRece
             transition={{ duration: 0.3 }}
             className="text-sm"
           >
-            <span className="text-white/60">Live: </span>
+            <span className="text-white/60">{t('finalCtaLive')}: </span>
             <span className="text-white font-medium">{current.name}</span>
-            <span className="text-white/60"> from </span>
+            <span className="text-white/60"> {t('finalCtaFrom')} </span>
             <span className="text-[#F9A825]">{current.city}</span>
-            <span className="text-white/40"> just signed up!</span>
+            <span className="text-white/40"> {t('finalCtaJustSignedUp')}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -125,6 +127,7 @@ const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRece
 // GLOWING CTA BUTTON
 // ============================================================================
 const GlowingCTAButton = () => {
+  const { t } = useTranslation();
   return (
     <motion.div
       className="relative inline-block"
@@ -153,7 +156,7 @@ const GlowingCTAButton = () => {
         }}
       >
         <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
-          ফ্রিতে শুরু করুন
+          {t('finalCtaPrimary')}
         </span>
         <motion.span
           animate={{ x: [0, 5, 0] }}
@@ -170,10 +173,11 @@ const GlowingCTAButton = () => {
 // TRUST BADGES
 // ============================================================================
 const TrustBadges = () => {
+  const { t } = useTranslation();
   const badges = [
-    { icon: Check, text: 'Credit Card লাগবে না' },
-    { icon: Check, text: '১ মিনিটে Setup' },
-    { icon: Sparkles, text: 'Lifetime Early Bird Pricing' },
+    { icon: Check, text: t('heroTrust1') },
+    { icon: Check, text: t('heroDemoReady') },
+    { icon: Sparkles, text: t('finalCtaEarlyBird') },
   ];
 
   return (
@@ -228,6 +232,7 @@ const DecorativeDiamonds = () => {
 // MAIN FINAL CTA COMPONENT
 // ============================================================================
 export function FinalCTA({ stats }: FinalCTAProps) {
+  const { t } = useTranslation();
   // Only use real data - don't show fake signups
   const recentSignups = stats?.recentSignups ?? [];
   const totalUsers = stats?.totalUsers || 0;
@@ -285,16 +290,16 @@ export function FinalCTA({ stats }: FinalCTAProps) {
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
-            আজই শুরু করুন,{' '}
+            {t('finalCtaTitlePart1')}{' '}
             <span 
               className="bg-clip-text text-transparent"
               style={{
                 backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
               }}
             >
-              Future Build
+              {t('finalCtaTitlePart2')}
             </span>{' '}
-            করুন
+            {t('finalCtaTitlePart3')}
           </h2>
         </ScrollReveal>
 
@@ -310,13 +315,13 @@ export function FinalCTA({ stats }: FinalCTAProps) {
             className="text-xl md:text-2xl text-white/80 leading-relaxed mb-6"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
-            আমরা Bangladesh এর প্রথম সত্যিকারের বাংলা E-commerce Platform বানাচ্ছি।
+            {t('finalCtaMission')}
           </p>
           <p 
             className="text-lg text-white/60"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
-            আপনি কি আমাদের সাথে এই Journey তে থাকতে চান?
+            {t('finalCtaJourney')}
           </p>
         </motion.div>
 
@@ -337,7 +342,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
         {/* Divider */}
         <div className="flex items-center justify-center gap-4 my-10">
           <div className="h-px w-20 bg-gradient-to-r from-transparent to-white/20" />
-          <span className="text-white/40 text-sm">অথবা</span>
+          <span className="text-white/40 text-sm">{t('finalCtaOr')}</span>
           <div className="h-px w-20 bg-gradient-to-l from-transparent to-white/20" />
         </div>
 
@@ -354,7 +359,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
             className="group flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white/70 hover:text-white transition-all duration-300"
           >
             <Phone className="w-4 h-4" />
-            <span>📞 আমাদের সাথে কথা বলুন</span>
+            <span>📞 {t('finalCtaSecondaryCall')}</span>
           </Link>
           
           <Link
@@ -362,7 +367,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
             className="group flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white/70 hover:text-white transition-all duration-300"
           >
             <Mail className="w-4 h-4" />
-            <span>📧 Question আছে?</span>
+            <span>📧 {t('finalCtaSecondaryMail')}</span>
           </Link>
         </motion.div>
 

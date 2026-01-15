@@ -13,6 +13,21 @@ import { stores } from '../db/schema';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as build from '../build/server';
+import type { CfProperties } from '@cloudflare/workers-types';
+
+/**
+ * Environment interface for Cloudflare Pages Functions
+ */
+interface Env {
+  DB: D1Database;
+  R2: R2Bucket;
+  R2_PUBLIC_URL: string;
+  SAAS_DOMAIN: string;
+  CLOUDFLARE_API_TOKEN: string;
+  CLOUDFLARE_ZONE_ID: string;
+  OPENROUTER_API_KEY?: string;
+  [key: string]: any;
+}
 
 /**
  * Parse hostname to extract subdomain or custom domain
@@ -40,8 +55,8 @@ function isMainDomain(hostname: string): boolean {
     'localhost',
     '127.0.0.1',
     'multi-store-saas.pages.dev',
-    'digitalcare.site',
-    'www.digitalcare.site',
+    'ozzyl.com',
+    'www.ozzyl.com',
   ];
   
   return mainDomains.includes(hostname) || 
@@ -68,12 +83,7 @@ export const onRequest = createPagesFunctionHandler({
                      request.headers.get('host') || 
                      url.hostname;
     
-    const saasDomain = env.SAAS_DOMAIN || 'digitalcare.site';
-    
-    console.log(`[PAGES] ============================================`);
-    console.log(`[PAGES] Request: ${request.method} ${url.pathname}`);
-    console.log(`[PAGES] Hostname: ${hostname}`);
-    console.log(`[PAGES] SAAS_DOMAIN: ${saasDomain}`);
+    const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
     
     // Default context values
     let storeId = 0;
@@ -82,7 +92,6 @@ export const onRequest = createPagesFunctionHandler({
     
     // Skip tenant resolution for main domains
     if (isMainDomain(hostname)) {
-      console.log(`[PAGES] Main domain detected, skipping tenant resolution`);
       return {
         cloudflare: {
           env: {
@@ -103,13 +112,11 @@ export const onRequest = createPagesFunctionHandler({
     
     // Resolve tenant from hostname
     const { type, value } = parseHostname(hostname, saasDomain);
-    console.log(`[PAGES] Parsed hostname: type=${type}, value=${value}`);
     
     try {
       const db = drizzle(env.DB);
       
       if (type === 'subdomain') {
-        console.log(`[PAGES] Looking up store by subdomain: ${value}`);
         const result = await db
           .select()
           .from(stores)
@@ -119,14 +126,10 @@ export const onRequest = createPagesFunctionHandler({
         if (result[0]) {
           store = result[0];
           storeId = result[0].id;
-          console.log(`[PAGES] ✓ Store found: ID=${storeId}, Name=${store.name}`);
-        } else {
-          console.warn(`[PAGES] Store not found for subdomain: ${value}`);
         }
       } else {
         // Custom domain lookup
         isCustomDomainAccess = true;
-        console.log(`[PAGES] Looking up store by custom domain: ${value}`);
         const result = await db
           .select()
           .from(stores)
@@ -136,14 +139,10 @@ export const onRequest = createPagesFunctionHandler({
         if (result[0]) {
           store = result[0];
           storeId = result[0].id;
-          console.log(`[PAGES] ✓ Store found: ID=${storeId}, Name=${store.name}`);
-        } else {
-          console.warn(`[PAGES] Store not found for custom domain: ${value}`);
         }
       }
     } catch (error) {
-      console.error(`[PAGES] Error resolving tenant:`, error);
-      console.error(`[PAGES] Error message:`, error instanceof Error ? error.message : String(error));
+      // Log error to monitoring service in production
     }
     
     return {

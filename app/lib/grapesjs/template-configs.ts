@@ -9,7 +9,7 @@ export interface TemplateConfig {
   nameEn: string;
   description: string;
   descriptionEn: string;
-  category: 'premium' | 'sales' | 'minimal' | 'video';
+  category: 'premium' | 'sales' | 'minimal' | 'video' | 'modern' | 'beauty';
   emoji: string;
   blocks: string[]; // Array of block IDs from bd-blocks.ts
   themeColors: {
@@ -241,6 +241,109 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       secondaryColor: '#18181b', // zinc-900
       fontHeading: 'Poppins',
       fontBody: 'Hind Siliguri',
+    },
+  },
+  'turbo-sale': {
+    id: 'turbo-sale',
+    name: 'টার্বো সেল (High Conversion)',
+    nameEn: 'Turbo Sale',
+    description: 'ভিডিও এবং আর্জেন্সি ফোকাসড ডিজাইন (BD Special)',
+    descriptionEn: 'Video & Urgency focused design (BD Special)',
+    category: 'sales',
+    emoji: '🚀',
+    blocks: [
+      'bd-urgency-timer',
+      'bd-header',
+      'bd-hero-video',
+      'bd-social-proof',
+      'bd-features-zigzag',
+      'bd-comparison-advanced',
+      'bd-testimonials-marquee',
+      'bd-faq',
+      'bd-order-form-premium',
+      'bd-sticky-footer'
+    ],
+    themeColors: {
+      primaryColor: '#DC2626', // Red
+      secondaryColor: '#FEF08A', // Yellow
+      fontHeading: 'Hind Siliguri',
+      fontBody: 'Hind Siliguri',
+    },
+  },
+  'zenith-pro': {
+    id: 'zenith-pro',
+    name: 'Zenith Pro (World Class)',
+    nameEn: 'Zenith Pro',
+    description: 'Dark mode, Glassmorphism, Premium SaaS/Tech style.',
+    descriptionEn: 'Dark mode, Glassmorphism, Premium SaaS/Tech style.',
+    category: 'modern',
+    emoji: '💎',
+    blocks: [
+      'bd-header',
+      'zenith-hero-glass',
+      'bd-trust-glass',
+      'zenith-bento-grid',
+      'zenith-pricing-glass',
+      'bd-testimonials-marquee',
+      'bd-faq',
+      'bd-sticky-footer'
+    ],
+    themeColors: {
+      primaryColor: '#3B82F6', // Blue
+      secondaryColor: '#8B5CF6', // Purple
+      fontHeading: 'Inter',
+      fontBody: 'Inter',
+    },
+  },
+  'gadget-x': {
+    id: 'gadget-x',
+    name: 'Gadget X (Cyber)',
+    nameEn: 'Gadget X',
+    description: 'High energy, neon, gaming/tech focused.',
+    descriptionEn: 'High energy, neon, gaming/tech focused.',
+    category: 'sales',
+    emoji: '⚡',
+    blocks: [
+      'bd-header',
+      'bd-hero-video',
+      'gadget-neon-showcase', // NEW: Cyber block
+      'bd-features-zigzag',
+      'bd-social-proof',
+      'bd-video',
+      'bd-comparison',
+      'bd-order-form',
+      'bd-sticky-footer'
+    ],
+    themeColors: {
+      primaryColor: '#EC4899', // Pink
+      secondaryColor: '#EAB308', // Yellow
+      fontHeading: 'Orbitron',
+      fontBody: 'Inter',
+    },
+  },
+  'luxe-glow': {
+    id: 'luxe-glow',
+    name: 'Luxe Glow (Beauty)',
+    nameEn: 'Luxe Glow',
+    description: 'Clean, pastel, elegant for cosmetics/fashion.',
+    descriptionEn: 'Clean, pastel, elegant for cosmetics/fashion.',
+    category: 'beauty',
+    emoji: '✨',
+    blocks: [
+      'bd-header',
+      'luxe-elegant-hero', // NEW: Elegant block
+      'bd-trust-glass',
+      'bd-features-grid',
+      'bd-gallery',
+      'bd-testimonials',
+      'bd-order-form',
+      'bd-sticky-footer'
+    ],
+    themeColors: {
+      primaryColor: '#BE185D', // Rose
+      secondaryColor: '#FBCFE8', // Rose light
+      fontHeading: 'Playfair Display',
+      fontBody: 'Inter',
     },
   },
 };

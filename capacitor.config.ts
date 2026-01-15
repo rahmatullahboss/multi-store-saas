@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.multistoresaas.app',
-  appName: 'Multi Store SaaS',
+  appId: 'com.ozzyl.app',
+  appName: 'Ozzyl',
   webDir: 'build/client',
   server: {
     // For local development:
@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     // cleartext: true,
     
     // For production (Wrapper mode):
-    url: 'https://digitalcare.site', 
+    url: 'https://ozzyl.com', 
     androidScheme: 'https'
   }
 };

@@ -490,7 +490,7 @@ export default function AdminPlansPage() {
                         <td className="py-4">
                           <div>
                             <p className="font-medium text-white">{store.name}</p>
-                            <p className="text-xs text-white/40">{store.subdomain}.digitalcare.site</p>
+                            <p className="text-xs text-white/40">{store.subdomain}.ozzyl.com</p>
                           </div>
                         </td>
                         <td className="py-4">
@@ -642,12 +642,12 @@ export default function AdminPlansPage() {
                       </td>
                       <td className="px-6 py-4">
                         <a 
-                          href={`https://${store.subdomain}.digitalcare.site`}
+                          href={`https://${store.subdomain}.ozzyl.com`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#3B82F6] hover:text-[#60A5FA] hover:underline text-sm transition-colors"
                         >
-                          {store.subdomain}.digitalcare.site
+                          {store.subdomain}.ozzyl.com
                         </a>
                       </td>
                       <td className="px-6 py-4">

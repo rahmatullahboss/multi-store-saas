@@ -111,6 +111,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     bumpProducts,
     facebookPixelId: storeData.facebookPixelId,
     themeConfig,
+    planType: storeData.planType || 'free',
   });
 }
 
@@ -148,7 +149,8 @@ export default function Checkout() {
   const { 
     storeId, storeName, logo, currency, storeTemplateId, theme, 
     socialLinks, businessInfo, shippingConfig, manualPaymentConfig, bumpProducts, facebookPixelId,
-    themeConfig
+    themeConfig,
+    planType
   } = useLoaderData<typeof loader>();
   
   const fetcher = useFetcher();
@@ -350,7 +352,7 @@ export default function Checkout() {
 
   if (cartItems.length === 0) {
      return (
-        <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo}>
+        <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType}>
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6">
                 <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('cartEmpty')}</h2>
@@ -552,7 +554,7 @@ export default function Checkout() {
                 </button>
                 
                 <p className="text-xs text-center text-gray-500 mt-4">
-                    Secure checkout powered by Multi-Store SaaS
+                    Secure checkout powered by Ozzyl
                 </p>
             </div>
         </div>
@@ -695,7 +697,7 @@ export default function Checkout() {
   // One Page Layout: Single centered column
   if (checkoutStyle === 'one_page') {
       return (
-        <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo}>
+        <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType}>
             <div className="max-w-2xl mx-auto px-4 py-8">
                  <div className="text-center mb-8">
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('checkout')}</h1>
@@ -770,7 +772,7 @@ export default function Checkout() {
   if (isDaraz) return <DarazPageWrapper storeName={storeName} storeId={storeId} logo={logo} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo}>{content}</DarazPageWrapper>;
 
   return (
-    <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo}>
+    <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType}>
       {content}
     </StorePageWrapper>
   );

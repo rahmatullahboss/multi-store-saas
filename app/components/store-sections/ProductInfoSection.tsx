@@ -138,13 +138,15 @@ export function ProductInfoSection({ settings, product, currency = 'BDT', avgRat
           productName={product.title}
           productPrice={product.price}
           currency={currency}
-        />
+        >
+          {settings.addToCartText || 'Add to Cart'}
+        </AddToCartButton>
         <Link
           to="/cart"
           className="flex-1 inline-flex items-center justify-center py-3 md:py-4 text-base md:text-lg font-bold text-white rounded-lg md:rounded-xl transition hover:opacity-90"
           style={{ backgroundColor: '#1f2937' }}
         >
-          Buy Now
+          {settings.buyNowText || 'Buy Now'}
         </Link>
       </div>
       

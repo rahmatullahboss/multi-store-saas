@@ -112,12 +112,106 @@ export interface LandingConfig {
   typography?: TypographySettings;
   // Order Form Layout Variant
   orderFormVariant?: 'full-width' | 'compact'; // Default: 'full-width'
+  // Trust Badges
+  trustBadges?: {
+    icon: string;
+    text: string;
+  }[];
+  // Delivery Info
+  deliveryInfo?: {
+    title: string;
+    description: string;
+    areas?: string[];
+  };
   // Custom CSS for advanced styling
   customCSS?: string;
+  // Custom code injection (for FB Pixel, Google Analytics, etc.)
+  customHeadCode?: string; // Injected in <head>
+  customBodyCode?: string; // Injected before </body>
   // Font Family
   fontFamily?: string;
   // Landing Page Language (for visitor default view)
   landingLanguage?: 'bn' | 'en';
+  // Custom HTML Sections (positionable)
+  customSections?: CustomSection[];
+  // Localization & Page Titles (Editable for i18n)
+  trustTitle?: string;
+  benefitsTitle?: string;
+  comparisonTitle?: string;
+  testimonialsTitle?: string;
+  faqTitle?: string;
+  galleryTitle?: string;
+  videoTitle?: string;
+  socialProofTitle?: string;
+  guaranteeBadgeLabel?: string;
+  shippingConfig?: {
+    insideDhaka: number;
+    outsideDhaka: number;
+    freeShippingAbove: number;
+    enabled: boolean;
+  };
+  // Hero Section Customization
+  heroBadgeText?: string;
+  heroCountdownText?: string;
+  heroCtaText?: string;
+  heroPriceLabel?: string;
+  heroFeatures?: {
+    icon: string;
+    text: string;
+  }[];
+  // Product Variants (e.g., 1kg, 2kg, Red, White)
+  // Product Variants (e.g., 1kg, 2kg, Red, White)
+  productVariants?: LandingProductVariant[];
+  // Problem/Solution Section
+  problems?: string[];
+  solutions?: string[];
+  // Structured Problem & Solution
+  problemSolution?: {
+    problems: string[];
+    solutions: string[];
+  };
+  // Showcase Data
+  showcaseData?: {
+    features: string[];
+  };
+  // Pricing Data
+  pricingData?: {
+    features: string[];
+  };
+  // How To Order Data
+  howToOrderData?: {
+    steps: {
+      title: string;
+      description: string;
+    }[];
+  };
+}
+
+export interface LandingProductVariant {
+  id: string;
+  name: string;
+  price?: number;        // Price override for this variant
+  compareAtPrice?: number; // Compare at price override
+}
+
+// Custom HTML Section with position support
+export type CustomSectionPosition = 
+  | 'before-hero' 
+  | 'after-hero' 
+  | 'before-features' 
+  | 'after-features' 
+  | 'before-testimonials' 
+  | 'after-testimonials' 
+  | 'before-form' 
+  | 'after-form' 
+  | 'before-footer';
+
+export interface CustomSection {
+  id: string;
+  name: string;
+  html: string;
+  css?: string;
+  position: CustomSectionPosition;
 }
 
 // Store template configuration for full store mode
@@ -183,6 +277,33 @@ export interface ThemeConfig {
   productSections?: any[];
   collectionSections?: any[];
   cartSections?: any[]; // StoreSections structure for Product Details Page
+  // Marketing & Sales
+  flashSale?: {
+    isActive: boolean;
+    text?: string;
+    endTime?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    discountPercentage?: number;
+    discountType?: 'percent' | 'fixed';
+  };
+  trustBadges?: {
+    showPaymentIcons: boolean;
+    showGuaranteeSeals: boolean;
+    customText?: string;
+  };
+  marketingPopup?: {
+    isActive: boolean;
+    title?: string;
+    description?: string;
+    delay?: number;
+    offerCode?: string;
+  };
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    ogImage?: string;
+  };
 }
 
 // Social media links configuration
@@ -263,11 +384,101 @@ export function parseManualPaymentConfig(json: string | null): ManualPaymentConf
 
 // Default landing config for new stores
 export const defaultLandingConfig: LandingConfig = {
-  headline: "Transform Your Life Today",
-  subheadline: "The only solution you'll ever need",
-  ctaText: "Buy Now",
-  ctaSubtext: "30-day money back guarantee",
-  urgencyText: "Limited time offer",
+  headline: "আপনার পণ্যের আকর্ষণীয় শিরোনাম এখানে দিন",
+  subheadline: "আপনার পণ্যের প্রধান বৈশিষ্ট্য বা অফার সম্পর্কে সংক্ষেপে লিখুন",
+  ctaText: "অর্ডার করতে ক্লিক করুন",
+  ctaSubtext: "ক্যাশ অন ডেলিভারি সুবিধা",
+  urgencyText: "সীমিত সময়ের অফার!",
+  guaranteeText: "১০০% অরিজিনাল পন্যের নিশ্চয়তা। পন্য হাতে পেয়ে পেমেন্ট করার সুবিধা।",
+  sectionOrder: ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'],
+  trustBadges: [
+    { icon: '✅', text: 'অরিজিনাল প্রোডাক্ট' },
+    { icon: '🚚', text: 'দ্রুত ডেলিভারি' },
+    { icon: '🔒', text: 'নিরাপদ পেমেন্ট' }
+  ],
+  benefits: [
+    { icon: '💎', title: 'সেরা মান', description: 'আমরা দিচ্ছি সেরা মানের নিশ্চয়তা' },
+    { icon: '💰', title: 'সাশ্রয়ী মূল্য', description: 'বাজেটের মধ্যে সেরা পন্য' },
+    { icon: '⭐', title: 'প্রিমিয়াম সার্ভিস', description: 'কাস্টমারদের জন্য থাকছে সর্বোচ্চ গুরুত্ব' }
+  ],
+  deliveryInfo: {
+    title: "সারাদেশে ক্যাশ অন ডেলিভারি",
+    description: "ঢাকায় ১-২ দিন, ঢাকার বাইরে ২-৩ দিনের মধ্যে ডেলিভারি",
+    areas: ["ঢাকা", "চট্টগ্রাম", "সিলেট", "রাজশাহী", "খুলনা", "বরিশাল", "রংপুর"]
+  },
+  socialProof: {
+    count: 250,
+    text: "জনেরও বেশি কাস্টমার আমাদের থেকে কিনেছেন"
+  },
+  comparison: {
+    beforeLabel: "আগে",
+    afterLabel: "পরে",
+    description: "আমাদের পন্য ব্যবহারের আগের এবং পরের পার্থক্য দেখুন"
+  },
+  videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  trustTitle: "আমাদের ওপর কেন ভরসা করবেন?",
+  benefitsTitle: "কেন আমাদের থেকে কিনবেন?",
+  comparisonTitle: "পার্থক্য নিজেই দেখুন",
+  testimonialsTitle: "কাস্টমারদের মতামত",
+  faqTitle: "সাধারণ কিছু জিজ্ঞাসা",
+  galleryTitle: "পন্যের কিছু ছবি",
+  videoTitle: "ভিডিও রিভিউ",
+  socialProofTitle: "কাস্টমার রিভিউ",
+  guaranteeBadgeLabel: "১০০% নিরাপদ ও নির্ভরযোগ্য",
+  shippingConfig: {
+    insideDhaka: 60,
+    outsideDhaka: 120,
+    freeShippingAbove: 0,
+    enabled: true
+  },
+  heroBadgeText: "সীমিত অফার",
+  heroCtaText: "এখনই অর্ডার করুন",
+  heroPriceLabel: "মূল্য:",
+  heroFeatures: [
+    { icon: "✓", text: "১০০% অরিজিনাল পণ্য" },
+    { icon: "✓", text: "ক্যাশ অন ডেলিভারি" },
+    { icon: "✓", text: "দ্রুত ডেলিভারি" }
+  ],
+  productVariants: [
+    { id: 'v1', name: '১ কেজি' },
+    { id: 'v2', name: '২ কেজি', price: 1.8 }
+  ],
+  // New Sections Defaults
+  problemSolution: {
+    problems: [
+      "নকল পণ্যের ভিড়ে আসল পণ্য খুঁজে পাচ্ছেন না?",
+      "পণ্যের গুণমান নিয়ে চিন্তিত?",
+      "ডেলিভারি পেতে অনেক সময় লাগে?"
+    ],
+    solutions: [
+      "আমরা দিচ্ছি ১০০% অরিজিনাল পণ্যের গ্যারান্টি।",
+      "আমাদের প্রতিটি পণ্য কড়া মান নিয়ন্ত্রণ করে পাঠানো হয়।",
+      "আমরা দিচ্ছি দ্রুততম হোম ডেলিভারি সুবিধা।"
+    ]
+  },
+  showcaseData: {
+    features: [
+      "প্রিমিয়াম ডিজাইন ও ফিনিশিং",
+      "হাই কোয়ালিটি মেটেরিয়াল দিয়ে তৈরি",
+      "লং লাস্টিং ও টেকসই",
+      "অত্যাধুনিক প্রযুক্তির ব্যবহার"
+    ]
+  },
+  pricingData: {
+    features: [
+      "১০০% অরিজিনাল প্রোডাক্ট",
+      "সারা দেশে ফ্রি হোম ডেলিভারি",
+      "৭ দিনের রিপ্লেসমেন্ট গ্যারান্টি",
+      "২৪/৭ কাস্টমার সাপোর্ট"
+    ]
+  },
+  howToOrderData: {
+    steps: [
+      { title: "অর্ডার করুন", description: "নিচের ফর্মটি পূরণ করে 'অর্ডার করুন' বাটনে ক্লিক করুন" },
+      { title: "কনফার্মেশন", description: "আমাদের প্রতিনিধি আপনাকে কল করে অর্ডার কনফার্ম করবেন" },
+      { title: "ডেলিভারি", description: "আপনার ঠিকানায় পণ্য পৌঁছে যাবে, চেক করে পেমেন্ট করুন" }
+    ]
+  }
 };
 
 // Default theme config for new stores

@@ -15,8 +15,9 @@ import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getTemplateComponent } from '~/templates/registry';
+import { ClientOnly } from 'remix-utils/client-only';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Preview Frame' }];
@@ -67,6 +68,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 }
 
+// Skeleton loader for initial render
+function PreviewSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-50 animate-pulse">
+      <div className="max-w-4xl mx-auto p-8">
+        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
+        <div className="aspect-video bg-gray-200 rounded mb-8"></div>
+        <div className="space-y-4">
+          <div className="h-4 bg-gray-200 rounded"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PreviewFrame() {
   const { store, products: storeProducts } = useLoaderData<typeof loader>();
   
@@ -75,6 +94,9 @@ export default function PreviewFrame() {
   const [liveTemplateId, setLiveTemplateId] = useState(store.landingConfig.templateId || 'modern-dark');
   const [liveFeaturedProductId, setLiveFeaturedProductId] = useState<number | null>(store.featuredProductId);
 
+  // Track previous config string to avoid unnecessary re-renders
+  const prevConfigRef = useRef<string>('');
+
   // Listen for config updates from parent window
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -82,14 +104,20 @@ export default function PreviewFrame() {
       if (event.data && event.data.type === 'PREVIEW_CONFIG_UPDATE') {
         const { config, templateId, featuredProductId } = event.data;
         
+        // Only update if config actually changed (compare by JSON string)
         if (config) {
-          setLiveConfig(config);
+          const configStr = JSON.stringify(config);
+          if (configStr !== prevConfigRef.current) {
+            prevConfigRef.current = configStr;
+            setLiveConfig(config);
+          }
         }
         if (templateId) {
-          setLiveTemplateId(templateId);
+          setLiveTemplateId(prev => prev === templateId ? prev : templateId);
         }
         if (featuredProductId !== undefined) {
-          setLiveFeaturedProductId(featuredProductId ? parseInt(featuredProductId) : null);
+          const newId = featuredProductId ? parseInt(featuredProductId) : null;
+          setLiveFeaturedProductId(prev => prev === newId ? prev : newId);
         }
       }
     };
@@ -118,15 +146,40 @@ export default function PreviewFrame() {
   };
 
   return (
-    <div className="min-h-screen">
-      <TemplateComponent 
-        storeName={store.name}
-        storeId={store.id}
-        product={previewProduct as any}
-        config={liveConfig}
-        currency="৳"
-        isPreview={true}
-      />
-    </div>
+    <ClientOnly fallback={<PreviewSkeleton />}>
+      {() => (
+        <div className="min-h-screen">
+          {/* Custom CSS injection */}
+          {liveConfig.customCSS && (
+            <style dangerouslySetInnerHTML={{ __html: liveConfig.customCSS }} />
+          )}
+          
+          {/* Custom Head Code injection (scripts, meta tags) */}
+          {liveConfig.customHeadCode && (
+            <div 
+              dangerouslySetInnerHTML={{ __html: liveConfig.customHeadCode }} 
+              style={{ display: 'none' }}
+            />
+          )}
+          
+          <TemplateComponent 
+            storeName={store.name}
+            storeId={store.id}
+            product={previewProduct as any}
+            config={liveConfig}
+            currency="৳"
+            isPreview={true}
+            customSections={(liveConfig as any).customSections}
+          />
+          
+          {/* Custom Body Code injection (chat widgets, etc.) */}
+          {liveConfig.customBodyCode && (
+            <div 
+              dangerouslySetInnerHTML={{ __html: liveConfig.customBodyCode }} 
+            />
+          )}
+        </div>
+      )}
+    </ClientOnly>
   );
 }

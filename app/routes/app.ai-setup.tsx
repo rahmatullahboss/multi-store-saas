@@ -6,17 +6,18 @@
  */
 
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { Form, useActionData, useNavigation } from '@remix-run/react';
+import { Form, useActionData, useNavigation, useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { stores, products } from '@db/schema';
+import { stores, products, users } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { canUseAI, type PlanType } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
 import { Sparkles, Loader2, AlertCircle, ArrowRight, Zap } from 'lucide-react';
+import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
 
 export const meta = () => [
-  { title: 'AI Store Setup - Multi-Store SaaS' },
+  { title: 'AI Store Setup - Ozzyl' },
 ];
 
 // Loader: Check plan access
@@ -31,7 +32,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(env.DB);
   const storeResult = await db
-    .select({ planType: stores.planType, name: stores.name })
+    .select({ planType: stores.planType, name: stores.name, aiCredits: stores.aiCredits })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
@@ -44,7 +45,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const planType = (store.planType as PlanType) || 'free';
   const hasAIAccess = canUseAI(planType);
 
-  return json({ hasAIAccess, planType, storeName: store.name });
+  // Pass credit cost from server to client
+  return json({ 
+    hasAIAccess, 
+    planType, 
+    storeName: store.name, 
+    aiCredits: store.aiCredits || 0,
+    setupCreditCost: CREDIT_COSTS.SETUP_STORE
+  });
 }
 
 // Action: Process AI generation
@@ -53,6 +61,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = drizzle(env.DB);
   const session = await getSession(request, env);
   const storeId = session.get('storeId');
+  const userId = session.get('userId');
 
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
@@ -86,6 +95,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!apiKey) {
     return json({ error: 'AI service not configured' }, { status: 503 });
   }
+  
+  // Check User Role for Super Admin Bypass
+  let userRole = 'user';
+  if (userId) {
+      const userResult = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+      userRole = userResult[0]?.role || 'user';
+  }
 
   try {
     // ========================================================================
@@ -98,6 +114,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ 
         error: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.' 
       }, { status: 403 });
+    }
+
+    // ========================================================================
+    // CHECK CREDITS
+    // ========================================================================
+    const SETUP_COST = CREDIT_COSTS.SETUP_STORE;
+    if (userRole !== 'super_admin') {
+      const creditCheck = await checkCredits(db, storeId, SETUP_COST);
+      if (!creditCheck.allowed) {
+        return json({ 
+          error: `Insufficient AI credits. Setup costs ${SETUP_COST} credits. You have ${creditCheck.currentBalance}.` 
+        }, { status: 402 });
+      }
     }
 
     const ai = createAIService(apiKey, {
@@ -151,6 +180,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
 
+    // Deduct Credits after success
+    if (userRole !== 'super_admin') {
+      await deductCredits(db, storeId, SETUP_COST);
+    }
+
     return redirect('/app?ai_setup=success');
   } catch (error) {
     console.error('[AI Setup] Error:', error);
@@ -163,6 +197,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
 // Component
 export default function AISetupPage() {
+  const { setupCreditCost } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
@@ -241,6 +276,9 @@ export default function AISetupPage() {
                   </>
                 )}
               </button>
+              <p className="mt-4 text-center text-purple-300 text-sm">
+                 খরচ: {setupCreditCost} ক্রেডিট
+              </p>
             </div>
           </Form>
 

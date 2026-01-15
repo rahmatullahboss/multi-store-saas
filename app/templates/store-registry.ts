@@ -40,7 +40,43 @@ export interface StoreTemplateProps {
   socialLinks?: SocialLinks | null;
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  planType?: string;
   isPreview?: boolean; // When true, disables API calls and shows preview mode UI
+}
+
+// ============================================================================
+// HEADER & FOOTER PROPS
+// ============================================================================
+export interface StoreHeaderProps {
+  storeName: string;
+  logo?: string | null;
+  isPreview?: boolean;
+  config?: any | null;
+  categories: (string | null)[];
+  currentCategory?: string | null;
+  socialLinks?: SocialLinks | null;
+  // Common state props for template headers
+  count?: number;
+  mobileMenuOpen?: boolean;
+  setMobileMenuOpen?: (open: boolean) => void;
+  searchOpen?: boolean;
+  setSearchOpen?: (open: boolean) => void;
+  searchQuery?: string;
+  setSearchQuery?: (query: string) => void;
+  isScrolled?: boolean;
+  announcement?: any;
+  businessInfo?: any;
+}
+
+export interface StoreFooterProps {
+  storeName: string;
+  logo?: string | null;
+  socialLinks?: SocialLinks | null;
+  footerConfig?: any | null;
+  businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  categories: (string | null)[];
+  planType?: string;
+  themeColors?: any;
 }
 
 // ============================================================================
@@ -73,6 +109,8 @@ export interface StoreTemplateDefinition {
     body: string;
   };
   component: ComponentType<StoreTemplateProps>;
+  Header?: ComponentType<StoreHeaderProps>;
+  Footer?: ComponentType<StoreFooterProps>;
 }
 
 // ============================================================================
@@ -156,18 +194,132 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#F5F5F5',
     footerText: '#424242',
   },
+  'nova-lux': {
+    primary: '#1C1C1E', // DEEP CHARCOAL
+    accent: '#C4A35A',  // ROSE GOLD
+    background: '#FAFAFA',
+    text: '#2C2C2C',
+    muted: '#8E8E93',
+    cardBg: '#FFFFFF',
+    headerBg: '#FFFFFF',
+    footerBg: '#1C1C1E',
+    footerText: '#FAFAFA',
+  },
+  'eclipse': {
+    primary: '#030712',
+    accent: '#8B5CF6',
+    background: '#030712',
+    text: '#F9FAFB',
+    muted: '#9CA3AF',
+    cardBg: '#111827',
+    headerBg: 'rgba(3, 7, 18, 0.7)',
+    footerBg: '#000000',
+    footerText: '#F9FAFB',
+  },
+  'aurora-minimal': {
+    primary: AURORA_THEME.primary,
+    accent: AURORA_THEME.accent,
+    background: AURORA_THEME.background,
+    text: AURORA_THEME.text,
+    muted: AURORA_THEME.textMuted,
+    cardBg: AURORA_THEME.cardBg,
+    headerBg: AURORA_THEME.headerBgSolid,
+    footerBg: AURORA_THEME.footerBg,
+    footerText: AURORA_THEME.footerText,
+  },
+  'freshness': {
+    primary: FRESHNESS_THEME.primary,
+    accent: FRESHNESS_THEME.accent,
+    background: FRESHNESS_THEME.background,
+    text: FRESHNESS_THEME.text,
+    muted: FRESHNESS_THEME.textMuted,
+    cardBg: FRESHNESS_THEME.background, // Using background as cardBg fallback or specific token
+    headerBg: FRESHNESS_THEME.headerBg,
+    footerBg: FRESHNESS_THEME.footerBg,
+    footerText: FRESHNESS_THEME.footerText,
+  },
+  'zenith-rise': {
+    primary: ZENITH_RISE_THEME.primary,
+    accent: ZENITH_RISE_THEME.accent,
+    background: ZENITH_RISE_THEME.background,
+    text: ZENITH_RISE_THEME.text,
+    muted: ZENITH_RISE_THEME.textMuted,
+    cardBg: ZENITH_RISE_THEME.surface,
+    headerBg: 'rgba(2, 6, 23, 0.7)',
+    footerBg: ZENITH_RISE_THEME.secondary,
+    footerText: ZENITH_RISE_THEME.text,
+  },
+  'turbo-sale': {
+    primary: TURBO_SALE_THEME.primary,
+    accent: TURBO_SALE_THEME.accent,
+    background: TURBO_SALE_THEME.background,
+    text: TURBO_SALE_THEME.text,
+    muted: TURBO_SALE_THEME.textMuted,
+    cardBg: TURBO_SALE_THEME.surface,
+    headerBg: TURBO_SALE_THEME.headerBg,
+    footerBg: TURBO_SALE_THEME.footerBg,
+    footerText: '#FFFFFF',
+  },
 };
 
 // ============================================================================
-// IMPORT TEMPLATE COMPONENTS
+// IMPORT TEMPLATE COMPONENTS (Dynamically Loaded)
 // ============================================================================
-import { LuxeBoutiqueTemplate } from '~/components/store-templates/LuxeBoutique';
-import { TechModernTemplate } from '~/components/store-templates/TechModern';
-import { ArtisanMarketTemplate } from '~/components/store-templates/ArtisanMarket';
-import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTemplate';
-import { DarazTemplate } from '~/components/store-templates/DarazTemplate';
-import { BDShopTemplate } from '~/components/store-templates/BDShopTemplate';
-import { GhorerBazarTemplate } from '~/components/store-templates/GhorerBazarTemplate';
+import React from 'react';
+import { FRESHNESS_THEME } from '~/components/store-templates/freshness/theme';
+import { AURORA_THEME } from '~/components/store-templates/aurora-minimal/theme';
+import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styles/tokens';
+import { TURBO_SALE_THEME } from '~/components/store-templates/turbo-sale/styles/tokens';
+
+const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/luxe-boutique/index').then(m => ({ default: m.LuxeBoutiqueTemplate })));
+const TechModernTemplate = React.lazy(() => import('~/components/store-templates/tech-modern/index').then(m => ({ default: m.TechModernTemplate })));
+const ArtisanMarketTemplate = React.lazy(() => import('~/components/store-templates/artisan-market/index').then(m => ({ default: m.ArtisanMarketTemplate })));
+const ModernPremiumTemplate = React.lazy(() => import('~/components/templates/modern-premium/index').then(m => ({ 
+  default: (props: any) => {
+    // Landing templates expect a single 'product', store templates provide 'products'
+    const landingProps = {
+      ...props,
+      product: props.products?.[0] || { id: 0, title: 'Sample Product', price: 0 },
+      config: props.config || {}
+    };
+    return React.createElement(m.ModernPremiumTemplate as any, landingProps);
+  }
+})));
+const DarazTemplate = React.lazy(() => import('~/components/store-templates/daraz/index').then(m => ({ default: m.DarazTemplate })));
+const BDShopTemplate = React.lazy(() => import('~/components/store-templates/bdshop/index').then(m => ({ default: m.BDShopTemplate })));
+const GhorerBazarTemplate = React.lazy(() => import('~/components/store-templates/ghorer-bazar/index').then(m => ({ default: m.GhorerBazarTemplate })));
+const NovaLuxTemplate = React.lazy(() => import('~/components/store-templates/nova-lux/index').then(m => ({ default: m.NovaLuxTemplate })));
+const EclipseTemplate = React.lazy(() => import('~/components/store-templates/eclipse/index').then(m => ({ default: m.EclipseTemplate })));
+const AuroraMinimalTemplate = React.lazy(() => import('~/components/store-templates/aurora-minimal/index').then(m => ({ default: m.AuroraMinimalTemplate })));
+const FreshnessTemplate = React.lazy(() => import('~/components/store-templates/freshness/index').then(m => ({ default: m.FreshnessTemplate })));
+const ZenithRiseTemplate = React.lazy(() => import('~/components/store-templates/zenith-rise/index').then(m => ({ default: m.ZenithRiseTemplate })));
+const TurboSaleTemplate = React.lazy(() => import('~/components/store-templates/turbo-sale/index').then(m => ({ default: m.TurboSaleTemplate })));
+
+// Header Components
+const DarazHeader = React.lazy(() => import('~/components/store-templates/daraz/sections/Header').then(m => ({ default: m.DarazHeader })));
+const NovaLuxHeader = React.lazy(() => import('~/components/store-templates/nova-lux/sections/Header').then(m => ({ default: m.NovaLuxHeader })));
+const EclipseHeader = React.lazy(() => import('~/components/store-templates/eclipse/sections/Header').then(m => ({ default: m.EclipseHeader })));
+const BDShopHeader = React.lazy(() => import('~/components/store-templates/bdshop/sections/Header').then(m => ({ default: m.BDShopHeader })));
+const GhorerBazarHeader = React.lazy(() => import('~/components/store-templates/ghorer-bazar/sections/Header').then(m => ({ default: m.GhorerBazarHeader })));
+const LuxeBoutiqueHeader = React.lazy(() => import('~/components/store-templates/luxe-boutique/sections/Header').then(m => ({ default: m.LuxeBoutiqueHeader })));
+const TechModernHeader = React.lazy(() => import('~/components/store-templates/tech-modern/sections/Header').then(m => ({ default: m.TechModernHeader })));
+const ArtisanMarketHeader = React.lazy(() => import('~/components/store-templates/artisan-market/sections/Header').then(m => ({ default: m.ArtisanMarketHeader })));
+const AuroraMinimalHeader = React.lazy(() => import('~/components/store-templates/aurora-minimal/sections/Header').then(m => ({ default: m.AuroraMinimalHeader })));
+const FreshnessHeader = React.lazy(() => import('~/components/store-templates/freshness/sections/Header').then(m => ({ default: m.FreshnessHeader })));
+
+// Footer Components
+const DarazFooter = React.lazy(() => import('~/components/store-templates/daraz/sections/Footer').then(m => ({ default: m.DarazFooter })));
+const NovaLuxFooter = React.lazy(() => import('~/components/store-templates/nova-lux/sections/Footer').then(m => ({ default: m.NovaLuxFooter })));
+const EclipseFooter = React.lazy(() => import('~/components/store-templates/eclipse/sections/Footer').then(m => ({ default: m.EclipseFooter })));
+const BDShopFooter = React.lazy(() => import('~/components/store-templates/bdshop/sections/Footer').then(m => ({ default: m.BDShopFooter })));
+const GhorerBazarFooter = React.lazy(() => import('~/components/store-templates/ghorer-bazar/sections/Footer').then(m => ({ default: m.GhorerBazarFooter })));
+const LuxeBoutiqueFooter = React.lazy(() => import('~/components/store-templates/luxe-boutique/sections/Footer').then(m => ({ default: m.LuxeBoutiqueFooter })));
+const TechModernFooter = React.lazy(() => import('~/components/store-templates/tech-modern/sections/Footer').then(m => ({ default: m.TechModernFooter })));
+const ArtisanMarketFooter = React.lazy(() => import('~/components/store-templates/artisan-market/sections/Footer').then(m => ({ default: m.ArtisanMarketFooter })));
+const AuroraMinimalFooter = React.lazy(() => import('~/components/store-templates/aurora-minimal/sections/Footer').then(m => ({ default: m.AuroraMinimalFooter })));
+const FreshnessFooter = React.lazy(() => import('~/components/store-templates/freshness/sections/Footer').then(m => ({ default: m.FreshnessFooter })));
+const ZenithRiseHeader = React.lazy(() => import('~/components/store-templates/zenith-rise/sections/Header').then(m => ({ default: m.ZenithRiseHeader })));
+const ZenithRiseFooter = React.lazy(() => import('~/components/store-templates/zenith-rise/sections/Footer').then(m => ({ default: m.ZenithRiseFooter })));
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -185,6 +337,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: LuxeBoutiqueTemplate,
+    Header: LuxeBoutiqueHeader,
+    Footer: LuxeBoutiqueFooter,
   },
   {
     id: 'tech-modern',
@@ -198,6 +352,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: TechModernTemplate,
+    Header: TechModernHeader,
+    Footer: TechModernFooter,
   },
   {
     id: 'artisan-market',
@@ -211,6 +367,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Work Sans',
     },
     component: ArtisanMarketTemplate,
+    Header: ArtisanMarketHeader,
+    Footer: ArtisanMarketFooter,
   },
   {
     id: 'modern-premium',
@@ -237,6 +395,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Roboto',
     },
     component: DarazTemplate,
+    Header: DarazHeader,
+    Footer: DarazFooter,
   },
   {
     id: 'bdshop',
@@ -250,6 +410,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: BDShopTemplate,
+    Header: BDShopHeader,
+    Footer: BDShopFooter,
   },
   {
     id: 'ghorer-bazar',
@@ -263,6 +425,99 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Noto Sans Bengali',
     },
     component: GhorerBazarTemplate,
+    Header: GhorerBazarHeader,
+    Footer: GhorerBazarFooter,
+  },
+  {
+    id: 'nova-lux',
+    name: 'NovaLux Premium',
+    description: 'World-class luxury design with rose gold accents, transparent header, and elegant animations. Perfect for premium fashion and lifestyle brands.',
+    thumbnail: '/templates/nova-lux.png',
+    category: 'luxury',
+    theme: STORE_TEMPLATE_THEMES['nova-lux'],
+    fonts: {
+      heading: 'Cormorant Garamond',
+      body: 'DM Sans',
+    },
+    component: NovaLuxTemplate,
+    Header: NovaLuxHeader,
+    Footer: NovaLuxFooter,
+  },
+  {
+    id: 'eclipse',
+    name: 'Eclipse Future',
+    description: 'A futuristic dark-mode template with neon accents, bento layouts, and spotlight interactions. The cutting edge of 2025.',
+    thumbnail: '/templates/eclipse.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['eclipse'],
+    fonts: {
+      heading: 'Space Grotesk',
+      body: 'Inter',
+    },
+    component: EclipseTemplate,
+    Header: EclipseHeader,
+    Footer: EclipseFooter,
+  },
+  {
+    id: 'aurora-minimal',
+    name: 'Aurora Minimal',
+    description: 'Ultra-minimalist design with soft gradients, floating elements, and a focus on visual whitespace and elegant typography.',
+    thumbnail: '/templates/aurora-minimal.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['aurora-minimal'],
+    fonts: {
+      heading: 'Playfair Display',
+      body: 'Inter',
+    },
+    component: AuroraMinimalTemplate,
+    Header: AuroraMinimalHeader,
+    Footer: AuroraMinimalFooter,
+  },
+  {
+    id: 'freshness',
+    name: 'Freshness',
+    description: 'Vibrant, organic-focused design perfect for grocery, health, and natural product stores with a clean, lively feel.',
+    thumbnail: '/templates/freshness.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['freshness'],
+    fonts: {
+      heading: 'Pacifico',
+      body: 'Inter',
+    },
+    component: FreshnessTemplate,
+    Header: FreshnessHeader,
+    Footer: FreshnessFooter,
+  },
+  {
+    id: 'zenith-rise',
+    name: 'Zenith Rise (2025)',
+    description: 'World-Class Conversion Focused Template. Dark mode, glassmorphism, and high-impact aesthetics defining 2025 design trends.',
+    thumbnail: '/templates/zenith-rise.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['zenith-rise'],
+    fonts: {
+      heading: 'Outfit',
+      body: 'Inter',
+    },
+    component: ZenithRiseTemplate,
+    Header: ZenithRiseHeader,
+    Footer: ZenithRiseFooter,
+  },
+  {
+    id: 'turbo-sale',
+    name: 'Turbo Sale (BD)',
+    description: 'High urgency, video-first template optimized for the Bangladeshi market. Features comparison tables and sticky mobile CTAs.',
+    thumbnail: '/templates/turbo-sale.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['turbo-sale'],
+    fonts: {
+      heading: 'Hind Siliguri',
+      body: 'Hind Siliguri',
+    },
+    component: TurboSaleTemplate,
+    // Using GhorerBazar headers for now as per design
+    Header: GhorerBazarHeader,
+    Footer: GhorerBazarFooter,
   },
 ];
 

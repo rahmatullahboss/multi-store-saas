@@ -27,7 +27,11 @@ export type SectionType =
   | 'related-products'
   | 'collection-header'
   | 'cart-items'
-  | 'cart-summary';
+  | 'cart-summary'
+  | 'zenith-hero'
+  | 'zenith-features'
+  | 'turbo-hero'
+  | 'urgency-bar';
 
 
 export interface SectionAction {
@@ -78,6 +82,21 @@ export interface SectionSettings {
   limit?: number;
   features?: any[];
   faqs?: any[];
+  
+  // Text Overrides (AI Control)
+  addToCartText?: string;
+  buyNowText?: string;
+  checkoutText?: string;
+  continueShoppingText?: string;
+  emptyText?: string;
+  buttonText?: string;
+  placeholderText?: string;
+  successMessage?: string;
+  trustText1?: string;
+  trustText2?: string;
+  trustText3?: string;
+  showWishlist?: boolean;
+  blockName?: string;
 }
 
 export interface StoreSection {
@@ -95,25 +114,30 @@ export interface SectionDefinition {
   defaultSettings: SectionSettings;
   component: ComponentType<any>;
   allowedPages?: ('home' | 'product' | 'collection' | 'page' | 'cart')[];
+  aiSchema?: any; // Added for AI Action Layer
 }
 
 
 // ============================================================================
 // REGISTRY
 // ============================================================================
-import HeroSection from './HeroSection';
-import { ProductGridSection } from './ProductGridSection';
-import NewsletterSection from './NewsletterSection';
-import CategorySection from './CategorySection';
+import HeroSection, { HERO_AI_SCHEMA } from './HeroSection';
+import { ProductGridSection, PRODUCT_GRID_AI_SCHEMA } from './ProductGridSection';
+import NewsletterSection, { NEWSLETTER_AI_SCHEMA } from './NewsletterSection';
+import CategorySection, { CATEGORY_AI_SCHEMA } from './CategorySection';
 import ProductScrollSection from './ProductScrollSection';
-import FeaturesSection from './FeaturesSection';
+import FeaturesSection, { FEATURES_AI_SCHEMA } from './FeaturesSection';
 import BannerSection from './BannerSection';
-import FAQSection from './FAQSection';
+import FAQSection, { FAQ_AI_SCHEMA } from './FAQSection';
 import ModernHeroSection from './ModernHeroSection';
 import ModernFeaturesSection from './ModernFeaturesSection';
+import ZenithHeroSection, { ZENITH_HERO_AI_SCHEMA } from '../store-templates/zenith-rise/sections/HeroSection';
+import ZenithFeaturesSection, { ZENITH_FEATURES_AI_SCHEMA } from '../store-templates/zenith-rise/sections/FeaturesSection';
+import TurboHeroSection, { TURBO_HERO_AI_SCHEMA } from '../store-templates/turbo-sale/sections/HeroSection';
+import UrgencyBarSection, { URGENCY_BAR_AI_SCHEMA } from '../store-templates/turbo-sale/sections/UrgencyBarSection';
 
 
-import RichTextSection from './RichTextSection';
+import RichTextSection, { RICH_TEXT_AI_SCHEMA } from './RichTextSection';
 import { ProductHeaderSection } from './ProductHeaderSection';
 import { ProductGallerySection } from './ProductGallerySection';
 import { ProductInfoSection } from './ProductInfoSection';
@@ -123,7 +147,7 @@ import { RelatedProductsSection } from './RelatedProductsSection';
 import { CollectionHeaderSection } from './CollectionHeaderSection';
 import { CartItemsSection } from './CartItemsSection';
 import { CartSummarySection } from './CartSummarySection';
-import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText, Type, ImageIcon, Info, MessageSquare, Calculator } from 'lucide-react';
+import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText, Type, ImageIcon, Info, MessageSquare, Calculator, Star } from 'lucide-react';
 
 // We will populate this as we implement components
 export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
@@ -139,7 +163,8 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       alignment: 'center',
       layout: 'standard',
     },
-    component: HeroSection,
+    component: HeroSection as any,
+    aiSchema: HERO_AI_SCHEMA,
     allowedPages: ['home']
   },
   'modern-hero': {
@@ -152,7 +177,6 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       subheading: 'Discover our amazing collection...',
       primaryAction: { label: 'Shop Now', url: '/products' },
       secondaryAction: { label: 'Browse Categories', url: '/about' },
-      badge: 'New Collection',
       image: '',
     },
     component: ModernHeroSection,
@@ -172,8 +196,63 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
         { icon: '💬', title: '24/7 Support', description: 'Always ready to help.' },
       ]
     },
-    component: ModernFeaturesSection, // Fixed typo in previous step content
+    component: ModernFeaturesSection,
     allowedPages: ['home']
+  },
+  'zenith-hero': {
+    type: 'zenith-hero',
+    name: 'Zenith Hero',
+    icon: 'Zap',
+    description: 'High-impact gradient hero for SaaS/Digital products.',
+    defaultSettings: {
+      heading: 'Supercharge Your Workflow',
+      titleHighlight: 'Workflow',
+      subheading: 'The ultimate platform for modern creators.',
+      primaryAction: { label: 'Get Started', url: '/signup' }
+    },
+    component: ZenithHeroSection as any,
+    aiSchema: ZENITH_HERO_AI_SCHEMA,
+    allowedPages: ['home']
+  },
+  'zenith-features': {
+    type: 'zenith-features',
+    name: 'Zenith Bento Grid',
+    icon: 'Grid',
+    description: 'Modern bento-grid style features display.',
+    defaultSettings: {
+      heading: 'Everything you need',
+      subheading: 'No compromise on features.',
+    },
+    component: ZenithFeaturesSection as any,
+    aiSchema: ZENITH_FEATURES_AI_SCHEMA,
+    allowedPages: ['home']
+  },
+  'turbo-hero': {
+    type: 'turbo-hero',
+    name: 'Turbo Hero (Video)',
+    icon: 'Play',
+    description: 'Video-first hero section with direct order comparison. BD-Conversion focused.',
+    defaultSettings: {
+      heading: 'সমস্যার স্থায়ী সমাধান',
+      offerText: '৫০% ছাড়',
+      videoUrl: 'https://youtube.com/...'
+    },
+    component: TurboHeroSection as any,
+    aiSchema: TURBO_HERO_AI_SCHEMA,
+    allowedPages: ['home']
+  },
+  'urgency-bar': {
+    type: 'urgency-bar',
+    name: 'Urgency / Stock Bar',
+    icon: 'Activity',
+    description: 'Countdown timer and stock scarcity indicator.',
+    defaultSettings: {
+      message: 'অফার শেষ হতে বাকি:',
+      stockLeft: 10
+    },
+    component: UrgencyBarSection as any,
+    aiSchema: URGENCY_BAR_AI_SCHEMA,
+    allowedPages: ['home', 'product']
   },
   'rich-text': {
     type: 'rich-text',
@@ -186,6 +265,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       alignment: 'center'
     },
     component: RichTextSection,
+    aiSchema: RICH_TEXT_AI_SCHEMA,
     allowedPages: ['home', 'product', 'collection']
   },
   'category-list': {
@@ -199,6 +279,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       limit: 8
     },
     component: CategorySection,
+    aiSchema: CATEGORY_AI_SCHEMA,
     allowedPages: ['home']
   },
   'product-scroll': {
@@ -224,6 +305,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       backgroundColor: 'white'
     },
     component: FeaturesSection,
+    aiSchema: FEATURES_AI_SCHEMA,
     allowedPages: ['home', 'product']
   },
   'banner': {
@@ -248,6 +330,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       heading: 'Frequently Asked Questions',
     },
     component: FAQSection,
+    aiSchema: FAQ_AI_SCHEMA,
     allowedPages: ['home', 'product']
   },
   'product-grid': {
@@ -259,9 +342,12 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       heading: 'Featured Products',
       productCount: 8,
       paddingTop: 'large',
-      paddingBottom: 'large'
+      paddingBottom: 'large',
+      addToCartText: 'Add to Bag',
+      showWishlist: true
     },
     component: ProductGridSection,
+    aiSchema: PRODUCT_GRID_AI_SCHEMA,
     allowedPages: ['home', 'collection']
   },
   'newsletter': {
@@ -274,9 +360,13 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
       subheading: 'Subscribe to receive updates, access to exclusive deals, and more.',
       alignment: 'center',
       paddingTop: 'medium',
-      paddingBottom: 'medium'
+      paddingBottom: 'medium',
+      buttonText: 'Subscribe',
+      placeholderText: 'Enter your email',
+      successMessage: 'Thanks for subscribing!'
     },
     component: NewsletterSection,
+    aiSchema: NEWSLETTER_AI_SCHEMA,
     allowedPages: ['home']
   },
   'product-header': {
@@ -302,7 +392,12 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     name: 'Product Info',
     icon: 'Info',
     description: 'Title, Price, and Buy Button (Product Page Only).',
-    defaultSettings: { paddingTop: 'large', paddingBottom: 'large' },
+    defaultSettings: { 
+      paddingTop: 'large', 
+      paddingBottom: 'large',
+      addToCartText: 'Add to Cart',
+      buyNowText: 'Buy Now'
+    },
     component: ProductInfoSection,
     allowedPages: ['product']
   },
@@ -347,7 +442,11 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     name: 'Cart Items',
     icon: 'ShoppingBag',
     description: 'List of items in the cart.',
-    defaultSettings: { heading: 'Your Cart' },
+    defaultSettings: { 
+      heading: 'Your Cart',
+      continueShoppingText: 'Continue Shopping',
+      emptyText: 'Your cart is empty'
+    },
     component: CartItemsSection,
     allowedPages: ['cart']
   },
@@ -356,10 +455,38 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     name: 'Order Summary',
     icon: 'Calculator',
     description: 'Cart totals and checkout button.',
-    defaultSettings: {},
+    defaultSettings: {
+      checkoutText: 'Proceed to Checkout',
+      trustText1: 'Secure checkout',
+      trustText2: 'Fast delivery',
+      trustText3: 'Easy returns'
+    },
     component: CartSummarySection,
     allowedPages: ['cart']
-  }
+  },
+  'video': {
+    type: 'video',
+    name: 'Video',
+    icon: 'ImageIcon',
+    description: 'Display a video.',
+    defaultSettings: {
+      heading: 'Featured Video'
+    },
+    component: HeroSection as any, // Placeholder
+    allowedPages: ['home', 'product']
+  },
+  'testimonials': {
+    type: 'testimonials',
+    name: 'Testimonials',
+    icon: 'MessageSquare',
+    description: 'Customer reviews.',
+    defaultSettings: {
+        heading: 'What our customers say',
+        autoplay: true
+    },
+    component: FeaturesSection, // Placeholder
+    allowedPages: ['home']
+ }
 };
 
 

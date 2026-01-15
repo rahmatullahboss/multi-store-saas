@@ -13,6 +13,7 @@
 
 - [x] **Store Creation**: Subdomain provisioning, Onboarding flow.
 - [x] **Product Management**: Variants, Inventory, Categories.
+- [x] **Customer Management**: Customer list, details, stats, and search.
 - [x] **Order Management**: Order list, Status updates, Courier integration (Steadfast, Pathao).
 - [x] **Storefront**: Dynamic themes, "Landing Mode" vs "Store Mode".
 - [x] **Checkout**: bKash/COD support, Upsell offers.
@@ -43,13 +44,13 @@
 
 - [x] **Data Architecture**: Create `payments` and `invoices` tables for historical tracking.
 - [x] **Dashboard**: MRR, ARR, and Revenue Trends visualization.
-- [ ] **Invoicing**: PDF Invoice generation for merchants.
+- [x] **Invoicing**: PDF Invoice generation for merchants.
 - [ ] **Automated Billing**: Stripe/Paddle integration (optional upgrade from manual).
 
 ### Phase 6: Developer Ecosystem
 
-- [ ] **Webhooks**: Merchant-configurable webhooks for order events.
-- [ ] **API Keys**: Public API for merchants to build custom integrations.
+- [x] **Webhooks**: Merchant-configurable webhooks for order events.
+- [x] **API Keys**: Public API for merchants to build custom integrations.
 - [x] **System Health**: Error logging and performance monitoring UI for Admins.
 
 ### Phase 7: Mobile App & Notifications
@@ -57,7 +58,7 @@
 - [x] **Push Notifications**: Mobile app or PWA notifications for new orders (VAPID Backed).
 - [x] **Mobile Admin App**: React Native or Capacitor wrapper (Initialized).
 
-### Phase 8: Enterprise Features
+### Phase 8: Enterprise Features (Completed)
 
 - [x] **Audit Trails**: Detailed logs for all sensitive actions (Expanded).
 - [x] **SSO**: Single Sign-On for enterprise merchants (Google OAuth).
@@ -66,6 +67,24 @@
 - [x] **Ozzyl AI Chatbot**: Premium dark glassmorphism chatbot for marketing pages.
 - [x] **Lead Capture & Chat History**: Mandatory Name/Phone registration and persistent message logging.
 - [x] **Marketing Header Standardization**: Unified header component across all marketing pages.
+- [x] **Loyalty Database Schema**: Added tables for points, tiers, and transactions.
+
+### Phase 14: Advanced Marketing & Loyalty (Priority: Research Paper) 🚀
+
+- [ ] **Loyalty Logic Core**:
+  - [ ] Implement Tier-based Multipliers (Bronze 1x, Silver 1.2x, etc.).
+  - [ ] Implement Referral Point System.
+  - [ ] Tier Upgrade Notifications.
+- [ ] **Omnichannel Messaging**:
+  - [ ] **SSL Wireless Integration**: Replace simulator with real API.
+  - [ ] **Meta Cloud API**: Replace simulator with real WhatsApp API.
+  - [ ] **Smart Triggers**:
+    - [ ] Abandoned Cart (1 hour delay).
+    - [ ] Win-back (30 days inactivity).
+    - [ ] Review Request (3 days post-delivery).
+- [ ] **Predictive AI**:
+  - [ ] Churn Probability Calculation (based on order frequency).
+  - [ ] Customer LTV Forecasting.
 
 ---
 
@@ -90,7 +109,118 @@
   - [x] Merchant Theme Store to browse and apply community themes
 - [x] **Theme Centralization**: Standardized brand colors across all refactored themes.
 
-### Phase 10: Technical Debt & Standardization (Ongoing)
+### Phase 10: Technical Debt & Standardization (Completed)
 
 - [x] **Reactive Cart Logic**: Standardized `useCartCount` hook across all templates and headers.
 - [x] **Template Building Guide**: Created comprehensive documentation for future theme development.
+- [x] **Template Visual Differentiation**:
+  - [x] Implement unique section layouts (Features, Testimonials, FAQ, Gallery, Order Form) for each template (Modern Dark, Showcase, Flash Sale, etc.).
+  - [x] Refactor existing sections to conditionally render template-specific layouts based on the `templateId` prop.
+  - [x] Resolve lint errors and ensure type safety across all section components.
+  - [x] Update `SectionRenderer` to correctly pass `templateId` to all sections.
+
+### Phase 11: Monetization & AI Economy (Completed)
+
+- [x] **Restore Store Plan Lifecycle**: Restored robust product and order limits based on Starter/Pro/Business plans.
+- [x] **AI Credit System**: Implemented a persistent credit-based economy for all AI features.
+- [x] **Credit Ledger & History**: Added detailed transaction logging and merchant history UI.
+- [x] **Admin Credit Oversight**: Enabled Super Admin monitoring of store credit balances.
+- [x] **Sustainable Pricing**: Launched credit packages aligned with a 1:1 BDT-to-Credit ratio.
+
+### Phase 12: AI-Powered Customer Segmentation & Remarketing (Completed)
+
+- [x] **Master Pixel Setup**: Dual-pixel tracking for platform-wide audience aggregation
+- [x] **Customer Segmentation Schema**: VIP, Churn Risk, Window Shopper, New, Regular segments
+- [x] **AI Marketing Message Generator**: Personalized SMS/Email content in Bangla & English
+- [x] **Merchant AI Campaigns Page**: Segment visualization and one-click campaign creation
+- [x] **Super Admin Audience Insights**: Platform-wide customer analytics dashboard
+
+### Phase 13: Merchant AI & Automation (Completed) 🤖
+
+- [x] **Merchant AI Infrastructure**: Schema update (`agents`, `messages`, `conversations`).
+- [x] **Messaging Hub**: WhatsApp & Messenger configuration UI for merchants.
+- [x] **AI Agent Logic**: Multi-channel support (Web, WhatsApp, Messenger) with credit deduction.
+- [x] **Deep Integration**: AI tools for Order Status Check, Tracking, and Lead Collection.
+- [x] **Webhook Hander**: Unified webhook for Meta (WhatsApp/Messenger) events.
+
+### Phase 14: Loyalty & Advanced Lifecycle Automations (Completed) 💎
+
+- [x] **Loyalty Points System**: Customers earn points on every purchase (1 pt / 100 BDT).
+- [x] **Tiered Membership**: Automated tiers (Bronze, Silver, Gold, Platinum) based on total spend.
+- [x] **Referral System**: Built-in tracking for customer referrals and rewards.
+- [x] **Lifecycle Automations**:
+  - **Win-back SMS**: Auto-trigger for customers inactive for 30+ days.
+  - **Review Request**: Auto-trigger 3 days after order delivery.
+- [x] **Predictive Analytics**:
+  - **CLV Calculation**: Customer Lifetime Value estimation.
+  - **Product Recommendations**: AI-driven "Frequently Bought Together" logic.
+  - **Next Purchase Prediction**: Forecasted date for next order.
+
+### Phase 16: Maintenance & Stability (Completed) 🛡️
+
+- [x] **Dependency Audit & Resolution**: Reverted incompatible `remix-i18next` v7 bump to v6, restoring build stability and resolving peer dependency conflicts.
+- [x] **CI/CD Reliability**: Fixed build failures in preview branch caused by automated dependency upgrades.
+
+### Phase 17: Advanced Marketing Integrations (Planned) 🚧
+
+- [ ] **SMS Gateway Integration**: Native integration with SSL Wireless / BulkSMS BD for real SMS delivery.
+- [ ] **WhatsApp Business API**: Direct integration for official Template Messages (Order Confirm, Shipping).
+- [ ] **Catalog Sync**: Sync Product Catalog with WhatsApp/Facebook Shops.
+- [ ] **Smart Discount Rules**: Time-based (Flash Sale) and Behavior-based (Cart Abandonment) dynamic discounts.
+- [ ] **A/B Testing**: Split testing framework for marketing subject lines and offers.
+
+### Phase 18: AI-Powered Builder Intelligence (Completed) 🧠
+
+- [x] **Product-Aware Generation**: AI now retrieves and prioritizes selected product name, price, and description for landing page copy.
+- [x] **Featured Product Auto-selection**: Merchants with products now have the first one automatically selected as primary landing product.
+- [x] **Context Injection**: Seamlessly passed \`featuredProductId\` across Builder panels, Magic Generate modal, and AI Chat widget.
+- [x] **Backend Resolution**: API routes now securely fetch real-time product data to ground AI responses with 100% accuracy.
+
+### Phase 19: AI Action Layer & Centralized Logic (Completed) ⚡️
+
+- [x] **Centralized Pricing Logic**: `useProductPrice` hook handling Flash Sales & Regular Discounts uniformly across all themes.
+- [x] **Global Store Config**: `StoreConfigContext` providing instant access to marketing settings (Flash Sale, Trust Badges) deeper in the component tree.
+- [x] **AI Action Layer Specs**: Defined `AI_SCHEMA` architecture for standardized AI-component contracts.
+- [x] **Smart AI Validation**: Recursive, type-safe validation preventing AI hallucinations from breaking the UI.
+- [x] **Generative List Capabilities**: AI can now generate array items (Features, FAQs) via `GENERATE_ARRAY` action.
+- [x] **Robust Error Handling**: Client-side type safety ensuring the Editor remains stable even with malformed AI responses.
+
+### Phase 20: Brand Transformation - Ozzyl (Completed) 🎨
+
+- [x] **Brand Identity Transition**: Platform renamed from "Ozzyl SaaS" to **Ozzyl**.
+- [x] **Logo Integration**: Replaced generic icons with custom Ozzyl typography and "Z" icon.
+- [x] **Global Asset Modernization**: Processed and integrated high-fidelity SVG/PNG branding assets across all touchpoints (Login, Dashboard, Admin, Final CTA).
+- [x] **Favicon & UI Favicons**: Updated browser favicon and sidebar iconography for a premium, unified feel.
+- [x] **Copy Standardization**: Global replacement of legacy platform name with "Ozzyl" in all transactional and marketing copy.
+
+### Phase 21: Merchant Experience & Operational Excellence (Completed) 📦
+
+- [x] **Universal Low Stock Alert**: Redesigned and standardized low stock alerts with proper translation support.
+- [x] **Dashboard Alert Visibility**: Integrated critical inventory warnings directly onto the merchant dashboard for immediate action.
+- [x] **Refactored Alert Logic**: Extracted alert UI into a reusable component, fixing interpolation bugs and standardizing the threshold (10 units) across the platform.
+- [x] **Store Editor Dropdown Fix**: Resolved the "vanishing dropdown" issue in the Store Live Editor by implementing a state-controlled click trigger.
+- [x] Page Builder Hydration Resolution: Fixed minified React errors (#418, #423) by wrapping the Page Builder header in `ClientOnly`.
+
+### Phase 22: Performance Optimization & Edge Resiliency (Completed) ⚡️
+
+- [x] **D1 Optimized Schema**: Added `cache_store` and `ai_cache` tables to support persistent edge caching.
+- [x] **Redis-like Caching Layer**: Implemented `D1Cache` service for high-performance, low-cost data object storage.
+- [x] **Cached Tenant Resolution**: Middleware now uses D1 caching to resolve stores, drastically reducing database round-trips for every request.
+- [x] **Retail-Ready Product Loaders**: Optimized product detail loaders with D1 batch operations and cached store configurations, merging multiple sequential queries into a single batch.
+- [x] **D1 SQL Alignment**: Standardized database client initialization across middleware and routes for consistent performance.
+
+### Phase 23: Growth Hacking & Viral Loops (Initial) 🚀
+
+- [x] **Viral Loop: "Powered by" Footer**: Implement mandatory branding for free tier stores.
+- [ ] **Referral Logic**: Merchant-to-merchant referral system with AI credit rewards.
+- [ ] **Freemium Gating**: Automated usage limits and upgrade triggers (Products, AI Commands).
+- [ ] **Marketing Strategy Doc**: Formalized [MARKETING_STRATEGY.md](file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/MARKETING_STRATEGY.md).
+- [ ] **Setup Fee Automation**: AI-driven store setup as a paid micro-service.
+
+### Phase 24: Landing Template Isolation & Modularity (Completed) 🏗️
+
+- [x] **Feature Folders Refactoring**: Migrated 10 landing templates to independent, self-contained directories.
+- [x] **Isolated Section Logic**: Each template now has its own unique section implementations (Hero, Features, etc.) and dedicated `SectionRenderer`.
+- [x] **Centralized Core Types**: Shared interfaces and helper functions moved to `_core/types.ts` for clean reusability.
+- [x] **Dispatcher Architecture**: Refactored `LandingPageTemplate` into a lightweight dispatcher to maintain backward compatibility while maximizing performance.
+- [x] **Registry Optimization**: Updated `registry.ts` and `store-registry.ts` to utilize the new modular structure.

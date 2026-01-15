@@ -276,7 +276,7 @@ export default function AdminDomainManagement() {
                   <tr key={domain.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div className="font-medium text-gray-900">{domain.name}</div>
-                      <div className="text-sm text-gray-500">{domain.subdomain}.digitalcare.site</div>
+                      <div className="text-sm text-gray-500">{domain.subdomain}.ozzyl.com</div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -376,7 +376,7 @@ export default function AdminDomainManagement() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="font-medium text-gray-900">{req.name}</div>
-                    <div className="text-sm text-gray-500">{req.subdomain}.digitalcare.site</div>
+                    <div className="text-sm text-gray-500">{req.subdomain}.ozzyl.com</div>
                     <div className="font-mono text-blue-600 mt-1">{req.customDomainRequest}</div>
                     {req.ownerEmail && (
                       <p className="text-sm text-gray-500 mt-1">{req.ownerEmail}</p>

@@ -46,6 +46,16 @@ declare global {
     MIMO_API_KEY?: string; // XiaoMi MiMo API Key
     ENVIRONMENT?: 'development' | 'production' | 'staging';
     SENTRY_DSN?: string;
+    // Master Facebook Pixel for platform-wide audience aggregation
+    MASTER_FACEBOOK_PIXEL_ID?: string;
+
+    // SMS Gateway (SSL Wireless)
+    SSL_SMS_API_TOKEN?: string;
+    SSL_SMS_SID?: string;
+    SSL_SMS_DOMAIN?: string;
+
+    // WhatsApp Cloud API
+    META_WHATSAPP_TOKEN?: string;
   }
 }
 

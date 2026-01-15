@@ -6,7 +6,7 @@
  * 
  * Required Environment Variables:
  * - CLOUDFLARE_API_TOKEN: API token with "SSL and Certificates: Edit" permission
- * - CLOUDFLARE_ZONE_ID: Zone ID for the SaaS domain (digitalcare.site)
+ * - CLOUDFLARE_ZONE_ID: Zone ID for the SaaS domain (ozzyl.com)
  */
 
 export interface CloudflareEnv {
@@ -122,7 +122,7 @@ export async function createCustomHostname(
     sslStatus: mapSslStatus(hostname.ssl.status),
     hostnameId: hostname.id,
     hostname: hostname.hostname,
-    dnsTarget: 'multi-store-saas.pages.dev', // CNAME target
+    dnsTarget: 'multi-store-saas.pages.dev', // CNAME target - your actual Pages project
     ownershipVerification: hostname.ownership_verification,
   };
 }

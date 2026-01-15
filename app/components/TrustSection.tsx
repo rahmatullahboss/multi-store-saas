@@ -193,7 +193,7 @@ const FoundersMessage = () => {
               }}
             >
               <img
-                src="/images/founder.jpg"
+                src="/images/founder.webp"
                 alt="Rahmatullah Zisan - Founder"
                 className="w-full h-full object-cover"
               />

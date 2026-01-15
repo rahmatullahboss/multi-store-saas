@@ -1,4 +1,4 @@
-CREATE TABLE `password_resets` (
+CREATE TABLE IF NOT EXISTS `password_resets` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`token` text NOT NULL,
@@ -8,6 +8,6 @@ CREATE TABLE `password_resets` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `password_resets_token_unique` ON `password_resets` (`token`);--> statement-breakpoint
-CREATE INDEX `password_resets_token_idx` ON `password_resets` (`token`);--> statement-breakpoint
-CREATE INDEX `password_resets_user_idx` ON `password_resets` (`user_id`);
+CREATE UNIQUE INDEX IF NOT EXISTS `password_resets_token_unique` ON `password_resets` (`token`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `password_resets_token_idx` ON `password_resets` (`token`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `password_resets_user_idx` ON `password_resets` (`user_id`);

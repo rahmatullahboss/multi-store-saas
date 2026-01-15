@@ -601,6 +601,54 @@ const ENHANCE_PROMPTS: Record<string, string> = {
   seo: 'You are an SEO expert. Generate relevant search keywords.',
 };
 
+// ============================================================================
+// ACTION: Generate List Items (Updates an array field)
+// ============================================================================
+
+export async function generateListItems(
+  apiKey: string,
+  fieldType: 'features' | 'faqs' | 'testimonials' | 'benefits' | string,
+  count: number,
+  topic: string,
+  model: string = DEFAULT_MODEL,
+  baseUrl: string = DEFAULT_BASE_URL
+): Promise<any[]> {
+  const systemPrompt = `You are an expert e-commerce content generator.
+Your task is to generate a list of ${fieldType} items for an online store.
+
+Rules:
+1. Return strictly valid JSON array.
+2. No markdown, no explanations.
+3. Use Bengali if the topic seems to be in Bengali.
+4. Generate exactly ${count} items.`;
+
+  let itemStructure = '';
+  if (fieldType === 'features' || fieldType === 'benefits') {
+    itemStructure = `{ "icon": "LucideIconName", "title": "Benefit Title", "description": "Short description" }`;
+  } else if (fieldType === 'faqs') {
+    itemStructure = `{ "question": "Common Question?", "answer": "Helpful answer" }`;
+  } else if (fieldType === 'testimonials') {
+    itemStructure = `{ "name": "Customer Name", "text": "Positive review", "rating": 5 }`;
+  } else {
+    itemStructure = `{ "title": "Item Title", "description": "Item Description" }`;
+  }
+
+  const userPrompt = `Topic/Context: "${topic}"
+Generate ${count} items in this JSON structure:
+[
+  ${itemStructure}
+]`;
+
+  const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
+  const parsed = extractJSON(response);
+  
+  if (!Array.isArray(parsed)) {
+    throw new Error('AI did not return an array');
+  }
+  
+  return parsed;
+}
+
 export async function enhanceText(
   apiKey: string,
   fieldType: string,
@@ -891,6 +939,7 @@ export type GrapesJsPageConfig = z.infer<typeof GrapesJsPageSchema>;
 export async function generateGrapesJsPage(
   apiKey: string,
   prompt: string, 
+  productInfo: { title: string; description?: string; price: number } | null = null,
   model = DEFAULT_MODEL, 
   baseUrl = DEFAULT_BASE_URL
 ): Promise<GrapesJsPageConfig> {
@@ -958,7 +1007,11 @@ export async function generateGrapesJsPage(
     CRITICAL: Return ONLY the JSON object. No explanations, no markdown code fences.
   `;
 
-  const userPrompt = `Create a high-converting landing page for: ${prompt}`;
+  const productContext = productInfo 
+    ? `\n\nProduct Information (USE THIS FOR COPY):\n- Title: ${productInfo.title}\n- Description: ${productInfo.description || 'N/A'}\n- Price: ৳${productInfo.price}`
+    : '';
+
+  const userPrompt = `Create a high-converting landing page for: ${prompt}${productContext}`;
 
   // We reuse callAI helper but need to be careful with args
   const completion = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
@@ -1076,19 +1129,31 @@ export const GrapesJsCommandSchema = z.object({
   target: z.enum(['selected', 'wrapper']).optional().default('selected'),
   value: z.any().describe("Action-specific data"),
   message: z.string().describe("User-friendly message in Bengali/English"),
+  commandId: z.string().optional(), // Unique ID to prevent loops
 });
 
-export type GrapesJsCommandResult = z.infer<typeof GrapesJsCommandSchema>;
+export type GrapesJsAction = z.infer<typeof GrapesJsCommandSchema.shape.action>;
+
+export interface GrapesJsCommandResult {
+  action: GrapesJsAction;
+  target?: 'selected' | 'wrapper';
+  value?: any;
+  message?: string;
+  commandId?: string; // Unique ID to prevent loops
+}
 
 export async function commandGrapesJs(
   apiKey: string,
   userPrompt: string,
   context: {
     selectedTagName?: string;
+    selectedHtml?: string | null;
     selectedContent?: string;
     selectedClasses?: string[];
     selectedAttributes?: Record<string, any>;
     selectedStyles?: Record<string, any>;
+    hasSelection?: boolean;
+    productInfo?: { title: string; description?: string; price: number } | null;
   },
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
@@ -1143,10 +1208,19 @@ export async function commandGrapesJs(
 
 ### Rules:
 1. **Language**: If user speaks Bengali/Banglish, respond in Bengali. Otherwise English.
-2. **Smart Sections**: When user asks for "pricing", "testimonials", etc., use the smart section actions.
-3. **CSS in update_style**: Use camelCase (backgroundColor, not background-color).
-4. **Tailwind in add_component**: Use Tailwind classes in HTML.
-5. **Creativity**: For copywriting actions, be creative and persuasive.
+2. **CRITICAL - Selected Element Priority**: 
+   - If a specific element is selected (Tag is NOT 'none'), you MUST modify THAT element using update_content, update_style, update_trait, or update_layout.
+   - DO NOT use add_component or add_*_section when user wants to modify the selected element.
+   - Only use add_* actions when user explicitly asks to ADD something NEW to the page.
+3. **For Button Modifications**: When user selects a button and asks to modify it:
+   - Use update_content to change button text
+   - Use update_trait with { href: '#order', 'data-action': 'order' } to connect to order form
+   - Use update_style to change appearance
+   - NEVER create a new section for button modifications
+4. **Smart Sections**: When user asks for "pricing", "testimonials", etc., AND nothing specific is selected, use the smart section actions.
+5. **CSS in update_style**: Use camelCase (backgroundColor, not background-color).
+6. **Tailwind in add_component**: Use Tailwind classes in HTML (only when genuinely adding new content).
+7. **Creativity**: For copywriting actions, be creative and persuasive.
 
 ### Color Presets:
 - sunset: from-orange-500 to-pink-500
@@ -1160,27 +1234,37 @@ fadeIn, fadeInUp, fadeInDown, slideUp, slideDown, slideLeft, slideRight, bounceI
 
 ### Output Format:
 {
-  "action": "add_hero_section",
-  "target": "wrapper",
-  "value": { "headline": "Welcome to Our Platform" },
-  "message": "হিরো সেকশন যোগ করে দিলাম! 🎉"
+  "action": "update_trait",
+  "target": "selected",
+  "value": { "href": "#order", "data-action": "order" },
+  "message": "বাটনে Order link যোগ করে দিলাম! 🛒"
 }
 
 CRITICAL: Return ONLY valid JSON. No markdown.`;
 
   const fullUserPrompt = `Context - Selected Component:
-- Tag: ${context.selectedTagName || 'none (no selection, will apply to page)'}
-- Content: ${context.selectedContent ? context.selectedContent.substring(0, 100) + '...' : 'none'}
+- ⚠️ ELEMENT SELECTED: ${context.hasSelection ? 'YES - MODIFY THIS ELEMENT' : 'NO - Can add new content'}
+- Tag: ${context.selectedTagName || 'none (no selection)'}
+- Selected HTML: ${context.selectedHtml ? context.selectedHtml.substring(0, 300) : 'none'}
+- Content: ${context.selectedContent ? context.selectedContent.substring(0, 100) : 'none'}
 - Classes: ${context.selectedClasses?.join(', ') || 'none'}
 - Current Styles: ${context.selectedStyles ? JSON.stringify(context.selectedStyles).substring(0, 100) : 'none'}
+- Featured Product: ${context.productInfo ? `${context.productInfo.title} (${context.productInfo.price} BDT)` : 'none'}
 
 User Request: "${userPrompt}"
+
+${context.hasSelection ? '⚠️ IMPORTANT: User has SELECTED an element. MODIFY it using update_content/update_style/update_trait. DO NOT create new sections!' : ''}
 
 Generate GrapesJS Command JSON:`;
 
   const response = await callAI(apiKey, systemPrompt, fullUserPrompt, model, baseUrl);
   const parsed = extractJSON(response);
-  return GrapesJsCommandSchema.parse(parsed);
+  const command = GrapesJsCommandSchema.parse(parsed);
+
+  return {
+    ...command,
+    commandId: crypto.randomUUID() // Ensure every command has a unique ID
+  };
 }
 
 
@@ -1238,6 +1322,7 @@ export async function designCustomSection(
   apiKey: string,
   prompt: string,
   currentHtml?: string,
+  productInfo: { title: string; description?: string; price: number } | null = null,
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<ElementorPageResult> {
@@ -1271,9 +1356,13 @@ Your response MUST be valid JSON:
 }
 Return ONLY the JSON. No markdown, no code fences.`;
 
+  const productContext = productInfo 
+    ? `\n\nFeatured Product Content (USE THIS):\n- Title: ${productInfo.title}\n- Description: ${productInfo.description || 'N/A'}\n- Price: ৳${productInfo.price}`
+    : '';
+
   const userPrompt = currentHtml 
-    ? `Objective: Edit/Refine the existing section.\nPrompt: "${prompt}"\n\nCurrent HTML:\n${currentHtml}`
-    : `Objective: Design from scratch.\nPrompt: "${prompt}"`;
+    ? `Objective: Edit/Refine the existing section.\nPrompt: "${prompt}"${productContext}\n\nCurrent HTML:\n${currentHtml}`
+    : `Objective: Design from scratch.\nPrompt: "${prompt}"${productContext}`;
 
   const response = await callAI(apiKey, systemPrompt, userPrompt, model, baseUrl);
   const parsed = extractJSON(response);
@@ -1549,7 +1638,7 @@ async function searchVectors(
 
 /**
  * Ozzyl AI - The first impression chatbot for marketing landing page visitors.
- * This chatbot has complete knowledge of the Multi-Store SaaS platform and can
+ * This chatbot has complete knowledge of the Ozzyl platform and can
  * answer any question about pricing, features, integrations, and business value.
  */
 export async function chatWithVisitor(
@@ -1569,7 +1658,7 @@ export async function chatWithVisitor(
     ).join('\n\n');
   }
 
-  const systemPrompt = `# Ozzyl AI - Ozzyl SaaS বিক্রয় সহায়ক
+  const systemPrompt = `# Ozzyl AI - Ozzyl বিক্রয় সহায়ক
 
 তুমি **Ozzyl AI** - বাংলাদেশের সবচেয়ে advanced e-commerce platform Ozzyl এর official AI assistant। তোমার প্রধান কাজ হলো visitors দের সব প্রশ্নের উত্তর দেওয়া এবং তাদের sign up করতে encourage করা।
 
@@ -1929,6 +2018,10 @@ export function createAIService(apiKey: string | undefined, options?: { model?: 
   const aiContext = options?.context || {};
 
   return {
+    // List Generation
+    generateListItems: (fieldType: string, count: number, topic: string) => 
+      generateListItems(validApiKey, fieldType, count, topic, model, baseUrl),
+
     generateStoreSetup: (description: string) => 
       generateStoreSetup(validApiKey, description, model, baseUrl),
     
@@ -1961,11 +2054,11 @@ export function createAIService(apiKey: string | undefined, options?: { model?: 
     editElementorSection: (currentHtml: string, prompt: string) => 
       editElementorSection(validApiKey, currentHtml, prompt, options?.model, options?.baseUrl),
     
-    generateGrapesJsPage: (prompt: string) => 
-      generateGrapesJsPage(validApiKey, prompt, options?.model, options?.baseUrl),
+    generateGrapesJsPage: (prompt: string, productInfo?: any) => 
+      generateGrapesJsPage(validApiKey, prompt, productInfo, model, baseUrl),
     
-    designCustomSection: (prompt: string, currentHtml?: string) =>
-      designCustomSection(validApiKey, prompt, currentHtml, options?.model, options?.baseUrl),
+    designCustomSection: (prompt: string, currentHtml?: string, productInfo?: any) =>
+      designCustomSection(validApiKey, prompt, currentHtml, productInfo, model, baseUrl),
 
     commandGrapesJs: (prompt: string, context: any) =>
       commandGrapesJs(validApiKey, prompt, context, options?.model, options?.baseUrl),

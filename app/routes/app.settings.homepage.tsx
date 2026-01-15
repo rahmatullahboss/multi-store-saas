@@ -202,12 +202,12 @@ export default function HomepageStrategyPage() {
 
   // Build offer URL for showing after mode switch
   const getOfferUrl = () => {
-    const domain = store.customDomain || `${store.subdomain}.digitalcare.site`;
+    const domain = store.customDomain || `${store.subdomain}.ozzyl.com`;
     return `https://${domain}/offers/${store.featuredProductId}`;
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">

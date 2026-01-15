@@ -28,7 +28,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Team Management - Multi-Store SaaS' }];
+  return [{ title: 'Team Management - Ozzyl' }];
 };
 
 // ============================================================================
@@ -203,10 +203,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const baseUrl = new URL(request.url).origin;
         await emailService.sendStaffInvite({
           email: email.toLowerCase(),
-          inviterName: currentUser[0].name || currentUser[0].email,
+          inviteLink: `${baseUrl}/invite/${token}`,
           storeName: store.name,
-          role: role || 'staff',
-          inviteUrl: `${baseUrl}/invite/${token}`,
+          invitedBy: currentUser[0].name || currentUser[0].email,
         });
       }
 
@@ -354,7 +353,7 @@ export default function TeamManagementPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('teamSettings')}</h1>

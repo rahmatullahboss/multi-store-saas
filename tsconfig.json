@@ -27,5 +27,5 @@
     "**/*.tsx",
     "env.d.ts"
   ],
-  "exclude": ["node_modules", "build", ".wrangler"]
+  "exclude": ["node_modules", "build", ".wrangler", "functions"]
 }

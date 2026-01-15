@@ -37,7 +37,7 @@ import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Courier Settings - Multi-Store SaaS' }];
+  return [{ title: 'Courier Settings - Ozzyl' }];
 };
 
 // Types
@@ -377,7 +377,7 @@ export default function CourierSettingsPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

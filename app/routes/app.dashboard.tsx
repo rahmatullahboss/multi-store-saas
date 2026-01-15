@@ -13,10 +13,11 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { useNavigate, useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sql, desc, and, gte } from 'drizzle-orm';
 import { products, orders, stores, abandonedCarts } from '@db/schema';
+import * as schema from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Package, 
@@ -31,12 +32,14 @@ import {
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
 import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
+import { LowStockAlertBanner } from '~/components/LowStockAlertBanner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { getUsageStats } from '~/utils/plans.server';
-import { getStoreStats } from '~/services/analytics.server';
+import { getStoreStats, getRevenueForecast, getPredictedCLV } from '~/services/analytics.server';
+import { GrowthOpportunitiesCard } from '~/components/dashboard/GrowthOpportunitiesCard';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Dashboard - Multi-Store SaaS' }];
+  return [{ title: 'Dashboard - Ozzyl' }];
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -45,19 +48,26 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const db = drizzle(context.cloudflare.env.DB);
+  const db = drizzle(context.cloudflare.env.DB, { schema }); // Fix: Initialize with schema
 
   // Fetch store info
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.query.stores.findFirst({
+    where: eq(stores.id, storeId),
+  });
 
-  const store = storeResult[0];
+  const store = storeResult; // drizzle-orm query findFirst returns the object directly or undefined
+  if (!store) {
+     throw new Response('Store not found', { status: 404 });
+  }
 
   // Fetch store stats using shared service
-  const statsResult = await getStoreStats(db, storeId);
+  // Pass correct db instance type by using 'as any' if strictly needed or ensuring getStoreStats accepts the schematized db
+  // For now, let's fix the schema passed to drizzle above, which should match what the service expects if it imports schema
+  const [statsResult, forecast, clv] = await Promise.all([
+    getStoreStats(db as any, storeId), // Type assertion to bypass strict mismatch if service isn't updated yet
+    getRevenueForecast(db as any, storeId),
+    getPredictedCLV(db as any, storeId)
+  ]);
   const { 
       products: productCount, 
       lowStock: lowStockCount, 
@@ -132,7 +142,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   else if (hour >= 17) greeting = 'Good evening';
 
   // Get SAAS_DOMAIN for store URL
-  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
 
   // Get usage stats for limit warning banner
@@ -147,14 +157,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     usage,
     stats: {
       products: productCount,
+      lowStock: lowStockCount,
       orders: orderCount,
       revenue: revenueTotal,
       todaySales,
       salesTrend,
       pendingOrders: pendingCount,
     },
-    salesData,
+    salesData: salesData.map(d => ({
+        date: d.date,
+        label: d.date, // Use date as label
+        value: d.amount
+    })),
     actionItems,
+    forecast,
+    clv,
     recentOrders: recentOrders.map(o => ({
       ...o,
       createdAt: o.createdAt?.toISOString() || new Date().toISOString(),
@@ -173,9 +190,12 @@ export default function DashboardPage() {
     stats, 
     salesData, 
     actionItems,
+    forecast,
+    clv,
     recentOrders 
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
+  const navigate = useNavigate();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
@@ -196,6 +216,13 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Limit Warning Banner */}
       <LimitWarningBanner usage={usage} planType={planType} />
+
+      {/* Low Stock Alert */}
+      <LowStockAlertBanner 
+        count={stats.lowStock} 
+        threshold={10} 
+        onAction={() => navigate('/app/inventory?filter=low')}
+      />
 
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
@@ -267,7 +294,7 @@ export default function DashboardPage() {
               <div>
                   <div className="flex items-center justify-between mb-4">
                       <div>
-                          <p className="text-gray-500 text-sm font-medium">AI Messages</p>
+                          <p className="text-gray-500 text-sm font-medium">{t('aiMessages') || 'AI Messages'}</p>
                           <h3 className="text-2xl font-bold text-gray-900 mt-1">
                               {usage.aiMessages?.current}
                               <span className="text-sm font-normal text-gray-400"> / {usage.aiMessages?.limit}</span>
@@ -288,8 +315,8 @@ export default function DashboardPage() {
                        </div>
                        {(usage.aiMessages?.percentage || 0) >= 80 && (
                            <p className="text-xs text-orange-600 font-medium">
-                               {usage.aiMessages?.percentage >= 100 ? 'Limit Reached' : 'Running Low'}
-                               <Link to="/app/billing" className="ml-1 underline">Upgrade</Link>
+                               {usage.aiMessages?.percentage >= 100 ? t('limitReached') || 'Limit Reached' : t('runningLow') || 'Running Low'}
+                               <Link to="/app/billing" className="ml-1 underline">{t('upgrade') || 'Upgrade'}</Link>
                            </p>
                        )}
                   </div>
@@ -299,36 +326,44 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sales Chart - Takes 2 columns */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">{t('salesOverview')}</h2>
-            <span className="text-sm text-gray-500">{t('last7Days')}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left Column Stack: Sales Chart & Recent Orders */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900">{t('salesOverview')}</h2>
+              <span className="text-sm text-gray-500">{t('last7Days')}</span>
+            </div>
+            <SalesChart data={salesData} currency={currency} />
           </div>
-          <SalesChart data={salesData} currency={currency} />
+
+          {/* Recent Orders - Now aligned with left side */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">{t('recentOrders')}</h2>
+              <Link 
+                to="/app/orders" 
+                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+              >
+                {t('viewAll')}
+              </Link>
+            </div>
+            <RecentOrders orders={recentOrders} currency={currency} />
+          </div>
         </div>
 
-        {/* Action Items */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('actionItems')}</h2>
-          <ActionItems items={actionItems} />
+        {/* Growth Opportunities & Action Items */}
+        <div className="space-y-6">
+            <GrowthOpportunitiesCard forecast={forecast} clv={clv} currency={currency} />
+            
+            {/* Action Items */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('actionItems')}</h2>
+              <ActionItems items={actionItems} />
+            </div>
         </div>
       </div>
 
-      {/* Recent Orders */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">{t('recentOrders')}</h2>
-          <Link 
-            to="/app/orders" 
-            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
-          >
-            {t('viewAll')}
-          </Link>
-        </div>
-        <RecentOrders orders={recentOrders} currency={currency} />
-      </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

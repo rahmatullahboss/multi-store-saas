@@ -1,0 +1,4 @@
+-- Migration: Add slug and status columns to products table
+-- SKIP: Already exists in database
+-- Original: ALTER TABLE products ADD COLUMN slug TEXT;
+-- Original: ALTER TABLE products ADD COLUMN status TEXT DEFAULT 'active';

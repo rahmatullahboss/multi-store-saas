@@ -53,47 +53,49 @@ export default function ThemePanel({ config, onChange }: ThemePanelProps) {
           {t('brandColors')}
         </h4>
         
-        <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-5">
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-5">
+            <p className="text-[10px] text-gray-400 italic">These colors are available globally in the editor.</p>
+
+          {/* Primary Color */}
           <div className="flex flex-col gap-3">
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{t('primaryColor')}</label>
-            <div className="flex items-center gap-3">
+            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider">{t('primaryColor')}</label>
+            <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
               <input 
                 type="color" 
                 value={config.primaryColor}
                 onChange={(e) => handleChange('primaryColor', e.target.value)}
-                className="w-14 h-14 rounded-2xl cursor-pointer border-4 border-white shadow-lg shadow-primary/20 appearance-none bg-transparent overflow-hidden transition-transform active:scale-95"
-                title={t('pickPrimaryColor')}
+                className="w-10 h-10 rounded-lg cursor-pointer border-2 border-white shadow-sm appearance-none bg-transparent overflow-hidden"
               />
               <div className="flex-1">
                 <input 
                   type="text" 
                   value={config.primaryColor}
                   onChange={(e) => handleChange('primaryColor', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-600 font-mono uppercase focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white transition-all shadow-sm"
-                  placeholder="#059669"
+                  className="w-full text-xs font-mono bg-transparent border-none focus:ring-0 text-gray-700 uppercase p-0"
                 />
+                <span className="text-[9px] text-gray-400">Main brand color (Buttons, Highlights)</span>
               </div>
             </div>
           </div>
 
+          {/* Secondary Color */}
           <div className="flex flex-col gap-3">
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{t('secondaryColor')}</label>
-            <div className="flex items-center gap-3">
+            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider">{t('secondaryColor')}</label>
+            <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
               <input 
                 type="color" 
                 value={config.secondaryColor}
                 onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                className="w-14 h-14 rounded-2xl cursor-pointer border-4 border-white shadow-lg shadow-secondary/20 appearance-none bg-transparent overflow-hidden transition-transform active:scale-95"
-                title={t('pickSecondaryColor')}
+                className="w-10 h-10 rounded-lg cursor-pointer border-2 border-white shadow-sm appearance-none bg-transparent overflow-hidden"
               />
               <div className="flex-1">
                 <input 
                   type="text" 
                   value={config.secondaryColor}
                   onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-600 font-mono uppercase focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-white transition-all shadow-sm"
-                  placeholder="#2563eb"
+                  className="w-full text-xs font-mono bg-transparent border-none focus:ring-0 text-gray-700 uppercase p-0"
                 />
+                 <span className="text-[9px] text-gray-400">Accent color (Borders, Secondary Actions)</span>
               </div>
             </div>
           </div>
@@ -107,35 +109,47 @@ export default function ThemePanel({ config, onChange }: ThemePanelProps) {
           {t('typography')}
         </h4>
         
-        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-3">
+        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <p className="text-[10px] text-gray-400 italic">Set global fonts for consistent typography.</p>
+          
           <div>
-            <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">{t('headingFont')}</label>
-            <select 
-              value={config.fontHeading}
-              onChange={(e) => handleChange('fontHeading', e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg p-2 text-gray-700 focus:ring-2 focus:ring-purple-100 outline-none bg-white font-medium"
-            >
-              {FONTS.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}
-            </select>
+            <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1.5">{t('headingFont')}</label>
+            <div className="relative">
+                <select 
+                value={config.fontHeading}
+                onChange={(e) => handleChange('fontHeading', e.target.value)}
+                className="w-full text-xs border border-gray-200 rounded-lg p-2.5 text-gray-700 focus:ring-2 focus:ring-purple-100 outline-none bg-gray-50 font-medium appearance-none"
+                style={{ fontFamily: config.fontHeading }}
+                >
+                {FONTS.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.name}</option>)}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">▼</div>
+            </div>
+             <span className="text-[9px] text-gray-400 mt-1 block">Applied to H1, H2, H3, H4, H5, H6</span>
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">{t('bodyFont')}</label>
-            <select 
-              value={config.fontBody}
-              onChange={(e) => handleChange('fontBody', e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg p-2 text-gray-700 focus:ring-2 focus:ring-purple-100 outline-none bg-white font-medium"
-            >
-              {FONTS.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}
-            </select>
+            <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1.5">{t('bodyFont')}</label>
+            <div className="relative">
+                <select 
+                value={config.fontBody}
+                onChange={(e) => handleChange('fontBody', e.target.value)}
+                className="w-full text-xs border border-gray-200 rounded-lg p-2.5 text-gray-700 focus:ring-2 focus:ring-purple-100 outline-none bg-gray-50 font-medium appearance-none"
+                style={{ fontFamily: config.fontBody }}
+                >
+                {FONTS.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.name}</option>)}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">▼</div>
+            </div>
+             <span className="text-[9px] text-gray-400 mt-1 block">Applied to paragraphs and body text</span>
           </div>
         </div>
       </div>
 
       {/* Preview Info */}
       <div className="mt-8 p-3 bg-blue-50 border border-blue-100 rounded-xl">
-        <p className="text-[10px] text-blue-700 leading-relaxed">
-          {t('themeNote')}
+        <p className="text-[10px] text-blue-600 leading-relaxed font-medium">
+           💡 Tip: Use Global Colors in your designs to ensure consistency. Changing a color here updates it everywhere instantly.
         </p>
       </div>
     </div>

@@ -5,6 +5,7 @@
  * Includes FAQ, comparison table, and call to action
  */
 
+import { lazy, Suspense } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
@@ -16,17 +17,22 @@ import {
 } from 'lucide-react';
 import { ScrollReveal, MagneticButton } from '~/components/animations';
 import { Store, Menu, X } from 'lucide-react';
-import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
 import { MarketingHeader } from '~/components/MarketingHeader';
+import { ClientOnly } from '~/components/LazySection';
+
+// Lazy load chat widget - not needed immediately
+const OzzylAIChatWidget = lazy(() => 
+  import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
+);
 
 // ============================================================================
 // META
 // ============================================================================
 export const meta: MetaFunction = () => {
   return [
-    { title: 'প্রাইসিং - Multi-Store SaaS | সাশ্রয়ী মূল্যে E-commerce Platform' },
+    { title: 'প্রাইসিং - Ozzyl | সাশ্রয়ী মূল্যে E-commerce Platform' },
     { name: 'description', content: 'বাংলাদেশের সবচেয়ে সাশ্রয়ী E-commerce Platform। Free থেকে শুরু, Premium মাত্র ৳১,৯৯৯/মাস। Shopify এর ৯০% কম খরচে পুরো Store চালান।' },
-    { property: 'og:title', content: 'প্রাইসিং - Multi-Store SaaS' },
+    { property: 'og:title', content: 'প্রাইসিং - Ozzyl' },
     { property: 'og:description', content: 'Free থেকে শুরু, Premium মাত্র ৳১,৯৯৯/মাস' },
   ];
 };
@@ -857,7 +863,7 @@ export default function PricingPage() {
                 <div className="w-10 h-10 bg-gradient-to-br from-[#006A4E] to-[#00875F] rounded-xl flex items-center justify-center shadow-lg shadow-[#006A4E]/30">
                   <Store className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-xl text-white">Multi-Store</span>
+                <span className="font-bold text-xl text-white">Ozzyl</span>
               </div>
               <p className="text-sm text-white/50">বাংলাদেশি মার্চেন্টদের জন্য সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম।</p>
             </div>
@@ -897,7 +903,11 @@ export default function PricingPage() {
           </div>
         </div>
       </footer>
-      <OzzylAIChatWidget />
+      <ClientOnly>
+        <Suspense fallback={null}>
+          <OzzylAIChatWidget />
+        </Suspense>
+      </ClientOnly>
     </div>
   );
 }

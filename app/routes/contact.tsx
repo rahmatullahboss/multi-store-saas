@@ -5,6 +5,7 @@
  * Phone, email, WhatsApp info with glassmorphism cards.
  */
 
+import { lazy, Suspense } from 'react';
 import type { MetaFunction } from '@remix-run/cloudflare';
 import { Link } from '@remix-run/react';
 import { Store, Phone, Mail, MessageCircle, MapPin, Clock, ArrowRight, Globe, Send } from 'lucide-react';
@@ -12,11 +13,16 @@ import { useLanguage } from '~/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
 import { MarketingHeader } from '~/components/MarketingHeader';
-import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
+import { ClientOnly } from '~/components/LazySection';
+
+// Lazy load chat widget - not needed immediately
+const OzzylAIChatWidget = lazy(() => 
+  import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
+);
 
 export const meta: MetaFunction = () => [
-  { title: 'যোগাযোগ করুন - Multi-Store | সাপোর্ট ও হেল্প' },
-  { name: 'description', content: 'Multi-Store টিমের সাথে যোগাযোগ করুন। ফোন, হোয়াটসঅ্যাপ এবং ইমেইল সাপোর্ট উপলব্ধ।' },
+  { title: 'যোগাযোগ করুন - Ozzyl | সাপোর্ট ও হেল্প' },
+  { name: 'description', content: 'Ozzyl টিমের সাথে যোগাযোগ করুন। ফোন, হোয়াটসঅ্যাপ এবং ইমেইল সাপোর্ট উপলব্ধ।' },
 ];
 
 // Contact information
@@ -250,7 +256,11 @@ export default function ContactPage() {
       </section>
 
       <MarketingFooter />
-      <OzzylAIChatWidget />
+      <ClientOnly>
+        <Suspense fallback={null}>
+          <OzzylAIChatWidget />
+        </Suspense>
+      </ClientOnly>
     </div>
   );
 }

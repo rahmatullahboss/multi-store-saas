@@ -34,7 +34,7 @@ Since this feature relies on email delivery, here is how to test it:
 
 2.  **Get the Link**:
 
-    - **Check your email**: If configured, you should receive an email from "Multi-Store SaaS".
+    - **Check your email**: If configured, you should receive an email from "Ozzyl SaaS".
     - **Check the logs**: If running locally or without an API key, check your terminal output for a log starting with `[DEV] Link:`.
 
 3.  **Reset Password**:

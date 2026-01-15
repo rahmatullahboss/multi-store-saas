@@ -58,18 +58,310 @@ export default function PublishedPageRoute() {
 
   return (
     <>
-      {/* Inject custom CSS */}
+      {/* ==============================================
+          EXACT SAME CDN/RESOURCES AS GRAPESJS EDITOR CANVAS
+          This ensures WYSIWYG - what you see is what you get
+          ============================================== */}
+      
+      {/* Tailwind Play CDN - Same as editor canvas */}
+      <script src="https://cdn.tailwindcss.com"></script>
+      <script dangerouslySetInnerHTML={{ __html: `
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                primary: '#059669',
+                secondary: '#2563eb',
+              }
+            }
+          }
+        }
+      `}} />
+      
+      {/* Google Fonts - EXACT SAME as editor canvas */}
+      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Galada&family=Tiro+Bangla&family=Mina:wght@400;700&family=Atma:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      
+      {/* Swiper CSS - Same as editor canvas */}
+      <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet" />
+      
+      {/* Lucide Icons CDN for icon support */}
+      <script src="https://unpkg.com/lucide@latest"></script>
+      
+      {/* Swiper JS - Same as editor canvas */}
+      <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+      
+      {/* Base styles - SAME as preview route */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        body { font-family: 'Hind Siliguri', sans-serif; }
+        * { box-sizing: border-box; }
+        
+        /* CSS variables for theme colors */
+        :root {
+          --primary-color: #059669;
+          --secondary-color: #2563eb;
+        }
+        .text-primary { color: var(--primary-color) !important; }
+        .bg-primary { background-color: var(--primary-color) !important; }
+        .border-primary { border-color: var(--primary-color) !important; }
+        .text-secondary { color: var(--secondary-color) !important; }
+        .bg-secondary { background-color: var(--secondary-color) !important; }
+        
+        /* ==============================================
+           CRITICAL: Gradient Text Support
+           bg-clip-text needs webkit prefix for Safari/Chrome
+           ============================================== */
+        .bg-clip-text, [class*="bg-clip-text"] {
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+        }
+        .text-transparent, [class*="text-transparent"] {
+          color: transparent !important;
+        }
+        
+        /* ==============================================
+           SVG Icon Visibility Fixes
+           ============================================== */
+        svg {
+          display: inline-block;
+          vertical-align: middle;
+        }
+        svg:not([fill]) {
+          fill: currentColor;
+        }
+        .whatsapp-link svg, 
+        [class*="whatsapp"] svg,
+        a[href*="wa.me"] svg {
+          width: 20px;
+          height: 20px;
+          fill: currentColor;
+          flex-shrink: 0;
+        }
+        
+        /* ==============================================
+           Animation Support
+           ============================================== */
+        .animate-pulse {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: .5; }
+        }
+        
+        .animate-bounce {
+          animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+          50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+        }
+        
+        /* Marquee scroll animation */
+        @keyframes scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        [class*="animate-"][class*="scroll"] {
+          animation: scroll 20s linear infinite;
+        }
+        
+        /* ==============================================
+           Backdrop Filter Support
+           ============================================== */
+        .backdrop-blur-sm { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+        .backdrop-blur-md { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+        .backdrop-blur-lg { -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+        .backdrop-blur-xl { -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+        
+        /* ==============================================
+           Flexbox Gap Fallback (older browsers)
+           ============================================== */
+        .flex.gap-2 > * + * { margin-left: 0.5rem; }
+        .flex.gap-3 > * + * { margin-left: 0.75rem; }
+        .flex.gap-4 > * + * { margin-left: 1rem; }
+      `}} />
+
+      {/* Inject custom CSS from GrapesJS AFTER Tailwind */}
       <style dangerouslySetInnerHTML={{ __html: page.cssContent || '' }} />
       
-      {/* External CSS Dependencies (like Tailwind if used in canvas) */}
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
-      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
       {/* Render HTML Content */}
-      <div 
-        className="published-page-root"
-        dangerouslySetInnerHTML={{ __html: page.htmlContent || '' }} 
-      />
+      <div dangerouslySetInnerHTML={{ __html: page.htmlContent || '' }} />
+      
+      {/* Button Action Handler Runtime Script */}
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          var config = {
+            storeId: ${page.storeId}
+          };
+          
+          function initHandlers() {
+            var buttons = document.querySelectorAll('[data-ozzyl-action]');
+            console.log('[ButtonActionHandler] Found ' + buttons.length + ' connected button(s)');
+            
+            buttons.forEach(function(button) {
+              var action = button.getAttribute('data-ozzyl-action');
+              var productId = button.getAttribute('data-ozzyl-product') || config.productId;
+              var phoneNumber = button.getAttribute('data-ozzyl-phone') || config.phoneNumber;
+              var message = button.getAttribute('data-ozzyl-message') || config.messageTemplate;
+              
+              button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (action === 'order') {
+                  var orderForm = document.querySelector('#order-form, #order, [data-order-form], .order-form');
+                  if (orderForm) {
+                    orderForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else {
+                    window.dispatchEvent(new CustomEvent('ozzyl:show-order-form', { detail: { productId: productId } }));
+                  }
+                } else if (action === 'cart') {
+                  if (productId) {
+                    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                    var idx = cart.findIndex(function(item) { return item.productId == productId; });
+                    if (idx >= 0) { cart[idx].quantity += 1; } else { cart.push({ productId: parseInt(productId), quantity: 1 }); }
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    window.dispatchEvent(new Event('cart-updated'));
+                    showToast('Added to cart! 🛒');
+                  }
+                } else if (action === 'whatsapp') {
+                  if (phoneNumber) {
+                    var phone = phoneNumber.replace(/[^0-9]/g, '');
+                    if (phone.startsWith('01') && phone.length === 11) phone = '880' + phone.substring(1);
+                    var url = 'https://wa.me/' + phone;
+                    if (message) url += '?text=' + encodeURIComponent(message);
+                    window.open(url, '_blank');
+                  } else {
+                    console.warn('[ButtonActionHandler] No phone number for WhatsApp');
+                  }
+                } else if (action === 'call') {
+                  if (phoneNumber) {
+                    window.location.href = 'tel:' + phoneNumber.replace(/[^0-9+]/g, '');
+                  }
+                }
+              });
+            });
+          }
+          
+          function showToast(message) {
+            var container = document.getElementById('ozzyl-toast-container');
+            if (!container) {
+              container = document.createElement('div');
+              container.id = 'ozzyl-toast-container';
+              container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;';
+              document.body.appendChild(container);
+            }
+            var toast = document.createElement('div');
+            toast.style.cssText = 'padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;color:white;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 20px rgba(0,0,0,0.15);animation:slideIn 0.3s ease;';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
+          }
+          
+          // Initialize Lucide icons
+          function initIcons() {
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          }
+          
+          // === CRITICAL: Initialize Order Forms with Store ID and AJAX ===
+          function initOrderForms() {
+            var forms = document.querySelectorAll('form[action*="create-order"], form[action*="/api/"]');
+            console.log('[OrderForm] Found ' + forms.length + ' order form(s)');
+            
+            forms.forEach(function(form) {
+              // 1. Inject hidden store_id field if not present
+              if (!form.querySelector('input[name="store_id"]')) {
+                var storeIdInput = document.createElement('input');
+                storeIdInput.type = 'hidden';
+                storeIdInput.name = 'store_id';
+                storeIdInput.value = config.storeId;
+                form.appendChild(storeIdInput);
+                console.log('[OrderForm] Injected store_id:', config.storeId);
+              }
+              
+              // 2. Convert to AJAX submission for same-page error handling
+              form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                var formData = new FormData(form);
+                var data = {};
+                formData.forEach(function(value, key) {
+                  // Convert numeric fields
+                  if (key === 'store_id' || key === 'product_id' || key === 'quantity') {
+                    data[key] = parseInt(value) || 0;
+                  } else {
+                    data[key] = value;
+                  }
+                });
+                
+                // Set default quantity if not provided
+                if (!data.quantity) data.quantity = 1;
+                
+                var submitBtn = form.querySelector('button[type="submit"]');
+                var originalText = submitBtn ? submitBtn.textContent : '';
+                if (submitBtn) {
+                  submitBtn.disabled = true;
+                  submitBtn.textContent = 'প্রসেসিং...';
+                }
+                
+                // Remove any existing error messages
+                var existingError = form.querySelector('.order-error-message');
+                if (existingError) existingError.remove();
+                
+                fetch('/api/create-order', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(data)
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(result) {
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                  }
+                  
+                  if (result.success && result.orderId) {
+                    // Redirect to thank you page
+                    window.location.href = '/thank-you/' + result.orderId;
+                  } else {
+                    // Show error on same page
+                    var errorDiv = document.createElement('div');
+                    errorDiv.className = 'order-error-message';
+                    errorDiv.style.cssText = 'padding:12px 16px;margin-top:12px;background:#FEE2E2;border:1px solid #EF4444;border-radius:8px;color:#B91C1C;font-size:14px;';
+                    errorDiv.textContent = result.error || 'অর্ডার করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।';
+                    form.appendChild(errorDiv);
+                    
+                    // Auto-remove after 5 seconds
+                    setTimeout(function() { errorDiv.remove(); }, 5000);
+                  }
+                })
+                .catch(function(err) {
+                  console.error('[OrderForm] Error:', err);
+                  if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                  }
+                  showToast('নেটওয়ার্ক সমস্যা। আবার চেষ্টা করুন।');
+                });
+              });
+            });
+          }
+          
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+              initHandlers();
+              initIcons();
+              initOrderForms();
+            });
+          } else {
+            initHandlers();
+            initIcons();
+            initOrderForms();
+          }
+        })();
+      `}} />
     </>
   );
 }

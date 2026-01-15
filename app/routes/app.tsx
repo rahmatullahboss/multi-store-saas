@@ -45,22 +45,25 @@ import {
   AlertTriangle,
   Rocket,
   AlertCircle,
-  BookOpen
+  BookOpen,
+  UserPen,
+  Users
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
 import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { TranslationKey } from '~/utils/i18n/index';
 
 // Custom Ozzyl Icon Component (for nav)
-const OzzylIcon = ({ className }: { className?: string }) => (
-  <img src="/ozzyl-logo-small.png" alt="" className={className || 'w-5 h-5'} />
-);
+const OzzylIcon = ({ className }: { className?: string }) => {
+  const { t } = useTranslation();
+  return <img src="/brand/icon.png" alt={String(t('landingFinalCTA_aiAssistantName'))} className={className || 'w-5 h-5'} />;
+};
 
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Dashboard - Multi-Store SaaS' }];
+  return [{ title: 'Dashboard - Ozzyl' }];
 };
 
 // ============================================================================
@@ -166,7 +169,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     console.log('[app.loader] Dashboard data loaded successfully for store:', store.name);
     
     // Get SAAS_DOMAIN for store URL
-    const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+    const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
     
     // Fetch active system notifications
     let activeNotifications: { id: number; message: string; type: string | null }[] = [];
@@ -262,16 +265,17 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarOrders',
     items: [
       { to: '/app/orders', labelKey: 'navAllOrders', icon: ShoppingCart },
+      { to: '/app/customers', labelKey: 'navCustomers', icon: Users },
       { to: '/app/abandoned-carts', labelKey: 'navAbandonedCarts', icon: ShoppingBag },
     ],
   },
   {
     titleKey: 'sidebarMarketing',
     items: [
-      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail, isPaidOnly: true },
-      { to: '/app/agent', labelKey: 'navAgent', icon: OzzylIcon as any },
-      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail, isPaidOnly: true },
-      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, isPaidOnly: true },
+      { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
+      { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon as any },
+      { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
+      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
     ],
   },
   {
@@ -284,14 +288,16 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarSettings',
     items: [
+      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: UserPen },
       { to: '/app/page-builder', labelKey: 'navPageBuilder' as any, icon: Rocket },
       { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Palette },
       { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/billing', labelKey: 'navBilling', icon: CreditCard },
+      { to: '/app/credits', labelKey: 'navCredits', icon: Sparkles },
       { to: '/app/settings', labelKey: 'navAllSettings', icon: Settings },
-      { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: AlertTriangle },
+
     ],
   },
 ];
@@ -312,14 +318,21 @@ export default function AppLayout() {
   const location = useLocation();
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [dismissedNotifications, setDismissedNotifications] = useState<number[]>(() => {
-    // Load dismissed notifications from localStorage
+  const [dismissedNotifications, setDismissedNotifications] = useState<number[]>([]);
+  
+  // Load dismissed notifications from localStorage AFTER hydration to prevent mismatch
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('dismissedNotifications');
-      return saved ? JSON.parse(saved) : [];
+      try {
+        const saved = localStorage.getItem('dismissedNotifications');
+        if (saved) {
+          setDismissedNotifications(JSON.parse(saved));
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
     }
-    return [];
-  });
+  }, []);
 
   // Build store URL
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
@@ -391,8 +404,8 @@ export default function AppLayout() {
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                  <Store className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+                  <img src="/brand/icon.png" alt="Ozzyl" className="w-6 h-6" />
                 </div>
                 <div>
                   <h2 className="font-semibold text-gray-900 truncate max-w-[140px]">
@@ -600,7 +613,9 @@ export default function AppLayout() {
 
         {/* Page Content */}
         <main className="p-4 lg:p-8">
-          <Outlet />
+          <div className="max-w-7xl mx-auto w-full">
+            <Outlet />
+          </div>
         </main>
       </div>
 
@@ -608,7 +623,7 @@ export default function AppLayout() {
       <DashboardChatWidget 
         userName={user.name || undefined}
         storeName={store.name}
-        isLocked={store.planType === 'free'}
+        isLocked={false}
       />
     </div>
   );

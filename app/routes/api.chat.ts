@@ -14,6 +14,7 @@ import { eq, like, or, and, sql } from 'drizzle-orm';
 import { stores, products, orders } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { callAIWithSystemPrompt } from '~/services/ai.server';
+import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
 
 // ============================================================================
 // TYPES
@@ -227,17 +228,9 @@ For simple questions or explanations, use plain text:
 - If the user asks for data not shown in the stats (e.g. "last year's sales"), say "I don't have access to that data yet."
 - Do NOT guess. Accuracy is more important than being helpful.
 
-## CRITICAL FORMATTING RULES (MOST IMPORTANT!)
-- NEVER use markdown formatting: NO **, NO ##, NO ###, NO -, NO *, NO __
-- Use emojis for structure: ✅ ❌ 📦 💰 📊 🚀
-- Use line breaks (new lines) to separate points
-- Write plain readable text, NOT formatted text
-- Example good format:
-  ✅ প্রথম পয়েন্ট
-  ✅ দ্বিতীয় পয়েন্ট
-  ✅ তৃতীয় পয়েন্ট
-- Example BAD format (DO NOT USE):
-  **Bold text** or ## Heading or - list item`;
+## FORMATTING:
+- Response MUST be a valid JSON object as defined above.
+- Do NOT return plain text outside the JSON.`;
 }
 
 function getCustomerSystemPrompt(
@@ -277,11 +270,17 @@ ${productList || 'No specific products found. Ask what they are looking for!'}
 - Do NOT invent products, prices, or features.
 - If asked about stock/colors not listed, say "Please check the website for details."
 
-## FORMATTING RULES (CRITICAL!)
-- NEVER use markdown: NO **, NO ##, NO ###, NO -, NO *
-- Use emojis for lists: ✅ 📦 🚚 💰
-- Use new lines to separate points
-- Write plain readable text only`;
+## STRUCTURED RESPONSE FORMAT (MANDATORY):
+Return JSON object:
+1. 'insight_cards' (Products): 
+   \`{ "type": "insight_cards", "data": [{ "title": "Product A", "value": "৳500", "icon": "products", "color": "blue" }] }\`
+2. 'text' (Simple Answer):
+   \`{ "type": "text", "content": "Sure, here are some items." }\`
+3. 'mixed' (Text + Cards):
+   \`{ "type": "mixed", "items": [{ "type": "text", "data": "Recommending:" }, { "type": "insight_cards", "data": [...] }] }\`
+
+## FORMATTING:
+- Response MUST be valid JSON. No Markdown.`;
 }
 
 // ============================================================================
@@ -340,9 +339,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId || storeId === 0) {
     console.log('[AI Chat] Marketing mode - no storeId');
     
-    const saasSystemPrompt = `You are a helpful AI assistant for Multi-Store SaaS - an e-commerce platform for Bangladeshi sellers.
+    const saasSystemPrompt = `You are a helpful AI assistant for Ozzyl - an e-commerce platform for Bangladeshi sellers.
 
-## About Multi-Store
+## About Ozzyl
 - E-commerce platform to create online stores
 - Supports bKash, Nagad, Cash on Delivery
 - Free plan: 1 product, 50 orders/month
@@ -350,7 +349,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 - Premium: ৳1500/month - unlimited products, custom domain
 
 ## Features
-- Instant subdomain (yourstore.digitalcare.site)
+- Instant subdomain (yourstore.ozzyl.com)
 - Order management dashboard
 - Inventory tracking
 - Courier integration (Pathao, Steadfast, RedX)
@@ -367,15 +366,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 - Do NOT promise features that are not listed.
 - If asked about custom development or unrelated services, say "I can only help with Ozzyl platform questions."
 
-## FORMATTING RULES (CRITICAL!)
-- NEVER use markdown: NO **, NO ##, NO ###, NO -, NO *, NO __
-- Use emojis for lists: ✅ 📦 🚚 💰 🎯 🚀
-- Use new lines to separate points
-- Write plain readable text only
-- Example format:
-  ✅ ফ্রি প্ল্যান উপলব্ধ
-  ✅ ক্যাশ অন ডেলিভারি সাপোর্ট
-  ✅ ১০ মিনিটে স্টোর রেডি`;
+## STRUCTURED RESPONSE FORMAT (MANDATORY):
+Return JSON object:
+1. 'insight_cards' (Features): 
+   \`{ "type": "insight_cards", "data": [{ "title": "Free Plan", "value": "৳0", "icon": "sales", "color": "green" }] }\`
+2. 'action_chips' (Signup):
+   \`{ "type": "action_chips", "data": [{ "label": "Start Free", "url": "/register" }] }\`
+3. 'text' (Simple Answer):
+   \`{ "type": "text", "content": "Yes, we have free plan." }\`
+
+## FORMATTING:
+- Response MUST be valid JSON. No Markdown.`;
 
     try {
       const responseText = await callAIWithSystemPrompt(
@@ -413,12 +414,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // MERCHANT CO-PILOT
   // ============================================================================
   if (context_type === 'merchant') {
-    // Check plan - Merchant co-pilot is for paid plans only
-    if (store.planType === 'free') {
+    // Check credits
+    const creditCheck = await checkCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
+    if (!creditCheck.allowed) {
       return json({
-        error: 'Upgrade to Starter or Premium to access AI Co-pilot',
-        code: 'PLAN_REQUIRED',
-      }, { status: 403 });
+        error: `Insufficient credits. Need ${CREDIT_COSTS.AI_CHAT_MESSAGE} credits.`,
+        code: 'INSUFFICIENT_CREDITS',
+      }, { status: 402 });
     }
 
     // Step 2: Retrieve Data (RAG) - Get store stats
@@ -436,6 +438,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
       );
 
+      await deductCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Merchant Co-pilot Chat');
       return json({ success: true, response: responseText, context: 'merchant' });
     } catch (error) {
       console.error('[AI Chat] Merchant error:', error);
@@ -453,6 +456,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
         error: 'AI Sales Agent not enabled for this store',
         code: 'ADDON_REQUIRED',
       }, { status: 403 });
+    }
+
+    // Check credits (Store Owner pays)
+    const creditCheck = await checkCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
+    if (!creditCheck.allowed) {
+      // For customers, we fail gracefully or just say "AI Busy"
+      console.log(`[AI Chat] Store ${storeId} out of credits for customer chat`);
+      return json({
+        error: 'AI assistant is currently unavailable.',
+        code: 'STORE_LIMIT_REACHED',
+      }, { status: 503 });
     }
 
     // Step 2: Retrieve Data (RAG) - Find relevant products (SECURITY: Strict storeId)
@@ -474,6 +488,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
       );
 
+      await deductCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Customer Sales Agent Chat');
       return json({ success: true, response: responseText, context: 'customer' });
     } catch (error) {
       console.error('[AI Chat] Customer error:', error);

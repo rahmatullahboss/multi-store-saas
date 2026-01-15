@@ -25,7 +25,7 @@ import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Activity Log - Multi-Store SaaS' }];
+  return [{ title: 'Activity Log - Ozzyl' }];
 };
 
 // ============================================================================
@@ -168,7 +168,7 @@ export default function ActivityLogsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('activityLogs')}</h1>

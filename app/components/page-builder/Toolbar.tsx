@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useEditorMaybe } from '@grapesjs/react';
 import { 
   Monitor, 
   Smartphone, 
@@ -16,23 +15,40 @@ import {
   Code,
   Check,
   Lock,
-  Layout
+  Layout,
+  Copy,
+  ExternalLink,
+  Link2,
+  PanelRightOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import CodeEditor from './CodeEditor';
+import ButtonConnectorModal, { type ButtonConnection } from './ButtonConnectorModal';
+import { generateHandlerScript } from './ButtonActionHandler';
 
 export default function EditorToolbar({ 
   isAiLocked = false,
-  onOpenLibrary
+  onOpenLibrary,
+  onToggleAISidebar,
+  isAISidebarOpen,
+  publishedPageUrl,
+  pageId,
+  editor
 }: { 
   isAiLocked?: boolean,
-  onOpenLibrary?: () => void 
+  onOpenLibrary?: () => void,
+  onToggleAISidebar?: () => void,
+  isAISidebarOpen?: boolean,
+  publishedPageUrl?: string,
+  pageId?: string,
+  editor?: any
 }) {
-  const { t } = useTranslation();
-  const editor = useEditorMaybe();
+  const { t, lang } = useTranslation();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
+  const [isConnectorModalOpen, setIsConnectorModalOpen] = useState(false);
+  const [connectedButtonsCount, setConnectedButtonsCount] = useState(0);
 
   const [selectedComponent, setSelectedComponent] = useState<any>(null);
 
@@ -88,7 +104,31 @@ export default function EditorToolbar({
       // Reset flag
       (editor as any).isPublishing = false;
       
-      toast.success(t('pagePublished'), { id: 'publish' });
+      // Copy URL to clipboard if available
+      if (publishedPageUrl) {
+        try {
+          await navigator.clipboard.writeText(publishedPageUrl);
+          toast.success(
+            <div className="flex flex-col gap-1">
+              <span className="font-bold">{t('pagePublished')}</span>
+              <span className="text-xs opacity-75">URL copied: {publishedPageUrl}</span>
+              <a 
+                href={publishedPageUrl} 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-xs text-blue-400 hover:underline flex items-center gap-1 mt-1"
+              >
+                {t('openPage') || 'Open Page'} <ExternalLink size={10} />
+              </a>
+            </div>,
+            { id: 'publish', duration: 6000 }
+          );
+        } catch {
+          toast.success(t('pagePublished'), { id: 'publish' });
+        }
+      } else {
+        toast.success(t('pagePublished'), { id: 'publish' });
+      }
     } catch (error) {
       console.error('Publish error:', error);
       (editor as any).isPublishing = false;
@@ -150,7 +190,22 @@ export default function EditorToolbar({
       }
 
       if (selectedComponent) {
-        selectedComponent.replaceWith(htmlToApply);
+        // FIX: Use parent.append instead of replaceWith to preserve emojis/unicode
+        const parent = selectedComponent.parent();
+        if (parent) {
+          const index = selectedComponent.index();
+          // Add new component at the same position
+          const newComps = parent.append(htmlToApply, { at: index });
+          // Remove the old component
+          selectedComponent.remove();
+          // Select the first new component
+          if (newComps && newComps.length > 0) {
+            editor.select(newComps[0]);
+          }
+        } else {
+          // Fallback if no parent
+          selectedComponent.replaceWith(htmlToApply);
+        }
         if (cssToApply) editor.addStyle(cssToApply);
         toast.success(t('importSuccess'));
       } else {
@@ -284,12 +339,24 @@ export default function EditorToolbar({
         >
           <Undo size={16} className="text-gray-500 group-hover:text-emerald-600" />
         </button>
-        <button 
+      <button 
           onClick={() => editor.UndoManager.redo()}
           className="p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
           title={t('redo')}
         >
           <Redo size={16} className="text-gray-500 group-hover:text-emerald-600" />
+        </button>
+        <div className="w-[1px] h-6 bg-gray-200 mx-1" />
+        <button 
+          onClick={() => {
+            if (confirm(t('confirmClearCanvas'))) {
+              editor.DomComponents.clear();
+            }
+          }}
+          className="p-2 hover:bg-red-50 rounded-lg transition group"
+          title={t('clearCanvas')}
+        >
+          <Trash2 size={16} className="text-gray-500 group-hover:text-red-600" />
         </button>
       </div>
 
@@ -307,47 +374,69 @@ export default function EditorToolbar({
 
         {selectedComponent ? (
           <button 
-            onClick={() => editor.runCommand('open-ai-design-modal')}
+            onClick={() => {
+              if (isAiLocked) {
+                editor.runCommand('open-ai-design-modal');
+              } else if (onToggleAISidebar) {
+                onToggleAISidebar();
+              } else {
+                editor.runCommand('open-ai-design-modal');
+              }
+            }}
             className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition shadow-md animate-in fade-in zoom-in group relative ${
               isAiLocked 
                 ? 'bg-gradient-to-r from-slate-400 to-slate-500 text-white shadow-slate-100 hover:from-slate-500 hover:to-slate-600' 
-                : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-purple-100'
+                : isAISidebarOpen
+                  ? 'bg-violet-600 text-white shadow-violet-100 ring-2 ring-violet-500 ring-offset-2'
+                  : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-purple-100'
             }`}
-            title={isAiLocked ? "Unlock Magic AI (Premium)" : "Edit Selected Element with AI"}
+            title={isAiLocked ? (t('unlockMagicAi') || "Unlock Magic AI (Premium)") : (t('editElementAi') || "Edit Selected Element with AI")}
           >
             {isAiLocked ? (
               <div className="flex items-center gap-1.5">
                 <Lock size={12} className="text-white/80" />
-                <span>MAGIC EDIT</span>
-                <span className="bg-white/20 text-[8px] px-1 rounded-sm backdrop-blur-sm">PRO</span>
+                <span>{t('magicEditLabel') || 'MAGIC EDIT'}</span>
+                <span className="bg-white/20 text-[8px] px-1 rounded-sm backdrop-blur-sm">{t('proBadge') || 'PRO'}</span>
               </div>
             ) : (
               <>
                 <Sparkles size={14} />
                 <span>{t('magicEdit')}</span>
+                {isAISidebarOpen && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white animate-pulse" />}
               </>
             )}
           </button>
         ) : (
           <button 
-            onClick={() => editor.runCommand('open-magic-modal')}
+            onClick={() => {
+              if (isAiLocked) {
+                editor.runCommand('open-magic-modal');
+              } else if (onToggleAISidebar) {
+                onToggleAISidebar();
+              } else {
+                editor.runCommand('open-magic-modal');
+              }
+            }}
             className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition border shadow-sm group relative ${
               isAiLocked
                 ? 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:border-slate-300 shadow-slate-50'
-                : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100 shadow-emerald-50'
+                : isAISidebarOpen
+                  ? 'text-violet-600 bg-violet-50 border-violet-200 ring-2 ring-violet-500 ring-offset-2'
+                  : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100 shadow-emerald-50'
             }`}
-            title={isAiLocked ? "Unlock Magic AI (Premium)" : "Generate Page with AI"}
+            title={isAiLocked ? (t('unlockMagicAi') || "Unlock Magic AI (Premium)") : (t('generateWithAi') || "Generate Page with AI")}
           >
             {isAiLocked ? (
               <div className="flex items-center gap-1.5">
                 <Lock size={12} className="text-slate-400" />
-                <span>MAGIC AI</span>
-                <span className="bg-slate-200 text-slate-600 text-[8px] px-1 rounded-sm">PRO</span>
+                <span>{t('magicAiLabel') || 'MAGIC AI'}</span>
+                <span className="bg-slate-200 text-slate-600 text-[8px] px-1 rounded-sm">{t('proBadge') || 'PRO'}</span>
               </div>
             ) : (
               <>
                 <Wand2 size={14} />
                 <span>{t('magicAi')}</span>
+                {isAISidebarOpen && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-violet-500 rounded-full border-2 border-white animate-pulse" />}
               </>
             )}
           </button>
@@ -364,9 +453,44 @@ export default function EditorToolbar({
           {t('code')}
         </button>
 
+        {/* Connect with Backend Button */}
         <button 
-          onClick={() => editor.runCommand('core:preview')}
+          onClick={() => setIsConnectorModalOpen(true)}
+          className={`flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition border ${
+            connectedButtonsCount > 0
+              ? 'text-indigo-600 bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
+              : 'text-gray-600 hover:bg-gray-100 border-transparent hover:border-gray-200'
+          }`}
+          title={t('connectButtonsBackend')}
+        >
+          <Link2 size={14} />
+          {t('connect')}
+          {connectedButtonsCount > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 bg-indigo-600 text-white text-[10px] rounded-full leading-none">
+              {connectedButtonsCount}
+            </span>
+          )}
+        </button>
+
+        <button 
+          onClick={async () => {
+            if (pageId) {
+              try {
+                toast.loading(t('savingForPreview') || 'Preparing preview...', { id: 'preview' });
+                await editor.store();
+                toast.dismiss('preview');
+                window.open(`/app/page-builder/preview/${pageId}`, '_blank');
+              } catch (error) {
+                console.error('Preview save error:', error);
+                toast.error(t('previewFailed'), { id: 'preview' });
+              }
+            } else {
+              // Fallback to inline preview if no pageId
+              editor.runCommand('core:preview');
+            }
+          }}
           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition"
+          title={t('previewInNewTab') || 'Preview in New Tab'}
         >
           <Eye size={14} />
           {t('preview')}
@@ -385,6 +509,7 @@ export default function EditorToolbar({
           <Send size={14} />
           {t('publish')}
         </button>
+
       </div>
 
 
@@ -440,6 +565,113 @@ export default function EditorToolbar({
            </div>
         </div>
       )}
+
+      {/* Button Connector Modal */}
+      <ButtonConnectorModal
+        isOpen={isConnectorModalOpen}
+        onClose={() => setIsConnectorModalOpen(false)}
+        htmlContent={editor?.getHtml() || ''}
+        onApply={(connections) => {
+          if (!editor) return;
+          
+          // Apply connections to the HTML
+          const wrapper = editor.getWrapper();
+          if (!wrapper) return;
+          
+          try {
+            // Start an UndoManager transaction
+            (editor as any).UndoManager?.start();
+            
+            connections.forEach(conn => {
+              // Find components matching the selector pattern
+              const allComponents = wrapper.findType('*');
+              let matched = false;
+              
+              const components = allComponents.filter((comp: any) => {
+                const tagName = (comp.get('tagName') || '').toLowerCase();
+                const classes = comp.getClasses().join(' ').toLowerCase();
+                const id = comp.get('id') || '';
+                const text = (comp.get('content') || comp.view?.el?.textContent || '').trim().toLowerCase();
+                
+                // Match by ID
+                if (conn.selector.startsWith('#') && id === conn.selector.slice(1)) {
+                  matched = true;
+                  return true;
+                }
+                
+                // Match by tag and class (e.g., "a.btn.order-btn")
+                if (conn.selector.includes('.')) {
+                  const parts = conn.selector.split('.');
+                  const selectorTag = parts[0].toLowerCase();
+                  const selectorClasses = parts.slice(1).map(c => c.toLowerCase());
+                  
+                  const hasTag = !selectorTag || tagName === selectorTag;
+                  const hasClasses = selectorClasses.every(c => classes.includes(c));
+                  
+                  if (hasTag && hasClasses) {
+                    matched = true;
+                    return true;
+                  }
+                }
+                
+                // Match by nth-of-type (fallback for elements without ID/class)
+                if (conn.selector.includes(':nth-of-type')) {
+                  const selectorTag = conn.selector.split(':')[0].toLowerCase();
+                  if (tagName === selectorTag) {
+                    // For nth-of-type, we need to check all and match first one
+                    // This is a simplified match
+                    matched = true;
+                    return true;
+                  }
+                }
+                
+                // Text-based fallback for buttons
+                // If the button text matches patterns, connect it
+                if (text && text.length < 50) {
+                  const lowerSelector = conn.selector.toLowerCase();
+                  if (text.includes('অর্ডার') && conn.actionType === 'order') return true;
+                  if (text.includes('order') && conn.actionType === 'order') return true;
+                  if (text.includes('whatsapp') && conn.actionType === 'whatsapp') return true;
+                  if (text.includes('হোয়াটসঅ্যাপ') && conn.actionType === 'whatsapp') return true;
+                  if (text.includes('কল') && conn.actionType === 'call') return true;
+                  if (text.includes('call') && conn.actionType === 'call') return true;
+                }
+                
+                return false;
+              });
+              
+              console.log(`[ButtonConnector] Selector: ${conn.selector}, Matched: ${components.length}`);
+              
+              // Apply attributes to matched components
+              components.forEach((comp: any) => {
+                comp.addAttributes({
+                  'data-ozzyl-action': conn.actionType,
+                  ...(conn.productId && { 'data-ozzyl-product': conn.productId.toString() }),
+                  ...(conn.phoneNumber && { 'data-ozzyl-phone': conn.phoneNumber }),
+                  ...(conn.messageTemplate && { 'data-ozzyl-message': conn.messageTemplate })
+                });
+                console.log(`[ButtonConnector] Applied ${conn.actionType} to component`);
+              });
+            });
+            
+            // End the transaction
+            (editor as any).UndoManager?.stop();
+            
+            // CRITICAL: Explicitly trigger storage to persist changes
+            editor.store().then(() => {
+              console.log('[ButtonConnector] Changes stored successfully');
+            }).catch((err: any) => {
+              console.error('[ButtonConnector] Failed to store changes:', err);
+            });
+            
+            setConnectedButtonsCount(connections.length);
+            toast.success(t('buttonsConnectedCount', { count: connections.length }));
+          } catch (err) {
+            console.error('[ButtonConnector] Error applying connections:', err);
+            toast.error(t('errorApplyingConnections') || 'Failed to apply connections');
+          }
+        }}
+      />
     </div>
   );
 }

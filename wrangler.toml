@@ -35,6 +35,12 @@ bucket_name = "multi-store-saas-media"
 binding = "AI_RATE_LIMIT"
 id = "65513509a7a146d1b348548fb98a93cf"
 
+# KV Namespace for Store/Tenant Caching (Fast Edge Cache)
+# Created: wrangler kv namespace create STORE_CACHE
+[[kv_namespaces]]
+binding = "STORE_CACHE"
+id = "026696313f02475c846dc70197a3c98f"
+
 # Vectorize Database binding for AI RAG
 # Create first: wrangler vectorize create multi-store-saas-vectors --dimensions=1536 --metric=cosine
 [[vectorize]]
@@ -49,10 +55,11 @@ binding = "AI"
 # ENVIRONMENT VARIABLES
 # ============================================================================
 [vars]
-SAAS_DOMAIN = "digitalcare.site"  # Custom domain for the SaaS
+SAAS_DOMAIN = "ozzyl.com"  # Custom domain for the SaaS
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"  # R2 bucket public URL
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"  # Only this email can impersonate users
-CLOUDFLARE_ZONE_ID = "YOUR_ZONE_ID_HERE"  # Zone ID from Cloudflare Dashboard (digitalcare.site)
+CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"  # Zone ID from Cloudflare Dashboard (ozzyl.com)
+# CLOUDFLARE_API_TOKEN = "your_cloudflare_api_token_here"  # Commented to use OAuth login
 
 # AI CONFIGURATION (Xiaomi Mimo or any OpenAI-compatible provider)
 AI_MODEL = "mimo-v2-flash"  # Model ID for AI features
@@ -68,6 +75,10 @@ VAPID_PUBLIC_KEY = "BDl0oSQqYgSjUMZxblMeN1nhfndIyhlAKDujKvNfQyo4gMGVlvKs2aInkK9-
 
 # Sentry DSN
 SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"
+
+# Master Facebook Pixel for platform-wide audience aggregation
+# Set your own Facebook Pixel ID here to collect data from all stores
+MASTER_FACEBOOK_PIXEL_ID = ""  # Example: "123456789012345"
 
 # ============================================================================
 # DEVELOPMENT SETTINGS

@@ -7,32 +7,45 @@ import {
   useLoaderData,
   useRouteError,
 } from '@remix-run/react';
-import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
+import { useTranslation } from 'react-i18next';
 
 import './styles/tailwind.css';
 import { GeneralError } from '~/components/GeneralError';
 import { LanguageProvider } from '~/contexts/LanguageContext';
-import { getFacebookPixelInitScript, getGA4InitScript, getGA4ScriptUrl } from '~/utils/tracking';
 import i18nextServer from '~/services/i18n.server';
 import { useChangeLanguage } from 'remix-i18next/react';
-import { dir } from 'i18next';
+import { useEffect } from 'react';
 
 export const links: LinksFunction = () => [
+  // Preconnect for faster font loading
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
   { 
     rel: 'stylesheet', 
-    href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&display=swap' 
+    href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&display=swap',
   },
   { rel: 'manifest', href: '/manifest.webmanifest' },
 ];
 
 
 /**
+ * Default Meta - Provides fallback title for all pages
+ * Child routes can override this with their own meta exports
+ */
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  const storeName = data?.store?.name || 'Ozzyl';
+  return [
+    { title: storeName },
+    { name: 'description', content: `Welcome to ${storeName}` },
+  ];
+};
+
+/**
  * Root Loader - Load store information for all pages
  * 
- * On main domain (digitalcare.site), store will be null.
+ * On main domain (ozzyl.com), store will be null.
  * This is expected for auth pages and marketing landing.
  * 
  * Tracking IDs are loaded per-store for data isolation.
@@ -50,7 +63,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     locale,
     store: {
       id: storeId || 0,
-      name: store?.name || 'Multi-Store SaaS',
+      name: store?.name || 'Ozzyl',
       logo: store?.logo || null,
       theme: store?.theme || 'default',
       currency: store?.currency || 'BDT',
@@ -63,68 +76,102 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     ENV: {
       VAPID_PUBLIC_KEY: context.cloudflare.env.VAPID_PUBLIC_KEY,
       SENTRY_DSN: context.cloudflare.env.SENTRY_DSN,
-    }
+    },
+    // Master Pixel for platform-wide audience aggregation
+    masterPixelId: context.cloudflare.env.MASTER_FACEBOOK_PIXEL_ID || null,
   });
 }
 
-export default function App() {
-  const { store, ENV, locale } = useLoaderData<typeof loader>();
-  useChangeLanguage(locale);
-
+/**
+ * Layout Component - Provides the base HTML document structure
+ * 
+ * This is the recommended Remix pattern to prevent hydration mismatches.
+ * The Layout wraps both the App component and ErrorBoundary.
+ * 
+ * IMPORTANT: We use useTranslation() to get the current language from i18next
+ * This ensures the <html lang> attribute matches between server and client.
+ */
+export function Layout({ children }: { children: React.ReactNode }) {
+  // Get the current language from i18next
+  // This ensures consistency between server-rendered and client-hydrated HTML
+  const { i18n } = useTranslation();
+  
   return (
-    <html lang={locale} dir={dir(locale)} className="h-full">
+    <html lang={i18n.language} dir={i18n.dir()} className="h-full" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <title>{store.name}</title>
-        
-        {/* Google Analytics 4 - Load gtag.js library */}
-        {store.googleAnalyticsId && (
-          <script async src={getGA4ScriptUrl(store.googleAnalyticsId)} />
-        )}
-        
-        {/* Google Analytics 4 - Initialize */}
-        {store.googleAnalyticsId && (
-          <script
-            dangerouslySetInnerHTML={{ __html: getGA4InitScript(store.googleAnalyticsId) }}
-          />
-        )}
-        
-        {/* Facebook Pixel - Conversion Tracking */}
-        {store.facebookPixelId && (
-          <script
-            dangerouslySetInnerHTML={{ __html: getFacebookPixelInitScript(store.facebookPixelId) }}
-          />
-        )}
-        
-        {/* Facebook Pixel - Noscript Fallback */}
-        {store.facebookPixelId && (
-          <noscript>
-            <img 
-              height="1" 
-              width="1" 
-              style={{ display: 'none' }}
-              src={`https://www.facebook.com/tr?id=${store.facebookPixelId}&ev=PageView&noscript=1`}
-              alt=""
-            />
-          </noscript>
-        )}
       </head>
       <body className="h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-        <LanguageProvider defaultCurrency={store.currency as 'USD' | 'BDT'}>
-          <Outlet />
-        </LanguageProvider>
+        {children}
         <ScrollRestoration />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(ENV)}`,
-          }}
-        />
         <Scripts />
       </body>
     </html>
+  );
+}
+
+export default function App() {
+  const { store, ENV, locale, masterPixelId } = useLoaderData<typeof loader>();
+  
+  // This hook tells remix-i18next to change the language when the locale changes
+  // It syncs the client-side i18next instance with the server-detected locale
+  useChangeLanguage(locale);
+
+  // Inject analytics scripts client-side to avoid hydration mismatches
+  // These are dynamic and should not be server-rendered
+  useEffect(() => {
+    // Set window.ENV
+    (window as any).ENV = ENV;
+
+    // Google Analytics 4
+    if (store.googleAnalyticsId) {
+      // Load gtag.js
+      const gaScript = document.createElement('script');
+      gaScript.async = true;
+      gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${store.googleAnalyticsId}`;
+      document.head.appendChild(gaScript);
+
+      // Initialize GA4
+      const gaInitScript = document.createElement('script');
+      gaInitScript.textContent = `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '${store.googleAnalyticsId}');
+      `;
+      document.head.appendChild(gaInitScript);
+    }
+
+    // Facebook Pixel
+    const pixelId = store.facebookPixelId || masterPixelId;
+    if (pixelId) {
+      const fbScript = document.createElement('script');
+      fbScript.textContent = `
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '${pixelId}');
+        ${store.facebookPixelId && masterPixelId && store.facebookPixelId !== masterPixelId 
+          ? `fbq('init', '${masterPixelId}');` 
+          : ''}
+        fbq('track', 'PageView');
+      `;
+      document.head.appendChild(fbScript);
+    }
+  }, [store.googleAnalyticsId, store.facebookPixelId, masterPixelId, ENV]);
+
+  return (
+    <LanguageProvider defaultCurrency={store.currency as 'USD' | 'BDT'}>
+      <Outlet />
+    </LanguageProvider>
   );
 }
 
@@ -132,9 +179,8 @@ export default function App() {
  * Root Error Boundary
  * 
  * Catches all unhandled errors at the application level.
- * Uses GeneralError component with isRootError=true to render
- * a full HTML document with inline critical CSS (since Tailwind
- * may not be loaded when an error occurs).
+ * The Layout component wraps the ErrorBoundary, providing the
+ * HTML document structure. We just render the error content.
  * 
  * Error Types Handled:
  * - 404: Store Not Found / Page Not Found
@@ -149,10 +195,8 @@ export function ErrorBoundary() {
   if (typeof window !== 'undefined' && 'Sentry' in window) {
       // (window as any).Sentry?.captureException(error);
   }
-  // Better way: import * as Sentry from "@sentry/remix" and use it.
-  // But wait, root.tsx is universal.
   
-  // GeneralError with isRootError=true wraps content in full HTML document
-  // with inline critical CSS for styling without external stylesheets
-  return <GeneralError error={error} isRootError={true} />;
+  // Layout wraps ErrorBoundary, so we don't need isRootError anymore
+  // Just return the error content directly
+  return <GeneralError error={error} isRootError={false} />;
 }

@@ -1,11 +1,12 @@
 import { json, LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams, Form, useSubmit } from '@remix-run/react';
+import { useLoaderData, useSearchParams, Form, useSubmit, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { Bot, User, Clock, Search, MessageSquare, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { ClientDate, ClientTime } from '~/components/ui/ClientDate';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -16,40 +17,53 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const selectedConvId = url.searchParams.get('id');
 
   // 1. Get Agent
-  const agent = await db.query.agents.findFirst({
-    where: eq(schema.agents.storeId, storeId)
-  });
+  let agent;
+  try {
+    agent = await db.query.agents.findFirst({
+      where: eq(schema.agents.storeId, storeId)
+    });
+  } catch (error) {
+    console.error("Error fetching agent:", error);
+    // Be resilient if table doesn't exist yet
+    return json({ conversations: [], selectedConversation: null, agent: null });
+  }
 
   if (!agent) {
     return json({ conversations: [], selectedConversation: null, agent: null });
   }
 
   // 2. Get Conversations List
-  const conversations = await db.query.conversations.findMany({
-    where: eq(schema.conversations.agentId, agent.id),
-    orderBy: [desc(schema.conversations.lastMessageAt)],
-    limit: 50, // Pagination can be added later
-    with: {
-        // We might want to fetch last message snippet if schema allows relation, 
-        // but for now relying on existing schema fields
-    }
-  });
+  let conversations: typeof schema.conversations.$inferSelect[] = [];
+  try {
+    conversations = await db.query.conversations.findMany({
+      where: eq(schema.conversations.agentId, agent.id),
+      orderBy: [desc(schema.conversations.lastMessageAt)],
+      limit: 50,
+    });
+  } catch (error) {
+    console.error("Error fetching conversations:", error);
+    conversations = [];
+  }
 
   // 3. Get Selected Conversation Details
   let selectedConversation = null;
   if (selectedConvId) {
-    const conv = await db.query.conversations.findFirst({
-        where: eq(schema.conversations.id, parseInt(selectedConvId)),
-        with: {
-            messages: {
-                orderBy: (messages, { asc }) => [asc(messages.createdAt)]
-            }
-        }
-    });
-    
-    // Security check: ensure this conversation belongs to the store's agent
-    if (conv && conv.agentId === agent.id) {
-        selectedConversation = conv;
+    try {
+      const conv = await db.query.conversations.findFirst({
+          where: eq(schema.conversations.id, parseInt(selectedConvId)),
+          with: {
+              messages: {
+                  orderBy: (messages, { asc }) => [asc(messages.createdAt)]
+              }
+          }
+      });
+      
+      if (conv && conv.agentId === agent.id) {
+          selectedConversation = conv;
+      }
+    } catch (error) {
+       console.error("Error fetching selected conversation:", error);
+       selectedConversation = null;
     }
   }
 
@@ -94,11 +108,11 @@ export default function AgentHistory() {
                 </div>
             ) : (
                 conversations.map(conv => (
-                    <div 
+                    <Link 
                         key={conv.id}
-                        onClick={() => setSearchParams({ id: String(conv.id) })}
+                        to={`?id=${conv.id}`}
                         className={`
-                            p-4 border-b border-gray-100 cursor-pointer hover:bg-white transition
+                            block p-4 border-b border-gray-100 cursor-pointer hover:bg-white transition
                             ${selectedConversation?.id === conv.id ? 'bg-white border-l-4 border-l-emerald-500 shadow-sm' : 'border-l-4 border-l-transparent'}
                         `}
                     >
@@ -107,7 +121,7 @@ export default function AgentHistory() {
                                 {conv.customerName || `${t('guest')} (${conv.id})`}
                             </span>
                             <span className="text-xs text-gray-500 whitespace-nowrap">
-                                {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleDateString() : ''}
+                                <ClientDate date={conv.lastMessageAt} />
                             </span>
                         </div>
                         <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -118,7 +132,7 @@ export default function AgentHistory() {
                             )}
                             <span className="capitalize">{t(conv.status as any)}</span>
                         </div>
-                    </div>
+                    </Link>
                 ))
             )}
         </div>
@@ -143,8 +157,8 @@ export default function AgentHistory() {
                         <h3 className="font-semibold text-gray-900">
                             {selectedConversation.customerName || t('guestUser')}
                         </h3>
-                        <p className="text-xs text-gray-500">
-                           {t('started')} {new Date(selectedConversation.createdAt || new Date()).toLocaleDateString()}
+                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                           {t('started')} <ClientDate date={selectedConversation.createdAt} />
                         </p>
                     </div>
                 </div>
@@ -167,7 +181,7 @@ export default function AgentHistory() {
                                         {msg.content}
                                     </div>
                                     <div className={`text-[10px] text-gray-400 mt-1 ${msg.role === 'assistant' ? 'text-right' : ''}`}>
-                                        {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        <ClientTime date={msg.createdAt} />
                                     </div>
                                 </div>
                             </div>

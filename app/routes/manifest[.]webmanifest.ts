@@ -5,7 +5,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json(
     {
       short_name: "Shop",
-      name: "SaaS E-commerce Platform",
+      name: "Ozzyl E-commerce Platform",
       icons: [
         {
           src: "/icons/icon-192x192.png",

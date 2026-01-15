@@ -37,7 +37,7 @@ const FONT_OPTIONS = [
   { id: 'montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif", previewKey: 'fontMontserratDesc' },
 ];
 
-export const meta: MetaFunction = () => [{ title: 'Store Design - Multi-Store SaaS' }];
+export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl' }];
 
 // ============================================================================
 // LOADER - Fetch current store config
@@ -191,7 +191,7 @@ export default function StoreDesignPage() {
   const navigation = useNavigation();
   const { t, lang } = useTranslation();
   
-  const storeUrl = `https://${storeSubdomain}.digitalcare.site`;
+  const storeUrl = `https://${storeSubdomain}.ozzyl.com`;
   
   const [activeTab, setActiveTab] = useState<'templates' | 'theme' | 'banner' | 'info' | 'advanced'>('templates');
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);

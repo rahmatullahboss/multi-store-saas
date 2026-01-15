@@ -15,7 +15,7 @@ import { calculateSignificance } from '~/utils/ab-testing.server';
 import { ArrowLeft, Trophy, Play, Pause, CheckCircle, BarChart3, Users, TrendingUp, DollarSign, Clock, Copy } from 'lucide-react';
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context as unknown as Env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -78,17 +78,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     , variantsWithStats[0]);
   }
 
-  // Get product name if linked
-  let productName = null;
-  if (test[0].productId) {
-    const product = await db
-      .select({ title: products.title })
-      .from(products)
-      .where(eq(products.id, test[0].productId))
-      .limit(1);
-    productName = product[0]?.title;
-  }
-
   // Get store currency
   const store = await db
     .select({ currency: stores.currency })
@@ -101,13 +90,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     variants: variantsWithStats,
     significance,
     bestVariantId: bestVariant?.id,
-    productName,
     currency: store[0]?.currency || 'BDT',
   });
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context as unknown as Env);
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
   const testId = Number(params.id);
@@ -117,7 +105,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 
   if (intent === 'start') {
     await db.update(abTests)
-      .set({ status: 'running', startedAt: new Date() })
+      .set({ status: 'active', startedAt: new Date() })
       .where(and(eq(abTests.id, testId), eq(abTests.storeId, storeId)));
   }
 
@@ -128,9 +116,9 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   }
 
   if (intent === 'complete') {
-    const winningVariantId = Number(formData.get('winningVariantId'));
+    // const winningVariantId = Number(formData.get('winningVariantId')); // Not stored in DB yet
     await db.update(abTests)
-      .set({ status: 'completed', endedAt: new Date(), winningVariantId })
+      .set({ status: 'concluded', endedAt: new Date() }) 
       .where(and(eq(abTests.id, testId), eq(abTests.storeId, storeId)));
   }
 
@@ -153,7 +141,7 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 }
 
 export default function ABTestDetailPage() {
-  const { test, variants, significance, bestVariantId, productName, currency } = useLoaderData<typeof loader>();
+  const { test, variants, significance, bestVariantId, currency } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
@@ -185,7 +173,7 @@ export default function ABTestDetailPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{test.name}</h1>
-              {test.status === 'running' && (
+              {test.status === 'active' && (
                 <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-full">
                   চলমান
                 </span>
@@ -195,43 +183,17 @@ export default function ABTestDetailPage() {
                   বিরতি
                 </span>
               )}
-              {test.status === 'completed' && (
+              {test.status === 'concluded' && (
                 <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-medium rounded-full">
                   সম্পন্ন
                 </span>
               )}
             </div>
-            {productName && (
-              <p className="text-gray-600 dark:text-gray-400">প্রোডাক্ট: {productName}</p>
-            )}
+            {/* removed productName */}
           </div>
 
           <div className="flex gap-2">
-            {test.status === 'draft' && (
-              <Form method="post">
-                <input type="hidden" name="intent" value="start" />
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
-                >
-                  <Play size={18} /> শুরু করুন
-                </button>
-              </Form>
-            )}
-            {test.status === 'running' && (
-              <Form method="post">
-                <input type="hidden" name="intent" value="pause" />
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg"
-                >
-                  <Pause size={18} /> বিরতি
-                </button>
-              </Form>
-            )}
-            {test.status === 'paused' && (
+            {test.status === 'paused' && ( // Treat paused as startable (drafts are now paused)
               <Form method="post">
                 <input type="hidden" name="intent" value="start" />
                 <button
@@ -240,6 +202,18 @@ export default function ABTestDetailPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
                 >
                   <Play size={18} /> চালু করুন
+                </button>
+              </Form>
+            )}
+            {test.status === 'active' && (
+              <Form method="post">
+                <input type="hidden" name="intent" value="pause" />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg"
+                >
+                  <Pause size={18} /> বিরতি
                 </button>
               </Form>
             )}
@@ -337,7 +311,7 @@ export default function ABTestDetailPage() {
                       {formatPrice(v.revenue || 0)}
                     </td>
                     <td className="px-4 py-4 text-center">
-                      {v.landingConfig && test.status !== 'completed' && (
+                      {v.landingConfig && test.status !== 'concluded' && (
                         <Form method="post" className="inline">
                           <input type="hidden" name="intent" value="apply-winner" />
                           <input type="hidden" name="variantId" value={v.id} />
@@ -360,7 +334,7 @@ export default function ABTestDetailPage() {
       </div>
 
       {/* Declare Winner */}
-      {test.status !== 'completed' && test.status !== 'draft' && significance.significant && (
+      {test.status !== 'concluded' && test.status !== 'paused' && significance.significant && (
         <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">🏆 Winner ঘোষণা করুন</h3>
           <Form method="post" className="flex items-center gap-4">

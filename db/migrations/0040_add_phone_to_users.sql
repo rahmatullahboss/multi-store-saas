@@ -1,0 +1,3 @@
+-- Migration: Add phone column to users table
+-- SKIP: Already exists in database
+-- Original: ALTER TABLE users ADD COLUMN phone TEXT;

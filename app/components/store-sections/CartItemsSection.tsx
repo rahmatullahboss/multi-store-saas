@@ -40,14 +40,14 @@ export function CartItemsSection({ settings, theme, currency = 'BDT' }: CartItem
             >
               <ShoppingBag className="w-8 h-8" style={{ color: primaryColor }} />
             </div>
-            <p className="text-lg font-medium mb-2" style={{ color: theme.text }}>{t('cartEmpty')}</p>
+            <p className="text-lg font-medium mb-2" style={{ color: theme.text }}>{settings.emptyText || t('cartEmpty')}</p>
             <p className="text-gray-500 mb-6">Add some products to get started!</p>
             <Link 
               to="/" 
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90"
               style={{ backgroundColor: primaryColor }}
             >
-              {t('continueShopping')}
+              {settings.continueShoppingText || t('continueShopping')}
             </Link>
           </div>
         </div>

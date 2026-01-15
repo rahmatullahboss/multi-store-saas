@@ -26,6 +26,8 @@ import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConf
 import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { StoreLayout } from '~/components/templates/StoreLayout';
+import { MarketingHeader } from '~/components/MarketingHeader';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { MarketingLanding } from '~/components/MarketingLanding';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
@@ -55,7 +57,7 @@ export const meta: MetaFunction = ({ data }) => {
   // Marketing mode - return SaaS branding
   if (loaderData.mode === 'marketing') {
     return [
-      { title: 'Multi-Store SaaS - Launch Your Online Store in 5 Minutes' },
+      { title: 'Ozzyl - Launch Your Online Store in 5 Minutes' },
       { name: 'description', content: 'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.' },
     ];
   }
@@ -114,6 +116,7 @@ interface LandingModeData {
   socialLinks: null;
   footerConfig: null;
   businessInfo: null;
+  planType: string;
 }
 
 interface StoreModeData {
@@ -132,6 +135,7 @@ interface StoreModeData {
   socialLinks: SocialLinks | null;
   footerConfig: FooterConfig | null;
   businessInfo: Record<string, unknown> | null;
+  planType: string;
   // Explicitly null for this mode
   featuredProduct: null;
   landingConfig: null;
@@ -226,9 +230,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   const mainDomains = [
     'localhost',
     '127.0.0.1',
-    'multi-store-saas.pages.dev',
-    'digitalcare.site',
-    'www.digitalcare.site',
+    'ozzyl-saas.pages.dev',
+    'ozzyl.com',
+    'www.ozzyl.com',
   ];
   
   // Check if this is a main domain (should show marketing page)
@@ -293,7 +297,10 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   
   // Determine store mode with safe fallback
   const dbMode = (validatedStore as Store & { mode?: 'landing' | 'store' }).mode || 'store';
-  const planType = (validatedStore.planType as PlanType) || 'free';
+  const rawPlanType = validatedStore.planType;
+  // Safeguard: Ensure planType is a valid PlanType, fallback to 'free'
+  const validPlanTypes = ['free', 'starter', 'premium', 'business'] as const;
+  const planType: PlanType = (validPlanTypes.includes(rawPlanType as PlanType) ? rawPlanType : 'free') as PlanType;
   
   // ========================================================================
   // HYBRID MODE ENFORCEMENT - Free users CANNOT access store mode
@@ -302,6 +309,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   // When they upgrade, the system simply stops forcing landing mode,
   // instantly unlocking their chosen layout without data migration.
   const storeMode = canUseStoreMode(planType) ? dbMode : 'landing';
+
   
   // ========== LANDING MODE ==========
   if (storeMode === 'landing') {
@@ -490,6 +498,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         socialLinks: null,
         footerConfig: null,
         businessInfo: null,
+        planType: validatedStore.planType || 'free',
       };
       
       return json(landingData);
@@ -577,6 +586,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       socialLinks,
       footerConfig,
       businessInfo,
+      planType: validatedStore.planType || 'free',
       // Explicitly null for store mode
       featuredProduct: null,
       landingConfig: null,
@@ -598,6 +608,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 // COMPONENT - Conditional rendering based on mode
 // ============================================================================
 export default function Index() {
+  // Translation hook for reactive i18n
+  const { t, lang } = useTranslation();
   const data = useLoaderData<LoaderData>();
   const [searchParams] = useSearchParams();
   
@@ -732,14 +744,14 @@ export default function Index() {
           <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-2 py-1.5 text-center shadow-md">
             <div className="flex items-center justify-center gap-2">
               <span className="text-xs">👁️</span>
-              <span className="font-medium text-xs">টেমপ্লেট প্রিভিউ মোড</span>
+              <span className="font-medium text-xs">{t('templatePreviewMode')}</span>
               <span className="text-white/60 text-xs hidden sm:inline">|</span>
-              <span className="hidden sm:inline text-xs text-white/80">এটি ডেমো কন্টেন্ট সহ প্রিভিউ। আপনার আসল ডাটা দিয়ে আলাদা দেখাবে।</span>
+              <span className="hidden sm:inline text-xs text-white/80">{t('templatePreviewDesc')}</span>
               <button
                 onClick={() => window.close()}
                 className="px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded text-xs font-medium transition"
               >
-                বন্ধ করুন ✕
+                {t('close')} ✕
               </button>
             </div>
           </div>
@@ -761,8 +773,8 @@ export default function Index() {
       return (
         <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Coming Soon</h1>
-            <p className="text-gray-400">This store is being set up.</p>
+            <h1 className="text-3xl font-bold mb-4">{t('comingSoon')}</h1>
+            <p className="text-gray-400">{t('storeUnderConstruction')}</p>
           </div>
         </div>
       );
@@ -782,6 +794,7 @@ export default function Index() {
         isEditMode={isEditMode}
         productVariants={data.productVariants}
         orderBumps={data.orderBumps}
+        planType={data.planType}
       />
     );
   }
@@ -806,6 +819,7 @@ export default function Index() {
       socialLinks={data.socialLinks as SocialLinks | null}
       footerConfig={data.footerConfig as FooterConfig | null}
       businessInfo={data.businessInfo}
+      planType={data.planType}
     />
   );
 }

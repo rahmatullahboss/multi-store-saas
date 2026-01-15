@@ -7,8 +7,10 @@
 
 import { Context, MiddlewareHandler } from 'hono';
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { stores, type Store } from '@db/schema';
+import { D1Cache } from '../../app/services/cache-layer.server';
+import { createDb } from '../../app/lib/db.server';
+import { KVCache, CACHE_KEYS, CACHE_TTL } from '../../app/services/kv-cache.server';
 
 // Extend Hono context with tenant information
 export interface TenantContext {
@@ -21,6 +23,7 @@ export interface TenantEnv {
   DB: D1Database;
   R2: R2Bucket;
   SAAS_DOMAIN: string;
+  STORE_CACHE?: KVNamespace; // KV for fast caching
 }
 
 /**
@@ -75,7 +78,7 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
       const storeParam = c.req.query('store');
       console.log(`[TENANT] Store param: ${storeParam || 'none'}`);
       
-      const db = drizzle(c.env.DB);
+      const db = createDb(c.env.DB);
       
       let store: Store | undefined;
       
@@ -144,10 +147,46 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
     console.log(`[TENANT] Mode: Production`);
     console.log(`[TENANT] Parsed: type=${type}, value=${value}`);
     
-    const db = drizzle(c.env.DB);
+    // Initialize DB and Cache
+    const db = createDb(c.env.DB);
+    const d1Cache = new D1Cache(db);
     
-    let store: Store | undefined;
-    let isCustomDomain = false;
+    // Initialize KV cache (faster than D1)
+    const kvCache = c.env.STORE_CACHE ? new KVCache(c.env.STORE_CACHE) : null;
+    
+    const kvKey = type === 'subdomain' 
+      ? `${CACHE_KEYS.TENANT_SUBDOMAIN}${value}`
+      : `${CACHE_KEYS.TENANT_DOMAIN}${value}`;
+    
+    let isCustomDomain = type === 'custom';
+    
+    // Try KV cache first (fastest ~10ms)
+    if (kvCache) {
+      const kvCached = await kvCache.get<Store>(kvKey);
+      if (kvCached) {
+        console.log(`[TENANT] ✓ KV Cache Hit: ID=${kvCached.id}, Name=${kvCached.name}`);
+        c.set('storeId', kvCached.id);
+        c.set('store', kvCached);
+        c.set('isCustomDomain', isCustomDomain);
+        return next();
+      }
+    }
+    
+    // Try D1 cache (slower fallback ~50ms)
+    const d1CacheKey = `tenant:${type}:${value}`;
+    let store = await d1Cache.get<Store>(d1CacheKey);
+    
+    if (store) {
+      console.log(`[TENANT] ✓ D1 Cache Hit: ID=${store.id}, Name=${store.name}`);
+      // Warm KV cache for next request
+      if (kvCache) {
+        kvCache.set(kvKey, store, CACHE_TTL.TENANT).catch(() => {});
+      }
+      c.set('storeId', store.id);
+      c.set('store', store);
+      c.set('isCustomDomain', isCustomDomain);
+      return next();
+    }
     
     try {
       if (type === 'subdomain') {
@@ -162,7 +201,6 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
         console.log(`[TENANT] Subdomain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`);
       } else {
         // Lookup by custom domain
-        isCustomDomain = true;
         console.log(`[TENANT] Looking up store by custom domain: ${value}`);
         const result = await db
           .select()
@@ -172,14 +210,19 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
         store = result[0];
         console.log(`[TENANT] Custom domain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`);
       }
+      
+      // Cache the result in both KV and D1
+      if (store) {
+        // KV cache (fast, fire-and-forget)
+        if (kvCache) {
+          kvCache.set(kvKey, store, CACHE_TTL.TENANT).catch(() => {});
+        }
+        // D1 cache (persistent fallback)
+        await d1Cache.set(d1CacheKey, store, 3600);
+      }
     } catch (dbError) {
       console.error(`[TENANT] Database error during store lookup:`);
-      console.error(`[TENANT] Error type:`, dbError?.constructor?.name);
-      console.error(`[TENANT] Error message:`, dbError instanceof Error ? dbError.message : String(dbError));
-      console.error(`[TENANT] Error stack:`, dbError instanceof Error ? dbError.stack : 'No stack');
-      if (dbError && typeof dbError === 'object' && 'cause' in dbError) {
-        console.error(`[TENANT] Error cause:`, (dbError as { cause?: unknown }).cause);
-      }
+      // ... existing error logging
       return c.json(
         { 
           error: 'Database error',

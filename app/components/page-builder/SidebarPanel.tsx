@@ -1,11 +1,11 @@
-import { BlocksProvider, SelectorsProvider, useEditorMaybe } from '@grapesjs/react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
 import PageSettingsPanel from './PageSettingsPanel';
 import StateSelector from './StateSelector';
+import StyleControls from './StyleControls';
 
 interface SidebarPanelProps {
   themeConfig?: any;
@@ -13,49 +13,156 @@ interface SidebarPanelProps {
   pageConfig?: any;
   onPageConfigChange?: (config: any) => void;
   onLoadTemplate?: (templateId: string) => void;
+  activeTab: 'widgets' | 'design' | 'structure' | 'settings';
+  onTabChange: (tab: 'widgets' | 'design' | 'structure' | 'settings') => void;
+  editor?: any;
 }
 
-export default function SidebarPanel({ 
+function SidebarPanelBase({ 
   themeConfig, 
   onThemeChange, 
   pageConfig,
   onPageConfigChange,
-  onLoadTemplate 
+  onLoadTemplate,
+  activeTab,
+  onTabChange,
+  editor
 }: SidebarPanelProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
   const [activeDesignSubTab, setActiveDesignSubTab] = useState<'styles' | 'theme' | 'templates'>('styles');
-  const editor = useEditorMaybe();
   
   const traitsContainerRef = useRef<HTMLDivElement>(null);
   const stylesContainerRef = useRef<HTMLDivElement>(null);
   const layersContainerRef = useRef<HTMLDivElement>(null);
 
+  // Use refs to store blocks to prevent unnecessary re-renders
+  const blocksRef = useRef<any[]>([]);
+  const [blocksVersion, setBlocksVersion] = useState(0);
+  const [selectors, setSelectors] = useState<any[]>([]);
+
+  // Fetch Blocks only once when editor is ready (blocks rarely change)
+  useEffect(() => {
+    if (!editor) return;
+
+    // Load blocks only once - they don't change during editing
+    const loadBlocks = () => {
+      const allBlocks = editor.Blocks.getAll();
+      const newBlockIds = allBlocks.map((b: any) => b.getId()).join(',');
+      const oldBlockIds = blocksRef.current.map((b: any) => b.getId()).join(',');
+      
+      // Only update if blocks actually changed
+      if (newBlockIds !== oldBlockIds) {
+        blocksRef.current = [...allBlocks];
+        setBlocksVersion(v => v + 1);
+      }
+    };
+
+    // Load initial selectors - only update when actually different
+    const refreshSelectors = useCallback(() => {
+        const selected = editor.getSelected();
+        if (selected) {
+            const newSelectors = selected.getSelectors().models || [];
+            setSelectors(prev => {
+              // Only update if different
+              if (prev.length !== newSelectors.length) return newSelectors;
+              const same = prev.every((s: any, i: number) => s === newSelectors[i]);
+              return same ? prev : newSelectors;
+            });
+        } else {
+            setSelectors(prev => prev.length === 0 ? prev : []);
+        }
+    }, []);
+
+    loadBlocks();
+    refreshSelectors();
+
+    // Event Listeners - only listen to block changes, not every selection
+    editor.on('block:add block:remove', loadBlocks);
+    // For selectors, debounce to avoid rapid updates
+    let selectorTimeout: NodeJS.Timeout;
+    const debouncedRefreshSelectors = () => {
+      clearTimeout(selectorTimeout);
+      selectorTimeout = setTimeout(refreshSelectors, 50);
+    };
+    editor.on('component:selected component:deselected', debouncedRefreshSelectors);
+
+    return () => {
+      editor.off('block:add block:remove', loadBlocks);
+      editor.off('component:selected component:deselected', debouncedRefreshSelectors);
+      clearTimeout(selectorTimeout);
+    };
+  }, [editor]);
+  
+  // Get blocks from ref
+  const blocks = blocksRef.current;
+
   // Render GrapesJS built-in managers into our containers
   useEffect(() => {
     if (!editor) return;
 
-    // Render Traits Manager
-    if (traitsContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
-      const traitsEl = editor.TraitManager.render();
-      traitsContainerRef.current.innerHTML = '';
-      traitsContainerRef.current.appendChild(traitsEl);
-    }
+    try {
+      // Render Traits Manager
+      if (traitsContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
+        if (editor.TraitManager && typeof editor.TraitManager.render === 'function') {
+          const traitsEl = editor.TraitManager.render();
+          if (traitsEl) {
+            traitsContainerRef.current.innerHTML = '';
+            traitsContainerRef.current.appendChild(traitsEl);
+          }
+        }
+      }
 
-    // Render Style Manager
-    if (stylesContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
-      const stylesEl = editor.StyleManager.render();
-      stylesContainerRef.current.innerHTML = '';
-      stylesContainerRef.current.appendChild(stylesEl);
-    }
+      // Render Style Manager
+      if (stylesContainerRef.current && activeTab === 'design' && activeDesignSubTab === 'styles') {
+        if (editor.StyleManager && typeof editor.StyleManager.render === 'function') {
+          const stylesEl = editor.StyleManager.render();
+          if (stylesEl) {
+            stylesContainerRef.current.innerHTML = '';
+            stylesContainerRef.current.appendChild(stylesEl);
+          }
+        }
+      }
 
-    // Render Layers
-    if (layersContainerRef.current && activeTab === 'structure') {
-      const layersEl = editor.LayerManager.render();
-      layersContainerRef.current.innerHTML = '';
-      layersContainerRef.current.appendChild(layersEl);
+      // Render Layers
+      if (layersContainerRef.current && activeTab === 'structure') {
+        if (editor.LayerManager && typeof editor.LayerManager.render === 'function') {
+          const layersEl = editor.LayerManager.render();
+          if (layersEl) {
+            layersContainerRef.current.innerHTML = '';
+            layersContainerRef.current.appendChild(layersEl);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('SidebarPanel: Error rendering GrapesJS managers, editor may not be fully initialized', e);
     }
   }, [editor, activeTab, activeDesignSubTab]);
+
+  // CATEGORIZE BLOCKS
+  const categories: Record<string, any[]> = {};
+  blocks.forEach((block) => {
+    const cat = block.getCategoryLabel() || t('uncategorized');
+    if (!categories[cat]) categories[cat] = [];
+    categories[cat].push(block);
+  });
+
+  const handleDragStart = (block: any, ev: React.DragEvent) => {
+      // Use GrapesJS BlockManager's built-in drag functionality
+      if (editor?.BlockManager?.startDrag) {
+        editor.BlockManager.startDrag(block, ev.nativeEvent);
+      } else {
+        // Fallback: Set the block content as drag data
+        ev.dataTransfer.setData('text/html', block.getContent() || '');
+        ev.dataTransfer.effectAllowed = 'copy';
+      }
+  };
+
+  const handleDragEnd = (ev: React.DragEvent) => {
+      // Use GrapesJS BlockManager's built-in drag end
+      if (editor?.BlockManager?.endDrag) {
+        editor.BlockManager.endDrag();
+      }
+  };
 
   return (
     <>
@@ -244,28 +351,28 @@ export default function SidebarPanel({
         {/* Tab Switcher - Elementor Style */}
         <div className="flex border-b border-gray-100 bg-gray-50/80 p-1.5 gap-1.5">
            <button 
-             onClick={() => setActiveTab('widgets')}
+             onClick={() => onTabChange('widgets')}
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'widgets' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50 shadow-indigo-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Box size={16} strokeWidth={2.5} />
               {t('widgets')}
            </button>
            <button 
-             onClick={() => setActiveTab('design')}
+             onClick={() => onTabChange('design')}
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'design' ? 'bg-white text-blue-600 shadow-sm border border-blue-50 shadow-blue-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Palette size={16} strokeWidth={2.5} />
               {t('design')}
            </button>
            <button 
-             onClick={() => setActiveTab('structure')}
+             onClick={() => onTabChange('structure')}
              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'structure' ? 'bg-white text-purple-600 shadow-sm border border-purple-50 shadow-purple-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
            >
               <Layers size={16} strokeWidth={2.5} />
               {t('structure')}
            </button>
            <button 
-             onClick={() => setActiveTab('settings')}
+             onClick={() => onTabChange('settings')}
              className={`p-2 rounded-xl text-gray-400 hover:text-orange-600 hover:bg-orange-50 transition-all ${activeTab === 'settings' ? 'bg-orange-50 text-orange-600 shadow-sm' : ''}`}
              title={t('settings')}
            >
@@ -280,50 +387,37 @@ export default function SidebarPanel({
                   <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('availableWidgets')}</h3>
                </div>
                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <BlocksProvider>
-                  {({ blocks, dragStart, dragStop }) => {
-                    const categories: Record<string, any[]> = {};
-                    blocks.forEach((block) => {
-                      const cat = block.getCategoryLabel() || t('uncategorized');
-                      if (!categories[cat]) categories[cat] = [];
-                      categories[cat].push(block);
-                    });
-
-                    return (
-                      <div className="p-4 space-y-6">
-                        {Object.entries(categories).map(([catLabel, catBlocks]) => (
-                          <div key={catLabel}>
-                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                               <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                               {catLabel}
-                            </h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {catBlocks.map((block) => (
-                                <div
-                                  key={block.getId()}
-                                  draggable
-                                  onDragStart={(ev) => dragStart(block, ev.nativeEvent)}
-                                  onDragEnd={() => dragStop()}
-                                  className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
-                                >
-                                  <div 
-                                    className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
-                                    dangerouslySetInnerHTML={{ __html: block.getMedia() || `
-                                      <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
-                                    ` }}
-                                  />
-                                  <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
-                                    {block.getLabel()}
-                                  </span>
-                                </div>
-                              ))}
+                  <div className="p-4 space-y-6">
+                    {Object.entries(categories).map(([catLabel, catBlocks]) => (
+                      <div key={catLabel}>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                           <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                           {catLabel}
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {catBlocks.map((block) => (
+                            <div
+                              key={block.getId()}
+                              draggable
+                              onDragStart={(ev) => handleDragStart(block, ev)}
+                              onDragEnd={(ev) => handleDragEnd(ev)}
+                              className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
+                            >
+                              <div 
+                                className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
+                                dangerouslySetInnerHTML={{ __html: block.getMedia() || `
+                                  <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
+                                ` }}
+                              />
+                              <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
+                                {block.getLabel()}
+                              </span>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    );
-                  }}
-                </BlocksProvider>
+                    ))}
+                  </div>
               </div>
             </div>
           )}
@@ -359,29 +453,25 @@ export default function SidebarPanel({
                 {activeDesignSubTab === 'styles' && (
                   <div className="p-4 space-y-6">
                     {/* State Selector (Normal/Hover/Focus/Active) */}
-                    <StateSelector />
+                    <StateSelector editor={editor} />
                     
                     {/* Selectors Manager */}
                     <div className="bg-blue-50/30 rounded-2xl p-4 border border-blue-50">
-                      <SelectorsProvider>
-                        {(props) => (
                           <div className="space-y-3">
                              <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">{t('activeElement')}</span>
                              </div>
                              <div className="flex flex-wrap gap-2">
-                                {props.selectors.map(sel => (
+                                {selectors.map(sel => (
                                   <span key={sel.getLabel()} className="px-2.5 py-1 bg-white text-blue-600 rounded-lg text-[10px] font-black border border-blue-100 shadow-sm">
                                      #{sel.getLabel()}
                                   </span>
                                 ))}
-                                {props.selectors.length === 0 && (
+                                {selectors.length === 0 && (
                                   <p className="text-gray-400 text-[10px] font-medium italic">{t('selectElementHint')}</p>
                                 )}
                              </div>
                           </div>
-                        )}
-                      </SelectorsProvider>
                     </div>
 
                     {/* Traits Manager */}
@@ -390,10 +480,10 @@ export default function SidebarPanel({
                       <div ref={traitsContainerRef} className="gjs-traits-wrap" />
                     </div>
 
-                    {/* Style Manager */}
+                    {/* Style Manager - Custom "Elementor-like" Controls */}
                     <div className="space-y-4 pb-10">
                       <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">{t('visualStyle')}</h4>
-                      <div ref={stylesContainerRef} className="gjs-styles-wrap" />
+                      {editor && <StyleControls editor={editor} />}
                     </div>
                   </div>
                 )}
@@ -412,7 +502,7 @@ export default function SidebarPanel({
           {activeTab === 'structure' && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300">
                <div className="p-4 border-b border-gray-50 bg-gray-50/30">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Document Structure</h3>
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('docStructure')}</h3>
                </div>
                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                   <div ref={layersContainerRef} className="gjs-layers-wrap" />
@@ -423,7 +513,7 @@ export default function SidebarPanel({
           {activeTab === 'settings' && pageConfig && onPageConfigChange && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300 text-sm">
                <div className="p-4 border-b border-gray-50 bg-gray-50/30">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Page Settings</h3>
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('pageSettings')}</h3>
                </div>
                <div className="flex-1 overflow-y-auto relative">
                  <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />
@@ -435,3 +525,7 @@ export default function SidebarPanel({
     </>
   );
 }
+
+// Memoized export to prevent flickering from parent re-renders
+const SidebarPanel = memo(SidebarPanelBase);
+export default SidebarPanel;

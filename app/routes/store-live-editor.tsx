@@ -69,7 +69,7 @@ function SortableSectionItem({ section, onSelect, onDelete, isActive }: any) {
 
 
 
-export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Multi-Store SaaS' }];
+export const meta: MetaFunction = () => [{ title: 'Store Live Editor - Ozzyl' }];
 
 // Font Options - includes English and Bengali fonts
 const FONT_OPTIONS = [
@@ -123,7 +123,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   const themeConfig = parseThemeConfig(store[0].themeConfig as string | null) || defaultThemeConfig;
   const templates = getAllStoreTemplates();
-  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
   
   return json({
     store: {
@@ -135,6 +135,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       fontFamily: store[0].fontFamily || 'inter',
       businessInfo: store[0].businessInfo ? JSON.parse(store[0].businessInfo) : {},
       socialLinks: parseSocialLinks(store[0].socialLinks as string | null) || {},
+      aiCredits: store[0].aiCredits || 0,
     },
     themeConfig,
     templates: templates.map(t => ({ 
@@ -228,6 +229,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const floatingCallEnabled = formData.get('floatingCallEnabled') === 'true';
   const floatingCallNumber = formData.get('floatingCallNumber') as string || '';
 
+  // Marketing & Sales Persistence
+  const flashSaleJson = formData.get('flashSale') as string || '{}';
+  let flashSale = undefined;
+  try { flashSale = JSON.parse(flashSaleJson); } catch {}
+
+  const trustBadgesJson = formData.get('trustBadges') as string || '{}';
+  let trustBadges = undefined;
+  try { trustBadges = JSON.parse(trustBadgesJson); } catch {}
+
+  const marketingPopupJson = formData.get('marketingPopup') as string || '{}';
+  let marketingPopup = undefined;
+  try { marketingPopup = JSON.parse(marketingPopupJson); } catch {}
+
+  const seoJson = formData.get('seo') as string || '{}';
+  let seo = undefined;
+  try { seo = JSON.parse(seoJson); } catch {}
+
+
+
   const updatedConfig: ThemeConfig = {
     ...currentConfig,
     storeTemplateId,
@@ -263,6 +283,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     checkoutStyle: (formData.get('checkoutStyle') as any) || 'standard',
     sections: sections.length > 0 ? sections : undefined,
     productSections: productSections.length > 0 ? productSections : undefined,
+    // New Fields
+    flashSale: flashSale?.isActive ? flashSale : undefined,
+    trustBadges: trustBadges?.showPaymentIcons || trustBadges?.showGuaranteeSeals ? trustBadges : undefined,
+    marketingPopup: marketingPopup?.isActive ? marketingPopup : undefined,
+    seo: seo?.metaTitle || seo?.metaDescription ? seo : undefined,
   };
 
   await db.update(stores).set({ 
@@ -450,6 +475,7 @@ export default function StoreLiveEditor() {
   };
 
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
   
   // NEW: Sales & Marketing States
   const [flashSale, setFlashSale] = useState<{
@@ -457,24 +483,51 @@ export default function StoreLiveEditor() {
     text: string;
     endTime?: string;
     backgroundColor?: string;
-  }>({ isActive: false, text: "Limited Time Offer!" });
+    textColor?: string;
+    discountPercentage?: number;
+    discountType?: 'percent' | 'fixed';
+  }>({ 
+    isActive: false, 
+    text: "Limited Time Offer!",
+    endTime: undefined,
+    backgroundColor: undefined,
+    textColor: undefined,
+    discountPercentage: 0,
+    discountType: 'percent',
+    ...(themeConfig.flashSale || {}) 
+  });
 
   const [trustBadges, setTrustBadges] = useState<{
     showPaymentIcons: boolean;
     showGuaranteeSeals: boolean;
-  }>({ showPaymentIcons: false, showGuaranteeSeals: false });
+    customText?: string;
+  }>({ 
+    showPaymentIcons: false, 
+    showGuaranteeSeals: false,
+    customText: undefined,
+    ...(themeConfig.trustBadges || {}) 
+  });
 
   const [marketingPopup, setMarketingPopup] = useState<{
     isActive: boolean;
     title: string;
     description: string;
     offerCode?: string;
-  }>({ isActive: false, title: "Join & Save", description: "Get 10% off your first order!" });
+    delay?: number;
+  }>({ 
+    isActive: false, 
+    title: "Join & Save", 
+    description: "Get 10% off your first order!",
+    offerCode: undefined,
+    delay: undefined,
+    ...(themeConfig.marketingPopup || {}) 
+  });
 
   const [seoSettings, setSeoSettings] = useState<{
     metaTitle?: string;
     metaDescription?: string;
-  }>({});
+    ogImage?: string;
+  }>(themeConfig.seo || {});
 
   // Accordion state
   const [openSection, setOpenSection] = useState<string>('sections');
@@ -680,13 +733,49 @@ export default function StoreLiveEditor() {
       iframeRef.current.contentWindow.postMessage({
         type: 'STORE_PREVIEW_UPDATE',
         config: {
+          storeTemplateId: selectedTemplateId,
+          primaryColor,
+          accentColor,
+          backgroundColor,
+          textColor,
+          borderColor,
+          typography,
+          fontFamily,
+          bannerUrl,
+          bannerText,
+          announcement: { text: announcementText, link: announcementLink },
           customCSS,
           sections: homeSections,
           productSections: productSections,
+          logo,
+          businessInfo: { phone, email, address },
+          socialLinks: { facebook, instagram, whatsapp },
+          headerLayout,
+          headerShowSearch,
+          headerShowCart,
+          footerDescription,
+          copyrightText,
+          footerColumns,
+          floatingWhatsappEnabled,
+          floatingWhatsappNumber,
+          floatingWhatsappMessage,
+          floatingCallEnabled,
+          floatingCallNumber,
+          checkoutStyle,
+          flashSale,
+          trustBadges,
+          marketingPopup,
         },
       }, '*');
     }
-  }, [iframeReady, selectedTemplateId, primaryColor, accentColor, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, homeSections, productSections]); // Depend on both section lists
+  }, [
+    iframeReady, selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, 
+    typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, 
+    homeSections, productSections, logo, phone, email, address, facebook, instagram, whatsapp,
+    headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns,
+    floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, 
+    floatingCallNumber, checkoutStyle, flashSale, trustBadges, marketingPopup
+  ]);
 
 
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
@@ -1168,6 +1257,14 @@ export default function StoreLiveEditor() {
             {/* Checkout Config */}
             <input type="hidden" name="checkoutStyle" value={checkoutStyle} />
 
+            {/* Marketing Persistence */}
+            <input type="hidden" name="flashSale" value={JSON.stringify(flashSale)} />
+            <input type="hidden" name="trustBadges" value={JSON.stringify(trustBadges)} />
+            <input type="hidden" name="marketingPopup" value={JSON.stringify(marketingPopup)} />
+            <input type="hidden" name="seo" value={JSON.stringify(seoSettings)} />
+
+
+
             {/* SECTIONS LIST */}
             <input type="hidden" name="sections" value={JSON.stringify(homeSections)} />
             <input type="hidden" name="productSections" value={JSON.stringify(productSections)} />
@@ -1202,31 +1299,50 @@ export default function StoreLiveEditor() {
               </DndContext>
 
               {/* Add Section Button */}
-              <div className="relative group">
-                <button type="button" className="w-full flex items-center justify-center gap-2 p-2 border border-dashed border-gray-300 rounded hover:border-purple-500 hover:text-purple-600 transition">
+              <div className="relative">
+                <button 
+                  type="button" 
+                  onClick={() => setIsAddSectionOpen(!isAddSectionOpen)}
+                  className={`w-full flex items-center justify-center gap-2 p-2 border border-dashed rounded transition ${
+                    isAddSectionOpen 
+                      ? 'border-purple-500 text-purple-600 bg-purple-50' 
+                      : 'border-gray-300 hover:border-purple-500 hover:text-purple-600'
+                  }`}
+                >
                   <PlusCircle className="w-4 h-4" />
                   <span className="text-sm">Add Section</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${isAddSectionOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {/* Add Section Dropdown */}
-                <div className="hidden group-hover:block absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 shadow-lg rounded mt-1 p-2">
-                  {Object.values(SECTION_REGISTRY)
-                    .filter(def => {
-                      if (!def.allowedPages) return true; // Default to all if not specified
-                      return def.allowedPages.includes(currentPage as any);
-                    })
-                    .map(def => (
-                    <button
-                      key={def.type}
-                      type="button"
-                      onClick={() => addSection(def.type)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center gap-2"
-                    >
-                      <Plus className="w-3 h-3" />
-                      {def.name}
-                    </button>
-                  ))}
-                </div>
+                {isAddSectionOpen && (
+                  <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 shadow-xl rounded-lg mt-1 p-2 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                      {Object.values(SECTION_REGISTRY)
+                        .filter(def => {
+                          if (!def.allowedPages) return true; // Default to all if not specified
+                          return def.allowedPages.includes(currentPage as any);
+                        })
+                        .map(def => (
+                        <button
+                          key={def.type}
+                          type="button"
+                          onClick={() => {
+                            addSection(def.type);
+                            setIsAddSectionOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center justify-between group/item"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Plus className="w-3 h-3 text-gray-400 group-hover/item:text-purple-500" />
+                            <span className="font-medium text-gray-700 group-hover/item:text-purple-700">{def.name}</span>
+                          </div>
+                          <ChevronRight className="w-3 h-3 text-gray-300 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* SECTION EDITING FORM */}
@@ -1429,6 +1545,113 @@ export default function StoreLiveEditor() {
                                       </div>
                                     )}
                                   </div>
+                                  
+                                  {/* AI ENHANCE BUTTON */}
+                                  {definition.aiSchema?.properties?.[key]?.aiAction === 'enhance' && !section.settings.bindings?.[key] && (
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                          const currentText = value?.toString() || '';
+                                          const fieldType = key; // heading, subheading, etc.
+                                          // Prompt user for keywords or intent
+                                          const userPrompt = prompt("What kind of text do you want? (e.g. 'Catchy', 'Professional', 'For Summer Sale')");
+                                          if (!userPrompt) return;
+
+                                          const toastId = toast.loading("AI is enhancing text...");
+                                          
+                                          fetch('/api/ai/action', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                  action: 'ENHANCE_TEXT',
+                                                  fieldType,
+                                                  currentText,
+                                                  keywords: userPrompt
+                                              })
+                                          })
+                                          .then(res => res.json())
+                                          .then((data: any) => {
+                                              if (data.success && data.data) {
+                                                  // Type Check: Enhance Text should return a string
+                                                  if (typeof data.data !== 'string') {
+                                                      toast.dismiss(toastId);
+                                                      console.error("[AI Error] Expected string, got:", typeof data.data);
+                                                      toast.error("AI returned invalid format. Please try again.");
+                                                      return;
+                                                  }
+                                                  
+                                                  updateSectionSettings(section.id, { [key]: data.data });
+                                                  toast.dismiss(toastId);
+                                                  toast.success("Text enhanced!");
+                                              } else {
+                                                  toast.dismiss(toastId);
+                                                  toast.error(data.error || "Failed to enhance text");
+                                              }
+                                          })
+                                          .catch(() => {
+                                              toast.dismiss(toastId);
+                                              toast.error("Network error");
+                                          });
+                                       }}
+                                       className="absolute right-0 top-0 -mt-1 text-[10px] text-purple-600 hover:text-purple-800 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+                                      >
+                                        <Sparkles className="w-3 h-3" />
+                                        AI Enhance
+                                      </button>
+                                  )}
+
+                                  {/* AI GENERATE ARRAY BUTTON */}
+                                  {definition.aiSchema?.properties?.[key]?.aiAction === 'generate-array' && !section.settings.bindings?.[key] && (
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                          const fieldType = key; // features, faqs, etc.
+                                          // Prompt user for topic
+                                          const userPrompt = prompt(`What kind of ${key} do you want to generate? (e.g. 'For a clothing store', 'Shipping policies')`);
+                                          if (!userPrompt) return;
+
+                                          const toastId = toast.loading(`AI is generating ${key}...`);
+                                          
+                                          fetch('/api/ai/action', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                  action: 'GENERATE_ARRAY',
+                                                  fieldType,
+                                                  keywords: userPrompt,
+                                                  count: 3
+                                              })
+                                          })
+                                          .then(res => res.json())
+                                          .then((data: any) => {
+                                              if (data.success && data.data) {
+                                                  // Type Check: Generate Array should return an array
+                                                  if (!Array.isArray(data.data)) {
+                                                      toast.dismiss(toastId);
+                                                      console.error("[AI Error] Expected array, got:", typeof data.data);
+                                                      toast.error("AI returned invalid format. Please try again.");
+                                                      return;
+                                                  }
+
+                                                  updateSectionSettings(section.id, { [key]: data.data });
+                                                  toast.dismiss(toastId);
+                                                  toast.success(`${key} generated!`);
+                                              } else {
+                                                  toast.dismiss(toastId);
+                                                  toast.error(data.error || "Failed to generate items");
+                                              }
+                                          })
+                                          .catch(() => {
+                                              toast.dismiss(toastId);
+                                              toast.error("Network error");
+                                          });
+                                       }}
+                                       className="absolute right-0 top-0 -mt-1 text-[10px] text-green-600 hover:text-green-800 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+                                      >
+                                        <Wand2 className="w-3 h-3" />
+                                        Generate Items
+                                      </button>
+                                  )}
                                </div>
                              );
                           });
@@ -2101,6 +2324,202 @@ export default function StoreLiveEditor() {
               </div>
             </AccordionSection>
 
+            {/* NEW: Marketing & Sales Section */}
+            <AccordionSection
+              title={language === 'bn' ? 'মার্কেটিং ও সেলস' : 'Marketing & Sales'}
+              icon={Sparkles}
+              isOpen={openSection === 'marketing'}
+              onToggle={() => setOpenSection(openSection === 'marketing' ? '' : 'marketing')}
+            >
+              <div className="space-y-6">
+                {/* Flash Sale Toggle */}
+                <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                       Flash Sale Bar
+                    </label>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={flashSale.isActive}
+                        onChange={(e) => setFlashSale({ ...flashSale, isActive: e.target.checked })}
+                      />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                  </div>
+                  
+                  {flashSale.isActive && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Sale Text</label>
+                        <input
+                          type="text"
+                          value={flashSale.text}
+                          onChange={(e) => setFlashSale({...flashSale, text: e.target.value})}
+                          className="w-full text-xs border border-amber-200 rounded p-1.5"
+                          placeholder="Flash Sale! 50% Off"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Discount %</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={flashSale.discountPercentage || 0}
+                              onChange={(e) => setFlashSale({...flashSale, discountPercentage: parseInt(e.target.value) || 0})}
+                              className="w-full text-xs border border-amber-200 rounded p-1.5 pr-6"
+                            />
+                            <span className="absolute right-2 top-1.5 text-xs text-gray-400">%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+                          <select
+                            value={flashSale.discountType || 'percent'}
+                            onChange={(e) => setFlashSale({...flashSale, discountType: e.target.value as 'percent' | 'fixed'})}
+                            className="w-full text-xs border border-amber-200 rounded p-1.5"
+                          >
+                            <option value="percent">Percent Off</option>
+                            <option value="fixed">Fixed Amount</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                         <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Bg Color</label>
+                            <input
+                              type="color"
+                              value={flashSale.backgroundColor || '#000000'}
+                              onChange={(e) => setFlashSale({...flashSale, backgroundColor: e.target.value})}
+                              className="w-full h-8 rounded border cursor-pointer"
+                            />
+                         </div>
+                         <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Text Color</label>
+                            <input
+                              type="color"
+                              value={flashSale.textColor || '#ffffff'}
+                              onChange={(e) => setFlashSale({...flashSale, textColor: e.target.value})}
+                              className="w-full h-8 rounded border cursor-pointer"
+                            />
+                         </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trust Badges */}
+                <div className="border border-gray-100 rounded-lg p-3">
+                  <h4 className="text-xs font-bold text-gray-900 uppercase mb-3">Trust Badges</h4>
+                  
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded border border-gray-200 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={trustBadges.showPaymentIcons}
+                        onChange={(e) => setTrustBadges({...trustBadges, showPaymentIcons: e.target.checked})}
+                        className="rounded text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">Payment Icons (Visa/Bkash)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded border border-gray-200 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={trustBadges.showGuaranteeSeals}
+                        onChange={(e) => setTrustBadges({...trustBadges, showGuaranteeSeals: e.target.checked})}
+                        className="rounded text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">Guarantee Seals (100% Auth)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Marketing Popup */}
+                <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                       <MessageCircle className="w-4 h-4 text-purple-600" />
+                       Popup Offer
+                    </label>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={marketingPopup.isActive}
+                        onChange={(e) => setMarketingPopup({ ...marketingPopup, isActive: e.target.checked })}
+                      />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                  </div>
+
+                  {marketingPopup.isActive && (
+                    <div className="space-y-3">
+                       <input
+                          type="text"
+                          value={marketingPopup.title}
+                          onChange={(e) => setMarketingPopup({...marketingPopup, title: e.target.value})}
+                          className="w-full text-xs border border-purple-200 rounded p-1.5"
+                          placeholder="Popup Title"
+                        />
+                         <textarea
+                          value={marketingPopup.description}
+                          onChange={(e) => setMarketingPopup({...marketingPopup, description: e.target.value})}
+                          className="w-full text-xs border border-purple-200 rounded p-1.5 resize-none"
+                          rows={2}
+                          placeholder="Popup Description"
+                        />
+                         <input
+                          type="text"
+                          value={marketingPopup.offerCode}
+                          onChange={(e) => setMarketingPopup({...marketingPopup, offerCode: e.target.value})}
+                          className="w-full text-xs border border-purple-200 rounded p-1.5 font-mono"
+                          placeholder="Offer Code (e.g. WELCOME10)"
+                        />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </AccordionSection>
+
+            {/* SEO Settings */}
+            <AccordionSection
+              title="SEO Settings"
+              icon={Search}
+              isOpen={openSection === 'seo'}
+              onToggle={() => setOpenSection(openSection === 'seo' ? '' : 'seo')}
+            >
+              <div className="space-y-3">
+                 <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Meta Title</label>
+                    <input
+                      type="text"
+                      value={seoSettings.metaTitle || ''}
+                      onChange={(e) => setSeoSettings({...seoSettings, metaTitle: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      placeholder="My Awesome Store"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Meta Description</label>
+                    <textarea
+                      value={seoSettings.metaDescription || ''}
+                      onChange={(e) => setSeoSettings({...seoSettings, metaDescription: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+                      rows={3}
+                      placeholder="Shop the best products..."
+                    />
+                 </div>
+              </div>
+            </AccordionSection>
+
             {/* Advanced Section */}
             <AccordionSection
               title="Custom CSS"
@@ -2201,6 +2620,7 @@ export default function StoreLiveEditor() {
         onApplyConfig={handleAIApplyConfig}
         onApplyCommand={handleAICommand}
         storeContext={storeContext}
+        aiCredits={(store as any).aiCredits}
       />
     </div>
   );

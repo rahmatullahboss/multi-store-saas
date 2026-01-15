@@ -26,7 +26,7 @@ import { Link } from '@remix-run/react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Landing Mode Settings - Multi-Store SaaS' }];
+  return [{ title: 'Landing Mode Settings - Ozzyl' }];
 };
 
 // ============================================================================
@@ -48,11 +48,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const store = storeResult[0];
   
-  // Get published products for featured product selector
+  // Get all products for featured product selector
   const storeProducts = await db
     .select({ id: products.id, title: products.title, imageUrl: products.imageUrl, price: products.price })
     .from(products)
-    .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+    .where(eq(products.storeId, storeId))
     .limit(50);
 
   const landingConfig = parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;
@@ -165,7 +165,7 @@ export default function LandingSettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
@@ -319,7 +319,7 @@ export default function LandingSettingsPage() {
                     id="headline"
                     name="headline"
                     defaultValue={store.landingConfig.headline}
-                    placeholder="Transform Your Life Today"
+                    placeholder={String(t('mainHeadline'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
@@ -333,7 +333,7 @@ export default function LandingSettingsPage() {
                     id="subheadline"
                     name="subheadline"
                     defaultValue={store.landingConfig.subheadline || ''}
-                    placeholder="The only solution you'll ever need"
+                    placeholder={String(t('subheadline'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
@@ -420,7 +420,7 @@ export default function LandingSettingsPage() {
                     id="ctaText"
                     name="ctaText"
                     defaultValue={store.landingConfig.ctaText}
-                    placeholder="Buy Now"
+                    placeholder={String(t('buttonText'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>
@@ -434,7 +434,7 @@ export default function LandingSettingsPage() {
                     id="ctaSubtext"
                     name="ctaSubtext"
                     defaultValue={store.landingConfig.ctaSubtext || ''}
-                    placeholder="30-day money back guarantee"
+                    placeholder={String(t('buttonSubtext'))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
                 </div>

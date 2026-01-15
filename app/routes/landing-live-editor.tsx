@@ -20,11 +20,11 @@ import {
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, Code2, AlertCircle
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, AlertCircle, Code
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 import { 
@@ -36,6 +36,8 @@ import {
 } from '~/components/landing-builder';
 import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
 import { getTemplateComponent } from '~/templates/registry';
+import { designCustomSection, callAIWithSystemPrompt } from '~/services/ai.server';
+import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
 
 // Default features
 const DEFAULT_FEATURES_EN = [
@@ -88,7 +90,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       price: products.price 
     })
     .from(products)
-    .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+    .where(eq(products.storeId, storeId))
     .limit(50);
 
   // Load draft config if exists, otherwise fall back to published config
@@ -99,7 +101,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Check if there are unpublished changes
   const hasUnpublishedChanges = !!draftConfig && JSON.stringify(draftConfig) !== JSON.stringify(publishedConfig);
   
-  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
 
   return json({
     store: {
@@ -110,6 +112,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       featuredProductId: store.featuredProductId,
       landingConfig,
       hasUnpublishedChanges,
+      aiCredits: store.aiCredits || 0,
     },
     products: storeProducts,
     saasDomain,
@@ -130,6 +133,67 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   // Check intent: 'save_draft' (auto-save) or 'publish' (go live)
   const intent = formData.get('intent') as string || 'save_draft';
+
+  // ==========================================================================
+  // INTENT: AI GENERATION
+  // ==========================================================================
+  if (intent === 'GENERATE_CUSTOM_SECTION') {
+    const prompt = formData.get('prompt') as string;
+    const sectionIndex = parseInt(formData.get('sectionIndex') as string);
+    const currentHtml = formData.get('currentHtml') as string || '';
+    const position = formData.get('position') as string || 'after-hero';
+    
+    if (!prompt) return json({ error: 'Prompt is required' }, { status: 400 });
+
+    // Check credits first
+    const creditCost = CREDIT_COSTS.DESIGN_CUSTOM_SECTION;
+    const creditCheck = await checkCredits(db, storeId, creditCost);
+    if (!creditCheck.allowed) {
+      return json({ 
+        error: 'Insufficient credits', 
+        needsRecharge: true,
+        currentBalance: creditCheck.currentBalance,
+        required: creditCost
+      }, { status: 402 });
+    }
+
+    try {
+      const apiKey = context.cloudflare.env.OPENROUTER_API_KEY;
+      if (!apiKey) return json({ error: 'AI API Key not configured' }, { status: 500 });
+
+      // Fetch product info if featuredProductId is available
+      const featuredProductId = formData.get('featuredProductId') as string;
+      let productInfo = null;
+      if (featuredProductId) {
+        const productResult = await db
+          .select()
+          .from(products)
+          .where(eq(products.id, parseInt(featuredProductId)))
+          .limit(1);
+        
+        if (productResult[0]) {
+          productInfo = {
+            title: productResult[0].title,
+            description: productResult[0].description || undefined,
+            price: productResult[0].price
+          };
+        }
+      }
+
+      const result = await designCustomSection(apiKey, prompt, currentHtml, productInfo);
+      
+      // Deduct credits after successful generation
+      await deductCredits(db, storeId, creditCost, 'Custom Section AI Generation', {
+        prompt,
+        position,
+      });
+      
+      return json({ success: true, data: result, sectionIndex, position });
+    } catch (error: any) {
+      console.error('[AI] Custom Section Generation Error:', error);
+      return json({ error: error.message || 'AI generation failed' }, { status: 500 });
+    }
+  }
 
   function safeJSONParse<T>(str: string | null, fallback: T): T {
     if (!str) return fallback;
@@ -194,8 +258,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const customCSS = formData.get('customCSS') as string || '';
   const fontFamily = formData.get('fontFamily') as string || 'inter';
   const landingLanguage = formData.get('landingLanguage') as 'bn' | 'en' || 'bn';
+  
+  // New section data
+  const trustBadges = JSON.parse(formData.get('trustBadges') as string || '[]');
+  const deliveryInfo = JSON.parse(formData.get('deliveryInfo') as string || '{"title":"","description":"","areas":[]}');
+  const customSections = JSON.parse(formData.get('customSections') as string || '[]');
+  const problemSolution = JSON.parse(formData.get('problemSolution') as string || '{"problems":[],"solutions":[]}');
+  const pricingData = JSON.parse(formData.get('pricingData') as string || '{"features":[]}');
+  const showcaseData = JSON.parse(formData.get('showcaseData') as string || '{"features":[]}');
+  const howToOrderData = JSON.parse(formData.get('howToOrderData') as string || '{"steps":[]}');
+  
+  // Custom code injection (for FB Pixel, Google Analytics, etc.)
+  const customHeadCode = formData.get('customHeadCode') as string || '';
+  const customBodyCode = formData.get('customBodyCode') as string || '';
 
-  const newConfig: LandingConfig = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const newConfig: LandingConfig & Record<string, any> = {
     templateId,
     headline: headline || 'Transform Your Life Today',
     subheadline: subheadline || '',
@@ -235,8 +313,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
     socialProof: socialProofData.count > 0 || socialProofData.text ? socialProofData : undefined,
     // Order form layout
     orderFormVariant,
+    // Trust badges, delivery, custom sections
+    trustBadges: trustBadges.filter((b: {icon: string; text: string}) => b.icon || b.text),
+    deliveryInfo: deliveryInfo.title || deliveryInfo.description ? deliveryInfo : undefined,
+    customSections: customSections.filter((s: {id: string; html: string}) => s.html),
+    // Problem & Solution section
+    problemSolution: problemSolution.problems?.length > 0 || problemSolution.solutions?.length > 0 ? problemSolution : undefined,
+    pricingData: pricingData.features?.length > 0 ? pricingData : undefined,
+    showcaseData: showcaseData.features?.length > 0 ? showcaseData : undefined,
+    howToOrderData: howToOrderData.steps?.length > 0 ? howToOrderData : undefined,
     // Custom CSS
     customCSS: customCSS || undefined,
+    // Custom code injection
+    customHeadCode: customHeadCode || undefined,
+    customBodyCode: customBodyCode || undefined,
     // Font Family
     fontFamily,
     // Landing Language
@@ -409,6 +499,76 @@ export default function LiveEditorPage() {
     store.landingConfig.orderFormVariant || 'full-width'
   );
 
+  // Trust Badges (new)
+  const [trustBadges, setTrustBadges] = useState<Array<{ icon: string; text: string }>>(
+    (store.landingConfig as any).trustBadges || []
+  );
+
+  // Delivery Info (new)
+  const [deliveryInfo, setDeliveryInfo] = useState<{ title: string; description: string; areas?: string[] }>(
+    (store.landingConfig as any).deliveryInfo || { title: '', description: '', areas: [] }
+  );
+
+  // Custom Sections (with position support)
+  const [customSections, setCustomSections] = useState<Array<{ id: string; name: string; html: string; css?: string; position?: string }>>(
+    ((store.landingConfig as any).customSections || []).map((s: any) => ({
+      ...s,
+      position: s.position || 'after-hero'
+    }))
+  );
+
+  // Problem & Solution section data
+  const [problemSolution, setProblemSolution] = useState<{ problems: string[]; solutions: string[] }>(
+    (store.landingConfig as any).problemSolution || { problems: [], solutions: [] }
+  );
+
+  // Pricing Section Data
+  const [pricingData, setPricingData] = useState<{ features: string[] }>(
+    (store.landingConfig as any).pricingData || { 
+      features: [
+        'প্রিমিয়াম প্রোডাক্ট (১ পিস)',
+        'ফ্রি গিফট আইটেম',
+        'প্রিমিয়াম প্যাকেজিং',
+        'ঢাকায় ফ্রি ডেলিভারি',
+        '১ বছর ওয়ারেন্টি',
+        '৭ দিনে রিটার্ন গ্যারান্টি'
+      ] 
+    }
+  );
+
+  // Showcase Section Data
+  const [showcaseData, setShowcaseData] = useState<{ features: string[] }>(
+     (store.landingConfig as any).showcaseData || {
+       features: [
+         'প্রিমিয়াম কোয়ালিটি ম্যাটেরিয়াল',
+         'দীর্ঘ স্থায়িত্ব ও টেকসই ডিজাইন',
+         'ব্যবহার করা সহজ',
+         '১ বছরের ওয়ারেন্টি',
+         'ফ্রি গাইডলাইন ভিডিও'
+       ]
+     }
+  );
+
+  // How to Order Section Data
+  const [howToOrderData, setHowToOrderData] = useState<{ steps: Array<{ title: string; description: string }> }>(
+    (store.landingConfig as any).howToOrderData || {
+      steps: [
+        { title: "ফর্ম পূরণ করুন", description: "উপরের অর্ডার ফর্মে আপনার নাম, ফোন ও ঠিকানা দিন" },
+        { title: "কল কনফার্মেশন", description: "আমাদের টিম আপনাকে কল করে অর্ডার কনফার্ম করবে" },
+        { title: "দ্রুত ডেলিভারি", description: "ঢাকায় ২৪ ঘণ্টায়, সারাদেশে ৩-৫ দিনে ডেলিভারি" },
+        { title: "টাকা দিন", description: "প্রোডাক্ট হাতে পেয়ে চেক করে টাকা দিন" }
+      ]
+    }
+  );
+
+  // Custom Code Injection (FB Pixel, Google Analytics, etc.)
+  const [customHeadCode, setCustomHeadCode] = useState<string>(
+    (store.landingConfig as any).customHeadCode || ''
+  );
+  const [customBodyCode, setCustomBodyCode] = useState<string>(
+    (store.landingConfig as any).customBodyCode || ''
+  );
+
   // Landing Page Language (for visitor default view)
   const [landingLanguage, setLandingLanguage] = useState<'bn' | 'en'>(
     store.landingConfig.landingLanguage || 'bn'
@@ -441,10 +601,85 @@ export default function LiveEditorPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
 
+  // Generic Image Upload Handler (for new sections)
+  const handleImageUpload = useCallback(async (file: File): Promise<string> => {
+    try {
+      // 1. Client-side compression
+      const compressedFile = await compressImage(file, {
+        maxWidth: 1200,
+        quality: 0.8,
+        format: 'webp' // Convert to WebP for better performance
+      });
+
+      // 2. Upload to R2 via API
+      const formData = new FormData();
+      formData.append('image', compressedFile);
+      
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json<{ success: boolean; url: string; error?: string }>();
+      
+      if (!data.success || !data.url) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      return data.url;
+    } catch (error) {
+      console.error('Image upload error:', error);
+      // Fallback: return object URL if upload fails (for offline testing) or throw
+      throw error;
+    }
+  }, []);
+
   // ============================================================================
   // AI GENERATOR MODAL STATE
   // ============================================================================
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  
+  // AI Custom Section Generation
+  const [aiPromptIndex, setAiPromptIndex] = useState<number | null>(null);
+  const [aiPromptText, setAiPromptText] = useState('');
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const aiSectionFetcher = useFetcher<{ success?: boolean; data?: { html: string; css?: string }; sectionIndex?: number; error?: string }>();
+  
+  // Handle AI section generation response
+  useEffect(() => {
+    if (aiSectionFetcher.state === 'idle' && aiSectionFetcher.data?.success && aiSectionFetcher.data.data) {
+      const { html, css } = aiSectionFetcher.data.data;
+      const sectionIndex = aiSectionFetcher.data.sectionIndex;
+      if (typeof sectionIndex === 'number') {
+        const newSections = [...customSections];
+        newSections[sectionIndex].html = html;
+        newSections[sectionIndex].css = css || '';
+        setCustomSections(newSections);
+      }
+      setAiPromptIndex(null);
+      setAiPromptText('');
+      setIsAiGenerating(false);
+    } else if (aiSectionFetcher.state === 'idle' && aiSectionFetcher.data?.error) {
+      setIsAiGenerating(false);
+      // Optionally show toast
+    }
+  }, [aiSectionFetcher.state, aiSectionFetcher.data, customSections]);
+  
+  const handleAiGenerate = (index: number) => {
+    if (!aiPromptText.trim()) return;
+    setIsAiGenerating(true);
+    const formData = new FormData();
+    formData.append('intent', 'GENERATE_CUSTOM_SECTION');
+    formData.append('prompt', aiPromptText);
+    formData.append('sectionIndex', String(index));
+    formData.append('currentHtml', customSections[index]?.html || '');
+    formData.append('featuredProductId', featuredProductId);
+    aiSectionFetcher.submit(formData, { method: 'post' });
+  };
   
   // Handle AI generation response
   useEffect(() => {
@@ -613,7 +848,41 @@ export default function LiveEditorPage() {
     }
     setHasChanges(true);
     setHasUnpublishedChanges(true);
-  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage]);
+  }, [templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, problemSolution, pricingData, showcaseData, howToOrderData]);
+
+  // Auto-populate data when product changes
+  useEffect(() => {
+    if (!featuredProductId || !storeProducts.length) return;
+    
+    const product = storeProducts.find(p => p.id === parseInt(featuredProductId));
+    if (!product) return;
+
+    // Only update if fields are empty or user explicitly wants to reset (could add a button for "Reset to Product Data" later)
+    // For now, we update if it looks like the user just switched products and fields are generic or empty
+    
+    // We use a ref to track if this is the initial load vs a user change
+    // But since we want "Smart" behavior:
+    
+    if (!headline || headline === 'Transform Your Life Today') {
+      setHeadline(product.title);
+    }
+    
+    if (!galleryImages || galleryImages.length === 0) {
+      if (product.imageUrl) {
+        setGalleryImages([product.imageUrl]);
+      }
+    }
+    
+    // Optional: Set subheadline to description if empty
+    /*
+    if (!subheadline && product.description) {
+       // Strip HTML if needed, or just take first 100 chars
+       const plainText = product.description.replace(/<[^>]+>/g, '');
+       setSubheadline(plainText.substring(0, 150) + (plainText.length > 150 ? '...' : ''));
+    }
+    */
+    
+  }, [featuredProductId, storeProducts]);
 
   // ============================================================================
   // DEBOUNCED AUTO-SAVE (2 seconds after last change)
@@ -676,6 +945,18 @@ export default function LiveEditorPage() {
       formData.append('customCSS', customCSS);
       formData.append('fontFamily', fontFamily);
       formData.append('landingLanguage', landingLanguage);
+      // New section data
+      formData.append('trustBadges', JSON.stringify(trustBadges));
+      formData.append('deliveryInfo', JSON.stringify(deliveryInfo));
+      formData.append('customSections', JSON.stringify(customSections));
+      // Problem-Solution, Pricing, Showcase, HowToOrder section data
+      formData.append('problemSolution', JSON.stringify(problemSolution));
+      formData.append('pricingData', JSON.stringify(pricingData));
+      formData.append('showcaseData', JSON.stringify(showcaseData));
+      formData.append('howToOrderData', JSON.stringify(howToOrderData));
+      // Custom code injection
+      formData.append('customHeadCode', customHeadCode);
+      formData.append('customBodyCode', customBodyCode);
       
       autoSaveFetcher.submit(formData, { method: 'post' });
     }, 2000); // 2 seconds debounce
@@ -685,7 +966,7 @@ export default function LiveEditorPage() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, autoSaveFetcher]);
+  }, [hasChanges, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText, features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, storeMode, galleryImages, benefits, comparison, socialProof, orderFormVariant, customCSS, fontFamily, landingLanguage, trustBadges, deliveryInfo, customSections, customHeadCode, customBodyCode, problemSolution, pricingData, showcaseData, howToOrderData, autoSaveFetcher]);
 
   // Handle auto-save response
   useEffect(() => {
@@ -852,8 +1133,9 @@ export default function LiveEditorPage() {
   // Get selected template info
   const selectedTemplate = LANDING_TEMPLATES.find(t => t.id === templateId);
 
-  // Build live preview config
-  const previewConfig: LandingConfig = {
+  // Build live preview config - MEMOIZED to prevent flickering
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const previewConfig: LandingConfig & Record<string, any> = useMemo(() => ({
     templateId,
     headline: headline || 'Your Amazing Headline',
     subheadline: subheadline || '',
@@ -887,9 +1169,29 @@ export default function LiveEditorPage() {
     socialProof,
     // Order form layout
     orderFormVariant,
+    // Trust badges, delivery, custom sections
+    trustBadges,
+    deliveryInfo,
+    customSections: customSections as any,
+    // Custom code injection
+    customHeadCode,
+    customBodyCode,
     // Landing language
     landingLanguage,
-  };
+    // Quick Start sections (NEW)
+    problemSolution,
+    pricingData,
+    showcaseData,
+    howToOrderData,
+  }), [
+    templateId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, guaranteeText,
+    features, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage,
+    callEnabled, callNumber, testimonials, faq, countdownEnabled, countdownEndTime, showStockCounter,
+    lowStockThreshold, showSocialProof, socialProofInterval, primaryColor, accentColor,
+    galleryImages, benefits, comparison, socialProof, orderFormVariant, trustBadges, deliveryInfo,
+    customSections, customHeadCode, customBodyCode, landingLanguage,
+    problemSolution, pricingData, showcaseData, howToOrderData
+  ]);
 
   // Mock product for preview
   const selectedProduct = storeProducts.find(p => p.id === parseInt(featuredProductId));
@@ -923,16 +1225,34 @@ export default function LiveEditorPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeReady, setIframeReady] = useState(false);
 
-  // Listen for iframe ready signal
+  // Listen for iframe ready signal and ADD_CUSTOM_SECTION messages
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'PREVIEW_FRAME_READY') {
         setIframeReady(true);
       }
+      
+      // Handle add custom section from canvas
+      if (event.data && event.data.type === 'ADD_CUSTOM_SECTION') {
+        const position = event.data.position || 'after-hero';
+        // Create a new custom section with the specified position
+        const newSection = {
+          id: `custom-${Date.now()}`,
+          name: language === 'bn' ? 'নতুন কাস্টম সেকশন' : 'New Custom Section',
+          html: '',
+          css: '',
+          position,
+        };
+        setCustomSections([...customSections, newSection]);
+        // Open the custom design accordion
+        setOpenSection('customhtml');
+        // Auto-focus the new section's prompt
+        setAiPromptIndex(customSections.length);
+      }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [customSections, language]);
 
   // Send config updates to iframe whenever config changes
   useEffect(() => {
@@ -948,22 +1268,6 @@ export default function LiveEditorPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
-      {/* DEPRECATION BANNER */}
-      <div className="bg-amber-600 text-white px-4 py-2 flex items-center justify-between shadow-md z-50">
-        <div className="flex items-center gap-2 text-sm">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <p>
-            <span className="font-bold">Legacy Editor:</span> This editor is deprecated. Use the new <Link to="/app/page-builder" className="underline font-black hover:text-white/80">Landing Page Editor</Link> for better features.
-          </p>
-        </div>
-        <Link 
-          to="/app/page-builder" 
-          className="bg-white text-amber-700 px-3 py-1 rounded text-xs font-black hover:bg-amber-50 transition ml-4 whitespace-nowrap"
-        >
-          GO TO NEW EDITOR
-        </Link>
-      </div>
-
       {/* Header */}
       <header className="bg-white border-b border-gray-200 flex-shrink-0 z-20">
         <div className="px-4 h-14 flex items-center justify-between">
@@ -1125,6 +1429,13 @@ export default function LiveEditorPage() {
               <input type="hidden" name="customCSS" value={customCSS} />
               <input type="hidden" name="fontFamily" value={fontFamily} />
               <input type="hidden" name="landingLanguage" value={landingLanguage} />
+              <input type="hidden" name="problemSolution" value={JSON.stringify(problemSolution)} />
+              <input type="hidden" name="trustBadges" value={JSON.stringify(trustBadges)} />
+              <input type="hidden" name="pricingData" value={JSON.stringify(pricingData)} />
+              <input type="hidden" name="showcaseData" value={JSON.stringify(showcaseData)} />
+              <input type="hidden" name="howToOrderData" value={JSON.stringify(howToOrderData)} />
+              <input type="hidden" name="deliveryInfo" value={JSON.stringify(deliveryInfo)} />
+              <input type="hidden" name="customSections" value={JSON.stringify(customSections)} />
               
               <button
                 type="submit"
@@ -1300,10 +1611,24 @@ export default function LiveEditorPage() {
                   onChange={(e) => setFontFamily(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="inter">Inter (Modern)</option>
-                  <option value="roboto">Roboto (Clean)</option>
-                  <option value="hind-siliguri">Hind Siliguri (Bengali)</option>
-                  <option value="tirobi">Tiro Bangla</option>
+                  <optgroup label={language === 'bn' ? 'বাংলা ফন্ট' : 'Bengali Fonts'}>
+                    <option value="hind-siliguri">Hind Siliguri</option>
+                    <option value="noto-sans-bengali">Noto Sans Bengali</option>
+                    <option value="noto-serif-bengali">Noto Serif Bengali</option>
+                    <option value="baloo-da">Baloo Da 2</option>
+                    <option value="tiro-bangla">Tiro Bangla</option>
+                    <option value="anek-bangla">Anek Bangla</option>
+                  </optgroup>
+                  <optgroup label={language === 'bn' ? 'ইংরেজি ফন্ট' : 'English Fonts'}>
+                    <option value="inter">Inter (Modern)</option>
+                    <option value="roboto">Roboto (Clean)</option>
+                    <option value="poppins">Poppins</option>
+                    <option value="montserrat">Montserrat</option>
+                    <option value="playfair">Playfair Display</option>
+                    <option value="lato">Lato</option>
+                    <option value="open-sans">Open Sans</option>
+                    <option value="nunito">Nunito</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
@@ -1383,6 +1708,20 @@ export default function LiveEditorPage() {
                   setHiddenSections([...hiddenSections, sectionId]);
                 }
               }}
+              // Hero section
+              headline={headline}
+              onHeadlineChange={setHeadline}
+              subheadline={subheadline}
+              onSubheadlineChange={setSubheadline}
+              ctaText={ctaText}
+              onCtaTextChange={setCtaText}
+              // Trust badges
+              trustBadges={trustBadges}
+              onTrustBadgesChange={setTrustBadges}
+              // Delivery info
+              deliveryInfo={deliveryInfo}
+              onDeliveryInfoChange={setDeliveryInfo}
+              // Features
               features={features}
               onFeaturesChange={setFeatures}
               faq={faq}
@@ -1406,6 +1745,21 @@ export default function LiveEditorPage() {
               onSocialProofChange={setSocialProof}
               orderFormVariant={orderFormVariant}
               onOrderFormVariantChange={setOrderFormVariant}
+              // Custom code sections
+              customSections={customSections}
+              onCustomSectionsChange={setCustomSections}
+              // Problem & Solution section
+              problemSolution={problemSolution}
+              onProblemSolutionChange={setProblemSolution}
+              // New Section Data
+              pricingData={pricingData}
+              onPricingDataChange={setPricingData}
+              showcaseData={showcaseData}
+              onShowcaseDataChange={setShowcaseData}
+              howToOrderData={howToOrderData}
+              onHowToOrderDataChange={setHowToOrderData}
+              // Generic Image Upload
+              onImageUpload={handleImageUpload}
             />
           </AccordionSection>
 
@@ -1450,6 +1804,16 @@ export default function LiveEditorPage() {
                 />
                 <span className="text-sm text-gray-700">Call Button</span>
               </label>
+
+              {callEnabled && (
+                <input
+                  type="text"
+                  value={callNumber}
+                  onChange={(e) => setCallNumber(e.target.value)}
+                  placeholder="01XXXXXXXXX"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              )}
             </div>
           </AccordionSection>
 
@@ -1507,30 +1871,173 @@ export default function LiveEditorPage() {
             </div>
           </AccordionSection>
 
-          {/* Group 4: Advanced */}
+          {/* Custom HTML/CSS Section - Outside Section Manager */}
           <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 uppercase tracking-wider text-[10px] font-bold text-gray-500 mt-2">
-            {language === 'bn' ? 'অ্যাডভান্সড' : 'Advanced'}
+            {language === 'bn' ? 'কাস্টম ডিজাইন' : 'Custom Design'}
           </div>
 
           <AccordionSection
-            title={language === 'bn' ? 'কাস্টম কোড' : 'Custom Code'}
-            icon={Code2}
-            isOpen={openSection === 'advanced'}
-            onToggle={() => setOpenSection(openSection === 'advanced' ? '' : 'advanced')}
+            title={language === 'bn' ? 'কাস্টম HTML/CSS' : 'Custom HTML/CSS'}
+            icon={Code}
+            isOpen={openSection === 'customhtml'}
+            onToggle={() => setOpenSection(openSection === 'customhtml' ? '' : 'customhtml')}
           >
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Custom CSS
-                </label>
-                <textarea
-                  value={customCSS}
-                  onChange={(e) => setCustomCSS(e.target.value)}
-                  rows={5}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
-                  placeholder=".my-class { color: red; }"
-                />
-              </div>
+              <p className="text-xs text-gray-500">
+                {language === 'bn' 
+                  ? 'কাস্টম HTML ও CSS একসাথে পেস্ট করুন। এটি সঠিক পজিশনে দেখাবে।' 
+                  : 'Paste HTML and CSS together. It will render at the selected position.'}
+              </p>
+              
+              {customSections.length === 0 && (
+                <div className="text-center py-6 text-gray-500 text-sm bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                  <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p className="mb-1">
+                    {language === 'bn' ? 'কোনো কাস্টম ডিজাইন নেই' : 'No custom designs yet'}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {language === 'bn' ? 'নিচের বাটনে ক্লিক করে যোগ করুন' : 'Click the button below to add'}
+                  </p>
+                </div>
+              )}
+
+              {customSections.map((section, index) => (
+                <div key={section.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <input
+                      type="text"
+                      value={section.name}
+                      onChange={(e) => {
+                        const newSections = [...customSections];
+                        newSections[index].name = e.target.value;
+                        setCustomSections(newSections);
+                      }}
+                      placeholder={language === 'bn' ? 'সেকশনের নাম' : 'Section name'}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCustomSections(customSections.filter((_, i) => i !== index))}
+                      className="ml-2 p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Position Selector */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      {language === 'bn' ? 'পজিশন (কোথায় দেখাবে)' : 'Position'}
+                    </label>
+                    <select
+                      value={(section as any).position || 'after-hero'}
+                      onChange={(e) => {
+                        const newSections = [...customSections];
+                        (newSections[index] as any).position = e.target.value;
+                        setCustomSections(newSections);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                    >
+                      <option value="before-hero">{language === 'bn' ? 'Hero এর আগে' : 'Before Hero'}</option>
+                      <option value="after-hero">{language === 'bn' ? 'Hero এর পরে' : 'After Hero'}</option>
+                      <option value="before-features">{language === 'bn' ? 'Features এর আগে' : 'Before Features'}</option>
+                      <option value="after-features">{language === 'bn' ? 'Features এর পরে' : 'After Features'}</option>
+                      <option value="before-testimonials">{language === 'bn' ? 'Testimonials এর আগে' : 'Before Testimonials'}</option>
+                      <option value="after-testimonials">{language === 'bn' ? 'Testimonials এর পরে' : 'After Testimonials'}</option>
+                      <option value="before-form">{language === 'bn' ? 'অর্ডার ফর্ম এর আগে' : 'Before Order Form'}</option>
+                      <option value="after-form">{language === 'bn' ? 'অর্ডার ফর্ম এর পরে' : 'After Order Form'}</option>
+                      <option value="before-footer">{language === 'bn' ? 'Footer এর আগে' : 'Before Footer'}</option>
+                    </select>
+                  </div>
+                  
+                  {/* Combined HTML+CSS Textarea */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-gray-700">
+                        {language === 'bn' ? 'HTML + CSS কোড' : 'HTML + CSS Code'}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (aiPromptIndex === index) setAiPromptIndex(null);
+                          else { setAiPromptIndex(index); setAiPromptText(''); }
+                        }}
+                        className="text-xs text-violet-600 hover:text-violet-700 flex items-center gap-1 font-medium"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        {language === 'bn' ? 'AI দিয়ে তৈরি করুন' : 'Generate with AI'}
+                      </button>
+                    </div>
+                    
+                    {/* AI Prompt Input (inline, collapsible) */}
+                    {aiPromptIndex === index && (
+                      <div className="mb-2 p-3 bg-violet-50 rounded-lg border border-violet-200 space-y-2">
+                        <input
+                          type="text"
+                          value={aiPromptText}
+                          onChange={(e) => setAiPromptText(e.target.value)}
+                          placeholder={language === 'bn' ? 'বর্ণনা দিন (যেমন: ডেলিভারি টাইমলাইন সেকশন)' : 'Describe the section (e.g., delivery timeline section)'}
+                          className="w-full px-3 py-2 border border-violet-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-400 outline-none"
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleAiGenerate(index); }}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button type="button" onClick={() => setAiPromptIndex(null)} className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+                          <button
+                            type="button"
+                            onClick={() => handleAiGenerate(index)}
+                            disabled={isAiGenerating || !aiPromptText.trim()}
+                            className="px-4 py-1.5 bg-violet-600 text-white text-xs font-medium rounded-lg hover:bg-violet-700 disabled:opacity-50 flex items-center gap-1"
+                          >
+                            {isAiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                            {language === 'bn' ? 'জেনারেট' : 'Generate'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <textarea
+                      value={section.css ? `<style>${section.css}</style>\n${section.html}` : section.html}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const newSections = [...customSections];
+                        // Parse style tag if present
+                        const styleMatch = value.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                        if (styleMatch) {
+                          newSections[index].css = styleMatch[1].trim();
+                          newSections[index].html = value.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').trim();
+                        } else {
+                          newSections[index].css = '';
+                          newSections[index].html = value;
+                        }
+                        setCustomSections(newSections);
+                      }}
+                      placeholder={language === 'bn' 
+                        ? '<style>\n  .my-class { color: red; }\n</style>\n\n<div class="my-class">আপনার কোড</div>' 
+                        : '<style>\n  .my-class { color: red; }\n</style>\n\n<div class="my-class">Your code</div>'}
+                      rows={10}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono bg-white"
+                    />
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const newSection = {
+                    id: `custom-${Date.now()}`,
+                    name: language === 'bn' ? 'নতুন কাস্টম ডিজাইন' : 'New Custom Design',
+                    html: '',
+                    css: '',
+                    position: 'after-hero',
+                  };
+                  setCustomSections([...customSections, newSection]);
+                }}
+                className="w-full py-3 border-2 border-dashed border-emerald-300 rounded-lg text-sm text-emerald-600 hover:border-emerald-500 hover:bg-emerald-50 flex items-center justify-center gap-2 transition"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? '+ কাস্টম ডিজাইন যোগ করুন' : '+ Add Custom Design'}
+              </button>
             </div>
           </AccordionSection>
         </aside>

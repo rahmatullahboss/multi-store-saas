@@ -334,7 +334,7 @@ export function AIShowcaseSection() {
                                   </p>
                                </div>
                                <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
-                                  <p className="text-white/50 text-sm mb-1">Visitors</p>
+                                  <p className="text-white/50 text-sm mb-1">{t('landingShowcase_merchant_visitors')}</p>
                                   <h4 className="text-2xl font-bold text-white">1,247</h4>
                                </div>
                             </div>

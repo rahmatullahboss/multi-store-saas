@@ -12,6 +12,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { X, Check, Sparkles, Facebook, Code, FileSpreadsheet, DollarSign, HelpCircle, Palette, Rocket, PartyPopper, ArrowRight, ChevronRight } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -219,6 +220,7 @@ export function ProblemSolutionSection() {
   const isInView = useInView(sectionRef, { once: true, margin: '-10%' });
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const { t } = useTranslation();
 
   // Animate steps sequentially when in view
   useEffect(() => {
@@ -236,17 +238,17 @@ export function ProblemSolutionSection() {
   }, [isInView]);
 
   const painPoints = [
-    { icon: Facebook, text: 'Facebook এ Post করে করে ক্লান্ত' },
-    { icon: Code, text: 'Developer এর পেছনে দৌড়ানো' },
-    { icon: FileSpreadsheet, text: 'Excel এ Order Track করা' },
-    { icon: DollarSign, text: 'Shopify র মাসে ৫০০০+ টাকা' },
-    { icon: HelpCircle, text: 'ইংরেজি Platform এ বুঝতে না পারা' },
+    { icon: Facebook, text: t('problemPain1') },
+    { icon: Code, text: t('problemPain2') },
+    { icon: FileSpreadsheet, text: t('problemPain3') },
+    { icon: DollarSign, text: t('problemPain4') },
+    { icon: HelpCircle, text: t('problemPain5') },
   ];
 
   const steps = [
-    { number: '১', text: 'Template বাছুন' },
-    { number: '২', text: 'Content দিন' },
-    { number: '৩', text: 'Publish করুন' },
+    { number: '1', text: t('problemStep1') },
+    { number: '2', text: t('problemStep2') },
+    { number: '3', text: t('problemStep3') },
   ];
 
   return (
@@ -268,9 +270,9 @@ export function ProblemSolutionSection() {
           className="text-2xl md:text-4xl font-bold text-white mb-3"
           style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
         >
-          কেন <span className="text-red-400">কষ্ট</span> করবেন, যখন আছে{' '}
+          {t('problemHeaderTitle1')} <span className="text-red-400">{t('problemHeaderTitle2')}</span> {t('problemHeaderTitle3')}{' '}
           <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(135deg, #10B981, #34D399)' }}>
-            সহজ উপায়?
+            {t('problemHeaderTitle4')}
           </span>
         </h2>
       </motion.div>
@@ -313,9 +315,9 @@ export function ProblemSolutionSection() {
                   className="text-xl md:text-2xl font-bold text-white"
                   style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
                 >
-                  এখনো এভাবে{' '}
-                  <span style={{ color: COLORS.problem.accent }}>কষ্ট</span>{' '}
-                  করছেন?
+                  {t('problemLeftTitle1')}{' '}
+                  <span style={{ color: COLORS.problem.accent }}>{t('problemLeftTitle2')}</span>{' '}
+                  {t('problemLeftTitle3')}
                 </h3>
               </div>
 
@@ -406,12 +408,12 @@ export function ProblemSolutionSection() {
                   className="text-xl md:text-2xl font-bold text-white"
                   style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
                 >
-                  এখন সব{' '}
+                  {t('problemRightTitle1')}{' '}
                   <span 
                     className="bg-clip-text text-transparent"
                     style={{ backgroundImage: `linear-gradient(135deg, ${COLORS.solution.accent}, ${COLORS.solution.accentLight})` }}
                   >
-                    সহজ
+                    {t('problemRightTitle2')}
                   </span>
                 </h3>
               </div>
@@ -448,7 +450,7 @@ export function ProblemSolutionSection() {
                       fontFamily: "'Noto Sans Bengali', sans-serif",
                     }}
                   >
-                    আপনার Store Ready!
+                    {t('problemSuccess')}
                   </span>
                   <span className="text-xl">🎉</span>
                 </div>
@@ -458,15 +460,15 @@ export function ProblemSolutionSection() {
               <div className="flex flex-wrap gap-2 mt-4">
                 <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
                   <Sparkles className="w-3 h-3" style={{ color: COLORS.solution.accent }} />
-                  <span className="text-white/60">সব কিছু বাংলায়</span>
+                  <span className="text-white/60">{t('problemTag1')}</span>
                 </span>
                 <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
                   <Palette className="w-3 h-3" style={{ color: COLORS.solution.accent }} />
-                  <span className="text-white/60">Live Preview</span>
+                  <span className="text-white/60">{t('problemTag2')}</span>
                 </span>
                 <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
                   <Rocket className="w-3 h-3" style={{ color: COLORS.solution.accent }} />
-                  <span className="text-white/60">ফ্রিতে শুরু</span>
+                  <span className="text-white/60">{t('problemTag3')}</span>
                 </span>
               </div>
             </div>

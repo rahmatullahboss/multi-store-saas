@@ -47,19 +47,19 @@ export function CartSummarySection({ settings, theme, currency = 'BDT' }: CartSu
               console.log('[Tracking] InitiateCheckout event fired');
             }}
           >
-            {t('proceedToCheckout')}
+            {settings.checkoutText || t('proceedToCheckout')}
           </Link>
           
           {/* Trust Badges */}
           <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
             <p className="text-xs text-gray-500 flex items-center gap-2">
-              🔒 Secure checkout
+              {settings.trustText1 || '🔒 Secure checkout'}
             </p>
             <p className="text-xs text-gray-500 flex items-center gap-2">
-              🚚 Fast delivery
+              {settings.trustText2 || '🚚 Fast delivery'}
             </p>
             <p className="text-xs text-gray-500 flex items-center gap-2">
-              ↩️ Easy returns
+              {settings.trustText3 || '↩️ Easy returns'}
             </p>
           </div>
         </div>

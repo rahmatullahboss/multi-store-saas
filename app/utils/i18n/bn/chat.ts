@@ -42,7 +42,7 @@ export const chat = {
   chatWidget_errorConnection: 'AI সার্ভিসের সাথে কানেক্ট করতে ব্যর্থ হয়েছে',
 
   // Dashboard Chat Widget
-  dashboardChat_welcome: 'আসসালামু আলাইকুম {userName}! আমি আপনার স্টোর সহকারী। আপনার বিক্রি, অর্ডার বা সেটিংস সম্পর্কে যেকোনো প্রশ্ন করতে পারেন।',
+  dashboardChat_welcome: 'আসসালামু আলাইকুম {{userName}}! আমি আপনার স্টোর সহকারী। আপনার বিক্রি, অর্ডার বা সেটিংস সম্পর্কে যেকোনো প্রশ্ন করতে পারেন।',
   dashboardChat_title: 'স্টোর সহকারী',
   dashboardChat_online: 'অনলাইন',
   dashboardChat_unlockTitle: 'স্টোর সহকারী আনলক করুন',

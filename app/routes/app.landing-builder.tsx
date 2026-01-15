@@ -32,7 +32,7 @@ import {
   SectionManager, 
   WhatsAppConfig,
   DEFAULT_SECTION_ORDER,
-  LANDING_TEMPLATES 
+  LANDING_TEMPLATES
 } from '~/components/landing-builder';
 import { getTemplateComponent, type TemplateProps } from '~/templates/registry';
 
@@ -57,7 +57,7 @@ const DEFAULT_GUARANTEE_TEXT = '১০০% সন্তুষ্টির গ্
 
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Landing Page Builder - Multi-Store SaaS' }];
+  return [{ title: 'Landing Page Builder - Ozzyl' }];
 };
 
 
@@ -92,13 +92,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       price: products.price 
     })
     .from(products)
-    .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+    .where(eq(products.storeId, storeId))
     .limit(50);
 
   const landingConfig = parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;
   
   // Get SAAS_DOMAIN for preview URL
-  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'digitalcare.site';
+  const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
 
   return json({
     store: {
@@ -509,6 +509,16 @@ export default function LandingBuilderPage() {
       setHiddenSections(hiddenSections.filter(id => id !== sectionId));
     } else {
       setHiddenSections([...hiddenSections, sectionId]);
+    }
+  };
+
+  // Handler to add a new section
+  const handleAddSection = (sectionId: string) => {
+    // Only add if not already in the order
+    if (!sectionOrder.includes(sectionId)) {
+      setSectionOrder([...sectionOrder, sectionId]);
+      // Make sure it's not hidden
+      setHiddenSections(hiddenSections.filter(id => id !== sectionId));
     }
   };
 
@@ -1068,6 +1078,7 @@ export default function LandingBuilderPage() {
                 hiddenSections={hiddenSections}
                 onOrderChange={setSectionOrder}
                 onVisibilityChange={handleVisibilityChange}
+                onAddSection={handleAddSection}
               />
             )}
 

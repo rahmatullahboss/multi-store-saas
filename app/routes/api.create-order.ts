@@ -14,8 +14,7 @@
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
-import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions } from '@db/schema';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers } from '@db/schema';
 import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { sendPushNotification } from '~/services/push.server';
@@ -23,6 +22,10 @@ import { dispatchWebhook } from '~/services/webhook.server';
 import { checkUsageLimit } from '~/utils/plans.server';
 import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
 import { sendPurchaseEvent } from '~/services/facebook-capi.server';
+import { createDb } from '~/lib/db.server';
+import { sendSmartNotification } from '~/services/messaging.server';
+import { addLoyaltyPoints } from '~/services/loyalty.server';
+import { triggerAutomation } from '~/services/automation.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -77,11 +80,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: false, error: 'Method not allowed' }, { status: 405 });
   }
 
-  const db = drizzle(context.cloudflare.env.DB);
+  const db = createDb(context.cloudflare.env.DB);
 
   try {
-    // Parse request body
-    const body = await request.json();
+    // Parse request body - handle both JSON and FormData
+    let body: Record<string, unknown>;
+    const contentType = request.headers.get('Content-Type') || '';
+    
+    if (contentType.includes('application/json')) {
+      body = await request.json();
+    } else {
+      // Handle FormData (default for useFetcher without encType)
+      const formData = await request.formData();
+      body = {};
+      for (const [key, value] of formData.entries()) {
+        // Parse numbers for numeric fields
+        if (['store_id', 'product_id', 'quantity', 'variant_id'].includes(key)) {
+          body[key] = parseInt(value as string, 10);
+        } else if (key === 'bump_ids') {
+          try {
+            body[key] = JSON.parse(value as string);
+          } catch {
+            body[key] = [];
+          }
+        } else {
+          body[key] = value;
+        }
+      }
+    }
 
     // Extend Schema for Cart Items
     const CartItemSchema = z.object({
@@ -404,6 +430,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }))
       ]);
 
+      // ========== WEBHOOK: ORDER CREATED ==========
+      context.cloudflare.ctx.waitUntil(
+        dispatchWebhook(context.cloudflare.env, input.store_id, 'order.created', {
+          event: 'order.created',
+          order_id: orderId,
+          order_number: orderNumber,
+          customer_name: input.customer_name,
+          customer_phone: input.phone,
+          customer_email: input.customer_email || null,
+          shipping_address: input.address,
+          division: input.division,
+          subtotal,
+          shipping,
+          tax,
+          total,
+          payment_method: input.payment_method,
+          item_count: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+          items: finalOrderItems.map(i => ({
+            product_id: i.productId,
+            title: i.title,
+            quantity: i.quantity,
+            price: i.unitPrice,
+          })),
+          created_at: now.toISOString(),
+        }).catch(e => console.error('[Webhook] order.created failed:', e))
+      );
+
     } catch (orderError) {
         console.error('Order creation failed, rolling back inventory:', orderError);
         // Rollback Order
@@ -419,6 +472,120 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
         throw orderError;
     }
+
+    // ============================================================================
+    // CUSTOMER CREATION/UPDATE (For Segmentation & Marketing)
+    // ============================================================================
+    let finalCustomerId: number | undefined;
+    
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        // Check if customer exists (by phone or email)
+        const existingCustomer = await db.select({ id: customers.id, totalOrders: customers.totalOrders, totalSpent: customers.totalSpent })
+          .from(customers)
+          .where(
+            and(
+              eq(customers.storeId, input.store_id),
+              or(
+                eq(customers.phone, input.phone),
+                input.customer_email ? eq(customers.email, input.customer_email) : undefined
+              )
+            )
+          )
+          .limit(1);
+        
+        if (existingCustomer.length > 0) {
+          // UPDATE existing customer stats
+          const customer = existingCustomer[0];
+          finalCustomerId = customer.id;
+          const newTotalOrders = (customer.totalOrders || 0) + 1;
+          const newTotalSpent = (customer.totalSpent || 0) + total;
+          
+          // Determine new segment
+          let newSegment: 'vip' | 'regular' = 'regular';
+          if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
+            newSegment = 'vip';
+          }
+          
+          await db.update(customers)
+            .set({
+              totalOrders: newTotalOrders,
+              totalSpent: newTotalSpent,
+              lastOrderAt: now,
+              segment: newSegment,
+              name: input.customer_name,
+              address: input.address,
+              updatedAt: now,
+            })
+            .where(eq(customers.id, customer.id));
+          
+          // Link customer to order
+          await db.update(orders)
+            .set({ customerId: customer.id })
+            .where(eq(orders.id, orderId!));
+          
+          // ========== LOYALTY POINTS INTEGRATION ==========
+          await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`);
+            
+        } else {
+          // CREATE new customer
+          const [newCustomer] = await db.insert(customers).values({
+            storeId: input.store_id,
+            email: input.customer_email || `${input.phone}@phone.local`, // Use phone as email fallback
+            name: input.customer_name,
+            phone: input.phone,
+            address: input.address,
+            totalOrders: 1,
+            totalSpent: total,
+            lastOrderAt: now,
+            segment: 'regular', // First order = regular
+          }).returning({ id: customers.id });
+          
+          finalCustomerId = newCustomer.id;
+          
+          // Link customer to order
+          await db.update(orders)
+            .set({ customerId: newCustomer.id })
+            .where(eq(orders.id, orderId!));
+          
+          // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
+          await addLoyaltyPoints(db, newCustomer.id, input.store_id, total, `First Order ${orderNumber}`);
+          
+          // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
+          dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
+            customerId: newCustomer.id,
+            email: input.customer_email || null,
+            phone: input.phone,
+            name: input.customer_name,
+            firstOrderNumber: orderNumber,
+          }).catch(e => console.error('[Webhook] customer.created failed:', e));
+        }
+        
+        // ========== FIRE AUTOMATION TRIGGERS ==========
+        if (input.customer_email && !input.customer_email.includes('@phone.local')) {
+          await triggerAutomation(
+            context.cloudflare.env.DB,
+            'order_placed',
+            {
+              storeId: input.store_id,
+              customerEmail: input.customer_email,
+              customerName: input.customer_name,
+              metadata: {
+                orderNumber,
+                total,
+                currency: storeData.currency || 'BDT',
+                itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+              }
+            },
+            context.cloudflare.env.RESEND_API_KEY
+          );
+        }
+        
+      } catch (customerError) {
+        console.error('Customer creation/update failed:', customerError);
+        // Non-blocking - order already created
+      }
+    })());
 
     // ============================================================================
     // NOTIFICATIONS & TRACKING (Non-blocking)
@@ -473,6 +640,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
          }
        }
     }
+
+    // Smart Notification (WhatsApp / SMS) - Marketing Research Feature
+    context.cloudflare.ctx.waitUntil(
+      sendSmartNotification(db, context.cloudflare.env, orderId!, input.store_id, 'ORDER_CONFIRMATION', {
+        phone: input.phone,
+        customerName: input.customer_name,
+        amount: total,
+        currency: storeData.currency || 'BDT',
+        orderNumber: orderNumber,
+        itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0)
+      }).catch(e => console.error('[Messaging] Notification failed:', e))
+    );
 
     // Push Notifications
     context.cloudflare.ctx.waitUntil((async () => {
@@ -560,8 +739,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export async function loader() {
   return json({
     method: 'POST',
-    description: 'Create a new Cash on Delivery order',
-    required_fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address'],
-    optional_fields: ['quantity (default: 1)', 'notes'],
+    description: 'Create a new order (single or multi-item)',
+    payload_options: {
+      single_item: {
+        required_fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address'],
+        optional_fields: ['quantity (default: 1)', 'variant_id', 'notes', 'customer_email', 'payment_method', 'division', 'bump_ids'],
+      },
+      multi_item: {
+        required_fields: ['store_id', 'cart_items', 'customer_name', 'phone', 'address'],
+        cart_item_structure: '{ product_id: number, quantity: number, variant_id?: number }[]',
+        optional_fields: ['notes', 'customer_email', 'payment_method', 'division', 'bump_ids'],
+      },
+    },
+    note: 'Either product_id (single item) OR cart_items (multi-item) must be provided, not both.',
   });
 }

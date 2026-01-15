@@ -232,6 +232,55 @@
       "when": 1768115557377,
       "tag": "0032_bitter_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1768143104593,
+      "tag": "0033_neat_logan",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1768145308147,
+      "tag": "0034_salty_stryfe",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1768148211553,
+      "tag": "0035_add_customer_segmentation",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1768151668832,
+      "tag": "0036_add_merchant_ai_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1768156971204,
+      "tag": "0037_fix_ab_tests_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1768223815153,
+      "tag": "0038_curved_skin",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "6",
+      "when": 1768467873045,
+      "tag": "0039_superb_silvermane",
+      "breakpoints": true
     }
   ]
 }

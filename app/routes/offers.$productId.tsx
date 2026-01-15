@@ -68,6 +68,10 @@ interface LoaderData {
   product: Product;
   landingConfig: LandingConfig;
   isCustomerAiEnabled: boolean;
+  planType: string;
+  // Tracking
+  facebookPixelId?: string;
+  googleAnalyticsId?: string;
 }
 
 // ============================================================================
@@ -196,6 +200,10 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
       product,
       landingConfig,
       isCustomerAiEnabled: (resolvedStore as Store & { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled ?? false,
+      planType: resolvedStore.planType || 'free',
+      // Tracking IDs from Store Settings
+      facebookPixelId: (resolvedStore as any).facebookPixelId || undefined,
+      googleAnalyticsId: (resolvedStore as any).googleAnalyticsId || undefined,
     };
 
     return json(loaderData);
@@ -217,16 +225,121 @@ export default function OfferProductPage() {
   useTrackVisit(data.storeId);
 
   return (
-    <TemplateComponent
-      storeName={data.storeName}
-      storeId={data.storeId}
-      product={data.product}
-      config={data.landingConfig}
-      currency={data.currency}
-      isPreview={false}
-      isEditMode={false}
-      isCustomerAiEnabled={data.isCustomerAiEnabled}
-    />
+    <>
+      {/* Custom CSS injection */}
+      {data.landingConfig.customCSS && (
+        <style dangerouslySetInnerHTML={{ __html: data.landingConfig.customCSS }} />
+      )}
+      
+      {/* Facebook Pixel from Store Settings (automatic) */}
+      {data.facebookPixelId && (
+        <script dangerouslySetInnerHTML={{ __html: `
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '${data.facebookPixelId}');
+          fbq('track', 'PageView');
+        ` }} />
+      )}
+      
+      {/* Google Analytics 4 from Store Settings (automatic) */}
+      {data.googleAnalyticsId && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${data.googleAnalyticsId}`} />
+          <script dangerouslySetInnerHTML={{ __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${data.googleAnalyticsId}');
+          ` }} />
+        </>
+      )}
+      
+      {/* Custom Head Code injection (additional scripts) */}
+      {data.landingConfig.customHeadCode && (
+        <div 
+          dangerouslySetInnerHTML={{ __html: data.landingConfig.customHeadCode }} 
+          style={{ display: 'none' }}
+        />
+      )}
+      
+      <TemplateComponent
+        storeName={data.storeName}
+        storeId={data.storeId}
+        product={data.product}
+        config={data.landingConfig}
+        currency={data.currency}
+        isPreview={false}
+        isEditMode={false}
+        isCustomerAiEnabled={data.isCustomerAiEnabled}
+        planType={data.planType}
+      />
+      
+      {/* Custom HTML Sections (imported designs) - CSS Isolated */}
+      {(data.landingConfig as any).customSections?.map((section: { id: string; html: string; css?: string }) => (
+        <div 
+          key={section.id} 
+          className="custom-html-section"
+          style={{
+            all: 'revert',
+            display: 'block',
+            isolation: 'isolate',
+          }}
+        >
+          {/* Scoped styles for this section only */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            .custom-html-section-${section.id} * {
+              all: revert;
+            }
+            ${section.css || ''}
+          ` }} />
+          {/* Render HTML content in an iframe for complete CSS isolation */}
+          <iframe
+            title={`custom-section-${section.id}`}
+            srcDoc={`
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: system-ui, sans-serif; }
+                    ${section.css || ''}
+                  </style>
+                </head>
+                <body>${section.html}</body>
+              </html>
+            `}
+            style={{
+              width: '100%',
+              border: 'none',
+              display: 'block',
+              minHeight: '200px',
+            }}
+            onLoad={(e) => {
+              // Auto-resize iframe to content height
+              const iframe = e.target as HTMLIFrameElement;
+              if (iframe.contentWindow?.document.body) {
+                iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+              }
+            }}
+          />
+        </div>
+      ))}
+      
+      {/* Custom Body Code injection (chat widgets, etc.) */}
+      {data.landingConfig.customBodyCode && (
+        <div 
+          dangerouslySetInnerHTML={{ __html: data.landingConfig.customBodyCode }} 
+        />
+      )}
+    </>
   );
 }
 

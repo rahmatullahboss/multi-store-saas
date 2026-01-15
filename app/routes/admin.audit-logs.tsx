@@ -116,17 +116,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .select({
       id: adminAuditLogs.id,
       action: adminAuditLogs.action,
-      targetType: adminAuditLogs.targetType,
-      targetId: adminAuditLogs.targetId,
-      targetName: adminAuditLogs.targetName,
-      details: adminAuditLogs.details,
+      targetType: adminAuditLogs.resource, // Using 'resource' column for targetType
+      targetId: adminAuditLogs.resourceId, // Using 'resourceId' column for targetId
+      details: adminAuditLogs.diff, // Using 'diff' column for details
       ipAddress: adminAuditLogs.ipAddress,
       createdAt: adminAuditLogs.createdAt,
       adminEmail: users.email,
       adminName: users.name,
     })
     .from(adminAuditLogs)
-    .leftJoin(users, eq(users.id, adminAuditLogs.adminId))
+    .leftJoin(users, eq(users.id, adminAuditLogs.actorId)) // Using 'actorId' instead of 'adminId'
     .where(whereCondition)
     .orderBy(desc(adminAuditLogs.createdAt))
     .limit(limit)
@@ -319,8 +318,8 @@ export default function AdminAuditLogs() {
                           {getTargetIcon(log.targetType)}
                         </div>
                         <div>
-                          <p className="text-sm text-white">{log.targetName || '-'}</p>
-                          <p className="text-xs text-slate-500">{log.targetType} #{log.targetId}</p>
+                          <p className="text-sm text-white">{log.targetType || '-'}</p>
+                          <p className="text-xs text-slate-500">ID: {log.targetId || '-'}</p>
                         </div>
                       </div>
                     </td>

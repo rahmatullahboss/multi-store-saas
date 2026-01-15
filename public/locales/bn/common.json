@@ -123,10 +123,11 @@
   "retry": "আবার চেষ্টা করুন",
   "startOver": "শুরু থেকে শুরু করুন",
   
-  "stepAccount": "একাউন্ট",
+  "stepAccount": "অ্যাকাউন্ট",
   "stepBusiness": "বিজনেস",
   "stepPlan": "প্ল্যান",
   "stepDone": "সম্পন্ন",
+  "subdomainTaken": "\"{{subdomain}}\" সাবডোমেইন আগেই নেওয়া হয়েছে। অন্য একটি বেছে নিন।",
   
   "validEmailRequired": "সঠিক ইমেইল দিন",
   "passwordMinChars": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
@@ -135,12 +136,22 @@
   "storeNameRequired": "স্টোরের নাম দিন",
   "subdomainMinChars": "সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে",
   "trxIdRequired": "TRX ID দিন",
+  "emailRequired": "ইমেইল দিন",
+  "passwordRequired": "পাসওয়ার্ড দিন",
+  "invalidCredentials": "ইমেইল বা পাসওয়ার্ড ভুল",
+  "orderNow": "এখনই অর্ডার করুন",
+  "cashOnDelivery": "ক্যাশ অন ডেলিভারি",
+  "satisfiedCustomer": "সন্তুষ্ট ক্রেতা",
+  "satisfiedCustomerText": "অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!",
+  "limitedTimeOffer": "🔥 সীমিত সময়ের অফার!",
+  "satisfactionGuarantee": "১০০% সন্তুষ্টির গ্যারান্টি",
+  "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+  "storeNotFound": "আপনার স্টোরটি খুঁজে পাওয়া যায়নি। দয়া করে এডমিনের সাথে যোগাযোগ করুন অথবা নতুন করে সাইন-আপ করুন।",
   
   "freeDelivery": "ফ্রি ডেলিভারি",
   "freeDeliveryInDhaka": "ঢাকায় ফ্রি ডেলিভারি",
   "originalProduct": "১০০% অরিজিনাল",
   "originalGuarantee": "অরিজিনালের নিশ্চয়তা",
-  "cashOnDelivery": "ক্যাশ অন ডেলিভারি",
   "payOnReceive": "প্রোডাক্ট হাতে পেয়ে পেমেন্ট",
   "easyReturn": "সহজ রিটার্ন",
   "returnPolicy": "৭ দিনের রিটার্ন পলিসি",
@@ -154,7 +165,6 @@
   "support247": "২৪/৭ সাপোর্ট",
   "support247Desc": "সবসময় আপনার পাশে",
   
-  "orderNow": "এখনই অর্ডার করুন",
   "buyNow": "এখনই কিনুন",
   "addToCart": "কার্টে যোগ করুন",
   "callNow": "কল করুন",
@@ -180,7 +190,6 @@
   "faqSubtitle": "সাধারণ প্রশ্নের উত্তর",
   
   "specialOffer": "বিশেষ অফার",
-  "limitedTimeOffer": "সীমিত সময়ের অফার",
   "orderConfirm": "অর্ডার নিশ্চিত",
   "thankYouOrder": "আপনার অর্ডারের জন্য ধন্যবাদ",
   
@@ -298,6 +307,7 @@
   "price": "দাম",
   "status": "স্ট্যাটাস",
   "actions": "অ্যাকশন",
+  "activeStores": "সক্রিয় স্টোর",
   "active": "সক্রিয়",
   "inactive": "নিষ্ক্রিয়",
   "published": "প্রকাশিত",
@@ -358,5 +368,14 @@
   "startDate": "শুরুর তারিখ",
   "endDate": "শেষের তারিখ",
   "records": "রেকর্ড",
-  "noSalesData": "কোনো সেলস ডেটা পাওয়া যায়নি"
+  "noSalesData": "কোনো সেলস ডেটা পাওয়া যায়নি",
+  "backToHome": "হোমে ফিরে যান",
+  "templatePreviewMode": "টেমপ্লেট প্রিভিউ মোড",
+  "templatePreviewDesc": "এটি ডেমো কন্টেন্ট সহ প্রিভিউ। আপনার আসল ডাটা দিয়ে আলাদা দেখাবে।",
+  "close": "বন্ধ করুন",
+  "comingSoon": "শীঘ্রই আসছে",
+  "storeUnderConstruction": "এই স্টোরটি বর্তমানে তৈরির কাজ চলছে।",
+  "howItWorks": "কিভাবে কাজ করে",
+  "createFreeStore": "ফ্রি স্টোর তৈরি করুন",
+  "watchDemo": "ডেমো দেখুন"
 }

@@ -299,7 +299,7 @@ export default function DomainSettings() {
   }, [customDomain, sslStatus, dnsVerified]);
   
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="space-y-6">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">{t('domainSettings')}</h1>
         <p className="text-gray-600 mt-1">
@@ -332,13 +332,13 @@ export default function DomainSettings() {
             <Globe className="w-5 h-5 text-emerald-600" />
             <div>
               <div className="font-mono font-medium text-gray-900">
-                {subdomain}.digitalcare.site
+                {subdomain}.ozzyl.com
               </div>
               <p className="text-sm text-gray-500">{t('freeSubdomainActive')}</p>
             </div>
           </div>
           <a
-            href={`https://${subdomain}.digitalcare.site`}
+            href={`https://${subdomain}.ozzyl.com`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:underline"

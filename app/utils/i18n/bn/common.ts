@@ -98,7 +98,9 @@ export const common = {
   validEmailRequired: 'সঠিক ইমেল আবশ্যক',
   passwordMinChars: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে',
   nameRequired: 'নাম আবশ্যক',
-  validMobileRequired: 'সঠিক মোবাইল নম্বর আবশ্যক (01XXXXXXXXX)',
+  validMobileRequired: 'সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)',
+  subdomainTaken: '"{{subdomain}}" সাবডোমেইন আগেই নেওয়া হয়েছে। অন্য একটি বেছে নিন।',
+  subdomainMinChars: 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে',
 
   // Sidebar
   sidebarHome: 'হোম',
@@ -129,8 +131,10 @@ export const common = {
   navShipping: 'শিপিং',
   navDomain: 'ডোমেইন',
   navBilling: 'বিলিং',
+  navCredits: 'AI ক্রেডিট',
   navAllSettings: 'সব সেটিংস',
   navPlanManagement: 'প্ল্যান ম্যানেজমেন্ট',
+  navCustomers: 'কাস্টমারস',
   navPayouts: 'পেআউট',
   navDomainRequests: 'ডোমেইন রিকোয়েস্ট',
   navTutorials: 'টিউটোরিয়াল',
@@ -153,6 +157,10 @@ export const common = {
   exit: 'বাহির',
   viewingAs: 'হিসাবে দেখা হচ্ছে',
   upgrade: 'আপগ্রেড',
+  templatePreviewMode: 'টেমপ্লেট প্রিভিউ মোড',
+  templatePreviewDesc: 'আপনি এই টেমপ্লেটের প্রিভিউ দেখছেন। কিছু ফিচার সীমিত হতে পারে।',
+  comingSoon: 'শীঘ্রই আসছে',
+  storeUnderConstruction: 'এই স্টোরটি বর্তমানে নির্মাণাধীন রয়েছে।',
 
   // Language
   language: 'ভাষা',
@@ -207,6 +215,9 @@ export const common = {
   registrationFailedGeneric: 'নিবন্ধন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
   storeCreationFailed: 'স্টোর তৈরি করতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
   accountCreatedLoginFailed: 'একাউন্ট তৈরি হয়েছে কিন্তু লগইন করতে ব্যর্থ হয়েছে। অনুগ্রহ করে লগইন করার চেষ্টা করুন।',
+  aiCredits: 'AI ক্রেডিট',
+  manageCredits: 'ক্রেডিট ম্যানেজ',
+  invalidCredentials: 'ভুল ইমেল বা পাসওয়ার্ড',
   
   // Business Categories
   categoryFashion: 'ফ্যাশন ও পোশাক',
@@ -276,4 +287,6 @@ export const common = {
   confirmPassword: 'পাসওয়ার্ড নিশ্চিত করুন',
   passwordResetSuccess: 'পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে',
   loginNow: 'এখন লগইন করুন',
+  orContinueWith: 'অথবা চালিয়ে যান',
+  continueWithGoogle: 'Google দিয়ে চালিয়ে যান',
 };

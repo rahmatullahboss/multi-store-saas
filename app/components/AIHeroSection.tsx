@@ -15,6 +15,7 @@ import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motio
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import { Link } from '@remix-run/react';
 import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe, Bot, Zap, MessageCircle, Box } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { useIsMobile } from '~/hooks/useIsMobile';
 
 // ============================================================================
@@ -118,6 +119,7 @@ const NeuralBackground = ({ colors, isMobile = false }: { colors: any, isMobile?
 // ============================================================================
 const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light', isMobile?: boolean }) => {
   const colors = getColors(theme);
+  const { t } = useTranslation();
   const [activeChat, setActiveChat] = useState(0);
   
   // Chat sequence animation
@@ -191,7 +193,7 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light', isMobile?:
               className="absolute bottom-4 left-4 text-[10px] font-mono px-2 py-1 rounded border"
               style={{ borderColor: colors.primary, color: colors.primary }}
             >
-              Drag & Drop Editor
+              {t('heroAiVisualEditor')}
             </div>
           </div>
 
@@ -209,7 +211,7 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light', isMobile?:
                     className="self-end max-w-[90%] rounded-2xl rounded-tr-sm p-3 shadow-sm"
                     style={{ background: colors.primary, color: 'white' }}
                   >
-                    <p className="text-xs">💬 "এই Product এর দাম কত?"</p>
+                    <p className="text-xs">💬 "{t('heroAiVisualUserMsg')}"</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -250,8 +252,7 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light', isMobile?:
                          <Bot className="w-3 h-3 text-purple-500" />
                        </div>
                        <div>
-                         <p className="text-xs font-medium" style={{ color: colors.text }}>🤖 "এটার দাম ৳999,</p>
-                         <p className="text-xs opacity-70" style={{ color: colors.text }}>M size available"</p>
+                         <p className="text-xs font-medium" style={{ color: colors.text }}>🤖 "{t('heroAiVisualAiReply')}"</p>
                        </div>
                     </div>
                   </motion.div>
@@ -300,6 +301,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
   const colors = getColors(theme);
   const isLight = theme === 'light';
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   return (
     <section 
@@ -332,22 +334,14 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
                 className="text-xs font-semibold tracking-wide uppercase"
                 style={{ color: isLight ? colors.aiPurple : colors.aiPurpleLight }}
               >
-                বাংলাদেশের প্রথম AI-Powered E-commerce Platform
+                {t('heroAiBadge')}
               </span>
             </motion.div>
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] mb-6 tracking-tight">
               <span className="block" style={{ color: colors.text }}>
-                AI দিয়ে বানান,
-              </span>
-              <span 
-                className="block bg-clip-text text-transparent bg-gradient-to-r"
-                style={{ 
-                  backgroundImage: `linear-gradient(135deg, ${colors.primaryLight} 0%, ${colors.aiPurpleLight} 100%)`
-                }}
-              >
-                AI দিয়ে বিক্রি করুন।
+                {t('heroAiTitle')}
               </span>
             </h1>
 
@@ -356,7 +350,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
               className="text-lg md:text-xl mb-8 leading-relaxed max-w-lg"
               style={{ color: colors.textMuted }}
             >
-              Drag & Drop এ Store বানান, AI আপনার ও আপনার Customer দের সাহায্য করবে ২৪/৭।
+              {t('heroAiSubtitle')}
             </p>
 
             {/* CTAs */}
@@ -368,7 +362,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <span className="relative flex items-center gap-2">
-                  <RocketIcon /> ফ্রিতে শুরু করুন
+                  <RocketIcon /> {t('heroAiCta')}
                 </span>
               </Link>
               
@@ -380,10 +374,10 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
               style={{ borderColor: colors.cardBorder, color: colors.textSubtle }}
             >
               {[
-                { icon: Bot, label: "AI-Powered", color: colors.aiPurpleLight },
+                { icon: Bot, label: t('heroAiTrust1'), color: colors.aiPurpleLight },
                 { icon: Zap, label: "310+ CDN", color: "#EAB308" },
                 { icon: Box, label: "Drag & Drop", color: colors.primaryLight },
-                { icon: Globe, label: "বাংলা", color: "#EF4444" },
+                { icon: Globe, label: t('heroAiTrust2'), color: "#EF4444" },
               ].map((badge, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <badge.icon className="w-4 h-4" style={{ color: badge.color }} />

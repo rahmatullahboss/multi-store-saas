@@ -18,13 +18,14 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { orders, orderItems, products, productVariants, stores, activityLogs, users } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
-import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send } from 'lucide-react';
+import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send, Download } from 'lucide-react';
 import { useState } from 'react';
 import { RiskBadge } from '~/components/RiskBadge';
 import { TrackingTimeline } from '~/components/TrackingTimeline';
 import { OrderTimeline } from '~/components/OrderTimeline';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { logActivity } from '~/lib/activity.server';
+import { dispatchWebhook } from '~/services/webhook.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.order ? `Order ${data.order.orderNumber}` : 'Order Details' }];
@@ -426,6 +427,29 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       entityId: orderId,
       details: { from: previousStatus, to: status, orderNumber: order.orderNumber },
     });
+
+    // Dispatch webhooks for order status changes
+    const webhookPayload = {
+      event: 'order.updated',
+      order_id: orderId,
+      order_number: order.orderNumber,
+      previous_status: previousStatus,
+      new_status: status,
+      customer_name: order.customerName,
+      customer_phone: order.customerPhone,
+      total: order.total,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Use waitUntil to dispatch webhooks without blocking response
+    (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.updated', webhookPayload));
+
+    // Also dispatch specific status events
+    if (status === 'cancelled') {
+      (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.cancelled', webhookPayload));
+    } else if (status === 'delivered') {
+      (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.delivered', webhookPayload));
+    }
   }
 
   // ============================================================================
@@ -493,6 +517,27 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           status: status as 'shipped' | 'out_for_delivery' | 'delivered',
         })
       );
+      
+      // ========== FIRE AUTOMATION TRIGGER FOR DELIVERED ==========
+      if (status === 'delivered') {
+        const { triggerAutomation } = await import('~/services/automation.server');
+        context.cloudflare.ctx.waitUntil(
+          triggerAutomation(
+            context.cloudflare.env.DB,
+            'order_delivered',
+            {
+              storeId,
+              customerEmail: order.customerEmail,
+              customerName: order.customerName || 'Customer',
+              metadata: {
+                orderNumber: order.orderNumber,
+                total: order.total,
+              }
+            },
+            resendApiKey
+          )
+        );
+      }
     }
   }
 
@@ -615,6 +660,14 @@ export default function OrderDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               <StatusBadge status={order.status || 'pending'} />
+              <a
+                href={`/resources/order-invoice/${order.id}`}
+                download
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+              >
+                <Download className="w-4 h-4" />
+                {t('downloadPdf')}
+              </a>
               <button
                 onClick={handlePrint}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
@@ -752,7 +805,7 @@ export default function OrderDetailPage() {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
             <p>Thank you for your order!</p>
-            <p className="mt-1">Powered by Multi-Store SaaS</p>
+            <p className="mt-1">Powered by Ozzyl</p>
           </div>
         </div>
 

@@ -22,7 +22,7 @@ export async function sendPushToStore(
 
   try {
     webpush.setVapidDetails(
-      'mailto:support@multistoresaas.com',
+      'mailto:contact@ozzyl.com',
       env.VAPID_PUBLIC_KEY,
       env.VAPID_PRIVATE_KEY
     );
@@ -76,7 +76,7 @@ export async function sendPushNotification(
   }
 
   webpush.setVapidDetails(
-    'mailto:support@multistoresaas.com',
+    'mailto:contact@ozzyl.com',
     env.VAPID_PUBLIC_KEY,
     env.VAPID_PRIVATE_KEY
   );

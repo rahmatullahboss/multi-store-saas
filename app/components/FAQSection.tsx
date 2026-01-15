@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { ChevronDown, HelpCircle, Sparkles } from 'lucide-react';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '~/components/animations';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -27,40 +28,7 @@ const COLORS = {
   backgroundAlt: '#0D1512',
 };
 
-// ============================================================================
-// FAQ DATA - BENGALI
-// ============================================================================
-interface FAQItem {
-  question: string;
-  answer: string;
-}
-
-const faqData: FAQItem[] = [
-  {
-    question: 'Free প্ল্যান কি সত্যিই চিরকাল ফ্রি?',
-    answer: 'হ্যাঁ! আপনি ১টি Product লিস্ট করতে পারবেন এবং মাসে ৫০টি Sales করতে পারবেন — সম্পূর্ণ বিনামূল্যে। কোনো Hidden Fee নেই, কোনো Credit Card লাগবে না।',
-  },
-  {
-    question: 'কোন Payment Method সাপোর্ট করে?',
-    answer: 'আমরা বিকাশ, নগদ এবং Cash on Delivery (COD) সাপোর্ট করি। সব Built-in, আলাদা কোনো Setup করতে হবে না। Customer Payment করলে সরাসরি আপনার Account এ যাবে।',
-  },
-  {
-    question: 'নিজের Domain ব্যবহার করতে পারব?',
-    answer: 'হ্যাঁ! Starter Plan থেকে আপনি Custom Domain কানেক্ট করতে পারবেন। Free Plan এ আপনি yourstore.digitalcare.site সাবডোমেইন পাবেন।',
-  },
-  {
-    question: 'Store Setup করতে কতক্ষণ লাগে?',
-    answer: 'মাত্র ৫ মিনিট! Sign up করুন, Template বাছুন, Product Add করুন — ব্যস! আপনার Store Ready। কোনো Technical Knowledge লাগবে না।',
-  },
-  {
-    question: 'আমার টাকা কবে পাব?',
-    answer: 'বিকাশ/নগদ Payment সরাসরি আপনার Account এ যায়। COD Order এ Customer থেকে আপনিই টাকা নেবেন। আমরা কখনো আপনার টাকা Hold করি না।',
-  },
-  {
-    question: 'কোনো সমস্যা হলে কার সাথে কথা বলব?',
-    answer: 'আমাদের Bangla Support Team ২৪/৭ Available। WhatsApp, Phone বা Email — যেভাবে চান যোগাযোগ করুন। আমরা সবসময় সাহায্য করতে Ready!',
-  },
-];
+// FAQ data will be generated inside the component to support translation
 
 // ============================================================================
 // FAQ ITEM COMPONENT
@@ -145,11 +113,26 @@ const FAQItemComponent = ({ faq, index, isOpen, onToggle }: {
   );
 };
 
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
 // ============================================================================
 // MAIN FAQ SECTION
 // ============================================================================
 export function FAQSection() {
+  const { t } = useTranslation();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const faqData = [
+    { question: t('faq1Q'), answer: t('faq1A') },
+    { question: t('faq2Q'), answer: t('faq2A') },
+    { question: t('faq3Q'), answer: t('faq3Q_custom') }, // Custom key for FAQ3 as it was slightly different
+    { question: t('faq4Q'), answer: t('faq4A') },
+    { question: t('faq5Q'), answer: t('faq5A') },
+    { question: t('faq6Q'), answer: t('faq6A') },
+  ];
 
   const handleToggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -211,7 +194,7 @@ export function FAQSection() {
             >
               <HelpCircle className="w-4 h-4" style={{ color: COLORS.accent }} />
               <span className="text-sm" style={{ color: COLORS.accent }}>
-                প্রশ্ন আছে?
+                {t('faqBadge')}
               </span>
             </motion.div>
             
@@ -219,21 +202,21 @@ export function FAQSection() {
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
               style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
-              সাধারণ{' '}
+              {t('faqTitlePart1')}{' '}
               <span 
                 className="bg-clip-text text-transparent"
                 style={{
                   backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
                 }}
               >
-                জিজ্ঞাসা
+                {t('faqTitlePart2')}
               </span>
             </h2>
             <p 
               className="text-lg text-white/50 max-w-2xl mx-auto"
               style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
-              আমাদের সম্পর্কে সবচেয়ে জনপ্রিয় প্রশ্নের উত্তর
+              {t('faqSubtitle')}
             </p>
           </div>
         </ScrollReveal>
@@ -260,14 +243,14 @@ export function FAQSection() {
           transition={{ delay: 0.5 }}
         >
           <p className="text-white/50 mb-4" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
-            আরো প্রশ্ন আছে?
+            {t('faqStillQuestions')}
           </p>
           <a
-            href="mailto:support@digitalcare.site"
+            href="mailto:contact@ozzyl.com"
             className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#006A4E]/50 rounded-xl text-white/70 hover:text-white transition-all duration-300"
           >
             <Sparkles className="w-4 h-4 text-[#F9A825]" />
-            <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>আমাদের সাথে যোগাযোগ করুন</span>
+            <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>{t('faqContactUs')}</span>
           </a>
         </motion.div>
       </div>

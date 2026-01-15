@@ -106,7 +106,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     businessInfo,
     themeConfig,
     collection,
-    products: collectionProducts
+    products: collectionProducts,
+    planType: storeData?.planType || 'free',
   });
 }
 
@@ -122,7 +123,8 @@ export default function CollectionPage() {
     businessInfo,
     themeConfig,
     collection,
-    products
+    products,
+    planType
   } = useLoaderData<typeof loader>();
 
   const isDaraz = storeTemplateId === 'daraz';
@@ -204,6 +206,7 @@ export default function CollectionPage() {
       currency={currency}
       socialLinks={socialLinks}
       businessInfo={businessInfo}
+      planType={planType}
     >
         {content}
     </StorePageWrapper>

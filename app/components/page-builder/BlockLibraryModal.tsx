@@ -24,18 +24,48 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
   const handleInsert = (block: any) => {
     if (!editor) return;
     
-    // Add block to the center of the canvas or at the end
-    const content = block.get('content');
-    editor.addComponents(content);
-    
-    // Scroll to new components
-    const lastComp = editor.getComponents().last();
-    if (lastComp) {
-        editor.select(lastComp);
-        lastComp.scrollIntoView();
+    try {
+      // Add block to the center of the canvas or at the end
+      let content = block.get('content');
+      
+      // Handle lazy content (function)
+      if (typeof content === 'function') {
+        content = content();
+      }
+      // Or use public accessor if available (safer)
+      if (!content && typeof block.getContent === 'function') {
+        content = block.getContent();
+      }
+
+      if (!content) {
+          console.error('Block has no content', block);
+          return;
+      }
+      
+      const components = editor.addComponents(content);
+      
+      // Render updates
+      editor.render();
+      
+      // Scroll to new components
+      if (components && components.length > 0) {
+          // If returned as array
+          const lastComp = components[components.length - 1]; 
+          editor.select(lastComp);
+          lastComp.scrollIntoView();
+      } else {
+          // Fallback if addComponents returns inconsistent type
+           const lastComp = editor.getComponents().last();
+           if (lastComp) {
+             editor.select(lastComp);
+             lastComp.scrollIntoView();
+           }
+      }
+      
+      onClose();
+    } catch (e) {
+      console.error('Failed to insert block:', e);
     }
-    
-    onClose();
   };
 
   if (!isOpen) return null;

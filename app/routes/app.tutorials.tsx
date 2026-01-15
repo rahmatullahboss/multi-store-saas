@@ -335,7 +335,7 @@ const tutorialSections = [
     content: [
       {
         heading: 'ডিফল্ট সাবডোমেইন',
-        text: 'প্রতিটি স্টোর একটি ফ্রি সাবডোমেইন পায়, যেমন: yourstore.digitalcare.site। এটি ফ্রি প্ল্যানেও কাজ করে।'
+        text: 'প্রতিটি স্টোর একটি ফ্রি সাবডোমেইন পায়, যেমন: yourstore.ozzyl.com। এটি ফ্রি প্ল্যানেও কাজ করে।'
       },
       {
         heading: 'কাস্টম ডোমেইন (পেইড প্ল্যান)',

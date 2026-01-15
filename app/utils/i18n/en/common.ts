@@ -99,6 +99,8 @@ export const common = {
   passwordMinChars: 'Password must be at least 6 characters',
   nameRequired: 'Name required',
   validMobileRequired: 'Valid mobile number required (01XXXXXXXXX)',
+  subdomainTaken: 'The subdomain "{{subdomain}}" is already taken. Please choose another one.',
+  subdomainMinChars: 'Subdomain must be at least 3 characters',
 
   // Sidebar
   sidebarHome: 'Home',
@@ -130,8 +132,10 @@ export const common = {
   navShipping: 'Shipping',
   navDomain: 'Domain',
   navBilling: 'Billing',
+  navCredits: 'AI Credits',
   navAllSettings: 'All Settings',
   navPlanManagement: 'Plan Management',
+  navCustomers: 'Customers',
   navPayouts: 'Payouts',
   navDomainRequests: 'Domain Requests',
   navTutorials: 'Tutorials',
@@ -152,6 +156,10 @@ export const common = {
   exit: 'Exit',
   viewingAs: 'Viewing as',
   upgrade: 'Upgrade',
+  templatePreviewMode: 'Template Preview Mode',
+  templatePreviewDesc: 'You are viewing a preview of this template. Some features may be limited.',
+  comingSoon: 'Coming Soon',
+  storeUnderConstruction: 'This store is currently under construction.',
 
   // Language
   language: 'Language',
@@ -275,4 +283,9 @@ export const common = {
   registrationFailedGeneric: 'Registration failed. Please try again.',
   storeCreationFailed: 'Store creation failed. Please try again.',
   accountCreatedLoginFailed: 'Account created but login failed. Please try logging in.',
+  aiCredits: 'AI Credits',
+  manageCredits: 'Manage Credits',
+  invalidCredentials: 'Invalid email or password',
+  orContinueWith: 'Or continue with',
+  continueWithGoogle: 'Continue with Google',
 };

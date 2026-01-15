@@ -4,17 +4,23 @@
  * Platform-level terms for main marketing domain.
  */
 
+import { lazy, Suspense } from 'react';
 import type { MetaFunction } from '@remix-run/cloudflare';
 import { Link } from '@remix-run/react';
 import { Store, ArrowLeft, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
 import { MarketingHeader } from '~/components/MarketingHeader';
-import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
+import { ClientOnly } from '~/components/LazySection';
+
+// Lazy load chat widget - not needed immediately
+const OzzylAIChatWidget = lazy(() => 
+  import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
+);
 
 export const meta: MetaFunction = () => [
-  { title: 'শর্তাবলী - Multi-Store SaaS' },
-  { name: 'description', content: 'Multi-Store SaaS প্ল্যাটফর্মের ব্যবহারের শর্তাবলী।' },
+  { title: 'শর্তাবলী - Ozzyl' },
+  { name: 'description', content: 'Ozzyl প্ল্যাটফর্মের ব্যবহারের শর্তাবলী।' },
 ];
 
 export default function TermsPage() {
@@ -71,7 +77,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-xl font-bold text-white mb-3">সার্ভিস ব্যবহার</h2>
                 <p className="leading-relaxed">
-                  Multi-Store প্ল্যাটফর্ম ব্যবহার করে আপনি নিম্নলিখিত শর্তাবলীতে সম্মত হচ্ছেন:
+                  Ozzyl প্ল্যাটফর্ম ব্যবহার করে আপনি নিম্নলিখিত শর্তাবলীতে সম্মত হচ্ছেন:
                 </p>
                 <ul className="list-disc list-inside mt-3 space-y-2">
                   <li>আপনি সঠিক ও সত্য তথ্য প্রদান করবেন</li>
@@ -127,7 +133,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-xl font-bold text-white mb-3">দায়বদ্ধতা সীমাবদ্ধতা</h2>
                 <p className="leading-relaxed">
-                  Multi-Store "যেমন আছে" ভিত্তিতে সার্ভিস প্রদান করে। আমরা আপনার ব্যবসায়িক ক্ষতি, 
+                  Ozzyl "যেমন আছে" ভিত্তিতে সার্ভিস প্রদান করে। আমরা আপনার ব্যবসায়িক ক্ষতি, 
                   ডেটা হারানো বা অন্যান্য পরোক্ষ ক্ষতির জন্য দায়ী নই।
                 </p>
               </section>
@@ -148,7 +154,11 @@ export default function TermsPage() {
       </main>
 
       <MarketingFooter />
-      <OzzylAIChatWidget />
+      <ClientOnly>
+        <Suspense fallback={null}>
+          <OzzylAIChatWidget />
+        </Suspense>
+      </ClientOnly>
     </div>
   );
 }

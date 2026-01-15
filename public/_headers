@@ -1,85 +1,115 @@
 # ============================================================================
+
 # Cloudflare Pages Headers Configuration
+
 # ============================================================================
-# 
-# Purpose: Enable CORS for cross-origin asset loading from subdomains
-# and set aggressive caching for static assets.
+
 #
-# Flow: subdomain.digitalcare.site loads HTML -> HTML references assets from
+
+# Purpose: Enable CORS for cross-origin asset loading from subdomains
+
+# and set aggressive caching for static assets.
+
+#
+
+# Flow: subdomain.ozzyl.com loads HTML -> HTML references assets from
+
 # multi-store-saas.pages.dev -> CORS headers allow this cross-origin request
 
 # ============================================================================
+
 # GLOBAL: CORS for all files (required for font/image loading from subdomains)
-# ============================================================================
-/*
-  Access-Control-Allow-Origin: *
-  Timing-Allow-Origin: *
 
 # ============================================================================
+
+/_
+Access-Control-Allow-Origin: _
+Timing-Allow-Origin: \*
+
+# ============================================================================
+
 # ASSETS: Aggressive caching for immutable build assets
+
 # These files have hashes in their names, so they never change
-# ============================================================================
-/assets/*
-  Access-Control-Allow-Origin: *
-  Timing-Allow-Origin: *
-  Cache-Control: public, max-age=31536000, immutable
 
 # ============================================================================
+
+/assets/_
+Access-Control-Allow-Origin: _
+Timing-Allow-Origin: \*
+Cache-Control: public, max-age=31536000, immutable
+
+# ============================================================================
+
 # BUILD: Remix build output caching
-# ============================================================================
-/build/*
-  Access-Control-Allow-Origin: *
-  Timing-Allow-Origin: *
-  Cache-Control: public, max-age=31536000, immutable
 
 # ============================================================================
+
+/build/_
+Access-Control-Allow-Origin: _
+Timing-Allow-Origin: \*
+Cache-Control: public, max-age=31536000, immutable
+
+# ============================================================================
+
 # FONTS: Long cache for font files
-# ============================================================================
-/*.woff
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=31536000, immutable
-
-/*.woff2
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=31536000, immutable
 
 # ============================================================================
-# IMAGES: Cache for common image formats
-# ============================================================================
-/*.png
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-/*.jpg
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/_.woff
+Access-Control-Allow-Origin: _
+Cache-Control: public, max-age=31536000, immutable
 
-/*.jpeg
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
-
-/*.webp
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
-
-/*.svg
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
-
-/*.ico
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=86400
+/_.woff2
+Access-Control-Allow-Origin: _
+Cache-Control: public, max-age=31536000, immutable
 
 # ============================================================================
+
+# IMAGES: Long cache for image files (rarely change)
+
+# ============================================================================
+
+/_.png
+Access-Control-Allow-Origin: _
+Cache-Control: public, max-age=31536000, stale-while-revalidate=604800
+
+/_.jpg
+Access-Control-Allow-Origin: _
+Cache-Control: public, max-age=31536000, stale-while-revalidate=604800
+
+/_.jpeg
+Access-Control-Allow-Origin: _
+Cache-Control: public, max-age=31536000, stale-while-revalidate=604800
+
+/_.webp
+Access-Control-Allow-Origin: _
+Cache-Control: public, max-age=31536000, stale-while-revalidate=604800
+
+/_.svg
+Access-Control-Allow-Origin: _
+Cache-Control: public, max-age=31536000, stale-while-revalidate=604800
+
+/_.ico
+Access-Control-Allow-Origin: _
+Cache-Control: public, max-age=86400
+
+# ============================================================================
+
 # HTML: Short cache with revalidation
-# ============================================================================
-/*.html
-  Cache-Control: public, max-age=60, stale-while-revalidate=3600
 
 # ============================================================================
-# SECURITY HEADERS (Good practice)
+
+/\*.html
+Cache-Control: public, max-age=60, stale-while-revalidate=3600
+
 # ============================================================================
-/*
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  Referrer-Policy: strict-origin-when-cross-origin
+
+# SECURITY HEADERS (Good practice)
+
+# ============================================================================
+
+/\*
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin

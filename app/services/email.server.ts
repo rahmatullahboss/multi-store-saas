@@ -28,7 +28,7 @@ export async function sendPasswordResetEmail(
     const resetLink = `${env.SAAS_DOMAIN}/auth/reset-password?token=${token}`;
 
     const { data, error } = await resend.emails.send({
-      from: 'Multi-Store SaaS <system@digitalcare.site>', // Update with your verified domain
+      from: 'Ozzyl <contact@ozzyl.com>', // Update with your verified domain
       to: [email],
       subject: 'Reset Your Password',
       html: `
@@ -92,7 +92,7 @@ export async function sendLowStockAlert(
     `).join('');
 
     const { data, error } = await resend.emails.send({
-      from: 'Multi-Store SaaS <system@digitalcare.site>',
+      from: 'Ozzyl <contact@ozzyl.com>',
       to: [merchantEmail],
       subject: `[Alert] Low Stock Warning - ${storeName}`,
       html: `
@@ -172,12 +172,19 @@ interface SendShippingUpdateParams {
   trackingUrl?: string;
 }
 
+interface SendStaffInviteParams {
+  email: string;
+  inviteLink: string;
+  storeName: string;
+  invitedBy: string;
+}
+
 /**
  * Factory to create email service with methods
  */
 export function createEmailService(apiKey: string) {
   const resend = new Resend(apiKey);
-  const fromEmail = 'Multi-Store SaaS <system@digitalcare.site>';
+  const fromEmail = 'Ozzyl <contact@ozzyl.com>';
 
   return {
     async sendCampaignEmail({ email, subject, content, storeName, unsubscribeUrl, previewText }: SendCampaignEmailParams) {
@@ -195,6 +202,29 @@ export function createEmailService(apiKey: string) {
               <p>Sent by ${storeName}</p>
               <a href="${unsubscribeUrl}" style="color: #666;">Unsubscribe</a>
             </div>
+          </div>
+        `,
+      });
+    },
+
+    async sendStaffInvite({ email, inviteLink, storeName, invitedBy }: SendStaffInviteParams) {
+      return resend.emails.send({
+        from: fromEmail,
+        to: [email],
+        subject: `You've been invited to join ${storeName}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Join the team at ${storeName}</h2>
+            <p><strong>${invitedBy}</strong> has invited you to join their store staff.</p>
+            <p>Click the button below to accept the invitation and set up your account:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${inviteLink}" style="background-color: #10B981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Accept Invitation
+              </a>
+            </div>
+            <p>Or copy this link:</p>
+            <p><a href="${inviteLink}">${inviteLink}</a></p>
+            <p style="color: #666; font-size: 12px;">This invitation will expire in 24 hours.</p>
           </div>
         `,
       });
@@ -265,7 +295,7 @@ export function createEmailService(apiKey: string) {
 
                 <!-- CTA -->
                 <div style="text-align: center; margin-top: 40px;">
-                  <a href="https://${storeName.toLowerCase().replace(/\s+/g, '')}.digitalcare.site" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; font-weight: 600; padding: 12px 32px; border-radius: 8px; text-decoration: none;">Visit Store</a>
+                  <a href="https://${storeName.toLowerCase().replace(/\s+/g, '')}.ozzyl.com" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; font-weight: 600; padding: 12px 32px; border-radius: 8px; text-decoration: none;">Visit Store</a>
                 </div>
               </div>
 
@@ -299,7 +329,7 @@ export function createEmailService(apiKey: string) {
             </div>
 
             <p>
-              <a href="https://digitalcare.site/admin/orders/${orderNumber}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              <a href="https://ozzyl.com/admin/orders/${orderNumber}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 View Order
               </a>
             </p>
@@ -351,6 +381,43 @@ export function createEmailService(apiKey: string) {
             ` : ''}
 
             <p>Thank you for shopping with us!</p>
+          </div>
+        `,
+      });
+    },
+
+    async sendSubscriptionApprovalEmail({ email, storeName, planName, startDate, endDate }: { email: string; storeName: string; planName: string; startDate: Date; endDate: Date }) {
+      const formatDate = (date: Date) => date.toLocaleDateString('en-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+      
+      return resend.emails.send({
+        from: fromEmail,
+        to: [email],
+        subject: `🎉 Subscription Approved - ${storeName}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #10B981, #059669); border-radius: 12px 12px 0 0;">
+              <h1 style="color: white; margin: 0;">Subscription Approved! 🎉</h1>
+            </div>
+            
+            <div style="padding: 30px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+              <p style="font-size: 16px; color: #374151;">Great news! Your subscription for <strong>${storeName}</strong> has been approved.</p>
+              
+              <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+                <p style="margin: 0; font-size: 14px; color: #166534;"><strong>Plan:</strong> ${planName}</p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #166534;"><strong>Start Date:</strong> ${formatDate(startDate)}</p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #166534;"><strong>End Date:</strong> ${formatDate(endDate)}</p>
+              </div>
+              
+              <p style="color: #6b7280;">You now have full access to all ${planName} features. Start growing your business today!</p>
+              
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://ozzyl.com/app" style="display: inline-block; padding: 12px 30px; background: #10B981; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Go to Dashboard</a>
+              </div>
+            </div>
+            
+            <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #9ca3af;">
+              Questions? Reply to this email or contact our support team.
+            </p>
           </div>
         `,
       });

@@ -54,7 +54,7 @@ const TRIGGERS: { value: EmailTrigger; label: string; icon: React.ReactNode; des
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -62,7 +62,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }

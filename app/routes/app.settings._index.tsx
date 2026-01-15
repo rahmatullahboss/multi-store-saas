@@ -252,11 +252,11 @@ Social Media: Facebook: ${facebook}, Instagram: ${instagram}, WhatsApp: ${whatsa
 // CURRENCIES
 // ============================================================================
 const currencies = [
-  { value: 'BDT', label: '৳ BDT - Bangladeshi Taka' },
-  { value: 'USD', label: '$ USD - US Dollar' },
-  { value: 'EUR', label: '€ EUR - Euro' },
-  { value: 'GBP', label: '£ GBP - British Pound' },
-  { value: 'INR', label: '₹ INR - Indian Rupee' },
+  { value: 'BDT', labelKey: 'currencyBDT' },
+  { value: 'USD', labelKey: 'currencyUSD' },
+  { value: 'EUR', labelKey: 'currencyEUR' },
+  { value: 'GBP', labelKey: 'currencyGBP' },
+  { value: 'INR', labelKey: 'currencyINR' },
 ];
 
 
@@ -427,7 +427,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('settings')}</h1>
@@ -615,7 +615,7 @@ export default function SettingsPage() {
               >
                 {currencies.map((c) => (
                   <option key={c.value} value={c.value}>
-                    {c.label}
+                    {t(c.labelKey as any)}
                   </option>
                 ))}
               </select>
@@ -632,15 +632,15 @@ export default function SettingsPage() {
                 defaultValue={store.defaultLanguage || 'en'}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
               >
-                <option value="en">🇬🇧 English</option>
-                <option value="bn">🇧🇩 বাংলা (Bengali)</option>
+                <option value="en">🇬🇧 {t('english')}</option>
+                <option value="bn">🇧🇩 {t('bengali')}</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">{t('storeLanguageDesc')}</p>
             </div>
 
             {/* Read-only info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-              <InfoItem label={t('subdomainLabel')} value={`${store.subdomain}.digitalcare.site`} />
+              <InfoItem label={t('subdomainLabel')} value={`${store.subdomain}.ozzyl.com`} />
               <InfoItem label={t('currentPlanLabel')} value={t(store.planType)} />
               {store.customDomain && (
                 <InfoItem label={t('customDomainLabel')} value={store.customDomain} />
@@ -899,7 +899,7 @@ export default function SettingsPage() {
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm text-gray-600">{t('storeCurrentlyAt')}</p>
               <p className="font-medium text-gray-900 mt-1">
-                https://{store.subdomain}.digitalcare.site
+                https://{store.subdomain}.ozzyl.com
               </p>
             </div>
 
@@ -927,7 +927,7 @@ export default function SettingsPage() {
                 <li>2. {t('dnsStep2')}</li>
                 <li className="ml-4 font-mono text-xs bg-blue-100 p-2 rounded">
                   Name: @ or www<br />
-                  Value: multi-store-saas.pages.dev
+                  Value: ozzyl-saas.pages.dev
                 </li>
                 <li>3. {t('dnsStep3')}</li>
                 <li>4. {t('dnsStep4')}</li>

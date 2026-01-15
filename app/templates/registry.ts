@@ -34,6 +34,7 @@ export interface TemplateProps {
   isPreview?: boolean;
   isEditMode?: boolean;  // For Magic Editor integration
   isCustomerAiEnabled?: boolean; // For AI Sales Agent
+  planType?: string; // For Growth Branding Loop
   manualPaymentConfig?: ManualPaymentConfig | null; // For checkout
   onConfigChange?: (newConfig: LandingConfig) => void;
   // Product variants for variant selection in order forms
@@ -60,6 +61,14 @@ export interface TemplateProps {
       imageUrl?: string | null;
     };
   }>;
+  // Custom HTML sections to render at specified positions
+  customSections?: Array<{
+    id: string;
+    name: string;
+    html: string;
+    css?: string;
+    position?: string;
+  }>;
 }
 
 // ============================================================================
@@ -76,13 +85,29 @@ export interface TemplateDefinition {
 // ============================================================================
 // SINGLE UNIFIED TEMPLATE - Same component for Preview & Live
 // ============================================================================
-import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
-import { PremiumBDTemplate } from '~/components/templates/PremiumBDTemplate';
-import { MobileFirstTemplate } from '~/components/templates/MobileFirstTemplate';
-import { FlashSaleTemplate } from '~/components/templates/FlashSaleTemplate';
-import { LuxeTemplate } from '~/components/templates/LuxeTemplate';
-import { OrganicTemplate } from '~/components/templates/OrganicTemplate';
-import { ShowcaseTemplate } from '~/components/templates/ShowcaseTemplate';
+// Isolated Template Imports
+import { PremiumBDTemplate } from '~/components/templates/premium-bd';
+import { MobileFirstTemplate } from '~/components/templates/mobile-first';
+import { FlashSaleTemplate } from '~/components/templates/flash-sale';
+import { LuxeTemplate } from '~/components/templates/luxe';
+import { OrganicTemplate } from '~/components/templates/organic';
+import { ShowcaseTemplate } from '~/components/templates/showcase';
+import { ModernDarkTemplate } from '~/components/templates/modern-dark';
+import { MinimalLightTemplate } from '~/components/templates/minimal-light';
+import { VideoFocusTemplate } from '~/components/templates/video-focus';
+import { ModernPremiumTemplate } from '~/components/templates/modern-premium';
+import { QuickStartTemplate } from '~/components/templates/quick-start';
+
+
+
+
+
+
+
+
+
+
+
 
 // ============================================================================
 // TEMPLATES REGISTRY - All templates use same component, different themes
@@ -128,21 +153,21 @@ export const TEMPLATES: TemplateDefinition[] = [
     name: 'Modern Dark',
     description: 'Bold gradients, urgency colors, and high-converting dark theme design.',
     thumbnail: '/templates/modern-dark.png',
-    component: LandingPageTemplate,
+    component: ModernDarkTemplate,
   },
   {
     id: 'minimal-light',
     name: 'Minimal Light',
     description: 'Clean white background with centered typography and elegant simplicity.',
     thumbnail: '/templates/minimal-light.png',
-    component: LandingPageTemplate,
+    component: MinimalLightTemplate,
   },
   {
     id: 'video-focus',
     name: 'Video Focus',
     description: 'Video-first design with full-width hero video and overlay CTA.',
     thumbnail: '/templates/video-focus.png',
-    component: LandingPageTemplate,
+    component: VideoFocusTemplate,
   },
   {
     id: 'showcase',
@@ -151,6 +176,21 @@ export const TEMPLATES: TemplateDefinition[] = [
     thumbnail: '/templates/showcase.png', // We will need to generate this later
     component: ShowcaseTemplate,
   },
+  {
+    id: 'modern-premium',
+    name: 'Modern Premium',
+    description: 'Sleek glassmorphism design with premium typography and dark mode support.',
+    thumbnail: '/templates/modern-premium.png',
+    component: ModernPremiumTemplate,
+  },
+  {
+    id: 'quick-start',
+    name: '⚡ Quick Start (High Conversion)',
+    description: 'Proven high-conversion template with scrolling narrative: specific problem -> solution -> benefits -> social proof -> offer. Perfect for single product stores.',
+    thumbnail: '/templates/quick-start.png',
+    component: QuickStartTemplate,
+  },
+
 ];
 
 // ============================================================================

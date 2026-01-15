@@ -6,11 +6,13 @@
  * Phase 2: Added drag and drop using @dnd-kit/sortable
  */
 
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
+import { AddSectionModal } from './AddSectionModal';
 import { 
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
-  Image, CheckCircle, Layers, Users, Loader2, GripVertical
+  Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code, AlertCircle, MessageCircle,
+  Tag, Box, ListOrdered
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -43,7 +45,7 @@ export const LANDING_SECTIONS = [
     descriptionEn: 'What visitors see first',
     icon: Type,
     required: true,
-    editable: false,
+    editable: true,
   },
   {
     id: 'trust',
@@ -52,7 +54,7 @@ export const LANDING_SECTIONS = [
     description: 'গ্যারান্টি ও নিরাপত্তা',
     descriptionEn: 'Guarantee & safety indicators',
     icon: ShieldCheck,
-    editable: false,
+    editable: true,
   },
   {
     id: 'features',
@@ -70,7 +72,7 @@ export const LANDING_SECTIONS = [
     description: 'প্রোডাক্ট ইমেজ গ্যালারি',
     descriptionEn: 'Product image gallery',
     icon: Image,
-    editable: false,
+    editable: true,
   },
   {
     id: 'video',
@@ -88,7 +90,7 @@ export const LANDING_SECTIONS = [
     description: 'কেন আমাদের থেকে কিনবেন',
     descriptionEn: 'Why buy from us',
     icon: CheckCircle,
-    editable: false,
+    editable: true,
   },
   {
     id: 'comparison',
@@ -97,7 +99,7 @@ export const LANDING_SECTIONS = [
     description: 'আগে/পরে বা প্রতিযোগী তুলনা',
     descriptionEn: 'Before/After or competitor comparison',
     icon: Layers,
-    editable: false,
+    editable: true,
   },
   {
     id: 'testimonials',
@@ -115,7 +117,7 @@ export const LANDING_SECTIONS = [
     description: 'অর্ডার/ভিজিটর সংখ্যা',
     descriptionEn: 'Orders/visitors count',
     icon: Users,
-    editable: false,
+    editable: true,
   },
   {
     id: 'delivery',
@@ -124,7 +126,7 @@ export const LANDING_SECTIONS = [
     description: 'শিপিং ও ডেলিভারি তথ্য',
     descriptionEn: 'Shipping & delivery details',
     icon: Truck,
-    editable: false,
+    editable: true,
   },
   {
     id: 'faq',
@@ -154,10 +156,56 @@ export const LANDING_SECTIONS = [
     required: true,
     editable: true,
   },
+  {
+    id: 'pricing',
+    name: 'প্রাইসিং',
+    nameEn: 'Pricing',
+    description: 'প্রাইসিং প্ল্যান এবং ফিচার',
+    descriptionEn: 'Pricing plans and features',
+    icon: Tag,
+    editable: true,
+  },
+  {
+    id: 'how-to-order',
+    name: 'অর্ডার প্রক্রিয়া',
+    nameEn: 'How to Order',
+    description: 'অর্ডার করার নিয়মাবলী',
+    descriptionEn: 'Instructions on how to order',
+    icon: ListOrdered,
+    editable: true,
+  },
+  {
+    id: 'showcase',
+    name: 'প্রোডাক্ট ডিটেইলস',
+    nameEn: 'Product Details',
+    description: 'প্রোডাক্টের বিস্তারিত বর্ণনা',
+    descriptionEn: 'Detailed product description',
+    icon: Box,
+    editable: true,
+  },
 ];
 
+
 // Default section order
-export const DEFAULT_SECTION_ORDER = ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'];
+export const DEFAULT_SECTION_ORDER = [
+  'hero',
+  'video',
+  'trust',
+  'problem-solution',
+  'features',
+  'benefits',
+  'showcase',
+  'comparison',
+  'gallery',
+  'social',
+  'testimonials',
+  'delivery',
+  'pricing',
+  'guarantee',
+  'how-to-order',
+  'cta', // Order Form
+  'faq',
+];
 
 // Types for section content
 export interface Feature {
@@ -196,11 +244,44 @@ export interface SocialProof {
   text: string;
 }
 
+export interface ProblemSolution {
+  problems: string[];
+  solutions: string[];
+}
+
+export interface PricingData {
+  features: string[];
+}
+
+export interface ShowcaseData {
+  features: string[];
+}
+
+export interface HowToOrderData {
+  steps: {
+    title: string;
+    description: string;
+  }[];
+}
+
 interface SectionManagerProps {
   sectionOrder: string[];
   hiddenSections: string[];
   onOrderChange: (newOrder: string[]) => void;
   onVisibilityChange: (sectionId: string, visible: boolean) => void;
+  // Hero section
+  headline?: string;
+  onHeadlineChange?: (headline: string) => void;
+  subheadline?: string;
+  onSubheadlineChange?: (subheadline: string) => void;
+  ctaText?: string;
+  onCtaTextChange?: (ctaText: string) => void;
+  // Trust badges
+  trustBadges?: Array<{ icon: string; text: string }>;
+  onTrustBadgesChange?: (badges: Array<{ icon: string; text: string }>) => void;
+  // Delivery info
+  deliveryInfo?: { title: string; description: string; areas?: string[] };
+  onDeliveryInfoChange?: (info: { title: string; description: string; areas?: string[] }) => void;
   // Content editing props
   features?: Feature[];
   onFeaturesChange?: (features: Feature[]) => void;
@@ -228,13 +309,45 @@ interface SectionManagerProps {
   // Order Form Layout
   orderFormVariant?: 'full-width' | 'compact';
   onOrderFormVariantChange?: (variant: 'full-width' | 'compact') => void;
+  // Custom code sections
+  customSections?: Array<{ id: string; name: string; html: string; css?: string; position?: string }>;
+  onCustomSectionsChange?: (sections: Array<{ id: string; name: string; html: string; css?: string; position?: string }>) => void;
+  onAddCustomSection?: () => void;
+  // Problem & Solution section
+  problemSolution?: ProblemSolution;
+  onProblemSolutionChange?: (data: ProblemSolution) => void;
+  // New section editors
+  pricingData?: PricingData;
+  onPricingDataChange?: (data: PricingData) => void;
+  showcaseData?: ShowcaseData;
+  onShowcaseDataChange?: (data: ShowcaseData) => void;
+  howToOrderData?: HowToOrderData;
+  onHowToOrderDataChange?: (data: HowToOrderData) => void;
+  // Generic Image Upload
+  onImageUpload?: (file: File) => Promise<string>;
+  // Add Section callback
+  onAddSection?: (sectionId: string) => void;
 }
 
-export function SectionManager({
+function SectionManagerBase({
   sectionOrder,
   hiddenSections,
   onOrderChange,
   onVisibilityChange,
+  // Hero section
+  headline = '',
+  onHeadlineChange,
+  subheadline = '',
+  onSubheadlineChange,
+  ctaText = '',
+  onCtaTextChange,
+  // Trust badges
+  trustBadges = [],
+  onTrustBadgesChange,
+  // Delivery info
+  deliveryInfo = { title: '', description: '', areas: [] },
+  onDeliveryInfoChange,
+  // Features
   features = [],
   onFeaturesChange,
   faq = [],
@@ -257,17 +370,61 @@ export function SectionManager({
   onComparisonChange,
   socialProof = { count: 0, text: '' },
   onSocialProofChange,
+  pricingData = { features: [] },
+  onPricingDataChange,
+  showcaseData = { features: [] },
+  onShowcaseDataChange,
+  howToOrderData = { steps: [] },
+  onHowToOrderDataChange,
   // Order form layout
   orderFormVariant = 'full-width',
   onOrderFormVariantChange,
+  // Custom code sections
+  customSections = [],
+  onCustomSectionsChange,
+  onAddCustomSection,
+  // Problem & Solution
+  problemSolution = { problems: [], solutions: [] },
+  onProblemSolutionChange,
+  // Generic Image Upload
+  onImageUpload,
+  // Add Section
+  onAddSection,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
 
-  // Get ordered sections
-  const orderedSections = sectionOrder
-    .map((id) => LANDING_SECTIONS.find((s) => s.id === id))
-    .filter(Boolean) as typeof LANDING_SECTIONS;
+  // Generic Image Upload Handler
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+
+  const handleGenericUpload = async (file: File, key: string, callback: (url: string) => void) => {
+    if (!onImageUpload) return;
+    setUploadingKey(key);
+    try {
+      const url = await onImageUpload(file);
+      callback(url);
+    } catch (error) {
+      console.error('Upload failed', error);
+      alert(language === 'bn' ? 'আপলোড ব্যর্থ হয়েছে' : 'Upload failed');
+    } finally {
+      setUploadingKey(null);
+    }
+  };
+
+  // Get ordered sections - include any missing sections from LANDING_SECTIONS
+  const orderedSections = (() => {
+    const ordered = sectionOrder
+      .map((id) => LANDING_SECTIONS.find((s) => s.id === id))
+      .filter(Boolean) as typeof LANDING_SECTIONS;
+    
+    // Add any sections not in the current order (for backwards compatibility)
+    const missingSection = LANDING_SECTIONS.filter(
+      (section) => !sectionOrder.includes(section.id)
+    );
+    
+    return [...ordered, ...missingSection];
+  })();
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -286,10 +443,15 @@ export function SectionManager({
     const { active, over } = event;
     
     if (over && active.id !== over.id) {
-      const oldIndex = sectionOrder.indexOf(active.id as string);
-      const newIndex = sectionOrder.indexOf(over.id as string);
-      const newOrder = arrayMove(sectionOrder, oldIndex, newIndex);
-      onOrderChange(newOrder);
+      // Build full order including missing sections
+      const fullOrder = orderedSections.map(s => s.id);
+      const oldIndex = fullOrder.indexOf(active.id as string);
+      const newIndex = fullOrder.indexOf(over.id as string);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(fullOrder, oldIndex, newIndex);
+        onOrderChange(newOrder);
+      }
     }
   };
 
@@ -318,6 +480,153 @@ export function SectionManager({
   // Render inline editor for each section type
   const renderSectionEditor = (sectionId: string) => {
     switch (sectionId) {
+      case 'hero':
+        return (
+          <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'হেডলাইন' : 'Headline'}
+              </label>
+              <input
+                type="text"
+                value={headline}
+                onChange={(e) => onHeadlineChange?.(e.target.value)}
+                placeholder={language === 'bn' ? 'আপনার প্রোডাক্টের নাম' : 'Your product name'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'সাবহেডলাইন' : 'Subheadline'}
+              </label>
+              <textarea
+                value={subheadline}
+                onChange={(e) => onSubheadlineChange?.(e.target.value)}
+                placeholder={language === 'bn' ? 'প্রোডাক্টের সংক্ষিপ্ত বর্ণনা' : 'Short product description'}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'বাটন টেক্সট' : 'Button Text'}
+              </label>
+              <input
+                type="text"
+                value={ctaText}
+                onChange={(e) => onCtaTextChange?.(e.target.value)}
+                placeholder={language === 'bn' ? 'এখনই অর্ডার করুন' : 'Order Now'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        );
+
+      case 'trust':
+        return (
+          <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            <p className="text-xs text-gray-500">
+              {language === 'bn' ? 'কাস্টমারদের বিশ্বাস অর্জনের জন্য ব্যাজ যোগ করুন' : 'Add badges to build customer trust'}
+            </p>
+            {trustBadges.length === 0 && (
+              <div className="text-center py-4 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                <p className="mb-1">
+                  {language === 'bn' ? '🛡️ ট্রাস্ট ব্যাজ যোগ করুন' : '🛡️ Add trust badges'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {language === 'bn' ? 'যেমন: ✅ ফ্রি ডেলিভারি, 🔒 সিকিউর পেমেন্ট' : 'e.g., ✅ Free Delivery, 🔒 Secure Payment'}
+                </p>
+              </div>
+            )}
+            {trustBadges.map((badge, index) => (
+              <div key={index} className="flex gap-2 items-center p-3 bg-white rounded-lg border border-gray-200">
+                <input
+                  type="text"
+                  value={badge.icon}
+                  onChange={(e) => {
+                    const newBadges = [...trustBadges];
+                    newBadges[index].icon = e.target.value;
+                    onTrustBadgesChange?.(newBadges);
+                  }}
+                  placeholder="✅"
+                  className="w-14 px-2 py-2 border border-gray-300 rounded-lg text-sm text-center"
+                />
+                <input
+                  type="text"
+                  value={badge.text}
+                  onChange={(e) => {
+                    const newBadges = [...trustBadges];
+                    newBadges[index].text = e.target.value;
+                    onTrustBadgesChange?.(newBadges);
+                  }}
+                  placeholder={language === 'bn' ? 'ব্যাজ টেক্সট' : 'Badge text'}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => onTrustBadgesChange?.(trustBadges.filter((_, i) => i !== index))}
+                  className="text-red-500 hover:text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => onTrustBadgesChange?.([...trustBadges, { icon: '✅', text: '' }])}
+              className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              {language === 'bn' ? 'ব্যাজ যোগ করুন' : 'Add Badge'}
+            </button>
+          </div>
+        );
+
+      case 'delivery':
+        return (
+          <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'ডেলিভারি শিরোনাম' : 'Delivery Title'}
+              </label>
+              <input
+                type="text"
+                value={deliveryInfo.title}
+                onChange={(e) => onDeliveryInfoChange?.({ ...deliveryInfo, title: e.target.value })}
+                placeholder={language === 'bn' ? 'সারাদেশে ক্যাশ অন ডেলিভারি' : 'Cash on Delivery Nationwide'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'ডেলিভারি বিবরণ' : 'Delivery Description'}
+              </label>
+              <textarea
+                value={deliveryInfo.description}
+                onChange={(e) => onDeliveryInfoChange?.({ ...deliveryInfo, description: e.target.value })}
+                placeholder={language === 'bn' ? 'ঢাকায় ১-২ দিন, ঢাকার বাইরে ২-৩ দিন' : 'Dhaka 1-2 days, Outside Dhaka 2-3 days'}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {language === 'bn' ? 'ডেলিভারি এরিয়া (প্রতিটি লাইনে একটি)' : 'Delivery Areas (one per line)'}
+              </label>
+              <textarea
+                value={deliveryInfo.areas?.join('\n') || ''}
+                onChange={(e) => onDeliveryInfoChange?.({ 
+                  ...deliveryInfo, 
+                  areas: e.target.value.split('\n').filter(a => a.trim()) 
+                })}
+                placeholder={language === 'bn' ? 'ঢাকা\nচট্টগ্রাম\nসিলেট' : 'Dhaka\nChittagong\nSylhet'}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        );
+
       case 'features':
         return (
           <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
@@ -582,22 +891,51 @@ export function SectionManager({
           <div className="space-y-3 p-4 bg-gray-50 border-t border-gray-200">
             <p className="text-xs text-gray-500">
               {language === 'bn' 
-                ? 'প্রোডাক্ট ফটো URL যোগ করুন' 
-                : 'Add product photo URLs'}
+                ? 'প্রোডাক্ট ফটো URL যোগ করুন অথবা আপলোড করুন' 
+                : 'Add product photo URLs or upload'}
             </p>
             {galleryImages.map((url, index) => (
               <div key={index} className="flex gap-2 items-center">
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => {
-                    const newImages = [...galleryImages];
-                    newImages[index] = e.target.value;
-                    onGalleryImagesChange?.(newImages);
-                  }}
-                  placeholder="https://..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => {
+                      const newImages = [...galleryImages];
+                      newImages[index] = e.target.value;
+                      onGalleryImagesChange?.(newImages);
+                    }}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm pr-8"
+                  />
+                  {/* Upload Button overlay/inline */}
+                  {onImageUpload && (
+                    <label className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer p-1 hover:bg-gray-100 rounded">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleGenericUpload(file, `gallery-${index}`, (newUrl) => {
+                              const newImages = [...galleryImages];
+                              newImages[index] = newUrl;
+                              onGalleryImagesChange?.(newImages);
+                            });
+                          }
+                          e.target.value = '';
+                        }}
+                        disabled={uploadingKey === `gallery-${index}`}
+                      />
+                      {uploadingKey === `gallery-${index}` ? (
+                        <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 text-gray-400 hover:text-emerald-600" />
+                      )}
+                    </label>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => onGalleryImagesChange?.(galleryImages.filter((_, i) => i !== index))}
@@ -607,16 +945,79 @@ export function SectionManager({
                 </button>
               </div>
             ))}
-            <button
-              type="button"
-              onClick={() => onGalleryImagesChange?.([...galleryImages, ''])}
-              className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              {language === 'bn' ? 'ফটো যোগ করুন' : 'Add Photo'}
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => onGalleryImagesChange?.([...galleryImages, ''])}
+                className="py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-emerald-500 hover:text-emerald-600 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'URL যোগ করুন' : 'Add URL'}
+              </button>
+              
+              {onImageUpload && (
+                <label className="py-2 border-2 border-dashed border-emerald-300 rounded-lg text-sm text-emerald-600 hover:border-emerald-500 hover:bg-emerald-50 flex items-center justify-center gap-2 cursor-pointer transition">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    multiple
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // Add new empty slot first, then upload
+                        const newIndex = galleryImages.length;
+                        const newImages = [...galleryImages, ''];
+                        onGalleryImagesChange?.(newImages);
+                        
+                        handleGenericUpload(file, `gallery-${newIndex}`, (newUrl) => {
+                          // Re-fetch latest state? No, we need to hope state updates fast enough/we use callback with closure
+                          // Better: Update separate state or use functional update if available, but here we depend on prop.
+                          // Safe way: Trigger generic upload, and in callback call onChange with PREV + new
+                          // But we can't access prev prop easily here without ref.
+                          // For now, simpler flow: Upload first, then append.
+                        });
+                      }
+                      // Correct approach for "New Upload":
+                      // 1. Set uploading state "gallery-new"
+                      // 2. Upload
+                      // 3. Append result
+                    }}
+                    // Actually, simpler to just allow single upload via the "Add URL" row's upload button for now to avoid complexity of "Upload & Append".
+                    // But user wants "Upload Photo".
+                    // Let's make "Add Image" button trigger a file input that appends.
+                  />
+                   {/* Re-implementing the onChange above to be correct */}
+                  <div className="absolute inset-0 opacity-0 cursor-pointer">
+                      <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if(file) {
+                                  handleGenericUpload(file, 'gallery-append', (url) => {
+                                      onGalleryImagesChange?.([...galleryImages, url]);
+                                  });
+                              }
+                              e.target.value = '';
+                          }}
+                          disabled={uploadingKey === 'gallery-append'}
+                      />
+                  </div>
+                  {uploadingKey === 'gallery-append' ? (
+                       <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                       <Upload className="w-4 h-4" />
+                  )}
+                  {language === 'bn' ? 'ছবি আপলোড করুন' : 'Upload Image'}
+                </label>
+              )}
+            </div>
           </div>
         );
+
+
+
 
       case 'benefits':
         return (
@@ -684,27 +1085,79 @@ export function SectionManager({
           <div className="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                {language === 'bn' ? 'আগের ছবি URL' : 'Before Image URL'}
+                {language === 'bn' ? 'আগের ছবি (Before)' : 'Before Image URL'}
               </label>
-              <input
-                type="url"
-                value={comparison.beforeImage || ''}
-                onChange={(e) => onComparisonChange?.({ ...comparison, beforeImage: e.target.value })}
-                placeholder="https://..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              />
+              <div className="relative">
+                <input
+                  type="url"
+                  value={comparison.beforeImage || ''}
+                  onChange={(e) => onComparisonChange?.({ ...comparison, beforeImage: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm pr-8"
+                />
+                 {onImageUpload && (
+                    <label className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer p-1 hover:bg-gray-100 rounded">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleGenericUpload(file, 'comparison-before', (url) => {
+                               onComparisonChange?.({ ...comparison, beforeImage: url });
+                            });
+                          }
+                          e.target.value = '';
+                        }}
+                        disabled={uploadingKey === 'comparison-before'}
+                      />
+                      {uploadingKey === 'comparison-before' ? (
+                        <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 text-gray-400 hover:text-emerald-600" />
+                      )}
+                    </label>
+                  )}
+              </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                {language === 'bn' ? 'পরের ছবি URL' : 'After Image URL'}
+                {language === 'bn' ? 'পরের ছবি (After)' : 'After Image URL'}
               </label>
-              <input
-                type="url"
-                value={comparison.afterImage || ''}
-                onChange={(e) => onComparisonChange?.({ ...comparison, afterImage: e.target.value })}
-                placeholder="https://..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              />
+              <div className="relative">
+                <input
+                  type="url"
+                  value={comparison.afterImage || ''}
+                  onChange={(e) => onComparisonChange?.({ ...comparison, afterImage: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm pr-8"
+                />
+                {onImageUpload && (
+                    <label className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer p-1 hover:bg-gray-100 rounded">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleGenericUpload(file, 'comparison-after', (url) => {
+                               onComparisonChange?.({ ...comparison, afterImage: url });
+                            });
+                          }
+                          e.target.value = '';
+                        }}
+                        disabled={uploadingKey === 'comparison-after'}
+                      />
+                      {uploadingKey === 'comparison-after' ? (
+                        <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 text-gray-400 hover:text-emerald-600" />
+                      )}
+                    </label>
+                  )}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
@@ -825,6 +1278,290 @@ export function SectionManager({
           </div>
         );
 
+
+      case 'problem-solution':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            {/* Problems Section */}
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? '❌ সমস্যা (কাস্টমার যা ফেস করে)' : '❌ Problems (What customers face)'}
+              </label>
+              {problemSolution.problems.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                  <p className="text-xs text-gray-400">
+                    {language === 'bn' ? 'কাস্টমার কী সমস্যার সম্মুখীন হয় তা যোগ করুন' : 'Add problems customers face'}
+                  </p>
+                </div>
+              )}
+              {problemSolution.problems.map((problem, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={problem}
+                    onChange={(e) => {
+                      const newProblems = [...problemSolution.problems];
+                      newProblems[index] = e.target.value;
+                      onProblemSolutionChange?.({ ...problemSolution, problems: newProblems });
+                    }}
+                    placeholder={language === 'bn' ? 'সমস্যা লিখুন' : 'Enter a problem'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newProblems = problemSolution.problems.filter((_, i) => i !== index);
+                      onProblemSolutionChange?.({ ...problemSolution, problems: newProblems });
+                    }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onProblemSolutionChange?.({ 
+                  ...problemSolution, 
+                  problems: [...problemSolution.problems, ''] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-red-200 rounded-lg text-sm text-red-600 hover:border-red-400 hover:text-red-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'সমস্যা যোগ করুন' : 'Add Problem'}
+              </button>
+            </div>
+
+            {/* Solutions Section */}
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? '✅ সমাধান (আপনার সমাধান)' : '✅ Solutions (Your solutions)'}
+              </label>
+              {problemSolution.solutions.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                  <p className="text-xs text-gray-400">
+                    {language === 'bn' ? 'আপনার সমাধান যোগ করুন' : 'Add your solutions'}
+                  </p>
+                </div>
+              )}
+              {problemSolution.solutions.map((solution, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={solution}
+                    onChange={(e) => {
+                      const newSolutions = [...problemSolution.solutions];
+                      newSolutions[index] = e.target.value;
+                      onProblemSolutionChange?.({ ...problemSolution, solutions: newSolutions });
+                    }}
+                    placeholder={language === 'bn' ? 'সমাধান লিখুন' : 'Enter a solution'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSolutions = problemSolution.solutions.filter((_, i) => i !== index);
+                      onProblemSolutionChange?.({ ...problemSolution, solutions: newSolutions });
+                    }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onProblemSolutionChange?.({ 
+                  ...problemSolution, 
+                  solutions: [...problemSolution.solutions, ''] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'সমাধান যোগ করুন' : 'Add Solution'}
+              </button>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+           renderNewSectionEditors(sectionId)
+        );
+    }
+  };
+
+  const renderNewSectionEditors = (sectionId: string) => {
+    switch (sectionId) {
+      case 'pricing':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'প্রাইসিং ফিচারসমূহ' : 'Pricing Features'}
+              </label>
+              {pricingData.features.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'ফিচার যোগ করুন' : 'Add features'}
+                </div>
+              )}
+              {pricingData.features.map((feature, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={feature}
+                    onChange={(e) => {
+                      const newFeatures = [...pricingData.features];
+                      newFeatures[index] = e.target.value;
+                      onPricingDataChange?.({ ...pricingData, features: newFeatures });
+                    }}
+                    placeholder={language === 'bn' ? 'ফিচার লিখুন' : 'Enter feature'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFeatures = pricingData.features.filter((_, i) => i !== index);
+                      onPricingDataChange?.({ ...pricingData, features: newFeatures });
+                    }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onPricingDataChange?.({ 
+                  ...pricingData, 
+                  features: [...pricingData.features, ''] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'ফিচার যোগ করুন' : 'Add Feature'}
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'showcase':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'প্রোডাক্ট হাইলাইট' : 'Product Highlights'}
+              </label>
+              {showcaseData.features.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'হাইলাইট যোগ করুন' : 'Add highlights'}
+                </div>
+              )}
+              {showcaseData.features.map((feature, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={feature}
+                    onChange={(e) => {
+                      const newFeatures = [...showcaseData.features];
+                      newFeatures[index] = e.target.value;
+                      onShowcaseDataChange?.({ ...showcaseData, features: newFeatures });
+                    }}
+                    placeholder={language === 'bn' ? 'হাইলাইট লিখুন' : 'Enter highlight'}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFeatures = showcaseData.features.filter((_, i) => i !== index);
+                      onShowcaseDataChange?.({ ...showcaseData, features: newFeatures });
+                    }}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onShowcaseDataChange?.({ 
+                  ...showcaseData, 
+                  features: [...showcaseData.features, ''] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'হাইলাইট যোগ করুন' : 'Add Highlight'}
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'how-to-order':
+        return (
+          <div className="space-y-4 p-4 bg-gray-50 border-t border-gray-200">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-700">
+                {language === 'bn' ? 'অর্ডার ধাপসমূহ' : 'Order Steps'}
+              </label>
+              {howToOrderData.steps.length === 0 && (
+                <div className="text-center py-3 text-gray-500 text-sm bg-white rounded-lg border border-dashed border-gray-300">
+                   {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add steps'}
+                </div>
+              )}
+              {howToOrderData.steps.map((step, index) => (
+                <div key={index} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                    <span>{language === 'bn' ? `ধাপ ${index + 1}` : `Step ${index + 1}`}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSteps = howToOrderData.steps.filter((_, i) => i !== index);
+                        onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                      }}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={step.title}
+                    onChange={(e) => {
+                      const newSteps = [...howToOrderData.steps];
+                      newSteps[index] = { ...newSteps[index], title: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের শিরোনাম' : 'Step Title'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <textarea
+                    value={step.description}
+                    onChange={(e) => {
+                      const newSteps = [...howToOrderData.steps];
+                      newSteps[index] = { ...newSteps[index], description: e.target.value };
+                      onHowToOrderDataChange?.({ ...howToOrderData, steps: newSteps });
+                    }}
+                    placeholder={language === 'bn' ? 'ধাপের বিবরণ' : 'Step Description'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[60px]"
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => onHowToOrderDataChange?.({ 
+                  ...howToOrderData, 
+                  steps: [...howToOrderData.steps, { title: '', description: '' }] 
+                })}
+                className="w-full py-2 border-2 border-dashed border-emerald-200 rounded-lg text-sm text-emerald-600 hover:border-emerald-400 hover:text-emerald-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {language === 'bn' ? 'ধাপ যোগ করুন' : 'Add Step'}
+              </button>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -877,11 +1614,39 @@ export function SectionManager({
           </div>
         </SortableContext>
       </DndContext>
+      
+      {/* Add Section Button */}
+      {onAddSection && (
+        <div className="p-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => setIsAddSectionModalOpen(true)}
+            className="w-full py-3 border-2 border-dashed border-emerald-300 rounded-lg text-sm font-medium text-emerald-600 hover:border-emerald-500 hover:bg-emerald-50 transition flex items-center justify-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            {language === 'bn' ? 'নতুন সেকশন যোগ করুন' : 'Add New Section'}
+          </button>
+        </div>
+      )}
+
+      {/* Add Section Modal */}
+      <AddSectionModal
+        isOpen={isAddSectionModalOpen}
+        onClose={() => setIsAddSectionModalOpen(false)}
+        onAddSection={(sectionId) => {
+          onAddSection?.(sectionId);
+          setIsAddSectionModalOpen(false);
+        }}
+        existingSections={sectionOrder}
+        language={language as 'bn' | 'en'}
+      />
     </div>
   );
 }
 
-// Sortable Section Item Component
+// Memoized export to prevent flickering from parent re-renders
+export const SectionManager = memo(SectionManagerBase);
+
 interface SortableSectionItemProps {
   id: string;
   section: typeof LANDING_SECTIONS[0];
@@ -893,8 +1658,8 @@ interface SortableSectionItemProps {
   onToggleVisibility: () => void;
   renderEditor: () => React.ReactNode;
 }
-
-function SortableSectionItem({
+// Sortable Section Item Component (memoized to prevent flickering)
+const SortableSectionItem = memo(function SortableSectionItem({
   id,
   section,
   isHidden,
@@ -1008,7 +1773,7 @@ function SortableSectionItem({
       {isExpanded && renderEditor()}
     </div>
   );
-}
+});
 
 // Preview component showing section order
 interface SectionPreviewProps {

@@ -23,6 +23,7 @@ import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { useTranslation } from '~/contexts/LanguageContext';
+import i18next from '~/services/i18n.server';
 
 // ==============================================================================
 // CONFIGURATION - Update these values
@@ -50,16 +51,10 @@ const PLAN_OPTIONS = [
     icon: Gift,
     color: 'gray',
     features: [
-      '1 Product',
-      '50 Orders/Month',
-      'Landing Page Mode',
-      'Basic Support',
-    ],
-    featuresBn: [
-      '১টি প্রোডাক্ট',
-      '৫০টি অর্ডার/মাস',
-      'ল্যান্ডিং পেজ মোড',
-      'বেসিক সাপোর্ট',
+      'feature1Product',
+      'feature50Orders',
+      'featureLandingPageMode',
+      'featureBasicSupport',
     ],
   },
   { 
@@ -71,18 +66,11 @@ const PLAN_OPTIONS = [
     color: 'emerald',
     popular: true,
     features: [
-      '50 Products',
-      '500 Orders/Month',
-      'Full Store Mode',
-      'Custom Domain',
-      'bKash/Nagad Payment',
-    ],
-    featuresBn: [
-      '৫০টি প্রোডাক্ট',
-      '৫০০টি অর্ডার/মাস',
-      'ফুল স্টোর মোড',
-      'কাস্টম ডোমেইন',
-      'বিকাশ/নগদ পেমেন্ট',
+      'feature50Products',
+      'feature500Orders',
+      'featureFullStoreMode',
+      'featureCustomDomain',
+      'featureBkashNagad',
     ],
   },
   { 
@@ -93,20 +81,12 @@ const PLAN_OPTIONS = [
     icon: Crown,
     color: 'purple',
     features: [
-      '200 Products',
-      '3000 Orders/Month',
-      'Facebook Conversion API',
-      'Custom Domain',
-      'Priority Support',
-      '24/7 Support',
-    ],
-    featuresBn: [
-      '২০০টি প্রোডাক্ট',
-      '৩০০০টি অর্ডার/মাস',
-      'ফেসবুক কনভার্সন API',
-      'কাস্টম ডোমেইন',
-      'প্রায়োরিটি সাপোর্ট',
-      '২৪/৭ সাপোর্ট',
+      'feature200Products',
+      'feature3000Orders',
+      'featureFbApi',
+      'featureCustomDomain',
+      'featurePrioritySupport',
+      'feature247Support',
     ],
   },
 ];
@@ -130,79 +110,79 @@ const CATEGORY_TEMPLATES: Record<string, {
   product: { title: string; price: number; description: string };
 }> = {
   fashion: {
-    headline: 'প্রিমিয়াম ফ্যাশন কালেকশন',
-    subheadline: 'ট্রেন্ডি ও স্টাইলিশ পোশাক',
+    headline: 'categoryFashionHeadline',
+    subheadline: 'categoryFashionSubheadline',
     features: [
-      { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের ফেব্রিক' },
-      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
-      { icon: '💳', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা দিন' },
+      { icon: '✨', title: 'featurePremiumQuality', description: 'descBestFabric' },
+      { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
+      { icon: '💳', title: 'featureCashOnDelivery', description: 'descPayOnReceive' },
     ],
-    product: { title: 'Premium Fashion Item', price: 1500, description: 'স্টাইলিশ ও ট্রেন্ডি ফ্যাশন আইটেম' },
+    product: { title: 'Premium Fashion Item', price: 1500, description: 'descStylishFashion' },
   },
   electronics: {
-    headline: 'সেরা ইলেকট্রনিক্স প্রোডাক্ট',
-    subheadline: 'অরিজিনাল গ্যাজেট ও এক্সেসরিজ',
+    headline: 'categoryElectronicsHeadline',
+    subheadline: 'categoryElectronicsSubheadline',
     features: [
-      { icon: '✅', title: '১০০% অরিজিনাল', description: 'ওয়ারেন্টি সহ' },
-      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
-      { icon: '🔧', title: 'আফটার সেলস সার্ভিস', description: 'ফ্রি টেকনিক্যাল সাপোর্ট' },
+      { icon: '✅', title: 'featureOriginal', description: 'descWarranty' },
+      { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
+      { icon: '🔧', title: 'featureAfterSales', description: 'descTechnicalSupport' },
     ],
-    product: { title: 'Quality Electronics', price: 2500, description: 'প্রিমিয়াম ইলেকট্রনিক্স আইটেম' },
+    product: { title: 'Quality Electronics', price: 2500, description: 'descPremiumElectronics' },
   },
   beauty: {
-    headline: 'বিউটি ও স্কিনকেয়ার সলিউশন',
-    subheadline: 'গ্লো করুন নিজেকে',
+    headline: 'categoryBeautyHeadline',
+    subheadline: 'categoryBeautySubheadline',
     features: [
-      { icon: '💎', title: 'অথেনটিক প্রোডাক্ট', description: '১০০% জেনুইন' },
-      { icon: '🌿', title: 'ন্যাচারাল ইনগ্রিডিয়েন্ট', description: 'স্কিন ফ্রেন্ডলি' },
-      { icon: '💝', title: 'ফ্রি গিফট', description: 'প্রতি অর্ডারে সারপ্রাইজ' },
+      { icon: '💎', title: 'featureAuthentic', description: 'descGenuine' },
+      { icon: '🌿', title: 'featureNatural', description: 'descSkinFriendly' },
+      { icon: '💝', title: 'featureFreeGift', description: 'descSurprise' },
     ],
-    product: { title: 'Beauty Product', price: 800, description: 'প্রিমিয়াম বিউটি প্রোডাক্ট' },
+    product: { title: 'Beauty Product', price: 800, description: 'descPremiumBeauty' },
   },
   food: {
-    headline: 'সুস্বাদু খাবার ও স্ন্যাক্স',
-    subheadline: 'ফ্রেশ ও হাইজিনিক',
+    headline: 'categoryFoodHeadline',
+    subheadline: 'categoryFoodSubheadline',
     features: [
-      { icon: '🍽️', title: 'ফ্রেশ প্রোডাক্ট', description: 'প্রতিদিন তৈরি' },
-      { icon: '🚴', title: 'হট ডেলিভারি', description: 'গরম গরম পৌঁছে যাবে' },
-      { icon: '😋', title: 'টেস্ট গ্যারান্টি', description: 'মুখে লেগে যাবে' },
+      { icon: '🍽️', title: 'featureFresh', description: 'descDaily' },
+      { icon: '🚴', title: 'featureHotDelivery', description: 'descHot' },
+      { icon: '😋', title: 'featureTasteGuarantee', description: 'descDelicious' },
     ],
-    product: { title: 'Delicious Food Item', price: 350, description: 'সুস্বাদু খাবার' },
+    product: { title: 'Delicious Food Item', price: 350, description: 'descDeliciousFood' },
   },
   home: {
-    headline: 'হোম ও লাইফস্টাইল প্রোডাক্ট',
-    subheadline: 'আপনার ঘরকে সাজান',
+    headline: 'categoryHomeHeadline',
+    subheadline: 'categoryHomeSubheadline',
     features: [
-      { icon: '🏡', title: 'কোয়ালিটি প্রোডাক্ট', description: 'লং লাস্টিং' },
-      { icon: '📦', title: 'সেফ প্যাকেজিং', description: 'সঠিক কন্ডিশনে ডেলিভারি' },
-      { icon: '🔄', title: 'ইজি রিটার্ন', description: '৭ দিনে রিটার্ন' },
+      { icon: '🏡', title: 'featureQuality', description: 'descLongLasting' },
+      { icon: '📦', title: 'featureSafePackaging', description: 'descCorrectCondition' },
+      { icon: '🔄', title: 'featureEasyReturn', description: 'descSevenDays' },
     ],
-    product: { title: 'Home & Living Product', price: 1200, description: 'হোম ডেকোর আইটেম' },
+    product: { title: 'Home & Living Product', price: 1200, description: 'descHomeDecor' },
   },
   services: {
-    headline: 'প্রফেশনাল সার্ভিস',
-    subheadline: 'এক্সপার্ট সলিউশন',
+    headline: 'categoryServicesHeadline',
+    subheadline: 'categoryServicesSubheadline',
     features: [
-      { icon: '👨‍💼', title: 'এক্সপার্ট টিম', description: 'অভিজ্ঞ প্রফেশনাল' },
-      { icon: '⏱️', title: 'সময়মত ডেলিভারি', description: 'ডেডলাইন মেইনটেইন' },
-      { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'বেস্ট কোয়ালিটি সার্ভিস' },
+      { icon: '👨‍💼', title: 'featureExpertTeam', description: 'descExperienced' },
+      { icon: '⏱️', title: 'featureOnTime', description: 'descDeadline' },
+      { icon: '💯', title: 'featureSatisfaction', description: 'descBestQuality' },
     ],
-    product: { title: 'Professional Service', price: 2000, description: 'প্রফেশনাল সার্ভিস প্যাকেজ' },
+    product: { title: 'Professional Service', price: 2000, description: 'descProfessionalService' },
   },
   other: {
-    headline: 'কোয়ালিটি প্রোডাক্ট',
-    subheadline: 'বেস্ট সিলেকশন',
+    headline: 'categoryOtherHeadline',
+    subheadline: 'categoryOtherSubheadline',
     features: [
-      { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের পণ্য' },
-      { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
-      { icon: '💳', title: 'ক্যাশ অন ডেলিভারি', description: 'পণ্য হাতে পেয়ে টাকা দিন' },
+      { icon: '✅', title: 'featurePremiumQuality', description: 'descBestQualityItem' },
+      { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
+      { icon: '💳', title: 'featureCashOnDelivery', description: 'descPayOnReceive' },
     ],
-    product: { title: 'Quality Product', price: 1000, description: 'প্রিমিয়াম প্রোডাক্ট' },
+    product: { title: 'Quality Product', price: 1000, description: 'descPremiumProduct' },
   },
 };
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Create Your Store - Multi-Store SaaS' }];
+  return [{ title: 'metaTitle' }];
 };
 
 // Redirect if already logged in AND onboarding is completed
@@ -242,6 +222,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 // Action to handle each step
 export async function action({ request, context }: ActionFunctionArgs) {
+  const t = await i18next.getFixedT(request);
   const { env } = context.cloudflare;
   const formData = await request.formData();
   const step = formData.get('step') as string;
@@ -251,7 +232,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const email = formData.get('email') as string;
     
     if (!email || !email.includes('@')) {
-      return json({ error: 'Valid email required', field: 'email' }, { status: 400 });
+      return json({ error: t('validEmailRequired'), field: 'email' }, { status: 400 });
     }
     
     const db = drizzle(env.DB);
@@ -263,8 +244,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     
     if (existingUser.length > 0) {
       return json({ 
-        error: 'এই ইমেইল আগেই রেজিস্টার করা হয়েছে। অনুগ্রহ করে লগইন করুন।', 
-        errorEn: 'Email already registered. Please login instead.',
+        error: t('emailAlreadyRegistered'), 
         field: 'email',
         emailExists: true 
       }, { status: 400 });
@@ -278,7 +258,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const subdomain = formData.get('subdomain') as string;
     
     if (!subdomain || subdomain.length < 3) {
-      return json({ error: 'সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে', field: 'subdomain' }, { status: 400 });
+      return json({ error: t('subdomainMinChars'), field: 'subdomain' }, { status: 400 });
     }
     
     const db = drizzle(env.DB);
@@ -291,8 +271,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (existingStore.length > 0) {
       console.log('[Onboarding] Subdomain not available:', subdomain);
       return json({ 
-        error: `"${subdomain}" সাবডোমেইন আগেই নেওয়া হয়েছে। অন্য একটি বেছে নিন।`, 
-        errorEn: `The subdomain "${subdomain}" is already taken. Please choose another one.`,
+        error: t('subdomainTaken', { subdomain }), 
         field: 'subdomain',
         subdomainTaken: true 
       }, { status: 400 });
@@ -342,16 +321,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // 3. Create landing config from category template
       const landingConfig = {
         templateId: 'modern-dark',
-        headline: template.headline,
-        subheadline: template.subheadline,
-        ctaText: 'এখনই অর্ডার করুন',
-        ctaSubtext: 'ক্যাশ অন ডেলিভারি',
-        features: template.features,
+        headline: t(template.headline),
+        subheadline: t(template.subheadline),
+        ctaText: t('orderNow') || 'এখনই অর্ডার করুন',
+        ctaSubtext: t('cashOnDelivery') || 'ক্যাশ অন ডেলিভারি',
+        features: template.features.map(f => ({
+          ...f,
+          title: t(f.title),
+          description: t(f.description)
+        })),
         testimonials: [
-          { name: 'সন্তুষ্ট ক্রেতা', text: 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!' },
+          { name: t('satisfiedCustomer') || 'সন্তুষ্ট ক্রেতা', text: t('satisfiedCustomerText') || 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!' },
         ],
-        urgencyText: '🔥 সীমিত সময়ের অফার!',
-        guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি',
+        urgencyText: t('limitedTimeOffer') || '🔥 সীমিত সময়ের অফার!',
+        guaranteeText: t('satisfactionGuarantee') || '১০০% সন্তুষ্টির গ্যারান্টি',
       };
 
       // 4. Determine payment status based on plan
@@ -388,6 +371,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         title: template.product.title,
         description: template.product.description,
         price: template.product.price,
+        inventory: 100, // Ensure sample product is in stock
         isPublished: true,
       });
 
@@ -403,13 +387,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     } catch (error) {
       console.error('[Onboarding] Error:', error);
       return json({ 
-        error: 'Failed to create store. Please try again.',
+        error: t('failedToCreateStore'),
         details: error instanceof Error ? error.message : 'Unknown error'
       }, { status: 500 });
     }
   }
 
-  return json({ error: 'Invalid step' }, { status: 400 });
+  return json({ error: t('invalidStep') }, { status: 400 });
 }
 
 export default function OnboardingPage() {
@@ -629,11 +613,8 @@ export default function OnboardingPage() {
       {/* Header */}
       <header className="py-6 px-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="p-2 bg-emerald-600 rounded-xl">
-              <Store className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl text-gray-900">Multi-Store</span>
+          <Link to="/" className="flex items-center gap-3">
+            <img src="/brand/logo-green.png" alt="Ozzyl" className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
             {/* <LanguageSelector variant="toggle" size="sm" /> */} {/* Temporarily disabled - Bengali is default */}
@@ -673,7 +654,7 @@ export default function OnboardingPage() {
                   value={formData.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Rahim Uddin"
+                  placeholder={t('placeholderName')}
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
@@ -689,7 +670,7 @@ export default function OnboardingPage() {
                   value={formData.email}
                   onChange={(e) => updateField('email', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="you@example.com"
+                  placeholder={t('placeholderEmail')}
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
@@ -762,7 +743,7 @@ export default function OnboardingPage() {
                   value={formData.storeName}
                   onChange={(e) => updateField('storeName', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Fashion House BD"
+                  placeholder={t('placeholderStoreName')}
                 />
                 {errors.storeName && <p className="text-red-500 text-sm mt-1">{errors.storeName}</p>}
               </div>
@@ -781,10 +762,10 @@ export default function OnboardingPage() {
                       updateField('subdomain', cleaned);
                     }}
                     className="flex-1 px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    placeholder="my-store"
+                    placeholder={t('placeholderSubdomain')}
                   />
                   <span className="px-4 py-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-xl text-gray-500 text-sm">
-                    .digitalcare.site
+                    .ozzyl.com
                   </span>
                 </div>
                 {errors.subdomain && <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>}
@@ -829,7 +810,7 @@ export default function OnboardingPage() {
                 {PLAN_OPTIONS.map((plan) => {
                   const Icon = plan.icon;
                   const isSelected = formData.selectedPlan === plan.id;
-                  const features = language === 'bn' ? plan.featuresBn : plan.features;
+                  const features = plan.features;
                   
                   return (
                     <button
@@ -875,7 +856,7 @@ export default function OnboardingPage() {
                         {features.map((feature, idx) => (
                           <li key={idx} className="flex items-center gap-2 text-sm text-gray-600">
                             <Check className="w-4 h-4 text-emerald-500" />
-                            {feature}
+                            {t(feature)}
                           </li>
                         ))}
                       </ul>

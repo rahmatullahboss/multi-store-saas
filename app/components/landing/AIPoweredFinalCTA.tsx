@@ -125,10 +125,10 @@ export function AIPoweredFinalCTA() {
                         <Bot className="w-6 h-6 text-emerald-400" />
                       </div>
                       <div>
-                        <div className="font-bold text-white text-sm">OZZYL AI Assistant</div>
+                        <div className="font-bold text-white text-sm">{t('landingFinalCTA_aiAssistantName')}</div>
                         <div className="flex items-center gap-1.5">
                           <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                          <span className="text-xs text-emerald-400">Online Now</span>
+                          <span className="text-xs text-emerald-400">{t('landingFinalCTA_onlineNow')}</span>
                         </div>
                       </div>
                    </div>

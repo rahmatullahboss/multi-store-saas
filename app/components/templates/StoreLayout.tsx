@@ -17,6 +17,7 @@ import { getThemeColors, getFontConfig } from '~/lib/theme';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { WhatsAppButton } from '~/components/WhatsAppButton';
+import { FloatingButtons } from './FloatingButtons';
 
 // Serialized product type
 interface SerializedProduct {
@@ -44,6 +45,7 @@ interface StoreLayoutProps {
   socialLinks?: SocialLinks | null;
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  planType?: string;
 }
 
 export function StoreLayout({
@@ -60,6 +62,7 @@ export function StoreLayout({
   socialLinks,
   footerConfig,
   businessInfo,
+  planType = 'free',
 }: StoreLayoutProps) {
   const [cartCount, setCartCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -521,20 +524,37 @@ export function StoreLayout({
             <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
             {(footerConfig?.showPoweredBy !== false) && (
               <p className="mt-2">
-                Powered by <span className="text-blue-400">Multi-Store SaaS</span>
+                Powered by <span className="text-blue-400">Ozzyl</span>
               </p>
             )}
           </div>
+
+          {/* Viral Loop / Branding */}
+          {planType === 'free' && (
+            <div className="mt-8 pt-4 border-t border-gray-800 flex justify-center items-center">
+              <a 
+                href="https://ozzyl.com?utm_source=store-layout-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] text-gray-500 hover:text-blue-400 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm text-gray-400">Ozzyl</span>
+              </a>
+            </div>
+          )}
         </div>
       </footer>
 
-      {/* WhatsApp Floating Button */}
-      {socialLinks?.whatsapp && (
-        <WhatsAppButton
-          phoneNumber={socialLinks.whatsapp}
-          storeName={storeName}
-        />
-      )}
+      {/* Floating Action Buttons - WhatsApp */}
+      <FloatingButtons
+        whatsappEnabled={!!socialLinks?.whatsapp}
+        whatsappNumber={socialLinks?.whatsapp}
+        whatsappMessage={`Hi, I'm interested in your products at ${storeName}`}
+        callEnabled={!!businessInfo?.phone}
+        callNumber={businessInfo?.phone}
+        productTitle={storeName}
+      />
     </div>
     </>
   );

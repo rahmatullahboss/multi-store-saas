@@ -18,7 +18,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // 2. If no storeId but we have userId, fetch from DB
   if (!storeId && userId) {
     const user = await db.select({ storeId: users.storeId }).from(users).where(eq(users.id, userId)).limit(1);
-    if (user.length > 0) {
+    if (user.length > 0 && user[0].storeId) {
       storeId = user[0].storeId;
     }
   }

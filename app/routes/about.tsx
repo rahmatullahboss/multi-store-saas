@@ -5,6 +5,7 @@
  * Premium dark theme matching landing page.
  */
 
+import { lazy, Suspense } from 'react';
 import type { MetaFunction } from '@remix-run/cloudflare';
 import { Link } from '@remix-run/react';
 import { Store, Heart, Rocket, Users, Globe, Target, Zap, ArrowRight, Check, Sparkles, MessageCircle, Phone, Mail } from 'lucide-react';
@@ -12,11 +13,16 @@ import { useLanguage } from '~/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { MarketingFooter } from '~/components/MarketingFooter';
 import { MarketingHeader } from '~/components/MarketingHeader';
-import { OzzylAIChatWidget } from '~/components/landing/OzzylAIChatWidget';
+import { ClientOnly } from '~/components/LazySection';
+
+// Lazy load chat widget - not needed immediately
+const OzzylAIChatWidget = lazy(() => 
+  import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
+);
 
 export const meta: MetaFunction = () => [
-  { title: 'আমাদের সম্পর্কে - Multi-Store | বাংলাদেশী ই-কমার্স প্ল্যাটফর্ম' },
-  { name: 'description', content: 'Multi-Store - বাংলাদেশী উদ্যোক্তাদের জন্য তৈরি সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। আমাদের মিশন ও ভিশন জানুন।' },
+  { title: 'আমাদের সম্পর্কে - Ozzyl | বাংলাদেশী ই-কমার্স প্ল্যাটফর্ম' },
+  { name: 'description', content: 'Ozzyl - বাংলাদেশী উদ্যোক্তাদের জন্য তৈরি সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। আমাদের মিশন ও ভিশন জানুন।' },
 ];
 
 export default function AboutPage() {
@@ -94,7 +100,7 @@ export default function AboutPage() {
                   }}
                 >
                   <img
-                    src="/images/founder.jpg"
+                    src="/images/founder.webp"
                     alt="Rahmatullah Zisan - Founder"
                     className="w-full h-full object-cover"
                   />
@@ -335,7 +341,11 @@ export default function AboutPage() {
       </section>
 
       <MarketingFooter />
-      <OzzylAIChatWidget />
+      <ClientOnly>
+        <Suspense fallback={null}>
+          <OzzylAIChatWidget />
+        </Suspense>
+      </ClientOnly>
     </div>
   );
 }

@@ -268,23 +268,37 @@ interface SocialProofPopupProps {
   locations?: string[];
 }
 
-const DEFAULT_BUYERS = [
+const DEFAULT_BUYERS_BN = [
   'রহিম', 'করিম', 'আব্দুল্লাহ', 'ফাতেমা', 'আয়েশা', 
   'নাফিসা', 'তানভীর', 'সাকিব', 'মাহবুব', 'রুমানা'
 ];
 
-const DEFAULT_LOCATIONS = [
+const DEFAULT_LOCATIONS_BN = [
   'ঢাকা', 'চট্টগ্রাম', 'সিলেট', 'রাজশাহী', 'খুলনা',
   'বরিশাল', 'রংপুর', 'ময়মনসিংহ', 'কুমিল্লা', 'নারায়ণগঞ্জ'
+];
+
+const DEFAULT_BUYERS_EN = [
+  'Rahim', 'Karim', 'Abdullah', 'Fatema', 'Ayesha', 
+  'Nafisa', 'Tanveer', 'Sakib', 'Mahbub', 'Rumana'
+];
+
+const DEFAULT_LOCATIONS_EN = [
+  'Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna',
+  'Barishal', 'Rangpur', 'Mymensingh', 'Comilla', 'Narayanganj'
 ];
 
 export function SocialProofPopup({
   productName,
   interval = 15,
-  buyers = DEFAULT_BUYERS,
-  locations = DEFAULT_LOCATIONS,
+  buyers,
+  locations,
 }: SocialProofPopupProps) {
   const { t, lang } = useTranslation();
+  
+  // Use defaults based on language if not provided
+  const activeBuyers = buyers || (lang === 'bn' ? DEFAULT_BUYERS_BN : DEFAULT_BUYERS_EN);
+  const activeLocations = locations || (lang === 'bn' ? DEFAULT_LOCATIONS_BN : DEFAULT_LOCATIONS_EN);
   const [visible, setVisible] = useState(false);
   const [currentBuyer, setCurrentBuyer] = useState({ name: '', location: '', time: '' });
 
@@ -306,8 +320,8 @@ export function SocialProofPopup({
   }, [interval]);
 
   const showNotification = () => {
-    const randomBuyer = buyers[Math.floor(Math.random() * buyers.length)];
-    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+    const randomBuyer = activeBuyers[Math.floor(Math.random() * activeBuyers.length)];
+    const randomLocation = activeLocations[Math.floor(Math.random() * activeLocations.length)];
     const randomMinutes = Math.floor(Math.random() * 30) + 1;
 
     const timeText = randomMinutes === 1 

@@ -689,7 +689,7 @@ export default function EditProductPage() {
               {/* Google Preview */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-xs text-gray-500 mb-2">Google Preview:</p>
-                <p className="text-sm text-emerald-700 truncate">yourstore.digitalcare.site/products/...</p>
+                <p className="text-sm text-emerald-700 truncate">yourstore.ozzyl.com/products/...</p>
                 <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
                   {formSeoTitle || autoSeoTitle}
                 </h4>

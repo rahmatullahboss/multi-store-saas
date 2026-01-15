@@ -14,17 +14,17 @@ import { AIEditPanel } from './AIEditPanel';
 import { AIUpgradeModal } from '~/components/modals/AIUpgradeModal';
 import type { PlanType } from '~/utils/plans.server';
 
-interface MagicSectionWrapperProps {
+interface MagicSectionWrapperProps<T = Record<string, unknown>> {
   sectionId: string;
   sectionLabel: string;
-  data: unknown;
-  onUpdate: (newData: unknown) => void;
+  data: T;
+  onUpdate: (newData: T) => void;
   isEditable?: boolean;
   planType?: PlanType;
   children: ReactNode;
 }
 
-export function MagicSectionWrapper({
+export function MagicSectionWrapper<T = Record<string, unknown>>({
   sectionId,
   sectionLabel,
   data,
@@ -32,7 +32,7 @@ export function MagicSectionWrapper({
   isEditable = true,
   planType = 'free',
   children,
-}: MagicSectionWrapperProps) {
+}: MagicSectionWrapperProps<T>) {
   const [isHovered, setIsHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -59,7 +59,7 @@ export function MagicSectionWrapper({
     setIsEditing(false);
   };
 
-  const handleUpdate = (newData: unknown) => {
+  const handleUpdate = (newData: T) => {
     onUpdate(newData);
     setIsEditing(false);
   };
@@ -144,7 +144,7 @@ export function MagicSectionWrapper({
           currentData={data}
           anchorRect={sectionRef.current.getBoundingClientRect()}
           onClose={handleClose}
-          onUpdate={handleUpdate}
+          onUpdate={(newData) => handleUpdate(newData as T)}
         />
       )}
 
