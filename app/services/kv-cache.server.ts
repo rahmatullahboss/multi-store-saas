@@ -171,6 +171,107 @@ export class KVCache {
       this.invalidateByPrefix(`${CACHE_KEYS.PAGE}${storeId}`),
     ]);
   }
+
+  // ========================================
+  // Product Cache Methods
+  // ========================================
+
+  /**
+   * Cache product list for a store
+   */
+  async cacheProducts<T>(storeId: number, products: T[]): Promise<void> {
+    const key = `${CACHE_KEYS.PRODUCTS}${storeId}`;
+    await this.set(key, products, CACHE_TTL.PRODUCTS);
+  }
+
+  /**
+   * Get cached products for a store
+   */
+  async getProducts<T>(storeId: number): Promise<T[] | null> {
+    const key = `${CACHE_KEYS.PRODUCTS}${storeId}`;
+    return this.get<T[]>(key);
+  }
+
+  /**
+   * Cache single product
+   */
+  async cacheProduct<T>(storeId: number, productId: number, product: T): Promise<void> {
+    const key = `${CACHE_KEYS.PRODUCT}${storeId}:${productId}`;
+    await this.set(key, product, CACHE_TTL.PRODUCT);
+  }
+
+  /**
+   * Get cached product
+   */
+  async getProduct<T>(storeId: number, productId: number): Promise<T | null> {
+    const key = `${CACHE_KEYS.PRODUCT}${storeId}:${productId}`;
+    return this.get<T>(key);
+  }
+
+  /**
+   * Invalidate product cache for a store
+   */
+  async invalidateProducts(storeId: number, productId?: number): Promise<void> {
+    if (productId) {
+      await this.delete(`${CACHE_KEYS.PRODUCT}${storeId}:${productId}`);
+    }
+    // Always invalidate list cache
+    await this.delete(`${CACHE_KEYS.PRODUCTS}${storeId}`);
+  }
+
+  // ========================================
+  // Landing Config Cache Methods
+  // ========================================
+
+  /**
+   * Cache landing page config
+   */
+  async cacheLandingConfig<T>(storeId: number, config: T): Promise<void> {
+    const key = `${CACHE_KEYS.LANDING_CONFIG}${storeId}`;
+    await this.set(key, config, CACHE_TTL.LANDING);
+  }
+
+  /**
+   * Get cached landing config
+   */
+  async getLandingConfig<T>(storeId: number): Promise<T | null> {
+    const key = `${CACHE_KEYS.LANDING_CONFIG}${storeId}`;
+    return this.get<T>(key);
+  }
+
+  /**
+   * Invalidate landing config cache
+   */
+  async invalidateLandingConfig(storeId: number): Promise<void> {
+    await this.delete(`${CACHE_KEYS.LANDING_CONFIG}${storeId}`);
+  }
+
+  // ========================================
+  // Page Builder (GrapesJS) Cache Methods
+  // ========================================
+
+  /**
+   * Cache page builder project data
+   */
+  async cachePageProject<T>(storeId: number, pageId: number, projectData: T): Promise<void> {
+    const key = `${CACHE_KEYS.PAGE}${storeId}:${pageId}`;
+    await this.set(key, projectData, CACHE_TTL.PAGE);
+  }
+
+  /**
+   * Get cached page project data
+   */
+  async getPageProject<T>(storeId: number, pageId: number): Promise<T | null> {
+    const key = `${CACHE_KEYS.PAGE}${storeId}:${pageId}`;
+    return this.get<T>(key);
+  }
+
+  /**
+   * Invalidate page project cache
+   */
+  async invalidatePageProject(storeId: number, pageId: number): Promise<void> {
+    await this.delete(`${CACHE_KEYS.PAGE}${storeId}:${pageId}`);
+  }
 }
 
 /**
@@ -216,3 +317,33 @@ export async function hybridGet<T>(
 
   return value;
 }
+
+/**
+ * Cache invalidation helper for common operations
+ */
+export async function invalidateCacheOnSave(
+  kvCache: KVCache | null,
+  storeId: number,
+  type: 'product' | 'landing' | 'page' | 'store',
+  entityId?: number
+): Promise<void> {
+  if (!kvCache) return;
+
+  switch (type) {
+    case 'product':
+      await kvCache.invalidateProducts(storeId, entityId);
+      break;
+    case 'landing':
+      await kvCache.invalidateLandingConfig(storeId);
+      break;
+    case 'page':
+      if (entityId) {
+        await kvCache.invalidatePageProject(storeId, entityId);
+      }
+      break;
+    case 'store':
+      await kvCache.invalidateStore(storeId);
+      break;
+  }
+}
+

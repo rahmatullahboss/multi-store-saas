@@ -7,8 +7,9 @@
 import { Hono } from 'hono';
 import { eq, and, desc, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { products, type NewProduct } from '@db/schema';
+import { products, type NewProduct, type Product } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../middleware/tenant';
+import { KVCache, CACHE_TTL } from '../../app/services/kv-cache.server';
 
 type ProductsContext = {
   Bindings: TenantEnv;
@@ -31,6 +32,23 @@ productsApi.get('/', async (c) => {
   const limit = parseInt(c.req.query('limit') || '50', 10);
   const offset = parseInt(c.req.query('offset') || '0', 10);
   
+  // Only cache unfiltered requests (most common)
+  const canCache = !category && !search && offset === 0 && limit === 50;
+  const kvCache = c.env.STORE_CACHE ? new KVCache(c.env.STORE_CACHE) : null;
+  
+  // Try cache first for default queries
+  if (canCache && kvCache) {
+    const cached = await kvCache.getProducts<Product>(storeId);
+    if (cached) {
+      console.log(`[PRODUCTS] KV Cache hit for store ${storeId}`);
+      return c.json({
+        products: cached,
+        pagination: { limit, offset, hasMore: cached.length === limit },
+        cached: true,
+      });
+    }
+  }
+  
   // Build query with store_id filter (crucial for multi-tenancy!)
   let query = db
     .select()
@@ -48,6 +66,11 @@ productsApi.get('/', async (c) => {
     .offset(offset);
   
   const result = await query;
+  
+  // Cache the result for default queries
+  if (canCache && kvCache && result.length > 0) {
+    kvCache.cacheProducts(storeId, result).catch(() => {});
+  }
   
   return c.json({
     products: result,
@@ -103,6 +126,12 @@ productsApi.post('/', async (c) => {
     })
     .returning();
   
+  // Invalidate products cache
+  const kvCache = c.env.STORE_CACHE ? new KVCache(c.env.STORE_CACHE) : null;
+  if (kvCache) {
+    kvCache.invalidateProducts(storeId).catch(() => {});
+  }
+  
   return c.json({ product: result[0] }, 201);
 });
 
@@ -137,6 +166,12 @@ productsApi.put('/:id', async (c) => {
     return c.json({ error: 'Product not found' }, 404);
   }
   
+  // Invalidate cache on update
+  const kvCache = c.env.STORE_CACHE ? new KVCache(c.env.STORE_CACHE) : null;
+  if (kvCache) {
+    kvCache.invalidateProducts(storeId, productId).catch(() => {});
+  }
+  
   return c.json({ product: result[0] });
 });
 
@@ -161,6 +196,12 @@ productsApi.delete('/:id', async (c) => {
   
   if (!result[0]) {
     return c.json({ error: 'Product not found' }, 404);
+  }
+  
+  // Invalidate cache on delete
+  const kvCache = c.env.STORE_CACHE ? new KVCache(c.env.STORE_CACHE) : null;
+  if (kvCache) {
+    kvCache.invalidateProducts(storeId, productId).catch(() => {});
   }
   
   return c.json({ success: true });
