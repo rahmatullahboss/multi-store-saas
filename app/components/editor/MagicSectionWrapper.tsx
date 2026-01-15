@@ -59,7 +59,7 @@ export function MagicSectionWrapper<T = Record<string, unknown>>({
     setIsEditing(false);
   };
 
-  const handleUpdate = (newData: unknown) => {
+  const handleUpdate = (newData: T) => {
     onUpdate(newData);
     setIsEditing(false);
   };
@@ -144,7 +144,7 @@ export function MagicSectionWrapper<T = Record<string, unknown>>({
           currentData={data}
           anchorRect={sectionRef.current.getBoundingClientRect()}
           onClose={handleClose}
-          onUpdate={handleUpdate}
+          onUpdate={(newData) => handleUpdate(newData as T)}
         />
       )}
 
