@@ -28,11 +28,11 @@ export const stores = sqliteTable('stores', {
   planType: text('plan_type').$type<'free' | 'starter' | 'premium' | 'business' | 'custom'>().default('free'),
   subscriptionStatus: text('subscription_status').$type<'active' | 'past_due' | 'canceled'>().default('active'),
   usageLimits: text('usage_limits'), // JSON: { max_products, max_orders, allow_store_mode, fee_rate }
-  
+
   // === ONBOARDING TRACKING ===
   onboardingStatus: text('onboarding_status').$type<'pending_plan' | 'pending_info' | 'completed'>().default('pending_plan'),
   setupStep: integer('setup_step').default(0), // Current step in onboarding wizard
-  
+
   // === HYBRID MODE FIELDS ===
   // 'landing' = Single product sales page, 'store' = Full e-commerce
   mode: text('mode').$type<'landing' | 'store'>().default('store'),
@@ -46,37 +46,37 @@ export const stores = sqliteTable('stores', {
   themeConfig: text('theme_config'),
   // Business info: { phone, email, address, city, country }
   businessInfo: text('business_info'),
-  
+
   // === BRANDING ===
   logo: text('logo'),
   theme: text('theme').default('default'),
   currency: text('currency').default('USD'),
   defaultLanguage: text('default_language').$type<'en' | 'bn'>().default('en'),
-  
+
   // === PHASE 3: Theme & Customization ===
   favicon: text('favicon'), // Cloudinary URL for favicon
   socialLinks: text('social_links'), // JSON: { facebook?, instagram?, whatsapp?, twitter? }
   fontFamily: text('font_family').default('inter'), // Selected font name
   footerConfig: text('footer_config'), // JSON: { description?, links[], showPoweredBy }
-  
+
   // === LEGAL POLICIES (Custom Overrides) ===
   customPrivacyPolicy: text('custom_privacy_policy'), // Override auto-generated privacy policy
   customTermsOfService: text('custom_terms_of_service'), // Override auto-generated terms
   customRefundPolicy: text('custom_refund_policy'), // Override auto-generated refund policy
-  
+
   // === NOTIFICATION SETTINGS ===
   notificationEmail: text('notification_email'), // Override email for alerts
   emailNotificationsEnabled: integer('email_notifications_enabled', { mode: 'boolean' }).default(true),
   lowStockThreshold: integer('low_stock_threshold').default(10),
-  
+
   // === SIMPLIFIED SHIPPING CONFIG (BD SME Friendly) ===
   // JSON: { insideDhaka: 60, outsideDhaka: 120, freeShippingAbove: 1000, enabled: true }
   shippingConfig: text('shipping_config'),
-  
+
   // === FACEBOOK PIXEL TRACKING ===
   facebookPixelId: text('facebook_pixel_id'), // e.g., "123456789012345"
   facebookAccessToken: text('facebook_access_token'), // CAPI Access Token from Events Manager
-  
+
   // === GOOGLE ANALYTICS TRACKING ===
   googleAnalyticsId: text('google_analytics_id'), // GA4 Measurement ID (e.g., "G-XXXXXXXXXX")
 
@@ -86,10 +86,10 @@ export const stores = sqliteTable('stores', {
 
   // === COURIER SETTINGS ===
   courierSettings: text('courier_settings'), // JSON: { provider, pathao?, redx?, steadfast?, isConnected }
-  
+
   // === MANUAL PAYMENT CONFIG (bKash/Nagad Personal/Merchant) ===
   manualPaymentConfig: text('manual_payment_config'), // JSON: { bkashPersonal, bkashMerchant, nagadPersonal, ... }
-  
+
   // === AI CHATBOT SETTINGS ===
   isCustomerAiEnabled: integer('is_customer_ai_enabled', { mode: 'boolean' }).default(false), // Paid add-on
   aiBotPersona: text('ai_bot_persona'), // Custom AI personality e.g., "You are a friendly fashion expert"
@@ -98,20 +98,20 @@ export const stores = sqliteTable('stores', {
   aiAgentRequestedAt: integer('ai_agent_requested_at', { mode: 'timestamp' }),
   aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
   aiCredits: integer('ai_credits').default(50), // Default 50 credits for new stores
-  
+
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
   paymentStatus: text('payment_status').$type<'pending_verification' | 'verified' | 'rejected' | 'none'>().default('none'),
   paymentSubmittedAt: integer('payment_submitted_at', { mode: 'timestamp' }),
   paymentAmount: real('payment_amount'), // Amount paid in BDT
   paymentPhone: text('payment_phone'), // Phone number used for payment
-  
+
   // === SUBSCRIPTION BILLING (Super Admin Manual Approval) ===
   subscriptionPaymentMethod: text('subscription_payment_method').$type<'stripe' | 'manual'>(),
   subscriptionStartDate: integer('subscription_start_date', { mode: 'timestamp' }),
   subscriptionEndDate: integer('subscription_end_date', { mode: 'timestamp' }),
   adminNote: text('admin_note'), // Super Admin notes for the subscription
-  
+
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // Soft delete timestamp (null = not deleted)
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
@@ -164,6 +164,31 @@ export const products = sqliteTable('products', {
 ]);
 
 // ============================================================================
+// COLLECTIONS TABLE - New Relational Categories
+// ============================================================================
+export const collections = sqliteTable('collections', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  slug: text('slug').notNull(),
+  description: text('description'),
+  imageUrl: text('image_url'),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('collections_store_id_idx').on(table.storeId),
+  index('collections_slug_idx').on(table.storeId, table.slug),
+]);
+
+export const productCollections = sqliteTable('product_collections', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  collectionId: integer('collection_id').notNull().references(() => collections.id, { onDelete: 'cascade' }),
+});
+
+// ============================================================================
 // CUSTOMERS TABLE - Store customers with store_id isolation
 // ============================================================================
 export const customers = sqliteTable('customers', {
@@ -176,7 +201,7 @@ export const customers = sqliteTable('customers', {
   // Fraud check cache
   riskScore: integer('risk_score'), // 0-100 (higher = more risky)
   riskCheckedAt: integer('risk_checked_at', { mode: 'timestamp' }), // Last check time
-  
+
   // === SEGMENTATION FIELDS (AI Marketing) ===
   totalOrders: integer('total_orders').default(0), // Auto-calculated from orders
   totalSpent: real('total_spent').default(0), // Auto-calculated from orders total
@@ -185,12 +210,12 @@ export const customers = sqliteTable('customers', {
   // window_shopper (has abandoned carts, 0 orders), new (0 orders), regular (default)
   segment: text('segment').$type<'vip' | 'churn_risk' | 'window_shopper' | 'new' | 'regular'>().default('new'),
   tags: text('tags'), // JSON array for manual tagging ["high-value", "repeat-buyer"]
-  
+
   // === LOYALTY FIELDS (Phase 10) ===
   loyaltyPoints: integer('loyalty_points').default(0),
   loyaltyTier: text('loyalty_tier').$type<'bronze' | 'silver' | 'gold' | 'platinum'>().default('bronze'),
   referredBy: integer('referred_by'), // ID of existing customer who referred this user
-  
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
@@ -354,33 +379,52 @@ export const productVariantsRelations = relations(productVariants, ({ one, many 
   orderItems: many(orderItems),
 }));
 
+export const collectionsRelations = relations(collections, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [collections.storeId],
+    references: [stores.id],
+  }),
+  products: many(productCollections),
+}));
+
+export const productCollectionsRelations = relations(productCollections, ({ one }) => ({
+  product: one(products, {
+    fields: [productCollections.productId],
+    references: [products.id],
+  }),
+  collection: one(collections, {
+    fields: [productCollections.collectionId],
+    references: [collections.id],
+  }),
+}));
+
 // ============================================================================
 // PAYOUTS TABLE - Track merchant payouts
 // ============================================================================
 export const payouts = sqliteTable('payouts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }).notNull(),
-  
+
   // Period
   periodStart: integer('period_start', { mode: 'timestamp' }).notNull(),
   periodEnd: integer('period_end', { mode: 'timestamp' }).notNull(),
-  
+
   // Amounts
   grossAmount: real('gross_amount').notNull(), // Total sales
   platformFee: real('platform_fee').default(0), // Commission
   netAmount: real('net_amount').notNull(), // Amount to pay merchant
-  
+
   // Status
   status: text('status').$type<'pending' | 'processing' | 'paid' | 'failed'>().default('pending'),
   paidAt: integer('paid_at', { mode: 'timestamp' }),
-  
+
   // Payment info
   paymentMethod: text('payment_method'), // bkash, nagad, bank
   paymentReference: text('payment_reference'), // Transaction ID
-  
+
   // Notes
   notes: text('notes'),
-  
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
@@ -661,20 +705,20 @@ export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ on
 export const publishedPages = sqliteTable('published_pages', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  
+
   // Page identification
   pageType: text('page_type').$type<'landing' | 'product'>().default('landing'),
   productId: integer('product_id').references(() => products.id), // For product-specific landing pages
-  
+
   // Cached content
   htmlContent: text('html_content').notNull(), // Full rendered HTML
   cssContent: text('css_content'), // Extracted/bundled CSS
   metaTags: text('meta_tags'), // JSON: { title, description, ogImage }
-  
+
   // Cache metadata
   templateId: text('template_id'), // Template used for rendering
   configHash: text('config_hash'), // Hash of landingConfig for cache invalidation
-  
+
   // Timestamps
   publishedAt: integer('published_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   expiresAt: integer('expires_at', { mode: 'timestamp' }), // Optional expiry
@@ -1468,19 +1512,19 @@ export const marketplaceThemesRelations = relations(marketplaceThemes, ({ one })
 export const storeThemes = sqliteTable('store_themes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  
+
   // Source: either a system template ID or a marketplace theme ID
   templateId: text('template_id'), // e.g., 'luxe-boutique', 'tech-modern' (from STORE_TEMPLATES)
   marketplaceThemeId: integer('marketplace_theme_id').references(() => marketplaceThemes.id, { onDelete: 'set null' }),
-  
+
   // Saved config snapshot (allows customization without losing original)
   name: text('name').notNull(), // User's name for this theme (e.g., "My Custom Luxe")
   config: text('config').notNull(), // JSON: Full ThemeConfig snapshot
   thumbnail: text('thumbnail'), // Custom screenshot or original thumbnail
-  
+
   // Status
   isActive: integer('is_active', { mode: 'boolean' }).default(false), // Currently applied theme
-  
+
   // Timestamps
   installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
@@ -1528,25 +1572,25 @@ export const agents = sqliteTable('agents', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
   name: text('name').notNull(), // Agent display name e.g. "সাহায্যকারী বট"
-  
+
   // AI Configuration
   agentSettings: text('agent_settings'), // JSON: AgentConfig from agent.prompts.ts
   systemPrompt: text('system_prompt'), // Custom system prompt override
   tone: text('tone').$type<'friendly' | 'formal' | 'urgent'>().default('friendly'),
   language: text('language').$type<'bn' | 'en' | 'banglish'>().default('bn'),
   objectives: text('objectives'), // JSON array: ['answer_only', 'lead_gen', 'order']
-  
+
   // RAG Knowledge Base
   knowledgeBaseId: text('knowledge_base_id'), // Vectorize namespace
-  
+
   // Channel Settings
   enabledChannels: text('enabled_channels'), // JSON: ['web', 'whatsapp', 'messenger']
   whatsappPhoneId: text('whatsapp_phone_id'), // WhatsApp Business Phone ID
   messengerPageId: text('messenger_page_id'), // Facebook Page ID
-  
+
   // Status
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
@@ -1568,21 +1612,21 @@ export const aiConversations = sqliteTable('ai_conversations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   agentId: integer('agent_id').notNull().references(() => agents.id, { onDelete: 'cascade' }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  
+
   // Customer Identification
   customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
   visitorId: text('visitor_id'), // Anonymous visitor tracking
   customerPhone: text('customer_phone'),
   customerName: text('customer_name'),
-  
+
   // Channel
   channel: text('channel').$type<'web' | 'whatsapp' | 'messenger'>().default('web'),
   externalId: text('external_id'), // WhatsApp/Messenger conversation ID
-  
+
   // Status
   status: text('status').$type<'active' | 'closed' | 'transferred'>().default('active'),
   lastMessageAt: integer('last_message_at', { mode: 'timestamp' }),
-  
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('ai_conversations_agent_idx').on(table.agentId),
@@ -1613,19 +1657,19 @@ export const aiConversationsRelations = relations(aiConversations, ({ one, many 
 export const messages = sqliteTable('messages', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   conversationId: integer('conversation_id').notNull().references(() => aiConversations.id, { onDelete: 'cascade' }),
-  
+
   role: text('role').$type<'user' | 'assistant' | 'system'>().notNull(),
   content: text('content').notNull(),
-  
+
   // Function calls (if AI called a tool)
   functionName: text('function_name'),
   functionArgs: text('function_args'), // JSON
   functionResult: text('function_result'),
-  
+
   // Metadata
   tokensUsed: integer('tokens_used'),
   creditsUsed: integer('credits_used').default(1), // Each message costs 1 credit
-  
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('messages_conversation_idx').on(table.conversationId),
@@ -1644,10 +1688,10 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 export const leadsData = sqliteTable('leads_data', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   conversationId: integer('conversation_id').notNull().references(() => aiConversations.id, { onDelete: 'cascade' }),
-  
+
   key: text('key').notNull(), // 'phone', 'name', 'budget', 'product_interest'
   value: text('value').notNull(),
-  
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('leads_data_conversation_idx').on(table.conversationId),
@@ -1668,11 +1712,11 @@ export const loyaltyTransactions = sqliteTable('loyalty_transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
   customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
-  
+
   points: integer('points').notNull(), // Positive = Earned, Negative = Redeemed
   type: text('type').$type<'purchase' | 'referral' | 'signup' | 'redemption' | 'manual_adjustment'>().notNull(),
   description: text('description'), // "Order #1234", "Referral Bonus"
-  
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('loyalty_tx_customer_idx').on(table.customerId),
