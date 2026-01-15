@@ -1800,3 +1800,4 @@ export const templateAnalyticsRelations = relations(templateAnalytics, ({ one })
     references: [stores.id],
   }),
 }));
+

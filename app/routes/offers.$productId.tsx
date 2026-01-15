@@ -19,11 +19,11 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
 import { useLoaderData, useSearchParams } from '@remix-run/react';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores, products, type Product, type Store } from '@db/schema';
+import { stores, products, templateAnalytics, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
-import { getTemplateComponent } from '~/templates/registry';
+import { getTemplateComponent, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { useTrackVisit } from '~/hooks/use-track-visit';
 import { ProductSchema } from '~/components/seo/ProductSchema';
 
@@ -216,6 +216,38 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
       facebookPixelId: (resolvedStore as any).facebookPixelId || undefined,
       googleAnalyticsId: (resolvedStore as any).googleAnalyticsId || undefined,
     };
+
+    // ========== TRACK PAGE VIEW ==========
+    const templateId = landingConfig.templateId || DEFAULT_TEMPLATE_ID;
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        const existing = await db
+          .select({ id: templateAnalytics.id })
+          .from(templateAnalytics)
+          .where(and(eq(templateAnalytics.storeId, resolvedStoreId), eq(templateAnalytics.templateId, templateId)))
+          .limit(1);
+
+        if (existing.length > 0) {
+          await db
+            .update(templateAnalytics)
+            .set({ pageViews: sql`${templateAnalytics.pageViews} + 1`, updatedAt: new Date() })
+            .where(eq(templateAnalytics.id, existing[0].id));
+        } else {
+          await db
+            .insert(templateAnalytics)
+            .values({
+              storeId: resolvedStoreId!,
+              templateId,
+              pageViews: 1,
+              ordersGenerated: 0,
+              revenueGenerated: 0,
+              updatedAt: new Date(),
+            });
+        }
+      } catch (e) {
+        console.error('[Template Analytics] Failed to track page view:', e);
+      }
+    })());
 
     return json(loaderData);
   } catch (error) {

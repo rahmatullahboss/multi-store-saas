@@ -19,9 +19,9 @@
 import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
 import { useLoaderData, useRouteError, isRouteErrorResponse, useSearchParams } from '@remix-run/react';
 import { useState, useEffect } from 'react';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores, products, productVariants, orderBumps, type Product, type Store } from '@db/schema';
+import { stores, products, productVariants, orderBumps, templateAnalytics, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
@@ -525,6 +525,40 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         planType: validatedStore.planType || 'free',
       };
       
+      // ========== TRACK PAGE VIEW ==========
+      // Increment page views for the current template (non-blocking)
+      const templateId = landingConfig.templateId || DEFAULT_TEMPLATE_ID;
+      context.cloudflare.ctx.waitUntil((async () => {
+        try {
+          // Check if record exists
+          const existing = await db
+            .select({ id: templateAnalytics.id })
+            .from(templateAnalytics)
+            .where(and(eq(templateAnalytics.storeId, validatedStoreId), eq(templateAnalytics.templateId, templateId)))
+            .limit(1);
+
+          if (existing.length > 0) {
+            await db
+              .update(templateAnalytics)
+              .set({ pageViews: sql`${templateAnalytics.pageViews} + 1`, updatedAt: new Date() })
+              .where(eq(templateAnalytics.id, existing[0].id));
+          } else {
+            await db
+              .insert(templateAnalytics)
+              .values({
+                storeId: validatedStoreId,
+                templateId,
+                pageViews: 1,
+                ordersGenerated: 0,
+                revenueGenerated: 0,
+                updatedAt: new Date(),
+              });
+          }
+        } catch (e) {
+          console.error('[Template Analytics] Failed to track page view:', e);
+        }
+      })());
+
       return json(landingData);
       
     } catch (error) {

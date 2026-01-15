@@ -12,7 +12,7 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, gte, desc, sql, count, countDistinct } from 'drizzle-orm';
 import { orders, orderItems, products, stores, abandonedCarts, pageViews } from '@db/schema';
@@ -28,7 +28,8 @@ import {
   Users,
   MapPin,
   Percent,
-  ShoppingBag
+  ShoppingBag,
+  Layout
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -338,9 +339,20 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('analytics')}</h1>
-        <p className="text-gray-600">{lang === 'bn' ? 'আপনার স্টোরের পারফরম্যান্স ট্র্যাক করুন' : 'Track your store performance'}</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{t('analytics')}</h1>
+          <p className="text-gray-600">{lang === 'bn' ? 'আপনার স্টোরের পারফরম্যান্স ট্র্যাক করুন' : 'Track your store performance'}</p>
+        </div>
+        <div>
+          <Link
+            to="/app/analytics/templates"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-sm font-medium"
+          >
+            <Layout className="w-4 h-4" />
+            {lang === 'bn' ? 'টেমপ্লেট পারফরম্যান্স রিপোর্ট' : 'Template Performance Report'}
+          </Link>
+        </div>
       </div>
 
       {/* Stats Overview */}
