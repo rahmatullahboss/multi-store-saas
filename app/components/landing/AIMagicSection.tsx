@@ -167,47 +167,51 @@ export function AIMagicSection() {
                        </div>
 
                        <AnimatePresence>
-                         {/* Customer Msg */}
-                         {step >= 1 && (
-                           <motion.div
-                             initial={{ opacity: 0, x: -20, scale: 0.9 }}
-                             animate={{ opacity: 1, x: 0, scale: 1 }}
-                             className="self-start bg-white/10 text-white text-xs p-3 rounded-2xl rounded-tl-none max-w-[85%]"
-                           >
-                             {t('landingMagic_chatUserMsg')}
-                           </motion.div>
-                         )}
+                          {/* Customer Msg */}
+                          {step >= 1 && (
+                            <motion.div
+                              key="customer-msg"
+                              initial={{ opacity: 0, x: -20, scale: 0.9 }}
+                              animate={{ opacity: 1, x: 0, scale: 1 }}
+                              className="self-start bg-white/10 text-white text-xs p-3 rounded-2xl rounded-tl-none max-w-[85%]"
+                            >
+                              {t('landingMagic_chatUserMsg')}
+                            </motion.div>
+                          )}
 
-                         {/* AI Reply & Product Card */}
-                         {step >= 2 && (
-                           <>
-                             <motion.div
-                               initial={{ opacity: 0, x: 20, scale: 0.9 }}
-                               animate={{ opacity: 1, x: 0, scale: 1 }}
-                               transition={{ delay: 0.5 }}
-                               className="self-end bg-emerald-600/20 border border-emerald-500/20 text-white text-xs p-3 rounded-2xl rounded-tr-none max-w-[90%]"
-                             >
-                               {t('landingMagic_chatAiMsg')}
-                             </motion.div>
-                             
-                             <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1 }}
-                                className="self-end w-48 bg-[#0A0F0D] border border-white/10 rounded-xl overflow-hidden"
-                             >
-                                <div className="h-20 bg-emerald-900/20 flex items-center justify-center">
-                                  <ShoppingBag className="w-8 h-8 text-emerald-500/50" />
-                                </div>
-                                <div className="p-2 border-t border-white/5">
-                                   <div className="text-[10px] text-white/70 font-bold">{t('landingMagic_productName')}</div>
-                                   <div className="text-[10px] text-white/40">{t('landingMagic_productDetails')}</div>
-                                   <div className="mt-2 text-center bg-emerald-500 text-black text-[10px] font-bold py-1 rounded">{t('landingMagic_productConfirmed')}</div>
-                                </div>
-                             </motion.div>
-                           </>
-                         )}
-                       </AnimatePresence>
+                          {/* AI Reply */}
+                          {step >= 2 && (
+                            <motion.div
+                              key="ai-reply"
+                              initial={{ opacity: 0, x: 20, scale: 0.9 }}
+                              animate={{ opacity: 1, x: 0, scale: 1 }}
+                              transition={{ delay: 0.5 }}
+                              className="self-end bg-emerald-600/20 border border-emerald-500/20 text-white text-xs p-3 rounded-2xl rounded-tr-none max-w-[90%]"
+                            >
+                              {t('landingMagic_chatAiMsg')}
+                            </motion.div>
+                          )}
+                          
+                          {/* Product Card */}
+                          {step >= 2 && (
+                            <motion.div
+                              key="product-card"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 1 }}
+                              className="self-end w-48 bg-[#0A0F0D] border border-white/10 rounded-xl overflow-hidden"
+                            >
+                              <div className="h-20 bg-emerald-900/20 flex items-center justify-center">
+                                <ShoppingBag className="w-8 h-8 text-emerald-500/50" />
+                              </div>
+                              <div className="p-2 border-t border-white/5">
+                                <div className="text-[10px] text-white/70 font-bold">{t('landingMagic_productName')}</div>
+                                <div className="text-[10px] text-white/40">{t('landingMagic_productDetails')}</div>
+                                <div className="mt-2 text-center bg-emerald-500 text-black text-[10px] font-bold py-1 rounded">{t('landingMagic_productConfirmed')}</div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                     </div>
                  </div>
               </div>
@@ -230,7 +234,7 @@ export function AIMagicSection() {
                         <div className="absolute top-48 inset-x-4 space-y-2 z-10">
                            <AnimatePresence>
                               {step >= 3 && (
-                                <motion.div
+                                <motion.div key="notification"
                                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
                                    animate={{ opacity: 1, y: 0, scale: 1 }}
                                    className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-lg text-black"

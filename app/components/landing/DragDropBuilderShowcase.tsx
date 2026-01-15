@@ -186,7 +186,7 @@ export function DragDropBuilderShowcase() {
                  <AnimatePresence>
                    {canvasElements.map((el) => (
                      <motion.div
-                       key={el.id}
+                       key={`${el.type}-${el.id}`}
                        initial={{ opacity: 0, height: 0 }}
                        animate={{ opacity: 1, height: 'auto' }}
                        exit={{ opacity: 0, height: 0 }}
@@ -219,7 +219,7 @@ export function DragDropBuilderShowcase() {
                            {el.type === 'review' && (
                              <div className="grid grid-cols-3 gap-4 w-full px-4">
                                {[1,2,3].map(i => (
-                                 <div key={i} className="bg-[#1a1f1d] p-4 rounded-lg border border-white/5">
+                                 <div key={`review-star-${i}`} className="bg-[#1a1f1d] p-4 rounded-lg border border-white/5">
                                    <div className="flex gap-1 mb-2 text-yellow-500">
                                      <Star className="w-3 h-3 fill-current" />
                                      <Star className="w-3 h-3 fill-current" />
