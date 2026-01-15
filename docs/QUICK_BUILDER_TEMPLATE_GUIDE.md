@@ -1,34 +1,44 @@
 # Landing Page Template Building Guide
 
 > **Last Updated:** January 2026  
-> **System Version:** Multi-Store SaaS with Modular Sections & ThemeConfig
+> **System Version:** Multi-Store SaaS with Isolated Feature Folders & ThemeConfig
 
 ---
 
-## 🚀 Quick Start (New Architecture)
+## 🚀 Quick Start (New Architecture - Feature Folders)
 
 ```tsx
-// 1. Import shared components + ThemeConfig
-import { SectionRenderer } from './SectionRenderer';
-import { FloatingButtons } from './FloatingButtons';
-import { getButtonStyles } from './theme-utils';
-import { PREMIUM_BD_THEME, applyCustomColors } from './sections/types';
+// 1. Create your template folder structure
+// app/components/templates/your-template/
+// ├── index.tsx          # Main template component
+// ├── theme.ts           # Template-specific theme
+// ├── SectionRenderer.tsx # Template's section renderer
+// ├── Hero.tsx           # Template's hero section
+// ├── Features.tsx       # Template's features section
+// ├── Testimonials.tsx   # Template's testimonials
+// ├── Gallery.tsx        # Gallery section
+// ├── FAQ.tsx            # FAQ section
+// └── OrderForm.tsx      # Order form (CTA)
+
+// 2. Import from shared core
+import { ThemeConfig, SectionProps, applyCustomColors } from '../_core/types';
+import { FloatingButtons } from '../_core/FloatingButtons';
 import type { TemplateProps } from '~/templates/registry';
 
-// 2. Template component
-export function NewTemplate({ product, config, storeName, storeId, ... }: TemplateProps) {
-  const editableConfig = config;
+// 3. Import your local theme
+import { YOUR_THEME } from './theme';
 
-  // Use preset theme with custom color overrides
-  const theme = applyCustomColors(PREMIUM_BD_THEME, editableConfig.primaryColor, editableConfig.accentColor);
+// 4. Template component
+export function YourTemplate({ product, config, storeName, storeId, ... }: TemplateProps) {
+  const theme = applyCustomColors(YOUR_THEME, config.primaryColor, config.accentColor);
 
   return (
     <div className={`min-h-screen ${theme.bgPrimary} ${theme.textPrimary}`}>
-      {/* Dynamic Section Renderer - renders all sections */}
+      {/* Import YOUR local SectionRenderer */}
       <SectionRenderer
-        sectionOrder={editableConfig.sectionOrder}
-        hiddenSections={editableConfig.hiddenSections}
-        config={editableConfig}
+        sectionOrder={config.sectionOrder}
+        hiddenSections={config.hiddenSections}
+        config={config}
         product={product}
         storeName={storeName}
         theme={theme}
@@ -41,12 +51,11 @@ export function NewTemplate({ product, config, storeName, storeId, ... }: Templa
         planType={planType}
       />
 
-      {/* Floating Buttons at end */}
       <FloatingButtons
-        whatsappEnabled={editableConfig.whatsappEnabled}
-        whatsappNumber={editableConfig.whatsappNumber}
-        callEnabled={editableConfig.callEnabled}
-        callNumber={editableConfig.callNumber}
+        whatsappEnabled={config.whatsappEnabled}
+        whatsappNumber={config.whatsappNumber}
+        callEnabled={config.callEnabled}
+        callNumber={config.callNumber}
         productTitle={product.title}
       />
     </div>
@@ -56,94 +65,140 @@ export function NewTemplate({ product, config, storeName, storeId, ... }: Templa
 
 ---
 
+## 📁 Feature Folders Structure (New)
+
+Each template is now **fully isolated** in its own directory:
+
+```
+app/components/templates/
+├── _core/                    # Shared utilities
+│   ├── types.ts              # ThemeConfig, SectionProps, applyCustomColors
+│   └── FloatingButtons.tsx   # Shared floating buttons
+├── flash-sale/               # Flash Sale Template
+│   ├── index.tsx             # Main component
+│   ├── theme.ts              # FLASH_SALE_THEME
+│   ├── SectionRenderer.tsx   # Template's renderer
+│   ├── Hero.tsx
+│   ├── Features.tsx
+│   ├── Testimonials.tsx
+│   ├── Gallery.tsx
+│   ├── FAQ.tsx
+│   └── OrderForm.tsx
+├── luxe/                     # Luxe Template
+├── organic/                  # Organic Template
+├── modern-dark/              # Modern Dark Template
+├── showcase/                 # Showcase Template
+├── minimal-light/            # Minimal Light Template
+├── mobile-first/             # Mobile First Template
+├── video-focus/              # Video Focus Template
+├── premium-bd/               # Premium BD Template
+└── modern-premium/           # Modern Premium Template
+```
+
+---
+
 ## 🎨 ThemeConfig System
 
-All templates use **preset themes** from `sections/types.ts`:
+All templates define their theme in a local `theme.ts` file:
 
-### Available Preset Themes
+### Example Theme File (`your-template/theme.ts`)
 
-| Theme Name            | ID            | Style                    |
-| --------------------- | ------------- | ------------------------ |
-| `FLASH_SALE_THEME`    | flash-sale    | Red/Yellow urgency, dark |
-| `MODERN_DARK_THEME`   | modern-dark   | Zinc/Orange, dark        |
-| `MINIMAL_LIGHT_THEME` | minimal-light | Clean white              |
-| `ORGANIC_THEME`       | organic       | Green/Nature             |
-| `LUXE_THEME`          | luxe          | Gold/Black luxury        |
-| `VIDEO_FOCUS_THEME`   | video-focus   | Purple/Violet            |
-| `PREMIUM_BD_THEME`    | premium-bd    | Orange/Green             |
+```typescript
+import type { ThemeConfig } from "../_core/types";
+
+export const YOUR_THEME: ThemeConfig = {
+  isDark: true,
+  primary: "#1a1a1a",
+  accent: "#f59e0b",
+  bgPrimary: "bg-zinc-900",
+  bgSecondary: "bg-zinc-800",
+  textPrimary: "text-white",
+  textSecondary: "text-gray-400",
+  cardBg: "bg-zinc-800",
+  cardBorder: "border-zinc-700",
+  ctaBg: "bg-orange-500",
+  ctaText: "text-white",
+  headerBg: "bg-zinc-900",
+  footerBg: "bg-zinc-950",
+  footerText: "text-gray-400",
+  urgencyBg: "bg-red-600",
+};
+```
 
 ### ThemeConfig Interface
 
 ```typescript
 interface ThemeConfig {
   isDark: boolean;
-  primary: string; // Hex color for primary
-  accent: string; // Hex color for accent
+  primary: string; // Hex color
+  accent: string; // Hex color
   bgPrimary: string; // Tailwind class
-  bgSecondary: string; // Tailwind class
-  textPrimary: string; // Tailwind class
-  textSecondary: string; // Tailwind class
-  cardBg: string; // Tailwind class
-  cardBorder: string; // Tailwind class
-  ctaBg: string; // Tailwind class
-  ctaText: string; // Tailwind class
-  headerBg: string; // Tailwind class
-  footerBg: string; // Tailwind class
-  footerText: string; // Tailwind class
-  urgencyBg?: string; // Optional urgency bar
+  bgSecondary: string;
+  textPrimary: string;
+  textSecondary: string;
+  cardBg: string;
+  cardBorder: string;
+  ctaBg: string;
+  ctaText: string;
+  headerBg: string;
+  footerBg: string;
+  footerText: string;
+  urgencyBg?: string;
 }
 ```
 
-### Customize Theme with User Colors
+### Apply Custom Colors
 
 ```tsx
-import { MODERN_DARK_THEME, applyCustomColors } from "./sections/types";
+import { applyCustomColors } from "../_core/types";
+import { YOUR_THEME } from "./theme";
 
-// Apply user's primaryColor and accentColor to the preset
+// Apply user's selected colors to the preset theme
 const theme = applyCustomColors(
-  MODERN_DARK_THEME,
-  config.primaryColor, // User's selected primary
-  config.accentColor // User's selected accent
+  YOUR_THEME,
+  config.primaryColor,
+  config.accentColor
 );
 ```
 
 ---
 
-## 📦 Modular Sections
+## 📦 Local Section Components
 
-Sections are now **reusable components** in `sections/` folder:
+Each template has its **own section implementations**. Copy from an existing template and customize:
 
+### Example: `your-template/Hero.tsx`
+
+```tsx
+import type { SectionProps } from "../_core/types";
+import { OptimizedImage } from "~/components/OptimizedImage";
+
+export function Hero({ config, product, theme, formatPrice }: SectionProps) {
+  return (
+    <section className={`py-12 ${theme.bgPrimary}`}>
+      <div className="max-w-6xl mx-auto px-4">
+        <h1 className={`text-4xl font-bold ${theme.textPrimary}`}>
+          {product.title}
+        </h1>
+        <p
+          className={`text-2xl ${theme.ctaBg} ${theme.ctaText} inline-block px-4 py-2 rounded-lg`}
+        >
+          {formatPrice(product.price)}
+        </p>
+      </div>
+    </section>
+  );
+}
 ```
-templates/
-├── SectionRenderer.tsx      # Main renderer for all sections
-├── FloatingButtons.tsx      # Shared floating buttons
-├── theme-utils.ts           # Color utilities
-├── sections/
-│   ├── types.ts             # ThemeConfig + SectionProps + Preset Themes
-│   ├── HeroSection.tsx      # Hero with product showcase
-│   ├── TrustSection.tsx     # Trust badges
-│   ├── FeaturesSection.tsx  # Product features
-│   ├── GallerySection.tsx   # Image gallery
-│   ├── VideoSection.tsx     # Video embed
-│   ├── BenefitsSection.tsx  # Why buy section
-│   ├── ComparisonSection.tsx # Before/After
-│   ├── TestimonialsSection.tsx # Customer reviews
-│   ├── SocialProofSection.tsx # Social proof bar
-│   ├── DeliverySection.tsx  # Delivery info
-│   ├── FAQSection.tsx       # FAQ accordion
-│   ├── GuaranteeSection.tsx # Guarantee section
-│   ├── OrderFormSection.tsx # Order form (CTA)
-│   └── ContactSection.tsx   # Contact info
-```
 
-### SectionProps (All sections receive)
+### SectionProps Interface
 
 ```typescript
 interface SectionProps {
   config: LandingConfig;
   product: any;
   storeName: string;
-  theme: ThemeConfig; // Required - use preset
+  theme: ThemeConfig;
   isPreview?: boolean;
   isEditMode?: boolean;
   onUpdate?: (sectionId: string, newData: any) => void;
@@ -159,104 +214,103 @@ interface SectionProps {
 
 ## 🔧 Creating a New Template
 
-### Step 1: Choose a Preset Theme
+### Step 1: Create Template Folder
 
-```tsx
-import { LUXE_THEME, applyCustomColors } from "./sections/types";
+```bash
+mkdir -p app/components/templates/my-template
 ```
 
-### Step 2: Use SectionRenderer
+### Step 2: Copy & Customize
 
-```tsx
-<SectionRenderer
-  sectionOrder={['hero', 'trust', 'features', 'testimonials', 'cta']}
-  hiddenSections={config.hiddenSections}
-  config={editableConfig}
-  product={product}
-  theme={theme}
-  formatPrice={formatPrice}
-  ...
-/>
+Copy an existing template folder (e.g., `flash-sale/`) and rename files.
+
+### Step 3: Create `theme.ts`
+
+```typescript
+// my-template/theme.ts
+import type { ThemeConfig } from "../_core/types";
+
+export const MY_THEME: ThemeConfig = {
+  isDark: false,
+  primary: "#2563eb",
+  accent: "#10b981",
+  // ... rest of theme
+};
 ```
 
-### Step 3: Add Template-Specific Headers/Footers
+### Step 4: Create `SectionRenderer.tsx`
 
 ```tsx
-{/* Custom Header */}
-<header className={theme.headerBg}>
-  <h1>{storeName}</h1>
-</header>
+// my-template/SectionRenderer.tsx
+import { Hero } from "./Hero";
+import { Features } from "./Features";
+import { OrderForm } from "./OrderForm";
+// Import other local sections...
 
-<SectionRenderer ... />
+const SECTION_MAP: Record<string, React.FC<SectionProps>> = {
+  hero: Hero,
+  features: Features,
+  "order-form": OrderForm,
+  // Map more sections...
+};
 
-{/* Custom Footer */}
-<footer className={theme.footerBg}>
-  <p className={theme.footerText}>© {storeName}</p>
-</footer>
+export function SectionRenderer({
+  sectionOrder,
+  hiddenSections,
+  ...props
+}: SectionRendererProps) {
+  // Render sections based on order...
+}
 ```
 
----
-
-## ✅ Checklist for New Templates
-
-- [ ] Import preset theme from `./sections/types`
-- [ ] Use `applyCustomColors()` for user color overrides
-- [ ] Use `SectionRenderer` for section rendering
-- [ ] Pass `theme` prop to SectionRenderer
-- [ ] Add `FloatingButtons` at template end
-- [ ] Add Ozzyl branding for `planType === 'free'`
-- [ ] Register in `templates/registry.ts`
-
----
-
-## 📋 Template Registration
+### Step 5: Register in `registry.ts`
 
 ```tsx
-// templates/registry.ts
-import { NewTemplate } from "~/components/templates/NewTemplate";
+// app/templates/registry.ts
+import { MyTemplate } from "~/components/templates/my-template";
 
 export const TEMPLATES: TemplateDefinition[] = [
   {
-    id: "new-template",
-    name: "New Template",
+    id: "my-template",
+    name: "My Template",
     description: "Description here",
-    thumbnail: "/templates/new-template.png",
-    component: NewTemplate,
+    thumbnail: "/templates/my-template.png",
+    component: MyTemplate,
   },
 ];
 ```
 
 ---
 
-## 🎯 Section Order
+## ✅ Checklist for New Templates
 
-Default section order (customizable via `config.sectionOrder`):
+- [ ] Create template folder in `templates/my-template/`
+- [ ] Create `theme.ts` with your ThemeConfig
+- [ ] Create `index.tsx` (main component)
+- [ ] Create `SectionRenderer.tsx`
+- [ ] Create all section components (Hero, Features, etc.)
+- [ ] Import types from `../_core/types`
+- [ ] Use `applyCustomColors()` for user color overrides
+- [ ] Add `FloatingButtons` from `../_core/FloatingButtons`
+- [ ] Add Ozzyl branding for `planType === 'free'`
+- [ ] Register in `templates/registry.ts`
 
-```typescript
-const DEFAULT_ORDER = [
-  "hero",
-  "trust",
-  "features",
-  "gallery",
-  "video",
-  "benefits",
-  "comparison",
-  "testimonials",
-  "social",
-  "delivery",
-  "faq",
-  "guarantee",
-  "cta",
-  "contact",
-];
-```
+---
 
-Template-specific sections:
+## 📋 Available Templates
 
-- `showcase-hero` - Showcase template hero
-- `mobile-first-hero` - Mobile-first hero
-- `modern-dark-hero` - Modern dark hero
-- `video-focus-hero` - Video-focused hero
+| Template ID      | Folder            | Style                    |
+| ---------------- | ----------------- | ------------------------ |
+| `flash-sale`     | `flash-sale/`     | Red/Yellow urgency, dark |
+| `modern-dark`    | `modern-dark/`    | Zinc/Orange gradient     |
+| `minimal-light`  | `minimal-light/`  | Clean white              |
+| `organic`        | `organic/`        | Green/Nature             |
+| `luxe`           | `luxe/`           | Gold/Black luxury        |
+| `video-focus`    | `video-focus/`    | Purple/Violet            |
+| `premium-bd`     | `premium-bd/`     | Orange/Green             |
+| `showcase`       | `showcase/`       | Dark gallery             |
+| `mobile-first`   | `mobile-first/`   | Mobile optimized         |
+| `modern-premium` | `modern-premium/` | Glassmorphism            |
 
 ---
 
@@ -264,6 +318,7 @@ Template-specific sections:
 
 Check existing templates for patterns:
 
-- `PremiumBDTemplate.tsx` - Light theme example
-- `FlashSaleTemplate.tsx` - Dark urgency theme
-- `ModernDark.tsx` - Dark gradient theme
+- `flash-sale/` - Dark urgency theme with countdown
+- `luxe/` - Luxury gold theme
+- `modern-dark/` - Dark gradient theme
+- `minimal-light/` - Clean light theme
