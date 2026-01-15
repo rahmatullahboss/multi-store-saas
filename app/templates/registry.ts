@@ -88,7 +88,7 @@ export interface TemplateDefinition {
 import { LandingPageTemplate } from '~/components/templates/LandingPageTemplate';
 import { PremiumBDTemplate } from '~/components/templates/PremiumBDTemplate';
 import { MobileFirstTemplate } from '~/components/templates/MobileFirstTemplate';
-import { FlashSaleTemplate } from '~/components/templates/FlashSaleTemplate';
+import { FlashSaleTemplate } from '~/components/templates/flash-sale';
 import { LuxeTemplate } from '~/components/templates/LuxeTemplate';
 import { OrganicTemplate } from '~/components/templates/OrganicTemplate';
 import { ShowcaseTemplate } from '~/components/templates/ShowcaseTemplate';
@@ -96,6 +96,7 @@ import { ModernDarkTemplate } from '~/components/templates/ModernDark';
 import { MinimalLightTemplate } from '~/components/templates/MinimalLight';
 import { VideoFocusTemplate } from '~/components/templates/VideoFocus';
 import { ModernPremiumTemplate } from '~/components/templates/ModernPremiumTemplate';
+
 
 // ============================================================================
 // TEMPLATES REGISTRY - All templates use same component, different themes
