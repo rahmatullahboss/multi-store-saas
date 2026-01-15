@@ -23,7 +23,7 @@ import { LuxePricing } from './Pricing';
 
 import type { SectionProps } from '../_core/types';
 import { DEFAULT_SECTION_ORDER } from '../../landing-builder/SectionManager';
-import { SectionWrapper, getSectionDisplayName } from '../_core/SectionWrapper';
+import { SectionWrapper, getSectionDisplayName, isRequiredSection } from '../_core/SectionWrapper';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: LuxeHero,
@@ -81,6 +81,7 @@ export function LuxeSectionRenderer({
             sectionNameEn={sectionNames.nameEn}
             isPreview={props.isPreview}
             isSelected={selectedSection === sectionId}
+            isRequired={isRequiredSection(sectionId)}
             canMoveUp={index > 0}
             canMoveDown={index < visibleSections.length - 1}
             lang={props.config.landingLanguage || 'bn'}

@@ -9,7 +9,7 @@ import { Pricing } from './Pricing';
 import { OrderForm } from './OrderForm';
 import { HowToOrder } from './HowToOrder';
 import { FAQ } from './FAQ';
-import { SectionWrapper, getSectionDisplayName } from '../_core/SectionWrapper';
+import { SectionWrapper, getSectionDisplayName, isRequiredSection } from '../_core/SectionWrapper';
 
 // Map section IDs into components
 const SECTIONS: Record<string, React.FC<SectionProps>> = {
@@ -93,6 +93,7 @@ export function QuickStartSectionRenderer({
                   sectionNameEn={sectionNames.nameEn}
                   isPreview={props.isPreview}
                   isSelected={selectedSection === sectionId}
+                  isRequired={isRequiredSection(sectionId)}
                   canMoveUp={index > 0}
                   canMoveDown={index < visibleSections.length - 1}
                   lang={props.config.landingLanguage || 'bn'}
@@ -111,6 +112,7 @@ export function QuickStartSectionRenderer({
                   sectionNameEn={sectionNames.nameEn}
                   isPreview={props.isPreview}
                   isSelected={selectedSection === sectionId}
+                  isRequired={isRequiredSection(sectionId)}
                   canMoveUp={index > 0}
                   canMoveDown={index < visibleSections.length - 1}
                   lang={props.config.landingLanguage || 'bn'}
@@ -132,6 +134,7 @@ export function QuickStartSectionRenderer({
             sectionNameEn={sectionNames.nameEn}
             isPreview={props.isPreview}
             isSelected={selectedSection === sectionId}
+            isRequired={isRequiredSection(sectionId)}
             canMoveUp={index > 0}
             canMoveDown={index < visibleSections.length - 1}
             lang={props.config.landingLanguage || 'bn'}

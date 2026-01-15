@@ -18,6 +18,7 @@ interface SectionWrapperProps {
   isPreview?: boolean;
   isSelected?: boolean;
   isHidden?: boolean;
+  isRequired?: boolean; // Required sections can't be removed
   canMoveUp?: boolean;
   canMoveDown?: boolean;
   canDuplicate?: boolean;
@@ -32,6 +33,7 @@ export function SectionWrapper({
   isPreview = false,
   isSelected = false,
   isHidden = false,
+  isRequired = false,
   canMoveUp = true,
   canMoveDown = true,
   canDuplicate = false,
@@ -65,12 +67,13 @@ export function SectionWrapper({
   // Handle remove/hide section
   const handleRemove = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isRequired) return; // Don't allow removing required sections
     window.parent.postMessage({
       type: 'SECTION_TOGGLE_VISIBILITY',
       sectionId,
       visible: false,
     }, '*');
-  }, [sectionId]);
+  }, [sectionId, isRequired]);
 
   // Handle duplicate section
   const handleDuplicate = useCallback((e: React.MouseEvent) => {
@@ -131,6 +134,9 @@ export function SectionWrapper({
           <div className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 rounded text-xs font-medium text-gray-700 mr-1">
             <GripVertical className="w-3 h-3 text-gray-400" />
             <span className="max-w-[100px] truncate">{displayName}</span>
+            {isRequired && (
+              <span className="text-[10px] text-orange-600 font-semibold">(Required)</span>
+            )}
           </div>
 
           {/* Divider */}
@@ -181,14 +187,16 @@ export function SectionWrapper({
             </button>
           )}
 
-          {/* Remove/Hide */}
-          <button
-            onClick={handleRemove}
-            className="p-1.5 hover:bg-red-100 rounded transition-colors"
-            title={lang === 'bn' ? 'লুকান' : 'Hide'}
-          >
-            <EyeOff className="w-4 h-4 text-red-500" />
-          </button>
+          {/* Remove/Hide - Disabled for required sections */}
+          {!isRequired && (
+            <button
+              onClick={handleRemove}
+              className="p-1.5 hover:bg-red-100 rounded transition-colors"
+              title={lang === 'bn' ? 'লুকান' : 'Hide'}
+            >
+              <EyeOff className="w-4 h-4 text-red-500" />
+            </button>
+          )}
         </div>
       )}
 
@@ -231,4 +239,13 @@ export function getSectionDisplayName(sectionId: string, lang: string = 'bn'): {
   return SECTION_NAMES[sectionId] || { name: sectionId, nameEn: sectionId };
 }
 
+// Required sections that cannot be removed
+export const REQUIRED_SECTIONS = ['hero', 'cta', 'order-form'];
+
+// Helper to check if a section is required
+export function isRequiredSection(sectionId: string): boolean {
+  return REQUIRED_SECTIONS.includes(sectionId);
+}
+
 export default SectionWrapper;
+
