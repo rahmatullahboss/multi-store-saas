@@ -32,7 +32,8 @@ import {
   SectionManager, 
   WhatsAppConfig,
   DEFAULT_SECTION_ORDER,
-  LANDING_TEMPLATES 
+  LANDING_TEMPLATES,
+  mergeSectionOrder 
 } from '~/components/landing-builder';
 import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
 import { getTemplateComponent } from '~/templates/registry';
@@ -429,7 +430,7 @@ export default function LiveEditorPage() {
   // State for landing config
   const [templateId, setTemplateId] = useState(store.landingConfig.templateId || 'modern-dark');
   const [featuredProductId, setFeaturedProductId] = useState(store.featuredProductId?.toString() || '');
-  const [sectionOrder, setSectionOrder] = useState(store.landingConfig.sectionOrder || DEFAULT_SECTION_ORDER);
+  const [sectionOrder, setSectionOrder] = useState(mergeSectionOrder(store.landingConfig.sectionOrder));
   const [hiddenSections, setHiddenSections] = useState<string[]>(store.landingConfig.hiddenSections || []);
   const [whatsappEnabled, setWhatsappEnabled] = useState(store.landingConfig.whatsappEnabled || false);
   const [whatsappNumber, setWhatsappNumber] = useState(store.landingConfig.whatsappNumber || '');

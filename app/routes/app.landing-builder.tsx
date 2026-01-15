@@ -32,7 +32,8 @@ import {
   SectionManager, 
   WhatsAppConfig,
   DEFAULT_SECTION_ORDER,
-  LANDING_TEMPLATES
+  LANDING_TEMPLATES,
+  mergeSectionOrder
 } from '~/components/landing-builder';
 import { getTemplateComponent, type TemplateProps } from '~/templates/registry';
 
@@ -320,7 +321,7 @@ export default function LandingBuilderPage() {
     if (storeProducts.length > 0) return storeProducts[0].id.toString();
     return '';
   });
-  const [sectionOrder, setSectionOrder] = useState(store.landingConfig.sectionOrder || DEFAULT_SECTION_ORDER);
+  const [sectionOrder, setSectionOrder] = useState(mergeSectionOrder(store.landingConfig.sectionOrder));
   const [hiddenSections, setHiddenSections] = useState<string[]>(store.landingConfig.hiddenSections || []);
   const [whatsappEnabled, setWhatsappEnabled] = useState(store.landingConfig.whatsappEnabled || false);
   const [whatsappNumber, setWhatsappNumber] = useState(store.landingConfig.whatsappNumber || '');

@@ -216,6 +216,41 @@ export const DEFAULT_SECTION_ORDER = [
   'faq',
 ];
 
+/**
+ * Merge missing sections from DEFAULT_SECTION_ORDER into existing sectionOrder
+ * This ensures existing stores get new sections appended to their order
+ */
+export function mergeSectionOrder(existingOrder: string[] | undefined): string[] {
+  // If no existing order, use default
+  if (!existingOrder || existingOrder.length === 0) {
+    return [...DEFAULT_SECTION_ORDER];
+  }
+
+  // Find sections in DEFAULT_SECTION_ORDER that are not in existingOrder
+  const missingSections = DEFAULT_SECTION_ORDER.filter(
+    (sectionId) => !existingOrder.includes(sectionId)
+  );
+
+  // If no missing sections, return existing order as-is
+  if (missingSections.length === 0) {
+    return existingOrder;
+  }
+
+  // Append missing sections at the end (before 'cta' if present, otherwise at end)
+  const result = [...existingOrder];
+  const ctaIndex = result.indexOf('cta');
+  
+  if (ctaIndex !== -1) {
+    // Insert missing sections before 'cta'
+    result.splice(ctaIndex, 0, ...missingSections);
+  } else {
+    // Append at end
+    result.push(...missingSections);
+  }
+
+  return result;
+}
+
 // Types for section content
 export interface Feature {
   icon: string;
