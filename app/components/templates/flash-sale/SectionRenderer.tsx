@@ -10,24 +10,45 @@ import { FlashSaleTestimonials } from './Testimonials';
 import { FlashSaleGallery } from './Gallery';
 import { FlashSaleFAQ } from './FAQ';
 import { FlashSaleOrderForm } from './OrderForm';
+import { FlashSaleTrust } from './Trust';
+import { FlashSaleVideo } from './Video';
+import { FlashSaleBenefits } from './Benefits';
+import { FlashSaleComparison } from './Comparison';
+import { FlashSaleSocialProof } from './SocialProof';
+import { FlashSaleDeliveryInfo } from './DeliveryInfo';
+import { FlashSaleGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: FlashSaleHero,
+  trust: FlashSaleTrust,
   features: FlashSaleFeatures,
-  testimonials: FlashSaleTestimonials,
   gallery: FlashSaleGallery,
+  video: FlashSaleVideo,
+  benefits: FlashSaleBenefits,
+  comparison: FlashSaleComparison,
+  testimonials: FlashSaleTestimonials,
+  social: FlashSaleSocialProof,
+  delivery: FlashSaleDeliveryInfo,
   faq: FlashSaleFAQ,
+  guarantee: FlashSaleGuarantee,
   'order-form': FlashSaleOrderForm,
   cta: FlashSaleOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

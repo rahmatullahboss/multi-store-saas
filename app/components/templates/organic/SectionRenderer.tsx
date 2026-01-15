@@ -8,24 +8,45 @@ import { OrganicTestimonials } from './Testimonials';
 import { OrganicGallery } from './Gallery';
 import { OrganicFAQ } from './FAQ';
 import { OrganicOrderForm } from './OrderForm';
+import { OrganicTrust } from './Trust';
+import { OrganicVideo } from './Video';
+import { OrganicBenefits } from './Benefits';
+import { OrganicComparison } from './Comparison';
+import { OrganicSocialProof } from './SocialProof';
+import { OrganicDeliveryInfo } from './DeliveryInfo';
+import { OrganicGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: OrganicHero,
+  trust: OrganicTrust,
   features: OrganicFeatures,
-  testimonials: OrganicTestimonials,
   gallery: OrganicGallery,
+  video: OrganicVideo,
+  benefits: OrganicBenefits,
+  comparison: OrganicComparison,
+  testimonials: OrganicTestimonials,
+  social: OrganicSocialProof,
+  delivery: OrganicDeliveryInfo,
   faq: OrganicFAQ,
+  guarantee: OrganicGuarantee,
   'order-form': OrganicOrderForm,
   cta: OrganicOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

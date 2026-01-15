@@ -112,6 +112,17 @@ export interface LandingConfig {
   typography?: TypographySettings;
   // Order Form Layout Variant
   orderFormVariant?: 'full-width' | 'compact'; // Default: 'full-width'
+  // Trust Badges
+  trustBadges?: {
+    icon: string;
+    text: string;
+  }[];
+  // Delivery Info
+  deliveryInfo?: {
+    title: string;
+    description: string;
+    areas?: string[];
+  };
   // Custom CSS for advanced styling
   customCSS?: string;
   // Custom code injection (for FB Pixel, Google Analytics, etc.)
@@ -315,11 +326,32 @@ export function parseManualPaymentConfig(json: string | null): ManualPaymentConf
 
 // Default landing config for new stores
 export const defaultLandingConfig: LandingConfig = {
-  headline: "Transform Your Life Today",
-  subheadline: "The only solution you'll ever need",
-  ctaText: "Buy Now",
-  ctaSubtext: "30-day money back guarantee",
-  urgencyText: "Limited time offer",
+  headline: "আপনার পণ্যের আকর্ষণীয় শিরোনাম এখানে দিন",
+  subheadline: "আপনার পণ্যের প্রধান বৈশিষ্ট্য বা অফার সম্পর্কে সংক্ষেপে লিখুন",
+  ctaText: "অর্ডার করতে ক্লিক করুন",
+  ctaSubtext: "ক্যাশ অন ডেলিভারি সুবিধা",
+  urgencyText: "সীমিত সময়ের অফার!",
+  guaranteeText: "১০০% অরিজিনাল পন্যের নিশ্চয়তা। পন্য হাতে পেয়ে পেমেন্ট করার সুবিধা।",
+  sectionOrder: ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'],
+  trustBadges: [
+    { icon: '✅', text: 'অরিজিনাল প্রোডাক্ট' },
+    { icon: '🚚', text: 'দ্রুত ডেলিভারি' },
+    { icon: '🔒', text: 'নিরাপদ পেমেন্ট' }
+  ],
+  benefits: [
+    { icon: '💎', title: 'সেরা মান', description: 'আমরা দিচ্ছি সেরা মানের নিশ্চয়তা' },
+    { icon: '💰', title: 'সাশ্রয়ী মূল্য', description: 'বাজেটের মধ্যে সেরা পন্য' },
+    { icon: '⭐', title: 'প্রিমিয়াম সার্ভিস', description: 'কাস্টমারদের জন্য থাকছে সর্বোচ্চ গুরুত্ব' }
+  ],
+  deliveryInfo: {
+    title: "সারাদেশে ক্যাশ অন ডেলিভারি",
+    description: "ঢাকায় ১-২ দিন, ঢাকার বাইরে ২-৩ দিনের মধ্যে ডেলিভারি",
+    areas: ["ঢাকা", "চট্টগ্রাম", "সিলেট", "রাজশাহী", "খুলনা", "বরিশাল", "রংপুর"]
+  },
+  socialProof: {
+    count: 250,
+    text: "জনেরও বেশি কাস্টমার আমাদের থেকে কিনেছেন"
+  }
 };
 
 // Default theme config for new stores

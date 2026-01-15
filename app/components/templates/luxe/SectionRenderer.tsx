@@ -8,24 +8,45 @@ import { LuxeTestimonials } from './Testimonials';
 import { LuxeGallery } from './Gallery';
 import { LuxeFAQ } from './FAQ';
 import { LuxeOrderForm } from './OrderForm';
+import { LuxeTrust } from './Trust';
+import { LuxeVideo } from './Video';
+import { LuxeBenefits } from './Benefits';
+import { LuxeComparison } from './Comparison';
+import { LuxeSocialProof } from './SocialProof';
+import { LuxeDeliveryInfo } from './DeliveryInfo';
+import { LuxeGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: LuxeHero,
+  trust: LuxeTrust,
   features: LuxeFeatures,
-  testimonials: LuxeTestimonials,
   gallery: LuxeGallery,
+  video: LuxeVideo,
+  benefits: LuxeBenefits,
+  comparison: LuxeComparison,
+  testimonials: LuxeTestimonials,
+  social: LuxeSocialProof,
+  delivery: LuxeDeliveryInfo,
   faq: LuxeFAQ,
+  guarantee: LuxeGuarantee,
   'order-form': LuxeOrderForm,
   cta: LuxeOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

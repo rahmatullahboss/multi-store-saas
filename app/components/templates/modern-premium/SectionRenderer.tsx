@@ -8,24 +8,45 @@ import { ModernPremiumTestimonials } from './Testimonials';
 import { ModernPremiumGallery } from './Gallery';
 import { ModernPremiumFAQ } from './FAQ';
 import { ModernPremiumOrderForm } from './OrderForm';
+import { ModernPremiumTrust } from './Trust';
+import { ModernPremiumVideo } from './Video';
+import { ModernPremiumBenefits } from './Benefits';
+import { ModernPremiumComparison } from './Comparison';
+import { ModernPremiumSocialProof } from './SocialProof';
+import { ModernPremiumDeliveryInfo } from './DeliveryInfo';
+import { ModernPremiumGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: ModernPremiumHero,
+  trust: ModernPremiumTrust,
   features: ModernPremiumFeatures,
-  testimonials: ModernPremiumTestimonials,
   gallery: ModernPremiumGallery,
+  video: ModernPremiumVideo,
+  benefits: ModernPremiumBenefits,
+  comparison: ModernPremiumComparison,
+  testimonials: ModernPremiumTestimonials,
+  social: ModernPremiumSocialProof,
+  delivery: ModernPremiumDeliveryInfo,
   faq: ModernPremiumFAQ,
+  guarantee: ModernPremiumGuarantee,
   'order-form': ModernPremiumOrderForm,
   cta: ModernPremiumOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

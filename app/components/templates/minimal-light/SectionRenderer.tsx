@@ -8,24 +8,45 @@ import { MinimalLightTestimonials } from './Testimonials';
 import { MinimalLightGallery } from './Gallery';
 import { MinimalLightFAQ } from './FAQ';
 import { MinimalLightOrderForm } from './OrderForm';
+import { MinimalLightTrust } from './Trust';
+import { MinimalLightVideo } from './Video';
+import { MinimalLightBenefits } from './Benefits';
+import { MinimalLightComparison } from './Comparison';
+import { MinimalLightSocialProof } from './SocialProof';
+import { MinimalLightDeliveryInfo } from './DeliveryInfo';
+import { MinimalLightGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: MinimalLightHero,
+  trust: MinimalLightTrust,
   features: MinimalLightFeatures,
-  testimonials: MinimalLightTestimonials,
   gallery: MinimalLightGallery,
+  video: MinimalLightVideo,
+  benefits: MinimalLightBenefits,
+  comparison: MinimalLightComparison,
+  testimonials: MinimalLightTestimonials,
+  social: MinimalLightSocialProof,
+  delivery: MinimalLightDeliveryInfo,
   faq: MinimalLightFAQ,
+  guarantee: MinimalLightGuarantee,
   'order-form': MinimalLightOrderForm,
   cta: MinimalLightOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

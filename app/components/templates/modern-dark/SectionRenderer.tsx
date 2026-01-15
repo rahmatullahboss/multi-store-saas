@@ -8,24 +8,45 @@ import { ModernDarkTestimonials } from './Testimonials';
 import { ModernDarkGallery } from './Gallery';
 import { ModernDarkFAQ } from './FAQ';
 import { ModernDarkOrderForm } from './OrderForm';
+import { ModernDarkTrust } from './Trust';
+import { ModernDarkVideo } from './Video';
+import { ModernDarkBenefits } from './Benefits';
+import { ModernDarkComparison } from './Comparison';
+import { ModernDarkSocialProof } from './SocialProof';
+import { ModernDarkDeliveryInfo } from './DeliveryInfo';
+import { ModernDarkGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: ModernDarkHero,
+  trust: ModernDarkTrust,
   features: ModernDarkFeatures,
-  testimonials: ModernDarkTestimonials,
   gallery: ModernDarkGallery,
+  video: ModernDarkVideo,
+  benefits: ModernDarkBenefits,
+  comparison: ModernDarkComparison,
+  testimonials: ModernDarkTestimonials,
+  social: ModernDarkSocialProof,
+  delivery: ModernDarkDeliveryInfo,
   faq: ModernDarkFAQ,
+  guarantee: ModernDarkGuarantee,
   'order-form': ModernDarkOrderForm,
   cta: ModernDarkOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

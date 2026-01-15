@@ -8,24 +8,45 @@ import { PremiumBDTestimonials } from './Testimonials';
 import { PremiumBDGallery } from './Gallery';
 import { PremiumBDFAQ } from './FAQ';
 import { PremiumBDOrderForm } from './OrderForm';
+import { PremiumBDTrust } from './Trust';
+import { PremiumBDVideo } from './Video';
+import { PremiumBDBenefits } from './Benefits';
+import { PremiumBDComparison } from './Comparison';
+import { PremiumBDSocialProof } from './SocialProof';
+import { PremiumBDDeliveryInfo } from './DeliveryInfo';
+import { PremiumBDGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: PremiumBDHero,
+  trust: PremiumBDTrust,
   features: PremiumBDFeatures,
-  testimonials: PremiumBDTestimonials,
   gallery: PremiumBDGallery,
+  video: PremiumBDVideo,
+  benefits: PremiumBDBenefits,
+  comparison: PremiumBDComparison,
+  testimonials: PremiumBDTestimonials,
+  social: PremiumBDSocialProof,
+  delivery: PremiumBDDeliveryInfo,
   faq: PremiumBDFAQ,
+  guarantee: PremiumBDGuarantee,
   'order-form': PremiumBDOrderForm,
   cta: PremiumBDOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

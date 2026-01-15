@@ -8,24 +8,45 @@ import { MobileFirstTestimonials } from './Testimonials';
 import { MobileFirstGallery } from './Gallery';
 import { MobileFirstFAQ } from './FAQ';
 import { MobileFirstOrderForm } from './OrderForm';
+import { MobileFirstTrust } from './Trust';
+import { MobileFirstVideo } from './Video';
+import { MobileFirstBenefits } from './Benefits';
+import { MobileFirstComparison } from './Comparison';
+import { MobileFirstSocialProof } from './SocialProof';
+import { MobileFirstDeliveryInfo } from './DeliveryInfo';
+import { MobileFirstGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: MobileFirstHero,
+  trust: MobileFirstTrust,
   features: MobileFirstFeatures,
-  testimonials: MobileFirstTestimonials,
   gallery: MobileFirstGallery,
+  video: MobileFirstVideo,
+  benefits: MobileFirstBenefits,
+  comparison: MobileFirstComparison,
+  testimonials: MobileFirstTestimonials,
+  social: MobileFirstSocialProof,
+  delivery: MobileFirstDeliveryInfo,
   faq: MobileFirstFAQ,
+  guarantee: MobileFirstGuarantee,
   'order-form': MobileFirstOrderForm,
   cta: MobileFirstOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

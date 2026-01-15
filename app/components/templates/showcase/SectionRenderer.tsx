@@ -8,24 +8,45 @@ import { ShowcaseTestimonials } from './Testimonials';
 import { ShowcaseGallery } from './Gallery';
 import { ShowcaseFAQ } from './FAQ';
 import { ShowcaseOrderForm } from './OrderForm';
+import { ShowcaseTrust } from './Trust';
+import { ShowcaseVideo } from './Video';
+import { ShowcaseBenefits } from './Benefits';
+import { ShowcaseComparison } from './Comparison';
+import { ShowcaseSocialProof } from './SocialProof';
+import { ShowcaseDeliveryInfo } from './DeliveryInfo';
+import { ShowcaseGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: ShowcaseHero,
+  trust: ShowcaseTrust,
   features: ShowcaseFeatures,
-  testimonials: ShowcaseTestimonials,
   gallery: ShowcaseGallery,
+  video: ShowcaseVideo,
+  benefits: ShowcaseBenefits,
+  comparison: ShowcaseComparison,
+  testimonials: ShowcaseTestimonials,
+  social: ShowcaseSocialProof,
+  delivery: ShowcaseDeliveryInfo,
   faq: ShowcaseFAQ,
+  guarantee: ShowcaseGuarantee,
   'order-form': ShowcaseOrderForm,
   cta: ShowcaseOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 

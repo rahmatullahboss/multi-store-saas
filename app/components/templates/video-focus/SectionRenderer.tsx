@@ -8,24 +8,45 @@ import { VideoFocusTestimonials } from './Testimonials';
 import { VideoFocusGallery } from './Gallery';
 import { VideoFocusFAQ } from './FAQ';
 import { VideoFocusOrderForm } from './OrderForm';
+import { VideoFocusTrust } from './Trust';
+import { VideoFocusVideo } from './Video';
+import { VideoFocusBenefits } from './Benefits';
+import { VideoFocusComparison } from './Comparison';
+import { VideoFocusSocialProof } from './SocialProof';
+import { VideoFocusDeliveryInfo } from './DeliveryInfo';
+import { VideoFocusGuarantee } from './Guarantee';
 import type { SectionProps } from '../_core/types';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: VideoFocusHero,
+  trust: VideoFocusTrust,
   features: VideoFocusFeatures,
-  testimonials: VideoFocusTestimonials,
   gallery: VideoFocusGallery,
+  video: VideoFocusVideo,
+  benefits: VideoFocusBenefits,
+  comparison: VideoFocusComparison,
+  testimonials: VideoFocusTestimonials,
+  social: VideoFocusSocialProof,
+  delivery: VideoFocusDeliveryInfo,
   faq: VideoFocusFAQ,
+  guarantee: VideoFocusGuarantee,
   'order-form': VideoFocusOrderForm,
   cta: VideoFocusOrderForm,
 };
 
 const DEFAULT_ORDER = [
   'hero',
+  'trust',
   'features',
   'gallery',
+  'video',
+  'benefits',
+  'comparison',
   'testimonials',
+  'social',
+  'delivery',
   'faq',
+  'guarantee',
   'order-form',
 ];
 
