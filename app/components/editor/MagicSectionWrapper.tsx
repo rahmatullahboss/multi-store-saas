@@ -14,17 +14,17 @@ import { AIEditPanel } from './AIEditPanel';
 import { AIUpgradeModal } from '~/components/modals/AIUpgradeModal';
 import type { PlanType } from '~/utils/plans.server';
 
-interface MagicSectionWrapperProps {
+interface MagicSectionWrapperProps<T = Record<string, unknown>> {
   sectionId: string;
   sectionLabel: string;
-  data: unknown;
-  onUpdate: (newData: unknown) => void;
+  data: T;
+  onUpdate: (newData: T) => void;
   isEditable?: boolean;
   planType?: PlanType;
   children: ReactNode;
 }
 
-export function MagicSectionWrapper({
+export function MagicSectionWrapper<T = Record<string, unknown>>({
   sectionId,
   sectionLabel,
   data,

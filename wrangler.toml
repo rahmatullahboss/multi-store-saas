@@ -35,6 +35,12 @@ bucket_name = "multi-store-saas-media"
 binding = "AI_RATE_LIMIT"
 id = "65513509a7a146d1b348548fb98a93cf"
 
+# KV Namespace for Store/Tenant Caching (Fast Edge Cache)
+# Create first: wrangler kv namespace create STORE_CACHE
+[[kv_namespaces]]
+binding = "STORE_CACHE"
+id = "65513509a7a146d1b348548fb98a93cf"  # TODO: Replace with actual STORE_CACHE namespace ID after creation
+
 # Vectorize Database binding for AI RAG
 # Create first: wrangler vectorize create multi-store-saas-vectors --dimensions=1536 --metric=cosine
 [[vectorize]]
