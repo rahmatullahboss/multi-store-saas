@@ -12,15 +12,15 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, Link, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
-import { stores, products } from '@db/schema';
+import { eq, and, sql } from 'drizzle-orm';
+import { stores, products, pageVersions } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig, type TypographySettings } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, ArrowLeft, Save, 
   Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, HelpCircle, 
   TrendingUp, Paintbrush, Smartphone, Tablet, Monitor, ChevronDown, ChevronRight, Sparkles,
-  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, AlertCircle, Code
+  Upload, X, Image as ImageIcon, Phone, Undo2, Redo2, Type, Menu, PanelLeft, AlertCircle, Code, History
 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
@@ -33,9 +33,12 @@ import {
   WhatsAppConfig,
   DEFAULT_SECTION_ORDER,
   LANDING_TEMPLATES,
-  mergeSectionOrder 
+  mergeSectionOrder,
+  SEOPanel,
+  VersionHistory 
 } from '~/components/landing-builder';
 import AIGeneratorModal from '~/components/landing-builder/AIGeneratorModal';
+import { Search } from 'lucide-react';
 import { getTemplateComponent } from '~/templates/registry';
 import { designCustomSection, callAIWithSystemPrompt } from '~/services/ai.server';
 import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
@@ -94,6 +97,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(products.storeId, storeId))
     .limit(50);
 
+  // Fetch version history (last 20)
+  const versions = await db
+    .select({
+      id: pageVersions.id,
+      versionLabel: pageVersions.versionLabel,
+      publishedAt: pageVersions.publishedAt,
+      createdAt: pageVersions.createdAt,
+    })
+    .from(pageVersions)
+    .where(eq(pageVersions.storeId, storeId))
+    .orderBy(sql`${pageVersions.id} DESC`)
+    .limit(20);
+
   // Load draft config if exists, otherwise fall back to published config
   const draftConfig = parseLandingConfig(store.landingConfigDraft as string | null);
   const publishedConfig = parseLandingConfig(store.landingConfig as string | null);
@@ -116,6 +132,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       aiCredits: store.aiCredits || 0,
     },
     products: storeProducts,
+    versions,
     saasDomain,
   });
 }
@@ -136,8 +153,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const intent = formData.get('intent') as string || 'save_draft';
 
   // ==========================================================================
-  // INTENT: AI GENERATION
+  // INTENT: RESTORE VERSION
   // ==========================================================================
+  if (intent === 'restore-version') {
+    const versionId = parseInt(formData.get('versionId') as string);
+    if (!versionId) return json({ error: 'Version ID required' }, { status: 400 });
+    
+    const version = await db.select({ configJson: pageVersions.configJson })
+      .from(pageVersions)
+      .where(and(eq(pageVersions.id, versionId), eq(pageVersions.storeId, storeId)))
+      .limit(1);
+    
+    if (version.length === 0) return json({ error: 'Version not found' }, { status: 404 });
+    
+    // Restore to draft
+    await db.update(stores).set({
+      landingConfigDraft: version[0].configJson,
+      updatedAt: new Date(),
+    }).where(eq(stores.id, storeId));
+    
+    return json({ success: true, message: 'Version restored to draft' });
+  }
   if (intent === 'GENERATE_CUSTOM_SECTION') {
     const prompt = formData.get('prompt') as string;
     const sectionIndex = parseInt(formData.get('sectionIndex') as string);
@@ -272,6 +308,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Custom code injection (for FB Pixel, Google Analytics, etc.)
   const customHeadCode = formData.get('customHeadCode') as string || '';
   const customBodyCode = formData.get('customBodyCode') as string || '';
+  
+  // SEO Settings
+  const seoTitle = formData.get('seoTitle') as string || '';
+  const seoDescription = formData.get('seoDescription') as string || '';
+  const ogImage = formData.get('ogImage') as string || '';
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newConfig: LandingConfig & Record<string, any> = {
@@ -332,7 +373,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     fontFamily,
     // Landing Language
     landingLanguage,
+    // SEO Settings
+    seoTitle: seoTitle || undefined,
+    seoDescription: seoDescription || undefined,
+    ogImage: ogImage || undefined,
   };
+
 
   const configJson = JSON.stringify(newConfig);
 
@@ -348,6 +394,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
+
+    // Save version history
+    await db.insert(pageVersions).values({
+      storeId,
+      configJson,
+      versionLabel: `Published ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+      publishedAt: new Date(),
+      createdAt: new Date(),
+    });
 
     return json({ success: true, message: 'Published!', published: true });
   } else {
@@ -412,7 +467,7 @@ function AccordionSection({
 // MAIN COMPONENT
 // ============================================================================
 export default function LiveEditorPage() {
-  const { store, products: storeProducts, saasDomain } = useLoaderData<typeof loader>();
+  const { store, products: storeProducts, saasDomain, versions } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { lang: language } = useTranslation();
@@ -574,6 +629,11 @@ export default function LiveEditorPage() {
   const [landingLanguage, setLandingLanguage] = useState<'bn' | 'en'>(
     store.landingConfig.landingLanguage || 'bn'
   );
+
+  // SEO Settings
+  const [seoTitle, setSeoTitle] = useState((store.landingConfig as any).seoTitle || '');
+  const [seoDescription, setSeoDescription] = useState((store.landingConfig as any).seoDescription || '');
+  const [ogImage, setOgImage] = useState((store.landingConfig as any).ogImage || '');
 
   // Preview device
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
@@ -1493,6 +1553,9 @@ export default function LiveEditorPage() {
               <input type="hidden" name="howToOrderData" value={JSON.stringify(howToOrderData)} />
               <input type="hidden" name="deliveryInfo" value={JSON.stringify(deliveryInfo)} />
               <input type="hidden" name="customSections" value={JSON.stringify(customSections)} />
+              <input type="hidden" name="seoTitle" value={seoTitle} />
+              <input type="hidden" name="seoDescription" value={seoDescription} />
+              <input type="hidden" name="ogImage" value={ogImage} />
               
               <button
                 type="submit"
@@ -1817,6 +1880,8 @@ export default function LiveEditorPage() {
               onHowToOrderDataChange={setHowToOrderData}
               // Generic Image Upload
               onImageUpload={handleImageUpload}
+              // Interactive section selection
+              selectedSection={selectedSection}
             />
           </AccordionSection>
 
@@ -2096,6 +2161,38 @@ export default function LiveEditorPage() {
                 {language === 'bn' ? '+ কাস্টম ডিজাইন যোগ করুন' : '+ Add Custom Design'}
               </button>
             </div>
+          </AccordionSection>
+
+          {/* SEO Settings Section */}
+          <AccordionSection
+            title={language === 'bn' ? 'SEO সেটিংস' : 'SEO Settings'}
+            icon={Search}
+            isOpen={openSection === 'seo'}
+            onToggle={() => setOpenSection(openSection === 'seo' ? '' : 'seo')}
+          >
+            <SEOPanel
+              seoTitle={seoTitle}
+              seoDescription={seoDescription}
+              ogImage={ogImage}
+              storeName={store.name}
+              subdomain={store.subdomain || ''}
+              onSeoTitleChange={setSeoTitle}
+              onSeoDescriptionChange={setSeoDescription}
+              onOgImageChange={setOgImage}
+            />
+          </AccordionSection>
+
+          {/* Version History Section */}
+          <AccordionSection
+            title={language === 'bn' ? 'ভার্সন হিস্ট্রি' : 'Version History'}
+            icon={History}
+            isOpen={openSection === 'versions'}
+            onToggle={() => setOpenSection(openSection === 'versions' ? '' : 'versions')}
+          >
+            <VersionHistory
+              versions={versions}
+              language={language}
+            />
           </AccordionSection>
         </aside>
 

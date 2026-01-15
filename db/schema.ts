@@ -1745,3 +1745,59 @@ export const aiCache = sqliteTable('ai_cache', {
 }, (table) => [
   index('idx_ai_cache_expires').on(table.expiresAt),
 ]);
+
+// ============================================================================
+// PAGE VERSIONS TABLE - Version history for landing pages
+// ============================================================================
+export const pageVersions = sqliteTable('page_versions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  configJson: text('config_json').notNull(), // Full landingConfig snapshot
+  versionLabel: text('version_label'), // Optional label like "v1.0" or "Before redesign"
+  createdBy: integer('created_by').references(() => users.id),
+  publishedAt: integer('published_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('page_versions_store_id_idx').on(table.storeId),
+]);
+
+export const pageVersionsRelations = relations(pageVersions, ({ one }) => ({
+  store: one(stores, {
+    fields: [pageVersions.storeId],
+    references: [stores.id],
+  }),
+  creator: one(users, {
+    fields: [pageVersions.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// TEMPLATE ANALYTICS TABLE - Track template conversion performance
+// ============================================================================
+export const templateAnalytics = sqliteTable('template_analytics', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  templateId: text('template_id').notNull(), // e.g., "modern-dark", "quick-start"
+  pageViews: integer('page_views').default(0),
+  uniqueVisitors: integer('unique_visitors').default(0),
+  ordersGenerated: integer('orders_generated').default(0),
+  revenueGenerated: real('revenue_generated').default(0),
+  conversionRate: real('conversion_rate').default(0), // orders / pageViews * 100
+  // Time period
+  periodStart: integer('period_start', { mode: 'timestamp' }),
+  periodEnd: integer('period_end', { mode: 'timestamp' }),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('template_analytics_store_id_idx').on(table.storeId),
+  index('template_analytics_template_idx').on(table.storeId, table.templateId),
+]);
+
+export const templateAnalyticsRelations = relations(templateAnalytics, ({ one }) => ({
+  store: one(stores, {
+    fields: [templateAnalytics.storeId],
+    references: [stores.id],
+  }),
+}));
+

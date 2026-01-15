@@ -19,16 +19,18 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
 import { useLoaderData, useSearchParams } from '@remix-run/react';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores, products, type Product, type Store } from '@db/schema';
+import { stores, products, templateAnalytics, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
-import { getTemplateComponent } from '~/templates/registry';
+import { getTemplateComponent, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { useTrackVisit } from '~/hooks/use-track-visit';
+import { ProductSchema } from '~/components/seo/ProductSchema';
 
 // ============================================================================
 // CDN CACHING HEADERS - Same as _index.tsx
 // ============================================================================
+
 export const headers: HeadersFunction = () => ({
   'Cache-Control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400',
   'Vary': 'Host',
@@ -43,20 +45,29 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   }
 
   const loaderData = data as LoaderData;
+  const seo = loaderData.landingConfig as { seoTitle?: string; seoDescription?: string; ogImage?: string };
+  
+  // Priority: landingConfig SEO fields > dynamic content
+  const title = seo.seoTitle || `${loaderData.product.title} - ${loaderData.storeName}`;
+  const description = seo.seoDescription || loaderData.landingConfig.headline || loaderData.product.description || `Get ${loaderData.product.title} now!`;
+  const ogImage = seo.ogImage || loaderData.product.imageUrl || '';
 
   return [
-    { title: `${loaderData.product.title} - ${loaderData.storeName}` },
-    { 
-      name: 'description', 
-      content: loaderData.landingConfig.headline || loaderData.product.description || `Get ${loaderData.product.title} now!`
-    },
+    { title },
+    { name: 'description', content: description },
     // Open Graph for Facebook Ads
-    { property: 'og:title', content: loaderData.product.title },
-    { property: 'og:description', content: loaderData.landingConfig.subheadline || loaderData.product.description || '' },
-    { property: 'og:image', content: loaderData.product.imageUrl || '' },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
+    { property: 'og:image', content: ogImage },
     { property: 'og:type', content: 'product' },
+    // Twitter Card
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:description', content: description },
+    { name: 'twitter:image', content: ogImage },
   ];
 };
+
 
 // ============================================================================
 // LOADER TYPES
@@ -206,6 +217,38 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
       googleAnalyticsId: (resolvedStore as any).googleAnalyticsId || undefined,
     };
 
+    // ========== TRACK PAGE VIEW ==========
+    const templateId = landingConfig.templateId || DEFAULT_TEMPLATE_ID;
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        const existing = await db
+          .select({ id: templateAnalytics.id })
+          .from(templateAnalytics)
+          .where(and(eq(templateAnalytics.storeId, resolvedStoreId), eq(templateAnalytics.templateId, templateId)))
+          .limit(1);
+
+        if (existing.length > 0) {
+          await db
+            .update(templateAnalytics)
+            .set({ pageViews: sql`${templateAnalytics.pageViews} + 1`, updatedAt: new Date() })
+            .where(eq(templateAnalytics.id, existing[0].id));
+        } else {
+          await db
+            .insert(templateAnalytics)
+            .values({
+              storeId: resolvedStoreId!,
+              templateId,
+              pageViews: 1,
+              ordersGenerated: 0,
+              revenueGenerated: 0,
+              updatedAt: new Date(),
+            });
+        }
+      } catch (e) {
+        console.error('[Template Analytics] Failed to track page view:', e);
+      }
+    })());
+
     return json(loaderData);
   } catch (error) {
     if (error instanceof Response) throw error;
@@ -226,6 +269,13 @@ export default function OfferProductPage() {
 
   return (
     <>
+      {/* JSON-LD Product Schema for Rich Results */}
+      <ProductSchema 
+        product={data.product}
+        storeName={data.storeName}
+        currency={data.currency}
+      />
+      
       {/* Custom CSS injection */}
       {data.landingConfig.customCSS && (
         <style dangerouslySetInnerHTML={{ __html: data.landingConfig.customCSS }} />
