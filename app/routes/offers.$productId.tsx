@@ -25,10 +25,12 @@ import { stores, products, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getTemplateComponent } from '~/templates/registry';
 import { useTrackVisit } from '~/hooks/use-track-visit';
+import { ProductSchema } from '~/components/seo/ProductSchema';
 
 // ============================================================================
 // CDN CACHING HEADERS - Same as _index.tsx
 // ============================================================================
+
 export const headers: HeadersFunction = () => ({
   'Cache-Control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400',
   'Vary': 'Host',
@@ -43,20 +45,29 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   }
 
   const loaderData = data as LoaderData;
+  const seo = loaderData.landingConfig as { seoTitle?: string; seoDescription?: string; ogImage?: string };
+  
+  // Priority: landingConfig SEO fields > dynamic content
+  const title = seo.seoTitle || `${loaderData.product.title} - ${loaderData.storeName}`;
+  const description = seo.seoDescription || loaderData.landingConfig.headline || loaderData.product.description || `Get ${loaderData.product.title} now!`;
+  const ogImage = seo.ogImage || loaderData.product.imageUrl || '';
 
   return [
-    { title: `${loaderData.product.title} - ${loaderData.storeName}` },
-    { 
-      name: 'description', 
-      content: loaderData.landingConfig.headline || loaderData.product.description || `Get ${loaderData.product.title} now!`
-    },
+    { title },
+    { name: 'description', content: description },
     // Open Graph for Facebook Ads
-    { property: 'og:title', content: loaderData.product.title },
-    { property: 'og:description', content: loaderData.landingConfig.subheadline || loaderData.product.description || '' },
-    { property: 'og:image', content: loaderData.product.imageUrl || '' },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
+    { property: 'og:image', content: ogImage },
     { property: 'og:type', content: 'product' },
+    // Twitter Card
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:description', content: description },
+    { name: 'twitter:image', content: ogImage },
   ];
 };
+
 
 // ============================================================================
 // LOADER TYPES
@@ -226,6 +237,13 @@ export default function OfferProductPage() {
 
   return (
     <>
+      {/* JSON-LD Product Schema for Rich Results */}
+      <ProductSchema 
+        product={data.product}
+        storeName={data.storeName}
+        currency={data.currency}
+      />
+      
       {/* Custom CSS injection */}
       {data.landingConfig.customCSS && (
         <style dangerouslySetInnerHTML={{ __html: data.landingConfig.customCSS }} />

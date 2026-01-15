@@ -62,15 +62,39 @@ export const meta: MetaFunction = ({ data }) => {
     ];
   }
   
-  const description = loaderData.mode === 'landing' && loaderData.featuredProduct
-    ? `Get ${loaderData.featuredProduct.title} - ${loaderData.landingConfig?.headline || ''}`
-    : `Shop the best products at ${loaderData.storeName}`;
+  // Landing mode - use SEO fields from landingConfig
+  if (loaderData.mode === 'landing' && loaderData.landingConfig) {
+    const seo = loaderData.landingConfig as { seoTitle?: string; seoDescription?: string; ogImage?: string };
+    const title = seo.seoTitle || loaderData.storeName || 'Store';
+    const description = seo.seoDescription || 
+      (loaderData.featuredProduct ? `Get ${loaderData.featuredProduct.title} - ${loaderData.landingConfig?.headline || ''}` : '');
+    const ogImage = seo.ogImage || loaderData.featuredProduct?.imageUrl || '';
+    
+    return [
+      { title },
+      { name: 'description', content: description },
+      // Open Graph
+      { property: 'og:title', content: title },
+      { property: 'og:description', content: description },
+      { property: 'og:type', content: 'website' },
+      ...(ogImage ? [{ property: 'og:image', content: ogImage }] : []),
+      // Twitter Card
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: title },
+      { name: 'twitter:description', content: description },
+      ...(ogImage ? [{ name: 'twitter:image', content: ogImage }] : []),
+    ];
+  }
+  
+  // Store mode - basic SEO
+  const description = `Shop the best products at ${loaderData.storeName}`;
   
   return [
     { title: loaderData.storeName || 'Store' },
     { name: 'description', content: description },
   ];
 };
+
 
 // ============================================================================
 // LOADER TYPES - Strict typing for frontend consumption
