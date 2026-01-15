@@ -1,6 +1,6 @@
 import { RemixBrowser, useLocation, useMatches } from "@remix-run/react";
 import * as Sentry from "@sentry/remix";
-import { startTransition, StrictMode, useEffect } from "react";
+import { startTransition, useEffect } from "react";
 import { hydrateRoot } from "react-dom/client";
 import i18next from "i18next";
 import { I18nextProvider, initReactI18next } from "react-i18next";
@@ -47,9 +47,7 @@ async function hydrate() {
     hydrateRoot(
       document,
       <I18nextProvider i18n={i18next}>
-        <StrictMode>
-          <RemixBrowser />
-        </StrictMode>
+        <RemixBrowser />
       </I18nextProvider>
     );
   });

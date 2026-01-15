@@ -39,19 +39,37 @@ const COLORS = {
 };
 
 // ============================================================================
-// CONFETTI COMPONENT
+// CONFETTI COMPONENT - Client-only to prevent hydration mismatch
 // ============================================================================
 const Confetti = ({ isActive }: { isActive: boolean }) => {
-  if (!isActive) return null;
-  
-  const confettiPieces = Array.from({ length: 30 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    delay: Math.random() * 0.5,
-    rotation: Math.random() * 360,
-    color: ['#10B981', '#34D399', '#F9A825', '#FBBF24', '#006A4E'][Math.floor(Math.random() * 5)],
-    size: Math.random() * 6 + 3,
-  }));
+  const [confettiPieces, setConfettiPieces] = useState<Array<{
+    id: number;
+    x: number;
+    delay: number;
+    rotation: number;
+    color: string;
+    size: number;
+    isCircle: boolean;
+  }>>([]);
+
+  // Generate confetti pieces only on client side to prevent hydration mismatch
+  useEffect(() => {
+    if (isActive && confettiPieces.length === 0) {
+      const colors = ['#10B981', '#34D399', '#F9A825', '#FBBF24', '#006A4E'];
+      const pieces = Array.from({ length: 30 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        delay: Math.random() * 0.5,
+        rotation: Math.random() * 360,
+        color: colors[Math.floor(Math.random() * 5)],
+        size: Math.random() * 6 + 3,
+        isCircle: Math.random() > 0.5,
+      }));
+      setConfettiPieces(pieces);
+    }
+  }, [isActive, confettiPieces.length]);
+
+  if (!isActive || confettiPieces.length === 0) return null;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-20">
@@ -65,7 +83,7 @@ const Confetti = ({ isActive }: { isActive: boolean }) => {
             width: piece.size,
             height: piece.size,
             backgroundColor: piece.color,
-            borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+            borderRadius: piece.isCircle ? '50%' : '2px',
           }}
           initial={{ y: 0, opacity: 1, rotate: 0, scale: 0 }}
           animate={{

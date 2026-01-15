@@ -67,16 +67,35 @@ const templates = [
 ];
 
 // ============================================================================
-// CONFETTI ANIMATION COMPONENT
+// CONFETTI ANIMATION COMPONENT - Client-only to prevent hydration mismatch
 // ============================================================================
 const Confetti = () => {
-  const confettiPieces = Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    delay: Math.random() * 0.5,
-    duration: 2 + Math.random() * 2,
-    color: ['#8B5CF6', '#F59E0B', '#3B82F6', '#10B981', '#EC4899'][Math.floor(Math.random() * 5)],
-  }));
+  const [confettiPieces, setConfettiPieces] = useState<Array<{
+    id: number;
+    x: number;
+    delay: number;
+    duration: number;
+    color: string;
+    rotateDirection: number;
+  }>>([]);
+
+  // Generate confetti pieces only on client side to prevent hydration mismatch
+  useEffect(() => {
+    if (confettiPieces.length === 0) {
+      const colors = ['#8B5CF6', '#F59E0B', '#3B82F6', '#10B981', '#EC4899'];
+      const pieces = Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        delay: Math.random() * 0.5,
+        duration: 2 + Math.random() * 2,
+        color: colors[Math.floor(Math.random() * 5)],
+        rotateDirection: Math.random() > 0.5 ? 1 : -1,
+      }));
+      setConfettiPieces(pieces);
+    }
+  }, [confettiPieces.length]);
+
+  if (confettiPieces.length === 0) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -93,7 +112,7 @@ const Confetti = () => {
           animate={{ 
             y: '100vh', 
             opacity: 0,
-            rotate: 360 * (Math.random() > 0.5 ? 1 : -1),
+            rotate: 360 * piece.rotateDirection,
           }}
           transition={{ 
             duration: piece.duration, 
