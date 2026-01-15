@@ -93,6 +93,7 @@ export default function PreviewFrame() {
   const [liveConfig, setLiveConfig] = useState<LandingConfig>(store.landingConfig);
   const [liveTemplateId, setLiveTemplateId] = useState(store.landingConfig.templateId || 'modern-dark');
   const [liveFeaturedProductId, setLiveFeaturedProductId] = useState<number | null>(store.featuredProductId);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
   // Track previous config string to avoid unnecessary re-renders
   const prevConfigRef = useRef<string>('');
@@ -119,6 +120,11 @@ export default function PreviewFrame() {
           const newId = featuredProductId ? parseInt(featuredProductId) : null;
           setLiveFeaturedProductId(prev => prev === newId ? prev : newId);
         }
+      }
+      
+      // Handle section selection from parent
+      if (event.data && event.data.type === 'SECTION_SELECTED') {
+        setSelectedSection(event.data.sectionId || null);
       }
     };
 
@@ -169,6 +175,7 @@ export default function PreviewFrame() {
             config={liveConfig}
             currency="৳"
             isPreview={true}
+            selectedSection={selectedSection}
             customSections={(liveConfig as any).customSections}
           />
           

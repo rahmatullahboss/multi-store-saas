@@ -43,6 +43,7 @@ export interface SectionProps {
   storeName: string;
   isPreview?: boolean;
   isEditMode?: boolean;
+  selectedSection?: string | null;  // Currently selected section for highlighting
   onUpdate?: (sectionId: string, newData: any) => void;
   lang?: string;
   currency?: string;

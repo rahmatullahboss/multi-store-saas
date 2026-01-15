@@ -25,6 +25,7 @@ import { FlashSalePricing } from './Pricing';
 
 import type { SectionProps } from '../_core/types';
 import { DEFAULT_SECTION_ORDER } from '../../landing-builder/SectionManager';
+import { SectionWrapper, getSectionDisplayName } from '../_core/SectionWrapper';
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: FlashSaleHero,
@@ -51,11 +52,13 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
 interface FlashSaleSectionRendererProps extends SectionProps {
   sectionOrder?: string[];
   hiddenSections?: string[];
+  selectedSection?: string | null;
 }
 
 export function FlashSaleSectionRenderer({
   sectionOrder,
   hiddenSections = [],
+  selectedSection,
   ...props
 }: FlashSaleSectionRendererProps) {
   // Use global default order if no custom order is provided
@@ -66,12 +69,29 @@ export function FlashSaleSectionRenderer({
 
   return (
     <>
-      {visibleSections.map((sectionId) => {
+      {visibleSections.map((sectionId, index) => {
         const Component = SECTION_COMPONENTS[sectionId];
         if (!Component) return null;
 
-        return <Component key={sectionId} {...props} />;
+        const sectionNames = getSectionDisplayName(sectionId);
+
+        return (
+          <SectionWrapper
+            key={sectionId}
+            sectionId={sectionId}
+            sectionName={sectionNames.name}
+            sectionNameEn={sectionNames.nameEn}
+            isPreview={props.isPreview}
+            isSelected={selectedSection === sectionId}
+            canMoveUp={index > 0}
+            canMoveDown={index < visibleSections.length - 1}
+            lang={props.config.landingLanguage || 'bn'}
+          >
+            <Component {...props} />
+          </SectionWrapper>
+        );
       })}
     </>
   );
 }
+

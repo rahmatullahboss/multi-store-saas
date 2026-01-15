@@ -583,6 +583,9 @@ export default function LiveEditorPage() {
   
   // Mobile sidebar state
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  
+  // Interactive Section Editing - Selected section for highlighting
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
   // ============================================================================
   // IMAGE UPLOAD STATE FOR TESTIMONIALS
@@ -1226,11 +1229,64 @@ export default function LiveEditorPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeReady, setIframeReady] = useState(false);
 
-  // Listen for iframe ready signal and ADD_CUSTOM_SECTION messages
+  // Listen for iframe ready signal and section interaction messages
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'PREVIEW_FRAME_READY') {
         setIframeReady(true);
+      }
+      
+      // Handle section clicked - select section and open its editor
+      if (event.data && event.data.type === 'SECTION_CLICKED') {
+        const sectionId = event.data.sectionId;
+        setSelectedSection(sectionId);
+        // Open sections accordion
+        setOpenSection('sections');
+        // Send selection back to iframe for highlighting
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'SECTION_SELECTED',
+            sectionId,
+          }, '*');
+        }
+      }
+      
+      // Handle edit button click - same as click but more explicit
+      if (event.data && event.data.type === 'SECTION_EDIT') {
+        const sectionId = event.data.sectionId;
+        setSelectedSection(sectionId);
+        setOpenSection('sections');
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'SECTION_SELECTED',
+            sectionId,
+          }, '*');
+        }
+      }
+      
+      // Handle section visibility toggle (hide)
+      if (event.data && event.data.type === 'SECTION_TOGGLE_VISIBILITY') {
+        const { sectionId, visible } = event.data;
+        if (!visible) {
+          setHiddenSections([...hiddenSections, sectionId]);
+        } else {
+          setHiddenSections(hiddenSections.filter(id => id !== sectionId));
+        }
+      }
+      
+      // Handle section move up/down
+      if (event.data && event.data.type === 'SECTION_MOVE') {
+        const { sectionId, direction } = event.data;
+        const currentIndex = sectionOrder.indexOf(sectionId);
+        if (currentIndex === -1) return;
+        
+        const newOrder = [...sectionOrder];
+        if (direction === 'up' && currentIndex > 0) {
+          [newOrder[currentIndex - 1], newOrder[currentIndex]] = [newOrder[currentIndex], newOrder[currentIndex - 1]];
+        } else if (direction === 'down' && currentIndex < newOrder.length - 1) {
+          [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+        }
+        setSectionOrder(newOrder);
       }
       
       // Handle add custom section from canvas
@@ -1253,7 +1309,7 @@ export default function LiveEditorPage() {
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [customSections, language]);
+  }, [customSections, language, hiddenSections, sectionOrder]);
 
   // Send config updates to iframe whenever config changes
   useEffect(() => {

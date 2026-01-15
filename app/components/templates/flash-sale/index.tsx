@@ -89,6 +89,7 @@ export function FlashSaleTemplate({
   planType = 'free',
   productVariants = [],
   orderBumps = [],
+  selectedSection,
 }: TemplateProps) {
   const { t } = useTranslation();
   const formatPrice = useFormatPrice();
@@ -139,6 +140,7 @@ export function FlashSaleTemplate({
       <FlashSaleSectionRenderer
         sectionOrder={config.sectionOrder}
         hiddenSections={config.hiddenSections}
+        selectedSection={selectedSection}
         config={config}
         product={product}
         storeName={storeName}
