@@ -43,8 +43,8 @@ const PLAN_PRICING = {
 // ==============================================================================
 
 const PLAN_OPTIONS = [
-  { 
-    id: 'free' as const, 
+  {
+    id: 'free' as const,
     name: 'Free',
     nameKey: 'planFree' as const,
     price: PLAN_PRICING.free,
@@ -57,8 +57,8 @@ const PLAN_OPTIONS = [
       'featureBasicSupport',
     ],
   },
-  { 
-    id: 'starter' as const, 
+  {
+    id: 'starter' as const,
     name: 'Starter',
     nameKey: 'planStarter' as const,
     price: PLAN_PRICING.starter,
@@ -73,8 +73,8 @@ const PLAN_OPTIONS = [
       'featureBkashNagad',
     ],
   },
-  { 
-    id: 'premium' as const, 
+  {
+    id: 'premium' as const,
     name: 'Premium',
     nameKey: 'planPremium' as const,
     price: PLAN_PRICING.premium,
@@ -182,31 +182,31 @@ const CATEGORY_TEMPLATES: Record<string, {
 };
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'metaTitle' }];
+  return [{ title: 'Onboarding - Ozzyl' }];
 };
 
 // Redirect if already logged in AND onboarding is completed
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
   const userId = await getUserId(request, env);
-  
+
   if (userId) {
     try {
       const db = drizzle(env.DB);
-      
+
       const userResult = await db
         .select({ storeId: users.storeId })
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
-      
+
       if (userResult[0]?.storeId) {
         const storeResult = await db
           .select({ onboardingStatus: stores.onboardingStatus })
           .from(stores)
           .where(eq(stores.id, userResult[0].storeId))
           .limit(1);
-        
+
         const onboardingStatus = storeResult[0]?.onboardingStatus || 'pending';
         if (onboardingStatus === 'completed') {
           return redirect('/app/orders');
@@ -216,7 +216,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       console.error('[onboarding.loader] Error:', error);
     }
   }
-  
+
   return json({});
 }
 
@@ -230,53 +230,53 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Check if email already exists
   if (step === 'check_email') {
     const email = formData.get('email') as string;
-    
+
     if (!email || !email.includes('@')) {
       return json({ error: t('validEmailRequired'), field: 'email' }, { status: 400 });
     }
-    
+
     const db = drizzle(env.DB);
     const existingUser = await db
       .select({ id: users.id })
       .from(users)
       .where(eq(users.email, email.toLowerCase()))
       .limit(1);
-    
+
     if (existingUser.length > 0) {
-      return json({ 
-        error: t('emailAlreadyRegistered'), 
+      return json({
+        error: t('emailAlreadyRegistered'),
         field: 'email',
-        emailExists: true 
+        emailExists: true
       }, { status: 400 });
     }
-    
+
     return json({ success: true, emailAvailable: true });
   }
 
   // Check if subdomain is available (Step 2 -> Step 3 transition)
   if (step === 'check_subdomain') {
     const subdomain = formData.get('subdomain') as string;
-    
+
     if (!subdomain || subdomain.length < 3) {
       return json({ error: t('subdomainMinChars'), field: 'subdomain' }, { status: 400 });
     }
-    
+
     const db = drizzle(env.DB);
     const existingStore = await db
       .select({ id: stores.id })
       .from(stores)
       .where(eq(stores.subdomain, subdomain.toLowerCase()))
       .limit(1);
-    
+
     if (existingStore.length > 0) {
       console.log('[Onboarding] Subdomain not available:', subdomain);
-      return json({ 
-        error: t('subdomainTaken', { subdomain }), 
+      return json({
+        error: t('subdomainTaken', { subdomain }),
         field: 'subdomain',
-        subdomainTaken: true 
+        subdomainTaken: true
       }, { status: 400 });
     }
-    
+
     return json({ success: true, subdomainAvailable: true });
   }
 
@@ -317,7 +317,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       // 2. Get category-based template
       const template = CATEGORY_TEMPLATES[category] || CATEGORY_TEMPLATES.other;
-      
+
       // 3. Create landing config from category template
       const landingConfig = {
         templateId: 'modern-dark',
@@ -340,7 +340,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // 4. Determine payment status based on plan
       let paymentStatus: 'none' | 'pending_verification' = 'none';
       let paymentAmount: number | undefined;
-      
+
       if (selectedPlan !== 'free' && transactionId) {
         paymentStatus = 'pending_verification';
         paymentAmount = PLAN_PRICING[selectedPlan];
@@ -386,7 +386,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
     } catch (error) {
       console.error('[Onboarding] Error:', error);
-      return json({ 
+      return json({
         error: t('failedToCreateStore'),
         details: error instanceof Error ? error.message : 'Unknown error'
       }, { status: 500 });
@@ -400,7 +400,7 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-  
+
   // Form state including plan and payment
   const [formData, setFormData] = useState({
     email: '',
@@ -414,15 +414,15 @@ export default function OnboardingPage() {
     transactionId: '',
     paymentPhone: '',
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [storeCreationFailed, setStoreCreationFailed] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
   const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean }>();
-  
+
   const { t, lang: language } = useTranslation();
-  
+
   // Password visibility toggle
   const [showPassword, setShowPassword] = useState(false);
 
@@ -431,7 +431,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (fetcher.data === lastFetcherData.current) return;
     lastFetcherData.current = fetcher.data;
-    
+
     if (fetcher.data?.emailAvailable) {
       setIsCheckingEmail(false);
       setCurrentStep(2);
@@ -463,7 +463,7 @@ export default function OnboardingPage() {
   const updateField = (field: string, value: string) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
-      
+
       // Auto-generate subdomain from storeName
       if (field === 'storeName' && !subdomainManuallyEdited) {
         const autoSubdomain = value
@@ -473,11 +473,11 @@ export default function OnboardingPage() {
           .slice(0, 20);
         updated.subdomain = autoSubdomain;
       }
-      
+
       if (field === 'subdomain') {
         setSubdomainManuallyEdited(true);
       }
-      
+
       return updated;
     });
     setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -510,7 +510,7 @@ export default function OnboardingPage() {
         setErrors(newErrors);
         return;
       }
-      
+
       // Check if email exists
       setIsCheckingEmail(true);
       setErrors({});
@@ -520,7 +520,7 @@ export default function OnboardingPage() {
       fetcher.submit(checkData, { method: 'POST' });
       return;
     }
-    
+
     // Step 2: Validate store info and check subdomain availability
     if (currentStep === 2) {
       const newErrors: Record<string, string> = {};
@@ -534,7 +534,7 @@ export default function OnboardingPage() {
         setErrors(newErrors);
         return;
       }
-      
+
       // Check subdomain availability before proceeding
       setIsCheckingSubdomain(true);
       setErrors({});
@@ -544,7 +544,7 @@ export default function OnboardingPage() {
       fetcher.submit(checkData, { method: 'POST' });
       return;
     }
-    
+
     // Step 3: Validate plan selection and payment (if paid plan)
     if (currentStep === 3) {
       // For paid plans, validate TRX ID
@@ -552,12 +552,12 @@ export default function OnboardingPage() {
         setErrors({ transactionId: t('trxIdRequired') });
         return;
       }
-      
+
       // Go to step 4 (create store)
       setErrors({});
       setCurrentStep(4);
       setIsGenerating(true);
-      
+
       // Submit to create store
       const submitData = new FormData();
       submitData.append('step', 'create_store');
@@ -571,7 +571,7 @@ export default function OnboardingPage() {
       submitData.append('selectedPlan', formData.selectedPlan);
       submitData.append('transactionId', formData.transactionId);
       submitData.append('paymentPhone', formData.paymentPhone);
-      
+
       fetcher.submit(submitData, { method: 'POST' });
       return;
     }
@@ -579,11 +579,11 @@ export default function OnboardingPage() {
 
   const handleContinueWithFree = () => {
     setFormData(prev => ({ ...prev, selectedPlan: 'free', transactionId: '', paymentPhone: '' }));
-    
+
     // Create store with free plan immediately
     setCurrentStep(4);
     setIsGenerating(true);
-    
+
     const submitData = new FormData();
     submitData.append('step', 'create_store');
     submitData.append('email', formData.email);
@@ -596,7 +596,7 @@ export default function OnboardingPage() {
     submitData.append('selectedPlan', 'free');
     submitData.append('transactionId', '');
     submitData.append('paymentPhone', '');
-    
+
     fetcher.submit(submitData, { method: 'POST' });
   };
 
@@ -618,8 +618,8 @@ export default function OnboardingPage() {
           </Link>
           <div className="flex items-center gap-4">
             {/* <LanguageSelector variant="toggle" size="sm" /> */} {/* Temporarily disabled - Bengali is default */}
-            <a 
-              href="/auth/logout?redirect=/auth/login" 
+            <a
+              href="/auth/logout?redirect=/auth/login"
               className="text-sm text-gray-600 hover:text-emerald-600"
             >
               {t('alreadyHaveAccount')}
@@ -782,11 +782,10 @@ export default function OnboardingPage() {
                       key={cat.id}
                       type="button"
                       onClick={() => updateField('category', cat.id)}
-                      className={`p-4 rounded-xl border-2 text-center transition-all ${
-                        formData.category === cat.id
+                      className={`p-4 rounded-xl border-2 text-center transition-all ${formData.category === cat.id
                           ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                        }`}
                     >
                       <span className="text-2xl block mb-2">{cat.emoji}</span>
                       <span className="text-sm font-medium text-gray-700">{t(cat.key)}</span>
@@ -811,37 +810,34 @@ export default function OnboardingPage() {
                   const Icon = plan.icon;
                   const isSelected = formData.selectedPlan === plan.id;
                   const features = plan.features;
-                  
+
                   return (
                     <button
                       key={plan.id}
                       type="button"
                       onClick={() => updateField('selectedPlan', plan.id)}
-                      className={`relative p-6 rounded-2xl border-2 text-left transition-all ${
-                        isSelected
-                          ? plan.color === 'gray' 
+                      className={`relative p-6 rounded-2xl border-2 text-left transition-all ${isSelected
+                          ? plan.color === 'gray'
                             ? 'border-gray-500 bg-gray-50 ring-2 ring-gray-200'
                             : plan.color === 'emerald'
-                            ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
-                            : 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
+                              ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
+                              : 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
                           : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
+                        }`}
                     >
                       {plan.popular && (
                         <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded-full">
                           {t('mostPopular')}
                         </span>
                       )}
-                      
+
                       <div className="flex items-center gap-3 mb-4">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                          plan.color === 'gray' ? 'bg-gray-100' :
-                          plan.color === 'emerald' ? 'bg-emerald-100' : 'bg-purple-100'
-                        }`}>
-                          <Icon className={`w-5 h-5 ${
-                            plan.color === 'gray' ? 'text-gray-600' :
-                            plan.color === 'emerald' ? 'text-emerald-600' : 'text-purple-600'
-                          }`} />
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${plan.color === 'gray' ? 'bg-gray-100' :
+                            plan.color === 'emerald' ? 'bg-emerald-100' : 'bg-purple-100'
+                          }`}>
+                          <Icon className={`w-5 h-5 ${plan.color === 'gray' ? 'text-gray-600' :
+                              plan.color === 'emerald' ? 'text-emerald-600' : 'text-purple-600'
+                            }`} />
                         </div>
                         <div>
                           <h3 className="font-bold text-gray-900">{t(plan.nameKey)}</h3>
@@ -851,7 +847,7 @@ export default function OnboardingPage() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <ul className="space-y-2">
                         {features.map((feature, idx) => (
                           <li key={idx} className="flex items-center gap-2 text-sm text-gray-600">
@@ -860,13 +856,12 @@ export default function OnboardingPage() {
                           </li>
                         ))}
                       </ul>
-                      
+
                       {isSelected && (
                         <div className="absolute top-4 right-4">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            plan.color === 'gray' ? 'bg-gray-500' :
-                            plan.color === 'emerald' ? 'bg-emerald-500' : 'bg-purple-500'
-                          }`}>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${plan.color === 'gray' ? 'bg-gray-500' :
+                              plan.color === 'emerald' ? 'bg-emerald-500' : 'bg-purple-500'
+                            }`}>
                             <Check className="w-4 h-4 text-white" />
                           </div>
                         </div>
@@ -937,7 +932,7 @@ export default function OnboardingPage() {
                       />
                       {errors.transactionId && <p className="text-red-500 text-sm mt-1">{errors.transactionId}</p>}
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t('paymentPhoneUsed')}
@@ -979,13 +974,13 @@ export default function OnboardingPage() {
           {/* Step 4: Store Creation Progress */}
           {currentStep === 4 && (
             <div>
-              <AISetupProgress 
+              <AISetupProgress
                 isGenerating={isGenerating || isSubmitting}
                 hasError={storeCreationFailed}
                 errorMessage={errors.form}
-                onComplete={() => {}}
+                onComplete={() => { }}
               />
-              
+
               {/* Payment Pending Notice (for paid plans) */}
               {!storeCreationFailed && formData.selectedPlan !== 'free' && formData.transactionId && (
                 <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
@@ -997,7 +992,7 @@ export default function OnboardingPage() {
                   </p>
                 </div>
               )}
-              
+
               {/* Error Actions */}
               {storeCreationFailed && (
                 <div className="flex flex-col items-center gap-4 mt-6">
@@ -1007,7 +1002,7 @@ export default function OnboardingPage() {
                       setStoreCreationFailed(false);
                       setErrors({});
                       setIsGenerating(true);
-                      
+
                       // Retry submission
                       const submitData = new FormData();
                       submitData.append('step', 'create_store');
@@ -1074,10 +1069,10 @@ export default function OnboardingPage() {
                 className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {(isCheckingEmail || isCheckingSubdomain)
-                  ? t('loading') 
-                  : currentStep === 3 
-                    ? (formData.selectedPlan === 'free' 
-                      ? `🚀 ${t('createMyStore')}` 
+                  ? t('loading')
+                  : currentStep === 3
+                    ? (formData.selectedPlan === 'free'
+                      ? `🚀 ${t('createMyStore')}`
                       : `💳 ${t('proceedWithPayment')}`)
                     : t('continueBtn')}
                 <ArrowRight className="w-4 h-4" />
