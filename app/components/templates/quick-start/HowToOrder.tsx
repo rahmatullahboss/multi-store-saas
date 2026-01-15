@@ -46,7 +46,7 @@ export function HowToOrder({ theme, config }: SectionProps) {
           {/* Connecting Line */}
           <div className="hidden md:block absolute top-[50px] left-[12%] right-[12%] h-1 bg-[#E5E5E5] z-0" />
 
-          {steps.map((step, index) => (
+          {steps.map((step: { icon: React.ReactNode; title: string; description: string }, index: number) => (
             <div key={index} className="relative z-10 text-center">
               <div className="w-24 h-24 mx-auto mb-6 bg-white border-4 border-[#E63946] text-[#E63946] rounded-full flex items-center justify-center shadow-md">
                 {step.icon}

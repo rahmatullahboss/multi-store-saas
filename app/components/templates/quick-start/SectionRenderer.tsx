@@ -45,7 +45,7 @@ export {
 };
 
 interface QuickStartSectionRendererProps extends SectionProps {
-  sectionOrder: string[];
+  sectionOrder?: string[];
   hiddenSections: string[];
 }
 

@@ -7,6 +7,7 @@ export function OrganicProblemSolution({
   isEditMode,
   onUpdate,
   theme,
+  storeName,
 }: SectionProps) {
   if (!config.problemSolution || 
       (config.problemSolution.problems.length === 0 && config.problemSolution.solutions.length === 0)) {
@@ -49,7 +50,7 @@ export function OrganicProblemSolution({
                
               <h3 className="text-xl font-bold text-green-600 mb-8 flex items-center gap-3 relative">
                 <Sprout className="w-6 h-6" />
-                With {config.storeName || 'Us'}
+                With {storeName || 'Us'}
               </h3>
               <ul className="space-y-6 relative">
                 {config.problemSolution.solutions.map((solution, i) => (

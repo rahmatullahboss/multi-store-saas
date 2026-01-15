@@ -32,7 +32,7 @@ export function MagicSectionWrapper<T = Record<string, unknown>>({
   isEditable = true,
   planType = 'free',
   children,
-}: MagicSectionWrapperProps) {
+}: MagicSectionWrapperProps<T>) {
   const [isHovered, setIsHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
