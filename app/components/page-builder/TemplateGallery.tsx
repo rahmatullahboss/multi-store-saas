@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { X, FileText, Zap, Package, Crown, Layout, Eye, Check, ChevronLeft, Sparkles } from 'lucide-react';
 import type { TemplatePreset, TemplateCategory } from '~/lib/page-builder/templates';
+import { TemplatePreviewRenderer } from './TemplatePreviewRenderer';
 
 interface TemplateGalleryProps {
   templates: TemplatePreset[];
@@ -274,80 +275,67 @@ export function TemplateGallery({
 
         {/* ====================== STEP 2: Template Preview ====================== */}
         {step === 'preview' && previewTemplate && (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Preview Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 flex overflow-hidden">
+            {/* Left: Template Info */}
+            <div className="w-80 border-r border-gray-200 bg-gray-50 p-4 flex flex-col">
               {/* Template Info Banner */}
               <div 
-                className="rounded-xl p-6 mb-6 text-white"
+                className="rounded-xl p-4 text-white mb-4"
                 style={{ background: previewTemplate.colors.bg }}
               >
-                <div className="flex items-center gap-4">
-                  <span className="text-4xl">{previewTemplate.emoji}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{previewTemplate.emoji}</span>
                   <div>
-                    <h3 className="text-2xl font-bold">{previewTemplate.name}</h3>
-                    <p className="text-white/80">{previewTemplate.description}</p>
+                    <h3 className="text-lg font-bold">{previewTemplate.name}</h3>
+                    <p className="text-sm text-white/80">{previewTemplate.sections.length} টি সেকশন</p>
                   </div>
                 </div>
               </div>
 
-              {/* Sections Preview */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                  <Layout size={18} />
-                  এই টেমপ্লেটে {previewTemplate.sections.length} টি সেকশন আছে:
-                </h4>
-                
-                {previewTemplate.sections.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                    <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">এটি একটি খালি টেমপ্লেট। আপনি নিজে সেকশন যোগ করতে পারবেন।</p>
+              <p className="text-sm text-gray-600 mb-4">{previewTemplate.description}</p>
+
+              {/* Section List */}
+              <div className="flex-1 overflow-y-auto space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">সেকশন তালিকা</h4>
+                {previewTemplate.sections.map((section, idx) => (
+                  <div 
+                    key={idx}
+                    className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-200 text-sm"
+                  >
+                    <div 
+                      className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold"
+                      style={{ backgroundColor: previewTemplate.colors.accent }}
+                    >
+                      {idx + 1}
+                    </div>
+                    <span className="text-gray-700 capitalize">{section.type.replace(/-/g, ' ')}</span>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {previewTemplate.sections.map((section, idx) => (
-                      <div 
-                        key={idx}
-                        className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200"
-                      >
-                        <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-                          style={{ backgroundColor: previewTemplate.colors.accent }}
-                        >
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 capitalize">
-                            {section.type.replace(/-/g, ' ')}
-                          </p>
-                          {section.props?.headline && (
-                            <p className="text-sm text-gray-500 truncate max-w-xs">
-                              {String(section.props.headline).slice(0, 50)}...
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="pt-4 space-y-2">
+                <button
+                  onClick={handleSelectFromPreview}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium flex items-center justify-center gap-2"
+                >
+                  <Sparkles size={18} />
+                  এই টেমপ্লেট ব্যবহার করুন
+                </button>
+                <button
+                  onClick={handleBack}
+                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors font-medium"
+                >
+                  অন্য টেমপ্লেট দেখুন
+                </button>
               </div>
             </div>
 
-            {/* Preview Actions */}
-            <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-end gap-3">
-              <button
-                onClick={handleBack}
-                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors font-medium"
-              >
-                অন্য টেমপ্লেট দেখুন
-              </button>
-              <button
-                onClick={handleSelectFromPreview}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium flex items-center gap-2"
-              >
-                <Sparkles size={18} />
-                এই টেমপ্লেট ব্যবহার করুন
-              </button>
+            {/* Right: Visual Preview */}
+            <div className="flex-1 bg-gray-100 overflow-y-auto">
+              <div className="bg-white min-h-full shadow-inner">
+                <TemplatePreviewRenderer template={previewTemplate} />
+              </div>
             </div>
           </div>
         )}
