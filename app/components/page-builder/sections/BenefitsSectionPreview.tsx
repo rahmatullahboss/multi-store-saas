@@ -1,10 +1,11 @@
 /**
- * Benefits Section Preview - Theme-enabled
+ * Benefits Section Preview - Per-Section Styling Enabled
  */
 
 import type { SectionTheme } from '~/lib/page-builder/types';
+import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
 
-interface BenefitsProps {
+interface BenefitsProps extends SectionStyleProps {
   title?: string;
   subtitle?: string;
   benefits?: Array<{ icon?: string; title: string; description?: string }>;
@@ -19,7 +20,14 @@ export function BenefitsSectionPreview({ props, theme }: BenefitsSectionPreviewP
   const { 
     title = 'কেন আমাদের থেকে কিনবেন?',
     subtitle = '',
-    benefits = [] 
+    benefits = [],
+    // Per-section styling
+    backgroundColor,
+    backgroundGradient,
+    textColor,
+    headingColor,
+    fontFamily,
+    paddingY,
   } = props as BenefitsProps;
   
   const defaultBenefits = [
@@ -33,7 +41,19 @@ export function BenefitsSectionPreview({ props, theme }: BenefitsSectionPreviewP
   // Theme-based styling
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   
-  const getBgStyle = () => {
+  // Get per-section styling
+  const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
+  const headingStyle = getHeadingStyle({ headingColor, textColor });
+  
+  const getBgStyle = (): React.CSSProperties => {
+    // Per-section override takes priority
+    if (backgroundColor || backgroundGradient) {
+      return {
+        backgroundColor: sectionStyle.backgroundColor,
+        background: sectionStyle.background,
+      };
+    }
+    
     if (isDark) {
       return { backgroundColor: theme?.bgColor || '#18181B' };
     }
@@ -49,19 +69,30 @@ export function BenefitsSectionPreview({ props, theme }: BenefitsSectionPreviewP
     return { background: 'linear-gradient(to bottom, #F0FDF4, #FFFFFF)' };
   };
   
-  const textColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
+  const defaultTextColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
   const mutedColor = isDark ? 'rgba(255,255,255,0.7)' : (theme?.mutedTextColor || '#6B7280');
   const cardBg = isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF';
   const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : (theme?.cardBorder || '#D1FAE5');
   const iconBg = theme?.primaryColor || '#10B981';
   
+  const finalTextColor = textColor || defaultTextColor;
+  const finalHeadingColor = headingColor || textColor || defaultTextColor;
+  
   return (
-    <section className="py-12 px-4" style={getBgStyle()}>
+    <section 
+      className="py-12 px-4" 
+      style={{
+        ...getBgStyle(),
+        fontFamily: sectionStyle.fontFamily,
+        paddingTop: sectionStyle.paddingTop,
+        paddingBottom: sectionStyle.paddingBottom,
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         {title && (
           <h2 
             className="text-2xl font-bold text-center mb-2"
-            style={{ color: textColor }}
+            style={{ color: finalHeadingColor, ...headingStyle }}
           >
             {title}
           </h2>
@@ -94,7 +125,7 @@ export function BenefitsSectionPreview({ props, theme }: BenefitsSectionPreviewP
               </div>
               <h3 
                 className="font-semibold text-lg mb-2"
-                style={{ color: textColor }}
+                style={{ color: finalTextColor }}
               >
                 {benefit.title}
               </h3>

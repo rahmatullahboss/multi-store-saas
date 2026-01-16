@@ -1119,6 +1119,52 @@ interface SectionStylePanelProps {
   updateProp: (key: string, value: unknown) => void;
 }
 
+// Theme presets for quick styling
+const STYLE_PRESETS = [
+  { 
+    id: 'default', 
+    name: '⬜ ডিফল্ট',
+    bg: '', 
+    text: '', 
+    heading: '' 
+  },
+  { 
+    id: 'dark', 
+    name: '🌙 Dark',
+    bg: '#18181B', 
+    text: '#FFFFFF', 
+    heading: '#FFFFFF' 
+  },
+  { 
+    id: 'light', 
+    name: '☀️ Light',
+    bg: '#F9FAFB', 
+    text: '#111827', 
+    heading: '#111827' 
+  },
+  { 
+    id: 'brand', 
+    name: '💜 Brand',
+    bg: '#6366F1', 
+    text: '#FFFFFF', 
+    heading: '#FFFFFF' 
+  },
+  { 
+    id: 'success', 
+    name: '💚 Green',
+    bg: '#10B981', 
+    text: '#FFFFFF', 
+    heading: '#FFFFFF' 
+  },
+  { 
+    id: 'danger', 
+    name: '❤️ Red',
+    bg: '#DC2626', 
+    text: '#FFFFFF', 
+    heading: '#FBBF24' 
+  },
+];
+
 function SectionStylePanel({ props, updateProp }: SectionStylePanelProps) {
   const fontOptions = [
     { value: 'default', label: 'ডিফল্ট' },
@@ -1138,11 +1184,42 @@ function SectionStylePanel({ props, updateProp }: SectionStylePanelProps) {
     { value: 'xl', label: 'অনেক বড় (6rem)' },
   ];
 
+  // Apply preset
+  const applyPreset = (preset: typeof STYLE_PRESETS[0]) => {
+    updateProp('backgroundColor', preset.bg);
+    updateProp('textColor', preset.text);
+    updateProp('headingColor', preset.heading);
+  };
+
   return (
     <div className="border-t border-gray-200 mt-4 pt-4">
       <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
         🎨 স্টাইল সেটিংস
       </h5>
+      
+      {/* Quick Theme Presets */}
+      <div className="mb-4">
+        <label className="block text-xs font-medium text-gray-600 mb-2">
+          Quick Presets
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {STYLE_PRESETS.map(preset => (
+            <button
+              key={preset.id}
+              type="button"
+              onClick={() => applyPreset(preset)}
+              className="px-2 py-1 text-xs rounded-md border transition-colors hover:border-indigo-400"
+              style={{ 
+                backgroundColor: preset.bg || '#F3F4F6',
+                color: preset.text || '#374151',
+                borderColor: props.backgroundColor === preset.bg ? '#6366F1' : 'transparent',
+              }}
+            >
+              {preset.name}
+            </button>
+          ))}
+        </div>
+      </div>
       
       {/* Background Color */}
       <ColorPickerField
