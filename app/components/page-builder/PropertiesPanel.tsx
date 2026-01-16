@@ -4,11 +4,46 @@
  * Dynamic form for editing section props based on section type.
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { X, Plus, Trash2, Loader2 } from 'lucide-react';
 import type { BuilderSection } from '~/lib/page-builder/types';
 import { getSectionMeta } from '~/lib/page-builder/registry';
 import { BuilderImageUpload } from './BuilderImageUpload';
+
+// Lazy load Monaco Editor (client-side only)
+const LazyMonacoEditor = lazy(() => import('./CodeEditor'));
+
+function MonacoEditor({ value, onChange, language }: { value: string; onChange: (v: string) => void; language: string }) {
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  if (!isClient) {
+    return (
+      <div className="h-full bg-[#1e1e1e] flex items-center justify-center text-gray-400 text-xs">
+        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+        Loading editor...
+      </div>
+    );
+  }
+  
+  return (
+    <Suspense fallback={
+      <div className="h-full bg-[#1e1e1e] flex items-center justify-center text-gray-400 text-xs">
+        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+        Loading VS Code Engine...
+      </div>
+    }>
+      <LazyMonacoEditor
+        value={value}
+        onChange={(v) => onChange(v || '')}
+        language={language}
+      />
+    </Suspense>
+  );
+}
 
 interface Product {
   id: number;
@@ -818,20 +853,15 @@ function renderPropsForm(
             <label className="block text-xs font-medium text-gray-600 mb-1">
               HTML + CSS Code
             </label>
-            <textarea
-              value={props.htmlContent as string || ''}
-              onChange={(e) => updateProp('htmlContent', e.target.value)}
-              placeholder={`<style>
-  .my-section { background: #f0f; padding: 20px; }
-</style>
-
-<div class="my-section">
-  আপনার ডিজাইন এখানে পেস্ট করুন
-</div>`}
-              className="w-full px-2 py-1.5 text-xs font-mono border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none min-h-[200px] bg-gray-900 text-green-400"
-            />
+            <div className="h-[280px] rounded-lg overflow-hidden border border-gray-200">
+              <MonacoEditor
+                value={props.htmlContent as string || ''}
+                onChange={(v) => updateProp('htmlContent', v || '')}
+                language="html"
+              />
+            </div>
             <p className="text-[10px] text-gray-400 mt-1">
-              💡 HTML, CSS, Tailwind class সব একসাথে পেস্ট করতে পারবেন
+              💡 HTML, CSS, &lt;style&gt; tag সব একসাথে পেস্ট করতে পারবেন
             </p>
           </div>
           <TextField 
