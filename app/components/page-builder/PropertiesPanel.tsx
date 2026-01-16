@@ -342,18 +342,23 @@ function renderPropsForm(
           {/* Pricing */}
           <div className="border-b border-gray-100 pb-4 mb-4">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">💰 মূল্য সেটিংস</h5>
-            <div className="grid grid-cols-2 gap-2">
-              <NumberField 
-                label="আসল মূল্য (৳)" 
-                value={props.productPrice as number || 1990} 
-                onChange={(v) => updateProp('productPrice', v)} 
-              />
-              <NumberField 
-                label="অফার মূল্য (৳)" 
-                value={props.discountedPrice as number || 1490} 
-                onChange={(v) => updateProp('discountedPrice', v)} 
-              />
-            </div>
+            {selectedProduct ? (
+              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">মূল্য:</span>
+                  <span className="font-bold text-indigo-700">৳{selectedProduct.price}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  * প্রোডাক্ট সেটিংস থেকে দাম পরিবর্তন করুন
+                </p>
+              </div>
+            ) : (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded">
+                <p className="text-xs text-amber-700">
+                  ⚠️ উপরে থেকে প্রোডাক্ট সিলেক্ট করুন
+                </p>
+              </div>
+            )}
           </div>
           
           {/* Delivery Charges */}
@@ -371,37 +376,9 @@ function renderPropsForm(
                 onChange={(v) => updateProp('outsideDhakaCharge', v)} 
               />
             </div>
-          </div>
-          
-          {/* Variants/Packages */}
-          <div className="border-b border-gray-100 pb-4 mb-4">
-            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📦 প্যাকেজ অপশন</h5>
-            <ArrayField
-              label="Variants"
-              items={variants}
-              onAdd={() => addArrayItem('variants', { 
-                id: String(Date.now()), 
-                name: 'নতুন প্যাকেজ', 
-                price: 0 
-              })}
-              onRemove={(i) => removeArrayItem('variants', i)}
-              renderItem={(item, index) => (
-                <div key={index} className="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded">
-                  <div className="col-span-2">
-                    <TextField 
-                      label="নাম" 
-                      value={item.name || ''} 
-                      onChange={(v) => updateArrayItem('variants', index, { ...item, name: v })} 
-                    />
-                  </div>
-                  <NumberField 
-                    label="মূল্য (৳)" 
-                    value={item.price || 0} 
-                    onChange={(v) => updateArrayItem('variants', index, { ...item, price: v })} 
-                  />
-                </div>
-              )}
-            />
+            <p className="text-xs text-gray-400 mt-2">
+              * Combo pricing প্রোডাক্ট সেটিংস থেকে configure করুন
+            </p>
           </div>
           
           {/* Labels */}
