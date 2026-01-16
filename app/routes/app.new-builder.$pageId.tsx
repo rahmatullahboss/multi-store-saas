@@ -76,7 +76,20 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     return json({
       page: null,
       sections: [],
-      store: { id: store.id, name: store.name, subdomain: store.subdomain },
+      store: { 
+        id: store.id, 
+        name: store.name, 
+        subdomain: store.subdomain,
+        // Analytics
+        facebookPixelId: store.facebookPixelId,
+        googleAnalyticsId: store.googleAnalyticsId,
+        // Branding
+        logo: store.logo,
+        favicon: store.favicon,
+        fontFamily: store.fontFamily,
+        themeConfig: store.themeConfig,
+        businessInfo: store.businessInfo,
+      },
       products: storeProducts,
       isNew: true,
     });
@@ -91,7 +104,20 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   return json({
     page,
     sections: page.sections,
-    store: { id: store.id, name: store.name, subdomain: store.subdomain },
+    store: { 
+      id: store.id, 
+      name: store.name, 
+      subdomain: store.subdomain,
+      // Analytics
+      facebookPixelId: store.facebookPixelId,
+      googleAnalyticsId: store.googleAnalyticsId,
+      // Branding
+      logo: store.logo,
+      favicon: store.favicon,
+      fontFamily: store.fontFamily,
+      themeConfig: store.themeConfig,
+      businessInfo: store.businessInfo,
+    },
     products: storeProducts,
     isNew: false,
   });
