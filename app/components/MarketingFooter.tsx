@@ -65,7 +65,7 @@ export function MarketingFooter({ showStickyCTA = true }: MarketingFooterProps) 
           </div>
           
           <div className="pt-8 border-t border-[#006A4E]/20 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-white/40">© {new Date().getFullYear()} Ozzyl. সর্বস্বত্ব সংরক্ষিত।</p>
+            <p className="text-sm text-white/40" suppressHydrationWarning>© {new Date().getFullYear()} Ozzyl. সর্বস্বত্ব সংরক্ষিত।</p>
             <div className="flex items-center gap-3">
               {[
                 { icon: '💬', label: 'WhatsApp', href: 'https://wa.me/8801739416661' },

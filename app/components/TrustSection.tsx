@@ -54,7 +54,7 @@ const COLORS = {
 };
 
 // ============================================================================
-// ANIMATED COUNTER COMPONENT
+// ANIMATED COUNTER COMPONENT - SSR-Safe
 // ============================================================================
 const AnimatedNumber = ({ 
   value, 
@@ -66,10 +66,18 @@ const AnimatedNumber = ({
   prefix?: string; 
 }) => {
   const [displayValue, setDisplayValue] = useState(0);
+  const [hasMounted, setHasMounted] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
+  // Mark as mounted on client
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted) return;
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -84,7 +92,7 @@ const AnimatedNumber = ({
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [hasMounted]);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -107,12 +115,16 @@ const AnimatedNumber = ({
     return () => clearInterval(timer);
   }, [isVisible, value]);
 
+  // Format number - only on client to avoid locale mismatch
+  const formattedValue = hasMounted ? displayValue.toLocaleString() : '0';
+
   return (
-    <span ref={ref}>
-      {prefix}{displayValue.toLocaleString()}{suffix}
+    <span ref={ref} suppressHydrationWarning>
+      {prefix}{formattedValue}{suffix}
     </span>
   );
 };
+
 
 // ============================================================================
 // SECTION 1: FOUNDER'S MESSAGE

@@ -24,7 +24,7 @@ export function LandingFooter({ storeName, theme = 'dark', className = '' }: Lan
     <footer className={`${bgClass} ${textClass} py-8 border-t ${borderClass} ${className}`}>
       <div className="max-w-6xl mx-auto px-4 text-center">
         <p className={`font-semibold ${headingClass} mb-2`}>{storeName}</p>
-        <p className="text-sm mb-4">© {new Date().getFullYear()} {t('allRightsReserved')}</p>
+        <p className="text-sm mb-4" suppressHydrationWarning>© {new Date().getFullYear()} {t('allRightsReserved')}</p>
         {/* Policy Links */}
         <div className="flex flex-wrap justify-center gap-4 text-xs">
           <a href="/policies/privacy" className={`${hoverClass} transition`}>
