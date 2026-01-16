@@ -273,7 +273,7 @@ function renderPropsForm(
       const selectedProductId = props.productId as number | undefined;
       const selectedProduct = products.find(p => p.id === selectedProductId);
       
-      // Handler for product selection - auto-fills pricing
+      // Handler for product selection - auto-fills pricing and variants
       const handleProductSelect = (productId: number | null) => {
         if (productId === null) {
           updateProp('productId', null);
@@ -284,6 +284,21 @@ function renderPropsForm(
           updateProp('productId', product.id);
           updateProp('productPrice', product.price);
           updateProp('discountedPrice', product.price); // Can adjust for discount later
+          
+          // Convert bundlePricing to variants format for CTASectionPreview
+          if (product.bundlePricing && product.bundlePricing.length > 0) {
+            const variants = product.bundlePricing.map((tier, idx) => ({
+              id: String(idx + 1),
+              name: tier.label,
+              price: tier.price,
+            }));
+            updateProp('variants', variants);
+          } else {
+            // Default single item variant if no bundle pricing
+            updateProp('variants', [
+              { id: '1', name: '১ পিস', price: product.price }
+            ]);
+          }
         }
       };
       
