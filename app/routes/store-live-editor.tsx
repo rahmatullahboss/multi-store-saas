@@ -1948,9 +1948,9 @@ export default function StoreLiveEditor() {
               </div>
             </AccordionSection>
 
-            {/* Store Info Section */}
+            {/* Store Branding Section - Just logo, other settings in /app/settings */}
             <AccordionSection
-              title="Store Info"
+              title={language === 'bn' ? 'ব্র্যান্ডিং' : 'Branding'}
               icon={Store}
               isOpen={openSection === 'info'}
               onToggle={() => setOpenSection(openSection === 'info' ? '' : 'info')}
@@ -1966,93 +1966,14 @@ export default function StoreLiveEditor() {
                   maxHeight={400}
                 />
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    <Phone className="w-3 h-3" /> Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="017XXXXXXXX"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    <Mail className="w-3 h-3" /> Email
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="support@yourstore.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    <MapPin className="w-3 h-3" /> Address
-                  </label>
-                  <textarea
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Dhaka, Bangladesh"
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                  />
-                </div>
-              </div>
-            </AccordionSection>
-
-            {/* Social Links Section */}
-            <AccordionSection
-              title={language === 'bn' ? 'সোশ্যাল লিঙ্ক' : 'Social Links'}
-              icon={Facebook}
-              isOpen={openSection === 'social'}
-              onToggle={() => setOpenSection(openSection === 'social' ? '' : 'social')}
-            >
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    <Facebook className="w-3 h-3 text-blue-600" /> Facebook
-                  </label>
-                  <input
-                    type="url"
-                    value={facebook}
-                    onChange={(e) => setFacebook(e.target.value)}
-                    placeholder="https://facebook.com/yourpage"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    <Instagram className="w-3 h-3 text-pink-600" /> Instagram
-                  </label>
-                  <input
-                    type="url"
-                    value={instagram}
-                    onChange={(e) => setInstagram(e.target.value)}
-                    placeholder="https://instagram.com/yourprofile"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    <MessageCircle className="w-3 h-3 text-green-600" /> WhatsApp
-                  </label>
-                  <input
-                    type="text"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="01XXXXXXXXX"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
+                {/* Link to full settings */}
+                <Link
+                  to="/app/settings"
+                  className="flex items-center gap-2 text-xs text-purple-600 hover:text-purple-700 transition"
+                >
+                  <Settings className="w-3 h-3" />
+                  {language === 'bn' ? 'সম্পূর্ণ স্টোর সেটিংস' : 'Full Store Settings'} →
+                </Link>
               </div>
             </AccordionSection>
 
