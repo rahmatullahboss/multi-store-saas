@@ -7,7 +7,7 @@ export const common = {
   login: 'লগইন',
   register: 'নিবন্ধন',
   logout: 'লগআউট',
-  
+
   // Common Actions
   loading: 'লোড হচ্ছে...',
   error: 'এরর',
@@ -55,7 +55,7 @@ export const common = {
   done: 'সম্পন্ন',
   finishBtn: 'শেষ করুন',
   confirmBtn: 'নিশ্চিত করুন',
-  
+
   // Form & Labels
   name: 'নাম',
   email: 'ইমেল',
@@ -70,7 +70,7 @@ export const common = {
   password: 'পাসওয়ার্ড',
   emailAddress: 'ইমেল ঠিকানা',
   mobileNumber: 'মোবাইল নম্বর',
-  
+
   // Status
   enabledStatus: 'চালু',
   disabledStatus: 'বন্ধ',
@@ -127,6 +127,7 @@ export const common = {
   navStoreEditor: 'ল্যান্ডিং বিল্ডার (Legacy)',
   navStoreTemplates: 'স্টোর ডিজাইন',
   navPageBuilder: 'ল্যান্ডিং পেজ এডিটর',
+  navPageBuilderV2: 'নতুন ল্যান্ডিং বিল্ডার',
   navHomepage: 'হোমপেজ সেটিংস',
   navShipping: 'শিপিং',
   navDomain: 'ডোমেইন',
@@ -187,7 +188,7 @@ export const common = {
   stepPlan: 'প্ল্যান',
   stepSetup: 'সেটআপ',
   stepDone: 'সম্পন্ন',
-  
+
   // Auth / Registration
   createStoreIn30Sec: '৩০ সেকেন্ডে আপনার স্টোর তৈরি করুন',
   fullNameLabel: 'আপনার নাম',
@@ -204,7 +205,7 @@ export const common = {
   freeToStart: 'সম্পূর্ণ ফ্রি শুরু করুন',
   noCreditCardRequired: 'ক্রেডিট কার্ড প্রয়োজন নেই',
   setupIn30Seconds: '৩০ সেকেন্ডে সেটআপ করুন',
-  
+
   // Errors
   nameMinLength: 'নাম কমপক্ষে ২ অক্ষরের হতে হবে',
   passwordMinLength6: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে',
@@ -218,7 +219,7 @@ export const common = {
   aiCredits: 'AI ক্রেডিট',
   manageCredits: 'ক্রেডিট ম্যানেজ',
   invalidCredentials: 'ভুল ইমেল বা পাসওয়ার্ড',
-  
+
   // Business Categories
   categoryFashion: 'ফ্যাশন ও পোশাক',
   categoryElectronics: 'ইলেকট্রনিক্স',
@@ -246,7 +247,7 @@ export const common = {
   pageOf: 'পৃষ্ঠা {page} / {total}',
   page: 'পৃষ্ঠা',
   of: '/',
-  
+
   // Activity Actions
   staff_invited: 'টিম মেম্বার আমন্ত্রিত',
   staff_removed: 'টিম মেম্বার সরানো হয়েছে',

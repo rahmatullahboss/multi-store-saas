@@ -67,7 +67,7 @@ export const dashboard = {
   clearFilters: 'Clear filters',
   noOrdersMatchFilters: 'No orders match your filters.',
   manageCustomerOrders: 'Manage customer orders',
-  
+
   // Analytics & Reports
   analyticsOverview: 'Analytics Overview',
   salesAnalytics: 'Sales Analytics',
@@ -117,6 +117,7 @@ export const dashboard = {
   sidebarAnalytics: 'Analytics',
   // navPlans already defined
   navPageBuilder: 'Advanced Builder (WIP)',
+  navPageBuilderV2: 'New Landing Builder',
   navStoreTemplates: 'Store Design',
   navHomepage: 'Homepage Settings',
   navShipping: 'Shipping',
@@ -166,10 +167,10 @@ export const dashboard = {
   lostRevenue: 'Lost Revenue',
   noAbandonedCarts: 'No abandoned carts found',
   // viewingAs, exit, goToStore already defined
-  
+
   copiedMsg: 'Copied!',
   // addedCreditsMsg already defined
-  
+
   creditsLabel: 'credits',
   daysAgo: '{{days}}d ago',
   hoursAgo: '{{hours}}h ago',
@@ -212,7 +213,7 @@ export const dashboard = {
   items: 'items',
   more: 'more',
   // processing already defined
-  
+
   reports: 'Reports',
   salesReport: 'Sales Report',
   inventoryReport: 'Inventory Report',
@@ -277,18 +278,18 @@ export const dashboard = {
   favicon: 'Favicon',
   whatsappCountryCodeHint: 'Include country code for WhatsApp link',
   contactDetailsInvoices: 'Contact details for invoices and customers',
-  
+
   // Currencies
   currencyBDT: '৳ BDT - Bangladeshi Taka',
   currencyUSD: '$ USD - US Dollar',
   currencyEUR: '€ EUR - Euro',
   currencyGBP: '£ GBP - British Pound',
   currencyINR: '₹ INR - Indian Rupee',
-  
+
   // Languages
   english: 'English',
   bengali: 'বাংলা (Bengali)',
-  
+
   // Domain Settings
   domainSettingsDesc: "Manage your store's domain and URL",
   yourStoreUrls: 'Your Store URLs',
@@ -341,7 +342,7 @@ export const dashboard = {
   dnsStep2: 'Add a CNAME record:',
   dnsStep3: 'Contact admin to add your domain in Cloudflare Dashboard',
   dnsStep4: 'Wait for DNS propagation (up to 48 hours)',
-  
+
   // SEO Settings
   seoOptimizeDesc: 'Optimize your store for search engines',
   seoSearchPreview: 'Search Engine Preview',
@@ -449,7 +450,7 @@ export const dashboard = {
   teamSettings: 'Team Management',
   teamMembers: 'Team Members',
   inviteTeamMember: 'Invite Team Member',
-  
+
   // Inventory
   inventoryManageDesc: 'Manage stock levels and track inventory',
   importCsv: 'Import CSV',
@@ -492,7 +493,7 @@ export const dashboard = {
   adminRole: 'Admin',
   staffRole: 'Staff',
   viewerRole: 'Viewer',
-  
+
   // Discounts
   discountsManageDesc: 'Create promo codes to boost sales',
   createCode: 'Create Code',
@@ -527,7 +528,7 @@ export const dashboard = {
   percentageMax: 'Percentage cannot exceed 100%',
   codeExists: 'This code already exists',
   failedProcessRequest: 'Failed to process request',
-  
+
   // Developer
   developerApi: 'Developer API',
   developerApiDesc: 'Manage your API keys and webhooks for custom integrations',
@@ -561,7 +562,7 @@ export const dashboard = {
   url: 'URL',
   done: 'Done',
   name: 'Name',
-  
+
   // Tracking & Analytics Configuration
   trackingAnalyticsHeader: 'Tracking & Analytics',
   ffPixelDesc: 'Facebook Pixel & Google Analytics',
@@ -999,7 +1000,7 @@ export const dashboard = {
   confirmDelete: 'Are you sure?',
   dragDrop: 'or drag and drop',
   fileLimit: 'TXT, MD, PDF, DOC, DOCX (max 5MB)',
-  
+
   // AI Chat Widget
   dashboardChat_title: 'Ozzyl AI Assistant',
   dashboardChat_online: 'Online',

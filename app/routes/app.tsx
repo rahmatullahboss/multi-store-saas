@@ -16,11 +16,11 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, users, systemNotifications } from '@db/schema';
 import { requireUserId, getStoreId, getSession } from '~/services/auth.server';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -71,7 +71,7 @@ export const meta: MetaFunction = () => {
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   console.log('[app.loader] Dashboard loader started');
-  
+
   try {
     // Require authentication
     let userId;
@@ -82,7 +82,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       console.error('[app.loader] Authentication failed:', authError);
       throw authError; // Re-throw to trigger redirect
     }
-    
+
     let storeId;
     try {
       storeId = await getStoreId(request, context.cloudflare.env);
@@ -142,11 +142,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     if (!store) {
       console.error('[app.loader] Store not found in database. StoreID:', storeId);
-      
+
       // CRITICAL: If store is deleted, session is invalid. Logout and redirect with info.
       const session = await getSession(request, context.cloudflare.env);
       const { destroySession } = await import('~/services/auth.server');
-      
+
       throw redirect('/auth/login?error=store_not_found', {
         headers: {
           'Set-Cookie': await destroySession(session, context.cloudflare.env),
@@ -167,10 +167,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
 
     console.log('[app.loader] Dashboard data loaded successfully for store:', store.name);
-    
+
     // Get SAAS_DOMAIN for store URL
     const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
-    
+
     // Fetch active system notifications
     let activeNotifications: { id: number; message: string; type: string | null }[] = [];
     try {
@@ -188,11 +188,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       // Table might not exist yet, ignore
       console.log('[app.loader] Could not fetch system notifications');
     }
-    
+
     // Check for impersonation
     const session = await getSession(request, context.cloudflare.env);
     const isImpersonating = session.has('originalAdminId');
-    
+
     return json({
       store: {
         id: store.id,
@@ -210,22 +210,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       systemNotifications: activeNotifications,
       isImpersonating,
     });
-    
+
   } catch (error) {
     // Re-throw Response errors (redirects, etc.)
     if (error instanceof Response) {
       throw error;
     }
-    
+
     console.error('[app.loader] Unhandled error in dashboard loader:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
-    
+
     console.error('[app.loader] Error message:', errorMessage);
     if (errorStack) {
       console.error('[app.loader] Error stack:', errorStack);
     }
-    
+
     throw new Response(`Dashboard error: ${errorMessage}`, { status: 500 });
   }
 }
@@ -289,8 +289,8 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarSettings',
     items: [
       { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: UserPen },
-      { to: '/app/new-builder', labelKey: 'navPageBuilderV2' as any, icon: FileText },
-      { to: '/app/page-builder', labelKey: 'navPageBuilder' as any, icon: Rocket },
+      { to: '/app/new-builder', labelKey: 'navPageBuilderV2', icon: FileText },
+      { to: '/app/page-builder', labelKey: 'navPageBuilder', icon: Rocket },
       { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Palette },
       { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
@@ -320,7 +320,7 @@ export default function AppLayout() {
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dismissedNotifications, setDismissedNotifications] = useState<number[]>([]);
-  
+
   // Load dismissed notifications from localStorage AFTER hydration to prevent mismatch
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -337,12 +337,12 @@ export default function AppLayout() {
 
   // Build store URL
   const storeUrl = `https://${store.subdomain}.${saasDomain}`;
-  
+
   // Filter out dismissed notifications
   const visibleNotifications = (notifications || []).filter(
     n => !dismissedNotifications.includes(n.id)
   );
-  
+
   const dismissNotification = (id: number) => {
     const updated = [...dismissedNotifications, id];
     setDismissedNotifications(updated);
@@ -350,7 +350,7 @@ export default function AppLayout() {
       localStorage.setItem('dismissedNotifications', JSON.stringify(updated));
     }
   };
-  
+
   const getNotificationStyle = (type: string | null) => {
     switch (type) {
       case 'warning':
@@ -367,7 +367,7 @@ export default function AppLayout() {
   };
 
   // Check if we're on a full-screen builder route (hide sidebar)
-  const isBuilderRoute = 
+  const isBuilderRoute =
     location.pathname.startsWith('/app/new-builder/') ||
     location.pathname === '/app/page-builder' ||
     location.pathname.startsWith('/app/page-builder/') ||
@@ -389,10 +389,10 @@ export default function AppLayout() {
           </Form>
         </div>
       )}
-      
+
       {/* Mobile Sidebar Overlay - hide on builder routes */}
       {!isBuilderRoute && sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -460,7 +460,7 @@ export default function AppLayout() {
                     const Icon = item.icon;
                     const active = isActive(item.to);
                     const isLocked = item.isPaidOnly && store.planType === 'free';
-                    
+
                     // Locked items - show disabled state with upgrade prompt
                     if (isLocked) {
                       const featureName = item.to.split('/').pop() || 'marketing';
@@ -479,7 +479,7 @@ export default function AppLayout() {
                         </Link>
                       );
                     }
-                    
+
                     return (
                       <Link
                         key={item.to}
@@ -487,8 +487,8 @@ export default function AppLayout() {
                         onClick={() => setSidebarOpen(false)}
                         className={`
                           flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
-                          ${active 
-                            ? 'bg-emerald-50 text-emerald-700' 
+                          ${active
+                            ? 'bg-emerald-50 text-emerald-700'
                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                           }
                         `}
@@ -501,7 +501,7 @@ export default function AppLayout() {
                 </div>
               </div>
             ))}
-            
+
             {/* Admin Section */}
             {user.role === 'admin' && (
               <>
@@ -520,8 +520,8 @@ export default function AppLayout() {
                       onClick={() => setSidebarOpen(false)}
                       className={`
                         flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition
-                        ${active 
-                          ? 'bg-purple-50 text-purple-700' 
+                        ${active
+                          ? 'bg-purple-50 text-purple-700'
                           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                         }
                       `}
@@ -541,7 +541,7 @@ export default function AppLayout() {
             {/* <div className="mb-3">
               <LanguageSelector variant="pills" size="sm" className="w-full" />
             </div> */}
-            
+
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-gray-600">
@@ -633,7 +633,7 @@ export default function AppLayout() {
 
       {/* AI Co-pilot Widget - hide on builder routes */}
       {!isBuilderRoute && (
-        <DashboardChatWidget 
+        <DashboardChatWidget
           userName={user.name || undefined}
           storeName={store.name}
           isLocked={false}

@@ -7,7 +7,7 @@ export const common = {
   login: 'Login',
   register: 'Register',
   logout: 'Logout',
-  
+
   // Common Actions
   loading: 'Loading...',
   error: 'Error',
@@ -55,7 +55,7 @@ export const common = {
   done: 'Done',
   finishBtn: 'Finish',
   confirmBtn: 'Confirm',
-  
+
   // Form & Labels
   name: 'Name',
   email: 'Email',
@@ -70,7 +70,7 @@ export const common = {
   password: 'Password',
   emailAddress: 'Email Address',
   mobileNumber: 'Mobile Number',
-  
+
   // Status
   enabledStatus: 'Enabled',
   disabledStatus: 'Disabled',
@@ -128,6 +128,7 @@ export const common = {
   navStoreEditor: 'Landing Builder (Legacy)',
   navStoreTemplates: 'Store Design',
   navPageBuilder: 'Landing Page Editor',
+  navPageBuilderV2: 'New Landing Builder',
   navHomepage: 'Homepage Strategy',
   navShipping: 'Shipping',
   navDomain: 'Domain',
@@ -186,7 +187,7 @@ export const common = {
   stepPlan: 'Plan',
   stepSetup: 'Setup',
   stepDone: 'Done',
-  
+
   // Business Categories
   categoryFashion: 'Fashion & Clothing',
   categoryElectronics: 'Electronics',
@@ -214,7 +215,7 @@ export const common = {
   pageOf: 'Page {page} of {total}',
   page: 'Page',
   of: 'of',
-  
+
   // Activity Actions
   staff_invited: 'Invited team member',
   staff_removed: 'Removed team member',
@@ -255,7 +256,7 @@ export const common = {
   confirmPassword: 'Confirm Password',
   passwordResetSuccess: 'Password Reset Successful',
   loginNow: 'Login Now',
-  
+
   // Auth / Registration
   createStoreIn30Sec: 'Create your store in 30 seconds',
   fullNameLabel: 'Your Name',
@@ -272,7 +273,7 @@ export const common = {
   freeToStart: 'Free to start',
   noCreditCardRequired: 'No credit card required',
   setupIn30Seconds: 'Setup in 30 seconds',
-  
+
   // Errors
   nameMinLength: 'Name must be at least 2 characters',
   passwordMinLength6: 'Password must be at least 6 characters',

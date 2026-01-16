@@ -68,7 +68,7 @@ export const dashboard = {
   clearFilters: 'ফিল্টার মুছুন',
   noOrdersMatchFilters: 'ফিল্টারের সাথে কোনো অর্ডার মেলেনি।',
   manageCustomerOrders: 'কাস্টমার অর্ডার ম্যানেজ করুন',
-  
+
   // Analytics & Reports
   analyticsOverview: 'অ্যানালিটিক্স ওভারভিউ',
   salesAnalytics: 'সেলস অ্যানালিটিক্স',
@@ -120,6 +120,7 @@ export const dashboard = {
   navReports: 'রিপোর্ট',
   sidebarSettings: 'সেটিংস',
   navPageBuilder: 'অ্যাডভান্সড বিল্ডার (কাজ চলছে)',
+  navPageBuilderV2: 'নতুন ল্যান্ডিং বিল্ডার',
   navStoreTemplates: 'স্টোর ডিজাইন',
   navHomepage: 'হোমপেজ সেটিংস',
   navShipping: 'শিপিং',
@@ -171,7 +172,7 @@ export const dashboard = {
   lostRevenue: 'হারানো আয়',
   noAbandonedCarts: 'কোনো পরিত্যক্ত কার্ট পাওয়া যায়নি',
   noAbandonedCartsDesc: 'আপনার পরিত্যক্ত কার্টগুলো এখানে দেখা যাবে।',
-  
+
   // General
   updating: 'আপডেট হচ্ছে...',
   copiedMsg: 'কপি করা হয়েছে!',
@@ -252,18 +253,18 @@ export const dashboard = {
   planManagement: 'প্ল্যান ম্যানেজমেন্ট',
   exitReasonLabel: 'ছেড়ে যাওয়ার কারণ',
   feedbackLabel: 'মতামত (ঐচ্ছিক)',
-  
+
   // Currencies
   currencyBDT: '৳ BDT - বাংলাদেশী টাকা',
   currencyUSD: '$ USD - ইউএস ডলার',
   currencyEUR: '€ EUR - ইউরো',
   currencyGBP: '£ GBP - ব্রিটিশ পাউন্ড',
   currencyINR: '₹ INR - ভারতীয় রুপি',
-  
+
   // Languages
   english: 'English',
   bengali: 'বাংলা (Bengali)',
-  
+
   subdomainLabel: 'সাবডোমেন',
   currentPlanLabel: 'বর্তমান প্ল্যান',
   customDomainLabel: 'কাস্টম ডোমেন',
@@ -294,7 +295,7 @@ export const dashboard = {
   developerSettings: 'ডেভেলপার সেটিংস',
   whatsappCountryCodeHint: 'হোয়াটসঅ্যাপ লিংকের জন্য কান্ট্রি কোড যুক্ত করুন',
   contactDetailsInvoices: 'ইনভয়েস এবং কাস্টমারদের জন্য যোগাযোগের তথ্য',
-  
+
   // Domain Settings
   domainSettingsDesc: 'আপনার স্টোরের ডোমেন এবং ইউআরএল ম্যানেজ করুন',
   yourStoreUrls: 'আপনার স্টোর ইউআরএল',
@@ -453,7 +454,7 @@ export const dashboard = {
   teamSettings: 'টিম ম্যানেজমেন্ট',
   teamMembers: 'টিম মেম্বার',
   inviteTeamMember: 'টিম মেম্বার ইনভাইট করুন',
-  
+
   // Inventory
   inventoryManageDesc: 'স্টক এবং ইনভেন্টরি ম্যানেজ করুন',
   importCsv: 'CSV ইমপোর্ট করুন',
@@ -496,7 +497,7 @@ export const dashboard = {
   adminRole: 'অ্যাডমিন',
   staffRole: 'স্টাফ',
   viewerRole: 'ভিউয়ার',
-  
+
   // Discounts
   discountsManageDesc: 'বিক্রি বাড়াতে প্রোমো কোড তৈরি করুন',
   createCode: 'কোড তৈরি করুন',
@@ -531,7 +532,7 @@ export const dashboard = {
   percentageMax: 'শতকরা ১০০% এর বেশি হতে পারবে না',
   codeExists: 'এই কোডটি ইতিমধ্যে ব্যবহার করা হয়েছে',
   failedProcessRequest: 'রিকোয়েস্ট প্রসেস করতে ব্যর্থ হয়েছে',
-  
+
   // Developer
   developerApi: 'ডেভেলপার এপিআই',
   apiKeys: 'এপিআই কী',
@@ -564,7 +565,7 @@ export const dashboard = {
   url: 'URL',
   done: 'সম্পন্ন',
   name: 'নাম',
-  
+
   // Tracking & Analytics Configuration
   trackingAnalyticsHeader: 'ট্র্যাকিং এবং অ্যানালিটিক্স',
   ffPixelDesc: 'ফেসবুক পিক্সেল এবং গুগল অ্যানালিটিক্স',
@@ -993,7 +994,7 @@ export const dashboard = {
   confirmDelete: 'আপনি কি নিশ্চিত?',
   dragDrop: 'অথবা ড্র্যাগ অ্যান্ড ড্রপ করুন',
   fileLimit: 'TXT, MD, PDF, DOC, DOCX (সর্বোচ্চ ৫MB)',
-  
+
   // AI Chat Widget
   dashboardChat_title: 'Ozzyl AI অ্যাসিস্ট্যান্ট',
   dashboardChat_online: 'অনলাইন',
