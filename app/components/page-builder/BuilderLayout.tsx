@@ -318,25 +318,36 @@ export function BuilderLayout({
         
         {/* Preview Frame */}
         <div className="flex-1 overflow-auto bg-gray-200 p-4 flex justify-center items-start">
-          <div
-            className={`bg-white shadow-lg transition-all duration-300 overflow-y-auto ${
-              previewDevice === 'mobile' ? 'overflow-hidden' : ''
-            }`}
-            style={previewStyles[previewDevice]}
-          >
-            {previewDevice === 'mobile' && (
-              <div className="h-8 bg-gray-900 flex items-center justify-center">
-                <div className="w-20 h-1.5 bg-gray-700 rounded-full" />
-              </div>
-            )}
-            <div className={previewDevice === 'mobile' ? 'h-[calc(100%-2rem)] overflow-y-auto' : ''}>
-              <SectionRenderer
-                sections={sections.filter(s => s.enabled)}
-                activeSectionId={activeSectionId}
-                onSelectSection={onSelectSection}
+          {page ? (
+            <div
+              className={`bg-white shadow-lg transition-all duration-300 relative ${
+                previewDevice === 'mobile' ? 'overflow-hidden' : ''
+              }`}
+              style={previewStyles[previewDevice]}
+            >
+              {/* Mobile notch */}
+              {previewDevice === 'mobile' && (
+                <div className="absolute top-0 left-0 right-0 h-8 bg-gray-900 flex items-center justify-center z-10 rounded-t-[2rem]">
+                  <div className="w-20 h-1.5 bg-gray-700 rounded-full" />
+                </div>
+              )}
+              
+              {/* Iframe for true viewport */}
+              <iframe
+                key={`preview-${previewDevice}`}
+                src={`/app/builder-preview/${page.id}`}
+                className="w-full h-full border-0"
+                style={{
+                  paddingTop: previewDevice === 'mobile' ? '2rem' : 0,
+                }}
+                title="Page Preview"
               />
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <p>Create a page to see preview</p>
+            </div>
+          )}
         </div>
       </div>
       
