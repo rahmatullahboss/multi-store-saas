@@ -47,6 +47,13 @@ import { SectionRenderer } from './SectionRenderer';
 import { AddSectionModal } from './AddSectionModal';
 import { NewPageModal } from './NewPageModal';
 
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl: string | null;
+}
+
 interface BuilderLayoutProps {
   page: {
     id: string;
@@ -69,6 +76,7 @@ interface BuilderLayoutProps {
   showAddModal: boolean;
   setShowAddModal: (show: boolean) => void;
   availableSections: SectionMeta[];
+  products?: Product[];
 }
 
 export function BuilderLayout({
@@ -88,6 +96,7 @@ export function BuilderLayout({
   showAddModal,
   setShowAddModal,
   availableSections,
+  products = [],
 }: BuilderLayoutProps) {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [showNewPageModal, setShowNewPageModal] = useState(isNew);
@@ -252,10 +261,11 @@ export function BuilderLayout({
           <div className="border-t border-gray-200 max-h-[40vh] overflow-y-auto">
             <PropertiesPanel
               section={activeSection}
-              onUpdate={(props) => 
+              onUpdate={(props: Record<string, unknown>) => 
                 onUpdateProps(activeSection.id, activeSection.type, props, activeSection.version)
               }
               onClose={() => onSelectSection(null)}
+              products={products}
             />
           </div>
         )}

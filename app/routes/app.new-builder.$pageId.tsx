@@ -13,6 +13,8 @@ import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
 import { useState, useCallback, useMemo } from 'react';
 import { requireAuth } from '~/lib/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
+import { products } from '@db/schema';
 import {
   getPageWithSections,
   listSections,
@@ -44,12 +46,30 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   
   const db = context.cloudflare.env.DB;
   
+  // Load products for product selector
+  const odb = drizzle(db);
+  const rawProducts = await odb.select({
+    id: products.id,
+    title: products.title,
+    price: products.price,
+    imageUrl: products.imageUrl,
+  }).from(products).where(eq(products.storeId, store.id));
+  
+  // Format products with name field for UI
+  const storeProducts = rawProducts.map(p => ({
+    id: p.id,
+    name: p.title,
+    price: p.price,
+    imageUrl: p.imageUrl,
+  }));
+  
   // Special case: "new" page
   if (pageId === 'new') {
     return json({
       page: null,
       sections: [],
       store: { id: store.id, name: store.name, subdomain: store.subdomain },
+      products: storeProducts,
       isNew: true,
     });
   }
@@ -64,6 +84,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     page,
     sections: page.sections,
     store: { id: store.id, name: store.name, subdomain: store.subdomain },
+    products: storeProducts,
     isNew: false,
   });
 }
@@ -236,7 +257,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function NewBuilderPage() {
-  const { page, sections: initialSections, store, isNew } = useLoaderData<typeof loader>();
+  const { page, sections: initialSections, store, products, isNew } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const navigate = useNavigate();
   
@@ -375,6 +396,7 @@ export default function NewBuilderPage() {
       showAddModal={showAddModal}
       setShowAddModal={setShowAddModal}
       availableSections={AVAILABLE_SECTIONS}
+      products={products}
     />
   );
 }

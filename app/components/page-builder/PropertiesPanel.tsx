@@ -9,13 +9,21 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import type { BuilderSection } from '~/lib/page-builder/types';
 import { getSectionMeta } from '~/lib/page-builder/registry';
 
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  imageUrl: string | null;
+}
+
 interface PropertiesPanelProps {
   section: BuilderSection;
   onUpdate: (props: Record<string, unknown>) => void;
   onClose: () => void;
+  products?: Product[];
 }
 
-export function PropertiesPanel({ section, onUpdate, onClose }: PropertiesPanelProps) {
+export function PropertiesPanel({ section, onUpdate, onClose, products = [] }: PropertiesPanelProps) {
   const [localProps, setLocalProps] = useState<Record<string, unknown>>(section.props);
   const meta = getSectionMeta(section.type);
   
@@ -75,7 +83,7 @@ export function PropertiesPanel({ section, onUpdate, onClose }: PropertiesPanelP
       
       {/* Dynamic Form */}
       <div className="space-y-4">
-        {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem)}
+        {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem, products)}
       </div>
     </div>
   );
@@ -88,7 +96,8 @@ function renderPropsForm(
   updateProp: (key: string, value: unknown) => void,
   updateArrayItem: (key: string, index: number, value: unknown) => void,
   addArrayItem: (key: string, template: unknown) => void,
-  removeArrayItem: (key: string, index: number) => void
+  removeArrayItem: (key: string, index: number) => void,
+  products: Product[] = []
 ) {
   switch (type) {
     case 'hero':
@@ -260,8 +269,52 @@ function renderPropsForm(
     
     case 'cta':
       const variants = (props.variants as Array<{ id: string; name: string; price?: number }>) || [];
+      const selectedProductId = props.productId as number | undefined;
+      const selectedProduct = products.find(p => p.id === selectedProductId);
+      
+      // Handler for product selection - auto-fills pricing
+      const handleProductSelect = (productId: number | null) => {
+        if (productId === null) {
+          updateProp('productId', null);
+          return;
+        }
+        const product = products.find(p => p.id === productId);
+        if (product) {
+          updateProp('productId', product.id);
+          updateProp('productPrice', product.price);
+          updateProp('discountedPrice', product.price); // Can adjust for discount later
+        }
+      };
+      
       return (
         <>
+          {/* Product Selection */}
+          {products.length > 0 && (
+            <div className="border-b border-gray-100 pb-4 mb-4">
+              <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🛍️ প্রোডাক্ট সিলেক্ট</h5>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Store থেকে প্রোডাক্ট বাছুন</label>
+                <select
+                  value={selectedProductId || ''}
+                  onChange={(e) => handleProductSelect(e.target.value ? Number(e.target.value) : null)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                >
+                  <option value="">-- প্রোডাক্ট সিলেক্ট করুন --</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} - ৳{p.price}
+                    </option>
+                  ))}
+                </select>
+                {selectedProduct && (
+                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                    ✓ {selectedProduct.name} সিলেক্ট করা হয়েছে (৳{selectedProduct.price})
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           {/* Basic Info */}
           <div className="border-b border-gray-100 pb-4 mb-4">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">হেডলাইন</h5>
