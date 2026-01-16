@@ -259,23 +259,143 @@ function renderPropsForm(
       );
     
     case 'cta':
+      const variants = (props.variants as Array<{ id: string; name: string; price?: number }>) || [];
       return (
         <>
-          <TextField 
-            label="Headline" 
-            value={props.headline as string || ''} 
-            onChange={(v) => updateProp('headline', v)} 
-          />
-          <TextField 
-            label="Subheadline" 
-            value={props.subheadline as string || ''} 
-            onChange={(v) => updateProp('subheadline', v)} 
-          />
-          <TextField 
-            label="Button Text" 
-            value={props.buttonText as string || ''} 
-            onChange={(v) => updateProp('buttonText', v)} 
-          />
+          {/* Basic Info */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">হেডলাইন</h5>
+            <TextField 
+              label="Headline" 
+              value={props.headline as string || ''} 
+              onChange={(v) => updateProp('headline', v)} 
+            />
+            <div className="mt-2">
+              <TextField 
+                label="Subheadline" 
+                value={props.subheadline as string || ''} 
+                onChange={(v) => updateProp('subheadline', v)} 
+              />
+            </div>
+            <div className="mt-2">
+              <TextField 
+                label="Button Text" 
+                value={props.buttonText as string || ''} 
+                onChange={(v) => updateProp('buttonText', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Pricing */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">💰 মূল্য সেটিংস</h5>
+            <div className="grid grid-cols-2 gap-2">
+              <NumberField 
+                label="আসল মূল্য (৳)" 
+                value={props.productPrice as number || 1990} 
+                onChange={(v) => updateProp('productPrice', v)} 
+              />
+              <NumberField 
+                label="অফার মূল্য (৳)" 
+                value={props.discountedPrice as number || 1490} 
+                onChange={(v) => updateProp('discountedPrice', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Delivery Charges */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🚚 ডেলিভারি চার্জ</h5>
+            <div className="grid grid-cols-2 gap-2">
+              <NumberField 
+                label="ঢাকার ভিতরে (৳)" 
+                value={props.insideDhakaCharge as number || 60} 
+                onChange={(v) => updateProp('insideDhakaCharge', v)} 
+              />
+              <NumberField 
+                label="ঢাকার বাইরে (৳)" 
+                value={props.outsideDhakaCharge as number || 120} 
+                onChange={(v) => updateProp('outsideDhakaCharge', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Variants/Packages */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📦 প্যাকেজ অপশন</h5>
+            <ArrayField
+              label="Variants"
+              items={variants}
+              onAdd={() => addArrayItem('variants', { 
+                id: String(Date.now()), 
+                name: 'নতুন প্যাকেজ', 
+                price: 0 
+              })}
+              onRemove={(i) => removeArrayItem('variants', i)}
+              renderItem={(item, index) => (
+                <div key={index} className="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded">
+                  <div className="col-span-2">
+                    <TextField 
+                      label="নাম" 
+                      value={item.name || ''} 
+                      onChange={(v) => updateArrayItem('variants', index, { ...item, name: v })} 
+                    />
+                  </div>
+                  <NumberField 
+                    label="মূল্য (৳)" 
+                    value={item.price || 0} 
+                    onChange={(v) => updateArrayItem('variants', index, { ...item, price: v })} 
+                  />
+                </div>
+              )}
+            />
+          </div>
+          
+          {/* Labels */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🏷️ লেবেল কাস্টমাইজ</h5>
+            <div className="space-y-2">
+              <TextField 
+                label="ঢাকার ভিতরে লেবেল" 
+                value={props.insideDhakaLabel as string || 'ঢাকার ভিতরে'} 
+                onChange={(v) => updateProp('insideDhakaLabel', v)} 
+              />
+              <TextField 
+                label="ঢাকার বাইরে লেবেল" 
+                value={props.outsideDhakaLabel as string || 'ঢাকার বাইরে'} 
+                onChange={(v) => updateProp('outsideDhakaLabel', v)} 
+              />
+              <TextField 
+                label="সর্বমোট লেবেল" 
+                value={props.totalLabel as string || 'সর্বমোট'} 
+                onChange={(v) => updateProp('totalLabel', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Trust Badges */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🛡️ ট্রাস্ট ব্যাজ</h5>
+            <ToggleField
+              label="Show Trust Badges"
+              value={props.showTrustBadges as boolean ?? true}
+              onChange={(v) => updateProp('showTrustBadges', v)}
+            />
+            {(props.showTrustBadges ?? true) && (
+              <div className="space-y-2 mt-2">
+                <TextField 
+                  label="COD Label" 
+                  value={props.codLabel as string || 'ক্যাশ অন ডেলিভারি'} 
+                  onChange={(v) => updateProp('codLabel', v)} 
+                />
+                <TextField 
+                  label="Secure Label" 
+                  value={props.secureLabel as string || '১০০% সিকিউর অর্ডার'} 
+                  onChange={(v) => updateProp('secureLabel', v)} 
+                />
+              </div>
+            )}
+          </div>
         </>
       );
     
@@ -450,3 +570,61 @@ function ArrayField<T>({
     </div>
   );
 }
+
+function NumberField({ 
+  label, 
+  value, 
+  onChange,
+  min = 0,
+  step = 1,
+}: { 
+  label: string; 
+  value: number; 
+  onChange: (v: number) => void;
+  min?: number;
+  step?: number;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        min={min}
+        step={step}
+        className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+      />
+    </div>
+  );
+}
+
+function ToggleField({ 
+  label, 
+  value, 
+  onChange 
+}: { 
+  label: string; 
+  value: boolean; 
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <label className="text-xs font-medium text-gray-600">{label}</label>
+      <button
+        type="button"
+        onClick={() => onChange(!value)}
+        className={`relative w-10 h-5 rounded-full transition-colors ${
+          value ? 'bg-indigo-600' : 'bg-gray-300'
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+            value ? 'translate-x-5' : ''
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
