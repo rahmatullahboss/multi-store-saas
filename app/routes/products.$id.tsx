@@ -500,7 +500,7 @@ export default function ProductDetail() {
           <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm overflow-x-auto">
             <Link to="/" className={`${textMuted} hover:text-orange-500 transition shrink-0`}>Home</Link>
             <ChevronRight className={`w-3 h-3 md:w-4 md:h-4 ${textMuted} shrink-0`} />
-            <Link to="/" className={`${textMuted} hover:text-orange-500 transition shrink-0`}>Products</Link>
+            <Link to="/products" className={`${textMuted} hover:text-orange-500 transition shrink-0`}>Products</Link>
             <ChevronRight className={`w-3 h-3 md:w-4 md:h-4 ${textMuted} shrink-0`} />
             <span className={`${textPrimary} truncate`}>{product.title}</span>
           </div>
