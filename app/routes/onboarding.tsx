@@ -18,6 +18,7 @@ import { Store, ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
+import { accountInfoSchema, storeInfoSchema, bdPhoneSchema, emailSchema } from '~/lib/validations/auth';
 import { getUserId, register, createUserSession } from '~/services/auth.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
@@ -232,12 +233,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const email = formData.get('email') as string;
     const phone = formData.get('phone') as string;
 
-    if (!email || !email.includes('@')) {
+    // Validate email with Zod
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
       return json({ error: t('validEmailRequired'), field: 'email' }, { status: 400 });
     }
 
-    // Validate phone format (BD format: 01XXXXXXXXX)
-    if (!phone || phone.length !== 11 || !phone.startsWith('01')) {
+    // Validate phone with Zod
+    const phoneResult = bdPhoneSchema.safeParse(phone);
+    if (!phoneResult.success) {
       return json({ error: t('validMobileRequired'), field: 'phone' }, { status: 400 });
     }
 
