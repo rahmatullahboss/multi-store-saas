@@ -48,6 +48,8 @@ import { PropertiesPanel } from './PropertiesPanel';
 import { SectionRenderer } from './SectionRenderer';
 import { AddSectionModal } from './AddSectionModal';
 import { NewPageModal } from './NewPageModal';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { getSectionMeta } from '~/lib/page-builder/registry';
 
 interface Product {
   id: number;
@@ -139,6 +141,12 @@ export function BuilderLayout({
   }, [sections, notifyPreview]);
   
   const [showNewPageModal, setShowNewPageModal] = useState(isNew);
+  
+  // Delete confirmation state
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const pendingDeleteSection = pendingDeleteId 
+    ? sections.find(s => s.id === pendingDeleteId) 
+    : null;
   
   // DnD sensors
   const sensors = useSensors(
@@ -269,8 +277,8 @@ export function BuilderLayout({
                       section={section}
                       isActive={activeSectionId === section.id}
                       onSelect={() => onSelectSection(section.id)}
-                      onToggle={(enabled) => onToggle(section.id, enabled)}
-                      onDelete={() => onDeleteSection(section.id)}
+                      onToggle={(enabled: boolean) => onToggle(section.id, enabled)}
+                      onDelete={() => setPendingDeleteId(section.id)}
                       onDuplicate={() => onDuplicate(section.id)}
                     />
                   ))}
@@ -454,6 +462,19 @@ export function BuilderLayout({
           onClose={() => setShowAddModal(false)}
         />
       )}
+      
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={pendingDeleteId !== null}
+        sectionName={pendingDeleteSection ? (getSectionMeta(pendingDeleteSection.type)?.name || pendingDeleteSection.type) : ''}
+        onConfirm={() => {
+          if (pendingDeleteId) {
+            onDeleteSection(pendingDeleteId);
+            setPendingDeleteId(null);
+          }
+        }}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

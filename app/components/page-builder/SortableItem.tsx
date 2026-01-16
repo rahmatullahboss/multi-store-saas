@@ -157,9 +157,7 @@ export function SortableItem({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            if (confirm('Delete this section?')) {
-              onDelete();
-            }
+            onDelete();
           }}
           className="p-1 text-gray-400 hover:text-red-500 transition-colors"
           title="Delete"

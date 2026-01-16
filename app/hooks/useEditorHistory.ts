@@ -48,11 +48,15 @@ export function useEditorHistory<T>(
 ): UseEditorHistoryReturn<T> {
   const { maxHistory = 20, debounceMs = 500 } = options;
 
-  const [history, setHistory] = useState<HistoryState<T>>({
+  // Use ref to capture initial state only once (prevents reset on re-render)
+  const initialStateRef = useRef<T>(initialState);
+  const isInitializedRef = useRef(false);
+
+  const [history, setHistory] = useState<HistoryState<T>>(() => ({
     past: [],
-    present: initialState,
+    present: initialStateRef.current,
     future: [],
-  });
+  }));
 
   // Track pending state for debouncing
   const pendingStateRef = useRef<T | null>(null);
