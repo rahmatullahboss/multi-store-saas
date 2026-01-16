@@ -155,7 +155,7 @@ export default function CustomerOrdersPage() {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="font-semibold">{order.orderNumber}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500" suppressHydrationWarning>
                         {order.createdAt 
                           ? new Date(order.createdAt).toLocaleDateString('en-US', {
                               year: 'numeric',

@@ -400,7 +400,7 @@ function ReviewList({ reviews, isDark = false }: { reviews: Array<{
                 <StarRating rating={review.rating} size="sm" isDark={isDark} />
               </div>
             </div>
-            <span className={`text-sm ${textMuted}`}>
+            <span className={`text-sm ${textMuted}`} suppressHydrationWarning>
               {review.createdAt 
                 ? new Date(review.createdAt).toLocaleDateString() 
                 : ''}
