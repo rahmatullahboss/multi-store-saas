@@ -14,6 +14,7 @@ interface Product {
   name: string;
   price: number;
   imageUrl: string | null;
+  bundlePricing?: Array<{ qty: number; price: number; label: string; savings?: number }>;
 }
 
 interface PropertiesPanelProps {
@@ -343,15 +344,39 @@ function renderPropsForm(
           <div className="border-b border-gray-100 pb-4 mb-4">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">💰 মূল্য সেটিংস</h5>
             {selectedProduct ? (
-              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">মূল্য:</span>
-                  <span className="font-bold text-indigo-700">৳{selectedProduct.price}</span>
+              <>
+                <div className="p-3 bg-indigo-50 border border-indigo-200 rounded">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">মূল্য:</span>
+                    <span className="font-bold text-indigo-700">৳{selectedProduct.price}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    * প্রোডাক্ট সেটিংস থেকে দাম পরিবর্তন করুন
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  * প্রোডাক্ট সেটিংস থেকে দাম পরিবর্তন করুন
-                </p>
-              </div>
+                
+                {/* Bundle Tiers Display */}
+                {selectedProduct.bundlePricing && selectedProduct.bundlePricing.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-medium text-gray-600 mb-2">📦 কম্বো অপশন:</p>
+                    <div className="space-y-1">
+                      {selectedProduct.bundlePricing.map((tier, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-amber-50 border border-amber-200 rounded text-xs">
+                          <span className="font-medium text-amber-800">{tier.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-amber-900">৳{tier.price}</span>
+                            {tier.savings && tier.savings > 0 && (
+                              <span className="text-green-600 text-[10px] bg-green-100 px-1 rounded">
+                                সেভ ৳{tier.savings}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded">
                 <p className="text-xs text-amber-700">

@@ -52,6 +52,7 @@ interface Product {
   name: string;
   price: number;
   imageUrl: string | null;
+  bundlePricing?: Array<{ qty: number; price: number; label: string; savings?: number }>;
 }
 
 interface BuilderLayoutProps {

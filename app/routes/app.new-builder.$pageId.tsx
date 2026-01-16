@@ -53,15 +53,23 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     title: products.title,
     price: products.price,
     imageUrl: products.imageUrl,
+    bundlePricing: products.bundlePricing,
   }).from(products).where(eq(products.storeId, store.id));
   
-  // Format products with name field for UI
-  const storeProducts = rawProducts.map(p => ({
-    id: p.id,
-    name: p.title,
-    price: p.price,
-    imageUrl: p.imageUrl,
-  }));
+  // Format products with name field and parse bundlePricing for UI
+  const storeProducts = rawProducts.map(p => {
+    let bundleTiers = [];
+    try {
+      bundleTiers = JSON.parse(p.bundlePricing || '[]');
+    } catch { /* ignore */ }
+    return {
+      id: p.id,
+      name: p.title,
+      price: p.price,
+      imageUrl: p.imageUrl,
+      bundlePricing: bundleTiers,
+    };
+  });
   
   // Special case: "new" page
   if (pageId === 'new') {

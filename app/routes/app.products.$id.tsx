@@ -18,7 +18,7 @@ import { products, productVariants } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { logActivity } from '~/lib/activity.server';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, X, Loader2, ArrowLeft, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Upload, X, Loader2, ArrowLeft, Trash2, Search, ChevronDown, ChevronUp, Plus, Package } from 'lucide-react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -114,6 +114,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const seoTitle = formData.get('seoTitle') as string;
   const seoDescription = formData.get('seoDescription') as string;
   const seoKeywords = formData.get('seoKeywords') as string;
+  // Bundle pricing
+  const bundlePricing = formData.get('bundlePricing') as string;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -174,6 +176,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       seoTitle: seoTitle?.trim() || null,
       seoDescription: seoDescription?.trim() || null,
       seoKeywords: seoKeywords?.trim() || null,
+      bundlePricing: bundlePricing || null,
       updatedAt: new Date(),
     })
     .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
@@ -301,6 +304,18 @@ export default function EditProductPage() {
   
   // Category state (for dynamic variant suggestions)
   const [selectedCategory, setSelectedCategory] = useState<string>(product.category || '');
+  
+  // Bundle Pricing state
+  type BundleTier = { qty: number; price: number; label: string; savings?: number };
+  const initialBundlePricing: BundleTier[] = (() => {
+    try {
+      return JSON.parse((product as any).bundlePricing || '[]');
+    } catch {
+      return [];
+    }
+  })();
+  const [bundlePricing, setBundlePricing] = useState<BundleTier[]>(initialBundlePricing);
+  const [bundleEnabled, setBundleEnabled] = useState(initialBundlePricing.length > 0);
   
   // Track form values for change detection
   const [formTitle, setFormTitle] = useState<string>(product.title || '');
@@ -752,6 +767,132 @@ export default function EditProductPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 />
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bundle/Combo Pricing */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="p-4 flex items-center justify-between border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                <Package className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Combo Pricing</h3>
+                <p className="text-xs text-gray-500">কম্বো/বান্ডেল অফার সেটআপ করুন</p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={bundleEnabled}
+                onChange={(e) => {
+                  setBundleEnabled(e.target.checked);
+                  if (e.target.checked && bundlePricing.length === 0) {
+                    // Add default tiers
+                    const basePrice = parseFloat(formPrice) || product.price;
+                    setBundlePricing([
+                      { qty: 1, price: basePrice, label: '১ পিস' },
+                      { qty: 2, price: Math.round(basePrice * 2 * 0.93), label: '২ পিস', savings: Math.round(basePrice * 2 * 0.07) },
+                      { qty: 3, price: Math.round(basePrice * 3 * 0.88), label: '৩ পিস', savings: Math.round(basePrice * 3 * 0.12) },
+                    ]);
+                  }
+                }}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+            </label>
+          </div>
+          
+          {bundleEnabled && (
+            <div className="p-4 space-y-4">
+              <input type="hidden" name="bundlePricing" value={JSON.stringify(bundlePricing)} />
+              
+              {/* Tier List */}
+              {bundlePricing.map((tier, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1 grid grid-cols-4 gap-2">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">সংখ্যা</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={tier.qty}
+                        onChange={(e) => {
+                          const newTiers = [...bundlePricing];
+                          newTiers[idx].qty = parseInt(e.target.value) || 1;
+                          setBundlePricing(newTiers);
+                        }}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">মূল্য (৳)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={tier.price}
+                        onChange={(e) => {
+                          const newTiers = [...bundlePricing];
+                          newTiers[idx].price = parseFloat(e.target.value) || 0;
+                          // Auto-calculate savings
+                          const basePerUnit = (parseFloat(formPrice) || product.price);
+                          const expectedTotal = basePerUnit * newTiers[idx].qty;
+                          newTiers[idx].savings = Math.max(0, Math.round(expectedTotal - newTiers[idx].price));
+                          setBundlePricing(newTiers);
+                        }}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">লেবেল</label>
+                      <input
+                        type="text"
+                        value={tier.label}
+                        onChange={(e) => {
+                          const newTiers = [...bundlePricing];
+                          newTiers[idx].label = e.target.value;
+                          setBundlePricing(newTiers);
+                        }}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">সেভ</label>
+                      <div className="px-2 py-1.5 text-sm bg-green-50 text-green-700 rounded">
+                        ৳{tier.savings || 0}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBundlePricing(bundlePricing.filter((_, i) => i !== idx))}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              
+              {/* Add Tier Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const basePrice = parseFloat(formPrice) || product.price;
+                  const newQty = bundlePricing.length > 0 ? bundlePricing[bundlePricing.length - 1].qty + 1 : 1;
+                  setBundlePricing([...bundlePricing, {
+                    qty: newQty,
+                    price: Math.round(basePrice * newQty * 0.9),
+                    label: `${newQty} পিস`,
+                    savings: Math.round(basePrice * newQty * 0.1),
+                  }]);
+                }}
+                className="w-full py-2 border-2 border-dashed border-amber-300 text-amber-600 rounded-lg hover:bg-amber-50 transition flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                আরেকটি টায়ার যোগ করুন
+              </button>
             </div>
           )}
         </div>

@@ -156,6 +156,9 @@ export const products = sqliteTable('products', {
   seoTitle: text('seo_title'), // Custom meta title (auto: "{title} | {storeName}")
   seoDescription: text('seo_description'), // Custom meta description (auto: first 155 chars of description)
   seoKeywords: text('seo_keywords'), // Comma-separated keywords
+  // Bundle/Combo Pricing for landing pages
+  // JSON: [{ qty: 1, price: 1490, label: '১ পিস' }, { qty: 2, price: 2780, label: '২ পিস', savings: 200 }]
+  bundlePricing: text('bundle_pricing'),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
