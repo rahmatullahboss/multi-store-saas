@@ -544,7 +544,7 @@ export function FullStoreTemplate({
           </div>
           
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm">© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+            <p className="text-sm" suppressHydrationWarning>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
             <div className="flex items-center gap-4 text-sm">
               <span className="text-gray-500">We accept:</span>
               <span>💵 Cash</span>

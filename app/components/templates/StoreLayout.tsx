@@ -521,7 +521,7 @@ export function StoreLayout({
           </div>
 
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm text-gray-500">
-            <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+            <p suppressHydrationWarning>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
             {(footerConfig?.showPoweredBy !== false) && (
               <p className="mt-2">
                 Powered by <span className="text-blue-400">Ozzyl</span>

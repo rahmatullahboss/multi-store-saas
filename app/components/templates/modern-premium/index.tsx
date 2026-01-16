@@ -71,7 +71,7 @@ export function ModernPremiumTemplate({
           <p className="text-gray-500 mb-8 max-w-md mx-auto">
             {config.orderFormText?.footerTagline || 'Premium Quality • Exceptional Service'}
           </p>
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 font-medium mb-24">
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 font-medium mb-24" suppressHydrationWarning>
             <span className="w-1 h-1 rounded-full bg-amber-500/50"></span>
             {config.orderFormText?.footerCopyright ? (
               <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />

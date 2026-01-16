@@ -58,7 +58,7 @@ export function MinimalLightTemplate({
         <div className="container mx-auto px-4">
           <h3 className="text-xs font-black uppercase tracking-[1em] mb-12">{storeName}</h3>
           
-          <div className="text-[9px] text-gray-300 font-bold uppercase tracking-[0.4em] mb-16">
+          <div className="text-[9px] text-gray-300 font-bold uppercase tracking-[0.4em] mb-16" suppressHydrationWarning>
             © {new Date().getFullYear()} • Curated Edition
           </div>
 

@@ -54,7 +54,7 @@ export function MobileFirstTemplate({
 
       <footer className="bg-gray-100 py-16 text-center px-4">
         <h3 className="text-2xl font-black text-indigo-600 mb-4">{storeName}</h3>
-        <p className="text-gray-500 text-sm font-bold uppercase tracking-widest mb-10 opacity-60">
+        <p className="text-gray-500 text-sm font-bold uppercase tracking-widest mb-10 opacity-60" suppressHydrationWarning>
           © {new Date().getFullYear()} • Mobile Optimized Store
         </p>
 

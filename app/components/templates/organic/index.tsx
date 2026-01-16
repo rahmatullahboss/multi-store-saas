@@ -48,7 +48,7 @@ export function OrganicTemplate({
           <p className="text-gray-500 mb-8 max-w-md mx-auto">
             {config.orderFormText?.footerTagline || 'Pure & Organic Products'}
           </p>
-          <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
+          <div className="flex items-center gap-2 text-sm text-gray-400 font-medium" suppressHydrationWarning>
             <span className="w-1 h-1 rounded-full bg-emerald-500/50"></span>
             {config.orderFormText?.footerCopyright ? (
               <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />

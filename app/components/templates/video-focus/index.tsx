@@ -66,7 +66,7 @@ export function VideoFocusTemplate({
             Leading the visual revolution. Premium products for the modern creator.
           </p>
           
-          <div className="text-gray-700 text-[10px] font-black uppercase tracking-[0.5em] mb-20">
+          <div className="text-gray-700 text-[10px] font-black uppercase tracking-[0.5em] mb-20" suppressHydrationWarning>
             © {new Date().getFullYear()} • Global Media Store
           </div>
 

@@ -49,7 +49,7 @@ export function ModernDarkTemplate({
             {config.orderFormText?.footerTagline || "Pushing the boundaries of what's possible. Join the future today."}
           </p>
           
-          <div className="text-zinc-700 text-xs font-bold uppercase tracking-[0.3em] mb-12">
+          <div className="text-zinc-700 text-xs font-bold uppercase tracking-[0.3em] mb-12" suppressHydrationWarning>
             {config.orderFormText?.footerCopyright ? (
               <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
             ) : (

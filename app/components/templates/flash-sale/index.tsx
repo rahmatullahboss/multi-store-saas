@@ -157,7 +157,7 @@ export function FlashSaleTemplate({
       {/* Footer */}
       <footer className="bg-black py-10 border-t border-gray-800">
         <div className="max-w-4xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+          <p suppressHydrationWarning>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
 
           {planType === 'free' && (
             <div className="mt-8 pt-6 border-t border-white/5 flex justify-center items-center">

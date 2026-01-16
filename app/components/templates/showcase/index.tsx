@@ -61,7 +61,7 @@ export function ShowcaseTemplate({
             <span className="hover:text-rose-500 transition-colors cursor-pointer">Performance</span>
           </div>
           
-          <div className="text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em] mb-12">
+          <div className="text-zinc-800 text-[10px] font-black uppercase tracking-[0.5em] mb-12" suppressHydrationWarning>
             © {new Date().getFullYear()} • {storeName} • Digital Presence
           </div>
 
