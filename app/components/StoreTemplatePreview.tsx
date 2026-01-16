@@ -6,7 +6,7 @@
  */
 
 import { X, Monitor, Smartphone, Check } from 'lucide-react';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Form } from '@remix-run/react';
 import { getStoreTemplate, type StoreTemplateProps } from '~/templates/store-registry';
 import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
@@ -228,23 +228,32 @@ export function StoreTemplatePreviewModal({
                 } : {})
               }}
             >
-              {/* Render the ACTUAL Store Template with mock data */}
-              <TemplateComponent
-                storeName={storeName || 'My Store'}
-                storeId={1}
-                logo={null}
-                theme={null}
-                fontFamily="inter"
-                products={MOCK_PRODUCTS}
-                categories={MOCK_CATEGORIES}
-                currentCategory={null}
-                config={MOCK_THEME_CONFIG}
-                currency="BDT"
-                socialLinks={MOCK_SOCIAL_LINKS}
-                footerConfig={MOCK_FOOTER_CONFIG}
-                businessInfo={MOCK_BUSINESS_INFO}
-                isPreview={true}
-              />
+              {/* Render the ACTUAL Store Template with mock data - wrapped in Suspense for lazy loading */}
+              <Suspense fallback={
+                <div className="min-h-[400px] flex items-center justify-center bg-gray-100">
+                  <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-gray-500">টেমপ্লেট লোড হচ্ছে...</p>
+                  </div>
+                </div>
+              }>
+                <TemplateComponent
+                  storeName={storeName || 'My Store'}
+                  storeId={1}
+                  logo={null}
+                  theme={null}
+                  fontFamily="inter"
+                  products={MOCK_PRODUCTS}
+                  categories={MOCK_CATEGORIES}
+                  currentCategory={null}
+                  config={MOCK_THEME_CONFIG}
+                  currency="BDT"
+                  socialLinks={MOCK_SOCIAL_LINKS}
+                  footerConfig={MOCK_FOOTER_CONFIG}
+                  businessInfo={MOCK_BUSINESS_INFO}
+                  isPreview={true}
+                />
+              </Suspense>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@
  */
 
 import { Link } from '@remix-run/react';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { ShoppingBag, Search, Menu, X, Heart, ChevronRight, Instagram, Facebook, Mail, Home as HomeIcon, Grid3X3, User, Phone, MessageCircle, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
@@ -70,6 +71,7 @@ export function LuxeBoutiqueTemplate({
         setMobileMenuOpen={setMobileMenuOpen}
         searchOpen={searchOpen}
         setSearchOpen={setSearchOpen}
+        isPreview={isPreview}
       />
 
       {/* ==================== DYNAMIC SECTIONS ==================== */}
@@ -102,7 +104,7 @@ export function LuxeBoutiqueTemplate({
       {validCategories.length > 0 && (
         <div className="lg:hidden overflow-x-auto py-4 px-4 border-b" style={{ borderColor: '#e5e5e5' }}>
           <div className="flex gap-2">
-            <Link
+            <PreviewSafeLink
               to="/"
               className="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full border transition-all"
               style={{
@@ -110,11 +112,12 @@ export function LuxeBoutiqueTemplate({
                 color: !currentCategory ? 'white' : LUXE_BOUTIQUE_THEME.text,
                 borderColor: !currentCategory ? LUXE_BOUTIQUE_THEME.primary : '#d1d5db',
               }}
+              isPreview={isPreview}
             >
               All
-            </Link>
+            </PreviewSafeLink>
             {validCategories.map((category) => (
-              <Link
+              <PreviewSafeLink
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
                 className="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full border transition-all"
@@ -123,9 +126,10 @@ export function LuxeBoutiqueTemplate({
                   color: currentCategory === category ? 'white' : LUXE_BOUTIQUE_THEME.text,
                   borderColor: currentCategory === category ? LUXE_BOUTIQUE_THEME.primary : '#d1d5db',
                 }}
+                isPreview={isPreview}
               >
                 {category}
-              </Link>
+              </PreviewSafeLink>
             ))}
           </div>
         </div>
@@ -145,10 +149,10 @@ export function LuxeBoutiqueTemplate({
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
         <div className="flex items-center justify-around h-14">
-          <Link to="/" className="flex flex-col items-center gap-0.5 py-1 px-3">
+          <PreviewSafeLink to="/" className="flex flex-col items-center gap-0.5 py-1 px-3" isPreview={isPreview}>
             <HomeIcon className="w-5 h-5" style={{ color: !currentCategory ? LUXE_BOUTIQUE_THEME.accent : LUXE_BOUTIQUE_THEME.muted }} />
             <span className="text-[10px] font-medium" style={{ color: !currentCategory ? LUXE_BOUTIQUE_THEME.accent : LUXE_BOUTIQUE_THEME.muted }}>Home</span>
-          </Link>
+          </PreviewSafeLink>
           <button 
             onClick={() => setMobileMenuOpen(true)}
             className="flex flex-col items-center gap-0.5 py-1 px-3"
@@ -156,7 +160,7 @@ export function LuxeBoutiqueTemplate({
             <Grid3X3 className="w-5 h-5" style={{ color: LUXE_BOUTIQUE_THEME.muted }} />
             <span className="text-[10px] font-medium" style={{ color: LUXE_BOUTIQUE_THEME.muted }}>Shop</span>
           </button>
-          <Link to="/cart" className="flex flex-col items-center gap-0.5 py-1 px-3 relative">
+          <PreviewSafeLink to="/cart" className="flex flex-col items-center gap-0.5 py-1 px-3 relative" isPreview={isPreview}>
             <ShoppingCart className="w-5 h-5" style={{ color: LUXE_BOUTIQUE_THEME.muted }} />
             <span 
               className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold"
@@ -165,7 +169,7 @@ export function LuxeBoutiqueTemplate({
               {count}
             </span>
             <span className="text-[10px] font-medium" style={{ color: LUXE_BOUTIQUE_THEME.muted }}>Bag</span>
-          </Link>
+          </PreviewSafeLink>
           {!isPreview && (
             <Link to="/auth/login" className="flex flex-col items-center gap-0.5 py-1 px-3">
               <User className="w-5 h-5" style={{ color: LUXE_BOUTIQUE_THEME.muted }} />
