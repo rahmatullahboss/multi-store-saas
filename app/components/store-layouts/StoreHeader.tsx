@@ -177,7 +177,7 @@ export function StoreHeader({
             </div>
           ) : storeId ? (
             <a
-              href={`/store/auth/google?storeId=${storeId}`}
+              href={`/store/auth/google?storeId=${storeId}&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition"
               style={{ color: isDarkTheme ? '#fff' : '#333', borderColor: isDarkTheme ? '#555' : '#ddd' }}
             >
@@ -244,7 +244,7 @@ export function StoreHeader({
             {/* Mobile Google Sign-In */}
             {!customer && storeId && (
               <a
-                href={`/store/auth/google?storeId=${storeId}`}
+                href={`/store/auth/google?storeId=${storeId}&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium border border-gray-300 transition"
               >

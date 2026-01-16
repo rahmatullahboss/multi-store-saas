@@ -5,22 +5,21 @@
  *
  * Initiates Google OAuth for storefront customers.
  * Uses store's custom OAuth if configured (Premium), otherwise shared platform OAuth.
+ * Supports custom domains by encoding origin URL in OAuth state parameter.
  */
 
 import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { Authenticator } from 'remix-auth';
-import { GoogleStrategy } from 'remix-auth-google';
-import { getCustomerSessionStorage, canStoreUseGoogleAuth } from '~/services/customer-auth.server';
+import { canStoreUseGoogleAuth } from '~/services/customer-auth.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
   const db = env.DB;
   const url = new URL(request.url);
 
-  // Get storeId from query param or header (set by tenant middleware)
+  // Get storeId from query param
   const storeId = url.searchParams.get('storeId');
   if (!storeId) {
     console.error('[store.auth.google] Missing storeId');
@@ -29,11 +28,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const storeIdNum = parseInt(storeId);
 
+  // Get the origin domain for redirect after OAuth (supports custom domains)
+  // Passed from frontend: /store/auth/google?storeId=123&origin=https://custom-domain.com
+  const originUrl = url.searchParams.get('origin') || url.origin;
+
   // Check if store can use Google Auth
   const canUse = await canStoreUseGoogleAuth(storeIdNum, db);
   if (!canUse) {
     console.error('[store.auth.google] Store cannot use Google Auth:', storeIdNum);
-    return redirect('/?error=oauth_not_available');
+    return redirect(`${originUrl}?error=oauth_not_available`);
   }
 
   // Get store details to check for custom OAuth
@@ -42,6 +45,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .select({
       id: stores.id,
       subdomain: stores.subdomain,
+      customDomain: stores.customDomain,
       planType: stores.planType,
       customGoogleClientId: stores.customGoogleClientId,
       customGoogleClientSecret: stores.customGoogleClientSecret,
@@ -51,7 +55,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(1);
 
   if (!storeResult || storeResult.length === 0) {
-    return redirect('/?error=store_not_found');
+    return redirect(`${originUrl}?error=store_not_found`);
   }
 
   const store = storeResult[0];
@@ -72,38 +76,38 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   if (!googleClientId || !googleClientSecret) {
     console.error('[store.auth.google] Google OAuth not configured');
-    return redirect('/?error=oauth_not_configured');
+    return redirect(`${originUrl}?error=oauth_not_configured`);
   }
 
-  // Build callback URL
-  const callbackUrl = `${env.SAAS_DOMAIN}/store/auth/google/callback?storeId=${storeIdNum}`;
+  // IMPORTANT: Callback URL must be on the main SAAS domain (registered in Google Console)
+  const saasDomain = env.SAAS_DOMAIN?.startsWith('http') 
+    ? env.SAAS_DOMAIN 
+    : `https://${env.SAAS_DOMAIN}`;
+  const callbackUrl = `${saasDomain}/store/auth/google/callback`;
 
-  // Create authenticator with appropriate credentials
-  const sessionStorage = getCustomerSessionStorage(env);
-  const authenticator = new Authenticator<{ email: string; name: string | null; googleId: string }>();
+  // Build state parameter with storeId and origin (for redirect after OAuth)
+  // This is passed through OAuth and returned in callback
+  const stateData = { storeId: storeIdNum, origin: originUrl };
+  const state = btoa(JSON.stringify(stateData));
 
-  const googleStrategy = new GoogleStrategy(
-    {
-      clientID: googleClientId,
-      clientSecret: googleClientSecret,
-      callbackURL: callbackUrl,
-    },
-    async ({ profile }) => ({
-      email: profile.emails[0].value,
-      name: profile.displayName || null,
-      googleId: profile.id,
-    })
-  );
+  // Build Google OAuth authorization URL with state
+  const scopes = [
+    'openid',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+  ];
 
-  authenticator.use(googleStrategy);
+  const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  googleAuthUrl.searchParams.set('client_id', googleClientId);
+  googleAuthUrl.searchParams.set('redirect_uri', callbackUrl);
+  googleAuthUrl.searchParams.set('response_type', 'code');
+  googleAuthUrl.searchParams.set('scope', scopes.join(' '));
+  googleAuthUrl.searchParams.set('state', state);
+  googleAuthUrl.searchParams.set('access_type', 'online');
+  googleAuthUrl.searchParams.set('prompt', 'select_account');
 
-  // Store storeId in session for callback
-  const session = await sessionStorage.getSession(request.headers.get('Cookie'));
-  session.set('pendingStoreId' as any, storeIdNum);
+  console.log('[store.auth.google] Redirecting to Google OAuth for store:', storeIdNum);
 
   // Redirect to Google
-  return await authenticator.authenticate('google', request, {
-    successRedirect: callbackUrl,
-    failureRedirect: `/?error=oauth_failed&storeId=${storeIdNum}`,
-  });
+  return redirect(googleAuthUrl.toString());
 }
