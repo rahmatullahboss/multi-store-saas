@@ -98,7 +98,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   let redirectTo = '/app/dashboard';
   const isAdminRole = user.role === 'super_admin' || user.role === 'admin';
   if (isAdminRole) {
-    redirectTo = '/admin/dashboard';
+    redirectTo = '/admin';
   }
 
   return createUserSession(user.id, user.storeId, redirectTo, context.cloudflare.env);
