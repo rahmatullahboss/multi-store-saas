@@ -20,6 +20,7 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
 import { useState } from 'react';
+import { getCustomer } from '~/services/customer-auth.server';
 
 // Serialized product type for client components
 interface SerializedProduct {
@@ -83,6 +84,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const category = url.searchParams.get('category');
   const sortBy = url.searchParams.get('sort') || 'newest';
   
+  // Load customer session for Google Sign-In header
+  const customer = await getCustomer(request, context.cloudflare.env, db);
+  
   // Determine sort order
   const orderByClause = sortBy === 'price-low' 
     ? asc(products.price)
@@ -128,6 +132,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     currentCategory: category,
     sortBy,
     planType: store?.planType || 'free',
+    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
   });
 }
 
@@ -147,7 +152,8 @@ export default function ProductsIndex() {
     categories,
     currentCategory,
     sortBy,
-    planType
+    planType,
+    customer
   } = useLoaderData<typeof loader>();
   
   const [searchParams, setSearchParams] = useSearchParams();
@@ -200,6 +206,7 @@ export default function ProductsIndex() {
       config={themeConfig}
       footerConfig={footerConfig}
       planType={planType}
+      customer={customer}
     >
       <div className={`min-h-screen ${bgColor}`}>
         {/* Breadcrumb */}

@@ -22,8 +22,9 @@ import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from '~/components/store-l
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
+import { getCustomer } from '~/services/customer-auth.server';
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const { store, storeId, cloudflare } = context;
   
   if (!store || !storeId) {
@@ -56,6 +57,9 @@ export async function loader({ context }: LoaderFunctionArgs) {
     // Ignore parse errors
   }
   
+  // Load customer session for Google Sign-In header
+  const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
+  
   return json({
     storeId: storeId as number,
     storeName: storeData?.name || 'Store',
@@ -67,6 +71,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     businessInfo,
     themeConfig, // Return theme config to check for cart sections
     planType: storeData?.planType || 'free',
+    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
   });
 }
 
@@ -111,7 +116,8 @@ export default function Cart() {
     socialLinks,
     businessInfo,
     themeConfig,
-    planType
+    planType,
+    customer
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { t } = useTranslation();
@@ -428,6 +434,7 @@ export default function Cart() {
       socialLinks={socialLinks}
       businessInfo={businessInfo}
       planType={planType}
+      customer={customer}
     >
       {cartContent}
     </StorePageWrapper>
