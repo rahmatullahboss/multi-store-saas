@@ -26,6 +26,7 @@ import { PricingSectionPreview } from './sections/PricingSectionPreview';
 import { HowToOrderPreview } from './sections/HowToOrderPreview';
 import { ShowcaseSectionPreview } from './sections/ShowcaseSectionPreview';
 import { CustomHtmlSectionPreview } from './sections/CustomHtmlSectionPreview';
+import { OrderButtonSectionPreview } from './sections/OrderButtonSectionPreview';
 import { PlaceholderSection } from './sections/PlaceholderSection';
 
 interface SectionRendererProps {
@@ -132,6 +133,8 @@ function SectionContent({ section }: { section: BuilderSection }) {
       return <ShowcaseSectionPreview props={props} />;
     case 'custom-html':
       return <CustomHtmlSectionPreview {...props as any} />;
+    case 'order-button':
+      return <OrderButtonSectionPreview props={props} />;
     default:
       return <PlaceholderSection type={type} />;
   }

@@ -16,6 +16,8 @@ interface FloatingButtonSettings {
   callNumber: string;
   orderEnabled: boolean;
   orderText: string;
+  orderBgColor: string;
+  orderTextColor: string;
   position: 'bottom-right' | 'bottom-left' | 'bottom-center';
 }
 
@@ -197,17 +199,63 @@ export function FloatingButtonSettingsPanel({
             </div>
             
             {localSettings.orderEnabled && (
-              <div className="ml-10">
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  বাটন টেক্সট
-                </label>
-                <input
-                  type="text"
-                  value={localSettings.orderText}
-                  onChange={(e) => updateSetting('orderText', e.target.value)}
-                  placeholder="অর্ডার করুন"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-100 focus:border-purple-300 outline-none"
-                />
+              <div className="ml-10 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    বাটন টেক্সট
+                  </label>
+                  <input
+                    type="text"
+                    value={localSettings.orderText}
+                    onChange={(e) => updateSetting('orderText', e.target.value)}
+                    placeholder="অর্ডার করুন"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-100 focus:border-purple-300 outline-none"
+                  />
+                </div>
+                
+                {/* Color Pickers */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      ব্যাকগ্রাউন্ড কালার
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={localSettings.orderBgColor || '#6366F1'}
+                        onChange={(e) => updateSetting('orderBgColor', e.target.value)}
+                        className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={localSettings.orderBgColor || '#6366F1'}
+                        onChange={(e) => updateSetting('orderBgColor', e.target.value)}
+                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-mono"
+                        placeholder="#6366F1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      টেক্সট কালার
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={localSettings.orderTextColor || '#FFFFFF'}
+                        onChange={(e) => updateSetting('orderTextColor', e.target.value)}
+                        className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={localSettings.orderTextColor || '#FFFFFF'}
+                        onChange={(e) => updateSetting('orderTextColor', e.target.value)}
+                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-mono"
+                        placeholder="#FFFFFF"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

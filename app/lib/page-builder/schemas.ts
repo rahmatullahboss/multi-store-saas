@@ -266,6 +266,25 @@ export const CustomHtmlPropsSchema = z.object({
 export type CustomHtmlProps = z.infer<typeof CustomHtmlPropsSchema>;
 
 // ============================================================================
+// ORDER BUTTON SECTION - Placeable CTA button
+// ============================================================================
+export const OrderButtonPropsSchema = z.object({
+  text: z.string().default('এখনই অর্ডার করুন'),
+  subtext: z.string().optional().default(''),
+  bgColor: z.string().default('#6366F1'),
+  textColor: z.string().default('#FFFFFF'),
+  size: z.enum(['sm', 'md', 'lg', 'xl']).default('lg'),
+  alignment: z.enum(['left', 'center', 'right']).default('center'),
+  fullWidth: z.boolean().default(false),
+  showIcon: z.boolean().default(true),
+  iconPosition: z.enum(['left', 'right']).default('right'),
+  borderRadius: z.enum(['none', 'sm', 'md', 'lg', 'full']).default('lg'),
+  animation: z.enum(['none', 'pulse', 'bounce', 'shake']).default('pulse'),
+  containerPadding: z.enum(['none', 'sm', 'md', 'lg']).default('md'),
+});
+export type OrderButtonProps = z.infer<typeof OrderButtonPropsSchema>;
+
+// ============================================================================
 // MASTER SCHEMA MAP
 // ============================================================================
 export const SectionSchemas: Record<string, z.ZodTypeAny> = {
@@ -286,6 +305,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'how-to-order': HowToOrderPropsSchema,
   'showcase': ShowcasePropsSchema,
   'custom-html': CustomHtmlPropsSchema,
+  'order-button': OrderButtonPropsSchema,
 };
 
 /**

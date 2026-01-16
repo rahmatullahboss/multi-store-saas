@@ -25,6 +25,7 @@ import {
   HowToOrderPropsSchema,
   ShowcasePropsSchema,
   CustomHtmlPropsSchema,
+  OrderButtonPropsSchema,
   validateSectionProps,
 } from './schemas';
 
@@ -211,6 +212,16 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     icon: 'Code',
     schema: CustomHtmlPropsSchema,
     defaultProps: CustomHtmlPropsSchema.parse({}),
+  },
+  'order-button': {
+    type: 'order-button',
+    name: 'অর্ডার বাটন',
+    nameEn: 'Order Button',
+    description: 'যেকোনো জায়গায় অর্ডার বাটন',
+    descriptionEn: 'Placeable order button',
+    icon: 'ShoppingCart',
+    schema: OrderButtonPropsSchema,
+    defaultProps: OrderButtonPropsSchema.parse({}),
   },
 };
 
