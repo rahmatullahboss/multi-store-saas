@@ -30,6 +30,11 @@ interface StorePageWrapperProps {
   footerConfig?: FooterConfig | null;
   planType?: string;
   isPreview?: boolean;
+  customer?: {
+    id: number;
+    name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export function StorePageWrapper({
@@ -49,6 +54,7 @@ export function StorePageWrapper({
   footerConfig,
   planType = 'free',
   isPreview = false,
+  customer,
 }: StorePageWrapperProps) {
   // Get template from registry
   const template = getStoreTemplate(templateId);
@@ -97,6 +103,8 @@ export function StorePageWrapper({
               theme={resolvedTheme}
               templateId={templateId}
               cartCount={cartCount}
+              storeId={storeId}
+              customer={customer}
             />
           )
         )}
