@@ -3,16 +3,25 @@
  * 
  * Renders page sections in isolation for accurate mobile preview.
  * Used by the builder's iframe preview.
+ * 
+ * NOTE: This route renders its own HTML document to bypass the app layout.
  */
 
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useRevalidator } from '@remix-run/react';
+import { useLoaderData, useRevalidator, Links, Meta, Scripts } from '@remix-run/react';
 import { useEffect } from 'react';
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs, LinksFunction } from '@remix-run/cloudflare';
 
 import { getPageWithSections } from '~/lib/page-builder/actions.server';
 import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
+
+// Import app styles
+import appStylesHref from '~/styles/app.css?url';
+
+export const links: LinksFunction = () => [
+  { rel: 'stylesheet', href: appStylesHref },
+];
 
 // ============================================================================
 // LOADER
@@ -41,7 +50,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
-// COMPONENT
+// COMPONENT - Renders standalone document without app layout
 // ============================================================================
 
 export default function PreviewPage() {
@@ -61,13 +70,13 @@ export default function PreviewPage() {
   }, [revalidate]);
   
   return (
-    <html>
+    <html lang="bn">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
         <title>Preview</title>
-        {/* Include Tailwind and app styles */}
-        <link rel="stylesheet" href="/app.css" />
       </head>
       <body className="bg-white min-h-screen">
         <SectionRenderer
@@ -75,10 +84,11 @@ export default function PreviewPage() {
           activeSectionId={null}
           onSelectSection={() => {}}
         />
+        <Scripts />
       </body>
     </html>
   );
 }
 
-// No layout - render bare HTML for iframe
+// Bypass the root layout - this is crucial for iframe embedding
 export const handle = { hydrate: true };

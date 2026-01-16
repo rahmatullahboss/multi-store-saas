@@ -335,7 +335,7 @@ export function BuilderLayout({
               {/* Iframe for true viewport */}
               <iframe
                 key={`preview-${previewDevice}`}
-                src={`/app/builder-preview/${page.id}`}
+                src={`/builder-preview/${page.id}`}
                 className="w-full h-full border-0"
                 style={{
                   paddingTop: previewDevice === 'mobile' ? '2rem' : 0,
