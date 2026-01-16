@@ -4,12 +4,36 @@
  * Renders user-provided HTML content as a section.
  * Supports custom CSS and container classes.
  * Handles connected button clicks (scrolls to Order Form).
+ * 
+ * ISOLATION: Uses CSS reset to preserve original HTML styling (dark themes, etc.)
  */
 
 import { useEffect, useRef } from 'react';
 import type { CustomHtmlProps } from '~/lib/page-builder/schemas';
 
 interface CustomHtmlSectionPreviewProps extends CustomHtmlProps {}
+
+// CSS Reset to isolate custom HTML from parent styles
+const ISOLATION_STYLES = `
+  .custom-html-isolated {
+    all: revert;
+    display: block;
+  }
+  .custom-html-isolated *,
+  .custom-html-isolated *::before,
+  .custom-html-isolated *::after {
+    all: revert;
+  }
+  /* Preserve common elements */
+  .custom-html-isolated img {
+    max-width: 100%;
+    height: auto;
+  }
+  .custom-html-isolated a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+`;
 
 export function CustomHtmlSectionPreview({
   title,
@@ -64,15 +88,22 @@ export function CustomHtmlSectionPreview({
       className={`custom-html-section ${containerClass || ''}`}
       data-section-type="custom-html"
     >
-      {/* Inject custom CSS if provided */}
+      {/* Isolation CSS to preserve user's styling */}
+      <style dangerouslySetInnerHTML={{ __html: ISOLATION_STYLES }} />
+      
+      {/* Inject user's custom CSS if provided */}
       {cssContent && (
         <style dangerouslySetInnerHTML={{ __html: cssContent }} />
       )}
       
-      {/* Render the HTML content */}
+      {/* Render HTML content in isolated container */}
       <div 
         ref={containerRef}
-        className="custom-html-content"
+        className="custom-html-content custom-html-isolated"
+        style={{ 
+          isolation: 'isolate',
+          contain: 'style',
+        }}
         dangerouslySetInnerHTML={{ __html: htmlContent }} 
       />
     </section>
@@ -80,4 +111,3 @@ export function CustomHtmlSectionPreview({
 }
 
 export default CustomHtmlSectionPreview;
-
