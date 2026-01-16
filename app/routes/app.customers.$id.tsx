@@ -183,7 +183,7 @@ export default function CustomerDetailsPage() {
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4 transition"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Customers
+          {t('backToCustomers')}
         </Link>
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -191,9 +191,9 @@ export default function CustomerDetailsPage() {
               {(customer.name || customer.email || '?').charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{customer.name || 'Guest Customer'}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{customer.name || t('guestCustomer')}</h1>
               <div className="flex items-center gap-2 text-gray-500 text-sm mt-1">
-                <span>Customer since {formatDate(customer.createdAt).split(',')[0]}</span>
+                <span>{t('customerSince', { date: formatDate(customer.createdAt).split(',')[0] })}</span>
                 {customer.segment && (
                   <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-semibold uppercase">
                     {customer.segment.replace('_', ' ')}
@@ -213,19 +213,19 @@ export default function CustomerDetailsPage() {
           {/* Stats */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
             <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="font-semibold text-gray-900">Overview</h3>
+              <h3 className="font-semibold text-gray-900">{t('customerOverview')}</h3>
             </div>
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm">Total Spent</span>
+                <span className="text-gray-500 text-sm">{t('totalSpentLabel')}</span>
                 <span className="font-bold text-gray-900 text-lg">{formatPrice(stats.totalSpent)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm">Total Orders</span>
+                <span className="text-gray-500 text-sm">{t('totalOrders')}</span>
                 <span className="font-medium text-gray-900">{stats.totalOrders}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm">Avg. Order Value</span>
+                <span className="text-gray-500 text-sm">{t('customerAvgOrderValue')}</span>
                 <span className="font-medium text-gray-900">{formatPrice(stats.aov)}</span>
               </div>
             </div>
@@ -234,13 +234,13 @@ export default function CustomerDetailsPage() {
           {/* Contact Info */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
             <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="font-semibold text-gray-900">Contact Info</h3>
+              <h3 className="font-semibold text-gray-900">{t('customerContactInfo')}</h3>
             </div>
             <div className="p-4 space-y-4">
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">Email</p>
+                  <p className="text-sm font-medium text-gray-900">{t('emailLabel')}</p>
                   <a href={`mailto:${customer.email}`} className="text-sm text-emerald-600 hover:underline truncate block">
                     {customer.email}
                   </a>
@@ -249,13 +249,13 @@ export default function CustomerDetailsPage() {
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">Phone</p>
+                  <p className="text-sm font-medium text-gray-900">{t('businessPhoneLabel')}</p>
                   {customer.phone ? (
                     <a href={`tel:${customer.phone}`} className="text-sm text-gray-600 hover:text-gray-900">
                       {customer.phone}
                     </a>
                   ) : (
-                    <span className="text-sm text-gray-400 italic">No phone provided</span>
+                    <span className="text-sm text-gray-400 italic">{t('noPhoneProvided')}</span>
                   )}
                 </div>
               </div>
@@ -265,7 +265,7 @@ export default function CustomerDetailsPage() {
           {/* Default Address */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
             <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="font-semibold text-gray-900">Primary Address</h3>
+              <h3 className="font-semibold text-gray-900">{t('primaryAddress')}</h3>
             </div>
             <div className="p-4">
               {address ? (
@@ -279,7 +279,7 @@ export default function CustomerDetailsPage() {
                 </div>
               ) : (
                 <div className="text-center py-4 text-gray-500 text-sm">
-                  No address on file
+                  {t('noAddressOnFile')}
                 </div>
               )}
             </div>
@@ -290,23 +290,23 @@ export default function CustomerDetailsPage() {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm h-full">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Order History</h3>
+              <h3 className="font-semibold text-gray-900">{t('orderHistory')}</h3>
             </div>
             
             {customerOrders.length === 0 ? (
               <div className="p-12 text-center text-gray-500">
-                No orders found for this customer.
+                {t('noOrdersFoundForCustomer')}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3">Order</th>
-                      <th className="px-6 py-3">Date</th>
-                      <th className="px-6 py-3">Status</th>
-                      <th className="px-6 py-3">Total</th>
-                      <th className="px-6 py-3 text-right">Action</th>
+                      <th className="px-6 py-3">{t('order')}</th>
+                      <th className="px-6 py-3">{t('date')}</th>
+                      <th className="px-6 py-3">{t('status')}</th>
+                      <th className="px-6 py-3">{t('total')}</th>
+                      <th className="px-6 py-3 text-right">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -331,7 +331,7 @@ export default function CustomerDetailsPage() {
                             to={`/app/orders/${order.id}`}
                             className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-emerald-600"
                           >
-                            Details <ExternalLink className="w-3 h-3" />
+                            {t('view')} <ExternalLink className="w-3 h-3" />
                           </Link>
                         </td>
                       </tr>
