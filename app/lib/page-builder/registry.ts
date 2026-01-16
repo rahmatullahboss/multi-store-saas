@@ -24,6 +24,7 @@ import {
   PricingPropsSchema,
   HowToOrderPropsSchema,
   ShowcasePropsSchema,
+  CustomHtmlPropsSchema,
   validateSectionProps,
 } from './schemas';
 
@@ -200,6 +201,16 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     icon: 'Box',
     schema: ShowcasePropsSchema,
     defaultProps: ShowcasePropsSchema.parse({}),
+  },
+  'custom-html': {
+    type: 'custom-html',
+    name: 'কাস্টম HTML',
+    nameEn: 'Custom HTML',
+    description: 'নিজের ডিজাইন ইম্পোর্ট করুন',
+    descriptionEn: 'Import your own HTML design',
+    icon: 'Code',
+    schema: CustomHtmlPropsSchema,
+    defaultProps: CustomHtmlPropsSchema.parse({}),
   },
 };
 

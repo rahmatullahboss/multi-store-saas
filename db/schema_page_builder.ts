@@ -38,6 +38,19 @@ export const builderPages = sqliteTable('builder_pages', {
   seoTitle: text('seo_title'),
   seoDescription: text('seo_description'),
   ogImage: text('og_image'),
+  canonicalUrl: text('canonical_url'),
+  noIndex: integer('no_index').default(0),
+  
+  // Floating Buttons Settings
+  whatsappEnabled: integer('whatsapp_enabled').default(1),
+  whatsappNumber: text('whatsapp_number'),
+  whatsappMessage: text('whatsapp_message'),
+  callEnabled: integer('call_enabled').default(1),
+  callNumber: text('call_number'),
+  
+  // Custom HTML Injection
+  customHeaderHtml: text('custom_header_html'),
+  customFooterHtml: text('custom_footer_html'),
   
   // Analytics
   viewCount: integer('view_count').default(0),

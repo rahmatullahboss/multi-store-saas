@@ -254,6 +254,16 @@ export const ShowcasePropsSchema = z.object({
   features: z.array(z.string()).default([]),
 });
 export type ShowcaseProps = z.infer<typeof ShowcasePropsSchema>;
+// ============================================================================
+// CUSTOM HTML SECTION
+// ============================================================================
+export const CustomHtmlPropsSchema = z.object({
+  title: z.string().optional().default('কাস্টম HTML'),
+  htmlContent: z.string().default('<div class="p-8 text-center"><p>আপনার HTML কোড এখানে পেস্ট করুন</p></div>'),
+  cssContent: z.string().optional().default(''),
+  containerClass: z.string().optional().default(''),
+});
+export type CustomHtmlProps = z.infer<typeof CustomHtmlPropsSchema>;
 
 // ============================================================================
 // MASTER SCHEMA MAP
@@ -275,6 +285,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'pricing': PricingPropsSchema,
   'how-to-order': HowToOrderPropsSchema,
   'showcase': ShowcasePropsSchema,
+  'custom-html': CustomHtmlPropsSchema,
 };
 
 /**

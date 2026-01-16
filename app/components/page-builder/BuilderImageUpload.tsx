@@ -108,11 +108,40 @@ export function BuilderImageUpload({
     e.target.value = '';
   }, [handleFile]);
 
-  // Remove image
-  const handleRemove = useCallback(() => {
+  // Remove image and delete from R2 if it was uploaded there
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const handleRemove = useCallback(async () => {
+    // Only delete from R2 if it's an R2 URL (contains r2.dev or our R2 domain)
+    const isR2Url = value && (value.includes('r2.dev') || value.includes('/builder/'));
+    
+    if (isR2Url) {
+      setIsDeleting(true);
+      try {
+        const formData = new FormData();
+        formData.append('imageUrl', value);
+        
+        const response = await fetch('/api/delete-image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const data = await response.json() as { success?: boolean; error?: string };
+        if (data.success) {
+          console.log('[R2] Deleted image:', value);
+        } else {
+          console.warn('[R2] Failed to delete:', data.error);
+        }
+      } catch (err) {
+        console.error('[R2] Delete error:', err);
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+    
     onChange('');
     setError(null);
-  }, [onChange]);
+  }, [value, onChange]);
 
   return (
     <div>
@@ -132,9 +161,14 @@ export function BuilderImageUpload({
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
+            disabled={isDeleting}
+            className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white rounded-full shadow transition"
           >
-            <X className="w-3 h-3" />
+            {isDeleting ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <X className="w-3 h-3" />
+            )}
           </button>
         </div>
       ) : (

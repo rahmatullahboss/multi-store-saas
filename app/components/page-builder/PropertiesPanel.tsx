@@ -800,8 +800,43 @@ function renderPropsForm(
                   value={item || ''} 
                   onChange={(v) => updateArrayItem('features', index, v)} 
                 />
-              </div>
+            </div>
             )}
+          />
+        </>
+      );
+    
+    case 'custom-html':
+      return (
+        <>
+          <TextField 
+            label="Title (Internal)" 
+            value={props.title as string || ''} 
+            onChange={(v) => updateProp('title', v)} 
+          />
+          <div className="mt-3">
+            <label className="block text-xs font-medium text-gray-600 mb-1">HTML Content</label>
+            <textarea
+              value={props.htmlContent as string || ''}
+              onChange={(e) => updateProp('htmlContent', e.target.value)}
+              placeholder="<div>আপনার HTML এখানে পেস্ট করুন...</div>"
+              className="w-full px-2 py-1.5 text-xs font-mono border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none min-h-[150px]"
+            />
+            <p className="text-[10px] text-gray-400 mt-1">Tailwind CSS ক্লাস ব্যবহার করতে পারেন</p>
+          </div>
+          <div className="mt-3">
+            <label className="block text-xs font-medium text-gray-600 mb-1">CSS (Optional)</label>
+            <textarea
+              value={props.cssContent as string || ''}
+              onChange={(e) => updateProp('cssContent', e.target.value)}
+              placeholder=".custom-class { color: red; }"
+              className="w-full px-2 py-1.5 text-xs font-mono border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none min-h-[80px]"
+            />
+          </div>
+          <TextField 
+            label="Container Class" 
+            value={props.containerClass as string || ''} 
+            onChange={(v) => updateProp('containerClass', v)} 
           />
         </>
       );
