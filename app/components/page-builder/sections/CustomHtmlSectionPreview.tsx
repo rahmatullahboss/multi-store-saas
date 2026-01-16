@@ -4,12 +4,73 @@
  * Renders user-provided HTML content in a Shadow DOM.
  * This provides COMPLETE CSS isolation - user's dark theme, fonts, colors
  * will render exactly as designed without any parent CSS interference.
+ * 
+ * FIXES: Handles full HTML documents (<!doctype>, <html>, <body>) by:
+ * - Extracting <body> content and <style> tags
+ * - Re-scoping CSS selectors (html, body, :root) to work inside Shadow DOM
  */
 
 import { useEffect, useRef } from 'react';
 import type { CustomHtmlProps } from '~/lib/page-builder/schemas';
 
 interface CustomHtmlSectionPreviewProps extends CustomHtmlProps {}
+
+/**
+ * Process HTML to work inside Shadow DOM:
+ * - Extract body content from full documents
+ * - Re-scope CSS selectors for Shadow DOM
+ */
+function processHtmlForShadow(html: string): { styles: string; content: string } {
+  // Check if it's a full HTML document
+  const isFullDocument = html.includes('<body') || html.includes('<html') || html.includes('<!doctype');
+  
+  if (!isFullDocument) {
+    // Simple HTML fragment - just wrap it
+    return { styles: '', content: html };
+  }
+  
+  // Parse the full document
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  
+  // Extract all styles
+  let styles = '';
+  doc.querySelectorAll('style').forEach(style => {
+    styles += style.textContent || '';
+  });
+  
+  // Also get any inline styles from head
+  doc.querySelectorAll('head link[rel="stylesheet"]').forEach(link => {
+    // We'll keep external stylesheet links for later
+    const href = link.getAttribute('href');
+    if (href) {
+      styles += `@import url("${href}");\n`;
+    }
+  });
+  
+  // Re-scope CSS selectors for Shadow DOM
+  // html, body, :root -> .shadow-root-wrapper
+  styles = styles
+    .replace(/html\s*,\s*body/gi, '.shadow-root-wrapper')
+    .replace(/html\s*{/gi, '.shadow-root-wrapper {')
+    .replace(/body\s*{/gi, '.shadow-root-wrapper {')
+    .replace(/:root\s*{/gi, '.shadow-root-wrapper {');
+  
+  // Get body content
+  const bodyContent = doc.body ? doc.body.innerHTML : html;
+  
+  // Get body attributes (class, style, etc.)
+  let bodyAttrs = '';
+  if (doc.body) {
+    if (doc.body.className) bodyAttrs += ` class="${doc.body.className}"`;
+    if (doc.body.getAttribute('style')) bodyAttrs += ` style="${doc.body.getAttribute('style')}"`;
+  }
+  
+  // Wrap content in a div that will receive html/body styles
+  const wrappedContent = `<div class="shadow-root-wrapper"${bodyAttrs}>${bodyContent}</div>`;
+  
+  return { styles, content: wrappedContent };
+}
 
 export function CustomHtmlSectionPreview({
   title,
@@ -31,19 +92,36 @@ export function CustomHtmlSectionPreview({
     
     const shadow = shadowRef.current;
     
-    // Build full HTML with styles
-    let fullHtml = '';
+    // Process HTML for Shadow DOM compatibility
+    const { styles: extractedStyles, content } = processHtmlForShadow(htmlContent);
     
-    // Add user's CSS
-    if (cssContent) {
-      fullHtml += `<style>${cssContent}</style>`;
+    // Build final HTML
+    let finalHtml = '';
+    
+    // Add extracted styles (from full HTML document)
+    if (extractedStyles) {
+      finalHtml += `<style>${extractedStyles}</style>`;
     }
     
-    // Add the HTML content
-    fullHtml += htmlContent;
+    // Add user's additional CSS
+    if (cssContent) {
+      finalHtml += `<style>${cssContent}</style>`;
+    }
+    
+    // Add base reset for the wrapper
+    finalHtml += `<style>
+      .shadow-root-wrapper {
+        display: block;
+        min-height: 100%;
+        width: 100%;
+      }
+    </style>`;
+    
+    // Add content
+    finalHtml += content;
     
     // Render into shadow DOM
-    shadow.innerHTML = fullHtml;
+    shadow.innerHTML = finalHtml;
     
     // Handle connected button clicks
     const handleButtonClick = (e: Event) => {
@@ -56,7 +134,6 @@ export function CustomHtmlSectionPreview({
       
       if (actionType === 'order' || actionType === 'cart') {
         e.preventDefault();
-        // Scroll to CTA/Order form section (outside shadow DOM)
         const ctaSection = document.querySelector('[data-section-type="cta"]');
         if (ctaSection) {
           ctaSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -90,7 +167,6 @@ export function CustomHtmlSectionPreview({
       className={`custom-html-section ${containerClass || ''}`}
       data-section-type="custom-html"
     >
-      {/* Shadow DOM container - CSS is completely isolated */}
       <div 
         ref={containerRef}
         className="custom-html-shadow-host"
@@ -104,4 +180,5 @@ export function CustomHtmlSectionPreview({
 }
 
 export default CustomHtmlSectionPreview;
+
 
