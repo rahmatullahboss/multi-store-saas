@@ -1,39 +1,15 @@
 /**
  * Custom HTML Section Preview
  * 
- * Renders user-provided HTML content as a section.
- * Supports custom CSS and container classes.
- * Handles connected button clicks (scrolls to Order Form).
- * 
- * ISOLATION: Uses CSS reset to preserve original HTML styling (dark themes, etc.)
+ * Renders user-provided HTML content in a Shadow DOM.
+ * This provides COMPLETE CSS isolation - user's dark theme, fonts, colors
+ * will render exactly as designed without any parent CSS interference.
  */
 
 import { useEffect, useRef } from 'react';
 import type { CustomHtmlProps } from '~/lib/page-builder/schemas';
 
 interface CustomHtmlSectionPreviewProps extends CustomHtmlProps {}
-
-// CSS Reset to isolate custom HTML from parent styles
-const ISOLATION_STYLES = `
-  .custom-html-isolated {
-    all: revert;
-    display: block;
-  }
-  .custom-html-isolated *,
-  .custom-html-isolated *::before,
-  .custom-html-isolated *::after {
-    all: revert;
-  }
-  /* Preserve common elements */
-  .custom-html-isolated img {
-    max-width: 100%;
-    height: auto;
-  }
-  .custom-html-isolated a {
-    color: inherit;
-    text-decoration: inherit;
-  }
-`;
 
 export function CustomHtmlSectionPreview({
   title,
@@ -42,10 +18,35 @@ export function CustomHtmlSectionPreview({
   containerClass,
 }: CustomHtmlSectionPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const shadowRef = useRef<ShadowRoot | null>(null);
   
-  // Handle connected button clicks
+  // Create Shadow DOM and render HTML
   useEffect(() => {
-    const handleButtonClick = (e: MouseEvent) => {
+    if (!containerRef.current) return;
+    
+    // Create shadow root if not exists
+    if (!shadowRef.current) {
+      shadowRef.current = containerRef.current.attachShadow({ mode: 'open' });
+    }
+    
+    const shadow = shadowRef.current;
+    
+    // Build full HTML with styles
+    let fullHtml = '';
+    
+    // Add user's CSS
+    if (cssContent) {
+      fullHtml += `<style>${cssContent}</style>`;
+    }
+    
+    // Add the HTML content
+    fullHtml += htmlContent;
+    
+    // Render into shadow DOM
+    shadow.innerHTML = fullHtml;
+    
+    // Handle connected button clicks
+    const handleButtonClick = (e: Event) => {
       const target = e.target as HTMLElement;
       const actionButton = target.closest('[data-ozzyl-action]');
       
@@ -55,12 +56,11 @@ export function CustomHtmlSectionPreview({
       
       if (actionType === 'order' || actionType === 'cart') {
         e.preventDefault();
-        // Scroll to CTA/Order form section
+        // Scroll to CTA/Order form section (outside shadow DOM)
         const ctaSection = document.querySelector('[data-section-type="cta"]');
         if (ctaSection) {
           ctaSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
-          // Try alternate selectors
           const orderForm = document.querySelector('.order-form, #order-form, [class*="cta"]');
           orderForm?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -78,36 +78,30 @@ export function CustomHtmlSectionPreview({
       }
     };
     
-    const container = containerRef.current;
-    container?.addEventListener('click', handleButtonClick);
-    return () => container?.removeEventListener('click', handleButtonClick);
-  }, [htmlContent]);
+    shadow.addEventListener('click', handleButtonClick);
+    
+    return () => {
+      shadow.removeEventListener('click', handleButtonClick);
+    };
+  }, [htmlContent, cssContent]);
   
   return (
     <section 
       className={`custom-html-section ${containerClass || ''}`}
       data-section-type="custom-html"
     >
-      {/* Isolation CSS to preserve user's styling */}
-      <style dangerouslySetInnerHTML={{ __html: ISOLATION_STYLES }} />
-      
-      {/* Inject user's custom CSS if provided */}
-      {cssContent && (
-        <style dangerouslySetInnerHTML={{ __html: cssContent }} />
-      )}
-      
-      {/* Render HTML content in isolated container */}
+      {/* Shadow DOM container - CSS is completely isolated */}
       <div 
         ref={containerRef}
-        className="custom-html-content custom-html-isolated"
+        className="custom-html-shadow-host"
         style={{ 
-          isolation: 'isolate',
-          contain: 'style',
+          display: 'block',
+          width: '100%',
         }}
-        dangerouslySetInnerHTML={{ __html: htmlContent }} 
       />
     </section>
   );
 }
 
 export default CustomHtmlSectionPreview;
+
