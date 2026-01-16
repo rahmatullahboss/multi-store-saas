@@ -35,7 +35,8 @@ ON webhook_events(store_id, created_at);
 -- ===========================================================================
 -- Prevents duplicate order creation from retried checkout submissions
 
-ALTER TABLE orders ADD COLUMN idempotency_key TEXT;
+-- Column already exists in production, commenting out
+-- ALTER TABLE orders ADD COLUMN idempotency_key TEXT;
 
 -- Unique index for idempotency
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idempotency 
