@@ -861,6 +861,165 @@ function renderPropsForm(
         />
       );
     
+    case 'order-button':
+      return (
+        <>
+          {/* Text Settings */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 টেক্সট</h5>
+            <TextField 
+              label="Button Text" 
+              value={props.text as string || 'এখনই অর্ডার করুন'} 
+              onChange={(v) => updateProp('text', v)} 
+            />
+            <TextField 
+              label="Subtext (Optional)" 
+              value={props.subtext as string || ''} 
+              onChange={(v) => updateProp('subtext', v)} 
+            />
+          </div>
+          
+          {/* Color Settings - THE FIX */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 রঙ</h5>
+            <ColorPickerField 
+              label="Button Background Color" 
+              value={props.bgColor as string || '#6366F1'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+              showGradients={true}
+            />
+            <ColorPickerField 
+              label="Text Color" 
+              value={props.textColor as string || '#FFFFFF'} 
+              onChange={(v) => updateProp('textColor', v)} 
+            />
+          </div>
+          
+          {/* Size & Layout */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📐 সাইজ ও লেআউট</h5>
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Size</label>
+              <select
+                value={props.size as string || 'lg'}
+                onChange={(e) => updateProp('size', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+                <option value="xl">Extra Large</option>
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Alignment</label>
+              <div className="flex gap-2">
+                {['left', 'center', 'right'].map((align) => (
+                  <button
+                    key={align}
+                    type="button"
+                    onClick={() => updateProp('alignment', align)}
+                    className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${
+                      (props.alignment || 'center') === align 
+                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {align === 'left' ? '◀' : align === 'center' ? '◉' : '▶'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <ToggleField 
+              label="Full Width" 
+              value={props.fullWidth as boolean || false} 
+              onChange={(v) => updateProp('fullWidth', v)} 
+            />
+          </div>
+          
+          {/* Style */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">✨ স্টাইল</h5>
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Border Radius</label>
+              <select
+                value={props.borderRadius as string || 'lg'}
+                onChange={(e) => updateProp('borderRadius', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="none">None</option>
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+                <option value="full">Full (Pill)</option>
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Animation</label>
+              <select
+                value={props.animation as string || 'pulse'}
+                onChange={(e) => updateProp('animation', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="none">None</option>
+                <option value="pulse">Pulse</option>
+                <option value="bounce">Bounce</option>
+                <option value="shake">Shake on Hover</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Icon Settings */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🛒 আইকন</h5>
+            <ToggleField 
+              label="Show Shopping Cart Icon" 
+              value={props.showIcon as boolean ?? true} 
+              onChange={(v) => updateProp('showIcon', v)} 
+            />
+            {(props.showIcon ?? true) && (
+              <div className="mt-3">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">Icon Position</label>
+                <div className="flex gap-2">
+                  {['left', 'right'].map((pos) => (
+                    <button
+                      key={pos}
+                      type="button"
+                      onClick={() => updateProp('iconPosition', pos)}
+                      className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${
+                        (props.iconPosition || 'right') === pos 
+                          ? 'bg-indigo-50 border-indigo-500 text-indigo-700' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {pos === 'left' ? '⬅ Left' : 'Right ➡'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Container Padding */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📏 Container</h5>
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Vertical Padding</label>
+              <select
+                value={props.containerPadding as string || 'md'}
+                onChange={(e) => updateProp('containerPadding', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="none">None</option>
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+              </select>
+            </div>
+          </div>
+        </>
+      );
+    
     default:
       return (
         <div className="text-sm text-gray-500">
@@ -1168,12 +1327,22 @@ const STYLE_PRESETS = [
 function SectionStylePanel({ props, updateProp }: SectionStylePanelProps) {
   const fontOptions = [
     { value: 'default', label: 'ডিফল্ট' },
+    // Bengali Fonts
     { value: 'hind-siliguri', label: 'Hind Siliguri (বাংলা)' },
     { value: 'noto-sans-bengali', label: 'Noto Sans Bengali' },
+    { value: 'galada', label: 'Galada (স্টাইলিশ)' },
+    { value: 'tiro-bangla', label: 'Tiro Bangla (সেরিফ)' },
+    { value: 'mina', label: 'Mina' },
+    { value: 'atma', label: 'Atma (প্লেফুল)' },
+    // English Fonts
     { value: 'poppins', label: 'Poppins' },
     { value: 'inter', label: 'Inter' },
     { value: 'roboto', label: 'Roboto' },
     { value: 'lato', label: 'Lato' },
+    { value: 'montserrat', label: 'Montserrat' },
+    { value: 'oswald', label: 'Oswald (Bold)' },
+    { value: 'playfair-display', label: 'Playfair Display (Serif)' },
+    { value: 'open-sans', label: 'Open Sans' },
   ];
 
   const paddingOptions = [
@@ -1182,6 +1351,41 @@ function SectionStylePanel({ props, updateProp }: SectionStylePanelProps) {
     { value: 'md', label: 'মাঝারি (2rem)' },
     { value: 'lg', label: 'বড় (4rem)' },
     { value: 'xl', label: 'অনেক বড় (6rem)' },
+  ];
+
+  const borderRadiusOptions = [
+    { value: 'none', label: 'কোনো রাউন্ড নেই' },
+    { value: 'sm', label: 'ছোট' },
+    { value: 'md', label: 'মাঝারি' },
+    { value: 'lg', label: 'বড়' },
+    { value: 'xl', label: 'অনেক বড়' },
+    { value: 'full', label: 'সম্পূর্ণ গোল' },
+  ];
+
+  const boxShadowOptions = [
+    { value: 'none', label: 'কোনো শ্যাডো নেই' },
+    { value: 'sm', label: 'হালকা' },
+    { value: 'md', label: 'মাঝারি' },
+    { value: 'lg', label: 'বড়' },
+    { value: 'xl', label: 'অনেক বড়' },
+  ];
+
+  const animationOptions = [
+    { value: 'none', label: 'কোনো অ্যানিমেশন নেই' },
+    { value: 'fadeIn', label: 'Fade In' },
+    { value: 'fadeInUp', label: 'Fade In Up ⬆' },
+    { value: 'fadeInDown', label: 'Fade In Down ⬇' },
+    { value: 'slideInLeft', label: 'Slide In Left ⬅' },
+    { value: 'slideInRight', label: 'Slide In Right ➡' },
+    { value: 'zoomIn', label: 'Zoom In 🔍' },
+  ];
+
+  const patternOptions = [
+    { value: 'none', label: 'কোনো প্যাটার্ন নেই' },
+    { value: 'dots', label: '• Dots' },
+    { value: 'grid', label: '▦ Grid' },
+    { value: 'waves', label: '〰 Waves' },
+    { value: 'diagonal', label: '⟋ Diagonal Lines' },
   ];
 
   // Apply preset
@@ -1229,6 +1433,22 @@ function SectionStylePanel({ props, updateProp }: SectionStylePanelProps) {
         showGradients={true}
       />
       
+      {/* Background Pattern */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          Background Pattern
+        </label>
+        <select
+          value={props.backgroundPattern as string || 'none'}
+          onChange={(e) => updateProp('backgroundPattern', e.target.value)}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+        >
+          {patternOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+      
       {/* Text Color */}
       <ColorPickerField
         label="Text Color"
@@ -1272,6 +1492,54 @@ function SectionStylePanel({ props, updateProp }: SectionStylePanelProps) {
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
         >
           {paddingOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+      
+      {/* Border Radius */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          Border Radius
+        </label>
+        <select
+          value={props.borderRadius as string || 'none'}
+          onChange={(e) => updateProp('borderRadius', e.target.value)}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+        >
+          {borderRadiusOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+      
+      {/* Box Shadow */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          Box Shadow
+        </label>
+        <select
+          value={props.boxShadow as string || 'none'}
+          onChange={(e) => updateProp('boxShadow', e.target.value)}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+        >
+          {boxShadowOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+      
+      {/* Animation */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          Entrance Animation
+        </label>
+        <select
+          value={props.animationEntrance as string || 'none'}
+          onChange={(e) => updateProp('animationEntrance', e.target.value)}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+        >
+          {animationOptions.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>

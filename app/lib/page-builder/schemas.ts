@@ -18,6 +18,7 @@ export const BaseSectionStyleSchema = z.object({
   // Background
   backgroundColor: z.string().optional(),
   backgroundGradient: z.string().optional(),
+  backgroundPattern: z.enum(['none', 'dots', 'grid', 'waves', 'diagonal']).optional().default('none'),
   
   // Text Colors
   textColor: z.string().optional(),
@@ -28,14 +29,29 @@ export const BaseSectionStyleSchema = z.object({
     'default',
     'hind-siliguri',
     'noto-sans-bengali', 
+    'galada',
+    'tiro-bangla',
+    'mina',
+    'atma',
     'poppins',
     'inter',
     'roboto',
-    'lato'
+    'lato',
+    'montserrat',
+    'oswald',
+    'playfair-display',
+    'open-sans'
   ]).optional().default('default'),
   
   // Spacing
   paddingY: z.enum(['none', 'sm', 'md', 'lg', 'xl']).optional().default('md'),
+  
+  // Border & Shadow
+  borderRadius: z.enum(['none', 'sm', 'md', 'lg', 'xl', 'full']).optional().default('none'),
+  boxShadow: z.enum(['none', 'sm', 'md', 'lg', 'xl']).optional().default('none'),
+  
+  // Animation
+  animationEntrance: z.enum(['none', 'fadeIn', 'fadeInUp', 'fadeInDown', 'slideInLeft', 'slideInRight', 'zoomIn']).optional().default('none'),
 });
 export type BaseSectionStyle = z.infer<typeof BaseSectionStyleSchema>;
 
@@ -44,12 +60,56 @@ export type BaseSectionStyle = z.infer<typeof BaseSectionStyleSchema>;
  */
 export const FONT_FAMILIES: Record<string, string> = {
   'default': 'inherit',
+  // Bengali Fonts
   'hind-siliguri': '"Hind Siliguri", sans-serif',
   'noto-sans-bengali': '"Noto Sans Bengali", sans-serif',
+  'galada': '"Galada", cursive',
+  'tiro-bangla': '"Tiro Bangla", serif',
+  'mina': '"Mina", sans-serif',
+  'atma': '"Atma", display',
+  // English Fonts
   'poppins': '"Poppins", sans-serif',
   'inter': '"Inter", sans-serif',
   'roboto': '"Roboto", sans-serif',
   'lato': '"Lato", sans-serif',
+  'montserrat': '"Montserrat", sans-serif',
+  'oswald': '"Oswald", sans-serif',
+  'playfair-display': '"Playfair Display", serif',
+  'open-sans': '"Open Sans", sans-serif',
+};
+
+/**
+ * Border Radius CSS mapping
+ */
+export const BORDER_RADIUS_VALUES: Record<string, string> = {
+  'none': '0',
+  'sm': '0.25rem',
+  'md': '0.5rem',
+  'lg': '1rem',
+  'xl': '1.5rem',
+  'full': '9999px',
+};
+
+/**
+ * Box Shadow CSS mapping
+ */
+export const BOX_SHADOW_VALUES: Record<string, string> = {
+  'none': 'none',
+  'sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+  'md': '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+  'lg': '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+  'xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+};
+
+/**
+ * Background Pattern CSS mapping
+ */
+export const BACKGROUND_PATTERNS: Record<string, string> = {
+  'none': '',
+  'dots': 'radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)',
+  'grid': 'linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)',
+  'waves': 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1440 320\'%3E%3Cpath fill=\'rgba(0,0,0,0.03)\' d=\'M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z\'%3E%3C/path%3E%3C/svg%3E")',
+  'diagonal': 'repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 10px)',
 };
 
 /**

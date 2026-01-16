@@ -3,6 +3,7 @@
  * 
  * Renders floating WhatsApp, Call, and Order Now buttons on the page.
  * These buttons stick to the bottom of the screen for easy access.
+ * Now uses VERTICAL stacking for better mobile UX.
  */
 
 import { Phone, MessageCircle, ShoppingCart } from 'lucide-react';
@@ -66,43 +67,17 @@ export function FloatingActionButtons({
   
   return (
     <div 
-      className={`fixed bottom-4 ${positionClasses[position]} z-50 flex items-center gap-3`}
+      className={`fixed bottom-4 ${positionClasses[position]} z-50 flex flex-col items-end gap-3`}
       style={{ 
         // Add safe area inset for mobile
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      {/* WhatsApp Button */}
-      {whatsappEnabled && whatsappNumber && (
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110"
-          style={{ backgroundColor: whatsappColor }}
-          title="WhatsApp"
-        >
-          <MessageCircle className="w-7 h-7 text-white" />
-        </a>
-      )}
-      
-      {/* Call Button */}
-      {callEnabled && callNumber && (
-        <a
-          href={callUrl}
-          className="flex items-center justify-center w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110"
-          style={{ backgroundColor: callColor }}
-          title="Call"
-        >
-          <Phone className="w-7 h-7 text-white" />
-        </a>
-      )}
-      
-      {/* Order Now Button */}
+      {/* Order Now Button - at top (most important) */}
       {orderEnabled && (
         <button
           onClick={scrollToOrderForm}
-          className="flex items-center gap-2 px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 font-bold text-white"
+          className="flex items-center gap-2 px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 font-bold text-white animate-pulse"
           style={{ backgroundColor: orderColor }}
           title="Order Now"
         >
@@ -110,6 +85,35 @@ export function FloatingActionButtons({
           <span>{orderText}</span>
         </button>
       )}
+      
+      {/* Call/WhatsApp buttons in a horizontal row below */}
+      <div className="flex items-center gap-2">
+        {/* WhatsApp Button */}
+        {whatsappEnabled && whatsappNumber && (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110"
+            style={{ backgroundColor: whatsappColor }}
+            title="WhatsApp"
+          >
+            <MessageCircle className="w-6 h-6 text-white" />
+          </a>
+        )}
+        
+        {/* Call Button */}
+        {callEnabled && callNumber && (
+          <a
+            href={callUrl}
+            className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110"
+            style={{ backgroundColor: callColor }}
+            title="Call"
+          >
+            <Phone className="w-6 h-6 text-white" />
+          </a>
+        )}
+      </div>
     </div>
   );
 }
