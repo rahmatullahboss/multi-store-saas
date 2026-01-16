@@ -306,6 +306,9 @@ export const productVariants = sqliteTable('product_variants', {
   // Inventory
   sku: text('sku'),
   inventory: integer('inventory').default(0),
+  // Inventory Reserve System (P1) - Prevents overselling
+  available: integer('available').default(0), // Can be sold
+  reserved: integer('reserved').default(0), // In checkout, not yet paid
   // Variant-specific image
   imageUrl: text('image_url'),
   // Status
