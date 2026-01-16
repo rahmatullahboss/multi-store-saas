@@ -142,7 +142,12 @@ export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
   const buttonTextColor = theme?.buttonText || '#FFFFFF';
   
   return (
-    <section id="order-form" className="py-16 px-4" style={getBgStyle()}>
+    <section 
+      id="order-form" 
+      className="py-16 px-4" 
+      style={getBgStyle()}
+      data-section-type="cta"
+    >
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">

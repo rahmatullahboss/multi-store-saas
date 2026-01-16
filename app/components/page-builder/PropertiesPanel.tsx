@@ -5,7 +5,9 @@
  */
 
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { X, Plus, Trash2, Loader2 } from 'lucide-react';
+import { X, Plus, Trash2, Loader2, Link2 } from 'lucide-react';
+import ButtonConnectorModal, { type ButtonConnection } from './ButtonConnectorModal';
+import { countConnectedButtons, applyButtonConnections } from '~/lib/page-builder/buttonConnectionUtils';
 import type { BuilderSection } from '~/lib/page-builder/types';
 import { getSectionMeta } from '~/lib/page-builder/registry';
 import { BuilderImageUpload } from './BuilderImageUpload';
@@ -842,34 +844,16 @@ function renderPropsForm(
       );
     
     case 'custom-html':
+      const htmlContent = props.htmlContent as string || '';
+      const connectedCount = countConnectedButtons(htmlContent);
+      
       return (
-        <>
-          <TextField 
-            label="Section Name (Internal)" 
-            value={props.title as string || ''} 
-            onChange={(v) => updateProp('title', v)} 
-          />
-          <div className="mt-3">
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              HTML + CSS Code
-            </label>
-            <div className="h-[280px] rounded-lg overflow-hidden border border-gray-200">
-              <MonacoEditor
-                value={props.htmlContent as string || ''}
-                onChange={(v) => updateProp('htmlContent', v || '')}
-                language="html"
-              />
-            </div>
-            <p className="text-[10px] text-gray-400 mt-1">
-              💡 HTML, CSS, &lt;style&gt; tag সব একসাথে পেস্ট করতে পারবেন
-            </p>
-          </div>
-          <TextField 
-            label="Extra Tailwind Classes" 
-            value={props.containerClass as string || ''} 
-            onChange={(v) => updateProp('containerClass', v)} 
-          />
-        </>
+        <CustomHtmlPanel
+          props={props}
+          updateProp={updateProp}
+          connectedCount={connectedCount}
+          products={products}
+        />
       );
     
     default:
@@ -1047,3 +1031,80 @@ function ToggleField({
   );
 }
 
+// Custom HTML Panel with Connect Buttons Feature
+interface CustomHtmlPanelProps {
+  props: Record<string, unknown>;
+  updateProp: (key: string, value: unknown) => void;
+  connectedCount: number;
+  products: Array<{ id: number; name: string; price: number; imageUrl: string | null }>;
+}
+
+function CustomHtmlPanel({ props, updateProp, connectedCount, products }: CustomHtmlPanelProps) {
+  const [showConnector, setShowConnector] = useState(false);
+  const htmlContent = props.htmlContent as string || '';
+  
+  return (
+    <>
+      <TextField 
+        label="Section Name (Internal)" 
+        value={props.title as string || ''} 
+        onChange={(v) => updateProp('title', v)} 
+      />
+      
+      {/* Connect Buttons Feature */}
+      <div className="mt-3 border border-indigo-200 rounded-xl p-3 bg-gradient-to-br from-indigo-50 to-purple-50">
+        <button 
+          onClick={() => setShowConnector(true)}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md font-medium text-sm"
+        >
+          <Link2 size={16} />
+          বাটন কানেক্ট করুন
+          {connectedCount > 0 && (
+            <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+              {connectedCount}টি কানেক্টেড
+            </span>
+          )}
+        </button>
+        <p className="text-[11px] text-gray-600 mt-2 text-center">
+          HTML এর "Order Now" বাটনগুলোকে নিচের Order Form এ connect করুন
+        </p>
+      </div>
+      
+      {/* HTML Code Editor */}
+      <div className="mt-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1">
+          HTML + CSS Code
+        </label>
+        <div className="h-[280px] rounded-lg overflow-hidden border border-gray-200">
+          <MonacoEditor
+            value={htmlContent}
+            onChange={(v) => updateProp('htmlContent', v || '')}
+            language="html"
+          />
+        </div>
+        <p className="text-[10px] text-gray-400 mt-1">
+          💡 HTML, CSS, &lt;style&gt; tag সব একসাথে পেস্ট করতে পারবেন
+        </p>
+      </div>
+      
+      <TextField 
+        label="Extra Tailwind Classes" 
+        value={props.containerClass as string || ''} 
+        onChange={(v) => updateProp('containerClass', v)} 
+      />
+      
+      {/* Button Connector Modal */}
+      <ButtonConnectorModal
+        isOpen={showConnector}
+        onClose={() => setShowConnector(false)}
+        htmlContent={htmlContent}
+        onApply={(connections) => {
+          // Apply connection attributes to HTML
+          const updatedHtml = applyButtonConnections(htmlContent, connections);
+          updateProp('htmlContent', updatedHtml);
+          setShowConnector(false);
+        }}
+      />
+    </>
+  );
+}
