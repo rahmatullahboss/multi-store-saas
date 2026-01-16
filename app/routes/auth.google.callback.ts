@@ -78,10 +78,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // 6. Create Session and Redirect
   // Determine redirect URL based on role
   let redirectTo = '/app/dashboard';
-  if (user.role === 'super_admin') {
+  const isAdminRole = user.role === 'super_admin' || user.role === 'admin';
+  if (isAdminRole) {
       redirectTo = '/admin/dashboard';
-  } else if (!user.storeId && (user.role as string) !== 'super_admin') {
-      // Should not happen for merchant, but maybe support staff?
+  } else if (!user.storeId) {
+      // Non-admin without store (edge case)
       redirectTo = '/'; 
   }
 
