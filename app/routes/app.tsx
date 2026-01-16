@@ -289,6 +289,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarSettings',
     items: [
       { to: '/landing-live-editor', labelKey: 'navStoreEditor', icon: UserPen },
+      { to: '/app/new-builder', labelKey: 'navPageBuilderV2' as any, icon: FileText },
       { to: '/app/page-builder', labelKey: 'navPageBuilder' as any, icon: Rocket },
       { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Palette },
       { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
