@@ -442,6 +442,7 @@ Verify: "Am I ONLY touching targetId ${selectedComponent.id}?"`;
     }
 
     // SUCCESS - DEDUCT CREDITS
+    let newBalance: number | undefined;
     if (cost > 0 && userRole !== 'super_admin') {
       const deduction = await deductCredits(
         db, 
@@ -452,12 +453,14 @@ Verify: "Am I ONLY touching targetId ${selectedComponent.id}?"`;
       );
       if (!deduction.success) {
         console.error(`[AI Action] Credit deduction failed after success. Store: ${storeId}, Cost: ${cost}`);
+      } else {
+        newBalance = deduction.newBalance;
       }
     }
 
     await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
 
-    return json({ success: true, data: result });
+    return json({ success: true, data: result, newBalance, cost });
 
   } catch (error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
