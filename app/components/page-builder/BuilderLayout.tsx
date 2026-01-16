@@ -106,24 +106,26 @@ export function BuilderLayout({
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   
-  // Notify preview iframe to refresh after changes are saved
-  const notifyPreview = useCallback(() => {
+  // Send sections data directly to preview iframe for instant updates
+  // This avoids DB revalidation delays and caching issues
+  const notifyPreview = useCallback((sectionsData: BuilderSection[]) => {
     if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage({ type: 'BUILDER_UPDATE' }, '*');
+      const enabledSections = sectionsData.filter(s => s.enabled);
+      iframeRef.current.contentWindow.postMessage({ 
+        type: 'BUILDER_UPDATE',
+        sections: enabledSections 
+      }, '*');
     }
   }, []);
   
-  // Track previous saving state to detect when save completes
-  const wasSavingRef = useRef(isSaving);
-  
-  // Trigger preview refresh when saving completes
+  // Send live preview on every sections change (instant real-time sync)
   useEffect(() => {
-    if (wasSavingRef.current && !isSaving) {
-      // Save just completed - refresh preview
-      notifyPreview();
-    }
-    wasSavingRef.current = isSaving;
-  }, [isSaving, notifyPreview]);
+    // Small delay to batch rapid changes
+    const timer = setTimeout(() => {
+      notifyPreview(sections);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [sections, notifyPreview]);
   
   const [showNewPageModal, setShowNewPageModal] = useState(isNew);
   

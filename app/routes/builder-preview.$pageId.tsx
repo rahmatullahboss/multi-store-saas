@@ -12,8 +12,8 @@
  */
 
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useRevalidator } from '@remix-run/react';
-import { useEffect } from 'react';
+import { useLoaderData } from '@remix-run/react';
+import { useEffect, useState } from 'react';
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
 
 import { getPageWithSections } from '~/lib/page-builder/actions.server';
@@ -51,25 +51,31 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 // ============================================================================
 
 export default function PreviewPage() {
-  const { sections } = useLoaderData<typeof loader>();
-  const { revalidate } = useRevalidator();
+  const loaderData = useLoaderData<typeof loader>();
+  const [liveSections, setLiveSections] = useState(loaderData.sections);
   
-  // Listen for updates from parent window (for iframe communication)
+  // Listen for live updates from parent window (receives sections data directly)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'BUILDER_UPDATE') {
-        revalidate();
+      if (event.data?.type === 'BUILDER_UPDATE' && event.data.sections) {
+        // Receive sections data directly - instant update!
+        setLiveSections(event.data.sections);
       }
     };
     
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [revalidate]);
+  }, []);
+
+  // Update from loader when navigating/refreshing
+  useEffect(() => {
+    setLiveSections(loaderData.sections);
+  }, [loaderData.sections]);
   
   return (
     <div className="bg-white min-h-screen">
       <SectionRenderer
-        sections={sections}
+        sections={liveSections}
         activeSectionId={null}
         onSelectSection={() => {}}
       />
