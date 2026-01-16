@@ -3,6 +3,9 @@
  * 
  * Only renders children when the section enters viewport.
  * This dramatically reduces initial JS parsing and execution time.
+ * 
+ * SSR-SAFE: Always renders fallback on server and during initial hydration,
+ * then switches to real content after mount + intersection.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
@@ -46,27 +49,28 @@ export function LazySection({
   minHeight = '400px',
   className = ''
 }: LazySectionProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  // Start with false to match SSR output (skeleton)
+  const [shouldRender, setShouldRender] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setHasMounted(true);
+    
     // Server-side rendering check
     if (typeof window === 'undefined' || !ref.current) return;
 
     // Check if IntersectionObserver is supported
     if (!('IntersectionObserver' in window)) {
       // Fallback: just render immediately
-      setIsVisible(true);
-      setHasLoaded(true);
+      setShouldRender(true);
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true);
-          setHasLoaded(true);
+          setShouldRender(true);
           // Once visible, stop observing
           observer.disconnect();
         }
@@ -82,9 +86,12 @@ export function LazySection({
     return () => observer.disconnect();
   }, [rootMargin]);
 
+  // Always show fallback until we've mounted AND section is in view
+  const showChildren = hasMounted && shouldRender;
+
   return (
-    <div ref={ref} className={className} style={{ minHeight: hasLoaded ? 'auto' : minHeight }}>
-      {isVisible ? children : (fallback || <DefaultSkeleton minHeight={minHeight} />)}
+    <div ref={ref} className={className} style={{ minHeight: showChildren ? 'auto' : minHeight }}>
+      {showChildren ? children : (fallback || <DefaultSkeleton minHeight={minHeight} />)}
     </div>
   );
 }
