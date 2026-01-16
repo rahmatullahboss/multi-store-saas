@@ -8,7 +8,7 @@
  * - Add section modal
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -66,6 +66,7 @@ interface BuilderLayoutProps {
   activeSectionId: string | null;
   isNew: boolean;
   isSaving: boolean;
+  lastSaved?: Date | null;
   onSelectSection: (id: string | null) => void;
   onReorder: (orderedIds: string[]) => void;
   onToggle: (sectionId: string, enabled: boolean) => void;
@@ -74,6 +75,7 @@ interface BuilderLayoutProps {
   onUpdateProps: (sectionId: string, type: string, props: Record<string, unknown>, version: number) => void;
   onDuplicate: (sectionId: string) => void;
   onCreatePage: (slug: string, title: string) => void;
+  onPublish?: () => void;
   showAddModal: boolean;
   setShowAddModal: (show: boolean) => void;
   availableSections: SectionMeta[];
@@ -94,12 +96,35 @@ export function BuilderLayout({
   onUpdateProps,
   onDuplicate,
   onCreatePage,
+  onPublish,
   showAddModal,
   setShowAddModal,
   availableSections,
   products = [],
+  lastSaved,
 }: BuilderLayoutProps) {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  // Notify preview iframe to refresh after changes are saved
+  const notifyPreview = useCallback(() => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'BUILDER_UPDATE' }, '*');
+    }
+  }, []);
+  
+  // Track previous saving state to detect when save completes
+  const wasSavingRef = useRef(isSaving);
+  
+  // Trigger preview refresh when saving completes
+  useEffect(() => {
+    if (wasSavingRef.current && !isSaving) {
+      // Save just completed - refresh preview
+      notifyPreview();
+    }
+    wasSavingRef.current = isSaving;
+  }, [isSaving, notifyPreview]);
+  
   const [showNewPageModal, setShowNewPageModal] = useState(isNew);
   
   // DnD sensors
@@ -175,12 +200,17 @@ export function BuilderLayout({
               <ArrowLeft size={16} />
               Back
             </Link>
-            {isSaving && (
+            {isSaving ? (
               <span className="flex items-center gap-1 text-xs text-gray-500">
                 <Loader2 size={12} className="animate-spin" />
                 Saving...
               </span>
-            )}
+            ) : lastSaved ? (
+              <span className="text-xs text-green-600 flex items-center gap-1">
+                <Save size={12} />
+                Saved
+              </span>
+            ) : null}
           </div>
           <h2 className="font-semibold text-gray-900 truncate">
             {page?.title || page?.slug || 'New Page'}
@@ -319,10 +349,25 @@ export function BuilderLayout({
               </a>
             )}
             <button
-              className="flex items-center gap-1 px-4 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              onClick={onPublish}
+              disabled={isSaving || page?.status === 'published'}
+              className={`flex items-center gap-1 px-4 py-1.5 text-sm rounded-lg transition-colors ${
+                page?.status === 'published'
+                  ? 'bg-green-100 text-green-700 cursor-default'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }`}
             >
-              <Save size={16} />
-              Publish
+              {page?.status === 'published' ? (
+                <>
+                  <Eye size={16} />
+                  Published
+                </>
+              ) : (
+                <>
+                  <Globe size={16} />
+                  Publish
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -345,6 +390,7 @@ export function BuilderLayout({
               
               {/* Iframe for true viewport */}
               <iframe
+                ref={iframeRef}
                 key={`preview-${previewDevice}`}
                 src={`/builder-preview/${page.id}`}
                 className="w-full h-full border-0"

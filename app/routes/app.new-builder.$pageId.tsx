@@ -10,7 +10,7 @@
 
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { requireAuth } from '~/lib/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
@@ -273,6 +273,17 @@ export default function NewBuilderPage() {
   const [sections, setSections] = useState<BuilderSection[]>(initialSections);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
+  // Track when saves complete to update lastSaved
+  const wasSubmittingRef = useRef(fetcher.state !== 'idle');
+  useEffect(() => {
+    const isSubmitting = fetcher.state !== 'idle';
+    if (wasSubmittingRef.current && !isSubmitting && fetcher.data?.success) {
+      setLastSaved(new Date());
+    }
+    wasSubmittingRef.current = isSubmitting;
+  }, [fetcher.state, fetcher.data]);
   
   // Get active section
   const activeSection = useMemo(() => 
@@ -373,6 +384,14 @@ export default function NewBuilderPage() {
     );
   }, [fetcher]);
   
+  // Handle publish
+  const handlePublish = useCallback(() => {
+    fetcher.submit(
+      { intent: 'publish' },
+      { method: 'post' }
+    );
+  }, [fetcher]);
+  
   // Redirect after page creation
   if (fetcher.data?.success && fetcher.data?.pageId && isNew) {
     navigate(`/app/new-builder/${fetcher.data.pageId}`, { replace: true });
@@ -401,10 +420,12 @@ export default function NewBuilderPage() {
       onUpdateProps={handleUpdateProps}
       onDuplicate={handleDuplicate}
       onCreatePage={handleCreatePage}
+      onPublish={handlePublish}
       showAddModal={showAddModal}
       setShowAddModal={setShowAddModal}
       availableSections={AVAILABLE_SECTIONS}
       products={products}
+      lastSaved={lastSaved}
     />
   );
 }
