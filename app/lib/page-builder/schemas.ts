@@ -91,17 +91,49 @@ export const VideoPropsSchema = z.object({
 export type VideoProps = z.infer<typeof VideoPropsSchema>;
 
 // ============================================================================
-// CTA/ORDER FORM SECTION
+// CTA/ORDER FORM SECTION - BD Landing Page Style
 // ============================================================================
+const VariantSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.number().optional(),
+});
+
 export const CTAPropsSchema = z.object({
   headline: z.string().optional().default('এখনই অর্ডার করুন'),
-  subheadline: z.string().optional(),
+  subheadline: z.string().optional().default('সীমিত সময়ের জন্য বিশেষ অফার!'),
   buttonText: z.string().default('অর্ডার কনফার্ম করুন'),
-  variant: z.enum(['full-width', 'compact']).default('full-width'),
-  // Form labels
-  nameLabel: z.string().optional().default('আপনার নাম'),
-  phoneLabel: z.string().optional().default('মোবাইল নম্বর'),
-  addressLabel: z.string().optional().default('ঠিকানা'),
+  
+  // Pricing
+  productPrice: z.number().optional().default(1990),
+  discountedPrice: z.number().optional().default(1490),
+  insideDhakaCharge: z.number().optional().default(60),
+  outsideDhakaCharge: z.number().optional().default(120),
+  
+  // Variants/Packages
+  variants: z.array(VariantSchema).default([
+    { id: '1', name: '১ পিস', price: 1490 },
+    { id: '2', name: '২ পিস (সেভ ৳২০০)', price: 2780 },
+    { id: '3', name: '৩ পিস (সেভ ৳৫০০)', price: 3970 },
+  ]),
+  variantLabel: z.string().optional().default('প্যাকেজ নির্বাচন করুন'),
+  
+  // Form placeholders
+  phonePlaceholder: z.string().optional().default('আপনার মোবাইল নম্বর'),
+  addressPlaceholder: z.string().optional().default('পূর্ণ ডেলিভারি ঠিকানা লিখুন'),
+  
+  // Labels
+  quantityLabel: z.string().optional().default('পরিমাণ'),
+  insideDhakaLabel: z.string().optional().default('ঢাকার ভিতরে'),
+  outsideDhakaLabel: z.string().optional().default('ঢাকার বাইরে'),
+  subtotalLabel: z.string().optional().default('সাবটোটাল'),
+  deliveryLabel: z.string().optional().default('ডেলিভারি চার্জ'),
+  totalLabel: z.string().optional().default('সর্বমোট'),
+  
+  // Trust badges
+  showTrustBadges: z.boolean().optional().default(true),
+  codLabel: z.string().optional().default('ক্যাশ অন ডেলিভারি'),
+  secureLabel: z.string().optional().default('১০০% সিকিউর অর্ডার'),
 });
 export type CTAProps = z.infer<typeof CTAPropsSchema>;
 

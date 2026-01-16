@@ -1,16 +1,55 @@
 /**
- * CTA / Order Form Section Preview - Theme-enabled
+ * Enhanced Order Form Section Preview - BD Landing Page Style
+ * 
+ * Features:
+ * - Dual column layout
+ * - Inside/Outside Dhaka delivery selection
+ * - Variant selection (color, size, package)
+ * - Quantity selector with +/- buttons
+ * - Dynamic price calculation
+ * - Theme support
  */
 
+import { useState } from 'react';
+import { ShieldCheck, Truck, ArrowRight, Package } from 'lucide-react';
 import type { SectionTheme } from '~/lib/page-builder/types';
+
+interface Variant {
+  id: string;
+  name: string;
+  price?: number;
+}
 
 interface CTAProps {
   headline?: string;
   subheadline?: string;
   buttonText?: string;
   nameLabel?: string;
-  phoneLabel?: string;
-  addressLabel?: string;
+  phonePlaceholder?: string;
+  addressPlaceholder?: string;
+  
+  // Pricing
+  productPrice?: number;
+  discountedPrice?: number;
+  insideDhakaCharge?: number;
+  outsideDhakaCharge?: number;
+  
+  // Variants
+  variants?: Variant[];
+  variantLabel?: string;
+  
+  // Labels
+  quantityLabel?: string;
+  insideDhakaLabel?: string;
+  outsideDhakaLabel?: string;
+  subtotalLabel?: string;
+  deliveryLabel?: string;
+  totalLabel?: string;
+  
+  // Trust badges
+  showTrustBadges?: boolean;
+  codLabel?: string;
+  secureLabel?: string;
 }
 
 interface CTASectionPreviewProps {
@@ -21,137 +60,380 @@ interface CTASectionPreviewProps {
 export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
   const {
     headline = 'এখনই অর্ডার করুন',
-    subheadline = '',
+    subheadline = 'সীমিত সময়ের জন্য বিশেষ অফার!',
     buttonText = 'অর্ডার কনফার্ম করুন',
-    nameLabel = 'আপনার নাম',
-    phoneLabel = 'মোবাইল নম্বর',
-    addressLabel = 'ঠিকানা',
+    phonePlaceholder = 'আপনার মোবাইল নম্বর',
+    addressPlaceholder = 'পূর্ণ ডেলিভারি ঠিকানা লিখুন',
+    
+    // Pricing
+    productPrice = 1990,
+    discountedPrice = 1490,
+    insideDhakaCharge = 60,
+    outsideDhakaCharge = 120,
+    
+    // Variants - demo data
+    variants = [
+      { id: '1', name: '১ পিস', price: 1490 },
+      { id: '2', name: '২ পিস (সেভ ৳২০০)', price: 2780 },
+      { id: '3', name: '৩ পিস (সেভ ৳৫০০)', price: 3970 },
+    ],
+    variantLabel = 'প্যাকেজ নির্বাচন করুন',
+    
+    // Labels
+    quantityLabel = 'পরিমাণ',
+    insideDhakaLabel = 'ঢাকার ভিতরে',
+    outsideDhakaLabel = 'ঢাকার বাইরে',
+    subtotalLabel = 'সাবটোটাল',
+    deliveryLabel = 'ডেলিভারি চার্জ',
+    totalLabel = 'সর্বমোট',
+    
+    // Trust badges
+    showTrustBadges = true,
+    codLabel = 'ক্যাশ অন ডেলিভারি',
+    secureLabel = '১০০% সিকিউর অর্ডার',
   } = props as CTAProps;
+  
+  // State for form (preview only - no actual submission)
+  const [selectedVariant, setSelectedVariant] = useState(variants[0] || null);
+  const [quantity, setQuantity] = useState(1);
+  const [isInsideDhaka, setIsInsideDhaka] = useState(true);
+  
+  // Calculate prices
+  const basePrice = selectedVariant?.price || discountedPrice;
+  const subtotal = basePrice * quantity;
+  const deliveryCharge = isInsideDhaka ? insideDhakaCharge : outsideDhakaCharge;
+  const total = subtotal + deliveryCharge;
+  
+  // Format price in Bengali
+  const formatPrice = (price: number) => `৳${price.toLocaleString('bn-BD')}`;
   
   // Theme-based styling
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   
   const getBgStyle = () => {
+    if (theme?.style === 'urgent') {
+      return { background: 'linear-gradient(135deg, #7F1D1D, #450A0A)' };
+    }
     if (isDark) {
-      return { backgroundColor: theme?.bgColor || '#18181B' };
+      return { background: 'linear-gradient(135deg, #18181B, #0A0A0B)' };
     }
     if (theme?.style === 'nature') {
       return { background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)' };
     }
-    if (theme?.style === 'professional') {
-      return { background: 'linear-gradient(135deg, #F8F9FA, #E9ECEF)' };
-    }
-    if (theme?.style === 'urgent') {
-      return { background: 'linear-gradient(135deg, #7F1D1D, #450A0A)' };
-    }
-    return { background: 'linear-gradient(135deg, #EEF2FF, #E0E7FF)' };
+    return { background: 'linear-gradient(135deg, #F8FAFC, #E2E8F0)' };
   };
   
   const cardBg = isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF';
   const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : (theme?.cardBorder || '#E5E7EB');
   const textColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
-  const mutedColor = isDark ? 'rgba(255,255,255,0.7)' : (theme?.mutedTextColor || '#6B7280');
+  const mutedColor = isDark ? 'rgba(255,255,255,0.6)' : (theme?.mutedTextColor || '#6B7280');
   const labelColor = isDark ? 'rgba(255,255,255,0.8)' : '#374151';
   const inputBg = isDark ? 'rgba(255,255,255,0.1)' : '#FFFFFF';
   const inputBorder = isDark ? 'rgba(255,255,255,0.2)' : '#E5E7EB';
   const inputText = isDark ? '#FFFFFF' : '#111827';
   const primaryColor = theme?.primaryColor || '#6366F1';
-  const buttonBg = theme?.buttonBg || primaryColor;
+  const accentColor = theme?.accentColor || '#8B5CF6';
+  const buttonBg = theme?.buttonBg || `linear-gradient(to right, ${primaryColor}, ${accentColor})`;
   const buttonTextColor = theme?.buttonText || '#FFFFFF';
   
   return (
-    <section className="py-12 px-6" style={getBgStyle()}>
-      <div className="max-w-md mx-auto">
-        <div 
-          className="rounded-2xl p-6"
-          style={{ 
-            backgroundColor: cardBg, 
-            border: `1px solid ${cardBorder}`,
-            boxShadow: isDark ? 'none' : '0 25px 50px -12px rgba(0,0,0,0.1)',
-          }}
-        >
+    <section className="py-16 px-4" style={getBgStyle()}>
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-10">
           <h2 
-            className="text-2xl font-bold text-center mb-2"
+            className="text-3xl md:text-4xl font-bold mb-3"
             style={{ color: textColor }}
           >
             {headline}
           </h2>
           {subheadline && (
-            <p className="text-center mb-6" style={{ color: mutedColor }}>{subheadline}</p>
+            <p style={{ color: mutedColor }} className="text-lg">{subheadline}</p>
           )}
-          
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <label 
-                className="block text-sm font-medium mb-1"
-                style={{ color: labelColor }}
-              >
-                {nameLabel}
-              </label>
-              <input
-                type="text"
-                placeholder="আপনার নাম লিখুন"
-                className="w-full px-4 py-3 rounded-lg outline-none transition-colors"
-                style={{ 
-                  backgroundColor: inputBg, 
-                  border: `1px solid ${inputBorder}`,
-                  color: inputText,
-                }}
-                disabled
-              />
-            </div>
-            
-            <div>
-              <label 
-                className="block text-sm font-medium mb-1"
-                style={{ color: labelColor }}
-              >
-                {phoneLabel}
-              </label>
-              <input
-                type="tel"
-                placeholder="01XXXXXXXXX"
-                className="w-full px-4 py-3 rounded-lg outline-none transition-colors"
-                style={{ 
-                  backgroundColor: inputBg, 
-                  border: `1px solid ${inputBorder}`,
-                  color: inputText,
-                }}
-                disabled
-              />
-            </div>
-            
-            <div>
-              <label 
-                className="block text-sm font-medium mb-1"
-                style={{ color: labelColor }}
-              >
-                {addressLabel}
-              </label>
-              <textarea
-                placeholder="সম্পূর্ণ ঠিকানা লিখুন"
-                rows={3}
-                className="w-full px-4 py-3 rounded-lg outline-none resize-none transition-colors"
-                style={{ 
-                  backgroundColor: inputBg, 
-                  border: `1px solid ${inputBorder}`,
-                  color: inputText,
-                }}
-                disabled
-              />
-            </div>
-            
-            <button
-              type="submit"
-              className="w-full py-4 font-bold rounded-xl shadow-lg transition-transform hover:-translate-y-0.5"
-              style={{ 
-                background: buttonBg,
-                color: buttonTextColor,
-              }}
+        </div>
+        
+        {/* Main Order Card */}
+        <div 
+          className="rounded-3xl overflow-hidden"
+          style={{ 
+            backgroundColor: cardBg, 
+            border: `2px solid ${primaryColor}40`,
+            boxShadow: isDark ? '0 25px 50px -12px rgba(0,0,0,0.5)' : '0 25px 50px -12px rgba(0,0,0,0.15)',
+          }}
+        >
+          <div className="grid md:grid-cols-2">
+            {/* Left Column - Product & Pricing Info */}
+            <div 
+              className="p-8 border-b md:border-b-0 md:border-r"
+              style={{ borderColor: cardBorder }}
             >
-              {buttonText}
-            </button>
-          </form>
+              {/* Variant Selection */}
+              {variants.length > 0 && (
+                <div className="mb-6">
+                  <label 
+                    className="block text-sm font-bold mb-3 uppercase tracking-wide"
+                    style={{ color: mutedColor }}
+                  >
+                    {variantLabel}
+                  </label>
+                  <div className="space-y-2">
+                    {variants.map((variant) => (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => setSelectedVariant(variant)}
+                        className="w-full flex items-center justify-between p-4 rounded-xl transition-all"
+                        style={{
+                          backgroundColor: selectedVariant?.id === variant.id 
+                            ? `${primaryColor}15` 
+                            : inputBg,
+                          border: `2px solid ${selectedVariant?.id === variant.id ? primaryColor : inputBorder}`,
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                            style={{ 
+                              borderColor: selectedVariant?.id === variant.id ? primaryColor : inputBorder,
+                              backgroundColor: selectedVariant?.id === variant.id ? primaryColor : 'transparent',
+                            }}
+                          >
+                            {selectedVariant?.id === variant.id && (
+                              <div className="w-2 h-2 rounded-full bg-white" />
+                            )}
+                          </div>
+                          <span className="font-semibold" style={{ color: textColor }}>
+                            {variant.name}
+                          </span>
+                        </div>
+                        <span 
+                          className="font-bold text-lg"
+                          style={{ color: primaryColor }}
+                        >
+                          {formatPrice(variant.price || basePrice)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Quantity Selector */}
+              <div className="mb-6">
+                <label 
+                  className="block text-sm font-bold mb-3 uppercase tracking-wide"
+                  style={{ color: mutedColor }}
+                >
+                  {quantityLabel}
+                </label>
+                <div 
+                  className="flex items-center justify-between p-4 rounded-xl"
+                  style={{ backgroundColor: inputBg, border: `1px solid ${inputBorder}` }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 rounded-lg font-bold text-xl flex items-center justify-center transition-colors"
+                    style={{ 
+                      backgroundColor: primaryColor,
+                      color: '#FFFFFF',
+                    }}
+                  >
+                    −
+                  </button>
+                  <span 
+                    className="text-2xl font-bold"
+                    style={{ color: textColor }}
+                  >
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-10 h-10 rounded-lg font-bold text-xl flex items-center justify-center transition-colors"
+                    style={{ 
+                      backgroundColor: primaryColor,
+                      color: '#FFFFFF',
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              
+              {/* Price Breakdown */}
+              <div 
+                className="p-5 rounded-xl space-y-3"
+                style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F9FAFB' }}
+              >
+                <div className="flex justify-between">
+                  <span style={{ color: mutedColor }}>{subtotalLabel}</span>
+                  <span className="font-semibold" style={{ color: textColor }}>{formatPrice(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: mutedColor }}>{deliveryLabel}</span>
+                  <span className="font-semibold" style={{ color: textColor }}>{formatPrice(deliveryCharge)}</span>
+                </div>
+                <div 
+                  className="flex justify-between pt-3 border-t"
+                  style={{ borderColor: cardBorder }}
+                >
+                  <span className="font-bold text-lg" style={{ color: textColor }}>{totalLabel}</span>
+                  <span 
+                    className="font-bold text-2xl"
+                    style={{ color: primaryColor }}
+                  >
+                    {formatPrice(total)}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Trust Badges */}
+              {showTrustBadges && (
+                <div className="flex flex-wrap gap-3 mt-6">
+                  <div 
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
+                    style={{ 
+                      backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : '#D1FAE5',
+                      color: '#059669',
+                    }}
+                  >
+                    <ShieldCheck size={14} />
+                    {secureLabel}
+                  </div>
+                  <div 
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
+                    style={{ 
+                      backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#DBEAFE',
+                      color: '#2563EB',
+                    }}
+                  >
+                    <Truck size={14} />
+                    {codLabel}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Right Column - Order Form */}
+            <div className="p-8">
+              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                {/* Name Input */}
+                <div>
+                  <input
+                    type="text"
+                    placeholder="আপনার নাম"
+                    className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all"
+                    style={{ 
+                      backgroundColor: inputBg, 
+                      border: `2px solid ${inputBorder}`,
+                      color: inputText,
+                    }}
+                    disabled
+                  />
+                </div>
+                
+                {/* Phone Input */}
+                <div>
+                  <input
+                    type="tel"
+                    placeholder={phonePlaceholder}
+                    className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all"
+                    style={{ 
+                      backgroundColor: inputBg, 
+                      border: `2px solid ${inputBorder}`,
+                      color: inputText,
+                    }}
+                    disabled
+                  />
+                </div>
+                
+                {/* Delivery Location - Dual Buttons */}
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsInsideDhaka(true)}
+                    className="py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: isInsideDhaka ? primaryColor : inputBg,
+                      color: isInsideDhaka ? '#FFFFFF' : textColor,
+                      border: `2px solid ${isInsideDhaka ? primaryColor : inputBorder}`,
+                    }}
+                  >
+                    <Package size={16} />
+                    {insideDhakaLabel}
+                    <span 
+                      className="text-xs px-2 py-0.5 rounded-full"
+                      style={{ 
+                        backgroundColor: isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
+                        color: isInsideDhaka ? '#FFFFFF' : primaryColor,
+                      }}
+                    >
+                      ৳{insideDhakaCharge}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsInsideDhaka(false)}
+                    className="py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: !isInsideDhaka ? primaryColor : inputBg,
+                      color: !isInsideDhaka ? '#FFFFFF' : textColor,
+                      border: `2px solid ${!isInsideDhaka ? primaryColor : inputBorder}`,
+                    }}
+                  >
+                    <Truck size={16} />
+                    {outsideDhakaLabel}
+                    <span 
+                      className="text-xs px-2 py-0.5 rounded-full"
+                      style={{ 
+                        backgroundColor: !isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
+                        color: !isInsideDhaka ? '#FFFFFF' : primaryColor,
+                      }}
+                    >
+                      ৳{outsideDhakaCharge}
+                    </span>
+                  </button>
+                </div>
+                
+                {/* Address Input */}
+                <div>
+                  <textarea
+                    placeholder={addressPlaceholder}
+                    rows={3}
+                    className="w-full px-5 py-4 rounded-xl font-medium outline-none resize-none transition-all"
+                    style={{ 
+                      backgroundColor: inputBg, 
+                      border: `2px solid ${inputBorder}`,
+                      color: inputText,
+                    }}
+                    disabled
+                  />
+                </div>
+                
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="w-full py-5 font-bold text-xl rounded-xl transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 shadow-lg"
+                  style={{ 
+                    background: buttonBg,
+                    color: buttonTextColor,
+                  }}
+                >
+                  {buttonText}
+                  <ArrowRight size={22} className="animate-pulse" />
+                </button>
+                
+                {/* Security Note */}
+                <p 
+                  className="text-center text-xs"
+                  style={{ color: mutedColor }}
+                >
+                  🔒 আপনার তথ্য সম্পূর্ণ নিরাপদ থাকবে
+                </p>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </section>
