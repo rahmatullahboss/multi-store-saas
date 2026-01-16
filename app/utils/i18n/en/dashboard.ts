@@ -68,6 +68,18 @@ export const dashboard = {
   noOrdersMatchFilters: 'No orders match your filters.',
   manageCustomerOrders: 'Manage customer orders',
 
+  // First Sale Checklist
+  letsGetYourFirstSale: "Let's get your first sale!",
+  completeStepsToLaunch: "Complete these steps to launch your business effectively.",
+  readyStatus: "Ready",
+  firstProductTitle: "Add your first product",
+  firstProductDesc: "Start by adding a product to sell.",
+  visitStoreTitle: "Visit your store",
+  visitStoreDesc: "See how your store looks to customers.",
+  shareStoreTitle: "Share your store link",
+  shareStoreDesc: "Share on social media to get visitors.",
+  copyLink: "Copy Link",
+
   // Analytics & Reports
   analyticsOverview: 'Analytics Overview',
   salesAnalytics: 'Sales Analytics',
@@ -136,6 +148,10 @@ export const dashboard = {
   shadowModeActive: 'Shadow Mode Active',
   viewingAs: 'Viewing as',
   exit: 'Exit',
+  viewOrders: 'View Orders',
+  aiMessages: 'AI Messages',
+  limitReached: 'Limit Reached',
+  runningLow: 'Running Low',
 
   // AI Credits
   aiCredits: 'AI Credits',

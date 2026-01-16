@@ -69,6 +69,18 @@ export const dashboard = {
   noOrdersMatchFilters: 'ফিল্টারের সাথে কোনো অর্ডার মেলেনি।',
   manageCustomerOrders: 'কাস্টমার অর্ডার ম্যানেজ করুন',
 
+  // First Sale Checklist
+  letsGetYourFirstSale: 'চলুন আপনার প্রথম বিক্রি শুরু করি!',
+  completeStepsToLaunch: 'আপনার ব্যবসা সফলভাবে চালু করতে এই ধাপগুলো সম্পন্ন করুন।',
+  readyStatus: 'প্রস্তুত',
+  firstProductTitle: 'আপনার প্রথম পণ্য যোগ করুন',
+  firstProductDesc: 'বিক্রি শুরু করতে একটি পণ্য যোগ করুন।',
+  visitStoreTitle: 'আপনার স্টোর ভিজিট করুন',
+  visitStoreDesc: 'আপনার স্টোর কাস্টমারদের কাছে কেমন দেখায় তা দেখুন।',
+  shareStoreTitle: 'আপনার স্টোর লিংক শেয়ার করুন',
+  shareStoreDesc: 'ভিজিটর পেতে সোশ্যাল মিডিয়ায় শেয়ার করুন।',
+  copyLink: 'লিংক কপি করুন',
+
   // Analytics & Reports
   analyticsOverview: 'অ্যানালিটিক্স ওভারভিউ',
   salesAnalytics: 'সেলস অ্যানালিটিক্স',
@@ -139,6 +151,10 @@ export const dashboard = {
   shadowModeActive: 'শ্যাডো মোড সক্রিয়',
   viewingAs: 'দেখছেন',
   exit: 'বাহির হোন',
+  viewOrders: 'অর্ডার দেখুন',
+  aiMessages: 'AI মেসেজ',
+  limitReached: 'সীমা অতিক্রম করেছে',
+  runningLow: 'ব্যালেন্স কমে গেছে',
 
   // AI Credits
   aiCredits: 'AI ক্রেডিট',
