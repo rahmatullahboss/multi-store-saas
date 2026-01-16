@@ -294,10 +294,8 @@ function renderPropsForm(
             }));
             updateProp('variants', variants);
           } else {
-            // Default single item variant if no bundle pricing
-            updateProp('variants', [
-              { id: '1', name: '১ পিস', price: product.price }
-            ]);
+            // No bundle pricing - hide variant selector by setting empty array
+            updateProp('variants', []);
           }
         }
       };
