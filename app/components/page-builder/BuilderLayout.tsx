@@ -38,6 +38,8 @@ import {
   Loader2,
   ArrowLeft,
   Globe,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import type { BuilderSection, SectionMeta, SectionType } from '~/lib/page-builder/types';
@@ -80,6 +82,11 @@ interface BuilderLayoutProps {
   setShowAddModal: (show: boolean) => void;
   availableSections: SectionMeta[];
   products?: Product[];
+  // Undo/Redo
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 export function BuilderLayout({
@@ -102,6 +109,10 @@ export function BuilderLayout({
   availableSections,
   products = [],
   lastSaved,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
 }: BuilderLayoutProps) {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -335,6 +346,31 @@ export function BuilderLayout({
               title="Mobile"
             >
               <Smartphone size={18} />
+            </button>
+            
+            {/* Divider */}
+            <div className="w-px h-6 bg-gray-200 mx-1" />
+            
+            {/* Undo/Redo */}
+            <button
+              onClick={onUndo}
+              disabled={!canUndo}
+              className={`p-2 rounded-lg transition-colors ${
+                canUndo ? 'text-gray-600 hover:bg-gray-100' : 'text-gray-300 cursor-not-allowed'
+              }`}
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo2 size={18} />
+            </button>
+            <button
+              onClick={onRedo}
+              disabled={!canRedo}
+              className={`p-2 rounded-lg transition-colors ${
+                canRedo ? 'text-gray-600 hover:bg-gray-100' : 'text-gray-300 cursor-not-allowed'
+              }`}
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <Redo2 size={18} />
             </button>
           </div>
           

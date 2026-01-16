@@ -32,6 +32,7 @@ import {
 import { isValidSectionType, getSectionMeta, AVAILABLE_SECTIONS } from '~/lib/page-builder/registry';
 import type { BuilderSection, SectionType } from '~/lib/page-builder/types';
 import { BuilderLayout } from '~/components/page-builder/BuilderLayout';
+import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 
 // ============================================================================
 // LOADER
@@ -295,8 +296,23 @@ export default function NewBuilderPage() {
   const fetcher = useFetcher();
   const navigate = useNavigate();
   
-  // Local state for optimistic updates
-  const [sections, setSections] = useState<BuilderSection[]>(initialSections);
+  // Undo/redo history for sections - stores snapshots for local undo
+  const {
+    state: sections,
+    setState: setSections,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    saveCheckpoint,
+  } = useEditorHistory<BuilderSection[]>(initialSections as BuilderSection[], { 
+    maxHistory: 30, 
+    debounceMs: 800 
+  });
+  
+  // Enable keyboard shortcuts for undo/redo
+  useEditorKeyboardShortcuts(undo, redo, canUndo, canRedo);
+  
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -452,6 +468,10 @@ export default function NewBuilderPage() {
       availableSections={AVAILABLE_SECTIONS}
       products={products}
       lastSaved={lastSaved}
+      onUndo={undo}
+      onRedo={redo}
+      canUndo={canUndo}
+      canRedo={canRedo}
     />
   );
 }
