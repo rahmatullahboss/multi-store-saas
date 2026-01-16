@@ -5,6 +5,7 @@
  */
 
 import type { SectionTheme } from '~/lib/page-builder/types';
+import { scrollToOrderForm } from '../OrderNowButton';
 
 interface HeroProps {
   headline?: string;
@@ -113,12 +114,7 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
             background: buttonBg.includes('gradient') ? buttonBg : buttonBg,
             color: theme?.style === 'urgent' ? '#7F1D1D' : buttonText,
           }}
-          onClick={() => {
-            const orderForm = document.getElementById('order-form');
-            if (orderForm) {
-              orderForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }}
+          onClick={scrollToOrderForm}
         >
           {ctaText}
         </button>
