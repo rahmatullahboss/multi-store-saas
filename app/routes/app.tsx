@@ -366,6 +366,13 @@ export default function AppLayout() {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  // Check if we're on a full-screen builder route (hide sidebar)
+  const isBuilderRoute = 
+    location.pathname.startsWith('/app/new-builder/') ||
+    location.pathname === '/app/page-builder' ||
+    location.pathname.startsWith('/app/page-builder/') ||
+    location.pathname.startsWith('/app/landing-builder');
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* SHADOW MODE BANNER */}
@@ -383,16 +390,16 @@ export default function AppLayout() {
         </div>
       )}
       
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
+      {/* Mobile Sidebar Overlay - hide on builder routes */}
+      {!isBuilderRoute && sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <aside
+      {/* Sidebar - hide on builder routes */}
+      {!isBuilderRoute && <aside
         className={`
           fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200
           transform transition-transform duration-200 ease-in-out
@@ -559,33 +566,37 @@ export default function AppLayout() {
             </Form>
           </div>
         </div>
-      </aside>
+      </aside>}
 
-      {/* Main Content */}
-      <div className="lg:pl-64">
-        {/* Mobile Header */}
-        <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <h1 className="font-semibold text-gray-900">{store.name}</h1>
-            <LanguageSelector variant="toggle" size="sm" />
-          </div>
-        </header>
+      {/* Main Content - no left padding on builder routes */}
+      <div className={isBuilderRoute ? '' : 'lg:pl-64'}>
+        {/* Mobile Header - hide on builder routes */}
+        {!isBuilderRoute && (
+          <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <h1 className="font-semibold text-gray-900">{store.name}</h1>
+              <LanguageSelector variant="toggle" size="sm" />
+            </div>
+          </header>
+        )}
 
-        {/* Desktop Header with Language Toggle */}
-        <header className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200 px-8 py-3">
-          <div className="flex items-center justify-end">
-            <LanguageSelector variant="pills" size="sm" />
-          </div>
-        </header>
+        {/* Desktop Header with Language Toggle - hide on builder routes */}
+        {!isBuilderRoute && (
+          <header className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200 px-8 py-3">
+            <div className="flex items-center justify-end">
+              <LanguageSelector variant="pills" size="sm" />
+            </div>
+          </header>
+        )}
 
-        {/* System Notifications */}
-        {visibleNotifications.length > 0 && (
+        {/* System Notifications - hide on builder routes */}
+        {!isBuilderRoute && visibleNotifications.length > 0 && (
           <div className="px-4 lg:px-8 pt-4 space-y-2">
             {visibleNotifications.map((notification) => {
               const style = getNotificationStyle(notification.type);
@@ -612,20 +623,22 @@ export default function AppLayout() {
           </div>
         )}
 
-        {/* Page Content */}
-        <main className="p-4 lg:p-8">
-          <div className="max-w-7xl mx-auto w-full">
+        {/* Page Content - full width on builder routes */}
+        <main className={isBuilderRoute ? '' : 'p-4 lg:p-8'}>
+          <div className={isBuilderRoute ? 'w-full h-full' : 'max-w-7xl mx-auto w-full'}>
             <Outlet />
           </div>
         </main>
       </div>
 
-      {/* AI Co-pilot Widget */}
-      <DashboardChatWidget 
-        userName={user.name || undefined}
-        storeName={store.name}
-        isLocked={false}
-      />
+      {/* AI Co-pilot Widget - hide on builder routes */}
+      {!isBuilderRoute && (
+        <DashboardChatWidget 
+          userName={user.name || undefined}
+          storeName={store.name}
+          isLocked={false}
+        />
+      )}
     </div>
   );
 }
