@@ -11,6 +11,8 @@ import { countConnectedButtons, applyButtonConnections } from '~/lib/page-builde
 import type { BuilderSection } from '~/lib/page-builder/types';
 import { getSectionMeta } from '~/lib/page-builder/registry';
 import { BuilderImageUpload } from './BuilderImageUpload';
+import { ColorPickerField } from './ColorPickerField';
+import { FONT_FAMILIES } from '~/lib/page-builder/schemas';
 
 // Lazy load Monaco Editor (client-side only)
 const LazyMonacoEditor = lazy(() => import('./CodeEditor'));
@@ -124,6 +126,9 @@ export function PropertiesPanel({ section, onUpdate, onClose, products = [] }: P
       <div className="space-y-4">
         {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem, products)}
       </div>
+      
+      {/* Section Styling Panel */}
+      <SectionStylePanel props={localProps} updateProp={updateProp} />
     </div>
   );
 }
@@ -1092,7 +1097,6 @@ function CustomHtmlPanel({ props, updateProp, connectedCount, products }: Custom
         value={props.containerClass as string || ''} 
         onChange={(v) => updateProp('containerClass', v)} 
       />
-      
       {/* Button Connector Modal */}
       <ButtonConnectorModal
         isOpen={showConnector}
@@ -1106,5 +1110,95 @@ function CustomHtmlPanel({ props, updateProp, connectedCount, products }: Custom
         }}
       />
     </>
+  );
+}
+
+// Section Styling Panel - common for all sections
+interface SectionStylePanelProps {
+  props: Record<string, unknown>;
+  updateProp: (key: string, value: unknown) => void;
+}
+
+function SectionStylePanel({ props, updateProp }: SectionStylePanelProps) {
+  const fontOptions = [
+    { value: 'default', label: 'ডিফল্ট' },
+    { value: 'hind-siliguri', label: 'Hind Siliguri (বাংলা)' },
+    { value: 'noto-sans-bengali', label: 'Noto Sans Bengali' },
+    { value: 'poppins', label: 'Poppins' },
+    { value: 'inter', label: 'Inter' },
+    { value: 'roboto', label: 'Roboto' },
+    { value: 'lato', label: 'Lato' },
+  ];
+
+  const paddingOptions = [
+    { value: 'none', label: 'কোনো প্যাডিং নেই' },
+    { value: 'sm', label: 'ছোট (1rem)' },
+    { value: 'md', label: 'মাঝারি (2rem)' },
+    { value: 'lg', label: 'বড় (4rem)' },
+    { value: 'xl', label: 'অনেক বড় (6rem)' },
+  ];
+
+  return (
+    <div className="border-t border-gray-200 mt-4 pt-4">
+      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+        🎨 স্টাইল সেটিংস
+      </h5>
+      
+      {/* Background Color */}
+      <ColorPickerField
+        label="Background Color"
+        value={props.backgroundColor as string || ''}
+        onChange={(v) => updateProp('backgroundColor', v)}
+        showGradients={true}
+      />
+      
+      {/* Text Color */}
+      <ColorPickerField
+        label="Text Color"
+        value={props.textColor as string || ''}
+        onChange={(v) => updateProp('textColor', v)}
+        showGradients={false}
+      />
+      
+      {/* Heading Color */}
+      <ColorPickerField
+        label="Heading Color"
+        value={props.headingColor as string || ''}
+        onChange={(v) => updateProp('headingColor', v)}
+        showGradients={false}
+      />
+      
+      {/* Font Family */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          Font Family
+        </label>
+        <select
+          value={props.fontFamily as string || 'default'}
+          onChange={(e) => updateProp('fontFamily', e.target.value)}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+        >
+          {fontOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+      
+      {/* Vertical Padding */}
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">
+          Vertical Padding
+        </label>
+        <select
+          value={props.paddingY as string || 'md'}
+          onChange={(e) => updateProp('paddingY', e.target.value)}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+        >
+          {paddingOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }

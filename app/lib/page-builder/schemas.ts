@@ -8,6 +8,62 @@
 import { z } from 'zod';
 
 // ============================================================================
+// BASE SECTION STYLING SCHEMA
+// ============================================================================
+/**
+ * Common styling options for all sections.
+ * Each section can override background, text color, and font.
+ */
+export const BaseSectionStyleSchema = z.object({
+  // Background
+  backgroundColor: z.string().optional(),
+  backgroundGradient: z.string().optional(),
+  
+  // Text Colors
+  textColor: z.string().optional(),
+  headingColor: z.string().optional(),
+  
+  // Font Family
+  fontFamily: z.enum([
+    'default',
+    'hind-siliguri',
+    'noto-sans-bengali', 
+    'poppins',
+    'inter',
+    'roboto',
+    'lato'
+  ]).optional().default('default'),
+  
+  // Spacing
+  paddingY: z.enum(['none', 'sm', 'md', 'lg', 'xl']).optional().default('md'),
+});
+export type BaseSectionStyle = z.infer<typeof BaseSectionStyleSchema>;
+
+/**
+ * Font family CSS mapping
+ */
+export const FONT_FAMILIES: Record<string, string> = {
+  'default': 'inherit',
+  'hind-siliguri': '"Hind Siliguri", sans-serif',
+  'noto-sans-bengali': '"Noto Sans Bengali", sans-serif',
+  'poppins': '"Poppins", sans-serif',
+  'inter': '"Inter", sans-serif',
+  'roboto': '"Roboto", sans-serif',
+  'lato': '"Lato", sans-serif',
+};
+
+/**
+ * Padding Y CSS mapping
+ */
+export const PADDING_Y_VALUES: Record<string, string> = {
+  'none': '0',
+  'sm': '1rem',
+  'md': '2rem',
+  'lg': '4rem',
+  'xl': '6rem',
+};
+
+// ============================================================================
 // HERO SECTION
 // ============================================================================
 export const HeroPropsSchema = z.object({
