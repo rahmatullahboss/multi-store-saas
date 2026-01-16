@@ -17,6 +17,14 @@ import { TrustBadgesSectionPreview } from './sections/TrustBadgesSectionPreview'
 import { CTASectionPreview } from './sections/CTASectionPreview';
 import { VideoSectionPreview } from './sections/VideoSectionPreview';
 import { GuaranteeSectionPreview } from './sections/GuaranteeSectionPreview';
+import { GallerySectionPreview } from './sections/GallerySectionPreview';
+import { BenefitsSectionPreview } from './sections/BenefitsSectionPreview';
+import { ComparisonSectionPreview } from './sections/ComparisonSectionPreview';
+import { DeliverySectionPreview } from './sections/DeliverySectionPreview';
+import { ProblemSolutionPreview } from './sections/ProblemSolutionPreview';
+import { PricingSectionPreview } from './sections/PricingSectionPreview';
+import { HowToOrderPreview } from './sections/HowToOrderPreview';
+import { ShowcaseSectionPreview } from './sections/ShowcaseSectionPreview';
 import { PlaceholderSection } from './sections/PlaceholderSection';
 
 interface SectionRendererProps {
@@ -105,7 +113,24 @@ function SectionContent({ section }: { section: BuilderSection }) {
       return <VideoSectionPreview props={props} />;
     case 'guarantee':
       return <GuaranteeSectionPreview props={props} />;
+    case 'gallery':
+      return <GallerySectionPreview props={props} />;
+    case 'benefits':
+      return <BenefitsSectionPreview props={props} />;
+    case 'comparison':
+      return <ComparisonSectionPreview props={props} />;
+    case 'delivery':
+      return <DeliverySectionPreview props={props} />;
+    case 'problem-solution':
+      return <ProblemSolutionPreview props={props} />;
+    case 'pricing':
+      return <PricingSectionPreview props={props} />;
+    case 'how-to-order':
+      return <HowToOrderPreview props={props} />;
+    case 'showcase':
+      return <ShowcaseSectionPreview props={props} />;
     default:
       return <PlaceholderSection type={type} />;
   }
 }
+
