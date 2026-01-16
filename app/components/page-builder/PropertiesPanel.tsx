@@ -8,6 +8,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import type { BuilderSection } from '~/lib/page-builder/types';
 import { getSectionMeta } from '~/lib/page-builder/registry';
+import { BuilderImageUpload } from './BuilderImageUpload';
 
 interface Product {
   id: number;
@@ -870,25 +871,13 @@ function ImageField({
   value: string; 
   onChange: (v: string) => void;
 }) {
+  // Use BuilderImageUpload for drag-drop + R2 upload support
   return (
-    <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Paste image URL..."
-        className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
-      />
-      {value && (
-        <img 
-          src={value} 
-          alt="Preview" 
-          className="mt-2 w-full h-20 object-cover rounded border"
-          onError={(e) => (e.currentTarget.style.display = 'none')}
-        />
-      )}
-    </div>
+    <BuilderImageUpload 
+      label={label}
+      value={value}
+      onChange={onChange}
+    />
   );
 }
 
