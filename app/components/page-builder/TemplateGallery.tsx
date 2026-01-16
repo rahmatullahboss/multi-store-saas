@@ -397,7 +397,7 @@ export function TemplateGallery({
                     placeholder="flash-sale"
                     className="flex-1 px-4 py-3 border border-gray-300 rounded-r-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     required
-                    pattern="[a-z0-9-]+"
+                    pattern="[a-z0-9\-]+"
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-400">
