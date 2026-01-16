@@ -4,7 +4,7 @@
  * Central logic for subscription tier usage limits.
  * 
  * BUSINESS CRITICAL: This ensures Free tier users cannot exceed limits.
- * - Free: 1 product, 50 orders/month, unlimited visitors
+ * - Free: 5 products, 50 orders/month, unlimited visitors, store + landing page
  * - Starter: 50 products, 500 orders/month
  * - Premium: 500 products, 5000 orders/month
  * - Custom: Unlimited
@@ -69,12 +69,12 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
-    max_products: 1,
+    max_products: 5,
     max_orders: 50,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 100,
     max_staff: 1,
-    allow_store_mode: false,
+    allow_store_mode: true, // Free plan can create both store and landing page
     allow_custom_domain: false,
     allow_capi: false,
     allow_priority_support: false,
