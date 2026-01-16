@@ -40,6 +40,7 @@ import {
   Globe,
   Undo2,
   Redo2,
+  Settings2,
 } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import type { BuilderSection, SectionMeta, SectionType } from '~/lib/page-builder/types';
@@ -49,6 +50,7 @@ import { SectionRenderer } from './SectionRenderer';
 import { AddSectionModal } from './AddSectionModal';
 import { NewPageModal } from './NewPageModal';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { FloatingButtonSettingsPanel } from './FloatingButtonSettingsPanel';
 import { getSectionMeta } from '~/lib/page-builder/registry';
 
 interface Product {
@@ -147,6 +149,19 @@ export function BuilderLayout({
   const pendingDeleteSection = pendingDeleteId 
     ? sections.find(s => s.id === pendingDeleteId) 
     : null;
+  
+  // Floating button settings state
+  const [showFloatingSettings, setShowFloatingSettings] = useState(false);
+  const [floatingSettings, setFloatingSettings] = useState({
+    whatsappEnabled: true,
+    whatsappNumber: '',
+    whatsappMessage: 'হ্যালো! আমি অর্ডার করতে চাই।',
+    callEnabled: true,
+    callNumber: '',
+    orderEnabled: true,
+    orderText: 'অর্ডার করুন',
+    position: 'bottom-right' as const,
+  });
   
   // DnD sensors
   const sensors = useSensors(
@@ -380,6 +395,18 @@ export function BuilderLayout({
             >
               <Redo2 size={18} />
             </button>
+            
+            {/* Divider */}
+            <div className="w-px h-6 bg-gray-200 mx-1" />
+            
+            {/* Floating Button Settings */}
+            <button
+              onClick={() => setShowFloatingSettings(true)}
+              className="p-2 rounded-lg transition-colors text-gray-600 hover:bg-gray-100"
+              title="Floating Button Settings"
+            >
+              <Settings2 size={18} />
+            </button>
           </div>
           
           <div className="flex items-center gap-2">
@@ -474,6 +501,23 @@ export function BuilderLayout({
           }
         }}
         onCancel={() => setPendingDeleteId(null)}
+      />
+      
+      {/* Floating Button Settings Modal */}
+      <FloatingButtonSettingsPanel
+        isOpen={showFloatingSettings}
+        onClose={() => setShowFloatingSettings(false)}
+        settings={floatingSettings}
+        onSave={(newSettings) => {
+          setFloatingSettings(newSettings);
+          // Send to preview iframe
+          if (iframeRef.current?.contentWindow) {
+            iframeRef.current.contentWindow.postMessage({
+              type: 'SETTINGS_UPDATE',
+              settings: newSettings,
+            }, '*');
+          }
+        }}
       />
     </div>
   );
