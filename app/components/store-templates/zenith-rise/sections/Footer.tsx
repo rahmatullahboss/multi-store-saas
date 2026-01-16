@@ -119,7 +119,7 @@ export function ZenithRiseFooter({
 
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-slate-900 gap-4">
-          <p className="text-slate-600 text-sm">
+          <p className="text-slate-600 text-sm" suppressHydrationWarning>
             © {currentYear} {storeName}. All rights reserved.
           </p>
           

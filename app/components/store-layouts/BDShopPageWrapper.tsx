@@ -347,7 +347,7 @@ export function BDShopPageWrapper({
 
           {/* Copyright */}
           <div className="mt-6 pt-6 border-t border-white/10 text-center">
-            <p className="text-white/50 text-xs">
+            <p className="text-white/50 text-xs" suppressHydrationWarning>
               © {new Date().getFullYear()} {storeName}. All rights reserved.
             </p>
           </div>

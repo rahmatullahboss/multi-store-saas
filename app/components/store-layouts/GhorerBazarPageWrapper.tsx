@@ -297,7 +297,7 @@ export function GhorerBazarPageWrapper({
           style={{ backgroundColor: primaryColor }}
         >
           <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-2 text-sm">
-            <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+            <p suppressHydrationWarning>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
             <div className="flex items-center gap-4">
               {socialLinks?.facebook && (
                 <a 

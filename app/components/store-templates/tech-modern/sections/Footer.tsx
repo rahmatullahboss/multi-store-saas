@@ -104,7 +104,7 @@ export function TechModernFooter({
         </div>
 
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-xs opacity-50">
+          <p className="text-xs opacity-50" suppressHydrationWarning>
             © {new Date().getFullYear()} {storeName}. Built for enthusiasts.
           </p>
 

@@ -135,7 +135,7 @@ export function AuroraMinimalFooter({
 
         <div className="mt-24 pt-12 border-t border-current/5 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-30">
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-30" suppressHydrationWarning>
               © {new Date().getFullYear()} {storeName} / All Rights Reserved
             </p>
             <div className="hidden sm:flex items-center gap-4 opacity-20">

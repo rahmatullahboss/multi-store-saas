@@ -122,7 +122,7 @@ export function FreshnessFooter({
         </div>
 
         <div className="mt-16 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-6" style={{ borderColor: theme.border }}>
-          <p className="text-sm text-gray-500 font-medium">
+          <p className="text-sm text-gray-500 font-medium" suppressHydrationWarning>
             © {new Date().getFullYear()} {storeName}. Naturally fresh, amazingly local.
           </p>
 

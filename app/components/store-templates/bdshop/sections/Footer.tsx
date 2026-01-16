@@ -52,7 +52,7 @@ export function BDShopFooter({ storeName, logo, socialLinks, footerConfig, busin
         </div>
         
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-white/50">© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+          <p className="text-sm text-white/50" suppressHydrationWarning>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
           
           {/* Viral Loop / Branding */}
           {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
