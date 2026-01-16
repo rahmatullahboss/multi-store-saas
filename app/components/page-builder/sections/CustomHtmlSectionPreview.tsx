@@ -142,12 +142,14 @@ export function CustomHtmlSectionPreview({
           orderForm?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       } else if (actionType === 'whatsapp') {
+        e.preventDefault(); // Prevent original href from opening
         const phone = actionButton.getAttribute('data-ozzyl-phone');
         const message = actionButton.getAttribute('data-ozzyl-message') || 'হ্যালো!';
         if (phone) {
           window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
         }
       } else if (actionType === 'call') {
+        e.preventDefault(); // Prevent original href from opening
         const phone = actionButton.getAttribute('data-ozzyl-phone');
         if (phone) {
           window.location.href = `tel:${phone}`;
