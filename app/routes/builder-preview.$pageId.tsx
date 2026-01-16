@@ -17,10 +17,10 @@ import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 
 // Import app styles
-import appStylesHref from '~/styles/app.css?url';
+import tailwindStylesHref from '~/styles/tailwind.css?url';
 
 export const links: LinksFunction = () => [
-  { rel: 'stylesheet', href: appStylesHref },
+  { rel: 'stylesheet', href: tailwindStylesHref },
 ];
 
 // ============================================================================
