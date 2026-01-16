@@ -672,8 +672,8 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
         }}
       />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 md:py-16">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-3 md:px-4 py-24 md:py-32">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
           {/* LEFT: Bold Messaging */}
           <div>
