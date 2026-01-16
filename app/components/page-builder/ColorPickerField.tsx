@@ -90,7 +90,7 @@ export function ColorPickerField({
   };
 
   return (
-    <div className="mb-3">
+    <div className="mb-3 relative">
       <label className="block text-xs font-medium text-gray-600 mb-1.5">
         {label}
       </label>
