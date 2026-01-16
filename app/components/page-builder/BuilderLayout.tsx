@@ -8,7 +8,7 @@
  * - Add section modal
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -114,11 +114,32 @@ export function BuilderLayout({
   const activeSection = sections.find(s => s.id === activeSectionId);
   
   // Preview width based on device
-  const previewStyle = {
-    desktop: { width: '100%' },
-    tablet: { width: '768px' },
-    mobile: { width: '375px' },
+  const previewStyles: Record<string, React.CSSProperties> = {
+    desktop: { 
+      width: '100%',
+      maxWidth: '100%',
+      height: '100%',
+    },
+    tablet: { 
+      width: '768px',
+      maxWidth: '768px',
+      height: '100%',
+    },
+    mobile: { 
+      width: '375px',
+      maxWidth: '375px',
+      height: '812px', // iPhone X height
+      borderRadius: '2.5rem',
+      border: '8px solid #1f2937',
+      boxShadow: '0 0 0 3px #374151, 0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    },
   };
+  
+  // Hydration fix: only render DnD on client
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   // New page modal
   if (isNew && showNewPageModal) {
@@ -178,30 +199,40 @@ export function BuilderLayout({
             </button>
           </div>
           
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={sections.map(s => s.id)}
-              strategy={verticalListSortingStrategy}
+          {isMounted ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              <div className="space-y-2">
-                {sections.map((section) => (
-                  <SortableItem
-                    key={section.id}
-                    section={section}
-                    isActive={activeSectionId === section.id}
-                    onSelect={() => onSelectSection(section.id)}
-                    onToggle={(enabled) => onToggle(section.id, enabled)}
-                    onDelete={() => onDeleteSection(section.id)}
-                    onDuplicate={() => onDuplicate(section.id)}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+              <SortableContext
+                items={sections.map(s => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {sections.map((section) => (
+                    <SortableItem
+                      key={section.id}
+                      section={section}
+                      isActive={activeSectionId === section.id}
+                      onSelect={() => onSelectSection(section.id)}
+                      onToggle={(enabled) => onToggle(section.id, enabled)}
+                      onDelete={() => onDeleteSection(section.id)}
+                      onDuplicate={() => onDuplicate(section.id)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="space-y-2">
+              {sections.map((section) => (
+                <div key={section.id} className="p-2 border border-gray-200 rounded-lg bg-white">
+                  <span className="text-sm text-gray-600">{section.type}</span>
+                </div>
+              ))}
+            </div>
+          )}
           
           {sections.length === 0 && (
             <div className="text-center py-8 text-gray-500">
@@ -286,16 +317,25 @@ export function BuilderLayout({
         </div>
         
         {/* Preview Frame */}
-        <div className="flex-1 overflow-auto bg-gray-200 p-4 flex justify-center">
+        <div className="flex-1 overflow-auto bg-gray-200 p-4 flex justify-center items-start">
           <div
-            className="bg-white shadow-lg transition-all duration-300 overflow-y-auto"
-            style={previewStyle[previewDevice]}
+            className={`bg-white shadow-lg transition-all duration-300 overflow-y-auto ${
+              previewDevice === 'mobile' ? 'overflow-hidden' : ''
+            }`}
+            style={previewStyles[previewDevice]}
           >
-            <SectionRenderer
-              sections={sections.filter(s => s.enabled)}
-              activeSectionId={activeSectionId}
-              onSelectSection={onSelectSection}
-            />
+            {previewDevice === 'mobile' && (
+              <div className="h-8 bg-gray-900 flex items-center justify-center">
+                <div className="w-20 h-1.5 bg-gray-700 rounded-full" />
+              </div>
+            )}
+            <div className={previewDevice === 'mobile' ? 'h-[calc(100%-2rem)] overflow-y-auto' : ''}>
+              <SectionRenderer
+                sections={sections.filter(s => s.enabled)}
+                activeSectionId={activeSectionId}
+                onSelectSection={onSelectSection}
+              />
+            </div>
           </div>
         </div>
       </div>
