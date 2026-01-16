@@ -18,9 +18,9 @@ interface SidebarPanelProps {
   editor?: any;
 }
 
-function SidebarPanelBase({ 
-  themeConfig, 
-  onThemeChange, 
+function SidebarPanelBase({
+  themeConfig,
+  onThemeChange,
   pageConfig,
   onPageConfigChange,
   onLoadTemplate,
@@ -30,7 +30,7 @@ function SidebarPanelBase({
 }: SidebarPanelProps) {
   const { t } = useTranslation();
   const [activeDesignSubTab, setActiveDesignSubTab] = useState<'styles' | 'theme' | 'templates'>('styles');
-  
+
   const traitsContainerRef = useRef<HTMLDivElement>(null);
   const stylesContainerRef = useRef<HTMLDivElement>(null);
   const layersContainerRef = useRef<HTMLDivElement>(null);
@@ -39,6 +39,23 @@ function SidebarPanelBase({
   const blocksRef = useRef<any[]>([]);
   const [blocksVersion, setBlocksVersion] = useState(0);
   const [selectors, setSelectors] = useState<any[]>([]);
+
+  // Define refreshSelectors at component level (NOT inside useEffect)
+  const refreshSelectors = useCallback(() => {
+    if (!editor) return;
+    const selected = editor.getSelected();
+    if (selected) {
+      const newSelectors = selected.getSelectors().models || [];
+      setSelectors(prev => {
+        // Only update if different
+        if (prev.length !== newSelectors.length) return newSelectors;
+        const same = prev.every((s: any, i: number) => s === newSelectors[i]);
+        return same ? prev : newSelectors;
+      });
+    } else {
+      setSelectors(prev => prev.length === 0 ? prev : []);
+    }
+  }, [editor]);
 
   // Fetch Blocks only once when editor is ready (blocks rarely change)
   useEffect(() => {
@@ -49,29 +66,13 @@ function SidebarPanelBase({
       const allBlocks = editor.Blocks.getAll();
       const newBlockIds = allBlocks.map((b: any) => b.getId()).join(',');
       const oldBlockIds = blocksRef.current.map((b: any) => b.getId()).join(',');
-      
+
       // Only update if blocks actually changed
       if (newBlockIds !== oldBlockIds) {
         blocksRef.current = [...allBlocks];
         setBlocksVersion(v => v + 1);
       }
     };
-
-    // Load initial selectors - only update when actually different
-    const refreshSelectors = useCallback(() => {
-        const selected = editor.getSelected();
-        if (selected) {
-            const newSelectors = selected.getSelectors().models || [];
-            setSelectors(prev => {
-              // Only update if different
-              if (prev.length !== newSelectors.length) return newSelectors;
-              const same = prev.every((s: any, i: number) => s === newSelectors[i]);
-              return same ? prev : newSelectors;
-            });
-        } else {
-            setSelectors(prev => prev.length === 0 ? prev : []);
-        }
-    }, []);
 
     loadBlocks();
     refreshSelectors();
@@ -91,8 +92,8 @@ function SidebarPanelBase({
       editor.off('component:selected component:deselected', debouncedRefreshSelectors);
       clearTimeout(selectorTimeout);
     };
-  }, [editor]);
-  
+  }, [editor, refreshSelectors]);
+
   // Get blocks from ref
   const blocks = blocksRef.current;
 
@@ -147,26 +148,27 @@ function SidebarPanelBase({
   });
 
   const handleDragStart = (block: any, ev: React.DragEvent) => {
-      // Use GrapesJS BlockManager's built-in drag functionality
-      if (editor?.BlockManager?.startDrag) {
-        editor.BlockManager.startDrag(block, ev.nativeEvent);
-      } else {
-        // Fallback: Set the block content as drag data
-        ev.dataTransfer.setData('text/html', block.getContent() || '');
-        ev.dataTransfer.effectAllowed = 'copy';
-      }
+    // Use GrapesJS BlockManager's built-in drag functionality
+    if (editor?.BlockManager?.startDrag) {
+      editor.BlockManager.startDrag(block, ev.nativeEvent);
+    } else {
+      // Fallback: Set the block content as drag data
+      ev.dataTransfer.setData('text/html', block.getContent() || '');
+      ev.dataTransfer.effectAllowed = 'copy';
+    }
   };
 
   const handleDragEnd = (ev: React.DragEvent) => {
-      // Use GrapesJS BlockManager's built-in drag end
-      if (editor?.BlockManager?.endDrag) {
-        editor.BlockManager.endDrag();
-      }
+    // Use GrapesJS BlockManager's built-in drag end
+    if (editor?.BlockManager?.endDrag) {
+      editor.BlockManager.endDrag();
+    }
   };
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-scrollbar::-webkit-scrollbar {
           width: 10px;
         }
@@ -350,74 +352,75 @@ function SidebarPanelBase({
       <div className="flex flex-col h-full bg-white border-r border-gray-200 w-80 shadow-sm min-h-0">
         {/* Tab Switcher - Elementor Style */}
         <div className="flex border-b border-gray-100 bg-gray-50/80 p-1.5 gap-1.5">
-           <button 
-             onClick={() => onTabChange('widgets')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'widgets' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50 shadow-indigo-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-           >
-              <Box size={16} strokeWidth={2.5} />
-              {t('widgets')}
-           </button>
-           <button 
-             onClick={() => onTabChange('design')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'design' ? 'bg-white text-blue-600 shadow-sm border border-blue-50 shadow-blue-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-           >
-              <Palette size={16} strokeWidth={2.5} />
-              {t('design')}
-           </button>
-           <button 
-             onClick={() => onTabChange('structure')}
-             className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'structure' ? 'bg-white text-purple-600 shadow-sm border border-purple-50 shadow-purple-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-           >
-              <Layers size={16} strokeWidth={2.5} />
-              {t('structure')}
-           </button>
-           <button 
-             onClick={() => onTabChange('settings')}
-             className={`p-2 rounded-xl text-gray-400 hover:text-orange-600 hover:bg-orange-50 transition-all ${activeTab === 'settings' ? 'bg-orange-50 text-orange-600 shadow-sm' : ''}`}
-             title={t('settings')}
-           >
-              <Settings2 size={16} strokeWidth={2.5} />
-           </button>
+          <button
+            onClick={() => onTabChange('widgets')}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'widgets' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-50 shadow-indigo-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+          >
+            <Box size={16} strokeWidth={2.5} />
+            {t('widgets')}
+          </button>
+          <button
+            onClick={() => onTabChange('design')}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'design' ? 'bg-white text-blue-600 shadow-sm border border-blue-50 shadow-blue-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+          >
+            <Palette size={16} strokeWidth={2.5} />
+            {t('design')}
+          </button>
+          <button
+            onClick={() => onTabChange('structure')}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black transition-all ${activeTab === 'structure' ? 'bg-white text-purple-600 shadow-sm border border-purple-50 shadow-purple-100/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+          >
+            <Layers size={16} strokeWidth={2.5} />
+            {t('structure')}
+          </button>
+          <button
+            onClick={() => onTabChange('settings')}
+            className={`p-2 rounded-xl text-gray-400 hover:text-orange-600 hover:bg-orange-50 transition-all ${activeTab === 'settings' ? 'bg-orange-50 text-orange-600 shadow-sm' : ''}`}
+            title={t('settings')}
+          >
+            <Settings2 size={16} strokeWidth={2.5} />
+          </button>
         </div>
 
         <div className="flex-1 min-h-0 relative">
           {activeTab === 'widgets' && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in fade-in duration-300">
-               <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('availableWidgets')}</h3>
-               </div>
-               <div className="flex-1 overflow-y-auto custom-scrollbar">
-                  <div className="p-4 space-y-6">
-                    {Object.entries(categories).map(([catLabel, catBlocks]) => (
-                      <div key={catLabel}>
-                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                           <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                           {catLabel}
-                        </h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {catBlocks.map((block) => (
+              <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('availableWidgets')}</h3>
+              </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-4 space-y-6">
+                  {Object.entries(categories).map(([catLabel, catBlocks]) => (
+                    <div key={catLabel}>
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        {catLabel}
+                      </h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {catBlocks.map((block) => (
+                          <div
+                            key={block.getId()}
+                            draggable
+                            onDragStart={(ev) => handleDragStart(block, ev)}
+                            onDragEnd={(ev) => handleDragEnd(ev)}
+                            className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
+                          >
                             <div
-                              key={block.getId()}
-                              draggable
-                              onDragStart={(ev) => handleDragStart(block, ev)}
-                              onDragEnd={(ev) => handleDragEnd(ev)}
-                              className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
-                            >
-                              <div 
-                                className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
-                                dangerouslySetInnerHTML={{ __html: block.getMedia() || `
+                              className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
+                              dangerouslySetInnerHTML={{
+                                __html: block.getMedia() || `
                                   <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
                                 ` }}
-                              />
-                              <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
-                                {block.getLabel()}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                            />
+                            <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
+                              {block.getLabel()}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -426,27 +429,27 @@ function SidebarPanelBase({
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300">
               {/* Sub-tabs for Design */}
               <div className="flex p-2 gap-1 border-b border-gray-50 bg-gray-50/30">
-                 <button 
-                   onClick={() => setActiveDesignSubTab('styles')}
-                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'styles' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                 >
-                    <Palette size={12} />
-                    {t('styles')}
-                 </button>
-                 <button 
-                   onClick={() => setActiveDesignSubTab('theme')}
-                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'theme' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                 >
-                    <PaintBucket size={12} />
-                    {t('theme')}
-                 </button>
-                 <button 
-                   onClick={() => setActiveDesignSubTab('templates')}
-                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'templates' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                 >
-                    <LayoutTemplate size={12} />
-                    {t('presets')}
-                 </button>
+                <button
+                  onClick={() => setActiveDesignSubTab('styles')}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'styles' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  <Palette size={12} />
+                  {t('styles')}
+                </button>
+                <button
+                  onClick={() => setActiveDesignSubTab('theme')}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'theme' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  <PaintBucket size={12} />
+                  {t('theme')}
+                </button>
+                <button
+                  onClick={() => setActiveDesignSubTab('templates')}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black tracking-widest flex items-center justify-center gap-1.5 transition-all ${activeDesignSubTab === 'templates' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  <LayoutTemplate size={12} />
+                  {t('presets')}
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar relative">
@@ -454,24 +457,24 @@ function SidebarPanelBase({
                   <div className="p-4 space-y-6">
                     {/* State Selector (Normal/Hover/Focus/Active) */}
                     <StateSelector editor={editor} />
-                    
+
                     {/* Selectors Manager */}
                     <div className="bg-blue-50/30 rounded-2xl p-4 border border-blue-50">
-                          <div className="space-y-3">
-                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">{t('activeElement')}</span>
-                             </div>
-                             <div className="flex flex-wrap gap-2">
-                                {selectors.map(sel => (
-                                  <span key={sel.getLabel()} className="px-2.5 py-1 bg-white text-blue-600 rounded-lg text-[10px] font-black border border-blue-100 shadow-sm">
-                                     #{sel.getLabel()}
-                                  </span>
-                                ))}
-                                {selectors.length === 0 && (
-                                  <p className="text-gray-400 text-[10px] font-medium italic">{t('selectElementHint')}</p>
-                                )}
-                             </div>
-                          </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">{t('activeElement')}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectors.map(sel => (
+                            <span key={sel.getLabel()} className="px-2.5 py-1 bg-white text-blue-600 rounded-lg text-[10px] font-black border border-blue-100 shadow-sm">
+                              #{sel.getLabel()}
+                            </span>
+                          ))}
+                          {selectors.length === 0 && (
+                            <p className="text-gray-400 text-[10px] font-medium italic">{t('selectElementHint')}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Traits Manager */}
@@ -489,7 +492,7 @@ function SidebarPanelBase({
                 )}
 
                 {activeDesignSubTab === 'theme' && themeConfig && onThemeChange && (
-                   <ThemePanel config={themeConfig} onChange={onThemeChange} />
+                  <ThemePanel config={themeConfig} onChange={onThemeChange} />
                 )}
 
                 {activeDesignSubTab === 'templates' && onLoadTemplate && (
@@ -501,23 +504,23 @@ function SidebarPanelBase({
 
           {activeTab === 'structure' && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300">
-               <div className="p-4 border-b border-gray-50 bg-gray-50/30">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('docStructure')}</h3>
-               </div>
-               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                  <div ref={layersContainerRef} className="gjs-layers-wrap" />
-               </div>
+              <div className="p-4 border-b border-gray-50 bg-gray-50/30">
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('docStructure')}</h3>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <div ref={layersContainerRef} className="gjs-layers-wrap" />
+              </div>
             </div>
           )}
 
           {activeTab === 'settings' && pageConfig && onPageConfigChange && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300 text-sm">
-               <div className="p-4 border-b border-gray-50 bg-gray-50/30">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('pageSettings')}</h3>
-               </div>
-               <div className="flex-1 overflow-y-auto relative">
-                 <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />
-               </div>
+              <div className="p-4 border-b border-gray-50 bg-gray-50/30">
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('pageSettings')}</h3>
+              </div>
+              <div className="flex-1 overflow-y-auto relative">
+                <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />
+              </div>
             </div>
           )}
         </div>
