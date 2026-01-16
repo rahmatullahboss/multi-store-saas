@@ -34,6 +34,31 @@ function parseSection(row: typeof builderSections.$inferSelect): BuilderSection 
   };
 }
 
+/**
+ * Parse section for public page (uses publishedPropsJson).
+ * Falls back to propsJson if published content doesn't exist.
+ */
+function parseSectionPublished(row: typeof builderSections.$inferSelect): BuilderSection {
+  let props: Record<string, unknown> = {};
+  try {
+    // Use published props if available, otherwise fall back to draft
+    const propsSource = row.publishedPropsJson || row.propsJson || '{}';
+    props = JSON.parse(propsSource);
+  } catch {
+    props = {};
+  }
+  
+  return {
+    id: row.id,
+    pageId: row.pageId,
+    type: row.type as SectionType,
+    enabled: Boolean(row.enabled),
+    sortOrder: row.sortOrder,
+    props,
+    version: row.version,
+  };
+}
+
 // ============================================================================
 // PAGE OPERATIONS
 // ============================================================================
@@ -137,6 +162,50 @@ export async function listPages(db: D1Database, storeId: number) {
 }
 
 /**
+ * Get published page by slug for public serving.
+ * Uses publishedPropsJson instead of propsJson.
+ */
+export async function getPublishedPageBySlug(
+  db: D1Database,
+  storeId: number,
+  slug: string
+): Promise<BuilderPage | null> {
+  const drizzleDb = drizzle(db);
+  
+  const [page] = await drizzleDb
+    .select()
+    .from(builderPages)
+    .where(and(
+      eq(builderPages.storeId, storeId),
+      eq(builderPages.slug, slug),
+      eq(builderPages.status, 'published')
+    ));
+  
+  if (!page) return null;
+  
+  // Get sections with published props
+  const sections = await drizzleDb
+    .select()
+    .from(builderSections)
+    .where(eq(builderSections.pageId, page.id))
+    .orderBy(asc(builderSections.sortOrder));
+  
+  return {
+    id: page.id,
+    storeId: page.storeId,
+    slug: page.slug,
+    title: page.title,
+    productId: page.productId,
+    status: page.status ?? 'draft',
+    seoTitle: page.seoTitle,
+    seoDescription: page.seoDescription,
+    ogImage: page.ogImage,
+    publishedAt: page.publishedAt,
+    sections: sections.map(parseSectionPublished), // Use published props!
+  };
+}
+
+/**
  * Update page settings.
  */
 export async function updatePageSettings(
@@ -169,16 +238,28 @@ export async function updatePageSettings(
 
 /**
  * Publish a page.
+ * Copies all section draft content (propsJson) to published content (publishedPropsJson).
  */
 export async function publishPage(db: D1Database, pageId: string, storeId: number) {
   const drizzleDb = drizzle(db);
+  const now = new Date();
   
+  // Step 1: Copy all section props to published props
+  await db.prepare(`
+    UPDATE builder_sections 
+    SET published_props_json = props_json,
+        published_at = ?
+    WHERE page_id = ?
+  `).bind(now.getTime(), pageId).run();
+  
+  // Step 2: Update page status
   await drizzleDb
     .update(builderPages)
     .set({
       status: 'published',
-      publishedAt: new Date(),
-      updatedAt: new Date(),
+      publishedAt: now,
+      lastPublishedAt: now,
+      updatedAt: now,
     })
     .where(and(
       eq(builderPages.id, pageId),
@@ -475,6 +556,8 @@ export async function duplicateSection(
     enabled: original.enabled,
     sortOrder: nextOrder,
     propsJson: original.propsJson,
+    publishedPropsJson: null, // Duplicated section starts as draft
+    publishedAt: null,
     version: 1,
     createdAt: new Date(),
     updatedAt: new Date(),

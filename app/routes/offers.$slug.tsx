@@ -10,7 +10,7 @@ import { useLoaderData } from '@remix-run/react';
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 
 import { getPageFromCache, cachePageData } from '~/lib/page-builder/cache.server';
-import { getPageBySlug } from '~/lib/page-builder/actions.server';
+import { getPublishedPageBySlug } from '~/lib/page-builder/actions.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 
 // ============================================================================
@@ -107,15 +107,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     });
   }
   
-  // Fetch from D1
-  const page = await getPageBySlug(db, store.id, slug);
+  // Fetch from D1 (getPublishedPageBySlug only returns published pages)
+  const page = await getPublishedPageBySlug(db, store.id, slug);
   
   if (!page) {
     throw new Response('Page not found', { status: 404 });
-  }
-  
-  if (page.status !== 'published') {
-    throw new Response('Page not published', { status: 404 });
   }
   
   // Cache for next request
@@ -130,7 +126,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       seoDescription: page.seoDescription,
       ogImage: page.ogImage,
     },
-    sections: page.sections.map(s => ({
+    sections: page.sections.map((s: { id: string; type: string; enabled: boolean; sortOrder: number; props: Record<string, unknown> }) => ({
       id: s.id,
       type: s.type,
       enabled: s.enabled,

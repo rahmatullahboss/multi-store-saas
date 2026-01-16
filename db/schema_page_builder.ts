@@ -29,6 +29,7 @@ export const builderPages = sqliteTable('builder_pages', {
   // Status
   status: text('status').$type<'draft' | 'published'>().default('draft'),
   publishedAt: integer('published_at', { mode: 'timestamp' }),
+  lastPublishedAt: integer('last_published_at', { mode: 'timestamp' }), // When sections were last published
   
   // Template (optional - for pre-defined layouts)
   templateId: text('template_id'),
@@ -66,8 +67,10 @@ export const builderSections = sqliteTable('builder_sections', {
   // Ordering (critical for deterministic rendering)
   sortOrder: integer('sort_order').notNull(),
   
-  // Section content (JSON)
-  propsJson: text('props_json').notNull().default('{}'),
+  // Section content (JSON) - Draft/Publish split
+  propsJson: text('props_json').notNull().default('{}'), // Draft content (editable)
+  publishedPropsJson: text('published_props_json'), // Published content (served to public)
+  publishedAt: integer('published_at', { mode: 'timestamp' }), // When this section was published
   
   // Optimistic concurrency control
   version: integer('version').notNull().default(1),
