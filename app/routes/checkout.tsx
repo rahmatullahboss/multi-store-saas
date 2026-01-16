@@ -26,13 +26,14 @@ import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/st
 import { PaymentMethodSelector } from '~/components/checkout/PaymentMethodSelector';
 import { useState, useEffect, useMemo } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
+import { getCustomer } from '~/services/customer-auth.server';
 import { toast } from 'sonner';
 
 export const meta: MetaFunction = () => {
     return [{ title: 'Checkout - Secure Payment' }];
 };
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const { store, storeId, cloudflare } = context;
   
   if (!store || !storeId) {
@@ -97,6 +98,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
     }).filter(Boolean);
   }
 
+  // Load customer session for Google Sign-In header
+  const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
   return json({
     storeId: storeId as number,
     storeName: storeData.name,
@@ -112,6 +115,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     facebookPixelId: storeData.facebookPixelId,
     themeConfig,
     planType: storeData.planType || 'free',
+    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
   });
 }
 
@@ -150,7 +154,8 @@ export default function Checkout() {
     storeId, storeName, logo, currency, storeTemplateId, theme, 
     socialLinks, businessInfo, shippingConfig, manualPaymentConfig, bumpProducts, facebookPixelId,
     themeConfig,
-    planType
+    planType,
+    customer
   } = useLoaderData<typeof loader>();
   
   const fetcher = useFetcher();
@@ -352,7 +357,7 @@ export default function Checkout() {
 
   if (cartItems.length === 0) {
      return (
-        <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType}>
+        <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType} customer={customer}>
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6">
                 <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('cartEmpty')}</h2>
@@ -697,7 +702,7 @@ export default function Checkout() {
   // One Page Layout: Single centered column
   if (checkoutStyle === 'one_page') {
       return (
-        <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType}>
+        <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType} customer={customer}>
             <div className="max-w-2xl mx-auto px-4 py-8">
                  <div className="text-center mb-8">
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('checkout')}</h1>
@@ -772,7 +777,7 @@ export default function Checkout() {
   if (isDaraz) return <DarazPageWrapper storeName={storeName} storeId={storeId} logo={logo} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo}>{content}</DarazPageWrapper>;
 
   return (
-    <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType}>
+    <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType} customer={customer}>
       {content}
     </StorePageWrapper>
   );
