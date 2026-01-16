@@ -359,21 +359,23 @@ export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
                 </div>
                 
                 {/* Delivery Location - Dual Buttons */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setIsInsideDhaka(true)}
-                    className="py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                    className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
                     style={{
                       backgroundColor: isInsideDhaka ? primaryColor : inputBg,
                       color: isInsideDhaka ? '#FFFFFF' : textColor,
                       border: `2px solid ${isInsideDhaka ? primaryColor : inputBorder}`,
                     }}
                   >
-                    <Package size={16} />
-                    {insideDhakaLabel}
+                    <div className="flex items-center gap-2">
+                      <Package size={16} className="flex-shrink-0" />
+                      <span className="text-sm sm:text-base">{insideDhakaLabel}</span>
+                    </div>
                     <span 
-                      className="text-xs px-2 py-0.5 rounded-full"
+                      className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
                       style={{ 
                         backgroundColor: isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
                         color: isInsideDhaka ? '#FFFFFF' : primaryColor,
@@ -385,17 +387,19 @@ export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
                   <button
                     type="button"
                     onClick={() => setIsInsideDhaka(false)}
-                    className="py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                    className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
                     style={{
                       backgroundColor: !isInsideDhaka ? primaryColor : inputBg,
                       color: !isInsideDhaka ? '#FFFFFF' : textColor,
                       border: `2px solid ${!isInsideDhaka ? primaryColor : inputBorder}`,
                     }}
                   >
-                    <Truck size={16} />
-                    {outsideDhakaLabel}
+                    <div className="flex items-center gap-2">
+                      <Truck size={16} className="flex-shrink-0" />
+                      <span className="text-sm sm:text-base">{outsideDhakaLabel}</span>
+                    </div>
                     <span 
-                      className="text-xs px-2 py-0.5 rounded-full"
+                      className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
                       style={{ 
                         backgroundColor: !isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
                         color: !isInsideDhaka ? '#FFFFFF' : primaryColor,
