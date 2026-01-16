@@ -1,23 +1,42 @@
 /**
- * Features Section Preview
+ * Features Section Preview - Theme-enabled
  */
+
+import type { SectionTheme } from '~/lib/page-builder/types';
 
 interface FeaturesProps {
   title?: string;
   features?: Array<{ icon: string; title: string; description: string }>;
 }
 
-export function FeaturesSectionPreview({ props }: { props: Record<string, unknown> }) {
+interface FeaturesSectionPreviewProps {
+  props: Record<string, unknown>;
+  theme?: SectionTheme;
+}
+
+export function FeaturesSectionPreview({ props, theme }: FeaturesSectionPreviewProps) {
   const {
     title = 'প্রধান বৈশিষ্ট্যসমূহ',
     features = [],
   } = props as FeaturesProps;
   
+  // Theme-based styling
+  const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
+  
+  const bgColor = isDark ? (theme?.bgColor || '#18181B') : '#FFFFFF';
+  const textColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
+  const mutedColor = isDark ? 'rgba(255,255,255,0.7)' : (theme?.mutedTextColor || '#6B7280');
+  const cardBg = isDark ? 'rgba(255,255,255,0.05)' : (theme?.cardBg || '#F9FAFB');
+  const primaryColor = theme?.primaryColor || '#6366F1';
+  
   return (
-    <section className="py-12 px-6 bg-white">
+    <section className="py-12 px-6" style={{ backgroundColor: bgColor }}>
       <div className="max-w-4xl mx-auto">
         {title && (
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
+          <h2 
+            className="text-2xl font-bold text-center mb-8"
+            style={{ color: textColor }}
+          >
             {title}
           </h2>
         )}
@@ -26,13 +45,22 @@ export function FeaturesSectionPreview({ props }: { props: Record<string, unknow
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+              className="text-center p-6 rounded-xl transition-all hover:-translate-y-1"
+              style={{ backgroundColor: cardBg }}
             >
-              <div className="text-3xl mb-3">{feature.icon}</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div 
+                className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center text-2xl"
+                style={{ backgroundColor: primaryColor, color: '#FFFFFF' }}
+              >
+                {feature.icon}
+              </div>
+              <h3 
+                className="text-lg font-semibold mb-2"
+                style={{ color: textColor }}
+              >
                 {feature.title}
               </h3>
-              <p className="text-gray-600 text-sm">
+              <p className="text-sm" style={{ color: mutedColor }}>
                 {feature.description}
               </p>
             </div>
@@ -40,7 +68,7 @@ export function FeaturesSectionPreview({ props }: { props: Record<string, unknow
         </div>
         
         {features.length === 0 && (
-          <p className="text-center text-gray-400 py-8">
+          <p className="text-center py-8" style={{ color: mutedColor }}>
             No features added yet
           </p>
         )}

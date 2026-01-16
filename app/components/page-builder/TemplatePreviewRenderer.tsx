@@ -1,12 +1,12 @@
 /**
- * Template Preview Renderer
+ * Template Preview Renderer - Theme-enabled
  * 
- * Renders template sections as a visual preview during template selection.
- * Uses the same section components as the main builder.
+ * Renders template sections as a visual preview with theme support.
  */
 
-import type { TemplatePreset, TemplateSection } from '~/lib/page-builder/templates';
-import type { BuilderSection } from '~/lib/page-builder/types';
+import type { TemplatePreset } from '~/lib/page-builder/templates';
+import type { BuilderSection, SectionTheme } from '~/lib/page-builder/types';
+import { getThemeForTemplate } from '~/lib/page-builder/types';
 
 // Import section components
 import { HeroSectionPreview } from './sections/HeroSectionPreview';
@@ -29,13 +29,16 @@ import { PlaceholderSection } from './sections/PlaceholderSection';
 
 interface TemplatePreviewRendererProps {
   template: TemplatePreset;
-  scale?: number; // Scale down for thumbnail view
+  scale?: number;
 }
 
 export function TemplatePreviewRenderer({ 
   template,
   scale = 1 
 }: TemplatePreviewRendererProps) {
+  // Get the theme for this template
+  const theme = getThemeForTemplate(template.id);
+  
   // Convert template sections to BuilderSection format for rendering
   const sections: BuilderSection[] = template.sections.map((section, index) => ({
     id: `preview-${template.id}-${index}`,
@@ -69,42 +72,48 @@ export function TemplatePreviewRenderer({
       }}
     >
       {sections.map((section) => (
-        <SectionContent key={section.id} section={section} />
+        <SectionContent key={section.id} section={section} theme={theme} />
       ))}
     </div>
   );
 }
 
-function SectionContent({ section }: { section: BuilderSection }) {
+interface SectionContentProps {
+  section: BuilderSection;
+  theme: SectionTheme;
+}
+
+function SectionContent({ section, theme }: SectionContentProps) {
   const { type, props } = section;
   
+  // Pass theme to all sections that support it
   switch (type) {
     case 'hero':
-      return <HeroSectionPreview props={props} />;
+      return <HeroSectionPreview props={props} theme={theme} />;
     case 'features':
-      return <FeaturesSectionPreview props={props} />;
+      return <FeaturesSectionPreview props={props} theme={theme} />;
     case 'faq':
-      return <FAQSectionPreview props={props} />;
+      return <FAQSectionPreview props={props} theme={theme} />;
     case 'testimonials':
-      return <TestimonialsSectionPreview props={props} />;
+      return <TestimonialsSectionPreview props={props} theme={theme} />;
     case 'trust-badges':
-      return <TrustBadgesSectionPreview props={props} />;
+      return <TrustBadgesSectionPreview props={props} theme={theme} />;
     case 'cta':
-      return <CTASectionPreview props={props} />;
+      return <CTASectionPreview props={props} theme={theme} />;
     case 'video':
       return <VideoSectionPreview props={props} />;
     case 'guarantee':
-      return <GuaranteeSectionPreview props={props} />;
+      return <GuaranteeSectionPreview props={props} theme={theme} />;
     case 'gallery':
       return <GallerySectionPreview props={props} />;
     case 'benefits':
-      return <BenefitsSectionPreview props={props} />;
+      return <BenefitsSectionPreview props={props} theme={theme} />;
     case 'comparison':
       return <ComparisonSectionPreview props={props} />;
     case 'delivery':
       return <DeliverySectionPreview props={props} />;
     case 'problem-solution':
-      return <ProblemSolutionPreview props={props} />;
+      return <ProblemSolutionPreview props={props} theme={theme} />;
     case 'pricing':
       return <PricingSectionPreview props={props} />;
     case 'how-to-order':

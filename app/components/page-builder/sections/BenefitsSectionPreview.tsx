@@ -1,15 +1,24 @@
 /**
- * Page Builder v2 - Benefits Section Preview
+ * Benefits Section Preview - Theme-enabled
  */
+
+import type { SectionTheme } from '~/lib/page-builder/types';
 
 interface BenefitsProps {
   title?: string;
+  subtitle?: string;
   benefits?: Array<{ icon?: string; title: string; description?: string }>;
 }
 
-export function BenefitsSectionPreview({ props }: { props: Record<string, unknown> }) {
+interface BenefitsSectionPreviewProps {
+  props: Record<string, unknown>;
+  theme?: SectionTheme;
+}
+
+export function BenefitsSectionPreview({ props, theme }: BenefitsSectionPreviewProps) {
   const { 
-    title = 'কেন আমাদের থেকে কিনবেন?', 
+    title = 'কেন আমাদের থেকে কিনবেন?',
+    subtitle = '',
     benefits = [] 
   } = props as BenefitsProps;
   
@@ -21,28 +30,77 @@ export function BenefitsSectionPreview({ props }: { props: Record<string, unknow
   
   const displayBenefits = benefits.length > 0 ? benefits : defaultBenefits;
   
+  // Theme-based styling
+  const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
+  
+  const getBgStyle = () => {
+    if (isDark) {
+      return { backgroundColor: theme?.bgColor || '#18181B' };
+    }
+    if (theme?.style === 'nature') {
+      return { background: 'linear-gradient(to bottom, #F0FDF4, #FFFFFF)' };
+    }
+    if (theme?.style === 'professional') {
+      return { background: 'linear-gradient(to bottom, #F8F9FA, #FFFFFF)' };
+    }
+    if (theme?.style === 'minimal') {
+      return { background: 'linear-gradient(to bottom, #F8FAFC, #FFFFFF)' };
+    }
+    return { background: 'linear-gradient(to bottom, #F0FDF4, #FFFFFF)' };
+  };
+  
+  const textColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
+  const mutedColor = isDark ? 'rgba(255,255,255,0.7)' : (theme?.mutedTextColor || '#6B7280');
+  const cardBg = isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF';
+  const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : (theme?.cardBorder || '#D1FAE5');
+  const iconBg = theme?.primaryColor || '#10B981';
+  
   return (
-    <section className="py-12 px-4 bg-gradient-to-b from-green-50 to-white">
+    <section className="py-12 px-4" style={getBgStyle()}>
       <div className="max-w-4xl mx-auto">
         {title && (
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-10">{title}</h2>
+          <h2 
+            className="text-2xl font-bold text-center mb-2"
+            style={{ color: textColor }}
+          >
+            {title}
+          </h2>
+        )}
+        {subtitle && (
+          <p 
+            className="text-center mb-10"
+            style={{ color: mutedColor }}
+          >
+            {subtitle}
+          </p>
         )}
         
-        <div className="space-y-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayBenefits.map((benefit, i) => (
             <div 
               key={i} 
-              className="flex items-start gap-4 bg-white rounded-xl p-6 shadow-sm border border-green-100"
+              className="flex flex-col items-center text-center p-6 rounded-2xl transition-transform hover:-translate-y-1"
+              style={{ 
+                backgroundColor: cardBg, 
+                border: `1px solid ${cardBorder}`,
+                boxShadow: isDark ? 'none' : '0 4px 6px -1px rgba(0,0,0,0.05)',
+              }}
             >
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl text-green-600">{benefit.icon || '✓'}</span>
+              <div 
+                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+                style={{ backgroundColor: iconBg }}
+              >
+                <span className="text-2xl text-white">{benefit.icon || '✓'}</span>
               </div>
-              <div>
-                <h3 className="font-semibold text-lg text-gray-900">{benefit.title}</h3>
-                {benefit.description && (
-                  <p className="text-gray-600 mt-1">{benefit.description}</p>
-                )}
-              </div>
+              <h3 
+                className="font-semibold text-lg mb-2"
+                style={{ color: textColor }}
+              >
+                {benefit.title}
+              </h3>
+              {benefit.description && (
+                <p style={{ color: mutedColor }}>{benefit.description}</p>
+              )}
             </div>
           ))}
         </div>
