@@ -133,6 +133,8 @@
   "passwordMinChars": "Password must be at least 6 characters",
   "nameRequired": "Name required",
   "validMobileRequired": "Valid mobile number required (01XXXXXXXXX)",
+  "phoneAlreadyRegistered": "This phone number is already registered",
+  "emailAlreadyRegistered": "This email is already registered",
   "storeNameRequired": "Store name is required",
   "subdomainMinChars": "Subdomain must be at least 3 characters",
   "trxIdRequired": "Please enter TRX ID",
