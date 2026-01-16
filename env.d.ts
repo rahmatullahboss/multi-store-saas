@@ -34,6 +34,8 @@ declare global {
     EMAIL_QUEUE?: Queue<unknown>;
     // KV Namespace for AI Rate Limiting
     AI_RATE_LIMIT?: KVNamespace;
+    // KV Namespace for Store/Page Caching
+    STORE_CACHE?: KVNamespace;
     // Session Secret for Cookie Encryption
     SESSION_SECRET: string;
     // Google OAuth

@@ -89,7 +89,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   }
   
   const db = context.cloudflare.env.DB;
-  const kv = context.cloudflare.env.PAGE_CACHE as KVNamespace | undefined;
+  const kv = context.cloudflare.env.STORE_CACHE as KVNamespace | undefined;
   
   // Try cache first (if KV is available)
   const cached = await getPageFromCache(kv, store.id, slug);
