@@ -509,6 +509,302 @@ function renderPropsForm(
         </>
       );
     
+    case 'gallery':
+      return (
+        <>
+          <TextField 
+            label="Title" 
+            value={props.title as string || ''} 
+            onChange={(v) => updateProp('title', v)} 
+          />
+          <ArrayField
+            label="Images"
+            items={(props.images as string[]) || []}
+            onAdd={() => addArrayItem('images', '')}
+            onRemove={(i) => removeArrayItem('images', i)}
+            renderItem={(item, index) => (
+              <div key={index} className="p-2 bg-gray-50 rounded">
+                <ImageField 
+                  label={`Image ${index + 1}`} 
+                  value={item || ''} 
+                  onChange={(v) => updateArrayItem('images', index, v)} 
+                />
+              </div>
+            )}
+          />
+        </>
+      );
+    
+    case 'benefits':
+      return (
+        <>
+          <TextField 
+            label="Title" 
+            value={props.title as string || ''} 
+            onChange={(v) => updateProp('title', v)} 
+          />
+          <ArrayField
+            label="Benefits"
+            items={(props.benefits as Array<{ icon: string; title: string; description: string }>) || []}
+            onAdd={() => addArrayItem('benefits', { icon: '💎', title: '', description: '' })}
+            onRemove={(i) => removeArrayItem('benefits', i)}
+            renderItem={(item, index) => (
+              <div key={index} className="space-y-2 p-2 bg-gray-50 rounded">
+                <TextField 
+                  label="Icon" 
+                  value={item.icon || ''} 
+                  onChange={(v) => updateArrayItem('benefits', index, { ...item, icon: v })} 
+                />
+                <TextField 
+                  label="Title" 
+                  value={item.title || ''} 
+                  onChange={(v) => updateArrayItem('benefits', index, { ...item, title: v })} 
+                />
+                <TextField 
+                  label="Description" 
+                  value={item.description || ''} 
+                  onChange={(v) => updateArrayItem('benefits', index, { ...item, description: v })} 
+                />
+              </div>
+            )}
+          />
+        </>
+      );
+    
+    case 'comparison':
+      return (
+        <>
+          <TextField 
+            label="Title" 
+            value={props.title as string || ''} 
+            onChange={(v) => updateProp('title', v)} 
+          />
+          <div className="border-b border-gray-100 pb-3 mb-3">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Before</h5>
+            <ImageField 
+              label="Before Image" 
+              value={props.beforeImage as string || ''} 
+              onChange={(v) => updateProp('beforeImage', v)} 
+            />
+            <TextField 
+              label="Before Label" 
+              value={props.beforeLabel as string || 'আগে'} 
+              onChange={(v) => updateProp('beforeLabel', v)} 
+            />
+          </div>
+          <div className="mb-3">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">After</h5>
+            <ImageField 
+              label="After Image" 
+              value={props.afterImage as string || ''} 
+              onChange={(v) => updateProp('afterImage', v)} 
+            />
+            <TextField 
+              label="After Label" 
+              value={props.afterLabel as string || 'পরে'} 
+              onChange={(v) => updateProp('afterLabel', v)} 
+            />
+          </div>
+          <TextAreaField 
+            label="Description" 
+            value={props.description as string || ''} 
+            onChange={(v) => updateProp('description', v)} 
+          />
+        </>
+      );
+    
+    case 'delivery':
+      return (
+        <>
+          <TextField 
+            label="Title" 
+            value={props.title as string || ''} 
+            onChange={(v) => updateProp('title', v)} 
+          />
+          <TextAreaField 
+            label="Description" 
+            value={props.description as string || ''} 
+            onChange={(v) => updateProp('description', v)} 
+          />
+          <ArrayField
+            label="Delivery Areas"
+            items={(props.areas as string[]) || []}
+            onAdd={() => addArrayItem('areas', '')}
+            onRemove={(i) => removeArrayItem('areas', i)}
+            renderItem={(item, index) => (
+              <div key={index} className="p-2 bg-gray-50 rounded">
+                <TextField 
+                  label={`Area ${index + 1}`} 
+                  value={item || ''} 
+                  onChange={(v) => updateArrayItem('areas', index, v)} 
+                />
+              </div>
+            )}
+          />
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <NumberField 
+              label="ঢাকার ভিতরে (৳)" 
+              value={props.insideDhakaPrice as number || 60} 
+              onChange={(v) => updateProp('insideDhakaPrice', v)} 
+            />
+            <NumberField 
+              label="ঢাকার বাইরে (৳)" 
+              value={props.outsideDhakaPrice as number || 120} 
+              onChange={(v) => updateProp('outsideDhakaPrice', v)} 
+            />
+          </div>
+        </>
+      );
+    
+    case 'problem-solution':
+      return (
+        <>
+          <div className="border-b border-gray-100 pb-3 mb-3">
+            <TextField 
+              label="Problems Title" 
+              value={props.beforeTitle as string || 'সমস্যা'} 
+              onChange={(v) => updateProp('beforeTitle', v)} 
+            />
+            <ArrayField
+              label="Problems"
+              items={(props.problems as string[]) || []}
+              onAdd={() => addArrayItem('problems', '')}
+              onRemove={(i) => removeArrayItem('problems', i)}
+              renderItem={(item, index) => (
+                <div key={index} className="p-2 bg-red-50 rounded">
+                  <TextField 
+                    label={`Problem ${index + 1}`} 
+                    value={item || ''} 
+                    onChange={(v) => updateArrayItem('problems', index, v)} 
+                  />
+                </div>
+              )}
+            />
+          </div>
+          <div>
+            <TextField 
+              label="Solutions Title" 
+              value={props.afterTitle as string || 'সমাধান'} 
+              onChange={(v) => updateProp('afterTitle', v)} 
+            />
+            <ArrayField
+              label="Solutions"
+              items={(props.solutions as string[]) || []}
+              onAdd={() => addArrayItem('solutions', '')}
+              onRemove={(i) => removeArrayItem('solutions', i)}
+              renderItem={(item, index) => (
+                <div key={index} className="p-2 bg-green-50 rounded">
+                  <TextField 
+                    label={`Solution ${index + 1}`} 
+                    value={item || ''} 
+                    onChange={(v) => updateArrayItem('solutions', index, v)} 
+                  />
+                </div>
+              )}
+            />
+          </div>
+        </>
+      );
+    
+    case 'pricing':
+      return (
+        <>
+          <TextField 
+            label="Title" 
+            value={props.title as string || ''} 
+            onChange={(v) => updateProp('title', v)} 
+          />
+          <TextField 
+            label="Button Text" 
+            value={props.buttonText as string || 'অর্ডার করুন'} 
+            onChange={(v) => updateProp('buttonText', v)} 
+          />
+          <ArrayField
+            label="Features"
+            items={(props.features as string[]) || []}
+            onAdd={() => addArrayItem('features', '')}
+            onRemove={(i) => removeArrayItem('features', i)}
+            renderItem={(item, index) => (
+              <div key={index} className="p-2 bg-gray-50 rounded">
+                <TextField 
+                  label={`Feature ${index + 1}`} 
+                  value={item || ''} 
+                  onChange={(v) => updateArrayItem('features', index, v)} 
+                />
+              </div>
+            )}
+          />
+        </>
+      );
+    
+    case 'how-to-order':
+      return (
+        <>
+          <TextField 
+            label="Title" 
+            value={props.title as string || ''} 
+            onChange={(v) => updateProp('title', v)} 
+          />
+          <ArrayField
+            label="Steps"
+            items={(props.steps as Array<{ title: string; description: string }>) || []}
+            onAdd={() => addArrayItem('steps', { title: '', description: '' })}
+            onRemove={(i) => removeArrayItem('steps', i)}
+            renderItem={(item, index) => (
+              <div key={index} className="space-y-2 p-2 bg-gray-50 rounded">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs flex items-center justify-center font-bold">
+                    {index + 1}
+                  </span>
+                  <span className="text-xs text-gray-500">Step {index + 1}</span>
+                </div>
+                <TextField 
+                  label="Title" 
+                  value={item.title || ''} 
+                  onChange={(v) => updateArrayItem('steps', index, { ...item, title: v })} 
+                />
+                <TextField 
+                  label="Description" 
+                  value={item.description || ''} 
+                  onChange={(v) => updateArrayItem('steps', index, { ...item, description: v })} 
+                />
+              </div>
+            )}
+          />
+        </>
+      );
+    
+    case 'showcase':
+      return (
+        <>
+          <TextField 
+            label="Title" 
+            value={props.title as string || ''} 
+            onChange={(v) => updateProp('title', v)} 
+          />
+          <ImageField 
+            label="Product Image" 
+            value={props.image as string || ''} 
+            onChange={(v) => updateProp('image', v)} 
+          />
+          <ArrayField
+            label="Features"
+            items={(props.features as string[]) || []}
+            onAdd={() => addArrayItem('features', '')}
+            onRemove={(i) => removeArrayItem('features', i)}
+            renderItem={(item, index) => (
+              <div key={index} className="p-2 bg-gray-50 rounded">
+                <TextField 
+                  label={`Feature ${index + 1}`} 
+                  value={item || ''} 
+                  onChange={(v) => updateArrayItem('features', index, v)} 
+                />
+              </div>
+            )}
+          />
+        </>
+      );
+    
     default:
       return (
         <div className="text-sm text-gray-500">
