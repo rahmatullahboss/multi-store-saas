@@ -14,7 +14,7 @@
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers, templateAnalytics } from '@db/schema';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers, templateAnalytics, savedLandingConfigs } from '@db/schema';
 import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { sendPushNotification } from '~/services/push.server';
@@ -535,7 +535,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           // CREATE new customer
           const [newCustomer] = await db.insert(customers).values({
             storeId: input.store_id,
-            email: input.customer_email || `${input.phone}@phone.local`, // Use phone as email fallback
+            email: input.customer_email || null, // Email is optional for BD market
             name: input.customer_name,
             phone: input.phone,
             address: input.address,

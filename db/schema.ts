@@ -197,7 +197,7 @@ export const productCollections = sqliteTable('product_collections', {
 export const customers = sqliteTable('customers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  email: text('email').notNull(),
+  email: text('email'), // Optional - BD customers usually only provide phone
   name: text('name'),
   phone: text('phone'),
   address: text('address'), // JSON object with address details
