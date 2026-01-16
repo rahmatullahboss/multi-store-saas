@@ -74,7 +74,7 @@ const COLORS = DARK_COLORS;
 // GRAIN TEXTURE OVERLAY
 // ============================================================================
 const GrainOverlay = ({ isLight = false }: { isLight?: boolean }) => (
-  <div 
+  <div
     className={`pointer-events-none fixed inset-0 z-50 ${isLight ? 'opacity-[0.02]' : 'opacity-[0.03]'}`}
     style={{
       backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
@@ -87,9 +87,9 @@ const GrainOverlay = ({ isLight = false }: { isLight?: boolean }) => (
 // ============================================================================
 const FloatingBengaliText = ({ isMobile = false }: { isMobile?: boolean }) => {
   const bengaliChars = ['অ', 'আ', 'ই', 'ক', 'খ', 'গ', 'ব', 'ম', 'স', 'হ', 'ড', 'ন'];
-  
+
   if (isMobile) return null; // Disable floating text on mobile for performance
-  
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {bengaliChars.map((char, i) => (
@@ -103,7 +103,7 @@ const FloatingBengaliText = ({ isMobile = false }: { isMobile?: boolean }) => {
             fontFamily: "'Noto Sans Bengali', sans-serif",
           }}
           initial={{ opacity: 0, y: 20 }}
-          animate={{ 
+          animate={{
             opacity: [0.03, 0.08, 0.03],
             y: [0, -10, 0],
             rotate: [-2, 2, -2],
@@ -140,7 +140,7 @@ const GradientMeshBackground = ({ isMobile = false }: { isMobile?: boolean }) =>
       }}
       transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
     />
-    
+
     {/* Deep blue gradient orb */}
     <motion.div
       className="absolute -bottom-1/4 -right-1/4 w-[700px] h-[700px] rounded-full"
@@ -154,7 +154,7 @@ const GradientMeshBackground = ({ isMobile = false }: { isMobile?: boolean }) =>
       }}
       transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
     />
-    
+
     {/* Golden accent orb */}
     <motion.div
       className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full"
@@ -167,9 +167,9 @@ const GradientMeshBackground = ({ isMobile = false }: { isMobile?: boolean }) =>
       }}
       transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
     />
-    
+
     {/* Gradient overlay */}
-    <div 
+    <div
       className="absolute inset-0"
       style={{
         background: `linear-gradient(135deg, ${COLORS.background} 0%, ${COLORS.backgroundAlt} 50%, rgba(10, 30, 50, 0.95) 100%)`,
@@ -195,7 +195,7 @@ const LightGradientBackground = ({ isMobile = false }: { isMobile?: boolean }) =
       }}
       transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
     />
-    
+
     {/* Soft purple accent - subtle */}
     <motion.div
       className="absolute top-1/3 -right-1/4 w-[700px] h-[700px] rounded-full"
@@ -208,7 +208,7 @@ const LightGradientBackground = ({ isMobile = false }: { isMobile?: boolean }) =
       }}
       transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
     />
-    
+
     {/* Warm amber accent bottom */}
     <motion.div
       className="absolute bottom-0 left-1/3 w-[500px] h-[500px] rounded-full"
@@ -221,18 +221,18 @@ const LightGradientBackground = ({ isMobile = false }: { isMobile?: boolean }) =
       }}
       transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
     />
-    
+
     {/* Subtle dot grid pattern */}
-    <div 
+    <div
       className="absolute inset-0 opacity-[0.03]"
       style={{
         backgroundImage: 'radial-gradient(circle, rgba(0,106,78,0.4) 1px, transparent 1px)',
         backgroundSize: '24px 24px',
       }}
     />
-    
+
     {/* Soft glow behind mockup area */}
-    <div 
+    <div
       className="absolute top-1/4 right-1/4 w-[500px] h-[400px] rounded-full"
       style={{
         background: 'radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, transparent 70%)',
@@ -255,7 +255,7 @@ const Magnetic = ({ children, className = '' }: MagneticProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  
+
   const springConfig = { stiffness: 150, damping: 15 };
   const xSpring = useSpring(x, springConfig);
   const ySpring = useSpring(y, springConfig);
@@ -292,7 +292,7 @@ const Magnetic = ({ children, className = '' }: MagneticProps) => {
 // ============================================================================
 const StaggeredText = ({ text, className = '', delay = 0 }: { text: string; className?: string; delay?: number }) => {
   const words = text.split(' ');
-  
+
   return (
     <span className={className}>
       {words.map((word, i) => (
@@ -352,7 +352,7 @@ const BuilderMockup = () => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [isPublished, setIsPublished] = useState(false);
-  
+
   // Cycle through builder demo steps
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -366,7 +366,7 @@ const BuilderMockup = () => {
         }, 3000);
       }
     }, step === 0 ? 1500 : 2000);
-    
+
     return () => clearTimeout(timer);
   }, [step]);
 
@@ -399,7 +399,7 @@ const BuilderMockup = () => {
           </div>
           <div className="w-16" />
         </div>
-        
+
         {/* Builder interface */}
         <div className="p-4 min-h-[380px]">
           {/* Template selection step */}
@@ -423,7 +423,7 @@ const BuilderMockup = () => {
                       className={`relative p-4 rounded-xl border ${i === 0 ? 'border-[#006A4E] bg-[#006A4E]/10' : 'border-white/10 bg-white/[0.02]'} cursor-pointer`}
                       whileHover={{ scale: 1.02 }}
                     >
-                      <div 
+                      <div
                         className="w-full h-28 rounded-lg mb-3"
                         style={{ background: `linear-gradient(135deg, ${tmpl.color}40, ${tmpl.color}20)` }}
                       />
@@ -440,7 +440,7 @@ const BuilderMockup = () => {
                     </motion.div>
                   ))}
                 </div>
-                
+
                 {/* Animated cursor */}
                 <motion.div
                   className="absolute"
@@ -452,7 +452,7 @@ const BuilderMockup = () => {
                 </motion.div>
               </motion.div>
             )}
-            
+
             {step >= 1 && step < 4 && (
               <motion.div
                 key="editing"
@@ -464,15 +464,15 @@ const BuilderMockup = () => {
                 {/* Store preview */}
                 <div className="rounded-xl border border-white/10 overflow-hidden">
                   {/* Store header */}
-                  <div 
+                  <div
                     className="p-4 transition-all duration-500"
-                    style={{ 
-                      background: step >= 2 
-                        ? `linear-gradient(135deg, ${COLORS.primary}80, ${COLORS.primary}40)` 
-                        : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))' 
+                    style={{
+                      background: step >= 2
+                        ? `linear-gradient(135deg, ${COLORS.primary}80, ${COLORS.primary}40)`
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))'
                     }}
                   >
-                    <motion.h3 
+                    <motion.h3
                       className="text-lg font-bold text-white"
                       key={step}
                       initial={{ opacity: 0 }}
@@ -484,7 +484,7 @@ const BuilderMockup = () => {
                       {step >= 3 ? t('heroDemoStoreSlogan') : t('heroDemoSloganPlaceholder')}
                     </p>
                   </div>
-                  
+
                   {/* Products grid */}
                   <div className="p-3 bg-black/20 grid grid-cols-3 gap-2">
                     {[1, 2, 3].map((_, i) => (
@@ -502,7 +502,7 @@ const BuilderMockup = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Editor tools */}
                 <div className="flex items-center gap-2">
                   <motion.div
@@ -520,13 +520,13 @@ const BuilderMockup = () => {
                     <span>{t('heroDemoContent')}</span>
                   </motion.div>
                 </div>
-                
+
                 {/* Live editing cursor */}
                 {step >= 2 && step < 4 && (
                   <motion.div
                     className="absolute"
                     initial={{ x: step === 2 ? 60 : 130, y: 250, opacity: 1 }}
-                    animate={{ 
+                    animate={{
                       x: step === 3 ? 130 : 60,
                       y: step === 3 ? 250 : 250,
                     }}
@@ -537,7 +537,7 @@ const BuilderMockup = () => {
                 )}
               </motion.div>
             )}
-            
+
             {step === 4 && !isPublished && (
               <motion.div
                 key="publishing"
@@ -555,7 +555,7 @@ const BuilderMockup = () => {
               </motion.div>
             )}
           </AnimatePresence>
-          
+
           {/* Published success overlay */}
           <AnimatePresence>
             {isPublished && (
@@ -594,7 +594,7 @@ const BuilderMockup = () => {
           </AnimatePresence>
         </div>
       </div>
-      
+
       {/* Floating notification */}
       <motion.div
         initial={{ opacity: 0, x: 30, y: -20 }}
@@ -618,7 +618,7 @@ const BuilderMockup = () => {
           </div>
         </motion.div>
       </motion.div>
-      
+
       {/* Step indicator */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -629,9 +629,8 @@ const BuilderMockup = () => {
         {[0, 1, 2, 3, 4].map((s) => (
           <motion.div
             key={s}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              s <= step ? 'bg-[#006A4E]' : 'bg-white/20'
-            }`}
+            className={`h-1.5 rounded-full transition-all duration-300 ${s <= step ? 'bg-[#006A4E]' : 'bg-white/20'
+              }`}
             style={{ width: s === step ? 24 : 8 }}
           />
         ))}
@@ -651,7 +650,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
   const isMobile = useIsMobile();
 
   return (
-    <section 
+    <section
       className="relative min-h-screen overflow-hidden flex items-center"
       style={{ backgroundColor: colors.background }}
     >
@@ -659,12 +658,12 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
       <GrainOverlay isLight={isLight} />
       {isLight ? <LightGradientBackground isMobile={isMobile} /> : <GradientMeshBackground isMobile={isMobile} />}
       {!isLight && <FloatingBengaliText isMobile={isMobile} />}
-      
+
       {/* Subtle grid pattern */}
-      <div 
+      <div
         className={`absolute inset-0 ${isLight ? 'opacity-[0.015]' : 'opacity-[0.02]'}`}
         style={{
-          backgroundImage: isLight 
+          backgroundImage: isLight
             ? `linear-gradient(${colors.text}10 1px, transparent 1px),
                linear-gradient(90deg, ${colors.text}10 1px, transparent 1px)`
             : `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
@@ -672,10 +671,10 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
           backgroundSize: '48px 48px',
         }}
       />
-      
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-24 md:py-32">
+
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 md:py-16">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          
+
           {/* LEFT: Bold Messaging */}
           <div>
             {/* Badge */}
@@ -684,7 +683,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-8"
-              style={{ 
+              style={{
                 backgroundColor: isLight ? 'rgba(0,106,78,0.08)' : `${colors.primary}10`,
                 borderColor: isLight ? 'rgba(0,106,78,0.15)' : `${colors.primary}30`,
                 boxShadow: isLight ? '0 2px 8px rgba(0,106,78,0.1)' : 'none',
@@ -700,23 +699,23 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                 {t('heroBadge')}
               </span>
             </motion.div>
-            
+
             {/* Main Headline */}
-            <h1 
+            <h1
               className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-bold leading-[1.4] tracking-tight mb-6"
               style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
             >
-              <StaggeredText 
-                text={t('heroTitle1')} 
+              <StaggeredText
+                text={t('heroTitle1')}
                 className={`block ${isLight ? 'text-[#0F172A]' : 'text-white'}`}
               />
-              <StaggeredText 
-                text={t('heroTitle2')} 
+              <StaggeredText
+                text={t('heroTitle2')}
                 className="block bg-clip-text text-transparent"
                 delay={0.4}
               />
             </h1>
-            
+
             {/* Gradient text effect via style - works for both themes */}
             <style>{`
               h1 .block:nth-child(2) {
@@ -729,7 +728,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                 50% { background-position: 100% 50%; }
               }
             `}</style>
-            
+
             {/* Subheadline */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -742,7 +741,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
               <br />
               {t('heroSubtitle2')} <span style={{ color: colors.text, fontWeight: 600 }}>{t('heroSubtitle3')}</span>
             </motion.p>
-            
+
             {/* CTA Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -755,10 +754,10 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                 <Link
                   to="/auth/register"
                   className="group relative px-8 py-4 rounded-xl font-semibold text-white overflow-hidden flex items-center gap-2 transition-all hover:scale-[1.02] hover:-translate-y-0.5"
-                  style={{ 
+                  style={{
                     background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
-                    boxShadow: isLight 
-                      ? '0 4px 14px rgba(0,106,78,0.3), 0 1px 3px rgba(0,0,0,0.1)' 
+                    boxShadow: isLight
+                      ? '0 4px 14px rgba(0,106,78,0.3), 0 1px 3px rgba(0,0,0,0.1)'
                       : `0 0 30px ${colors.primary}60, 0 0 60px ${colors.primary}30`,
                     fontFamily: "'Noto Sans Bengali', sans-serif",
                   }}
@@ -783,7 +782,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                 </Link>
               </Magnetic>
             </motion.div>
-            
+
             {/* Trust badges */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -801,17 +800,17 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                 {t('heroTrust2')}
               </span>
             </motion.div>
-            
+
             {/* Live signup counter */}
             <LiveSignupCounter count={totalUsers} />
-            
+
             {/* Beta notice */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.8 }}
               className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-lg border"
-              style={{ 
+              style={{
                 backgroundColor: isLight ? 'rgba(217,119,6,0.08)' : `${colors.accent}10`,
                 borderColor: isLight ? 'rgba(217,119,6,0.2)' : `${colors.accent}30`,
                 boxShadow: isLight ? '0 2px 8px rgba(217,119,6,0.1)' : 'none',
@@ -823,12 +822,12 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
               </span>
             </motion.div>
           </div>
-          
+
           {/* RIGHT: Builder Demo Mockup */}
           <div className="hidden lg:block">
             {/* Light theme: white card with shadow wrapping the mockup */}
             {isLight ? (
-              <div 
+              <div
                 className="rounded-2xl p-1 bg-white"
                 style={{
                   boxShadow: '0 10px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)',
@@ -841,7 +840,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
             )}
           </div>
         </div>
-        
+
         {/* Trust footer */}
         <motion.div
           initial={{ opacity: 0 }}
