@@ -1,7 +1,8 @@
 import type { SectionProps } from '../_core/types';
 
 export function ShowcaseTrust({ config }: SectionProps) {
-  const trustBadges = config.trustBadges || [];
+  // Ensure trustBadges is an array (store config may pass an object)
+  const trustBadges = Array.isArray(config.trustBadges) ? config.trustBadges : [];
 
   if (trustBadges.length === 0) return null;
 
