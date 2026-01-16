@@ -2,10 +2,14 @@
  * Page Builder v2 - Template Gallery
  * 
  * Modal for selecting a template when creating a new page.
+ * Features:
+ * - Template preview before selection
+ * - Category filtering
+ * - Beautiful template cards with hover effects
  */
 
 import { useState } from 'react';
-import { X, FileText, Zap, Package, Briefcase, Layout } from 'lucide-react';
+import { X, FileText, Zap, Package, Crown, Layout, Eye, Check, ChevronLeft, Sparkles } from 'lucide-react';
 import type { TemplatePreset, TemplateCategory } from '~/lib/page-builder/templates';
 
 interface TemplateGalleryProps {
@@ -15,11 +19,13 @@ interface TemplateGalleryProps {
   isSubmitting?: boolean;
 }
 
-const CATEGORY_META: Record<TemplateCategory, { name: string; icon: React.ReactNode }> = {
+const CATEGORY_META: Record<TemplateCategory | 'all', { name: string; icon: React.ReactNode }> = {
+  all: { name: 'সব', icon: <Layout className="w-4 h-4" /> },
   sales: { name: 'সেলস', icon: <Zap className="w-4 h-4" /> },
   product: { name: 'প্রোডাক্ট', icon: <Package className="w-4 h-4" /> },
-  service: { name: 'সার্ভিস', icon: <Briefcase className="w-4 h-4" /> },
+  premium: { name: 'প্রিমিয়াম', icon: <Crown className="w-4 h-4" /> },
   minimal: { name: 'মিনিমাল', icon: <Layout className="w-4 h-4" /> },
+  service: { name: 'সার্ভিস', icon: <FileText className="w-4 h-4" /> },
 };
 
 export function TemplateGallery({ 
@@ -29,10 +35,11 @@ export function TemplateGallery({
   isSubmitting = false,
 }: TemplateGalleryProps) {
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplatePreset | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<TemplatePreset | null>(null);
   const [slug, setSlug] = useState('');
   const [title, setTitle] = useState('');
-  const [step, setStep] = useState<'select' | 'details'>('select');
+  const [step, setStep] = useState<'select' | 'preview' | 'details'>('select');
 
   // Filter templates by category
   const filteredTemplates = selectedCategory === 'all' 
@@ -40,35 +47,63 @@ export function TemplateGallery({
     : templates.filter(t => t.category === selectedCategory);
 
   // Get unique categories
-  const categories = [...new Set(templates.map(t => t.category))];
+  const categories = ['all', ...new Set(templates.map(t => t.category))] as (TemplateCategory | 'all')[];
 
-  // Handle template selection
-  const handleTemplateClick = (template: TemplatePreset) => {
-    setSelectedTemplate(template.id);
+  // Handle template selection (go to details)
+  const handleTemplateSelect = (template: TemplatePreset) => {
+    setSelectedTemplate(template);
     setTitle(template.name);
     // Generate slug from template name
     setSlug(template.id + '-' + Date.now().toString(36));
     setStep('details');
   };
 
+  // Handle preview
+  const handlePreview = (template: TemplatePreset, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreviewTemplate(template);
+    setStep('preview');
+  };
+
   // Handle form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedTemplate && slug) {
-      onSelect(selectedTemplate, slug, title);
+      onSelect(selectedTemplate.id, slug, title);
     }
   };
 
   // Generate slug from title
   const handleTitleChange = (value: string) => {
     setTitle(value);
-    // Simple Bangla to English slug conversion
     const slugified = value
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9\u0980-\u09FF-]/g, '')
       .slice(0, 50);
     setSlug(slugified || 'new-page-' + Date.now().toString(36));
+  };
+
+  // Back from preview/details to selection
+  const handleBack = () => {
+    if (step === 'details') {
+      setStep('select');
+      setSelectedTemplate(null);
+    } else if (step === 'preview') {
+      setStep('select');
+      setPreviewTemplate(null);
+    }
+  };
+
+  // Select from preview
+  const handleSelectFromPreview = () => {
+    if (previewTemplate) {
+      setSelectedTemplate(previewTemplate);
+      setTitle(previewTemplate.name);
+      setSlug(previewTemplate.id + '-' + Date.now().toString(36));
+      setPreviewTemplate(null);
+      setStep('details');
+    }
   };
 
   return (
@@ -80,19 +115,30 @@ export function TemplateGallery({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-500 to-purple-600">
-          <div>
-            <h2 className="text-xl font-bold text-white">
-              {step === 'select' ? 'টেমপ্লেট নির্বাচন করুন' : 'পেজ সেটআপ'}
-            </h2>
-            <p className="text-sm text-indigo-100">
-              {step === 'select' 
-                ? 'আপনার ল্যান্ডিং পেজের জন্য একটি টেমপ্লেট বেছে নিন'
-                : 'আপনার পেজের নাম এবং URL দিন'
-              }
-            </p>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-purple-600">
+          <div className="flex items-center gap-3">
+            {step !== 'select' && (
+              <button
+                onClick={handleBack}
+                className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
+            <div>
+              <h2 className="text-xl font-bold text-white">
+                {step === 'select' && 'টেমপ্লেট নির্বাচন করুন'}
+                {step === 'preview' && `প্রিভিউ: ${previewTemplate?.name}`}
+                {step === 'details' && 'পেজ সেটআপ'}
+              </h2>
+              <p className="text-sm text-indigo-100">
+                {step === 'select' && 'আপনার ল্যান্ডিং পেজের জন্য একটি টেমপ্লেট বেছে নিন'}
+                {step === 'preview' && 'টেমপ্লেটে কি কি সেকশন আছে দেখুন'}
+                {step === 'details' && 'আপনার পেজের নাম এবং URL দিন'}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -102,21 +148,12 @@ export function TemplateGallery({
           </button>
         </div>
 
-        {step === 'select' ? (
+        {/* ====================== STEP 1: Template Selection ====================== */}
+        {step === 'select' && (
           <>
             {/* Category Filter */}
             <div className="px-6 py-3 border-b border-gray-100 bg-gray-50 flex gap-2 overflow-x-auto">
-              <button
-                onClick={() => setSelectedCategory('all')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-                  selectedCategory === 'all'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                সব দেখুন
-              </button>
-              {categories.map(cat => (
+              {categories.map(cat => CATEGORY_META[cat] && (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
@@ -134,94 +171,208 @@ export function TemplateGallery({
 
             {/* Template Grid */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredTemplates.map(template => (
-                  <button
+                  <div
                     key={template.id}
-                    onClick={() => handleTemplateClick(template)}
-                    className={`group relative bg-white border-2 rounded-xl overflow-hidden transition-all hover:shadow-lg hover:border-indigo-400 text-left ${
-                      selectedTemplate === template.id 
-                        ? 'border-indigo-500 ring-2 ring-indigo-200' 
-                        : 'border-gray-200'
-                    }`}
+                    className="group relative bg-white border-2 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:border-indigo-400 hover:-translate-y-1"
                   >
-                    {/* Thumbnail */}
-                    <div className="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                    {/* Thumbnail with gradient background */}
+                    <div 
+                      className="aspect-[4/3] relative flex items-center justify-center overflow-hidden"
+                      style={{ background: template.colors.bg }}
+                    >
                       {template.id === 'blank' ? (
                         <div className="text-center">
-                          <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                          <span className="text-sm text-gray-400">খালি পেজ</span>
+                          <div className="w-16 h-16 mx-auto mb-2 border-2 border-dashed border-white/40 rounded-xl flex items-center justify-center">
+                            <FileText className="w-8 h-8 text-white/60" />
+                          </div>
+                          <span className="text-sm text-white/70 font-medium">খালি পেজ</span>
                         </div>
                       ) : (
-                        <div className="w-full h-full p-4 flex flex-col gap-1">
-                          {/* Mini preview of sections */}
-                          {template.sections.slice(0, 4).map((s, i) => (
-                            <div 
-                              key={i}
-                              className="flex-1 bg-gradient-to-r from-indigo-100 to-purple-100 rounded opacity-60"
-                              style={{ 
-                                minHeight: i === 0 ? '40%' : '15%',
-                              }}
-                            />
-                          ))}
-                          {template.sections.length > 4 && (
-                            <div className="text-xs text-gray-400 text-center">
-                              +{template.sections.length - 4} আরও সেকশন
+                        /* Mini preview of template sections */
+                        <div className="absolute inset-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-3 flex flex-col gap-1 overflow-hidden">
+                          {/* Mini Header */}
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-lg">{template.emoji}</span>
+                            <div className="flex-1 h-2 rounded bg-white/30" />
+                          </div>
+                          {/* Mini Sections */}
+                          <div className="flex-1 flex flex-col gap-1">
+                            {template.sections.slice(0, 4).map((s, i) => (
+                              <div 
+                                key={i}
+                                className="rounded opacity-70"
+                                style={{ 
+                                  background: 'rgba(255,255,255,0.2)',
+                                  height: i === 0 ? '35%' : '15%',
+                                }}
+                              />
+                            ))}
+                          </div>
+                          {/* Mini CTA */}
+                          <div 
+                            className="h-5 rounded flex items-center justify-center"
+                            style={{ backgroundColor: template.colors.accent }}
+                          >
+                            <span className="text-[9px] text-white font-medium">অর্ডার করুন</span>
+                          </div>
+                          {/* Section count badge */}
+                          {template.sections.length > 0 && (
+                            <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/50 text-white text-[10px] rounded-full">
+                              {template.sections.length} সেকশন
                             </div>
                           )}
                         </div>
                       )}
+
+                      {/* Category Badge */}
+                      <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/40 text-white text-[10px] font-medium rounded-full backdrop-blur-sm flex items-center gap-1">
+                        {template.emoji} {CATEGORY_META[template.category]?.name || template.category}
+                      </div>
+
+                      {/* Hover Actions */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3">
+                        <button
+                          onClick={(e) => handlePreview(template, e)}
+                          className="px-4 py-2 bg-white text-gray-900 text-sm font-medium rounded-lg flex items-center gap-2 hover:bg-gray-100 transition shadow-lg"
+                        >
+                          <Eye size={16} />
+                          প্রিভিউ
+                        </button>
+                        <button
+                          onClick={() => handleTemplateSelect(template)}
+                          className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition shadow-lg"
+                        >
+                          <Check size={16} />
+                          সিলেক্ট
+                        </button>
+                      </div>
                     </div>
 
                     {/* Info */}
-                    <div className="p-4">
+                    <div 
+                      className="p-4 cursor-pointer"
+                      onClick={() => handleTemplateSelect(template)}
+                    >
                       <div className="flex items-center gap-2 mb-1">
-                        {CATEGORY_META[template.category].icon}
-                        <span className="text-xs text-gray-400 uppercase">
-                          {CATEGORY_META[template.category].name}
-                        </span>
+                        <span className="text-lg">{template.emoji}</span>
+                        <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                          {template.name}
+                        </h3>
                       </div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                        {template.name}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-500 line-clamp-2">
                         {template.description}
                       </p>
-                      <div className="mt-2 text-xs text-gray-400">
-                        {template.sections.length} টি সেকশন
-                      </div>
                     </div>
-
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <span className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-                        এটি নির্বাচন করুন
-                      </span>
-                    </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
           </>
-        ) : (
-          /* Step 2: Page Details Form */
-          <form onSubmit={handleSubmit} className="flex-1 p-6">
+        )}
+
+        {/* ====================== STEP 2: Template Preview ====================== */}
+        {step === 'preview' && previewTemplate && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Preview Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Template Info Banner */}
+              <div 
+                className="rounded-xl p-6 mb-6 text-white"
+                style={{ background: previewTemplate.colors.bg }}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl">{previewTemplate.emoji}</span>
+                  <div>
+                    <h3 className="text-2xl font-bold">{previewTemplate.name}</h3>
+                    <p className="text-white/80">{previewTemplate.description}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sections Preview */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-700 flex items-center gap-2">
+                  <Layout size={18} />
+                  এই টেমপ্লেটে {previewTemplate.sections.length} টি সেকশন আছে:
+                </h4>
+                
+                {previewTemplate.sections.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                    <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">এটি একটি খালি টেমপ্লেট। আপনি নিজে সেকশন যোগ করতে পারবেন।</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {previewTemplate.sections.map((section, idx) => (
+                      <div 
+                        key={idx}
+                        className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200"
+                      >
+                        <div 
+                          className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
+                          style={{ backgroundColor: previewTemplate.colors.accent }}
+                        >
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 capitalize">
+                            {section.type.replace(/-/g, ' ')}
+                          </p>
+                          {section.props?.headline && (
+                            <p className="text-sm text-gray-500 truncate max-w-xs">
+                              {String(section.props.headline).slice(0, 50)}...
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Preview Actions */}
+            <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={handleBack}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors font-medium"
+              >
+                অন্য টেমপ্লেট দেখুন
+              </button>
+              <button
+                onClick={handleSelectFromPreview}
+                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium flex items-center gap-2"
+              >
+                <Sparkles size={18} />
+                এই টেমপ্লেট ব্যবহার করুন
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ====================== STEP 3: Page Details Form ====================== */}
+        {step === 'details' && selectedTemplate && (
+          <form onSubmit={handleSubmit} className="flex-1 p-6 overflow-y-auto">
             <div className="max-w-md mx-auto space-y-6">
               {/* Selected template preview */}
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 flex items-center gap-4">
-                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                  <FileText className="w-8 h-8 text-indigo-500" />
+              <div 
+                className="rounded-xl p-4 flex items-center gap-4"
+                style={{ background: selectedTemplate.colors.bg }}
+              >
+                <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center text-3xl">
+                  {selectedTemplate.emoji}
                 </div>
-                <div>
-                  <div className="text-sm text-gray-500">নির্বাচিত টেমপ্লেট</div>
-                  <div className="font-semibold text-gray-900">
-                    {templates.find(t => t.id === selectedTemplate)?.name}
-                  </div>
+                <div className="text-white">
+                  <div className="text-sm opacity-80">নির্বাচিত টেমপ্লেট</div>
+                  <div className="font-semibold text-lg">{selectedTemplate.name}</div>
+                  <div className="text-sm opacity-80">{selectedTemplate.sections.length} টি সেকশন</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setStep('select')}
-                  className="ml-auto text-sm text-indigo-600 hover:text-indigo-700"
+                  className="ml-auto px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm rounded-lg transition"
                 >
                   পরিবর্তন করুন
                 </button>
@@ -278,9 +429,19 @@ export function TemplateGallery({
                 <button
                   type="submit"
                   disabled={isSubmitting || !slug || !title}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? 'তৈরি হচ্ছে...' : 'পেজ তৈরি করুন'}
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      তৈরি হচ্ছে...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      পেজ তৈরি করুন
+                    </>
+                  )}
                 </button>
               </div>
             </div>
