@@ -4,24 +4,21 @@
  * Renders page sections in isolation for accurate mobile preview.
  * Used by the builder's iframe preview.
  * 
- * NOTE: This route renders its own HTML document to bypass the app layout.
+ * This route renders ONLY the section content (no <html> wrapper)
+ * because Remix's root.tsx Layout already provides the document structure.
+ * 
+ * For iframe isolation, the parent should use sandbox attributes
+ * or consider a dedicated preview domain in production.
  */
 
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useRevalidator, Links, Meta, Scripts } from '@remix-run/react';
+import { useLoaderData, useRevalidator } from '@remix-run/react';
 import { useEffect } from 'react';
-import type { LoaderFunctionArgs, LinksFunction } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
 
 import { getPageWithSections } from '~/lib/page-builder/actions.server';
 import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
-
-// Import app styles
-import tailwindStylesHref from '~/styles/tailwind.css?url';
-
-export const links: LinksFunction = () => [
-  { rel: 'stylesheet', href: tailwindStylesHref },
-];
 
 // ============================================================================
 // LOADER
@@ -50,14 +47,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
-// COMPONENT - Renders standalone document without app layout
+// COMPONENT - Renders section content within Remix's document structure
 // ============================================================================
 
 export default function PreviewPage() {
   const { sections } = useLoaderData<typeof loader>();
   const { revalidate } = useRevalidator();
   
-  // Listen for updates from parent window
+  // Listen for updates from parent window (for iframe communication)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'BUILDER_UPDATE') {
@@ -70,25 +67,12 @@ export default function PreviewPage() {
   }, [revalidate]);
   
   return (
-    <html lang="bn">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-        <title>Preview</title>
-      </head>
-      <body className="bg-white min-h-screen">
-        <SectionRenderer
-          sections={sections}
-          activeSectionId={null}
-          onSelectSection={() => {}}
-        />
-        <Scripts />
-      </body>
-    </html>
+    <div className="bg-white min-h-screen">
+      <SectionRenderer
+        sections={sections}
+        activeSectionId={null}
+        onSelectSection={() => {}}
+      />
+    </div>
   );
 }
-
-// Bypass the root layout - this is crucial for iframe embedding
-export const handle = { hydrate: true };
