@@ -1,33 +1,27 @@
 /**
- * useEditorHistory Hook
+ * useEditorHistory Hook v2
  * 
- * Provides undo/redo functionality for editor state management.
- * Features:
- * - Generic state history tracking
- * - Configurable max history (default: 20)
- * - Debounced state snapshots to avoid flooding history
- * - canUndo/canRedo boolean flags
- * - Keyboard shortcuts support (Ctrl+Z, Ctrl+Shift+Z)
+ * Simple, reliable undo/redo for editor state management.
+ * 
+ * Key changes from v1:
+ * - No debounce (immediate history tracking)
+ * - Explicit pushHistory for manual control
+ * - Clear separation between present state and history
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 
-interface HistoryState<T> {
-  past: T[];
-  present: T;
-  future: T[];
-}
-
 interface UseEditorHistoryOptions {
   maxHistory?: number;
-  debounceMs?: number;
 }
 
 interface UseEditorHistoryReturn<T> {
   /** Current state value */
   state: T;
-  /** Update state (creates new history entry after debounce) */
+  /** Update state WITHOUT creating history entry (for live editing) */
   setState: (newState: T | ((prev: T) => T)) => void;
+  /** Push current state to history (call before making important changes) */
+  pushHistory: () => void;
   /** Undo last change */
   undo: () => void;
   /** Redo previously undone change */
@@ -36,166 +30,116 @@ interface UseEditorHistoryReturn<T> {
   canUndo: boolean;
   /** Whether redo is available */
   canRedo: boolean;
-  /** Reset history with new initial state */
+  /** Reset history with new state */
   reset: (state: T) => void;
-  /** Force save current state to history (bypasses debounce) */
-  saveCheckpoint: () => void;
 }
 
 export function useEditorHistory<T>(
   initialState: T,
   options: UseEditorHistoryOptions = {}
 ): UseEditorHistoryReturn<T> {
-  const { maxHistory = 20, debounceMs = 500 } = options;
+  const { maxHistory = 30 } = options;
 
-  // Use ref to capture initial state only once (prevents reset on re-render)
+  // Use ref to capture initial state only once
   const initialStateRef = useRef<T>(initialState);
-  const isInitializedRef = useRef(false);
+  const hasInitializedRef = useRef(false);
 
-  const [history, setHistory] = useState<HistoryState<T>>(() => ({
-    past: [],
-    present: initialStateRef.current,
-    future: [],
-  }));
+  // Current state
+  const [present, setPresent] = useState<T>(() => initialStateRef.current);
+  
+  // History stacks
+  const [past, setPast] = useState<T[]>([]);
+  const [future, setFuture] = useState<T[]>([]);
 
-  // Track pending state for debouncing
-  const pendingStateRef = useRef<T | null>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Track if we've already pushed current state to history
+  const hasPushedRef = useRef(false);
 
-  // Commit pending state to history
-  const commitPendingState = useCallback(() => {
-    if (pendingStateRef.current !== null) {
-      const newState = pendingStateRef.current;
-      pendingStateRef.current = null;
-
-      setHistory((prev) => {
-        // Don't add duplicate states
-        if (JSON.stringify(prev.present) === JSON.stringify(newState)) {
-          return prev;
-        }
-
-        const newPast = [...prev.past, prev.present].slice(-maxHistory);
-        return {
-          past: newPast,
-          present: newState,
-          future: [], // Clear future on new change
-        };
-      });
+  // Sync with server data on initial load and after fetcher updates
+  // but only if we haven't made any local changes yet
+  useEffect(() => {
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      return;
     }
-  }, [maxHistory]);
+    
+    // If there's no history, sync with new initialState from server
+    // This handles newly added sections, etc.
+    if (past.length === 0 && future.length === 0) {
+      setPresent(initialState);
+      initialStateRef.current = initialState;
+    }
+  }, [initialState, past.length, future.length]);
 
-  // Set state with debouncing
+  // Push current state to history (call BEFORE making a change)
+  const pushHistory = useCallback(() => {
+    if (hasPushedRef.current) return; // Avoid duplicate pushes
+    
+    setPast(prev => {
+      const newPast = [...prev, present];
+      // Limit history size
+      return newPast.slice(-maxHistory);
+    });
+    setFuture([]); // Clear redo stack on new action
+    hasPushedRef.current = true;
+  }, [present, maxHistory]);
+
+  // Update state (no history entry - use pushHistory first for undo support)
   const setState = useCallback(
     (newState: T | ((prev: T) => T)) => {
-      setHistory((prev) => {
-        const resolvedState =
-          typeof newState === 'function'
-            ? (newState as (prev: T) => T)(prev.present)
-            : newState;
-
-        // Update pending state
-        pendingStateRef.current = resolvedState;
-
-        // Clear existing timer
-        if (debounceTimerRef.current) {
-          clearTimeout(debounceTimerRef.current);
-        }
-
-        // Set new timer to commit state
-        debounceTimerRef.current = setTimeout(() => {
-          commitPendingState();
-        }, debounceMs);
-
-        // Immediately update present for responsive UI
-        return {
-          ...prev,
-          present: resolvedState,
-        };
-      });
+      hasPushedRef.current = false; // Reset push flag for next change
+      setPresent(prev => 
+        typeof newState === 'function' 
+          ? (newState as (prev: T) => T)(prev) 
+          : newState
+      );
     },
-    [debounceMs, commitPendingState]
+    []
   );
 
   // Undo
   const undo = useCallback(() => {
-    // Commit any pending state first
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-    commitPendingState();
+    if (past.length === 0) return;
 
-    setHistory((prev) => {
-      if (prev.past.length === 0) return prev;
+    const previous = past[past.length - 1];
+    const newPast = past.slice(0, -1);
 
-      const previous = prev.past[prev.past.length - 1];
-      const newPast = prev.past.slice(0, -1);
-
-      return {
-        past: newPast,
-        present: previous,
-        future: [prev.present, ...prev.future],
-      };
-    });
-  }, [commitPendingState]);
+    setPast(newPast);
+    setFuture(prev => [present, ...prev]);
+    setPresent(previous);
+    hasPushedRef.current = false;
+  }, [past, present]);
 
   // Redo
   const redo = useCallback(() => {
-    setHistory((prev) => {
-      if (prev.future.length === 0) return prev;
+    if (future.length === 0) return;
 
-      const next = prev.future[0];
-      const newFuture = prev.future.slice(1);
+    const next = future[0];
+    const newFuture = future.slice(1);
 
-      return {
-        past: [...prev.past, prev.present],
-        present: next,
-        future: newFuture,
-      };
-    });
-  }, []);
+    setPast(prev => [...prev, present]);
+    setFuture(newFuture);
+    setPresent(next);
+    hasPushedRef.current = false;
+  }, [future, present]);
 
-  // Reset history
+  // Reset
   const reset = useCallback((state: T) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-    pendingStateRef.current = null;
-    setHistory({
-      past: [],
-      present: state,
-      future: [],
-    });
-  }, []);
-
-  // Save checkpoint (bypass debounce)
-  const saveCheckpoint = useCallback(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-    commitPendingState();
-  }, [commitPendingState]);
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
+    setPresent(state);
+    setPast([]);
+    setFuture([]);
+    hasPushedRef.current = false;
+    initialStateRef.current = state;
   }, []);
 
   return {
-    state: history.present,
+    state: present,
     setState,
+    pushHistory,
     undo,
     redo,
-    canUndo: history.past.length > 0,
-    canRedo: history.future.length > 0,
+    canUndo: past.length > 0,
+    canRedo: future.length > 0,
     reset,
-    saveCheckpoint,
   };
 }
 

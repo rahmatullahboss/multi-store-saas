@@ -296,18 +296,17 @@ export default function NewBuilderPage() {
   const fetcher = useFetcher();
   const navigate = useNavigate();
   
-  // Undo/redo history for sections - stores snapshots for local undo
+  // Undo/redo history for sections
   const {
     state: sections,
     setState: setSections,
+    pushHistory,
     undo,
     redo,
     canUndo,
     canRedo,
-    saveCheckpoint,
   } = useEditorHistory<BuilderSection[]>(initialSections as BuilderSection[], { 
-    maxHistory: 30, 
-    debounceMs: 800 
+    maxHistory: 30
   });
   
   // Enable keyboard shortcuts for undo/redo
@@ -335,6 +334,9 @@ export default function NewBuilderPage() {
   
   // Handle reorder
   const handleReorder = useCallback((orderedIds: string[]) => {
+    // Save to history before change
+    pushHistory();
+    
     // Optimistic update
     const reordered = orderedIds.map((id, index) => {
       const section = sections.find(s => s.id === id);
@@ -348,10 +350,13 @@ export default function NewBuilderPage() {
       { intent: 'reorder-sections', orderedIds: JSON.stringify(orderedIds) },
       { method: 'post' }
     );
-  }, [sections, fetcher]);
+  }, [sections, fetcher, pushHistory]);
   
   // Handle toggle
   const handleToggle = useCallback((sectionId: string, enabled: boolean) => {
+    // Save to history before change
+    pushHistory();
+    
     // Optimistic update
     setSections(prev => 
       prev.map(s => s.id === sectionId ? { ...s, enabled } : s)
@@ -362,7 +367,7 @@ export default function NewBuilderPage() {
       { intent: 'toggle-section', sectionId, enabled: String(enabled) },
       { method: 'post' }
     );
-  }, [fetcher]);
+  }, [fetcher, pushHistory]);
   
   // Handle add section
   const handleAddSection = useCallback((type: SectionType) => {
@@ -375,6 +380,9 @@ export default function NewBuilderPage() {
   
   // Handle delete section
   const handleDeleteSection = useCallback((sectionId: string) => {
+    // Save to history before change
+    pushHistory();
+    
     // Optimistic update
     setSections(prev => prev.filter(s => s.id !== sectionId));
     
@@ -388,10 +396,13 @@ export default function NewBuilderPage() {
     if (activeSectionId === sectionId) {
       setActiveSectionId(null);
     }
-  }, [fetcher, activeSectionId]);
+  }, [fetcher, activeSectionId, pushHistory]);
   
   // Handle update props
   const handleUpdateProps = useCallback((sectionId: string, type: string, props: Record<string, unknown>, version: number) => {
+    // Save to history before change
+    pushHistory();
+    
     // Optimistic update
     setSections(prev => 
       prev.map(s => s.id === sectionId ? { ...s, props } : s)
@@ -408,7 +419,7 @@ export default function NewBuilderPage() {
       },
       { method: 'post' }
     );
-  }, [fetcher]);
+  }, [fetcher, pushHistory]);
   
   // Handle duplicate
   const handleDuplicate = useCallback((sectionId: string) => {
