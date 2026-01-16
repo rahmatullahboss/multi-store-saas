@@ -22,11 +22,12 @@ interface FloatingActionButtonsProps {
   /** Order button settings */
   orderEnabled?: boolean;
   orderText?: string;
+  orderBgColor?: string;
+  orderTextColor?: string;
   
   /** Custom colors */
   whatsappColor?: string;
   callColor?: string;
-  orderColor?: string;
   
   /** Position */
   position?: 'bottom-right' | 'bottom-left' | 'bottom-center';
@@ -40,9 +41,10 @@ export function FloatingActionButtons({
   callNumber = '',
   orderEnabled = true,
   orderText = 'অর্ডার করুন',
+  orderBgColor = '#6366F1',
+  orderTextColor = '#FFFFFF',
   whatsappColor = '#25D366',
   callColor = '#3B82F6',
-  orderColor = '#6366F1',
   position = 'bottom-right',
 }: FloatingActionButtonsProps) {
   // Build WhatsApp URL
@@ -106,8 +108,11 @@ export function FloatingActionButtons({
       {orderEnabled && (
         <button
           onClick={scrollToOrderForm}
-          className="flex items-center gap-2 px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 font-bold text-white animate-pulse"
-          style={{ backgroundColor: orderColor }}
+          className="flex items-center gap-2 px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 font-bold animate-pulse"
+          style={{ 
+            backgroundColor: orderBgColor,
+            color: orderTextColor,
+          }}
           title="Order Now"
         >
           <ShoppingCart className="w-5 h-5" />
