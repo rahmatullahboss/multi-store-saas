@@ -575,6 +575,115 @@ export async function register({ email, password, name, phone, storeName, subdom
 }
 
 /**
+ * Create a minimal user account from Google OAuth (no store yet)
+ */
+export async function createGoogleUser(email: string, name: string, db: D1Database) {
+  try {
+    const drizzleDb = drizzle(db);
+    
+    // Check if email already exists (shouldn't happen, but safety check)
+    const existing = await drizzleDb
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email.toLowerCase()))
+      .limit(1);
+    
+    if (existing.length > 0) {
+      return { error: 'Email already exists', user: null };
+    }
+    
+    // Create user without store (will complete profile later)
+    const result = await drizzleDb.insert(users).values({
+      email: email.toLowerCase(),
+      passwordHash: '', // Empty for OAuth users
+      name,
+      role: 'merchant',
+      storeId: null, // No store yet - will be created in complete-profile
+    }).returning();
+    
+    if (!result || result.length === 0) {
+      return { error: 'Failed to create user', user: null };
+    }
+    
+    console.log('[createGoogleUser] Created Google user:', email);
+    return { user: result[0], error: null };
+  } catch (error) {
+    console.error('[createGoogleUser] Error:', error);
+    return { error: 'Failed to create account', user: null };
+  }
+}
+
+/**
+ * Complete a Google user's profile by creating their store
+ */
+export async function completeGoogleUserProfile({
+  userId,
+  phone,
+  storeName,
+  subdomain,
+  db,
+}: {
+  userId: number;
+  phone: string;
+  storeName: string;
+  subdomain: string;
+  db: D1Database;
+}) {
+  try {
+    const drizzleDb = drizzle(db);
+    
+    // Check subdomain uniqueness
+    const existingStore = await drizzleDb
+      .select({ id: stores.id })
+      .from(stores)
+      .where(eq(stores.subdomain, subdomain.toLowerCase()))
+      .limit(1);
+    
+    if (existingStore.length > 0) {
+      return { error: 'Subdomain already taken', storeId: null };
+    }
+    
+    // Check phone uniqueness
+    const existingPhone = await drizzleDb
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.phone, phone))
+      .limit(1);
+    
+    if (existingPhone.length > 0) {
+      return { error: 'Phone number already registered', storeId: null };
+    }
+    
+    // Create the store
+    const storeResult = await drizzleDb.insert(stores).values({
+      name: storeName,
+      subdomain: subdomain.toLowerCase(),
+      currency: 'BDT',
+      mode: 'landing',
+      onboardingStatus: 'completed',
+    }).returning({ id: stores.id });
+    
+    if (!storeResult || storeResult.length === 0) {
+      return { error: 'Failed to create store', storeId: null };
+    }
+    
+    const storeId = storeResult[0].id;
+    
+    // Update user with store and phone
+    await drizzleDb
+      .update(users)
+      .set({ storeId, phone })
+      .where(eq(users.id, userId));
+    
+    console.log('[completeGoogleUserProfile] Completed profile for user:', userId, 'store:', storeId);
+    return { storeId, error: null };
+  } catch (error) {
+    console.error('[completeGoogleUserProfile] Error:', error);
+    return { error: 'Failed to complete profile', storeId: null };
+  }
+}
+
+/**
  * Create a session for a user
  */
 export async function createUserSession(userId: number, storeId: number, redirectTo: string, env: Env) {

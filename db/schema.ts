@@ -99,6 +99,11 @@ export const stores = sqliteTable('stores', {
   aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
   aiCredits: integer('ai_credits').default(50), // Default 50 credits for new stores
 
+  // === CUSTOM GOOGLE OAUTH (Premium/Business only) ===
+  // Free/Starter use shared platform OAuth, Premium can set their own
+  customGoogleClientId: text('custom_google_client_id'), // Store's own Google OAuth Client ID
+  customGoogleClientSecret: text('custom_google_client_secret'), // Store's own Google OAuth Secret (encrypted)
+
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
   paymentStatus: text('payment_status').$type<'pending_verification' | 'verified' | 'rejected' | 'none'>().default('none'),
@@ -201,6 +206,12 @@ export const customers = sqliteTable('customers', {
   name: text('name'),
   phone: text('phone'),
   address: text('address'), // JSON object with address details
+
+  // === CUSTOMER AUTHENTICATION (Premium/Business only) ===
+  passwordHash: text('password_hash'), // For email/password login
+  googleId: text('google_id'), // Google OAuth subject ID
+  authProvider: text('auth_provider').$type<'email' | 'google'>(), // How customer signed up
+  lastLoginAt: integer('last_login_at', { mode: 'timestamp' }), // Last login timestamp
   // Fraud check cache
   riskScore: integer('risk_score'), // 0-100 (higher = more risky)
   riskCheckedAt: integer('risk_checked_at', { mode: 'timestamp' }), // Last check time
@@ -225,6 +236,7 @@ export const customers = sqliteTable('customers', {
   index('customers_store_id_idx').on(table.storeId),
   index('customers_email_idx').on(table.storeId, table.email),
   index('customers_segment_idx').on(table.storeId, table.segment),
+  index('customers_google_id_idx').on(table.storeId, table.googleId),
 ]);
 
 // ============================================================================
