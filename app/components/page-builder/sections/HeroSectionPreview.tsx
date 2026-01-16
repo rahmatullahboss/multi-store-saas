@@ -108,10 +108,16 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
         )}
         
         <button 
-          className="px-8 py-4 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 text-lg"
+          className="px-8 py-4 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 text-lg cursor-pointer"
           style={{ 
             background: buttonBg.includes('gradient') ? buttonBg : buttonBg,
             color: theme?.style === 'urgent' ? '#7F1D1D' : buttonText,
+          }}
+          onClick={() => {
+            const orderForm = document.getElementById('order-form');
+            if (orderForm) {
+              orderForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
           }}
         >
           {ctaText}
