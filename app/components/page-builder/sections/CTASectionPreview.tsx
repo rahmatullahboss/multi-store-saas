@@ -10,7 +10,7 @@
  * - Theme support
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldCheck, Truck, ArrowRight, Package } from 'lucide-react';
 import type { SectionTheme } from '~/lib/page-builder/types';
 
@@ -97,6 +97,11 @@ export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
   const [selectedVariant, setSelectedVariant] = useState(variants[0] || null);
   const [quantity, setQuantity] = useState(1);
   const [isInsideDhaka, setIsInsideDhaka] = useState(true);
+  
+  // Reset selectedVariant when variants prop changes (e.g., new product selected)
+  useEffect(() => {
+    setSelectedVariant(variants[0] || null);
+  }, [variants]);
   
   // Calculate prices
   const basePrice = selectedVariant?.price || discountedPrice;
