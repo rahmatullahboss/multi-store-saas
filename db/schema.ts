@@ -1856,3 +1856,27 @@ export const templateAnalyticsRelations = relations(templateAnalytics, ({ one })
   }),
 }));
 
+// ============================================================================
+// WEBHOOK EVENTS TABLE - Idempotent Webhook Processing (P0 Critical)
+// ============================================================================
+// Prevents duplicate processing of webhooks from Stripe, bKash, couriers, etc.
+export const webhookEvents = sqliteTable('webhook_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
+  provider: text('provider').notNull(), // 'stripe', 'bkash', 'steadfast', 'pathao', 'redx'
+  eventId: text('event_id').notNull(), // Provider's unique event ID
+  eventType: text('event_type'), // e.g., 'payment_intent.succeeded'
+  payloadJson: text('payload_json'), // Full webhook payload for debugging
+  status: text('status').$type<'processed' | 'failed' | 'skipped'>().default('processed'),
+  processedAt: integer('processed_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_webhook_events_store').on(table.storeId, table.createdAt),
+]);
+
+export const webhookEventsRelations = relations(webhookEvents, ({ one }) => ({
+  store: one(stores, {
+    fields: [webhookEvents.storeId],
+    references: [stores.id],
+  }),
+}));
