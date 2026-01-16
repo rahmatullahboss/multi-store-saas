@@ -504,3 +504,69 @@ export async function initializePageWithDefaults(
   
   return sections;
 }
+
+/**
+ * Create a page from a template preset.
+ */
+export async function createPageFromTemplate(
+  db: D1Database,
+  storeId: number,
+  templateId: string,
+  slug: string,
+  title?: string
+): Promise<{ pageId: string; sections: BuilderSection[] } | { error: string }> {
+  // Import template dynamically to avoid circular deps
+  const { getTemplateById } = await import('./templates');
+  
+  const template = getTemplateById(templateId);
+  if (!template) {
+    return { error: `Template not found: ${templateId}` };
+  }
+  
+  const drizzleDb = drizzle(db);
+  const pageId = nanoid();
+  
+  // Create page
+  await drizzleDb.insert(builderPages).values({
+    id: pageId,
+    storeId,
+    slug,
+    title: title || template.name,
+    status: 'draft',
+  });
+  
+  // Create sections from template
+  const sections: BuilderSection[] = [];
+  
+  for (let i = 0; i < template.sections.length; i++) {
+    const templateSection = template.sections[i];
+    const id = nanoid();
+    
+    // Merge template props with default props
+    const defaultProps = getDefaultProps(templateSection.type);
+    const mergedProps = { ...defaultProps, ...templateSection.props };
+    
+    await drizzleDb.insert(builderSections).values({
+      id,
+      pageId,
+      type: templateSection.type,
+      enabled: 1,
+      sortOrder: i,
+      propsJson: JSON.stringify(mergedProps),
+      version: 1,
+    });
+    
+    sections.push({
+      id,
+      pageId,
+      type: templateSection.type as SectionType,
+      enabled: true,
+      sortOrder: i,
+      props: mergedProps,
+      version: 1,
+    });
+  }
+  
+  return { pageId, sections };
+}
+

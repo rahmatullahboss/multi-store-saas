@@ -96,6 +96,10 @@ export interface BuilderPage {
   title: string | null;
   productId: number | null;
   status: 'draft' | 'published';
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  ogImage?: string | null;
+  publishedAt?: Date | null;
   sections: BuilderSection[];
 }
 
