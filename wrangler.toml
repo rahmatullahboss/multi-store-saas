@@ -80,6 +80,10 @@ SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.
 # Set your own Facebook Pixel ID here to collect data from all stores
 MASTER_FACEBOOK_PIXEL_ID = ""  # Example: "123456789012345"
 
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleusercontent.com"
+# GOOGLE_CLIENT_SECRET - SET IN CLOUDFLARE DASHBOARD (secret, not here)
+
 # ============================================================================
 # DEVELOPMENT SETTINGS
 # ============================================================================
