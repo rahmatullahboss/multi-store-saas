@@ -121,6 +121,12 @@ export async function getPageWithSections(
     title: page.title,
     productId: page.productId,
     status: page.status ?? 'draft',
+    // Floating button settings
+    whatsappEnabled: page.whatsappEnabled,
+    whatsappNumber: page.whatsappNumber,
+    whatsappMessage: page.whatsappMessage,
+    callEnabled: page.callEnabled,
+    callNumber: page.callNumber,
     sections: sections.map(parseSection),
   };
 }

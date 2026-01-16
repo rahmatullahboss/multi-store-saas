@@ -19,6 +19,7 @@ import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { getPageWithSections } from '~/lib/page-builder/actions.server';
 import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
+import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
 
 // ============================================================================
 // LOADER
@@ -43,6 +44,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   
   return json({
     sections: page.sections.filter(s => s.enabled),
+    pageSettings: {
+      whatsappEnabled: page.whatsappEnabled ?? true,
+      whatsappNumber: page.whatsappNumber || '',
+      whatsappMessage: page.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।',
+      callEnabled: page.callEnabled ?? true,
+      callNumber: page.callNumber || '',
+    },
   });
 }
 
@@ -53,6 +61,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 export default function PreviewPage() {
   const loaderData = useLoaderData<typeof loader>();
   const [liveSections, setLiveSections] = useState(loaderData.sections);
+  const [liveSettings, setLiveSettings] = useState(loaderData.pageSettings);
   
   // Listen for live updates from parent window (receives sections data directly)
   useEffect(() => {
@@ -60,6 +69,9 @@ export default function PreviewPage() {
       if (event.data?.type === 'BUILDER_UPDATE' && event.data.sections) {
         // Receive sections data directly - instant update!
         setLiveSections(event.data.sections);
+      }
+      if (event.data?.type === 'SETTINGS_UPDATE' && event.data.settings) {
+        setLiveSettings(event.data.settings);
       }
     };
     
@@ -71,6 +83,10 @@ export default function PreviewPage() {
   useEffect(() => {
     setLiveSections(loaderData.sections);
   }, [loaderData.sections]);
+
+  useEffect(() => {
+    setLiveSettings(loaderData.pageSettings);
+  }, [loaderData.pageSettings]);
   
   return (
     <div className="bg-white min-h-screen">
@@ -78,6 +94,17 @@ export default function PreviewPage() {
         sections={liveSections}
         activeSectionId={null}
         onSelectSection={() => {}}
+      />
+      
+      {/* Floating Action Buttons */}
+      <FloatingActionButtons
+        whatsappEnabled={liveSettings.whatsappEnabled}
+        whatsappNumber={liveSettings.whatsappNumber}
+        whatsappMessage={liveSettings.whatsappMessage}
+        callEnabled={liveSettings.callEnabled}
+        callNumber={liveSettings.callNumber}
+        orderEnabled={true}
+        orderText="অর্ডার করুন"
       />
     </div>
   );

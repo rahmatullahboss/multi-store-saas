@@ -101,6 +101,12 @@ export interface BuilderPage {
   seoDescription?: string | null;
   ogImage?: string | null;
   publishedAt?: Date | null;
+  // Floating button settings
+  whatsappEnabled?: number | null;
+  whatsappNumber?: string | null;
+  whatsappMessage?: string | null;
+  callEnabled?: number | null;
+  callNumber?: string | null;
   sections: BuilderSection[];
 }
 
