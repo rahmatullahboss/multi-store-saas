@@ -1,11 +1,12 @@
 /**
- * Guarantee Section Preview - Theme-enabled
+ * Guarantee Section Preview - Per-Section Styling Enabled
  */
 
 import { ShieldCheck } from 'lucide-react';
 import type { SectionTheme } from '~/lib/page-builder/types';
+import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
 
-interface GuaranteeProps {
+interface GuaranteeProps extends SectionStyleProps {
   title?: string;
   text?: string;
   badgeLabel?: string;
@@ -21,12 +22,28 @@ export function GuaranteeSectionPreview({ props, theme }: GuaranteeSectionPrevie
     title = 'আমাদের গ্যারান্টি',
     text = '১০০% সন্তুষ্টির গ্যারান্টি। পছন্দ না হলে ৭ দিনের মধ্যে ফেরত।',
     badgeLabel = '',
+    backgroundColor,
+    backgroundGradient,
+    textColor,
+    headingColor,
+    fontFamily,
+    paddingY,
   } = props as GuaranteeProps;
   
   // Theme-based styling
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   
-  const getBgStyle = () => {
+  // Get per-section styling
+  const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
+  const headingStyle = getHeadingStyle({ headingColor, textColor });
+  
+  const getBgStyle = (): React.CSSProperties => {
+    if (backgroundColor || backgroundGradient) {
+      return {
+        backgroundColor: sectionStyle.backgroundColor,
+        background: sectionStyle.background,
+      };
+    }
     if (isDark) {
       return { 
         background: `linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.2))`,
@@ -39,15 +56,26 @@ export function GuaranteeSectionPreview({ props, theme }: GuaranteeSectionPrevie
     return { background: 'linear-gradient(135deg, #D1FAE5, #ECFDF5)' };
   };
   
-  const textColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
+  const defaultTextColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
   const mutedColor = isDark ? 'rgba(255,255,255,0.8)' : (theme?.mutedTextColor || '#374151');
   const iconBg = isDark ? 'rgba(16,185,129,0.2)' : (theme?.style === 'nature' ? '#DCFCE7' : '#D1FAE5');
   const iconColor = theme?.primaryColor || '#10B981';
   const badgeBg = isDark ? 'rgba(16,185,129,0.3)' : '#D1FAE5';
   const badgeText = isDark ? '#10B981' : '#065F46';
   
+  const finalTextColor = textColor || defaultTextColor;
+  const finalHeadingColor = headingColor || textColor || defaultTextColor;
+  
   return (
-    <section className="py-12 px-6" style={getBgStyle()}>
+    <section 
+      className="py-12 px-6" 
+      style={{
+        ...getBgStyle(),
+        fontFamily: sectionStyle.fontFamily,
+        paddingTop: sectionStyle.paddingTop,
+        paddingBottom: sectionStyle.paddingBottom,
+      }}
+    >
       <div className="max-w-2xl mx-auto text-center">
         <div 
           className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
@@ -59,7 +87,7 @@ export function GuaranteeSectionPreview({ props, theme }: GuaranteeSectionPrevie
         {title && (
           <h2 
             className="text-2xl font-bold mb-3"
-            style={{ color: textColor }}
+            style={{ color: finalHeadingColor, ...headingStyle }}
           >
             {title}
           </h2>

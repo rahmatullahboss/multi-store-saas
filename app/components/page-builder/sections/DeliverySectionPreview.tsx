@@ -1,8 +1,10 @@
 /**
- * Page Builder v2 - Delivery Section Preview
+ * Delivery Section Preview - Per-Section Styling Enabled
  */
 
-interface DeliveryProps {
+import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
+
+interface DeliveryProps extends SectionStyleProps {
   title?: string;
   areas?: Array<{ name: string; time: string; cost?: string }>;
   note?: string;
@@ -16,13 +18,38 @@ export function DeliverySectionPreview({ props }: { props: Record<string, unknow
       { name: 'ঢাকার বাইরে', time: '৩-৫ দিন', cost: '৳১২০' },
     ],
     note = 'সকল ডেলিভারি Cash on Delivery তে পাওয়া যাবে',
+    backgroundColor,
+    backgroundGradient,
+    textColor,
+    headingColor,
+    fontFamily,
+    paddingY,
   } = props as DeliveryProps;
   
+  const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
+  const headingStyle = getHeadingStyle({ headingColor, textColor });
+  const finalHeadingColor = headingColor || textColor || '#111827';
+  const finalTextColor = textColor || '#6B7280';
+  
   return (
-    <section className="py-12 px-4 bg-blue-50">
+    <section 
+      className="py-12 px-4" 
+      style={{ 
+        backgroundColor: sectionStyle.backgroundColor || '#EEF2FF',
+        background: sectionStyle.background,
+        fontFamily: sectionStyle.fontFamily,
+        paddingTop: sectionStyle.paddingTop,
+        paddingBottom: sectionStyle.paddingBottom,
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         {title && (
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">{title}</h2>
+          <h2 
+            className="text-2xl font-bold text-center mb-8"
+            style={{ color: finalHeadingColor, ...headingStyle }}
+          >
+            {title}
+          </h2>
         )}
         
         <div className="bg-white rounded-xl overflow-hidden shadow-sm">
@@ -47,7 +74,7 @@ export function DeliverySectionPreview({ props }: { props: Record<string, unknow
         </div>
         
         {note && (
-          <p className="text-center text-gray-600 mt-4 text-sm">
+          <p className="text-center mt-4 text-sm" style={{ color: finalTextColor }}>
             💡 {note}
           </p>
         )}

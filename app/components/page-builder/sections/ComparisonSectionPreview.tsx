@@ -1,8 +1,10 @@
 /**
- * Page Builder v2 - Comparison Section Preview
+ * Comparison Section Preview - Per-Section Styling Enabled
  */
 
-interface ComparisonProps {
+import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
+
+interface ComparisonProps extends SectionStyleProps {
   title?: string;
   beforeTitle?: string;
   afterTitle?: string;
@@ -17,13 +19,37 @@ export function ComparisonSectionPreview({ props }: { props: Record<string, unkn
     afterTitle = '✅ এখন',
     beforeItems = ['সমস্যা ১', 'সমস্যা ২', 'সমস্যা ৩'],
     afterItems = ['সমাধান ১', 'সমাধান ২', 'সমাধান ৩'],
+    backgroundColor,
+    backgroundGradient,
+    textColor,
+    headingColor,
+    fontFamily,
+    paddingY,
   } = props as ComparisonProps;
   
+  const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
+  const headingStyle = getHeadingStyle({ headingColor, textColor });
+  const finalHeadingColor = headingColor || textColor || '#111827';
+  
   return (
-    <section className="py-12 px-4 bg-gray-50">
+    <section 
+      className="py-12 px-4" 
+      style={{ 
+        backgroundColor: sectionStyle.backgroundColor || '#F9FAFB',
+        background: sectionStyle.background,
+        fontFamily: sectionStyle.fontFamily,
+        paddingTop: sectionStyle.paddingTop,
+        paddingBottom: sectionStyle.paddingBottom,
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         {title && (
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-10">{title}</h2>
+          <h2 
+            className="text-2xl font-bold text-center mb-10"
+            style={{ color: finalHeadingColor, ...headingStyle }}
+          >
+            {title}
+          </h2>
         )}
         
         <div className="grid md:grid-cols-2 gap-6">
