@@ -2,6 +2,7 @@
  * Button Connection Utilities for Custom HTML Section
  * 
  * Helps detect buttons in HTML and apply connection attributes.
+ * IMPORTANT: Preserves full HTML document structure (doctype, html, body)
  */
 
 export interface ButtonConnection {
@@ -22,8 +23,9 @@ export function countConnectedButtons(html: string): number {
 }
 
 /**
- * Apply button connections to HTML content.
- * Adds data-ozzyl-* attributes to matching elements.
+ * Apply button connections to HTML content using regex.
+ * PRESERVES full HTML document structure (doctype, html, body, styles).
+ * Adds data-ozzyl-* attributes to matching button/link elements.
  */
 export function applyButtonConnections(
   html: string, 
@@ -31,59 +33,89 @@ export function applyButtonConnections(
 ): string {
   if (!html || connections.length === 0) return html;
   
-  try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
-    const wrapper = doc.body.firstChild as Element;
+  let result = html;
+  
+  connections.forEach(conn => {
+    if (conn.actionType === 'unknown') return;
     
-    connections.forEach(conn => {
-      // Find elements matching the selector pattern
-      const elements = wrapper.querySelectorAll(
-        'button, a, [role="button"], .btn, [class*="button"], ' +
-        '[class*="order"], [class*="buy"], [class*="whatsapp"], [class*="call"]'
+    // Build patterns for different button types
+    const patterns = getButtonPatterns(conn.actionType);
+    
+    patterns.forEach(pattern => {
+      // Match button/link tags containing the pattern
+      const tagRegex = new RegExp(
+        `(<(?:button|a)[^>]*>)([^<]*(?:${pattern})[^<]*)(</(?:button|a)>)`,
+        'gi'
       );
       
-      elements.forEach((el) => {
-        const text = el.textContent?.toLowerCase().trim() || '';
-        const classes = el.className?.toLowerCase() || '';
-        
-        // Match by action type patterns
-        let shouldConnect = false;
-        
-        if (conn.actionType === 'order') {
-          shouldConnect = text.includes('order') || text.includes('অর্ডার') || 
-                         text.includes('buy') || text.includes('কিনুন') ||
-                         classes.includes('order') || classes.includes('buy');
-        } else if (conn.actionType === 'whatsapp') {
-          shouldConnect = text.includes('whatsapp') || text.includes('হোয়াটস') ||
-                         classes.includes('whatsapp');
-        } else if (conn.actionType === 'call') {
-          shouldConnect = text.includes('call') || text.includes('কল') ||
-                         classes.includes('call');
-        } else if (conn.actionType === 'cart') {
-          shouldConnect = text.includes('cart') || text.includes('কার্ট') ||
-                         classes.includes('cart');
+      result = result.replace(tagRegex, (match, openTag, content, closeTag) => {
+        // Skip if already connected
+        if (openTag.includes('data-ozzyl-action')) {
+          return match;
         }
         
-        if (shouldConnect) {
-          el.setAttribute('data-ozzyl-action', conn.actionType);
-          if (conn.productId) {
-            el.setAttribute('data-ozzyl-product', conn.productId.toString());
-          }
-          if (conn.phoneNumber) {
-            el.setAttribute('data-ozzyl-phone', conn.phoneNumber);
-          }
-          if (conn.messageTemplate) {
-            el.setAttribute('data-ozzyl-message', conn.messageTemplate);
-          }
+        // Build attributes string
+        let attrs = ` data-ozzyl-action="${conn.actionType}"`;
+        if (conn.productId) {
+          attrs += ` data-ozzyl-product="${conn.productId}"`;
         }
+        if (conn.phoneNumber) {
+          attrs += ` data-ozzyl-phone="${conn.phoneNumber}"`;
+        }
+        if (conn.messageTemplate) {
+          attrs += ` data-ozzyl-message="${conn.messageTemplate}"`;
+        }
+        
+        // Insert attributes before the closing >
+        const newOpenTag = openTag.replace(/>$/, `${attrs}>`);
+        return `${newOpenTag}${content}${closeTag}`;
+      });
+      
+      // Also match by class names in the tag itself
+      const classRegex = new RegExp(
+        `(<(?:button|a|div|span)[^>]*class="[^"]*(?:${pattern})[^"]*"[^>]*)>`,
+        'gi'
+      );
+      
+      result = result.replace(classRegex, (match, beforeClose) => {
+        if (match.includes('data-ozzyl-action')) {
+          return match;
+        }
+        
+        let attrs = ` data-ozzyl-action="${conn.actionType}"`;
+        if (conn.productId) {
+          attrs += ` data-ozzyl-product="${conn.productId}"`;
+        }
+        if (conn.phoneNumber) {
+          attrs += ` data-ozzyl-phone="${conn.phoneNumber}"`;
+        }
+        if (conn.messageTemplate) {
+          attrs += ` data-ozzyl-message="${conn.messageTemplate}"`;
+        }
+        
+        return `${beforeClose}${attrs}>`;
       });
     });
-    
-    return wrapper.innerHTML;
-  } catch (err) {
-    console.error('Failed to apply button connections:', err);
-    return html;
+  });
+  
+  return result;
+}
+
+/**
+ * Get regex patterns for detecting buttons by action type
+ */
+function getButtonPatterns(actionType: string): string[] {
+  switch (actionType) {
+    case 'order':
+      return ['order', 'অর্ডার', 'buy', 'কিনুন', 'এখনই', 'কনফার্ম'];
+    case 'cart':
+      return ['cart', 'কার্ট', 'add to'];
+    case 'whatsapp':
+      return ['whatsapp', 'হোয়াটস', 'wa\\.me'];
+    case 'call':
+      return ['call', 'কল', 'tel:', 'phone', 'ফোন'];
+    default:
+      return [];
   }
 }
 
