@@ -66,7 +66,7 @@ export function DarazFooter({ storeName, logo, socialLinks, footerConfig, busine
         </div>
         
         <div className="border-t mt-10 pt-6 flex justify-between text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} {storeName}.</p>
+          <p suppressHydrationWarning>© {new Date().getFullYear()} {storeName}.</p>
           <div className="flex gap-4">
              {socialLinks?.facebook && <a href={socialLinks.facebook} className="hover:text-orange-500">Facebook</a>}
              {socialLinks?.twitter && <a href={socialLinks.twitter} className="hover:text-orange-500">X</a>}

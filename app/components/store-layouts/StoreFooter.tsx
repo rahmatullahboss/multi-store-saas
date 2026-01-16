@@ -124,7 +124,7 @@ export function StoreFooter({
         {/* Bottom Bar */}
         <div className={`mt-12 pt-8 border-t ${borderColor}`}>
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className={`text-sm ${mutedColor}`}>
+            <p className={`text-sm ${mutedColor}`} suppressHydrationWarning>
               © {new Date().getFullYear()} {storeName}. All rights reserved.
             </p>
             <div className="flex gap-6">

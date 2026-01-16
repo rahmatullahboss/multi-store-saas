@@ -256,7 +256,7 @@ export function DarazPageWrapper({
 
           {/* Footer Bottom */}
           <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t text-center">
-            <p className="text-xs md:text-sm" style={{ color: DARAZ_TEXT_LIGHT }}>
+            <p className="text-xs md:text-sm" style={{ color: DARAZ_TEXT_LIGHT }} suppressHydrationWarning>
               © {new Date().getFullYear()} {storeName}. All rights reserved.
             </p>
           </div>
