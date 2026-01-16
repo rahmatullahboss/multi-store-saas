@@ -1,10 +1,11 @@
 /**
- * Testimonials Section Preview - Theme-enabled
+ * Testimonials Section Preview - Theme-enabled with Per-Section Styling
  */
 
 import type { SectionTheme } from '~/lib/page-builder/types';
+import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
 
-interface TestimonialsProps {
+interface TestimonialsProps extends SectionStyleProps {
   title?: string;
   testimonials?: Array<{ name: string; text?: string; location?: string; imageUrl?: string; rating?: number }>;
 }
@@ -18,26 +19,49 @@ export function TestimonialsSectionPreview({ props, theme }: TestimonialsSection
   const {
     title = 'কাস্টমারদের মতামত',
     testimonials = [],
+    // Per-section styling
+    backgroundColor,
+    backgroundGradient,
+    textColor,
+    headingColor,
+    fontFamily,
+    paddingY,
   } = props as TestimonialsProps;
   
   // Theme-based styling
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   
-  const bgColor = isDark ? (theme?.bgColor || '#18181B') : '#FFFFFF';
-  const textColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
+  const defaultBgColor = isDark ? (theme?.bgColor || '#18181B') : '#FFFFFF';
+  const defaultTextColor = isDark ? '#FFFFFF' : (theme?.textColor || '#111827');
   const mutedColor = isDark ? 'rgba(255,255,255,0.7)' : (theme?.mutedTextColor || '#6B7280');
   const cardBg = isDark ? 'rgba(255,255,255,0.05)' : (theme?.cardBg || '#F9FAFB');
   const cardBorder = isDark ? 'rgba(255,255,255,0.1)' : (theme?.cardBorder || '#E5E7EB');
   const primaryColor = theme?.primaryColor || '#6366F1';
   const accentColor = theme?.accentColor || '#8B5CF6';
   
+  // Get per-section styling
+  const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
+  const headingStyle = getHeadingStyle({ headingColor, textColor });
+  
+  const finalTextColor = textColor || defaultTextColor;
+  const finalHeadingColor = headingColor || textColor || defaultTextColor;
+  
   return (
-    <section className="py-12 px-6" style={{ backgroundColor: bgColor }}>
+    <section 
+      className="py-12 px-6" 
+      style={{ 
+        backgroundColor: sectionStyle.backgroundColor || defaultBgColor,
+        background: sectionStyle.background,
+        fontFamily: sectionStyle.fontFamily,
+        paddingTop: sectionStyle.paddingTop,
+        paddingBottom: sectionStyle.paddingBottom,
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         {title && (
           <h2 
             className="text-2xl font-bold text-center mb-8"
-            style={{ color: textColor }}
+            style={{ color: finalHeadingColor, ...headingStyle }}
           >
             {title}
           </h2>
@@ -93,7 +117,7 @@ export function TestimonialsSectionPreview({ props, theme }: TestimonialsSection
                   </div>
                 )}
                 <div>
-                  <div className="font-medium" style={{ color: textColor }}>
+                  <div className="font-medium" style={{ color: finalTextColor }}>
                     {testimonial.name}
                   </div>
                   {testimonial.location && (

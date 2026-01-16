@@ -197,9 +197,9 @@ export function BuilderLayout({
       height: '100%',
     },
     mobile: { 
-      width: '375px',
-      maxWidth: '375px',
-      height: '812px', // iPhone X height
+      width: '414px',  // iPhone Plus size for better content visibility
+      maxWidth: '414px',
+      height: '896px', // iPhone Plus height
       borderRadius: '2.5rem',
       border: '8px solid #1f2937',
       boxShadow: '0 0 0 3px #374151, 0 25px 50px -12px rgba(0, 0, 0, 0.25)',

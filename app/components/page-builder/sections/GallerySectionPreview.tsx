@@ -1,20 +1,50 @@
 /**
- * Page Builder v2 - Gallery Section Preview
+ * Gallery Section Preview - Per-Section Styling Enabled
  */
 
-interface GalleryProps {
+import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
+
+interface GalleryProps extends SectionStyleProps {
   title?: string;
   images?: Array<{ url: string; caption?: string }>;
 }
 
 export function GallerySectionPreview({ props }: { props: Record<string, unknown> }) {
-  const { title = 'ইমেজ গ্যালারি', images = [] } = props as GalleryProps;
+  const { 
+    title = 'ইমেজ গ্যালারি', 
+    images = [],
+    backgroundColor,
+    backgroundGradient,
+    textColor,
+    headingColor,
+    fontFamily,
+    paddingY,
+  } = props as GalleryProps;
+  
+  const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
+  const headingStyle = getHeadingStyle({ headingColor, textColor });
+  
+  const finalHeadingColor = headingColor || textColor || '#111827';
   
   return (
-    <section className="py-12 px-4 bg-white">
+    <section 
+      className="py-12 px-4" 
+      style={{ 
+        backgroundColor: sectionStyle.backgroundColor || '#FFFFFF',
+        background: sectionStyle.background,
+        fontFamily: sectionStyle.fontFamily,
+        paddingTop: sectionStyle.paddingTop,
+        paddingBottom: sectionStyle.paddingBottom,
+      }}
+    >
       <div className="max-w-6xl mx-auto">
         {title && (
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">{title}</h2>
+          <h2 
+            className="text-2xl font-bold text-center mb-8"
+            style={{ color: finalHeadingColor, ...headingStyle }}
+          >
+            {title}
+          </h2>
         )}
         
         {images.length > 0 ? (
