@@ -402,6 +402,7 @@ export const dashboard = {
   approachingLimit: 'You are approaching your limit. Consider upgrading.',
   highTrafficUpgrade: 'High traffic detected. Upgrade to handle more visitors.',
   publishedProducts: 'Active products in your store',
+  freePlanLimit5Products: 'You have reached the 5 product limit. Upgrade for more.',
   upgradeNow: 'Upgrade Now',
   readyToGrow: 'Ready to Grow?',
   selectPlanBasedNeeds: 'Select a plan based on your needs',

@@ -27,9 +27,9 @@ const PLANS: PlanOption[] = [
     period: 'forever',
     icon: <Zap className="w-6 h-6" />,
     features: [
-      '1 Product',
+      '5 Products',
       '50 Orders/month',
-      '5 AI requests/day',
+      'Store + Landing Page',
       'Subdomain only',
     ],
   },

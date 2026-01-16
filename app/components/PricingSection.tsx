@@ -303,8 +303,8 @@ const pricingPlans: PricingPlan[] = [
     priceDisplay: '৳০',
     description: 'ট্রায়ালের জন্য পারফেক্ট',
     features: [
-      '১টি Product',
-      '১টি Landing Page',
+      '৫টি Product',
+      'Store + Landing Page',
       '৫০ Sales/মাস',
       'Live Editor',
       'Bangla Support',
