@@ -128,12 +128,44 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   if (cached && cached.page.status === 'published') {
     // Type assertion for cached page which may have storeId/productId from cache
     const cachedPage = cached.page as typeof cached.page & { storeId?: number; productId?: number | null };
+    const cachedProductId = cachedPage.productId;
+    
+    // Even for cached pages, fetch fresh product data if productId exists
+    let cachedProductData: LoaderData['product'] = null;
+    if (cachedProductId) {
+      const drizzleDb = drizzle(db);
+      const [productRow] = await drizzleDb.select().from(products).where(eq(products.id, cachedProductId)).limit(1);
+      if (productRow) {
+        const variantRows = await drizzleDb.select().from(productVariants).where(eq(productVariants.productId, cachedProductId));
+        let parsedImages: string[] = [];
+        try {
+          if (productRow.images) {
+            parsedImages = typeof productRow.images === 'string' ? JSON.parse(productRow.images) : Array.isArray(productRow.images) ? productRow.images : [];
+          }
+        } catch { parsedImages = []; }
+        cachedProductData = {
+          id: productRow.id,
+          title: productRow.title,
+          price: productRow.price,
+          compareAtPrice: productRow.compareAtPrice,
+          images: parsedImages,
+          description: productRow.description,
+          variants: variantRows.map(v => ({
+            id: v.id,
+            name: [v.option1Value, v.option2Value, v.option3Value].filter(Boolean).join(' / ') || `Variant ${v.id}`,
+            price: v.price ?? productRow.price,
+          })),
+        };
+      }
+    }
+    
     return json<LoaderData>({
       page: {
         ...cached.page,
         storeId: cachedPage.storeId ?? storeId,
         productId: cachedPage.productId ?? null,
       },
+      product: cachedProductData,
       sections: cached.sections,
       fromCache: true,
     }, {
