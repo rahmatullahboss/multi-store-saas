@@ -328,8 +328,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         const productId = formData.get('productId') as string | null;
         const productIdParsed = productId && productId.trim() !== '' ? Number(productId) : null;
         
-        // DEBUG: Log productId for troubleshooting
-        console.log('[update-settings] productId received:', productId, 'parsed:', productIdParsed);
+        // Log productId for troubleshooting
+        console.log('[update-settings] productId:', productId, '->', productIdParsed);
         
         await updatePageSettings(db, pageId, store.id, {
           title: title || undefined,
@@ -348,6 +348,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           // Only update productId if it was explicitly provided in the form
           ...(productId !== null ? { productId: productIdParsed } : {}),
         });
+        
+        // AUTO-REPUBLISH: If productId changed and page is published, republish to sync
+        if (productId !== null) {
+          const currentPage = await getPageWithSections(db, pageId, store.id);
+          if (currentPage?.status === 'published') {
+            await publishPage(db, pageId, store.id);
+          }
+        }
         
         // CACHE INVALIDATION: Clear cached page when settings change
         const kv = (context.cloudflare.env as any).STORE_CACHE as KVNamespace | undefined;
