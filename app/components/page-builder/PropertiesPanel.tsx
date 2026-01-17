@@ -1043,6 +1043,155 @@ function renderPropsForm(
         </>
       );
     
+    case 'header':
+      return (
+        <>
+          {/* Branding */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🏷️ ব্র্যান্ডিং</h5>
+            <ImageField 
+              label="Logo Image" 
+              value={props.logoUrl as string || ''} 
+              onChange={(v) => updateProp('logoUrl', v)} 
+            />
+            <TextField 
+              label="Logo Text (if no image)" 
+              value={props.logoText as string || ''} 
+              onChange={(v) => updateProp('logoText', v)} 
+            />
+            <div className="mt-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Logo Size</label>
+              <select
+                value={props.logoSize as string || 'md'}
+                onChange={(e) => updateProp('logoSize', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Navigation Links */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔗 নেভিগেশন</h5>
+            <ToggleField 
+              label="Show Navigation Links" 
+              value={props.showNavLinks as boolean ?? true} 
+              onChange={(v) => updateProp('showNavLinks', v)} 
+            />
+            {(props.showNavLinks ?? true) && (
+              <div className="mt-3">
+                <ArrayField
+                  label="Nav Links"
+                  items={(props.navLinks as Array<{ label: string; url: string }>) || []}
+                  onAdd={() => addArrayItem('navLinks', { label: 'নতুন লিংক', url: '#' })}
+                  onRemove={(i) => removeArrayItem('navLinks', i)}
+                  renderItem={(item, index) => (
+                    <div key={index} className="space-y-2 p-2 bg-gray-50 rounded">
+                      <TextField 
+                        label="Label" 
+                        value={item.label || ''} 
+                        onChange={(v) => updateArrayItem('navLinks', index, { ...item, label: v })} 
+                      />
+                      <TextField 
+                        label="URL" 
+                        value={item.url || ''} 
+                        onChange={(v) => updateArrayItem('navLinks', index, { ...item, url: v })} 
+                      />
+                    </div>
+                  )}
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* CTA Button */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔘 CTA বাটন</h5>
+            <ToggleField 
+              label="Show CTA Button" 
+              value={props.showCta as boolean ?? true} 
+              onChange={(v) => updateProp('showCta', v)} 
+            />
+            {(props.showCta ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Button Text" 
+                  value={props.ctaText as string || 'অর্ডার করুন'} 
+                  onChange={(v) => updateProp('ctaText', v)} 
+                />
+                <TextField 
+                  label="Button Link" 
+                  value={props.ctaLink as string || '#order'} 
+                  onChange={(v) => updateProp('ctaLink', v)} 
+                />
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Button Style</label>
+                  <select
+                    value={props.ctaStyle as string || 'solid'}
+                    onChange={(e) => updateProp('ctaStyle', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+                  >
+                    <option value="solid">Solid</option>
+                    <option value="outline">Outline</option>
+                    <option value="ghost">Ghost</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Styling */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 স্টাইল</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Variant</label>
+              <select
+                value={props.variant as string || 'simple'}
+                onChange={(e) => updateProp('variant', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="simple">Simple (Logo Left)</option>
+                <option value="centered">Centered (Logo Center)</option>
+                <option value="minimal">Minimal (Logo + CTA only)</option>
+              </select>
+            </div>
+            <ColorPickerField 
+              label="Background Color" 
+              value={props.bgColor as string || '#FFFFFF'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+            />
+            <ColorPickerField 
+              label="Text Color" 
+              value={props.textColor as string || '#18181B'} 
+              onChange={(v) => updateProp('textColor', v)} 
+            />
+            <ColorPickerField 
+              label="CTA Button Color" 
+              value={props.ctaBgColor as string || '#6366F1'} 
+              onChange={(v) => updateProp('ctaBgColor', v)} 
+            />
+            <ColorPickerField 
+              label="CTA Text Color" 
+              value={props.ctaTextColor as string || '#FFFFFF'} 
+              onChange={(v) => updateProp('ctaTextColor', v)} 
+            />
+          </div>
+          
+          {/* Behavior */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">⚙️ আচরণ</h5>
+            <ToggleField 
+              label="Sticky Header" 
+              value={props.isSticky as boolean ?? true} 
+              onChange={(v) => updateProp('isSticky', v)} 
+            />
+          </div>
+        </>
+      );
+    
     default:
       return (
         <div className="text-sm text-gray-500">

@@ -26,6 +26,7 @@ import {
   ShowcasePropsSchema,
   CustomHtmlPropsSchema,
   OrderButtonPropsSchema,
+  HeaderPropsSchema,
   FooterPropsSchema,
   validateSectionProps,
 } from './schemas';
@@ -223,6 +224,16 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     icon: 'ShoppingCart',
     schema: OrderButtonPropsSchema,
     defaultProps: OrderButtonPropsSchema.parse({}),
+  },
+  'header': {
+    type: 'header',
+    name: 'হেডার',
+    nameEn: 'Header',
+    description: 'পেজের শুরুতে লোগো ও নেভিগেশন',
+    descriptionEn: 'Page header with logo and navigation',
+    icon: 'LayoutPanelTop',
+    schema: HeaderPropsSchema,
+    defaultProps: HeaderPropsSchema.parse({}),
   },
   'footer': {
     type: 'footer',

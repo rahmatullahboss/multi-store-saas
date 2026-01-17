@@ -27,6 +27,7 @@ import { HowToOrderPreview } from './sections/HowToOrderPreview';
 import { ShowcaseSectionPreview } from './sections/ShowcaseSectionPreview';
 import { CustomHtmlSectionPreview } from './sections/CustomHtmlSectionPreview';
 import { OrderButtonSectionPreview } from './sections/OrderButtonSectionPreview';
+import { HeaderSectionPreview } from './sections/HeaderSectionPreview';
 import { FooterSectionPreview } from './sections/FooterSectionPreview';
 import { PlaceholderSection } from './sections/PlaceholderSection';
 
@@ -181,6 +182,8 @@ function SectionContent({ section, storeId, productId, product }: SectionContent
       return <CustomHtmlSectionPreview {...props as any} />;
     case 'order-button':
       return <OrderButtonSectionPreview props={props} />;
+    case 'header':
+      return <HeaderSectionPreview props={props} />;
     case 'footer':
       return <FooterSectionPreview props={props} />;
     default:
