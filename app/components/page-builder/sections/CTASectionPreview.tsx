@@ -332,14 +332,15 @@ export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
                 <div>
                   <input
                     type="text"
+                    name="name"
                     placeholder="আপনার নাম"
-                    className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all"
+                    className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
                     style={{ 
                       backgroundColor: inputBg, 
                       border: `2px solid ${inputBorder}`,
                       color: inputText,
                     }}
-                    disabled
+                    required
                   />
                 </div>
                 
@@ -347,14 +348,15 @@ export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
                 <div>
                   <input
                     type="tel"
+                    name="phone"
                     placeholder={phonePlaceholder}
-                    className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all"
+                    className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
                     style={{ 
                       backgroundColor: inputBg, 
                       border: `2px solid ${inputBorder}`,
                       color: inputText,
                     }}
-                    disabled
+                    required
                   />
                 </div>
                 
@@ -413,15 +415,16 @@ export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
                 {/* Address Input */}
                 <div>
                   <textarea
+                    name="address"
                     placeholder={addressPlaceholder}
                     rows={3}
-                    className="w-full px-5 py-4 rounded-xl font-medium outline-none resize-none transition-all"
+                    className="w-full px-5 py-4 rounded-xl font-medium outline-none resize-none transition-all focus:ring-2 focus:ring-purple-400"
                     style={{ 
                       backgroundColor: inputBg, 
                       border: `2px solid ${inputBorder}`,
                       color: inputText,
                     }}
-                    disabled
+                    required
                   />
                 </div>
                 
