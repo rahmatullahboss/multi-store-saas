@@ -1,13 +1,30 @@
 /**
- * Testimonials Section Preview - Theme-enabled with Per-Section Styling
+ * Testimonials Section Preview - With Variant System
+ * 
+ * Supports multiple visual styles:
+ * - default: Classic card grid
+ * - cards: Trust-first green cards
+ * - chat-bubbles: WhatsApp/Messenger style
+ * - masonry: Pinterest-style grid (dark theme)
+ * - social-proof: Facebook comment style
+ * - minimal: Clean centered list
  */
 
 import type { SectionTheme } from '~/lib/page-builder/types';
 import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
+import { 
+  ChatBubblesTestimonials, 
+  MasonryTestimonials, 
+  SocialProofTestimonials,
+  CardsTestimonials,
+  MinimalTestimonials,
+  type TestimonialsVariant 
+} from './testimonials';
 
 interface TestimonialsProps extends SectionStyleProps {
   title?: string;
   testimonials?: Array<{ name: string; text?: string; location?: string; imageUrl?: string; rating?: number }>;
+  variant?: TestimonialsVariant;
 }
 
 interface TestimonialsSectionPreviewProps {
@@ -19,6 +36,7 @@ export function TestimonialsSectionPreview({ props, theme }: TestimonialsSection
   const {
     title = 'কাস্টমারদের মতামত',
     testimonials = [],
+    variant = 'default',
     // Per-section styling
     backgroundColor,
     backgroundGradient,
@@ -27,8 +45,95 @@ export function TestimonialsSectionPreview({ props, theme }: TestimonialsSection
     fontFamily,
     paddingY,
   } = props as TestimonialsProps;
-  
-  // Theme-based styling
+
+  // Normalize testimonials to expected format
+  const normalizedTestimonials = testimonials.map(t => ({
+    name: t.name,
+    text: t.text || '',
+    location: t.location,
+    rating: t.rating,
+    avatar: t.imageUrl,
+  }));
+
+  // Route to variant components
+  switch (variant) {
+    case 'chat-bubbles':
+      return (
+        <ChatBubblesTestimonials 
+          title={title} 
+          testimonials={normalizedTestimonials} 
+        />
+      );
+    
+    case 'masonry':
+      return (
+        <MasonryTestimonials 
+          title={title} 
+          testimonials={normalizedTestimonials} 
+        />
+      );
+    
+    case 'social-proof':
+      return (
+        <SocialProofTestimonials 
+          title={title} 
+          testimonials={normalizedTestimonials} 
+        />
+      );
+    
+    case 'cards':
+      return (
+        <CardsTestimonials 
+          title={title} 
+          testimonials={normalizedTestimonials} 
+        />
+      );
+    
+    case 'minimal':
+      return (
+        <MinimalTestimonials 
+          title={title} 
+          testimonials={normalizedTestimonials} 
+        />
+      );
+    
+    default:
+      return (
+        <DefaultTestimonials
+          title={title}
+          testimonials={testimonials}
+          theme={theme}
+          backgroundColor={backgroundColor}
+          backgroundGradient={backgroundGradient}
+          textColor={textColor}
+          headingColor={headingColor}
+          fontFamily={fontFamily}
+          paddingY={paddingY}
+        />
+      );
+  }
+}
+
+// ============================================================================
+// DEFAULT TESTIMONIALS (Original implementation)
+// ============================================================================
+
+interface DefaultTestimonialsProps {
+  title: string;
+  testimonials: Array<{ name: string; text?: string; location?: string; imageUrl?: string; rating?: number }>;
+  theme?: SectionTheme;
+  backgroundColor?: string;
+  backgroundGradient?: string;
+  textColor?: string;
+  headingColor?: string;
+  fontFamily?: string;
+  paddingY?: string;
+}
+
+function DefaultTestimonials({
+  title, testimonials, theme,
+  backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY
+}: DefaultTestimonialsProps) {
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   
   const defaultBgColor = isDark ? (theme?.bgColor || '#18181B') : '#FFFFFF';
@@ -39,7 +144,6 @@ export function TestimonialsSectionPreview({ props, theme }: TestimonialsSection
   const primaryColor = theme?.primaryColor || '#6366F1';
   const accentColor = theme?.accentColor || '#8B5CF6';
   
-  // Get per-section styling
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
   const headingStyle = getHeadingStyle({ headingColor, textColor });
   
@@ -72,12 +176,8 @@ export function TestimonialsSectionPreview({ props, theme }: TestimonialsSection
             <div 
               key={index}
               className="p-6 rounded-xl"
-              style={{ 
-                backgroundColor: cardBg, 
-                border: `1px solid ${cardBorder}`,
-              }}
+              style={{ backgroundColor: cardBg, border: `1px solid ${cardBorder}` }}
             >
-              {/* Rating stars */}
               {testimonial.rating && (
                 <div className="flex gap-1 mb-3">
                   {[...Array(5)].map((_, i) => (
@@ -93,10 +193,7 @@ export function TestimonialsSectionPreview({ props, theme }: TestimonialsSection
               )}
               
               {testimonial.text && (
-                <p 
-                  className="text-sm italic mb-4"
-                  style={{ color: mutedColor }}
-                >
+                <p className="text-sm italic mb-4" style={{ color: mutedColor }}>
                   "{testimonial.text}"
                 </p>
               )}

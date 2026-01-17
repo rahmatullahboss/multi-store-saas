@@ -23,6 +23,14 @@ import {
   type District,
   type Upazila 
 } from '~/data/bd-locations';
+import {
+  GlassmorphismCTAWrapper,
+  NeubrutalistCTAWrapper,
+  TrustFirstCTAWrapper,
+  UrgencyCTAWrapper,
+  SocialProofCTAWrapper,
+  StoryDrivenCTAWrapper,
+} from './cta';
 
 interface Variant {
   id: string;
@@ -30,11 +38,22 @@ interface Variant {
   price?: number;
 }
 
+// Visual style variants (different from template prop which affects layout)
+type CTAStyleVariant = 
+  | 'default'
+  | 'glassmorphism'
+  | 'neubrutalism'
+  | 'trust-first'
+  | 'story-driven'
+  | 'urgency'
+  | 'social-proof';
+
 interface CTAProps {
   headline?: string;
   subheadline?: string;
   buttonText?: string;
   template?: 'minimal' | 'premium' | 'urgent' | 'singleColumn' | 'withImage';
+  styleVariant?: CTAStyleVariant;
   phonePlaceholder?: string;
   addressPlaceholder?: string;
   
@@ -130,6 +149,7 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
     subheadline = 'সীমিত সময়ের জন্য বিশেষ অফার!',
     buttonText = 'অর্ডার কনফার্ম করুন',
     template = 'minimal' as 'minimal' | 'premium' | 'urgent' | 'singleColumn' | 'withImage',
+    styleVariant = 'default' as CTAStyleVariant,
     phonePlaceholder = 'আপনার মোবাইল নম্বর',
     addressPlaceholder = 'বাসা নম্বর, রোড, এলাকা',
     
@@ -362,7 +382,8 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   const isSingleColumn = template === 'singleColumn';
   const showProductImage = template === 'withImage' && actualProductImage;
   
-  return (
+  // For styled variants, we render just the order card without header (wrapper provides it)
+  const orderCardOnly = (
     <section 
       id="order-form" 
       className="py-16 px-4" 
@@ -948,4 +969,46 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
       </div>
     </section>
   );
+  
+  // Wrap with variant-specific wrapper if not default
+  switch (styleVariant) {
+    case 'glassmorphism':
+      return (
+        <GlassmorphismCTAWrapper headline={headline} subheadline={subheadline}>
+          {orderCardOnly}
+        </GlassmorphismCTAWrapper>
+      );
+    case 'neubrutalism':
+      return (
+        <NeubrutalistCTAWrapper headline={headline} subheadline={subheadline}>
+          {orderCardOnly}
+        </NeubrutalistCTAWrapper>
+      );
+    case 'trust-first':
+      return (
+        <TrustFirstCTAWrapper headline={headline} subheadline={subheadline}>
+          {orderCardOnly}
+        </TrustFirstCTAWrapper>
+      );
+    case 'story-driven':
+      return (
+        <StoryDrivenCTAWrapper headline={headline} subheadline={subheadline}>
+          {orderCardOnly}
+        </StoryDrivenCTAWrapper>
+      );
+    case 'urgency':
+      return (
+        <UrgencyCTAWrapper headline={headline} subheadline={subheadline}>
+          {orderCardOnly}
+        </UrgencyCTAWrapper>
+      );
+    case 'social-proof':
+      return (
+        <SocialProofCTAWrapper headline={headline} subheadline={subheadline}>
+          {orderCardOnly}
+        </SocialProofCTAWrapper>
+      );
+    default:
+      return orderCardOnly;
+  }
 }

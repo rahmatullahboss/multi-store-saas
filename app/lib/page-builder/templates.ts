@@ -391,6 +391,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'hero',
         props: {
+          variant: 'urgency',
           headline: '⚡ ফ্ল্যাশ সেল - শুধুমাত্র আজ ৫০% ছাড়!',
           subheadline: '⏰ অফার শেষ হতে আর মাত্র কয়েক ঘণ্টা বাকি! এই সুযোগ মিস করবেন না।',
           ctaText: '🔥 এখনই কিনুন',
@@ -575,9 +576,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'hero',
         props: {
-          variant: 'glow',
-          backgroundColor: '#000000',
-          textColor: '#FFFFFF',
+          variant: 'glassmorphism',
           headline: 'ফিউচারিস্টিক ডিজাইন এখন আপনার হাতের মুঠোয়',
           subheadline: 'সম্পূর্ণ নতুন প্রযুক্তিতে তৈরি আমাদের এই কালেকশন।',
           ctaText: 'এক্সপ্লোর কালেকশন',
@@ -616,6 +615,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'testimonials',
         props: {
+          variant: 'masonry',
           backgroundColor: '#000000',
           textColor: '#FFFFFF',
           title: 'কাস্টমার ফিডব্যাক',
@@ -628,6 +628,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'cta',
         props: {
+          styleVariant: 'glassmorphism',
           backgroundColor: '#000000',
           textColor: '#FFFFFF',
           headline: 'আজই শুরু করুন আপনার নতুন জার্নি',
@@ -659,6 +660,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'hero',
         props: {
+          variant: 'bento',
           headline: 'নেক্সট লেভেল এক্সপেরিয়েন্স',
           subheadline: 'আধুনিক টেকনোলজি ও প্রিমিয়াম ডিজাইনের অনন্য সমন্বয়',
           ctaText: 'এক্সপ্লোর করুন',
@@ -984,6 +986,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'hero',
         props: {
+          variant: 'trust-first',
           headline: 'হাজারো সন্তুষ্ট গ্রাহকের বিশ্বস্ত পছন্দ',
           subheadline: '১৫,০০০+ গ্রাহক আমাদের উপর ভরসা করেছেন। ৪.৯/৫ রেটিং এবং ৯৮% পজিটিভ রিভিউ।',
           ctaText: 'এখনই অর্ডার করুন',
@@ -1004,6 +1007,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'testimonials',
         props: {
+          variant: 'cards',
           title: '💬 আমাদের গ্রাহকদের অভিজ্ঞতা',
           testimonials: [
             { name: 'রহিম আহমেদ', location: 'ঢাকা', text: 'অসাধারণ প্রোডাক্ট! দ্রুত ডেলিভারি পেয়েছি। কোয়ালিটি দেখে মুগ্ধ হয়ে গেছি।', rating: 5 },
@@ -1045,6 +1049,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'cta',
         props: {
+          styleVariant: 'trust-first',
           headline: '💚 আজই অর্ডার করুন',
           subheadline: 'হাজারো সন্তুষ্ট গ্রাহকের দলে যোগ দিন',
           buttonText: 'অর্ডার কনফার্ম করুন',
@@ -1074,6 +1079,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'hero',
         props: {
+          variant: 'story-driven',
           headline: 'আপনি কি এই সমস্যায় ভুগছেন?',
           subheadline: 'আমিও একসময় ঠিক আপনার মতোই ছিলাম। কিন্তু তারপর এই প্রোডাক্ট আমার জীবন বদলে দিয়েছে...',
           ctaText: 'আমার গল্প পড়ুন',
@@ -1112,6 +1118,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'testimonials',
         props: {
+          variant: 'minimal',
           title: '💬 অন্যরা কি বলছেন?',
           testimonials: [
             { name: 'শারমিন সুলতানা', text: 'একই অভিজ্ঞতা! সত্যিই কাজ করে।', rating: 5 },
@@ -1130,6 +1137,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'cta',
         props: {
+          styleVariant: 'story-driven',
           headline: '💛 হ্যাঁ, আমিও চেষ্টা করতে চাই!',
           subheadline: 'আপনার জার্নি আজই শুরু করুন',
           buttonText: 'এখনই অর্ডার করুন',
@@ -1159,6 +1167,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'hero',
         props: {
+          variant: 'social-proof',
           headline: '🔥 এই প্রোডাক্ট এখন ভাইরাল!',
           subheadline: '২,৪০০+ লাইক • ৩৪৭ মন্তব্য • ৮৯ শেয়ার',
           ctaText: 'এখনই অর্ডার করুন',
@@ -1179,6 +1188,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'testimonials',
         props: {
+          variant: 'social-proof',
           title: '💬 কাস্টমার কমেন্টস',
           testimonials: [
             { name: 'Rahim Ahmed', text: 'আমি অর্ডার করেছি, খুবই ভালো প্রোডাক্ট! 👍', rating: 5 },
@@ -1201,6 +1211,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'cta',
         props: {
+          styleVariant: 'social-proof',
           headline: '📱 এখনই অর্ডার করুন',
           subheadline: '৩৪৭ জন অর্ডার করেছেন',
           buttonText: 'Send Order',
@@ -1230,6 +1241,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'hero',
         props: {
+          variant: 'urgency',
           headline: '⚠️ সতর্কতা: মাত্র ১৫টি বাকি!',
           subheadline: '⏰ অফার শেষ হতে আর মাত্র ২ ঘণ্টা ৪৫ মিনিট বাকি! এই সুযোগ মিস করবেন না।',
           ctaText: '🔥 এখনই অর্ডার করুন',
@@ -1261,6 +1273,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'testimonials',
         props: {
+          variant: 'chat-bubbles',
           title: '⭐ সাম্প্রতিক অর্ডার',
           testimonials: [
             { name: 'Rahim', location: 'ঢাকা', text: '২ মিনিট আগে অর্ডার করেছেন', rating: 5 },
@@ -1280,6 +1293,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'cta',
         props: {
+          styleVariant: 'urgency',
           headline: '⏰ অফার শেষ হওয়ার আগেই অর্ডার করুন!',
           subheadline: 'মাত্র ১৫টি স্টক বাকি আছে',
           buttonText: '🔥 এখনই অর্ডার করুন',
