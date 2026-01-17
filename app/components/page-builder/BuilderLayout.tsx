@@ -528,13 +528,18 @@ export function BuilderLayout({
               settings: newSettings,
             }, '*');
           }
-          // Persist to database
+          // Persist to database - include all settings
           onSaveSettings?.({
             whatsappEnabled: newSettings.whatsappEnabled,
             whatsappNumber: newSettings.whatsappNumber,
             whatsappMessage: newSettings.whatsappMessage,
             callEnabled: newSettings.callEnabled,
             callNumber: newSettings.callNumber,
+            orderEnabled: newSettings.orderEnabled,
+            orderText: newSettings.orderText,
+            orderBgColor: newSettings.orderBgColor,
+            orderTextColor: newSettings.orderTextColor,
+            buttonPosition: newSettings.position,
           });
         }}
       />

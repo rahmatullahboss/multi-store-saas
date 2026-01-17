@@ -41,12 +41,19 @@ export const builderPages = sqliteTable('builder_pages', {
   canonicalUrl: text('canonical_url'),
   noIndex: integer('no_index').default(0),
   
-  // Floating Buttons Settings
+  // Floating Buttons Settings - WhatsApp & Call
   whatsappEnabled: integer('whatsapp_enabled').default(1),
   whatsappNumber: text('whatsapp_number'),
   whatsappMessage: text('whatsapp_message'),
   callEnabled: integer('call_enabled').default(1),
   callNumber: text('call_number'),
+  
+  // Floating Order Button Settings
+  orderEnabled: integer('order_enabled').default(1),
+  orderText: text('order_text').default('অর্ডার করুন'),
+  orderBgColor: text('order_bg_color').default('#6366F1'),
+  orderTextColor: text('order_text_color').default('#FFFFFF'),
+  buttonPosition: text('button_position').$type<'bottom-right' | 'bottom-left' | 'bottom-center'>().default('bottom-right'),
   
   // Custom HTML Injection
   customHeaderHtml: text('custom_header_html'),

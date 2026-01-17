@@ -224,12 +224,18 @@ export async function updatePageSettings(
     seoTitle?: string;
     seoDescription?: string;
     ogImage?: string;
-    // Floating button settings
+    // Floating button settings - WhatsApp & Call
     whatsappEnabled?: boolean;
     whatsappNumber?: string;
     whatsappMessage?: string;
     callEnabled?: boolean;
     callNumber?: string;
+    // Order button settings
+    orderEnabled?: boolean;
+    orderText?: string;
+    orderBgColor?: string;
+    orderTextColor?: string;
+    buttonPosition?: 'bottom-right' | 'bottom-left' | 'bottom-center';
     // Product
     productId?: number | null;
     // Custom HTML
@@ -256,6 +262,13 @@ export async function updatePageSettings(
   if (data.whatsappMessage !== undefined) updateData.whatsappMessage = data.whatsappMessage;
   if (data.callEnabled !== undefined) updateData.callEnabled = data.callEnabled ? 1 : 0;
   if (data.callNumber !== undefined) updateData.callNumber = data.callNumber;
+  // Order button settings
+  if (data.orderEnabled !== undefined) updateData.orderEnabled = data.orderEnabled ? 1 : 0;
+  if (data.orderText !== undefined) updateData.orderText = data.orderText;
+  if (data.orderBgColor !== undefined) updateData.orderBgColor = data.orderBgColor;
+  if (data.orderTextColor !== undefined) updateData.orderTextColor = data.orderTextColor;
+  if (data.buttonPosition !== undefined) updateData.buttonPosition = data.buttonPosition;
+  // Other settings
   if (data.productId !== undefined) updateData.productId = data.productId;
   if (data.customHeaderHtml !== undefined) updateData.customHeaderHtml = data.customHeaderHtml;
   if (data.customFooterHtml !== undefined) updateData.customFooterHtml = data.customFooterHtml;

@@ -268,12 +268,18 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         const title = formData.get('title') as string;
         const seoTitle = formData.get('seoTitle') as string;
         const seoDescription = formData.get('seoDescription') as string;
-        // Floating button settings
+        // Floating button settings - WhatsApp & Call
         const whatsappEnabled = formData.get('whatsappEnabled');
         const whatsappNumber = formData.get('whatsappNumber') as string;
         const whatsappMessage = formData.get('whatsappMessage') as string;
         const callEnabled = formData.get('callEnabled');
         const callNumber = formData.get('callNumber') as string;
+        // Order button settings
+        const orderEnabled = formData.get('orderEnabled');
+        const orderText = formData.get('orderText') as string;
+        const orderBgColor = formData.get('orderBgColor') as string;
+        const orderTextColor = formData.get('orderTextColor') as string;
+        const buttonPosition = formData.get('buttonPosition') as 'bottom-right' | 'bottom-left' | 'bottom-center';
         // Product
         const productId = formData.get('productId');
         
@@ -286,6 +292,11 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           whatsappMessage: whatsappMessage || undefined,
           callEnabled: callEnabled !== null ? callEnabled === 'true' : undefined,
           callNumber: callNumber || undefined,
+          orderEnabled: orderEnabled !== null ? orderEnabled === 'true' : undefined,
+          orderText: orderText || undefined,
+          orderBgColor: orderBgColor || undefined,
+          orderTextColor: orderTextColor || undefined,
+          buttonPosition: buttonPosition || undefined,
           productId: productId ? Number(productId) : undefined,
         });
         

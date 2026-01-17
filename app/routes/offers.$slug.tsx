@@ -161,6 +161,24 @@ export default function PublicOfferPage() {
         sections={visibleSections as any}
         activeSectionId={null}
       />
+      
+      {/* Powered by Ozzyl - Non-removable branding */}
+      <footer className="bg-gray-50 border-t border-gray-200 py-4">
+        <div className="max-w-4xl mx-auto px-4">
+          <p className="text-center text-xs text-gray-500">
+            Powered by{' '}
+            <a 
+              href="https://ozzyl.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              Ozzyl
+            </a>
+            {' '}• বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
