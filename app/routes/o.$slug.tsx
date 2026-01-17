@@ -123,10 +123,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   }
   
   // Try cache first (if KV is available)
-  // TEMPORARILY DISABLED: Skip cache to ensure fresh productId is always fetched
-  // This ensures product changes are reflected immediately on live site
-  // TODO: Re-enable cache after implementing proper cache invalidation on product change
-  const cached = null; // await getPageFromCache(kv, storeId, slug);
+  const cached = await getPageFromCache(kv, storeId, slug);
   
   if (cached && cached.page.status === 'published') {
     // Type assertion for cached page which may have storeId/productId from cache

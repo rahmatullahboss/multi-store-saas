@@ -311,12 +311,48 @@ export async function updatePageSettings(
 /**
  * Publish a page.
  * Copies all section draft content (propsJson) to published content (publishedPropsJson).
+ * Also ensures page-level productId is synced to CTA section props.
  */
 export async function publishPage(db: D1Database, pageId: string, storeId: number) {
   const drizzleDb = drizzle(db);
   const now = new Date();
   
-  // Step 1: Copy all section props to published props
+  // Step 0: Get page to access productId
+  const [page] = await drizzleDb
+    .select()
+    .from(builderPages)
+    .where(and(
+      eq(builderPages.id, pageId),
+      eq(builderPages.storeId, storeId)
+    ));
+  
+  // Step 1: If page has productId, ensure it's in CTA section props before publishing
+  if (page?.productId) {
+    const sections = await drizzleDb
+      .select()
+      .from(builderSections)
+      .where(eq(builderSections.pageId, pageId));
+    
+    for (const section of sections) {
+      if (section.type === 'cta') {
+        let props: Record<string, unknown> = {};
+        try {
+          props = JSON.parse(section.propsJson || '{}');
+        } catch { props = {}; }
+        
+        // Only update if productId is missing or different
+        if (props.productId !== page.productId) {
+          props.productId = page.productId;
+          await drizzleDb
+            .update(builderSections)
+            .set({ propsJson: JSON.stringify(props) })
+            .where(eq(builderSections.id, section.id));
+        }
+      }
+    }
+  }
+  
+  // Step 2: Copy all section props to published props
   await db.prepare(`
     UPDATE builder_sections 
     SET published_props_json = props_json,
@@ -324,7 +360,7 @@ export async function publishPage(db: D1Database, pageId: string, storeId: numbe
     WHERE page_id = ?
   `).bind(now.getTime(), pageId).run();
   
-  // Step 2: Update page status
+  // Step 3: Update page status
   await drizzleDb
     .update(builderPages)
     .set({

@@ -322,37 +322,44 @@ function renderPropsForm(
       const selectedProduct = products.find(p => p.id === selectedProductId);
       
       // Handler for product selection - auto-fills pricing and variants
+      // IMPORTANT: This bypasses debounce for immediate save
       const handleProductSelect = (productId: number | null) => {
         if (productId === null) {
-          updateProp('productId', null);
-          updateProp('productImage', null);
-          updateProp('productTitle', null);
-          onProductChange?.(null); // Notify for real-time preview
-          onProductIdChange?.(null); // Persist to page-level productId
+          const newProps = {
+            ...localProps,
+            productId: null,
+            productImage: null,
+            productTitle: null,
+          };
+          setLocalProps(newProps);
+          onUpdate(newProps); // IMMEDIATE save - bypass debounce
+          onProductChange?.(null);
+          onProductIdChange?.(null);
           return;
         }
         const product = products.find(p => p.id === productId);
         if (product) {
-          updateProp('productId', product.id);
-          updateProp('productPrice', product.price);
-          updateProp('discountedPrice', product.price); // Can adjust for discount later
+          // Build new props with all product data
+          const variants = (product.bundlePricing && product.bundlePricing.length > 0)
+            ? product.bundlePricing.map((tier, idx) => ({
+                id: String(idx + 1),
+                name: tier.label,
+                price: tier.price,
+              }))
+            : [];
           
-          // Save product image and title for live site display
-          updateProp('productImage', product.imageUrl || null);
-          updateProp('productTitle', product.name || null);
+          const newProps = {
+            ...localProps,
+            productId: product.id,
+            productPrice: product.price,
+            discountedPrice: product.price,
+            productImage: product.imageUrl || null,
+            productTitle: product.name || null,
+            variants: variants,
+          };
           
-          // Convert bundlePricing to variants format for CTASectionPreview
-          if (product.bundlePricing && product.bundlePricing.length > 0) {
-            const variants = product.bundlePricing.map((tier, idx) => ({
-              id: String(idx + 1),
-              name: tier.label,
-              price: tier.price,
-            }));
-            updateProp('variants', variants);
-          } else {
-            // No bundle pricing - hide variant selector by setting empty array
-            updateProp('variants', []);
-          }
+          setLocalProps(newProps);
+          onUpdate(newProps); // IMMEDIATE save - bypass debounce
           
           // Notify for real-time preview
           onProductChange?.(product);
