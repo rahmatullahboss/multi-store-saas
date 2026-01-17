@@ -20,6 +20,7 @@ import { getPageWithSections } from '~/lib/page-builder/actions.server';
 import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
+import { OzzylBrandingMini } from '~/components/OzzylBranding';
 
 // ============================================================================
 // LOADER
@@ -95,6 +96,9 @@ export default function PreviewPage() {
         activeSectionId={null}
         onSelectSection={() => {}}
       />
+      
+      {/* Powered by Ozzyl branding */}
+      <OzzylBrandingMini />
       
       {/* Floating Action Buttons */}
       <FloatingActionButtons
