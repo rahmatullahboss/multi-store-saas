@@ -15,8 +15,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link, Form, useNavigation, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc, inArray, sql, and, like, count } from 'drizzle-orm';
-import { products, stores, orderItems, savedLandingConfigs, publishedPages, productVariants, productCollections, reviews, orderBumps, upsellOffers } from '@db/schema';
+import { eq, desc, inArray, sql, and, like, count, or } from 'drizzle-orm';
+import { products, stores, orderItems, savedLandingConfigs, publishedPages, productVariants, productCollections, reviews, orderBumps, upsellOffers, productRecommendations } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
@@ -130,8 +130,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
         await db.delete(productVariants).where(inArray(productVariants.productId, productIds));
         await db.delete(productCollections).where(inArray(productCollections.productId, productIds));
         await db.delete(reviews).where(inArray(reviews.productId, productIds));
-        await db.delete(orderBumps).where(inArray(orderBumps.productId, productIds));
-        await db.delete(upsellOffers).where(inArray(upsellOffers.productId, productIds));
+        
+        // Delete orderBumps where productId OR bumpProductId matches
+        await db.delete(orderBumps).where(
+          or(
+            inArray(orderBumps.productId, productIds),
+            inArray(orderBumps.bumpProductId, productIds)
+          )
+        );
+        
+        // Delete upsellOffers where productId OR offerProductId matches
+        await db.delete(upsellOffers).where(
+          or(
+            inArray(upsellOffers.productId, productIds),
+            inArray(upsellOffers.offerProductId, productIds)
+          )
+        );
+        
+        // Delete productRecommendations where sourceProductId OR recommendedProductId matches
+        await db.delete(productRecommendations).where(
+          or(
+            inArray(productRecommendations.sourceProductId, productIds),
+            inArray(productRecommendations.recommendedProductId, productIds)
+          )
+        );
         
         // Now delete the products
         await db.delete(products).where(inArray(products.id, productIds));
