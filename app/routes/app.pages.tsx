@@ -176,7 +176,7 @@ export default function CampaignPages() {
                                             </div>
                                             <div>
                                                 <Link
-                                                    to={`/app/builder?pageId=${page.id}`}
+                                                    to={`/app/new-builder/${page.id}`}
                                                     className="font-semibold text-gray-900 hover:text-indigo-600"
                                                 >
                                                     {page.name}
@@ -216,7 +216,7 @@ export default function CampaignPages() {
                                                 <ExternalLink className="w-4 h-4" />
                                             </a>
                                             <Link
-                                                to={`/app/builder?pageId=${page.id}`}
+                                                to={`/app/new-builder/${page.id}`}
                                                 className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
                                                 title="Edit in Builder"
                                             >
