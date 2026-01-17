@@ -367,36 +367,10 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                   >
                     +
                   </button>
-                </div>
+              </div>
               </div>
               
-              {/* Price Breakdown */}
-              <div 
-                className="p-5 rounded-xl space-y-3"
-                style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F9FAFB' }}
-              >
-                <div className="flex justify-between">
-                  <span style={{ color: mutedColor }}>{subtotalLabel}</span>
-                  <span className="font-semibold" style={{ color: textColor }}>{formatPrice(subtotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span style={{ color: mutedColor }}>{deliveryLabel}</span>
-                  <span className="font-semibold" style={{ color: textColor }}>{formatPrice(deliveryCharge)}</span>
-                </div>
-                <div 
-                  className="flex justify-between pt-3 border-t"
-                  style={{ borderColor: cardBorder }}
-                >
-                  <span className="font-bold text-lg" style={{ color: textColor }}>{totalLabel}</span>
-                  <span 
-                    className="font-bold text-2xl"
-                    style={{ color: primaryColor }}
-                  >
-                    {formatPrice(total)}
-                  </span>
-                </div>
-              </div>
-              
+              {/* Price Breakdown moved to right column */}
               {/* Trust Badges moved to right column */}
             </div>
             
@@ -552,6 +526,33 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                       ⚠️ এই পেজে কোনো প্রোডাক্ট সেট করা হয়নি। Page Builder থেকে প্রোডাক্ট সিলেক্ট করুন।
                     </div>
                   )}
+                  
+                  {/* Price Breakdown - Right Side */}
+                  <div 
+                    className="p-4 rounded-xl space-y-2"
+                    style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F9FAFB' }}
+                  >
+                    <div className="flex justify-between text-sm">
+                      <span style={{ color: mutedColor }}>{subtotalLabel}</span>
+                      <span className="font-semibold" style={{ color: textColor }}>{formatPrice(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span style={{ color: mutedColor }}>{deliveryLabel}</span>
+                      <span className="font-semibold" style={{ color: textColor }}>{formatPrice(deliveryCharge)}</span>
+                    </div>
+                    <div 
+                      className="flex justify-between pt-2 border-t"
+                      style={{ borderColor: cardBorder }}
+                    >
+                      <span className="font-bold" style={{ color: textColor }}>{totalLabel}</span>
+                      <span 
+                        className="font-bold text-xl"
+                        style={{ color: primaryColor }}
+                      >
+                        {formatPrice(total)}
+                      </span>
+                    </div>
+                  </div>
                   
                   {/* Submit Button */}
                   <button
