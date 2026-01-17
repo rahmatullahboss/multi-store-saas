@@ -120,8 +120,9 @@ export function CTASectionPreview({ props, theme, storeId, productId }: CTASecti
     if (fetcher.data?.success && fetcher.data?.orderId) {
       setOrderSuccess(true);
       // Redirect to thank-you page after a brief success message
+      const orderId = fetcher.data.orderId;
       setTimeout(() => {
-        navigate(`/thank-you/${fetcher.data.orderId}`);
+        navigate(`/thank-you/${orderId}`);
       }, 1500);
     }
   }, [fetcher.data, navigate]);
@@ -350,128 +351,183 @@ export function CTASectionPreview({ props, theme, storeId, productId }: CTASecti
             
             {/* Right Column - Order Form */}
             <div className="p-8">
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                {/* Name Input */}
-                <div>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="আপনার নাম"
-                    className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
-                    style={{ 
-                      backgroundColor: inputBg, 
-                      border: `2px solid ${inputBorder}`,
-                      color: inputText,
-                    }}
-                    required
-                  />
+              {/* Success Message */}
+              {orderSuccess && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <CheckCircle size={64} className="text-green-500 mb-4" />
+                  <h3 className="text-2xl font-bold text-green-600 mb-2">
+                    অর্ডার সফল হয়েছে! 🎉
+                  </h3>
+                  <p className="text-gray-600">আপনাকে ধন্যবাদ পেজে নিয়ে যাওয়া হচ্ছে...</p>
                 </div>
-                
-                {/* Phone Input */}
-                <div>
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder={phonePlaceholder}
-                    className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
-                    style={{ 
-                      backgroundColor: inputBg, 
-                      border: `2px solid ${inputBorder}`,
-                      color: inputText,
-                    }}
-                    required
-                  />
+              )}
+              
+              {/* Error Message */}
+              {fetcher.data?.error && !orderSuccess && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                  {fetcher.data.error}
                 </div>
-                
-                {/* Delivery Location - Dual Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              )}
+              
+              {/* Order Form - hide when success */}
+              {!orderSuccess && (
+                <fetcher.Form 
+                  method="post" 
+                  action="/api/create-order"
+                  className="space-y-4"
+                >
+                  {/* Hidden inputs for API */}
+                  <input type="hidden" name="store_id" value={storeId || ''} />
+                  <input type="hidden" name="product_id" value={productId || ''} />
+                  <input type="hidden" name="quantity" value={quantity} />
+                  <input type="hidden" name="division" value={isInsideDhaka ? 'dhaka' : 'outside_dhaka'} />
+                  {selectedVariant?.id && (
+                    <input type="hidden" name="variant_id" value={selectedVariant.id} />
+                  )}
+                  
+                  {/* Name Input */}
+                  <div>
+                    <input
+                      type="text"
+                      name="customer_name"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="আপনার নাম"
+                      className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
+                      style={{ 
+                        backgroundColor: inputBg, 
+                        border: `2px solid ${inputBorder}`,
+                        color: inputText,
+                      }}
+                      required
+                      disabled={fetcher.state !== 'idle'}
+                    />
+                  </div>
+                  
+                  {/* Phone Input */}
+                  <div>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder={phonePlaceholder}
+                      className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
+                      style={{ 
+                        backgroundColor: inputBg, 
+                        border: `2px solid ${inputBorder}`,
+                        color: inputText,
+                      }}
+                      required
+                      disabled={fetcher.state !== 'idle'}
+                    />
+                  </div>
+                  
+                  {/* Delivery Location - Dual Buttons */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsInsideDhaka(true)}
+                      className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
+                      style={{
+                        backgroundColor: isInsideDhaka ? primaryColor : inputBg,
+                        color: isInsideDhaka ? '#FFFFFF' : textColor,
+                        border: `2px solid ${isInsideDhaka ? primaryColor : inputBorder}`,
+                      }}
+                      disabled={fetcher.state !== 'idle'}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Package size={16} className="flex-shrink-0" />
+                        <span className="text-sm sm:text-base">{insideDhakaLabel}</span>
+                      </div>
+                      <span 
+                        className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
+                        style={{ 
+                          backgroundColor: isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
+                          color: isInsideDhaka ? '#FFFFFF' : primaryColor,
+                        }}
+                      >
+                        ৳{insideDhakaCharge}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsInsideDhaka(false)}
+                      className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
+                      style={{
+                        backgroundColor: !isInsideDhaka ? primaryColor : inputBg,
+                        color: !isInsideDhaka ? '#FFFFFF' : textColor,
+                        border: `2px solid ${!isInsideDhaka ? primaryColor : inputBorder}`,
+                      }}
+                      disabled={fetcher.state !== 'idle'}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Truck size={16} className="flex-shrink-0" />
+                        <span className="text-sm sm:text-base">{outsideDhakaLabel}</span>
+                      </div>
+                      <span 
+                        className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
+                        style={{ 
+                          backgroundColor: !isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
+                          color: !isInsideDhaka ? '#FFFFFF' : primaryColor,
+                        }}
+                      >
+                        ৳{outsideDhakaCharge}
+                      </span>
+                    </button>
+                  </div>
+                  
+                  {/* Address Input */}
+                  <div>
+                    <textarea
+                      name="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder={addressPlaceholder}
+                      rows={3}
+                      className="w-full px-5 py-4 rounded-xl font-medium outline-none resize-none transition-all focus:ring-2 focus:ring-purple-400"
+                      style={{ 
+                        backgroundColor: inputBg, 
+                        border: `2px solid ${inputBorder}`,
+                        color: inputText,
+                      }}
+                      required
+                      disabled={fetcher.state !== 'idle'}
+                    />
+                  </div>
+                  
+                  {/* Submit Button */}
                   <button
-                    type="button"
-                    onClick={() => setIsInsideDhaka(true)}
-                    className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
-                    style={{
-                      backgroundColor: isInsideDhaka ? primaryColor : inputBg,
-                      color: isInsideDhaka ? '#FFFFFF' : textColor,
-                      border: `2px solid ${isInsideDhaka ? primaryColor : inputBorder}`,
+                    type="submit"
+                    disabled={fetcher.state !== 'idle' || !storeId || !productId}
+                    className="w-full py-5 font-bold text-xl rounded-xl transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                    style={{ 
+                      background: buttonBg,
+                      color: buttonTextColor,
                     }}
                   >
-                    <div className="flex items-center gap-2">
-                      <Package size={16} className="flex-shrink-0" />
-                      <span className="text-sm sm:text-base">{insideDhakaLabel}</span>
-                    </div>
-                    <span 
-                      className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
-                      style={{ 
-                        backgroundColor: isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
-                        color: isInsideDhaka ? '#FFFFFF' : primaryColor,
-                      }}
-                    >
-                      ৳{insideDhakaCharge}
-                    </span>
+                    {fetcher.state !== 'idle' ? (
+                      <>
+                        <Loader2 size={22} className="animate-spin" />
+                        <span>অর্ডার প্রক্রিয়াকরণ হচ্ছে...</span>
+                      </>
+                    ) : (
+                      <>
+                        {buttonText}
+                        <ArrowRight size={22} className="animate-pulse" />
+                      </>
+                    )}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsInsideDhaka(false)}
-                    className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
-                    style={{
-                      backgroundColor: !isInsideDhaka ? primaryColor : inputBg,
-                      color: !isInsideDhaka ? '#FFFFFF' : textColor,
-                      border: `2px solid ${!isInsideDhaka ? primaryColor : inputBorder}`,
-                    }}
+                  
+                  {/* Security Note */}
+                  <p 
+                    className="text-center text-xs"
+                    style={{ color: mutedColor }}
                   >
-                    <div className="flex items-center gap-2">
-                      <Truck size={16} className="flex-shrink-0" />
-                      <span className="text-sm sm:text-base">{outsideDhakaLabel}</span>
-                    </div>
-                    <span 
-                      className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
-                      style={{ 
-                        backgroundColor: !isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
-                        color: !isInsideDhaka ? '#FFFFFF' : primaryColor,
-                      }}
-                    >
-                      ৳{outsideDhakaCharge}
-                    </span>
-                  </button>
-                </div>
-                
-                {/* Address Input */}
-                <div>
-                  <textarea
-                    name="address"
-                    placeholder={addressPlaceholder}
-                    rows={3}
-                    className="w-full px-5 py-4 rounded-xl font-medium outline-none resize-none transition-all focus:ring-2 focus:ring-purple-400"
-                    style={{ 
-                      backgroundColor: inputBg, 
-                      border: `2px solid ${inputBorder}`,
-                      color: inputText,
-                    }}
-                    required
-                  />
-                </div>
-                
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="w-full py-5 font-bold text-xl rounded-xl transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 shadow-lg"
-                  style={{ 
-                    background: buttonBg,
-                    color: buttonTextColor,
-                  }}
-                >
-                  {buttonText}
-                  <ArrowRight size={22} className="animate-pulse" />
-                </button>
-                
-                {/* Security Note */}
-                <p 
-                  className="text-center text-xs"
-                  style={{ color: mutedColor }}
-                >
-                  🔒 আপনার তথ্য সম্পূর্ণ নিরাপদ থাকবে
-                </p>
-              </form>
+                    🔒 আপনার তথ্য সম্পূর্ণ নিরাপদ থাকবে
+                  </p>
+                </fetcher.Form>
+              )}
             </div>
           </div>
         </div>

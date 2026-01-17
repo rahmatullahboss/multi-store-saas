@@ -25,6 +25,8 @@ interface LoaderData {
     id: string;
     slug: string;
     title: string | null;
+    storeId: number;
+    productId?: number | null;
     seoTitle?: string | null;
     seoDescription?: string | null;
     ogImage?: string | null;
@@ -107,8 +109,14 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const cached = await getPageFromCache(kv, storeId, slug);
   
   if (cached && cached.page.status === 'published') {
+    // Type assertion for cached page which may have storeId/productId from cache
+    const cachedPage = cached.page as typeof cached.page & { storeId?: number; productId?: number | null };
     return json<LoaderData>({
-      page: cached.page,
+      page: {
+        ...cached.page,
+        storeId: cachedPage.storeId ?? storeId,
+        productId: cachedPage.productId ?? null,
+      },
       sections: cached.sections,
       fromCache: true,
     }, {
@@ -134,6 +142,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       id: page.id,
       slug: page.slug,
       title: page.title,
+      storeId: page.storeId,
+      productId: page.productId,
       seoTitle: page.seoTitle,
       seoDescription: page.seoDescription,
       ogImage: page.ogImage,
@@ -184,6 +194,8 @@ export default function PublicOfferPage() {
       <SectionRenderer
         sections={visibleSections as any}
         activeSectionId={null}
+        storeId={page.storeId}
+        productId={page.productId || undefined}
       />
       
       {/* Floating Action Buttons - WhatsApp, Call, Order */}

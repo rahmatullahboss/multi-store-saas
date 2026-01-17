@@ -34,12 +34,17 @@ interface SectionRendererProps {
   sections: BuilderSection[];
   activeSectionId?: string | null;
   onSelectSection?: (id: string) => void;
+  // For order submission on live pages
+  storeId?: number;
+  productId?: number;
 }
 
 export function SectionRenderer({ 
   sections, 
   activeSectionId, 
-  onSelectSection 
+  onSelectSection,
+  storeId,
+  productId,
 }: SectionRendererProps) {
   // Sort by sortOrder
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -56,6 +61,8 @@ export function SectionRenderer({
           isActive={activeSectionId === section.id}
           onClick={() => onSelectSection?.(section.id)}
           isEditorMode={isEditorMode}
+          storeId={storeId}
+          productId={productId}
         />
       ))}
       
@@ -73,14 +80,16 @@ interface SectionWrapperProps {
   isActive: boolean;
   onClick: () => void;
   isEditorMode: boolean;
+  storeId?: number;
+  productId?: number;
 }
 
-function SectionWrapper({ section, isActive, onClick, isEditorMode }: SectionWrapperProps) {
+function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, productId }: SectionWrapperProps) {
   const meta = getSectionMeta(section.type);
   
   // Only apply editor styling when in editor mode
   if (!isEditorMode) {
-    return <SectionContent section={section} />;
+    return <SectionContent section={section} storeId={storeId} productId={productId} />;
   }
   
   return (
@@ -101,12 +110,18 @@ function SectionWrapper({ section, isActive, onClick, isEditorMode }: SectionWra
       </div>
       
       {/* Actual section content */}
-      <SectionContent section={section} />
+      <SectionContent section={section} storeId={storeId} productId={productId} />
     </div>
   );
 }
 
-function SectionContent({ section }: { section: BuilderSection }) {
+interface SectionContentProps {
+  section: BuilderSection;
+  storeId?: number;
+  productId?: number;
+}
+
+function SectionContent({ section, storeId, productId }: SectionContentProps) {
   const { type, props } = section;
   
   switch (type) {
@@ -121,7 +136,7 @@ function SectionContent({ section }: { section: BuilderSection }) {
     case 'trust-badges':
       return <TrustBadgesSectionPreview props={props} />;
     case 'cta':
-      return <CTASectionPreview props={props} />;
+      return <CTASectionPreview props={props} storeId={storeId} productId={productId} />;
     case 'video':
       return <VideoSectionPreview props={props} />;
     case 'guarantee':
