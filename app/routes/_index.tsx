@@ -342,30 +342,45 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       // CHECK FOR NEW BUILDER HOMEPAGE - Redirect to /offers/{slug} if set
       // ========================================================================
       const homepageBuilderPageId = (validatedStore as Store & { homepageBuilderPageId?: string }).homepageBuilderPageId;
+      const { builderPages } = await import('@db/schema_page_builder');
+      const { desc } = await import('drizzle-orm');
+      
+      let builderPage: { slug: string; status: string | null } | null = null;
       
       if (homepageBuilderPageId) {
-        // Fetch the new builder page to get its slug
-        const { builderPages } = await import('@db/schema_page_builder');
-        
-        const [builderPage] = await db
+        // Explicit homepage builder page set - use it
+        const [result] = await db
           .select({ slug: builderPages.slug, status: builderPages.status })
           .from(builderPages)
           .where(and(
             eq(builderPages.id, homepageBuilderPageId),
             eq(builderPages.storeId, validatedStoreId)
           ));
-        
-        // Only redirect if page exists and is published
-        if (builderPage && builderPage.status === 'published') {
-          const redirectUrl = `/offers/${builderPage.slug}`;
-          return new Response(null, {
-            status: 302,
-            headers: {
-              'Location': redirectUrl,
-              'Cache-Control': 'no-cache',
-            },
-          });
-        }
+        builderPage = result || null;
+      } else {
+        // Auto-find first published builder page for this store
+        const [result] = await db
+          .select({ slug: builderPages.slug, status: builderPages.status })
+          .from(builderPages)
+          .where(and(
+            eq(builderPages.storeId, validatedStoreId),
+            eq(builderPages.status, 'published')
+          ))
+          .orderBy(desc(builderPages.publishedAt))
+          .limit(1);
+        builderPage = result || null;
+      }
+      
+      // Redirect to builder page if it exists and is published
+      if (builderPage && builderPage.status === 'published') {
+        const redirectUrl = `/offers/${builderPage.slug}`;
+        return new Response(null, {
+          status: 302,
+          headers: {
+            'Location': redirectUrl,
+            'Cache-Control': 'no-cache',
+          },
+        });
       }
       
       const featuredProductId = (validatedStore as Store & { featuredProductId?: number }).featuredProductId;
