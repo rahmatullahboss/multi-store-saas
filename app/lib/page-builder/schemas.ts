@@ -404,6 +404,45 @@ export const OrderButtonPropsSchema = z.object({
 export type OrderButtonProps = z.infer<typeof OrderButtonPropsSchema>;
 
 // ============================================================================
+// FOOTER SECTION - Page footer with social links and contact info
+// ============================================================================
+const SocialLinkSchema = z.object({
+  platform: z.enum(['facebook', 'instagram', 'youtube', 'tiktok', 'whatsapp', 'telegram']),
+  url: z.string(),
+});
+
+export const FooterPropsSchema = z.object({
+  // Branding
+  storeName: z.string().optional().default(''),
+  logoUrl: z.string().optional().default(''),
+  tagline: z.string().optional().default('আমাদের সাথে থাকার জন্য ধন্যবাদ'),
+  
+  // Contact Info
+  showContactInfo: z.boolean().default(true),
+  phone: z.string().optional().default(''),
+  email: z.string().optional().default(''),
+  address: z.string().optional().default(''),
+  
+  // Social Links
+  showSocialLinks: z.boolean().default(true),
+  socialLinks: z.array(SocialLinkSchema).default([]),
+  
+  // Payment & Trust
+  showPaymentMethods: z.boolean().default(true),
+  paymentMethods: z.array(z.string()).default(['বিকাশ', 'নগদ', 'রকেট', 'ক্যাশ অন ডেলিভারি']),
+  
+  // Styling
+  bgColor: z.string().default('#18181B'),
+  textColor: z.string().default('#FFFFFF'),
+  accentColor: z.string().default('#10B981'),
+  
+  // Copyright
+  copyrightText: z.string().optional().default(''),
+  showPoweredBy: z.boolean().default(true),
+});
+export type FooterProps = z.infer<typeof FooterPropsSchema>;
+
+// ============================================================================
 // MASTER SCHEMA MAP
 // ============================================================================
 export const SectionSchemas: Record<string, z.ZodTypeAny> = {
@@ -425,6 +464,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'showcase': ShowcasePropsSchema,
   'custom-html': CustomHtmlPropsSchema,
   'order-button': OrderButtonPropsSchema,
+  'footer': FooterPropsSchema,
 };
 
 /**
