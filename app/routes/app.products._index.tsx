@@ -22,7 +22,7 @@ import {
   Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
   AlertTriangle, CheckCircle, Archive, Rocket, Check, Copy, Star
 } from 'lucide-react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -141,6 +141,16 @@ export default function ProductsIndexPage() {
   
   // Ad Link copy state - shows checkmark briefly after copy
   const [copiedProductId, setCopiedProductId] = useState<number | null>(null);
+  
+  // Hydration-safe pattern: ensures event handlers work correctly
+  // This prevents React Hydration Error #418 from breaking click handlers
+  const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+  
+  // Delete confirmation modal state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Status tabs configuration
   const statusTabs = [
@@ -358,24 +368,15 @@ export default function ProductsIndexPage() {
                 <EyeOff className="w-4 h-4" /> {t('unpublish')}
               </button>
             </Form>
-            <Form method="post" className="inline" onSubmit={(e) => {
-              if (!confirm(`Delete ${selectedIds.size} product(s)? This cannot be undone.`)) {
-                e.preventDefault();
-              }
-            }}>
-              {Array.from(selectedIds).map(id => (
-                <input key={id} type="hidden" name="productIds" value={id} />
-              ))}
-              <button
-                type="submit"
-                name="intent"
-                value="delete"
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-              >
-                <Trash2 className="w-4 h-4" /> {t('delete')}
-              </button>
-            </Form>
+            {/* Delete button - opens confirmation modal */}
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isSubmitting || !isHydrated}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" /> {t('delete')}
+            </button>
             <button
               onClick={clearSelection}
               className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
@@ -646,6 +647,48 @@ export default function ProductsIndexPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-xl max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {lang === 'bn' ? 'প্রোডাক্ট ডিলিট করুন?' : 'Delete Products?'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {lang === 'bn' 
+                ? `${selectedIds.size}টি প্রোডাক্ট ডিলিট হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।`
+                : `${selectedIds.size} product(s) will be deleted. This cannot be undone.`}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
+              >
+                {t('cancel')}
+              </button>
+              <Form method="post" className="inline">
+                {Array.from(selectedIds).map(id => (
+                  <input key={id} type="hidden" name="productIds" value={id} />
+                ))}
+                <button
+                  type="submit"
+                  name="intent"
+                  value="delete"
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    clearSelection();
+                  }}
+                  className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                >
+                  {t('delete')}
+                </button>
+              </Form>
+            </div>
           </div>
         </div>
       )}
