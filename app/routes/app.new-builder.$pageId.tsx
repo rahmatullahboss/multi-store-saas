@@ -610,6 +610,7 @@ export default function NewBuilderPage() {
       setShowAddModal={setShowAddModal}
       availableSections={AVAILABLE_SECTIONS}
       products={products}
+      selectedProduct={product}
       lastSaved={lastSaved}
       onUndo={undo}
       onRedo={redo}

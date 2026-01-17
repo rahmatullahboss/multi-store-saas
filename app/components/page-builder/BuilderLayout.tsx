@@ -61,6 +61,16 @@ interface Product {
   bundlePricing?: Array<{ qty: number; price: number; label: string; savings?: number }>;
 }
 
+// Product data from page loader (full product details for preview)
+interface SelectedProduct {
+  id: number;
+  title: string;
+  price: number;
+  compareAtPrice?: number | null;
+  images: string[];
+  variants?: Array<{ id: number; name: string; price: number }>;
+}
+
 interface BuilderLayoutProps {
   page: {
     id: string;
@@ -98,6 +108,8 @@ interface BuilderLayoutProps {
   setShowAddModal: (show: boolean) => void;
   availableSections: SectionMeta[];
   products?: Product[];
+  // Selected product for preview (page-level productId)
+  selectedProduct?: SelectedProduct | null;
   // Undo/Redo
   onUndo?: () => void;
   onRedo?: () => void;
@@ -128,6 +140,7 @@ export function BuilderLayout({
   setShowAddModal,
   availableSections,
   products = [],
+  selectedProduct,
   lastSaved,
   onUndo,
   onRedo,
@@ -180,6 +193,40 @@ export function BuilderLayout({
     }, 50);
     return () => clearTimeout(timer);
   }, [sections, notifyPreview]);
+  
+  // Send initial product data to preview iframe when it loads
+  // This ensures product shows on page load without re-selecting in editor
+  useEffect(() => {
+    if (selectedProduct && iframeRef.current) {
+      // Wait for iframe to load before sending product data
+      const handleIframeLoad = () => {
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'PRODUCT_UPDATE',
+            product: selectedProduct,
+          }, '*');
+        }
+      };
+      
+      // Add load listener
+      iframeRef.current.addEventListener('load', handleIframeLoad);
+      
+      // Also send immediately in case iframe is already loaded
+      const timer = setTimeout(() => {
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'PRODUCT_UPDATE',
+            product: selectedProduct,
+          }, '*');
+        }
+      }, 500);
+      
+      return () => {
+        iframeRef.current?.removeEventListener('load', handleIframeLoad);
+        clearTimeout(timer);
+      };
+    }
+  }, [selectedProduct]);
   
   const [showNewPageModal, setShowNewPageModal] = useState(isNew);
   

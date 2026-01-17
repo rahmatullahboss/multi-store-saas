@@ -120,6 +120,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     templateId: page.templateId || 'default',
     // Product data for CTA section
     initialProduct: productData,
+    // Store and product IDs for CTA section order form
+    storeId: auth.store.id,
+    productId: effectiveProductId || null,
   });
 }
 
@@ -186,6 +189,8 @@ export default function PreviewPage() {
         sections={liveSections}
         activeSectionId={null}
         onSelectSection={() => {}}
+        storeId={loaderData.storeId}
+        productId={loaderData.productId || undefined}
         product={liveProduct}
       />
       
