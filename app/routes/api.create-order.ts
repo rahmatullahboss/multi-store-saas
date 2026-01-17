@@ -102,7 +102,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       for (const [key, value] of formData.entries()) {
         // Parse numbers for numeric fields
         if (['store_id', 'product_id', 'quantity', 'variant_id', 'landing_page_id'].includes(key)) {
-          body[key] = parseInt(value as string, 10);
+          const strValue = (value as string).trim();
+          if (strValue !== '') {
+            const parsed = parseInt(strValue, 10);
+            if (!isNaN(parsed)) {
+              body[key] = parsed;
+            }
+          }
         } else if (key === 'bump_ids') {
           try {
             body[key] = JSON.parse(value as string);

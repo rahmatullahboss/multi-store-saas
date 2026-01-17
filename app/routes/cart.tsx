@@ -397,6 +397,8 @@ export default function Cart() {
         {cartContent}
       </DarazPageWrapper>
     );
+  }
+
   // CHECK FOR DYNAMIC SECTIONS
   if ((themeConfig?.cartSections?.length ?? 0) > 0) {
     const sectionProps = {
@@ -439,5 +441,4 @@ export default function Cart() {
       {cartContent}
     </StorePageWrapper>
   );
-}
 }

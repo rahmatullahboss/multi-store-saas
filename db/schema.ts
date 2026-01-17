@@ -8,6 +8,7 @@
 import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 export * from './schema_agent';
+export * from './schema_templates';
 
 // ============================================================================
 // STORES TABLE - Core tenant table with Hybrid Mode support

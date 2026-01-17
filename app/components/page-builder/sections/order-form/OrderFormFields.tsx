@@ -142,6 +142,7 @@ export function OrderFormFields({
         <input type="hidden" name="store_id" value={storeId || ''} />
         <input type="hidden" name="product_id" value={productId || ''} />
         <input type="hidden" name="quantity" value={state.quantity} />
+        <input type="hidden" name="payment_method" value="cod" />
         <input type="hidden" name="division" value={calculatedShippingZone === 'dhaka' ? 'dhaka' : 'outside_dhaka'} />
         <input type="hidden" name="district" value={state.selectedDistrictId} />
         <input type="hidden" name="upazila" value={state.selectedUpazilaId} />
