@@ -18,7 +18,7 @@ import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { 
   ShoppingCart, Clock, Package, Truck, CheckCircle, XCircle, 
-  Phone, Eye, DollarSign, ThumbsUp, Loader2, ChevronDown, Shield
+  Phone, Eye, DollarSign, ThumbsUp, Loader2, ChevronDown, Shield, PackageX
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
@@ -325,6 +325,17 @@ export default function DashboardOrdersPage() {
           icon={<DollarSign className="w-5 h-5" />}
           color="purple"
         />
+      </div>
+
+      {/* Quick Links */}
+      <div className="flex gap-2">
+        <Link
+          to="/app/returns"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-sm font-medium transition border border-red-200"
+        >
+          <PackageX className="w-4 h-4" />
+          রিটার্ন পার্সেল দেখুন
+        </Link>
       </div>
 
       {/* Filters Row */}
