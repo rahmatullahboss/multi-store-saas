@@ -484,11 +484,19 @@ export default function NewBuilderPage() {
     fetcher.submit(
       { 
         intent: 'update-settings',
+        // WhatsApp settings
         whatsappEnabled: String(settings.whatsappEnabled),
         whatsappNumber: settings.whatsappNumber as string || '',
         whatsappMessage: settings.whatsappMessage as string || '',
+        // Call settings
         callEnabled: String(settings.callEnabled),
         callNumber: settings.callNumber as string || '',
+        // Order button settings
+        orderEnabled: String(settings.orderEnabled),
+        orderText: settings.orderText as string || '',
+        orderBgColor: settings.orderBgColor as string || '',
+        orderTextColor: settings.orderTextColor as string || '',
+        buttonPosition: settings.buttonPosition as string || '',
       },
       { method: 'post' }
     );
