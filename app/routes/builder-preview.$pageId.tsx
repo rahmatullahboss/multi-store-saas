@@ -15,6 +15,9 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { useEffect, useState } from 'react';
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
+import { products, productVariants } from '@db/schema';
 
 import { getPageWithSections } from '~/lib/page-builder/actions.server';
 import { requireAuth } from '~/lib/auth.server';
@@ -22,6 +25,16 @@ import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
 import { OzzylBrandingMini } from '~/components/OzzylBranding';
 import { TemplateLayoutRenderer } from '~/components/page-builder/TemplateLayoutRenderer';
+
+// Product type for order form display
+interface ProductData {
+  id: number;
+  title: string;
+  price: number;
+  compareAtPrice?: number | null;
+  images: string[];
+  variants?: Array<{ id: number; name: string; price: number }>;
+}
 
 // ============================================================================
 // LOADER
@@ -44,6 +57,49 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     throw new Response('Page not found', { status: 404 });
   }
   
+  // Fetch product data if productId is set on page
+  let productData: ProductData | null = null;
+  
+  // Check page-level productId first, then fallback to CTA section props
+  let effectiveProductId = page.productId;
+  if (!effectiveProductId) {
+    const ctaSection = page.sections?.find(s => s.type === 'cta');
+    if (ctaSection && ctaSection.props && typeof ctaSection.props.productId === 'number') {
+      effectiveProductId = ctaSection.props.productId;
+    }
+  }
+  
+  if (effectiveProductId) {
+    const odb = drizzle(db);
+    const [productRow] = await odb.select().from(products).where(eq(products.id, effectiveProductId)).limit(1);
+    
+    if (productRow) {
+      const variantRows = await odb.select().from(productVariants).where(eq(productVariants.productId, effectiveProductId));
+      
+      let parsedImages: string[] = [];
+      try {
+        if (productRow.images) {
+          parsedImages = typeof productRow.images === 'string' 
+            ? JSON.parse(productRow.images) 
+            : Array.isArray(productRow.images) ? productRow.images : [];
+        }
+      } catch { parsedImages = []; }
+      
+      productData = {
+        id: productRow.id,
+        title: productRow.title,
+        price: productRow.price,
+        compareAtPrice: productRow.compareAtPrice,
+        images: parsedImages,
+        variants: variantRows.map(v => ({
+          id: v.id,
+          name: [v.option1Value, v.option2Value, v.option3Value].filter(Boolean).join(' / ') || `Variant ${v.id}`,
+          price: v.price ?? productRow.price,
+        })),
+      };
+    }
+  }
+  
   return json({
     sections: page.sections.filter(s => s.enabled),
     pageSettings: {
@@ -61,7 +117,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       orderTextColor: page.orderTextColor || '#FFFFFF',
       position: page.buttonPosition || 'bottom-right',
     },
-    templateId: page.templateId || 'default', // Pass templateId for custom layouts
+    templateId: page.templateId || 'default',
+    // Product data for CTA section
+    initialProduct: productData,
   });
 }
 
@@ -73,6 +131,7 @@ export default function PreviewPage() {
   const loaderData = useLoaderData<typeof loader>();
   const [liveSections, setLiveSections] = useState(loaderData.sections);
   const [liveSettings, setLiveSettings] = useState(loaderData.pageSettings);
+  // Initialize with product from loader (if any) so it shows immediately on page load
   const [liveProduct, setLiveProduct] = useState<{
     id: number;
     title: string;
@@ -80,7 +139,7 @@ export default function PreviewPage() {
     compareAtPrice?: number | null;
     images: string[];
     variants?: Array<{ id: number; name: string; price: number }>;
-  } | null>(null);
+  } | null>(loaderData.initialProduct || null);
   
   // Listen for live updates from parent window (receives sections data directly)
   useEffect(() => {
@@ -113,6 +172,13 @@ export default function PreviewPage() {
   useEffect(() => {
     setLiveSettings(loaderData.pageSettings);
   }, [loaderData.pageSettings]);
+  
+  // Update product from loader when data changes (e.g. page refresh)
+  useEffect(() => {
+    if (loaderData.initialProduct) {
+      setLiveProduct(loaderData.initialProduct);
+    }
+  }, [loaderData.initialProduct]);
   
   return (
     <TemplateLayoutRenderer templateId={loaderData.templateId}>
