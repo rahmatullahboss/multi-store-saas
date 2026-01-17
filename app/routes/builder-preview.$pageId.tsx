@@ -102,10 +102,10 @@ export default function PreviewPage() {
       
       {/* Floating Action Buttons */}
       <FloatingActionButtons
-        whatsappEnabled={liveSettings.whatsappEnabled}
+        whatsappEnabled={Boolean(liveSettings.whatsappEnabled)}
         whatsappNumber={liveSettings.whatsappNumber}
         whatsappMessage={liveSettings.whatsappMessage}
-        callEnabled={liveSettings.callEnabled}
+        callEnabled={Boolean(liveSettings.callEnabled)}
         callNumber={liveSettings.callNumber}
         orderEnabled={true}
         orderText="অর্ডার করুন"
