@@ -117,6 +117,10 @@ export const stores = sqliteTable('stores', {
   subscriptionEndDate: integer('subscription_end_date', { mode: 'timestamp' }),
   adminNote: text('admin_note'), // Super Admin notes for the subscription
 
+  // === NEW PAGE BUILDER HOMEPAGE LINK ===
+  // Links to a new builder page (builder_pages.id) to use as homepage in funnel mode
+  homepageBuilderPageId: text('homepage_builder_page_id'),
+
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // Soft delete timestamp (null = not deleted)
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),

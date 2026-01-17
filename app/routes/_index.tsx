@@ -338,6 +338,36 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   // ========== LANDING MODE ==========
   if (storeMode === 'landing') {
     try {
+      // ========================================================================
+      // CHECK FOR NEW BUILDER HOMEPAGE - Redirect to /offers/{slug} if set
+      // ========================================================================
+      const homepageBuilderPageId = (validatedStore as Store & { homepageBuilderPageId?: string }).homepageBuilderPageId;
+      
+      if (homepageBuilderPageId) {
+        // Fetch the new builder page to get its slug
+        const { builderPages } = await import('@db/schema_page_builder');
+        
+        const [builderPage] = await db
+          .select({ slug: builderPages.slug, status: builderPages.status })
+          .from(builderPages)
+          .where(and(
+            eq(builderPages.id, homepageBuilderPageId),
+            eq(builderPages.storeId, validatedStoreId)
+          ));
+        
+        // Only redirect if page exists and is published
+        if (builderPage && builderPage.status === 'published') {
+          const redirectUrl = `/offers/${builderPage.slug}`;
+          return new Response(null, {
+            status: 302,
+            headers: {
+              'Location': redirectUrl,
+              'Cache-Control': 'no-cache',
+            },
+          });
+        }
+      }
+      
       const featuredProductId = (validatedStore as Store & { featuredProductId?: number }).featuredProductId;
       
       let featuredProduct: Product | null = null;
