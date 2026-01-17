@@ -1,160 +1,61 @@
 import { Link } from '@remix-run/react';
-import { ShoppingBag, Search, Menu, X, User } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import type { StoreHeaderProps } from '~/templates/store-registry';
+import { ShoppingBag, Menu, Search, User } from 'lucide-react';
 
-function cn(...classes: (string | boolean | undefined | null)[]) {
-  return classes.filter(Boolean).join(' ');
+interface RovoHeaderProps {
+  storeName: string;
+  logo?: string | null;
+  cartCount?: number;
 }
 
-export function RovoHeader({ 
-  storeName, 
-  logo, 
-  categories, 
-  currentCategory 
-}: StoreHeaderProps) {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-
-    const updateCartCount = () => {
-      try {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        setCartCount(cart.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0));
-      } catch {
-        setCartCount(0);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('cart-updated', updateCartCount);
-    window.addEventListener('storage', updateCartCount);
-    
-    updateCartCount(); // Initial load
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('cart-updated', updateCartCount);
-      window.removeEventListener('storage', updateCartCount);
-    };
-  }, []);
-
+export function RovoHeader({ storeName, logo, cartCount = 0 }: RovoHeaderProps) {
   return (
-    <>
-      <header 
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 font-sans",
-          isScrolled ? "bg-white/95 backdrop-blur shadow-sm border-b py-3" : "bg-transparent py-5"
-        )}
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            {/* Mobile Menu Button */}
-            <button 
-              className="lg:hidden p-2 -ml-2 hover:bg-black/5 rounded-full"
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+    <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            {logo ? (
+              <img src={logo} alt={storeName} className="h-8 w-auto" />
+            ) : (
+              <span className="text-xl font-bold text-gray-900">{storeName}</span>
+            )}
+          </Link>
 
-            {/* Logo */}
-            <Link to="/" className="flex-shrink-0">
-              {logo ? (
-                <img src={logo} alt={storeName} className="h-8 md:h-10 w-auto object-contain" />
-              ) : (
-                <span className="text-2xl md:text-3xl font-bold tracking-tighter uppercase font-heading">
-                  {storeName}
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link to="/collections" className="text-sm text-gray-600 hover:text-gray-900">
+              Shop
+            </Link>
+            <Link to="/collections/new" className="text-sm text-gray-600 hover:text-gray-900">
+              New Arrivals
+            </Link>
+            <Link to="/about" className="text-sm text-gray-600 hover:text-gray-900">
+              About
+            </Link>
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center gap-4">
+            <button className="p-2 text-gray-600 hover:text-gray-900">
+              <Search size={20} />
+            </button>
+            <button className="p-2 text-gray-600 hover:text-gray-900">
+              <User size={20} />
+            </button>
+            <Link to="/cart" className="p-2 text-gray-600 hover:text-gray-900 relative">
+              <ShoppingBag size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-black text-white text-xs rounded-full flex items-center justify-center">
+                  {cartCount}
                 </span>
               )}
             </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-8">
-              <Link 
-                to="/" 
-                className={cn(
-                  "text-sm font-medium uppercase tracking-wide hover:text-red-600 transition-colors",
-                  !currentCategory ? "text-red-600" : "text-gray-900"
-                )}
-              >
-                Home
-              </Link>
-              {categories.filter(Boolean).slice(0, 5).map((category) => (
-                <Link
-                  key={category}
-                  to={`/collections/${category}`}
-                  className="text-sm font-medium uppercase tracking-wide text-gray-900 hover:text-red-600 transition-colors"
-                >
-                  {category}
-                </Link>
-              ))}
-              <Link to="/products" className="text-sm font-medium uppercase tracking-wide text-gray-900 hover:text-red-600 transition-colors">
-                Shop
-              </Link>
-            </nav>
-
-            {/* Icons */}
-            <div className="flex items-center space-x-2 md:space-x-4">
-              <button 
-                className="p-2 hover:bg-black/5 rounded-full transition-colors hidden md:block"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-              
-              <Link to="/account" className="p-2 hover:bg-black/5 rounded-full transition-colors hidden md:block">
-                <User className="w-5 h-5" />
-              </Link>
-
-              <button 
-                className="p-2 hover:bg-black/5 rounded-full transition-colors relative group"
-                aria-label="Cart"
-                onClick={() => window.dispatchEvent(new CustomEvent('open-cart-drawer'))}
-              >
-                <ShoppingBag className="w-5 h-5 group-hover:text-red-600 transition-colors" />
-                {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            </div>
+            <button className="md:hidden p-2 text-gray-600">
+              <Menu size={20} />
+            </button>
           </div>
         </div>
-      </header>
-
-      {/* Spacer */}
-      <div className="h-16 md:h-20" /> 
-
-      {/* Mobile Menu Drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
-          <div className="absolute top-0 left-0 bottom-0 w-[80%] max-w-[300px] bg-white shadow-xl z-50 flex flex-col">
-            <div className="p-4 border-b flex items-center justify-between">
-              <span className="font-bold uppercase">Menu</span>
-              <button onClick={() => setMobileMenuOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto py-4">
-              <nav className="flex flex-col space-y-1 px-2">
-                <Link to="/" className="p-3 hover:bg-gray-50 rounded-lg font-medium">Home</Link>
-                {categories.filter(Boolean).map((cat) => (
-                  <Link key={cat} to={`/collections/${cat}`} className="p-3 hover:bg-gray-50 rounded-lg font-medium">
-                    {cat}
-                  </Link>
-                ))}
-                <Link to="/products" className="p-3 hover:bg-gray-50 rounded-lg font-medium">All Products</Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+      </div>
+    </header>
   );
 }

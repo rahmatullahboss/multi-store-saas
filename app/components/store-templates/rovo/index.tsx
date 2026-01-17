@@ -1,7 +1,7 @@
 import type { StoreTemplateProps } from '~/templates/store-registry';
-import { RovoHeader } from './RovoHeader';
-import { RovoFooter } from './RovoFooter';
-import { RovoLayout } from './RovoLayout';
+import { RovoHeader } from './sections/Header';
+import { RovoFooter } from './sections/Footer';
+import { RovoLayout } from './sections/Layout';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 
 export function RovoTemplate(props: StoreTemplateProps) {

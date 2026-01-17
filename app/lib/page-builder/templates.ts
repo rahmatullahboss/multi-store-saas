@@ -586,7 +586,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'trust-badges',
         props: {
-          variant: 'marquee',
+          variant: 'glassmorphism',
           backgroundColor: '#000000',
           textColor: '#A1A1AA',
           badges: [
@@ -600,7 +600,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'features',
         props: {
-          variant: 'bento',
+          variant: 'glassmorphism',
           backgroundColor: '#000000',
           textColor: '#FFFFFF',
           title: 'এক্সক্লুসিভ ফিচারস',
@@ -1029,6 +1029,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'benefits',
         props: {
+          variant: 'trust-first',
           title: 'আমাদের প্রতিশ্রুতি',
           benefits: [
             { icon: '🏆', title: '১০০% অরিজিনাল', description: 'নকল প্রোডাক্ট পেলে পুরো টাকা ফেরত' },
@@ -1041,6 +1042,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'guarantee',
         props: {
+          variant: 'trust-first',
           title: '১০০% সন্তুষ্টি গ্যারান্টি',
           text: 'আমরা আপনার সন্তুষ্টির জন্য প্রতিশ্রুতিবদ্ধ। পণ্য পছন্দ না হলে ৭ দিনের মধ্যে ফেরত দিন।',
           badgeLabel: '৭ দিন মানি ব্যাক গ্যারান্টি',
@@ -1089,6 +1091,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'problem-solution',
         props: {
+          variant: 'default',
           problemTitle: '😔 আমি যে সমস্যায় ভুগছিলাম...',
           problems: [
             'প্রতিদিন একই সমস্যা, একই হতাশা',
@@ -1127,8 +1130,20 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
         },
       },
       {
+        type: 'faq',
+        props: {
+          variant: 'accordion',
+          title: '❓ প্রশ্নোত্তর',
+          items: [
+            { question: 'এটা কি সত্যিই কাজ করে?', answer: 'হ্যাঁ, হাজারো মানুষ ব্যবহার করে উপকৃত হয়েছেন।' },
+            { question: 'কতদিনে ফলাফল পাব?', answer: 'সাধারণত ১-২ সপ্তাহের মধ্যে পার্থক্য বুঝতে পারবেন।' },
+          ],
+        },
+      },
+      {
         type: 'guarantee',
         props: {
+          variant: 'default',
           title: '💛 আমার প্রতিশ্রুতি',
           text: 'আমি নিজে ব্যবহার করে দেখেছি, তাই আপনাকেও গ্যারান্টি দিচ্ছি - পছন্দ না হলে টাকা ফেরত।',
           badgeLabel: '১০০% সন্তুষ্টি গ্যারান্টি',
@@ -1200,6 +1215,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'features',
         props: {
+          variant: 'social-proof',
           title: '✅ প্রোডাক্ট ফিচার',
           features: [
             { icon: '✓', title: '১০০% অরিজিনাল', description: 'গ্যারান্টি সহ' },
@@ -1262,11 +1278,24 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'features',
         props: {
+          variant: 'urgency',
           title: '🔥 কেন এখনই অর্ডার করবেন?',
           features: [
             { icon: '💰', title: '৫০% ছাড়', description: 'শুধু আজকের জন্য' },
             { icon: '🎁', title: 'ফ্রি গিফট', description: 'প্রথম ২০ অর্ডারে' },
             { icon: '🚚', title: 'ফ্রি ডেলিভারি', description: 'আজই অর্ডার করলে' },
+          ],
+        },
+      },
+      {
+        type: 'benefits',
+        props: {
+          variant: 'urgency',
+          title: '🎁 বোনাস যা পাচ্ছেন',
+          benefits: [
+            { icon: '🎁', title: 'ফ্রি গিফট', description: 'বিশেষ উপহার' },
+            { icon: '📦', title: 'এক্সট্রা প্যাক', description: 'অতিরিক্ত স্যাম্পল' },
+            { icon: '🏷️', title: 'ডিসকাউন্ট কুপন', description: 'পরবর্তী অর্ডারে' },
           ],
         },
       },
@@ -1283,8 +1312,20 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
         },
       },
       {
+        type: 'faq',
+        props: {
+          variant: 'accordion',
+          title: '❓ সাধারণ প্রশ্ন',
+          items: [
+            { question: 'এই অফার কতক্ষণ চলবে?', answer: 'শুধুমাত্র আজ রাত ১২টা পর্যন্ত!' },
+            { question: 'স্টক থাকবে তো?', answer: 'সীমিত স্টক! শেষ হলে আর পাওয়া যাবে না।' },
+          ],
+        },
+      },
+      {
         type: 'guarantee',
         props: {
+          variant: 'urgency',
           title: '🛡️ রিস্ক ফ্রি পারচেজ',
           text: 'পছন্দ না হলে ৭ দিনের মধ্যে টাকা ফেরত।',
           badgeLabel: '১০০% মানি ব্যাক গ্যারান্টি',

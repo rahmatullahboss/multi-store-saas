@@ -17,8 +17,8 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { TURBO_SALE_THEME } from './styles/tokens';
-import { GhorerBazarHeader } from '~/components/store-templates/ghorer-bazar/sections/Header';
-import { GhorerBazarFooter } from '~/components/store-templates/ghorer-bazar/sections/Footer';
+import { TurboSaleHeader } from './sections/Header';
+import { TurboSaleFooter } from './sections/Footer';
 import { Phone, MessageCircle, ShoppingBag } from 'lucide-react';
 import { Link } from '@remix-run/react';
 
@@ -106,7 +106,7 @@ export function TurboSaleTemplate({
                 fontFamily: TURBO_SALE_THEME.fontFamily
               }}
             >
-              <GhorerBazarHeader
+              <TurboSaleHeader
                 storeName={storeName}
                 logo={logo}
                 categories={categories}
@@ -144,7 +144,7 @@ export function TurboSaleTemplate({
                 })}
               </main>
 
-              <GhorerBazarFooter
+              <TurboSaleFooter
                 storeName={storeName}
                 logo={logo}
                 socialLinks={socialLinks}

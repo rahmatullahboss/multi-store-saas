@@ -281,22 +281,11 @@ import { FRESHNESS_THEME } from '~/components/store-templates/freshness/theme';
 import { AURORA_THEME } from '~/components/store-templates/aurora-minimal/theme';
 import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styles/tokens';
 import { TURBO_SALE_THEME } from '~/components/store-templates/turbo-sale/styles/tokens';
-import { ROVO_THEME } from '~/components/store/rovo/theme';
+import { ROVO_THEME } from '~/components/store-templates/rovo/theme';
 
 const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/luxe-boutique/index').then(m => ({ default: m.LuxeBoutiqueTemplate })));
 const TechModernTemplate = React.lazy(() => import('~/components/store-templates/tech-modern/index').then(m => ({ default: m.TechModernTemplate })));
 const ArtisanMarketTemplate = React.lazy(() => import('~/components/store-templates/artisan-market/index').then(m => ({ default: m.ArtisanMarketTemplate })));
-const ModernPremiumTemplate = React.lazy(() => import('~/components/templates/modern-premium/index').then(m => ({ 
-  default: (props: any) => {
-    // Landing templates expect a single 'product', store templates provide 'products'
-    const landingProps = {
-      ...props,
-      product: props.products?.[0] || { id: 0, title: 'Sample Product', price: 0 },
-      config: props.config || {}
-    };
-    return React.createElement(m.ModernPremiumTemplate as any, landingProps);
-  }
-})));
 const DarazTemplate = React.lazy(() => import('~/components/store-templates/daraz/index').then(m => ({ default: m.DarazTemplate })));
 const BDShopTemplate = React.lazy(() => import('~/components/store-templates/bdshop/index').then(m => ({ default: m.BDShopTemplate })));
 const GhorerBazarTemplate = React.lazy(() => import('~/components/store-templates/ghorer-bazar/index').then(m => ({ default: m.GhorerBazarTemplate })));
@@ -306,8 +295,7 @@ const AuroraMinimalTemplate = React.lazy(() => import('~/components/store-templa
 const FreshnessTemplate = React.lazy(() => import('~/components/store-templates/freshness/index').then(m => ({ default: m.FreshnessTemplate })));
 const ZenithRiseTemplate = React.lazy(() => import('~/components/store-templates/zenith-rise/index').then(m => ({ default: m.ZenithRiseTemplate })));
 const TurboSaleTemplate = React.lazy(() => import('~/components/store-templates/turbo-sale/index').then(m => ({ default: m.TurboSaleTemplate })));
-// Using a placeholder for now, will replace with real component
-const RovoTemplate = React.lazy(() => import('~/components/store/rovo/index').then(m => ({ default: m.RovoTemplate })));
+const RovoTemplate = React.lazy(() => import('~/components/store-templates/rovo/index').then(m => ({ default: m.RovoTemplate })));
 
 // Header Components
 const DarazHeader = React.lazy(() => import('~/components/store-templates/daraz/sections/Header').then(m => ({ default: m.DarazHeader })));
@@ -334,9 +322,11 @@ const AuroraMinimalFooter = React.lazy(() => import('~/components/store-template
 const FreshnessFooter = React.lazy(() => import('~/components/store-templates/freshness/sections/Footer').then(m => ({ default: m.FreshnessFooter })));
 const ZenithRiseHeader = React.lazy(() => import('~/components/store-templates/zenith-rise/sections/Header').then(m => ({ default: m.ZenithRiseHeader })));
 const ZenithRiseFooter = React.lazy(() => import('~/components/store-templates/zenith-rise/sections/Footer').then(m => ({ default: m.ZenithRiseFooter })));
+const TurboSaleHeader = React.lazy(() => import('~/components/store-templates/turbo-sale/sections/Header').then(m => ({ default: m.TurboSaleHeader })));
+const TurboSaleFooter = React.lazy(() => import('~/components/store-templates/turbo-sale/sections/Footer').then(m => ({ default: m.TurboSaleFooter })));
 
-const RovoHeader = React.lazy(() => import('~/components/store/rovo/RovoHeader').then(m => ({ default: m.RovoHeader })));
-const RovoFooter = React.lazy(() => import('~/components/store/rovo/RovoFooter').then(m => ({ default: m.RovoFooter })));
+const RovoHeader = React.lazy(() => import('~/components/store-templates/rovo/sections/Header').then(m => ({ default: m.RovoHeader })));
+const RovoFooter = React.lazy(() => import('~/components/store-templates/rovo/sections/Footer').then(m => ({ default: m.RovoFooter })));
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -386,19 +376,6 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: ArtisanMarketTemplate,
     Header: ArtisanMarketHeader,
     Footer: ArtisanMarketFooter,
-  },
-  {
-    id: 'modern-premium',
-    name: 'Modern Premium',
-    description: 'Sleek modern design with dark mode support, animations, and premium feel. Perfect for any product.',
-    thumbnail: '/templates/modern-premium.png',
-    category: 'modern',
-    theme: STORE_TEMPLATE_THEMES['modern-premium'],
-    fonts: {
-      heading: 'Inter',
-      body: 'Inter',
-    },
-    component: ModernPremiumTemplate,
   },
   {
     id: 'daraz',
@@ -532,9 +509,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Hind Siliguri',
     },
     component: TurboSaleTemplate,
-    // Using GhorerBazar headers for now as per design
-    Header: GhorerBazarHeader,
-    Footer: GhorerBazarFooter,
+    Header: TurboSaleHeader,
+    Footer: TurboSaleFooter,
   },
   {
     id: 'rovo',
