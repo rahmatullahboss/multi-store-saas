@@ -1470,6 +1470,165 @@ function renderPropsForm(
         </>
       );
     
+    case 'contact':
+      return (
+        <>
+          {/* Title */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 শিরোনাম</h5>
+            <TextField 
+              label="Title" 
+              value={props.title as string || 'যোগাযোগ করুন'} 
+              onChange={(v) => updateProp('title', v)} 
+            />
+            <TextField 
+              label="Subtitle" 
+              value={props.subtitle as string || ''} 
+              onChange={(v) => updateProp('subtitle', v)} 
+            />
+          </div>
+          
+          {/* Contact Information */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📞 যোগাযোগ তথ্য</h5>
+            <ToggleField 
+              label="Show Contact Info" 
+              value={props.showContactInfo as boolean ?? true} 
+              onChange={(v) => updateProp('showContactInfo', v)} 
+            />
+            {(props.showContactInfo ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Phone" 
+                  value={props.phone as string || ''} 
+                  onChange={(v) => updateProp('phone', v)} 
+                />
+                <TextField 
+                  label="WhatsApp" 
+                  value={props.whatsapp as string || ''} 
+                  onChange={(v) => updateProp('whatsapp', v)} 
+                />
+                <TextField 
+                  label="Email" 
+                  value={props.email as string || ''} 
+                  onChange={(v) => updateProp('email', v)} 
+                />
+                <TextField 
+                  label="Address" 
+                  value={props.address as string || ''} 
+                  onChange={(v) => updateProp('address', v)} 
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Business Hours */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🕐 অফিস সময়</h5>
+            <ToggleField 
+              label="Show Business Hours" 
+              value={props.showHours as boolean ?? true} 
+              onChange={(v) => updateProp('showHours', v)} 
+            />
+            {(props.showHours ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Hours Title" 
+                  value={props.hoursTitle as string || 'অফিস সময়'} 
+                  onChange={(v) => updateProp('hoursTitle', v)} 
+                />
+                <TextField 
+                  label="Hours" 
+                  value={props.hours as string || ''} 
+                  onChange={(v) => updateProp('hours', v)} 
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Form Settings */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📋 ফর্ম</h5>
+            <ToggleField 
+              label="Show Contact Form" 
+              value={props.showForm as boolean ?? true} 
+              onChange={(v) => updateProp('showForm', v)} 
+            />
+            {(props.showForm ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Form Title" 
+                  value={props.formTitle as string || 'মেসেজ পাঠান'} 
+                  onChange={(v) => updateProp('formTitle', v)} 
+                />
+                <TextField 
+                  label="Submit Button" 
+                  value={props.submitButtonText as string || 'পাঠান'} 
+                  onChange={(v) => updateProp('submitButtonText', v)} 
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Social Links */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔗 সোশ্যাল লিংক</h5>
+            <ToggleField 
+              label="Show Social Links" 
+              value={props.showSocialLinks as boolean ?? true} 
+              onChange={(v) => updateProp('showSocialLinks', v)} 
+            />
+            {(props.showSocialLinks ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Facebook URL" 
+                  value={props.facebookUrl as string || ''} 
+                  onChange={(v) => updateProp('facebookUrl', v)} 
+                />
+                <TextField 
+                  label="Instagram URL" 
+                  value={props.instagramUrl as string || ''} 
+                  onChange={(v) => updateProp('instagramUrl', v)} 
+                />
+                <TextField 
+                  label="WhatsApp URL" 
+                  value={props.whatsappUrl as string || ''} 
+                  onChange={(v) => updateProp('whatsappUrl', v)} 
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Styling */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 স্টাইল</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Layout Variant</label>
+              <select
+                value={props.variant as string || 'split'}
+                onChange={(e) => updateProp('variant', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="split">Split (Info + Form)</option>
+                <option value="stacked">Stacked</option>
+                <option value="form-only">Form Only</option>
+                <option value="info-only">Info Only</option>
+              </select>
+            </div>
+            <ColorPickerField 
+              label="Background Color" 
+              value={props.bgColor as string || '#F9FAFB'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+            />
+            <ColorPickerField 
+              label="Accent Color" 
+              value={props.accentColor as string || '#6366F1'} 
+              onChange={(v) => updateProp('accentColor', v)} 
+            />
+          </div>
+        </>
+      );
+    
     default:
       return (
         <div className="text-sm text-gray-500">
