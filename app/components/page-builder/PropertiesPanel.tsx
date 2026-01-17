@@ -504,21 +504,23 @@ function renderPropsForm(
             </div>
           )}
           
-          {/* Template Variation Selector */}
+          {/* Design Variant Selector */}
           <div className="border-b border-gray-100 pb-4 mb-4">
-            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 টেমপ্লেট স্টাইল</h5>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 ডিজাইন স্টাইল</h5>
             <select
-              value={(props.template as string) || 'minimal'}
-              onChange={(e) => updateProp('template', e.target.value)}
+              value={(props.variant as string) || 'default'}
+              onChange={(e) => updateProp('variant', e.target.value)}
               className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
             >
-              <option value="minimal">Minimal (সাধারণ)</option>
-              <option value="premium">Premium (প্রিমিয়াম)</option>
-              <option value="urgent">Urgent (জরুরি/Flash Sale)</option>
-              <option value="singleColumn">Single Column (মোবাইল অপ্টিমাইজড)</option>
-              <option value="withImage">With Product Image (ছবি সহ)</option>
+              <option value="default">Default (সাধারণ)</option>
+              <option value="glassmorphism">Glassmorphism (গ্লাস ইফেক্ট)</option>
+              <option value="neubrutalism">Neubrutalism (বোল্ড/রঙিন)</option>
+              <option value="trust-first">Trust First (বিশ্বাসযোগ্য/সবুজ)</option>
+              <option value="urgency">Urgency/FOMO (জরুরি/লাল)</option>
+              <option value="social-proof">Social Proof (সোশ্যাল মিডিয়া)</option>
+              <option value="story-driven">Story Driven (উষ্ণ/আবেগময়)</option>
             </select>
-            <p className="text-xs text-gray-400 mt-1">অর্ডার ফর্মের ডিজাইন নির্বাচন করুন</p>
+            <p className="text-xs text-gray-400 mt-1">প্রতিটি ডিজাইন সম্পূর্ণ আলাদা লুক দেয়</p>
           </div>
           
           {/* Basic Info */}
