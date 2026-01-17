@@ -148,6 +148,27 @@ export function BuilderLayout({
     }
   }, []);
   
+  // Notify preview iframe about product selection for real-time preview
+  const notifyProductUpdate = useCallback((productData: Product | null) => {
+    if (iframeRef.current?.contentWindow) {
+      const normalizedProduct = productData ? {
+        id: productData.id,
+        title: productData.name,
+        price: productData.price,
+        images: productData.imageUrl ? [productData.imageUrl] : [],
+        variants: productData.bundlePricing?.map((tier, idx) => ({
+          id: idx + 1,
+          name: tier.label,
+          price: tier.price,
+        })) || [],
+      } : null;
+      iframeRef.current.contentWindow.postMessage({ 
+        type: 'PRODUCT_UPDATE',
+        product: normalizedProduct 
+      }, '*');
+    }
+  }, []);
+  
   // Send live preview on every sections change (instant real-time sync)
   useEffect(() => {
     // Small delay to batch rapid changes
@@ -350,6 +371,7 @@ export function BuilderLayout({
               }
               onClose={() => onSelectSection(null)}
               products={products}
+              onProductChange={notifyProductUpdate}
             />
           </div>
         )}

@@ -62,9 +62,10 @@ interface PropertiesPanelProps {
   onUpdate: (props: Record<string, unknown>) => void;
   onClose: () => void;
   products?: Product[];
+  onProductChange?: (product: Product | null) => void;
 }
 
-export function PropertiesPanel({ section, onUpdate, onClose, products = [] }: PropertiesPanelProps) {
+export function PropertiesPanel({ section, onUpdate, onClose, products = [], onProductChange }: PropertiesPanelProps) {
   const [localProps, setLocalProps] = useState<Record<string, unknown>>(section.props);
   const meta = getSectionMeta(section.type);
   
@@ -320,6 +321,7 @@ function renderPropsForm(
       const handleProductSelect = (productId: number | null) => {
         if (productId === null) {
           updateProp('productId', null);
+          onProductChange?.(null); // Notify for real-time preview
           return;
         }
         const product = products.find(p => p.id === productId);
@@ -340,6 +342,9 @@ function renderPropsForm(
             // No bundle pricing - hide variant selector by setting empty array
             updateProp('variants', []);
           }
+          
+          // Notify for real-time preview
+          onProductChange?.(product);
         }
       };
       

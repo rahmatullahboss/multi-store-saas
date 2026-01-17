@@ -73,6 +73,14 @@ export default function PreviewPage() {
   const loaderData = useLoaderData<typeof loader>();
   const [liveSections, setLiveSections] = useState(loaderData.sections);
   const [liveSettings, setLiveSettings] = useState(loaderData.pageSettings);
+  const [liveProduct, setLiveProduct] = useState<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    images: string[];
+    variants?: Array<{ id: number; name: string; price: number }>;
+  } | null>(null);
   
   // Listen for live updates from parent window (receives sections data directly)
   useEffect(() => {
@@ -86,6 +94,10 @@ export default function PreviewPage() {
           ...liveSettings,
           ...event.data.settings,
         });
+      }
+      // Handle product update for real-time preview
+      if (event.data?.type === 'PRODUCT_UPDATE') {
+        setLiveProduct(event.data.product || null);
       }
     };
     
@@ -108,6 +120,7 @@ export default function PreviewPage() {
         sections={liveSections}
         activeSectionId={null}
         onSelectSection={() => {}}
+        product={liveProduct}
       />
       
       {/* Powered by Ozzyl branding */}
