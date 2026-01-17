@@ -224,16 +224,47 @@ export async function updatePageSettings(
     seoTitle?: string;
     seoDescription?: string;
     ogImage?: string;
+    // Floating button settings
+    whatsappEnabled?: boolean;
+    whatsappNumber?: string;
+    whatsappMessage?: string;
+    callEnabled?: boolean;
+    callNumber?: string;
+    // Product
+    productId?: number | null;
+    // Custom HTML
+    customHeaderHtml?: string;
+    customFooterHtml?: string;
+    canonicalUrl?: string;
+    noIndex?: boolean;
   }
 ) {
   const drizzleDb = drizzle(db);
   
+  // Build update object, converting booleans to integers for SQLite
+  const updateData: Record<string, unknown> = {
+    updatedAt: new Date(),
+  };
+  
+  if (data.title !== undefined) updateData.title = data.title;
+  if (data.slug !== undefined) updateData.slug = data.slug;
+  if (data.seoTitle !== undefined) updateData.seoTitle = data.seoTitle;
+  if (data.seoDescription !== undefined) updateData.seoDescription = data.seoDescription;
+  if (data.ogImage !== undefined) updateData.ogImage = data.ogImage;
+  if (data.whatsappEnabled !== undefined) updateData.whatsappEnabled = data.whatsappEnabled ? 1 : 0;
+  if (data.whatsappNumber !== undefined) updateData.whatsappNumber = data.whatsappNumber;
+  if (data.whatsappMessage !== undefined) updateData.whatsappMessage = data.whatsappMessage;
+  if (data.callEnabled !== undefined) updateData.callEnabled = data.callEnabled ? 1 : 0;
+  if (data.callNumber !== undefined) updateData.callNumber = data.callNumber;
+  if (data.productId !== undefined) updateData.productId = data.productId;
+  if (data.customHeaderHtml !== undefined) updateData.customHeaderHtml = data.customHeaderHtml;
+  if (data.customFooterHtml !== undefined) updateData.customFooterHtml = data.customFooterHtml;
+  if (data.canonicalUrl !== undefined) updateData.canonicalUrl = data.canonicalUrl;
+  if (data.noIndex !== undefined) updateData.noIndex = data.noIndex ? 1 : 0;
+  
   await drizzleDb
     .update(builderPages)
-    .set({
-      ...data,
-      updatedAt: new Date(),
-    })
+    .set(updateData)
     .where(and(
       eq(builderPages.id, pageId),
       eq(builderPages.storeId, storeId)

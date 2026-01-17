@@ -67,6 +67,12 @@ interface BuilderLayoutProps {
     slug: string;
     title: string | null;
     status: 'draft' | 'published';
+    // Floating button settings
+    whatsappEnabled?: number | null;
+    whatsappNumber?: string | null;
+    whatsappMessage?: string | null;
+    callEnabled?: number | null;
+    callNumber?: string | null;
   } | null;
   sections: BuilderSection[];
   activeSectionId: string | null;
@@ -91,6 +97,8 @@ interface BuilderLayoutProps {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  // Settings save
+  onSaveSettings?: (settings: Record<string, unknown>) => void;
 }
 
 export function BuilderLayout({
@@ -117,6 +125,7 @@ export function BuilderLayout({
   onRedo,
   canUndo = false,
   canRedo = false,
+  onSaveSettings,
 }: BuilderLayoutProps) {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -150,18 +159,20 @@ export function BuilderLayout({
     ? sections.find(s => s.id === pendingDeleteId) 
     : null;
   
-  // Floating button settings state
+  // Floating button settings state - initialize from page data
   const [showFloatingSettings, setShowFloatingSettings] = useState(false);
-  const [floatingSettings, setFloatingSettings] = useState({
-    whatsappEnabled: true,
-    whatsappNumber: '',
-    whatsappMessage: 'হ্যালো! আমি অর্ডার করতে চাই।',
-    callEnabled: true,
-    callNumber: '',
+  const [floatingSettings, setFloatingSettings] = useState(() => ({
+    whatsappEnabled: page?.whatsappEnabled === 1,
+    whatsappNumber: page?.whatsappNumber || '',
+    whatsappMessage: page?.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।',
+    callEnabled: page?.callEnabled === 1,
+    callNumber: page?.callNumber || '',
     orderEnabled: true,
     orderText: 'অর্ডার করুন',
-    position: 'bottom-right' as const,
-  });
+    orderBgColor: '#6366F1',
+    orderTextColor: '#FFFFFF',
+    position: 'bottom-right' as 'bottom-right' | 'bottom-left' | 'bottom-center',
+  }));
   
   // DnD sensors
   const sensors = useSensors(
@@ -230,7 +241,7 @@ export function BuilderLayout({
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <Link 
-              to="/app/campaigns" 
+              to="/app/new-builder" 
               className="text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm"
             >
               <ArrowLeft size={16} />
@@ -517,6 +528,14 @@ export function BuilderLayout({
               settings: newSettings,
             }, '*');
           }
+          // Persist to database
+          onSaveSettings?.({
+            whatsappEnabled: newSettings.whatsappEnabled,
+            whatsappNumber: newSettings.whatsappNumber,
+            whatsappMessage: newSettings.whatsappMessage,
+            callEnabled: newSettings.callEnabled,
+            callNumber: newSettings.callNumber,
+          });
         }}
       />
     </div>

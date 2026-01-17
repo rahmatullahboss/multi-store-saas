@@ -259,11 +259,25 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         const title = formData.get('title') as string;
         const seoTitle = formData.get('seoTitle') as string;
         const seoDescription = formData.get('seoDescription') as string;
+        // Floating button settings
+        const whatsappEnabled = formData.get('whatsappEnabled');
+        const whatsappNumber = formData.get('whatsappNumber') as string;
+        const whatsappMessage = formData.get('whatsappMessage') as string;
+        const callEnabled = formData.get('callEnabled');
+        const callNumber = formData.get('callNumber') as string;
+        // Product
+        const productId = formData.get('productId');
         
         await updatePageSettings(db, pageId, store.id, {
           title: title || undefined,
           seoTitle: seoTitle || undefined,
           seoDescription: seoDescription || undefined,
+          whatsappEnabled: whatsappEnabled !== null ? whatsappEnabled === 'true' : undefined,
+          whatsappNumber: whatsappNumber || undefined,
+          whatsappMessage: whatsappMessage || undefined,
+          callEnabled: callEnabled !== null ? callEnabled === 'true' : undefined,
+          callNumber: callNumber || undefined,
+          productId: productId ? Number(productId) : undefined,
         });
         
         return json({ success: true });
@@ -445,6 +459,21 @@ export default function NewBuilderPage() {
     );
   }, [fetcher]);
   
+  // Handle save settings (floating buttons, etc.)
+  const handleSaveSettings = useCallback((settings: Record<string, unknown>) => {
+    fetcher.submit(
+      { 
+        intent: 'update-settings',
+        whatsappEnabled: String(settings.whatsappEnabled),
+        whatsappNumber: settings.whatsappNumber as string || '',
+        whatsappMessage: settings.whatsappMessage as string || '',
+        callEnabled: String(settings.callEnabled),
+        callNumber: settings.callNumber as string || '',
+      },
+      { method: 'post' }
+    );
+  }, [fetcher]);
+  
   // Redirect after page creation
   if (fetcher.data?.success && fetcher.data?.pageId && isNew) {
     navigate(`/app/new-builder/${fetcher.data.pageId}`, { replace: true });
@@ -483,6 +512,7 @@ export default function NewBuilderPage() {
       onRedo={redo}
       canUndo={canUndo}
       canRedo={canRedo}
+      onSaveSettings={handleSaveSettings}
     />
   );
 }
