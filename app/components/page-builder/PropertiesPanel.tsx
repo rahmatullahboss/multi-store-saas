@@ -564,6 +564,82 @@ function renderPropsForm(
             </div>
           </div>
           
+          {/* Simplified Field Builder */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 ফর্ম ফিল্ড সেটিংস</h5>
+            
+            {/* Core Fields (always visible) */}
+            <div className="p-3 bg-gray-50 rounded-lg mb-3">
+              <p className="text-xs text-gray-500 mb-2">✓ ডিফল্ট ফিল্ড (সবসময় দেখাবে)</p>
+              <div className="flex flex-wrap gap-1">
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">নাম</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">ফোন</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">জেলা</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">ঠিকানা</span>
+              </div>
+            </div>
+            
+            {/* Optional Fields Toggle */}
+            <div className="space-y-2">
+              <ToggleField
+                label="📧 ইমেইল ফিল্ড দেখাবে"
+                value={props.showEmailField as boolean ?? false}
+                onChange={(v) => updateProp('showEmailField', v)}
+              />
+              <ToggleField
+                label="📱 বিকল্প ফোন দেখাবে"
+                value={props.showAltPhoneField as boolean ?? false}
+                onChange={(v) => updateProp('showAltPhoneField', v)}
+              />
+              <ToggleField
+                label="📝 অর্ডার নোট দেখাবে"
+                value={props.showNoteField as boolean ?? true}
+                onChange={(v) => updateProp('showNoteField', v)}
+              />
+            </div>
+            
+            {/* Custom Labels (expandable) */}
+            <details className="mt-3">
+              <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                ⚙️ ফিল্ড লেবেল কাস্টমাইজ
+              </summary>
+              <div className="space-y-2 mt-2 pl-2 border-l-2 border-gray-200">
+                <TextField 
+                  label="নাম Placeholder" 
+                  value={props.namePlaceholder as string || 'আপনার নাম লিখুন'} 
+                  onChange={(v) => updateProp('namePlaceholder', v)} 
+                />
+                {(props.showEmailField as boolean) && (
+                  <TextField 
+                    label="ইমেইল Placeholder" 
+                    value={props.emailPlaceholder as string || 'আপনার ইমেইল (ঐচ্ছিক)'} 
+                    onChange={(v) => updateProp('emailPlaceholder', v)} 
+                  />
+                )}
+                {(props.showAltPhoneField as boolean) && (
+                  <TextField 
+                    label="বিকল্প ফোন Placeholder" 
+                    value={props.altPhonePlaceholder as string || 'বিকল্প মোবাইল নম্বর'} 
+                    onChange={(v) => updateProp('altPhonePlaceholder', v)} 
+                  />
+                )}
+                {(props.showNoteField as boolean ?? true) && (
+                  <>
+                    <TextField 
+                      label="নোট লেবেল" 
+                      value={props.noteLabel as string || 'অর্ডার নোট'} 
+                      onChange={(v) => updateProp('noteLabel', v)} 
+                    />
+                    <TextField 
+                      label="নোট Placeholder" 
+                      value={props.notePlaceholder as string || 'অতিরিক্ত তথ্য/নির্দেশনা (ঐচ্ছিক)'} 
+                      onChange={(v) => updateProp('notePlaceholder', v)} 
+                    />
+                  </>
+                )}
+              </div>
+            </details>
+          </div>
           {/* Labels */}
           <div className="border-b border-gray-100 pb-4 mb-4">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🏷️ লেবেল কাস্টমাইজ</h5>

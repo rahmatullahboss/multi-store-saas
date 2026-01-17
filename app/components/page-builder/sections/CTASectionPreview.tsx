@@ -34,7 +34,6 @@ interface CTAProps {
   subheadline?: string;
   buttonText?: string;
   template?: 'minimal' | 'premium' | 'urgent' | 'singleColumn' | 'withImage';
-  nameLabel?: string;
   phonePlaceholder?: string;
   addressPlaceholder?: string;
   
@@ -65,6 +64,19 @@ interface CTAProps {
   districtPlaceholder?: string;
   upazilaPlaceholder?: string;
   shippingZoneMode?: 'auto' | 'manual';
+  
+  // Simplified Field Builder
+  showEmailField?: boolean;
+  showAltPhoneField?: boolean;
+  showNoteField?: boolean;
+  nameLabel?: string;
+  namePlaceholder?: string;
+  emailLabel?: string;
+  emailPlaceholder?: string;
+  altPhoneLabel?: string;
+  altPhonePlaceholder?: string;
+  noteLabel?: string;
+  notePlaceholder?: string;
   
   // Trust badges
   showTrustBadges?: boolean;
@@ -140,6 +152,19 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
     upazilaPlaceholder = 'উপজেলা নির্বাচন করুন',
     shippingZoneMode = 'auto' as 'auto' | 'manual',
     
+    // Simplified Field Builder
+    showEmailField = false,
+    showAltPhoneField = false,
+    showNoteField = true,
+    nameLabel = 'আপনার নাম',
+    namePlaceholder = 'আপনার নাম লিখুন',
+    emailLabel = 'ইমেইল',
+    emailPlaceholder = 'আপনার ইমেইল (ঐচ্ছিক)',
+    altPhoneLabel = 'বিকল্প ফোন',
+    altPhonePlaceholder = 'বিকল্প মোবাইল নম্বর',
+    noteLabel = 'অর্ডার নোট',
+    notePlaceholder = 'অতিরিক্ত তথ্য/নির্দেশনা (ঐচ্ছিক)',
+    
     // Trust badges
     showTrustBadges = true,
     codLabel = 'ক্যাশ অন ডেলিভারি',
@@ -159,7 +184,10 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [email, setEmail] = useState('');
+  const [altPhone, setAltPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [note, setNote] = useState('');
   const [selectedVariant, setSelectedVariant] = useState(actualVariants[0] || null);
   const [quantity, setQuantity] = useState(1);
   const [isInsideDhaka, setIsInsideDhaka] = useState(true);
@@ -522,7 +550,7 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                       name="customer_name"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="আপনার নাম"
+                      placeholder={namePlaceholder}
                       className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
                       style={{ 
                         backgroundColor: inputBg, 
@@ -568,6 +596,46 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                     )}
                   </div>
                   
+                  {/* Email Input (Optional - only if enabled) */}
+                  {showEmailField && (
+                    <div>
+                      <input
+                        type="email"
+                        name="customer_email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder={emailPlaceholder}
+                        className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
+                        style={{ 
+                          backgroundColor: inputBg, 
+                          border: `2px solid ${inputBorder}`,
+                          color: inputText,
+                        }}
+                        disabled={fetcher.state !== 'idle'}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Alt Phone Input (Optional - only if enabled) */}
+                  {showAltPhoneField && (
+                    <div>
+                      <input
+                        type="tel"
+                        name="alt_phone"
+                        value={altPhone}
+                        onChange={(e) => setAltPhone(e.target.value)}
+                        placeholder={altPhonePlaceholder}
+                        maxLength={14}
+                        className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
+                        style={{ 
+                          backgroundColor: inputBg, 
+                          border: `2px solid ${inputBorder}`,
+                          color: inputText,
+                        }}
+                        disabled={fetcher.state !== 'idle'}
+                      />
+                    </div>
+                  )}
                   {/* Address Section - BD Style */}
                   {shippingZoneMode === 'auto' && showDistrictField ? (
                     <>
@@ -741,6 +809,33 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                       disabled={fetcher.state !== 'idle'}
                     />
                   </div>
+                  
+                  {/* Note Input (Optional - only if enabled) */}
+                  {showNoteField && (
+                    <div>
+                      <label 
+                        className="block text-sm font-medium mb-1.5"
+                        style={{ color: mutedColor }}
+                      >
+                        {noteLabel}
+                      </label>
+                      <textarea
+                        name="notes"
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder={notePlaceholder}
+                        rows={2}
+                        className="w-full px-5 py-4 rounded-xl font-medium outline-none resize-none transition-all focus:ring-2 focus:ring-purple-400"
+                        style={{ 
+                          backgroundColor: inputBg, 
+                          border: `2px solid ${inputBorder}`,
+                          color: inputText,
+                        }}
+                        disabled={fetcher.state !== 'idle'}
+                      />
+                    </div>
+                  )}
+                  
                   {/* Warning if no product linked */}
                   {!productId && storeId && (
                     <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm mb-2">

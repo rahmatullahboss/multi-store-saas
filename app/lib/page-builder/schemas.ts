@@ -275,6 +275,24 @@ export const CTAPropsSchema = z.object({
   // 'manual' = user picks Dhaka/Outside toggle (current/legacy behavior)
   shippingZoneMode: z.enum(['auto', 'manual']).optional().default('auto'),
   
+  // ============================================================================
+  // SIMPLIFIED FIELD BUILDER
+  // ============================================================================
+  // Field visibility toggles (Name, Phone, District, Address are always required)
+  showEmailField: z.boolean().optional().default(false),
+  showAltPhoneField: z.boolean().optional().default(false),
+  showNoteField: z.boolean().optional().default(true),
+  
+  // Field labels (customizable)
+  nameLabel: z.string().optional().default('আপনার নাম'),
+  namePlaceholder: z.string().optional().default('আপনার নাম লিখুন'),
+  emailLabel: z.string().optional().default('ইমেইল'),
+  emailPlaceholder: z.string().optional().default('আপনার ইমেইল (ঐচ্ছিক)'),
+  altPhoneLabel: z.string().optional().default('বিকল্প ফোন'),
+  altPhonePlaceholder: z.string().optional().default('বিকল্প মোবাইল নম্বর'),
+  noteLabel: z.string().optional().default('অর্ডার নোট'),
+  notePlaceholder: z.string().optional().default('অতিরিক্ত তথ্য/নির্দেশনা (ঐচ্ছিক)'),
+  
   // Trust badges
   showTrustBadges: z.boolean().optional().default(true),
   codLabel: z.string().optional().default('ক্যাশ অন ডেলিভারি'),
