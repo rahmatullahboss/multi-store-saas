@@ -372,6 +372,23 @@ function renderPropsForm(
             </div>
           )}
           
+          {/* Template Variation Selector */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 টেমপ্লেট স্টাইল</h5>
+            <select
+              value={(props.template as string) || 'minimal'}
+              onChange={(e) => updateProp('template', e.target.value)}
+              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+            >
+              <option value="minimal">Minimal (সাধারণ)</option>
+              <option value="premium">Premium (প্রিমিয়াম)</option>
+              <option value="urgent">Urgent (জরুরি/Flash Sale)</option>
+              <option value="singleColumn">Single Column (মোবাইল অপ্টিমাইজড)</option>
+              <option value="withImage">With Product Image (ছবি সহ)</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">অর্ডার ফর্মের ডিজাইন নির্বাচন করুন</p>
+          </div>
+          
           {/* Basic Info */}
           <div className="border-b border-gray-100 pb-4 mb-4">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">হেডলাইন</h5>

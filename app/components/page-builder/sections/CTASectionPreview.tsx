@@ -26,6 +26,7 @@ interface CTAProps {
   headline?: string;
   subheadline?: string;
   buttonText?: string;
+  template?: 'minimal' | 'premium' | 'urgent' | 'singleColumn' | 'withImage';
   nameLabel?: string;
   phonePlaceholder?: string;
   addressPlaceholder?: string;
@@ -86,6 +87,7 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
     headline = 'এখনই অর্ডার করুন',
     subheadline = 'সীমিত সময়ের জন্য বিশেষ অফার!',
     buttonText = 'অর্ডার কনফার্ম করুন',
+    template = 'minimal' as 'minimal' | 'premium' | 'urgent' | 'singleColumn' | 'withImage',
     phonePlaceholder = 'আপনার মোবাইল নম্বর',
     addressPlaceholder = 'পূর্ণ ডেলিভারি ঠিকানা লিখুন',
     
@@ -161,10 +163,20 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   // Format price in Bengali
   const formatPrice = (price: number) => `৳${price.toLocaleString('bn-BD')}`;
   
-  // Theme-based styling
-  const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
+  // Theme-based styling with template variations
+  const isUrgentTemplate = template === 'urgent';
+  const isPremiumTemplate = template === 'premium';
+  const isDark = isUrgentTemplate || isPremiumTemplate || theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   
   const getBgStyle = () => {
+    // Template-specific backgrounds
+    if (isUrgentTemplate) {
+      return { background: 'linear-gradient(135deg, #DC2626, #7F1D1D)' };
+    }
+    if (isPremiumTemplate) {
+      return { background: 'linear-gradient(135deg, #1E1B4B, #312E81)' };
+    }
+    // Theme-based fallbacks
     if (theme?.style === 'urgent') {
       return { background: 'linear-gradient(135deg, #7F1D1D, #450A0A)' };
     }
@@ -185,10 +197,18 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   const inputBg = isDark ? 'rgba(255,255,255,0.1)' : '#FFFFFF';
   const inputBorder = isDark ? 'rgba(255,255,255,0.2)' : '#E5E7EB';
   const inputText = isDark ? '#FFFFFF' : '#111827';
-  const primaryColor = theme?.primaryColor || '#6366F1';
-  const accentColor = theme?.accentColor || '#8B5CF6';
-  const buttonBg = theme?.buttonBg || `linear-gradient(to right, ${primaryColor}, ${accentColor})`;
+  
+  // Template-specific button styles
+  const primaryColor = isUrgentTemplate ? '#DC2626' : (isPremiumTemplate ? '#6366F1' : (theme?.primaryColor || '#6366F1'));
+  const accentColor = isUrgentTemplate ? '#EF4444' : (isPremiumTemplate ? '#8B5CF6' : (theme?.accentColor || '#8B5CF6'));
+  const buttonBg = isUrgentTemplate 
+    ? 'linear-gradient(to right, #DC2626, #EF4444)'
+    : (isPremiumTemplate ? 'linear-gradient(to right, #6366F1, #A855F7)' : (theme?.buttonBg || `linear-gradient(to right, ${primaryColor}, ${accentColor})`));
   const buttonTextColor = theme?.buttonText || '#FFFFFF';
+  
+  // Template-specific layout
+  const isSingleColumn = template === 'singleColumn';
+  const showProductImage = template === 'withImage' && productImage;
   
   return (
     <section 
@@ -220,7 +240,7 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
             boxShadow: isDark ? '0 25px 50px -12px rgba(0,0,0,0.5)' : '0 25px 50px -12px rgba(0,0,0,0.15)',
           }}
         >
-          <div className="grid md:grid-cols-2">
+          <div className={`grid ${isSingleColumn ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
             {/* Left Column - Product & Pricing Info */}
             <div 
               className="p-8 border-b md:border-b-0 md:border-r"
