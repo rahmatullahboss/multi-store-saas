@@ -33,7 +33,8 @@ export type SectionType =
   | 'how-to-order'
   | 'showcase'
   | 'custom-html'
-  | 'order-button'\n  | 'footer';
+  | 'order-button'
+  | 'footer';
 
 // ============================================================================
 // DATABASE TYPES
