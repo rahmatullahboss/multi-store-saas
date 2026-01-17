@@ -201,6 +201,20 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   const actualProductImage = product?.images?.[0] || (props as CTAProps).productImage || null;
   const actualProductTitle = product?.title || (props as CTAProps).productTitle || null;
   
+  // DEBUG: Client-side logging - check browser console (F12)
+  if (typeof window !== 'undefined') {
+    console.log('=== CTASectionPreview DEBUG ===');
+    console.log('product prop:', product);
+    console.log('productId prop:', productId);
+    console.log('storeId prop:', storeId);
+    console.log('props.productId:', (props as any).productId);
+    console.log('props.productImage:', (props as any).productImage);
+    console.log('props.productTitle:', (props as any).productTitle);
+    console.log('actualProductImage:', actualProductImage);
+    console.log('actualProductTitle:', actualProductTitle);
+    console.log('===============================');
+  }
+  
   // Form state
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
