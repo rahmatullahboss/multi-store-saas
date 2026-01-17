@@ -152,6 +152,26 @@ function renderPropsForm(
     case 'hero':
       return (
         <>
+          <SelectField
+            label="Style Variant"
+            value={props.variant as string || 'default'}
+            options={[
+              { value: 'default', label: 'Default' },
+              { value: 'centered', label: 'Centered' },
+              { value: 'split-left', label: 'Split Left' },
+              { value: 'split-right', label: 'Split Right' },
+              { value: 'glow', label: 'Glow Effect' },
+              { value: 'modern', label: 'Modern' },
+              { value: 'glassmorphism', label: 'Glassmorphism' },
+              { value: 'neubrutalism', label: 'Neubrutalism' },
+              { value: 'bento', label: 'Bento Grid' },
+              { value: 'trust-first', label: 'Trust First' },
+              { value: 'story-driven', label: 'Story Driven' },
+              { value: 'urgency', label: 'Urgency/FOMO' },
+              { value: 'social-proof', label: 'Social Proof' },
+            ]}
+            onChange={(v) => updateProp('variant', v)}
+          />
           <TextField 
             label="Headline" 
             value={props.headline as string || ''} 
@@ -183,6 +203,22 @@ function renderPropsForm(
     case 'features':
       return (
         <>
+          <SelectField
+            label="Style Variant"
+            value={props.variant as string || 'grid'}
+            options={[
+              { value: 'grid', label: 'Grid (Default)' },
+              { value: 'bento', label: 'Bento Grid' },
+              { value: 'cards', label: 'Cards with Glow' },
+              { value: 'glassmorphism', label: 'Glassmorphism' },
+              { value: 'neubrutalism', label: 'Neubrutalism' },
+              { value: 'trust-first', label: 'Trust First' },
+              { value: 'urgency', label: 'Urgency/FOMO' },
+              { value: 'social-proof', label: 'Social Proof' },
+              { value: 'story-driven', label: 'Story Driven' },
+            ]}
+            onChange={(v) => updateProp('variant', v)}
+          />
           <TextField 
             label="Title" 
             value={props.title as string || ''} 
@@ -219,6 +255,17 @@ function renderPropsForm(
     case 'faq':
       return (
         <>
+          <SelectField
+            label="Style Variant"
+            value={props.variant as string || 'accordion'}
+            options={[
+              { value: 'accordion', label: 'Accordion (Default)' },
+              { value: 'cards', label: 'Cards Grid' },
+              { value: 'glassmorphism', label: 'Glassmorphism' },
+              { value: 'neubrutalism', label: 'Neubrutalism' },
+            ]}
+            onChange={(v) => updateProp('variant', v)}
+          />
           <TextField 
             label="Title" 
             value={props.title as string || ''} 
@@ -250,6 +297,19 @@ function renderPropsForm(
     case 'testimonials':
       return (
         <>
+          <SelectField
+            label="Style Variant"
+            value={props.variant as string || 'default'}
+            options={[
+              { value: 'default', label: 'Default' },
+              { value: 'cards', label: 'Cards Grid' },
+              { value: 'chat-bubbles', label: 'Chat Bubbles' },
+              { value: 'masonry', label: 'Masonry Grid' },
+              { value: 'social-proof', label: 'Social Proof (FB Style)' },
+              { value: 'minimal', label: 'Minimal' },
+            ]}
+            onChange={(v) => updateProp('variant', v)}
+          />
           <TextField 
             label="Title" 
             value={props.title as string || ''} 
@@ -286,6 +346,19 @@ function renderPropsForm(
     case 'trust-badges':
       return (
         <>
+          <SelectField
+            label="Style Variant"
+            value={props.variant as string || 'grid'}
+            options={[
+              { value: 'grid', label: 'Grid (Default)' },
+              { value: 'marquee', label: 'Marquee Scroll' },
+              { value: 'glassmorphism', label: 'Glassmorphism' },
+              { value: 'neubrutalism', label: 'Neubrutalism' },
+              { value: 'trust-first', label: 'Trust First' },
+              { value: 'urgency', label: 'Urgency/FOMO' },
+            ]}
+            onChange={(v) => updateProp('variant', v)}
+          />
           <TextField 
             label="Title" 
             value={props.title as string || ''} 
@@ -794,6 +867,18 @@ function renderPropsForm(
     case 'guarantee':
       return (
         <>
+          <SelectField
+            label="Style Variant"
+            value={props.variant as string || 'default'}
+            options={[
+              { value: 'default', label: 'Default' },
+              { value: 'glassmorphism', label: 'Glassmorphism' },
+              { value: 'neubrutalism', label: 'Neubrutalism' },
+              { value: 'trust-first', label: 'Trust First' },
+              { value: 'urgency', label: 'Urgency/FOMO' },
+            ]}
+            onChange={(v) => updateProp('variant', v)}
+          />
           <TextField 
             label="Title" 
             value={props.title as string || ''} 
@@ -841,6 +926,20 @@ function renderPropsForm(
     case 'benefits':
       return (
         <>
+          <SelectField
+            label="Style Variant"
+            value={props.variant as string || 'grid'}
+            options={[
+              { value: 'grid', label: 'Grid (Default)' },
+              { value: 'glassmorphism', label: 'Glassmorphism' },
+              { value: 'neubrutalism', label: 'Neubrutalism' },
+              { value: 'trust-first', label: 'Trust First' },
+              { value: 'urgency', label: 'Urgency/FOMO' },
+              { value: 'social-proof', label: 'Social Proof' },
+              { value: 'story-driven', label: 'Story Driven' },
+            ]}
+            onChange={(v) => updateProp('variant', v)}
+          />
           <TextField 
             label="Title" 
             value={props.title as string || ''} 
@@ -962,6 +1061,17 @@ function renderPropsForm(
     case 'problem-solution':
       return (
         <>
+          <SelectField
+            label="Style Variant"
+            value={props.variant as string || 'default'}
+            options={[
+              { value: 'default', label: 'Default' },
+              { value: 'glassmorphism', label: 'Glassmorphism' },
+              { value: 'neubrutalism', label: 'Neubrutalism' },
+              { value: 'urgency', label: 'Urgency/FOMO' },
+            ]}
+            onChange={(v) => updateProp('variant', v)}
+          />
           <div className="border-b border-gray-100 pb-3 mb-3">
             <TextField 
               label="Problems Title" 
@@ -2037,6 +2147,33 @@ function ToggleField({
           }`}
         />
       </button>
+    </div>
+  );
+}
+
+function SelectField({ 
+  label, 
+  value, 
+  options, 
+  onChange 
+}: { 
+  label: string; 
+  value: string; 
+  options: Array<{ value: string; label: string }>; 
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="mb-3">
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all bg-white"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
     </div>
   );
 }
