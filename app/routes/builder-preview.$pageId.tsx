@@ -46,11 +46,19 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   return json({
     sections: page.sections.filter(s => s.enabled),
     pageSettings: {
+      // WhatsApp settings
       whatsappEnabled: page.whatsappEnabled ?? true,
       whatsappNumber: page.whatsappNumber || '',
       whatsappMessage: page.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।',
+      // Call settings
       callEnabled: page.callEnabled ?? true,
       callNumber: page.callNumber || '',
+      // Order button settings
+      orderEnabled: page.orderEnabled ?? true,
+      orderText: page.orderText || 'অর্ডার করুন',
+      orderBgColor: page.orderBgColor || '#6366F1',
+      orderTextColor: page.orderTextColor || '#FFFFFF',
+      position: page.buttonPosition || 'bottom-right',
     },
   });
 }
@@ -72,13 +80,16 @@ export default function PreviewPage() {
         setLiveSections(event.data.sections);
       }
       if (event.data?.type === 'SETTINGS_UPDATE' && event.data.settings) {
-        setLiveSettings(event.data.settings);
+        setLiveSettings({
+          ...liveSettings,
+          ...event.data.settings,
+        });
       }
     };
     
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [liveSettings]);
 
   // Update from loader when navigating/refreshing
   useEffect(() => {
@@ -107,8 +118,11 @@ export default function PreviewPage() {
         whatsappMessage={liveSettings.whatsappMessage}
         callEnabled={Boolean(liveSettings.callEnabled)}
         callNumber={liveSettings.callNumber}
-        orderEnabled={true}
-        orderText="অর্ডার করুন"
+        orderEnabled={Boolean(liveSettings.orderEnabled)}
+        orderText={liveSettings.orderText}
+        orderBgColor={liveSettings.orderBgColor}
+        orderTextColor={liveSettings.orderTextColor}
+        position={liveSettings.position as 'bottom-right' | 'bottom-left' | 'bottom-center'}
       />
     </div>
   );
