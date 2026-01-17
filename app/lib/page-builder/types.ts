@@ -103,12 +103,19 @@ export interface BuilderPage {
   seoDescription?: string | null;
   ogImage?: string | null;
   publishedAt?: Date | null;
-  // Floating button settings
+  // Floating button settings - WhatsApp
   whatsappEnabled?: number | null;
   whatsappNumber?: string | null;
   whatsappMessage?: string | null;
+  // Floating button settings - Call
   callEnabled?: number | null;
   callNumber?: string | null;
+  // Floating button settings - Order
+  orderEnabled?: number | null;
+  orderText?: string | null;
+  orderBgColor?: string | null;
+  orderTextColor?: string | null;
+  buttonPosition?: string | null;
   sections: BuilderSection[];
 }
 

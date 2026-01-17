@@ -555,6 +555,90 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────
+  // AWWWARDS 2025 - Award Winning Design of the Year
+  // ─────────────────────────────────────────────────────────────────────────
+  'awwwards-2025': {
+    id: 'awwwards-2025',
+    name: 'ডিজাইন অফ দ্য ইয়ার ২০২৫',
+    nameEn: '🏆 Design of the Year 2025',
+    description: 'ফিউচারিস্টিক গ্লাস-মর্ফিজম এবং বেন্টো গ্রিড ডিজাইন',
+    descriptionEn: 'Futuristic glassmorphism and bento grid layout',
+    thumbnail: '/templates/awwwards-2025.png',
+    category: 'premium',
+    emoji: '🏆',
+    colors: {
+      primary: '#6366f1',
+      accent: '#a855f7',
+      bg: '#000000',
+    },
+    sections: [
+      {
+        type: 'hero',
+        props: {
+          variant: 'glow',
+          backgroundColor: '#000000',
+          textColor: '#FFFFFF',
+          headline: 'ফিউচারিস্টিক ডিজাইন এখন আপনার হাতের মুঠোয়',
+          subheadline: 'সম্পূর্ণ নতুন প্রযুক্তিতে তৈরি আমাদের এই কালেকশন।',
+          ctaText: 'এক্সপ্লোর কালেকশন',
+          badgeText: '✨ নিউ অ্যারাইভাল',
+        },
+      },
+      {
+        type: 'trust-badges',
+        props: {
+          variant: 'marquee',
+          backgroundColor: '#000000',
+          textColor: '#A1A1AA',
+          badges: [
+            { icon: '💎', text: 'প্রিমিয়াম কোয়ালিটি' },
+            { icon: '🚀', text: 'সুপার ফাস্ট ডেলিভারি' },
+            { icon: '🛡️', text: '১০০% সিকিউর' },
+            { icon: '⭐', text: '৫ স্টার রেটেড' },
+          ],
+        },
+      },
+      {
+        type: 'features',
+        props: {
+          variant: 'bento',
+          backgroundColor: '#000000',
+          textColor: '#FFFFFF',
+          title: 'এক্সক্লুসিভ ফিচারস',
+          features: [
+            { icon: '⚡', title: 'আল্ট্রা ফাস্ট পারফরম্যান্স', description: 'বিদ্যুৎ গতিতে কাজ করার অভিজ্ঞতা।' },
+            { icon: '🎨', title: 'মডার্ন আর্টওয়ার্ক', description: 'নিখুঁত ডিজাইন।' },
+            { icon: '🔄', title: 'অটোমেটেড আপডেট', description: 'সবসময় আপ-টু-ডেট।' },
+            { icon: '🛡️', title: 'আয়রনক্লাড সিকিউরিটি', description: 'ডাটা সুরক্ষিত।' },
+          ],
+        },
+      },
+      {
+        type: 'testimonials',
+        props: {
+          backgroundColor: '#000000',
+          textColor: '#FFFFFF',
+          title: 'কাস্টমার ফিডব্যাক',
+          testimonials: [
+             { name: 'তাসনিয়া রহমান', text: 'একদম ইউনিক এবং মডার্ন!', rating: 5 },
+             { name: 'জুবায়ের হোসেন', text: 'প্রিমিয়াম কোয়ালিটি। অসাধারণ!', rating: 5 },
+          ],
+        },
+      },
+      {
+        type: 'cta',
+        props: {
+          backgroundColor: '#000000',
+          textColor: '#FFFFFF',
+          headline: 'আজই শুরু করুন আপনার নতুন জার্নি',
+          subheadline: 'লিমিটেড এডিশন - স্টক শেষ হওয়ার আগেই অর্ডার করুন',
+          buttonText: 'অর্ডার কনফার্ম করুন',
+        },
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
   // MODERN DARK - Bold Gradient Design
   // ─────────────────────────────────────────────────────────────────────────
   'modern-dark': {

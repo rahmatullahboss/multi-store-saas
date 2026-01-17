@@ -121,12 +121,19 @@ export async function getPageWithSections(
     title: page.title,
     productId: page.productId,
     status: page.status ?? 'draft',
-    // Floating button settings
+    // Floating button settings - WhatsApp
     whatsappEnabled: page.whatsappEnabled,
     whatsappNumber: page.whatsappNumber,
     whatsappMessage: page.whatsappMessage,
+    // Floating button settings - Call
     callEnabled: page.callEnabled,
     callNumber: page.callNumber,
+    // Floating button settings - Order
+    orderEnabled: page.orderEnabled,
+    orderText: page.orderText,
+    orderBgColor: page.orderBgColor,
+    orderTextColor: page.orderTextColor,
+    buttonPosition: page.buttonPosition,
     sections: sections.map(parseSection),
   };
 }
@@ -207,6 +214,19 @@ export async function getPublishedPageBySlug(
     seoDescription: page.seoDescription,
     ogImage: page.ogImage,
     publishedAt: page.publishedAt,
+    // Floating button settings - WhatsApp
+    whatsappEnabled: page.whatsappEnabled,
+    whatsappNumber: page.whatsappNumber,
+    whatsappMessage: page.whatsappMessage,
+    // Floating button settings - Call
+    callEnabled: page.callEnabled,
+    callNumber: page.callNumber,
+    // Floating button settings - Order
+    orderEnabled: page.orderEnabled,
+    orderText: page.orderText,
+    orderBgColor: page.orderBgColor,
+    orderTextColor: page.orderTextColor,
+    buttonPosition: page.buttonPosition,
     sections: sections.map(parseSectionPublished), // Use published props!
   };
 }
