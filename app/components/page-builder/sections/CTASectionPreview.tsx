@@ -11,10 +11,11 @@
  * - REAL ORDER SUBMISSION to /api/create-order
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useFetcher, useNavigate } from '@remix-run/react';
-import { ShieldCheck, Truck, ArrowRight, Package, Loader2, CheckCircle, MapPin, ChevronDown } from 'lucide-react';
+import { ShieldCheck, Truck, ArrowRight, Package, Loader2, CheckCircle, MapPin, ChevronDown, Search } from 'lucide-react';
 import type { SectionTheme } from '~/lib/page-builder/types';
+import { SearchableSelect } from '~/components/SearchableSelect';
 import { 
   DISTRICTS, 
   getUpazilasByDistrict, 
@@ -681,41 +682,23 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                   {/* Address Section - BD Style */}
                   {shippingZoneMode === 'auto' && showDistrictField ? (
                     <>
-                      {/* District Dropdown */}
+                      {/* District Searchable Select */}
                       <div>
-                        <label 
-                          className="block text-sm font-medium mb-1.5"
-                          style={{ color: mutedColor }}
-                        >
-                          {districtLabel} <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <select
-                            name="district_select"
-                            value={selectedDistrictId}
-                            onChange={(e) => setSelectedDistrictId(e.target.value)}
-                            className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400 appearance-none cursor-pointer"
-                            style={{ 
-                              backgroundColor: inputBg, 
-                              border: `2px solid ${selectedDistrictId ? primaryColor : inputBorder}`,
-                              color: inputText,
-                            }}
-                            required
-                            disabled={fetcher.state !== 'idle'}
-                          >
-                            <option value="">{districtPlaceholder}</option>
-                            {DISTRICTS.map((d) => (
-                              <option key={d.id} value={d.id}>
-                                {d.name} ({d.nameEn})
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown 
-                            size={20} 
-                            className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
-                            style={{ color: mutedColor }}
-                          />
-                        </div>
+                        <SearchableSelect
+                          options={DISTRICTS}
+                          value={selectedDistrictId}
+                          onChange={setSelectedDistrictId}
+                          placeholder={districtPlaceholder}
+                          label={districtLabel}
+                          required
+                          disabled={fetcher.state !== 'idle'}
+                          inputBg={inputBg}
+                          inputBorder={inputBorder}
+                          inputText={inputText}
+                          primaryColor={primaryColor}
+                          mutedColor={mutedColor}
+                        />
+                        <input type="hidden" name="district_select" value={selectedDistrictId} />
                         {/* Show shipping zone indicator */}
                         {selectedDistrictId && (
                           <div 
@@ -733,41 +716,23 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                         )}
                       </div>
                       
-                      {/* Upazila Dropdown */}
+                      {/* Upazila Searchable Select */}
                       {showUpazilaField && selectedDistrictId && availableUpazilas.length > 0 && (
                         <div>
-                          <label 
-                            className="block text-sm font-medium mb-1.5"
-                            style={{ color: mutedColor }}
-                          >
-                            {upazilaLabel}
-                          </label>
-                          <div className="relative">
-                            <select
-                              name="upazila_select"
-                              value={selectedUpazilaId}
-                              onChange={(e) => setSelectedUpazilaId(e.target.value)}
-                              className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400 appearance-none cursor-pointer"
-                              style={{ 
-                                backgroundColor: inputBg, 
-                                border: `2px solid ${selectedUpazilaId ? primaryColor : inputBorder}`,
-                                color: inputText,
-                              }}
-                              disabled={fetcher.state !== 'idle'}
-                            >
-                              <option value="">{upazilaPlaceholder}</option>
-                              {availableUpazilas.map((u) => (
-                                <option key={u.id} value={u.id}>
-                                  {u.name} ({u.nameEn})
-                                </option>
-                              ))}
-                            </select>
-                            <ChevronDown 
-                              size={20} 
-                              className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
-                              style={{ color: mutedColor }}
-                            />
-                          </div>
+                          <SearchableSelect
+                            options={availableUpazilas}
+                            value={selectedUpazilaId}
+                            onChange={setSelectedUpazilaId}
+                            placeholder={upazilaPlaceholder}
+                            label={upazilaLabel}
+                            disabled={fetcher.state !== 'idle'}
+                            inputBg={inputBg}
+                            inputBorder={inputBorder}
+                            inputText={inputText}
+                            primaryColor={primaryColor}
+                            mutedColor={mutedColor}
+                          />
+                          <input type="hidden" name="upazila_select" value={selectedUpazilaId} />
                         </div>
                       )}
                     </>
