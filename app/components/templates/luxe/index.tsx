@@ -49,7 +49,7 @@ export function LuxeTemplate({
             {config.orderFormText?.footerTagline || 'Reserved for those who seek the exceptional. Excellence in every detail.'}
           </p>
           
-          <div className="text-zinc-800 text-[10px] uppercase tracking-[0.5em] mb-12">
+          <div className="text-zinc-800 text-[10px] uppercase tracking-[0.5em] mb-12" suppressHydrationWarning>
             {config.orderFormText?.copyrightText || `© ${new Date().getFullYear()} ${storeName} • All Rights Reserved`}
           </div>
 

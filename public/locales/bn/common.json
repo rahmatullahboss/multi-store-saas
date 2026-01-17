@@ -133,6 +133,8 @@
   "passwordMinChars": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
   "nameRequired": "নাম দিন",
   "validMobileRequired": "সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)",
+  "phoneAlreadyRegistered": "এই মোবাইল নম্বর দিয়ে আগেই অ্যাকাউন্ট আছে",
+  "emailAlreadyRegistered": "এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে",
   "storeNameRequired": "স্টোরের নাম দিন",
   "subdomainMinChars": "সাবডোমেইন কমপক্ষে ৩ অক্ষরের হতে হবে",
   "trxIdRequired": "TRX ID দিন",

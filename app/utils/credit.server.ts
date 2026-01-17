@@ -31,11 +31,13 @@ export async function checkCredits(
   cost: number
 ): Promise<{ allowed: boolean; currentBalance: number; error?: string }> {
   try {
-    const result = await db
+    const results = await db
       .select({ aiCredits: stores.aiCredits })
       .from(stores)
       .where(eq(stores.id, storeId))
-      .get();
+      .limit(1);
+
+    const result = results[0];
 
     if (!result) {
       return { allowed: false, currentBalance: 0, error: 'Store not found' };
@@ -79,11 +81,12 @@ export async function deductCredits(
       .run();
 
     if (result.meta.changes === 0) {
-      const current = await db
+      const currentResults = await db
         .select({ aiCredits: stores.aiCredits })
         .from(stores)
         .where(eq(stores.id, storeId))
-        .get();
+        .limit(1);
+      const current = currentResults[0];
         
       if (!current) {
         return { success: false, newBalance: 0, error: 'Store not found' };
@@ -100,11 +103,12 @@ export async function deductCredits(
       metadata: JSON.stringify(metadata),
     });
 
-    const updated = await db
+    const updatedResults = await db
       .select({ aiCredits: stores.aiCredits })
       .from(stores)
       .where(eq(stores.id, storeId))
-      .get();
+      .limit(1);
+    const updated = updatedResults[0];
 
     return { success: true, newBalance: updated?.aiCredits || 0 };
   } catch (error) {
@@ -141,11 +145,12 @@ export async function addCredits(
       description,
     });
 
-    const updated = await db
+    const updatedResults = await db
       .select({ aiCredits: stores.aiCredits })
       .from(stores)
       .where(eq(stores.id, storeId))
-      .get();
+      .limit(1);
+    const updated = updatedResults[0];
 
     return { success: true, newBalance: updated?.aiCredits || 0 };
   } catch (error) {

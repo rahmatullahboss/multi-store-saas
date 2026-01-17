@@ -64,7 +64,7 @@ export function Footer({ storeName, config, planType }: SectionProps) {
         </div>
 
         <div className="border-t border-white/10 pt-8 text-center text-white/50 text-sm">
-           <p>{config.orderFormText?.copyrightText || `© ${new Date().getFullYear()} ${storeName}. সর্বস্বত্ব সংরক্ষিত।`}</p>
+           <p suppressHydrationWarning>{config.orderFormText?.copyrightText || `© ${new Date().getFullYear()} ${storeName}. সর্বস্বত্ব সংরক্ষিত।`}</p>
            
            {planType === 'free' && (
             <div className="mt-4 flex justify-center">

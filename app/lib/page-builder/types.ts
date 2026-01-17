@@ -33,7 +33,12 @@ export type SectionType =
   | 'how-to-order'
   | 'showcase'
   | 'custom-html'
-  | 'order-button';
+  | 'order-button'
+  | 'header'
+  | 'countdown'
+  | 'stats'
+  | 'contact'
+  | 'footer';
 
 // ============================================================================
 // DATABASE TYPES
@@ -101,13 +106,21 @@ export interface BuilderPage {
   seoTitle?: string | null;
   seoDescription?: string | null;
   ogImage?: string | null;
+  templateId?: string | null; // Template ID for custom layouts
   publishedAt?: Date | null;
-  // Floating button settings
+  // Floating button settings - WhatsApp
   whatsappEnabled?: number | null;
   whatsappNumber?: string | null;
   whatsappMessage?: string | null;
+  // Floating button settings - Call
   callEnabled?: number | null;
   callNumber?: string | null;
+  // Floating button settings - Order
+  orderEnabled?: number | null;
+  orderText?: string | null;
+  orderBgColor?: string | null;
+  orderTextColor?: string | null;
+  buttonPosition?: string | null;
   sections: BuilderSection[];
 }
 

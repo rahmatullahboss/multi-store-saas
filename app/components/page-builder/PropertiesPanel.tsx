@@ -62,9 +62,10 @@ interface PropertiesPanelProps {
   onUpdate: (props: Record<string, unknown>) => void;
   onClose: () => void;
   products?: Product[];
+  onProductChange?: (product: Product | null) => void;
 }
 
-export function PropertiesPanel({ section, onUpdate, onClose, products = [] }: PropertiesPanelProps) {
+export function PropertiesPanel({ section, onUpdate, onClose, products = [], onProductChange }: PropertiesPanelProps) {
   const [localProps, setLocalProps] = useState<Record<string, unknown>>(section.props);
   const meta = getSectionMeta(section.type);
   
@@ -124,7 +125,7 @@ export function PropertiesPanel({ section, onUpdate, onClose, products = [] }: P
       
       {/* Dynamic Form */}
       <div className="space-y-4">
-        {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem, products)}
+        {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem, products, onProductChange)}
       </div>
       
       {/* Section Styling Panel */}
@@ -141,7 +142,8 @@ function renderPropsForm(
   updateArrayItem: (key: string, index: number, value: unknown) => void,
   addArrayItem: (key: string, template: unknown) => void,
   removeArrayItem: (key: string, index: number) => void,
-  products: Product[] = []
+  products: Product[] = [],
+  onProductChange?: (product: Product | null) => void
 ) {
   switch (type) {
     case 'hero':
@@ -320,6 +322,7 @@ function renderPropsForm(
       const handleProductSelect = (productId: number | null) => {
         if (productId === null) {
           updateProp('productId', null);
+          onProductChange?.(null); // Notify for real-time preview
           return;
         }
         const product = products.find(p => p.id === productId);
@@ -340,6 +343,9 @@ function renderPropsForm(
             // No bundle pricing - hide variant selector by setting empty array
             updateProp('variants', []);
           }
+          
+          // Notify for real-time preview
+          onProductChange?.(product);
         }
       };
       
@@ -354,7 +360,7 @@ function renderPropsForm(
                 <select
                   value={selectedProductId || ''}
                   onChange={(e) => handleProductSelect(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all bg-white"
                 >
                   <option value="">-- প্রোডাক্ট সিলেক্ট করুন --</option>
                   {products.map(p => (
@@ -363,14 +369,74 @@ function renderPropsForm(
                     </option>
                   ))}
                 </select>
+                
+                {/* Selected Product Card with Real-time Preview */}
                 {selectedProduct && (
-                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-                    ✓ {selectedProduct.name} সিলেক্ট করা হয়েছে (৳{selectedProduct.price})
+                  <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      {/* Product Image */}
+                      {selectedProduct.imageUrl ? (
+                        <img 
+                          src={selectedProduct.imageUrl} 
+                          alt={selectedProduct.name}
+                          className="w-16 h-16 object-cover rounded-lg border border-green-300 shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+                          <span className="text-2xl">📦</span>
+                        </div>
+                      )}
+                      
+                      {/* Product Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-medium">সিলেক্টেড</span>
+                          <span className="text-xs text-green-600 animate-pulse">● Live</span>
+                        </div>
+                        <h4 className="font-semibold text-gray-900 text-sm mt-1 truncate">{selectedProduct.name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-lg font-bold text-indigo-600">৳{selectedProduct.price}</span>
+                          {selectedProduct.bundlePricing && selectedProduct.bundlePricing.length > 0 && (
+                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                              {selectedProduct.bundlePricing.length}টি কম্বো
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* No Product Selected Hint */}
+                {!selectedProduct && (
+                  <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+                    <span className="text-xl">⚠️</span>
+                    <div>
+                      <p className="text-sm text-amber-800 font-medium">প্রোডাক্ট সিলেক্ট করুন</p>
+                      <p className="text-xs text-amber-600">অর্ডার ফর্মে প্রোডাক্ট দাম দেখাতে উপরের dropdown থেকে সিলেক্ট করুন</p>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           )}
+          
+          {/* Template Variation Selector */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 টেমপ্লেট স্টাইল</h5>
+            <select
+              value={(props.template as string) || 'minimal'}
+              onChange={(e) => updateProp('template', e.target.value)}
+              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+            >
+              <option value="minimal">Minimal (সাধারণ)</option>
+              <option value="premium">Premium (প্রিমিয়াম)</option>
+              <option value="urgent">Urgent (জরুরি/Flash Sale)</option>
+              <option value="singleColumn">Single Column (মোবাইল অপ্টিমাইজড)</option>
+              <option value="withImage">With Product Image (ছবি সহ)</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">অর্ডার ফর্মের ডিজাইন নির্বাচন করুন</p>
+          </div>
           
           {/* Basic Info */}
           <div className="border-b border-gray-100 pb-4 mb-4">
@@ -462,6 +528,141 @@ function renderPropsForm(
             </p>
           </div>
           
+          {/* BD Address System */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📍 ঠিকানা সিস্টেম</h5>
+            
+            {/* Shipping Zone Mode */}
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1">শিপিং জোন মোড</label>
+              <select
+                value={(props.shippingZoneMode as string) || 'auto'}
+                onChange={(e) => updateProp('shippingZoneMode', e.target.value)}
+                className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              >
+                <option value="auto">🔄 Auto (জেলা থেকে ক্যালকুলেট)</option>
+                <option value="manual">✋ Manual (ঢাকা/বাইরে বাটন)</option>
+              </select>
+              <p className="text-xs text-gray-400 mt-1">
+                {(props.shippingZoneMode as string) === 'manual' 
+                  ? 'কাস্টমার ঢাকা/বাইরে বাটন সিলেক্ট করবে'
+                  : 'জেলা সিলেক্ট করলে অটো শিপিং চার্জ বসবে'
+                }
+              </p>
+            </div>
+            
+            {/* Show District/Upazila Toggles - Only visible in auto mode */}
+            {(props.shippingZoneMode as string) !== 'manual' && (
+              <div className="space-y-2 mt-3 p-3 bg-gray-50 rounded-lg">
+                <ToggleField
+                  label="জেলা ফিল্ড দেখাবে"
+                  value={props.showDistrictField as boolean ?? true}
+                  onChange={(v) => updateProp('showDistrictField', v)}
+                />
+                <ToggleField
+                  label="উপজেলা/থানা ফিল্ড দেখাবে"
+                  value={props.showUpazilaField as boolean ?? true}
+                  onChange={(v) => updateProp('showUpazilaField', v)}
+                />
+              </div>
+            )}
+            
+            {/* Address Labels */}
+            <div className="space-y-2 mt-3">
+              <TextField 
+                label="জেলা লেবেল" 
+                value={props.districtLabel as string || 'জেলা'} 
+                onChange={(v) => updateProp('districtLabel', v)} 
+              />
+              <TextField 
+                label="উপজেলা লেবেল" 
+                value={props.upazilaLabel as string || 'উপজেলা/থানা'} 
+                onChange={(v) => updateProp('upazilaLabel', v)} 
+              />
+              <TextField 
+                label="ঠিকানা লেবেল" 
+                value={props.addressLabel as string || 'বিস্তারিত ঠিকানা'} 
+                onChange={(v) => updateProp('addressLabel', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Simplified Field Builder */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 ফর্ম ফিল্ড সেটিংস</h5>
+            
+            {/* Core Fields (always visible) */}
+            <div className="p-3 bg-gray-50 rounded-lg mb-3">
+              <p className="text-xs text-gray-500 mb-2">✓ ডিফল্ট ফিল্ড (সবসময় দেখাবে)</p>
+              <div className="flex flex-wrap gap-1">
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">নাম</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">ফোন</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">জেলা</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">ঠিকানা</span>
+              </div>
+            </div>
+            
+            {/* Optional Fields Toggle */}
+            <div className="space-y-2">
+              <ToggleField
+                label="📧 ইমেইল ফিল্ড দেখাবে"
+                value={props.showEmailField as boolean ?? false}
+                onChange={(v) => updateProp('showEmailField', v)}
+              />
+              <ToggleField
+                label="📱 বিকল্প ফোন দেখাবে"
+                value={props.showAltPhoneField as boolean ?? false}
+                onChange={(v) => updateProp('showAltPhoneField', v)}
+              />
+              <ToggleField
+                label="📝 অর্ডার নোট দেখাবে"
+                value={props.showNoteField as boolean ?? true}
+                onChange={(v) => updateProp('showNoteField', v)}
+              />
+            </div>
+            
+            {/* Custom Labels (expandable) */}
+            <details className="mt-3">
+              <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                ⚙️ ফিল্ড লেবেল কাস্টমাইজ
+              </summary>
+              <div className="space-y-2 mt-2 pl-2 border-l-2 border-gray-200">
+                <TextField 
+                  label="নাম Placeholder" 
+                  value={props.namePlaceholder as string || 'আপনার নাম লিখুন'} 
+                  onChange={(v) => updateProp('namePlaceholder', v)} 
+                />
+                {(props.showEmailField as boolean) && (
+                  <TextField 
+                    label="ইমেইল Placeholder" 
+                    value={props.emailPlaceholder as string || 'আপনার ইমেইল (ঐচ্ছিক)'} 
+                    onChange={(v) => updateProp('emailPlaceholder', v)} 
+                  />
+                )}
+                {(props.showAltPhoneField as boolean) && (
+                  <TextField 
+                    label="বিকল্প ফোন Placeholder" 
+                    value={props.altPhonePlaceholder as string || 'বিকল্প মোবাইল নম্বর'} 
+                    onChange={(v) => updateProp('altPhonePlaceholder', v)} 
+                  />
+                )}
+                {(props.showNoteField as boolean ?? true) && (
+                  <>
+                    <TextField 
+                      label="নোট লেবেল" 
+                      value={props.noteLabel as string || 'অর্ডার নোট'} 
+                      onChange={(v) => updateProp('noteLabel', v)} 
+                    />
+                    <TextField 
+                      label="নোট Placeholder" 
+                      value={props.notePlaceholder as string || 'অতিরিক্ত তথ্য/নির্দেশনা (ঐচ্ছিক)'} 
+                      onChange={(v) => updateProp('notePlaceholder', v)} 
+                    />
+                  </>
+                )}
+              </div>
+            </details>
+          </div>
           {/* Labels */}
           <div className="border-b border-gray-100 pb-4 mb-4">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🏷️ লেবেল কাস্টমাইজ</h5>
@@ -506,6 +707,55 @@ function renderPropsForm(
                 />
               </div>
             )}
+          </div>
+          
+          {/* Thank You Page Settings */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎉 ধন্যবাদ পেজ</h5>
+            <div className="space-y-3">
+              <TextField 
+                label="সাকসেস হেডলাইন" 
+                value={props.thankYouHeadline as string || 'অর্ডার সফল হয়েছে! 🎉'} 
+                onChange={(v) => updateProp('thankYouHeadline', v)} 
+              />
+              <TextAreaField 
+                label="সাকসেস মেসেজ" 
+                value={props.thankYouMessage as string || 'ধন্যবাদ! আমরা শীঘ্রই আপনার সাথে যোগাযোগ করবো।'} 
+                onChange={(v) => updateProp('thankYouMessage', v)} 
+              />
+              <ToggleField
+                label="অর্ডার ডিটেইলস দেখাবে"
+                value={props.showOrderDetails as boolean ?? true}
+                onChange={(v) => updateProp('showOrderDetails', v)}
+              />
+              <ToggleField
+                label="WhatsApp বাটন দেখাবে"
+                value={props.showWhatsAppButton as boolean ?? false}
+                onChange={(v) => updateProp('showWhatsAppButton', v)}
+              />
+              {(props.showWhatsAppButton as boolean) && (
+                <TextField 
+                  label="WhatsApp নম্বর" 
+                  value={props.whatsAppNumber as string || ''} 
+                  onChange={(v) => updateProp('whatsAppNumber', v)} 
+                />
+              )}
+              <details className="mt-2">
+                <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                  🔗 Advanced: Custom Redirect URL
+                </summary>
+                <div className="mt-2">
+                  <TextField 
+                    label="Redirect URL (Optional)" 
+                    value={props.thankYouRedirectUrl as string || ''} 
+                    onChange={(v) => updateProp('thankYouRedirectUrl', v || undefined)} 
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    খালি রাখলে default thank-you page দেখাবে
+                  </p>
+                </div>
+              </details>
+            </div>
           </div>
         </>
       );
@@ -1016,6 +1266,592 @@ function renderPropsForm(
                 <option value="lg">Large</option>
               </select>
             </div>
+          </div>
+        </>
+      );
+    
+    case 'header':
+      return (
+        <>
+          {/* Branding */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🏷️ ব্র্যান্ডিং</h5>
+            <ImageField 
+              label="Logo Image" 
+              value={props.logoUrl as string || ''} 
+              onChange={(v) => updateProp('logoUrl', v)} 
+            />
+            <TextField 
+              label="Logo Text (if no image)" 
+              value={props.logoText as string || ''} 
+              onChange={(v) => updateProp('logoText', v)} 
+            />
+            <div className="mt-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Logo Size</label>
+              <select
+                value={props.logoSize as string || 'md'}
+                onChange={(e) => updateProp('logoSize', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Navigation Links */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔗 নেভিগেশন</h5>
+            <ToggleField 
+              label="Show Navigation Links" 
+              value={props.showNavLinks as boolean ?? true} 
+              onChange={(v) => updateProp('showNavLinks', v)} 
+            />
+            {(props.showNavLinks ?? true) && (
+              <div className="mt-3">
+                <ArrayField
+                  label="Nav Links"
+                  items={(props.navLinks as Array<{ label: string; url: string }>) || []}
+                  onAdd={() => addArrayItem('navLinks', { label: 'নতুন লিংক', url: '#' })}
+                  onRemove={(i) => removeArrayItem('navLinks', i)}
+                  renderItem={(item, index) => (
+                    <div key={index} className="space-y-2 p-2 bg-gray-50 rounded">
+                      <TextField 
+                        label="Label" 
+                        value={item.label || ''} 
+                        onChange={(v) => updateArrayItem('navLinks', index, { ...item, label: v })} 
+                      />
+                      <TextField 
+                        label="URL" 
+                        value={item.url || ''} 
+                        onChange={(v) => updateArrayItem('navLinks', index, { ...item, url: v })} 
+                      />
+                    </div>
+                  )}
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* CTA Button */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔘 CTA বাটন</h5>
+            <ToggleField 
+              label="Show CTA Button" 
+              value={props.showCta as boolean ?? true} 
+              onChange={(v) => updateProp('showCta', v)} 
+            />
+            {(props.showCta ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Button Text" 
+                  value={props.ctaText as string || 'অর্ডার করুন'} 
+                  onChange={(v) => updateProp('ctaText', v)} 
+                />
+                <TextField 
+                  label="Button Link" 
+                  value={props.ctaLink as string || '#order'} 
+                  onChange={(v) => updateProp('ctaLink', v)} 
+                />
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Button Style</label>
+                  <select
+                    value={props.ctaStyle as string || 'solid'}
+                    onChange={(e) => updateProp('ctaStyle', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+                  >
+                    <option value="solid">Solid</option>
+                    <option value="outline">Outline</option>
+                    <option value="ghost">Ghost</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Styling */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 স্টাইল</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Variant</label>
+              <select
+                value={props.variant as string || 'simple'}
+                onChange={(e) => updateProp('variant', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="simple">Simple (Logo Left)</option>
+                <option value="centered">Centered (Logo Center)</option>
+                <option value="minimal">Minimal (Logo + CTA only)</option>
+              </select>
+            </div>
+            <ColorPickerField 
+              label="Background Color" 
+              value={props.bgColor as string || '#FFFFFF'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+            />
+            <ColorPickerField 
+              label="Text Color" 
+              value={props.textColor as string || '#18181B'} 
+              onChange={(v) => updateProp('textColor', v)} 
+            />
+            <ColorPickerField 
+              label="CTA Button Color" 
+              value={props.ctaBgColor as string || '#6366F1'} 
+              onChange={(v) => updateProp('ctaBgColor', v)} 
+            />
+            <ColorPickerField 
+              label="CTA Text Color" 
+              value={props.ctaTextColor as string || '#FFFFFF'} 
+              onChange={(v) => updateProp('ctaTextColor', v)} 
+            />
+          </div>
+          
+          {/* Behavior */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">⚙️ আচরণ</h5>
+            <ToggleField 
+              label="Sticky Header" 
+              value={props.isSticky as boolean ?? true} 
+              onChange={(v) => updateProp('isSticky', v)} 
+            />
+          </div>
+        </>
+      );
+    
+    case 'countdown':
+      return (
+        <>
+          {/* Timer Settings */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">⏰ টাইমার সেটিংস</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">End Date</label>
+              <input
+                type="date"
+                value={props.endDate as string || ''}
+                onChange={(e) => updateProp('endDate', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              />
+            </div>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">End Time</label>
+              <input
+                type="time"
+                value={props.endTime as string || '23:59'}
+                onChange={(e) => updateProp('endTime', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              />
+            </div>
+            <p className="text-[10px] text-gray-400 mt-1">
+              💡 Date সেট না করলে ডেমো কাউন্টডাউন দেখাবে
+            </p>
+          </div>
+          
+          {/* Content */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 কনটেন্ট</h5>
+            <TextField 
+              label="Title" 
+              value={props.title as string || '⏰ অফার শেষ হচ্ছে!'} 
+              onChange={(v) => updateProp('title', v)} 
+            />
+            <TextField 
+              label="Subtitle (Optional)" 
+              value={props.subtitle as string || ''} 
+              onChange={(v) => updateProp('subtitle', v)} 
+            />
+            <TextField 
+              label="Expired Message" 
+              value={props.expiredMessage as string || 'অফার শেষ হয়ে গেছে!'} 
+              onChange={(v) => updateProp('expiredMessage', v)} 
+            />
+          </div>
+          
+          {/* Display Options */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔢 ডিসপ্লে অপশন</h5>
+            <div className="grid grid-cols-2 gap-2">
+              <ToggleField 
+                label="Show Days" 
+                value={props.showDays as boolean ?? true} 
+                onChange={(v) => updateProp('showDays', v)} 
+              />
+              <ToggleField 
+                label="Show Hours" 
+                value={props.showHours as boolean ?? true} 
+                onChange={(v) => updateProp('showHours', v)} 
+              />
+              <ToggleField 
+                label="Show Minutes" 
+                value={props.showMinutes as boolean ?? true} 
+                onChange={(v) => updateProp('showMinutes', v)} 
+              />
+              <ToggleField 
+                label="Show Seconds" 
+                value={props.showSeconds as boolean ?? true} 
+                onChange={(v) => updateProp('showSeconds', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Labels */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🏷️ লেবেল</h5>
+            <div className="grid grid-cols-2 gap-2">
+              <TextField 
+                label="Days" 
+                value={props.daysLabel as string || 'দিন'} 
+                onChange={(v) => updateProp('daysLabel', v)} 
+              />
+              <TextField 
+                label="Hours" 
+                value={props.hoursLabel as string || 'ঘন্টা'} 
+                onChange={(v) => updateProp('hoursLabel', v)} 
+              />
+              <TextField 
+                label="Minutes" 
+                value={props.minutesLabel as string || 'মিনিট'} 
+                onChange={(v) => updateProp('minutesLabel', v)} 
+              />
+              <TextField 
+                label="Seconds" 
+                value={props.secondsLabel as string || 'সেকেন্ড'} 
+                onChange={(v) => updateProp('secondsLabel', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Styling */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 স্টাইল</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Variant</label>
+              <select
+                value={props.variant as string || 'banner'}
+                onChange={(e) => updateProp('variant', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="banner">Banner (Full Width)</option>
+                <option value="card">Card (Centered)</option>
+                <option value="urgent">Urgent (Flash Sale)</option>
+                <option value="minimal">Minimal (Inline)</option>
+              </select>
+            </div>
+            <ColorPickerField 
+              label="Background Color" 
+              value={props.bgColor as string || '#DC2626'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+            />
+            <ColorPickerField 
+              label="Text Color" 
+              value={props.textColor as string || '#FFFFFF'} 
+              onChange={(v) => updateProp('textColor', v)} 
+            />
+          </div>
+          
+          {/* Animation */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">✨ অ্যানিমেশন</h5>
+            <ToggleField 
+              label="Pulse Animation" 
+              value={props.pulseAnimation as boolean ?? true} 
+              onChange={(v) => updateProp('pulseAnimation', v)} 
+            />
+            <ToggleField 
+              label="Shake on Low Time (<1 hour)" 
+              value={props.shakeOnLowTime as boolean ?? true} 
+              onChange={(v) => updateProp('shakeOnLowTime', v)} 
+            />
+          </div>
+        </>
+      );
+    
+    case 'stats':
+      return (
+        <>
+          {/* Title */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 শিরোনাম</h5>
+            <TextField 
+              label="Title (Optional)" 
+              value={props.title as string || ''} 
+              onChange={(v) => updateProp('title', v)} 
+            />
+            <TextField 
+              label="Subtitle (Optional)" 
+              value={props.subtitle as string || ''} 
+              onChange={(v) => updateProp('subtitle', v)} 
+            />
+          </div>
+          
+          {/* Stats Items */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📊 পরিসংখ্যান</h5>
+            <ArrayField
+              label="Stats Items"
+              items={(props.stats as Array<{ value: number; suffix: string; prefix: string; label: string; icon: string }>) || []}
+              onAdd={() => addArrayItem('stats', { value: 0, suffix: '+', prefix: '', label: 'নতুন স্ট্যাট', icon: '📈' })}
+              onRemove={(i) => removeArrayItem('stats', i)}
+              renderItem={(item, index) => (
+                <div key={index} className="space-y-2 p-2 bg-gray-50 rounded">
+                  <div className="grid grid-cols-3 gap-2">
+                    <TextField 
+                      label="Icon" 
+                      value={item.icon || ''} 
+                      onChange={(v) => updateArrayItem('stats', index, { ...item, icon: v })} 
+                    />
+                    <NumberField 
+                      label="Value" 
+                      value={item.value || 0} 
+                      onChange={(v) => updateArrayItem('stats', index, { ...item, value: v })} 
+                    />
+                    <TextField 
+                      label="Suffix" 
+                      value={item.suffix || ''} 
+                      onChange={(v) => updateArrayItem('stats', index, { ...item, suffix: v })} 
+                    />
+                  </div>
+                  <TextField 
+                    label="Label" 
+                    value={item.label || ''} 
+                    onChange={(v) => updateArrayItem('stats', index, { ...item, label: v })} 
+                  />
+                </div>
+              )}
+            />
+          </div>
+          
+          {/* Display Options */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎛️ ডিসপ্লে</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Columns</label>
+              <select
+                value={props.columns as string || '4'}
+                onChange={(e) => updateProp('columns', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="2">2 Columns</option>
+                <option value="3">3 Columns</option>
+                <option value="4">4 Columns</option>
+              </select>
+            </div>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Value Size</label>
+              <select
+                value={props.valueFontSize as string || 'xl'}
+                onChange={(e) => updateProp('valueFontSize', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+                <option value="xl">Extra Large</option>
+                <option value="2xl">2X Large</option>
+              </select>
+            </div>
+            <ToggleField 
+              label="Show Icons" 
+              value={props.showIcons as boolean ?? true} 
+              onChange={(v) => updateProp('showIcons', v)} 
+            />
+            <ToggleField 
+              label="Animate on Scroll" 
+              value={props.animateOnScroll as boolean ?? true} 
+              onChange={(v) => updateProp('animateOnScroll', v)} 
+            />
+          </div>
+          
+          {/* Styling */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 স্টাইল</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Variant</label>
+              <select
+                value={props.variant as string || 'simple'}
+                onChange={(e) => updateProp('variant', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="simple">Simple</option>
+                <option value="cards">Cards</option>
+                <option value="highlight">Highlight</option>
+                <option value="minimal">Minimal</option>
+              </select>
+            </div>
+            <ColorPickerField 
+              label="Background Color" 
+              value={props.bgColor as string || '#F9FAFB'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+            />
+            <ColorPickerField 
+              label="Text Color" 
+              value={props.textColor as string || '#111827'} 
+              onChange={(v) => updateProp('textColor', v)} 
+            />
+            <ColorPickerField 
+              label="Accent Color" 
+              value={props.accentColor as string || '#6366F1'} 
+              onChange={(v) => updateProp('accentColor', v)} 
+            />
+          </div>
+        </>
+      );
+    
+    case 'contact':
+      return (
+        <>
+          {/* Title */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 শিরোনাম</h5>
+            <TextField 
+              label="Title" 
+              value={props.title as string || 'যোগাযোগ করুন'} 
+              onChange={(v) => updateProp('title', v)} 
+            />
+            <TextField 
+              label="Subtitle" 
+              value={props.subtitle as string || ''} 
+              onChange={(v) => updateProp('subtitle', v)} 
+            />
+          </div>
+          
+          {/* Contact Information */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📞 যোগাযোগ তথ্য</h5>
+            <ToggleField 
+              label="Show Contact Info" 
+              value={props.showContactInfo as boolean ?? true} 
+              onChange={(v) => updateProp('showContactInfo', v)} 
+            />
+            {(props.showContactInfo ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Phone" 
+                  value={props.phone as string || ''} 
+                  onChange={(v) => updateProp('phone', v)} 
+                />
+                <TextField 
+                  label="WhatsApp" 
+                  value={props.whatsapp as string || ''} 
+                  onChange={(v) => updateProp('whatsapp', v)} 
+                />
+                <TextField 
+                  label="Email" 
+                  value={props.email as string || ''} 
+                  onChange={(v) => updateProp('email', v)} 
+                />
+                <TextField 
+                  label="Address" 
+                  value={props.address as string || ''} 
+                  onChange={(v) => updateProp('address', v)} 
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Business Hours */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🕐 অফিস সময়</h5>
+            <ToggleField 
+              label="Show Business Hours" 
+              value={props.showHours as boolean ?? true} 
+              onChange={(v) => updateProp('showHours', v)} 
+            />
+            {(props.showHours ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Hours Title" 
+                  value={props.hoursTitle as string || 'অফিস সময়'} 
+                  onChange={(v) => updateProp('hoursTitle', v)} 
+                />
+                <TextField 
+                  label="Hours" 
+                  value={props.hours as string || ''} 
+                  onChange={(v) => updateProp('hours', v)} 
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Form Settings */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📋 ফর্ম</h5>
+            <ToggleField 
+              label="Show Contact Form" 
+              value={props.showForm as boolean ?? true} 
+              onChange={(v) => updateProp('showForm', v)} 
+            />
+            {(props.showForm ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Form Title" 
+                  value={props.formTitle as string || 'মেসেজ পাঠান'} 
+                  onChange={(v) => updateProp('formTitle', v)} 
+                />
+                <TextField 
+                  label="Submit Button" 
+                  value={props.submitButtonText as string || 'পাঠান'} 
+                  onChange={(v) => updateProp('submitButtonText', v)} 
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Social Links */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔗 সোশ্যাল লিংক</h5>
+            <ToggleField 
+              label="Show Social Links" 
+              value={props.showSocialLinks as boolean ?? true} 
+              onChange={(v) => updateProp('showSocialLinks', v)} 
+            />
+            {(props.showSocialLinks ?? true) && (
+              <div className="mt-3 space-y-2">
+                <TextField 
+                  label="Facebook URL" 
+                  value={props.facebookUrl as string || ''} 
+                  onChange={(v) => updateProp('facebookUrl', v)} 
+                />
+                <TextField 
+                  label="Instagram URL" 
+                  value={props.instagramUrl as string || ''} 
+                  onChange={(v) => updateProp('instagramUrl', v)} 
+                />
+                <TextField 
+                  label="WhatsApp URL" 
+                  value={props.whatsappUrl as string || ''} 
+                  onChange={(v) => updateProp('whatsappUrl', v)} 
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Styling */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 স্টাইল</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Layout Variant</label>
+              <select
+                value={props.variant as string || 'split'}
+                onChange={(e) => updateProp('variant', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="split">Split (Info + Form)</option>
+                <option value="stacked">Stacked</option>
+                <option value="form-only">Form Only</option>
+                <option value="info-only">Info Only</option>
+              </select>
+            </div>
+            <ColorPickerField 
+              label="Background Color" 
+              value={props.bgColor as string || '#F9FAFB'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+            />
+            <ColorPickerField 
+              label="Accent Color" 
+              value={props.accentColor as string || '#6366F1'} 
+              onChange={(v) => updateProp('accentColor', v)} 
+            />
           </div>
         </>
       );

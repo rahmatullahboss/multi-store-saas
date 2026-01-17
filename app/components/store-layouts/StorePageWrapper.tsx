@@ -10,8 +10,6 @@ import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
 import { getStoreTemplate, getStoreTemplateTheme, type StoreTemplateTheme } from '~/templates/store-registry';
 import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
-import { ClientOnly } from 'remix-utils/client-only';
-import { SkeletonLoader } from '~/components/SkeletonLoader';
 
 interface StorePageWrapperProps {
   children: ReactNode;
@@ -30,6 +28,11 @@ interface StorePageWrapperProps {
   footerConfig?: FooterConfig | null;
   planType?: string;
   isPreview?: boolean;
+  customer?: {
+    id: number;
+    name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export function StorePageWrapper({
@@ -49,6 +52,7 @@ export function StorePageWrapper({
   footerConfig,
   planType = 'free',
   isPreview = false,
+  customer,
 }: StorePageWrapperProps) {
   // Get template from registry
   const template = getStoreTemplate(templateId);
@@ -77,62 +81,56 @@ export function StorePageWrapper({
         </div>
       )}
 
-      {/* Header */}
-      <ClientOnly fallback={<SkeletonLoader />}>
-        {() => (
-          template.Header ? (
-            <template.Header
-              storeName={storeName}
-              logo={logo}
-              isPreview={isPreview}
-              config={config}
-              categories={categories}
-              currentCategory={currentCategory}
-              socialLinks={socialLinks}
-            />
-          ) : (
-            <StoreHeader
-              storeName={storeName}
-              logo={logo}
-              theme={resolvedTheme}
-              templateId={templateId}
-              cartCount={cartCount}
-            />
-          )
-        )}
-      </ClientOnly>
+      {/* Header - SSR Safe */}
+      {template.Header ? (
+        <template.Header
+          storeName={storeName}
+          logo={logo}
+          isPreview={isPreview}
+          config={config}
+          categories={categories}
+          currentCategory={currentCategory}
+          socialLinks={socialLinks}
+        />
+      ) : (
+        <StoreHeader
+          storeName={storeName}
+          logo={logo}
+          theme={resolvedTheme}
+          templateId={templateId}
+          cartCount={cartCount}
+          storeId={storeId}
+          customer={customer}
+        />
+      )}
 
       {/* Main Content */}
       <main className="relative z-10">
         {children}
       </main>
 
-      {/* Footer */}
-      <ClientOnly fallback={<div className="h-40" />}>
-        {() => (
-          template.Footer ? (
-            <template.Footer
-              storeName={storeName}
-              logo={logo}
-              socialLinks={socialLinks}
-              footerConfig={footerConfig}
-              businessInfo={businessInfo}
-              categories={categories}
-            />
-          ) : (
-            <StoreFooter
-              storeName={storeName}
-              logo={logo}
-              theme={resolvedTheme}
-              templateId={templateId}
-              socialLinks={socialLinks}
-              businessInfo={businessInfo}
-              planType={planType}
-              showPoweredBy={footerConfig?.showPoweredBy ?? true}
-            />
-          )
-        )}
-      </ClientOnly>
+      {/* Footer - SSR Safe */}
+      {template.Footer ? (
+        <template.Footer
+          storeName={storeName}
+          logo={logo}
+          socialLinks={socialLinks}
+          footerConfig={footerConfig}
+          businessInfo={businessInfo}
+          categories={categories}
+        />
+      ) : (
+        <StoreFooter
+          storeName={storeName}
+          logo={logo}
+          theme={resolvedTheme}
+          templateId={templateId}
+          socialLinks={socialLinks}
+          businessInfo={businessInfo}
+          planType={planType}
+          showPoweredBy={footerConfig?.showPoweredBy ?? true}
+        />
+      )}
     </div>
   );
 }

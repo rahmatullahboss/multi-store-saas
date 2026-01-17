@@ -494,8 +494,7 @@ export default function StoreTemplatePreview() {
         
         {/* Apply Button */}
         <Form method="post" action="/app/theme-store">
-         {/* <input type="hidden" name="intent" value="select-template" /> --> Not needed for theme-store action */}
-          <input type="hidden" name="templateId" value={templateId} />
+          <input type="hidden" name="themeId" value={templateId} />
           <button
             type="submit"
             className="flex items-center gap-2 px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition"

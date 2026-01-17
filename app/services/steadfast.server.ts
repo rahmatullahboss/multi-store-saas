@@ -138,9 +138,11 @@ export async function checkCustomerRisk(
   }
   
   // Count outcomes
+  // IMPORTANT: Only actual delivery returns (courierStatus = 'returned') count as risky
+  // Call cancels (status = 'cancelled' before shipping) are NOT risky
   let deliveredOrders = 0;
-  let returnedOrders = 0;
-  let cancelledOrders = 0;
+  let returnedOrders = 0;  // Actual delivery returns (shipped but came back)
+  let cancelledOrders = 0; // Call cancels (cancelled before shipping) - NOT risky
   
   for (const order of customerOrders) {
     const status = order.status?.toLowerCase() || '';
@@ -148,35 +150,33 @@ export async function checkCustomerRisk(
     
     if (status === 'delivered' || courierStatus === 'delivered') {
       deliveredOrders++;
-    } else if (
-      status === 'cancelled' || 
-      courierStatus === 'cancelled' ||
-      courierStatus === 'returned'
-    ) {
+    } else if (courierStatus === 'returned') {
+      // Actual delivery return - this is risky behavior
       returnedOrders++;
-      if (status === 'cancelled') {
-        cancelledOrders++;
-      }
+    } else if (status === 'cancelled') {
+      // Call cancel (before shipping) - NOT risky, customer just changed mind on call
+      cancelledOrders++;
     }
   }
   
-  // Calculate success rate (delivered / total * 100)
-  const successRate = totalOrders > 0 
-    ? Math.round((deliveredOrders / totalOrders) * 100) 
-    : 100;
+  // Calculate success rate based on SHIPPED orders only (delivered + returned)
+  // Call cancels don't count because they never shipped
+  const shippedOrders = deliveredOrders + returnedOrders;
+  const successRate = shippedOrders > 0 
+    ? Math.round((deliveredOrders / shippedOrders) * 100) 
+    : (totalOrders > 0 ? 100 : 100); // If no shipped orders, assume 100% (new customer or all cancelled)
   
-  // Calculate risk score (inverse of success rate, weighted by volume)
-  // More orders = more reliable data = higher confidence
-  const returnRate = totalOrders > 0 
-    ? (returnedOrders / totalOrders) * 100 
+  // Calculate return rate based on shipped orders
+  const returnRate = shippedOrders > 0 
+    ? (returnedOrders / shippedOrders) * 100 
     : 0;
   
-  // Risk score: return rate with a minimum of 5 orders for high confidence
-  const confidenceFactor = Math.min(totalOrders / 5, 1);
+  // Risk score: return rate with a minimum of 3 shipped orders for confidence
+  const confidenceFactor = Math.min(shippedOrders / 3, 1);
   const riskScore = Math.round(returnRate * confidenceFactor);
   
-  // High risk if return rate > 30%
-  const isHighRisk = returnRate > 30;
+  // High risk if return rate > 30% (only for shipped orders)
+  const isHighRisk = shippedOrders >= 2 && returnRate > 30;
   
   return {
     isHighRisk,

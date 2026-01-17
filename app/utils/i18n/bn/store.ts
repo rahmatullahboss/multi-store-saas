@@ -183,6 +183,17 @@ export const store = {
   freeShippingAbove: 'ফ্রি শিপিং লিমিট',
   estimatedDeliveryTime: 'সম্ভাব্য ডেলিভারি সময়',
   regionsDistricts: 'অঞ্চল / জেলাসমূহ',
+  zoneNamePlaceholder: 'যেমন: ঢাকা শহর, সারাদেশ',
+  freeAbovePlaceholder: 'যেমন: ২০০০',
+  estimatedDaysPlaceholder: 'যেমন: ২-৩ দিন',
+  regionsPlaceholder: 'যেমন: ঢাকা, চট্টগ্রাম...',
+  createZone: 'জোন তৈরি করুন',
+  updateZone: 'জোন আপডেট করুন',
+  deleteZoneConfirm: 'আপনি কি নিশ্চিত যে আপনি এই শিপিং জোনটি মুছে ফেলতে চান?',
+  noShippingZones: 'এখনও কোনো শিপিং জোন নেই',
+  addFirstZone: 'আপনার প্রথম শিপিং জোন যোগ করুন',
+  free: 'ফ্রি',
+  freeAbove: 'ফ্রি হবে',
   shippingCost: 'শিপিং খরচ',
   
   // Discounts & Coupons

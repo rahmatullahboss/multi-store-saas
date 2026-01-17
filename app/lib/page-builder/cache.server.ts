@@ -16,11 +16,25 @@ export interface CachedPageData {
     id: string;
     slug: string;
     title: string | null;
+    storeId?: number;
+    productId?: number | null;
     seoTitle?: string | null;
     seoDescription?: string | null;
     ogImage?: string | null;
     status: string;
     publishedAt?: Date | null;
+    // Floating button settings - must be cached!
+    whatsappEnabled?: number | null;
+    whatsappNumber?: string | null;
+    whatsappMessage?: string | null;
+    callEnabled?: number | null;
+    callNumber?: string | null;
+    orderEnabled?: number | null;
+    orderText?: string | null;
+    orderBgColor?: string | null;
+    orderTextColor?: string | null;
+    buttonPosition?: string | null;
+    templateId?: string | null;
   };
   sections: Array<{
     id: string;
@@ -90,11 +104,25 @@ export async function cachePageData(
         id: data.id,
         slug: data.slug,
         title: data.title,
+        storeId: data.storeId,
+        productId: data.productId,
         seoTitle: data.seoTitle,
         seoDescription: data.seoDescription,
         ogImage: data.ogImage,
         status: data.status,
         publishedAt: data.publishedAt,
+        // Floating button settings - critical for live pages!
+        whatsappEnabled: data.whatsappEnabled,
+        whatsappNumber: data.whatsappNumber,
+        whatsappMessage: data.whatsappMessage,
+        callEnabled: data.callEnabled,
+        callNumber: data.callNumber,
+        orderEnabled: data.orderEnabled,
+        orderText: data.orderText,
+        orderBgColor: data.orderBgColor,
+        orderTextColor: data.orderTextColor,
+        buttonPosition: data.buttonPosition,
+        templateId: data.templateId,
       },
       sections: data.sections.map(s => ({
         id: s.id,

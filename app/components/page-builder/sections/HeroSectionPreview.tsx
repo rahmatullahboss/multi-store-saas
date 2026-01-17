@@ -36,7 +36,8 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
     headingColor,
     fontFamily,
     paddingY,
-  } = props as HeroProps;
+    variant = 'centered',
+  } = props as HeroProps & { variant?: 'centered' | 'split-left' | 'split-right' | 'glow' | 'modern' };
   
   // Default theme colors
   const bgColor = theme?.bgColor || '#4F46E5';
@@ -73,6 +74,19 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
       };
     }
     
+    // Variant-specific backgrounds
+    if (variant === 'glow') {
+      return { 
+        background: `radial-gradient(circle at 50% 50%, ${bgColor} 0%, #000000 100%)`,
+        position: 'relative',
+        overflow: 'hidden',
+      };
+    }
+
+    if (variant === 'modern') {
+       return { background: `linear-gradient(180deg, ${bgColor} 0%, #ffffff 100%)` };
+    }
+    
     // Theme-specific gradients
     if (theme?.style === 'urgent') {
       return { background: `linear-gradient(135deg, ${bgColor} 0%, #450a0a 100%)` };
@@ -92,23 +106,16 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
   };
 
   // Text colors based on background (use override if provided)
-  const isDarkBg = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark' || !theme;
-  const isLightBg = theme?.style === 'professional' || theme?.style === 'nature' || theme?.style === 'minimal';
+  const isDarkBg = variant === 'glow' || theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark' || !theme;
+  const isLightBg = variant === 'modern' || theme?.style === 'professional' || theme?.style === 'nature' || theme?.style === 'minimal';
   
   const titleColor = headingColor || textColor || (isLightBg ? (theme?.textColor || '#1D3557') : '#FFFFFF');
   const subtitleColor = textColor || (isLightBg ? (theme?.mutedTextColor || '#6C757D') : 'rgba(255,255,255,0.9)');
   
-  return (
-    <section 
-      className="relative py-16 px-6"
-      style={{
-        ...getBackgroundStyle(),
-        fontFamily: sectionStyle.fontFamily,
-        paddingTop: sectionStyle.paddingTop,
-        paddingBottom: sectionStyle.paddingBottom,
-      }}
-    >
-      <div className="max-w-3xl mx-auto text-center">
+  // Render content based on variant
+  const renderContent = () => {
+    const commonContent = (
+       <>
         {badgeText && (
           <span 
             className="inline-block px-4 py-2 mb-4 text-sm font-bold rounded-full animate-pulse"
@@ -122,7 +129,7 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
         )}
         
         <h1 
-          className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight"
+          className={`font-bold mb-4 leading-tight ${variant === 'modern' ? 'text-5xl md:text-7xl tracking-tighter' : 'text-3xl md:text-4xl lg:text-5xl'}`}
           style={{ color: titleColor, ...headingStyle }}
         >
           {headline}
@@ -130,7 +137,7 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
         
         {subheadline && (
           <p 
-            className="text-lg md:text-xl mb-8 leading-relaxed"
+            className="text-lg md:text-xl mb-8 leading-relaxed opacity-90"
             style={{ color: subtitleColor }}
           >
             {subheadline}
@@ -147,7 +154,65 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
         >
           {ctaText}
         </button>
-      </div>
+       </>
+    );
+
+    if (variant === 'split-left') {
+        return (
+            <div className="flex flex-col md:flex-row items-center gap-12">
+                <div className="flex-1 text-left">
+                    {commonContent}
+                </div>
+                <div className="flex-1">
+                     {/* Placeholder for split image if we had one in props, for now simplified */}
+                     <div className="aspect-square bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+                        <span style={{color: subtitleColor}}>Image Placeholder</span>
+                     </div>
+                </div>
+            </div>
+        )
+    }
+
+    if (variant === 'split-right') {
+         return (
+            <div className="flex flex-col md:flex-row-reverse items-center gap-12">
+                <div className="flex-1 text-left">
+                    {commonContent}
+                </div>
+                <div className="flex-1">
+                     <div className="aspect-square bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+                        <span style={{color: subtitleColor}}>Image Placeholder</span>
+                     </div>
+                </div>
+            </div>
+        )
+    }
+
+    // Default centered, glow, modern
+    return (
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+            {variant === 'glow' && (
+                <div className="absolute -top-20 -left-20 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+            )}
+             {variant === 'glow' && (
+                <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+            )}
+            {commonContent}
+        </div>
+    );
+  };
+
+  return (
+    <section 
+      className="relative py-16 px-6 overflow-hidden"
+      style={{
+        ...getBackgroundStyle(),
+        fontFamily: sectionStyle.fontFamily,
+        paddingTop: sectionStyle.paddingTop,
+        paddingBottom: sectionStyle.paddingBottom,
+      }}
+    >
+      {renderContent()}
     </section>
   );
 }

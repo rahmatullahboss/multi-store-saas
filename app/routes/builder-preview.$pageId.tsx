@@ -20,6 +20,8 @@ import { getPageWithSections } from '~/lib/page-builder/actions.server';
 import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
+import { OzzylBrandingMini } from '~/components/OzzylBranding';
+import { TemplateLayoutRenderer } from '~/components/page-builder/TemplateLayoutRenderer';
 
 // ============================================================================
 // LOADER
@@ -45,12 +47,21 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   return json({
     sections: page.sections.filter(s => s.enabled),
     pageSettings: {
+      // WhatsApp settings
       whatsappEnabled: page.whatsappEnabled ?? true,
       whatsappNumber: page.whatsappNumber || '',
       whatsappMessage: page.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।',
+      // Call settings
       callEnabled: page.callEnabled ?? true,
       callNumber: page.callNumber || '',
+      // Order button settings
+      orderEnabled: page.orderEnabled ?? true,
+      orderText: page.orderText || 'অর্ডার করুন',
+      orderBgColor: page.orderBgColor || '#6366F1',
+      orderTextColor: page.orderTextColor || '#FFFFFF',
+      position: page.buttonPosition || 'bottom-right',
     },
+    templateId: page.templateId || 'default', // Pass templateId for custom layouts
   });
 }
 
@@ -62,6 +73,14 @@ export default function PreviewPage() {
   const loaderData = useLoaderData<typeof loader>();
   const [liveSections, setLiveSections] = useState(loaderData.sections);
   const [liveSettings, setLiveSettings] = useState(loaderData.pageSettings);
+  const [liveProduct, setLiveProduct] = useState<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    images: string[];
+    variants?: Array<{ id: number; name: string; price: number }>;
+  } | null>(null);
   
   // Listen for live updates from parent window (receives sections data directly)
   useEffect(() => {
@@ -71,13 +90,20 @@ export default function PreviewPage() {
         setLiveSections(event.data.sections);
       }
       if (event.data?.type === 'SETTINGS_UPDATE' && event.data.settings) {
-        setLiveSettings(event.data.settings);
+        setLiveSettings({
+          ...liveSettings,
+          ...event.data.settings,
+        });
+      }
+      // Handle product update for real-time preview
+      if (event.data?.type === 'PRODUCT_UPDATE') {
+        setLiveProduct(event.data.product || null);
       }
     };
     
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [liveSettings]);
 
   // Update from loader when navigating/refreshing
   useEffect(() => {
@@ -89,23 +115,30 @@ export default function PreviewPage() {
   }, [loaderData.pageSettings]);
   
   return (
-    <div className="bg-white min-h-screen">
+    <TemplateLayoutRenderer templateId={loaderData.templateId}>
       <SectionRenderer
         sections={liveSections}
         activeSectionId={null}
         onSelectSection={() => {}}
+        product={liveProduct}
       />
+      
+      {/* Powered by Ozzyl branding */}
+      <OzzylBrandingMini />
       
       {/* Floating Action Buttons */}
       <FloatingActionButtons
-        whatsappEnabled={liveSettings.whatsappEnabled}
+        whatsappEnabled={Boolean(liveSettings.whatsappEnabled)}
         whatsappNumber={liveSettings.whatsappNumber}
         whatsappMessage={liveSettings.whatsappMessage}
-        callEnabled={liveSettings.callEnabled}
+        callEnabled={Boolean(liveSettings.callEnabled)}
         callNumber={liveSettings.callNumber}
-        orderEnabled={true}
-        orderText="অর্ডার করুন"
+        orderEnabled={Boolean(liveSettings.orderEnabled)}
+        orderText={liveSettings.orderText}
+        orderBgColor={liveSettings.orderBgColor}
+        orderTextColor={liveSettings.orderTextColor}
+        position={liveSettings.position as 'bottom-right' | 'bottom-left' | 'bottom-center'}
       />
-    </div>
+    </TemplateLayoutRenderer>
   );
 }

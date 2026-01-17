@@ -99,6 +99,11 @@ export const stores = sqliteTable('stores', {
   aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
   aiCredits: integer('ai_credits').default(50), // Default 50 credits for new stores
 
+  // === CUSTOM GOOGLE OAUTH (Premium/Business only) ===
+  // Free/Starter use shared platform OAuth, Premium can set their own
+  customGoogleClientId: text('custom_google_client_id'), // Store's own Google OAuth Client ID
+  customGoogleClientSecret: text('custom_google_client_secret'), // Store's own Google OAuth Secret (encrypted)
+
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
   paymentStatus: text('payment_status').$type<'pending_verification' | 'verified' | 'rejected' | 'none'>().default('none'),
@@ -111,6 +116,10 @@ export const stores = sqliteTable('stores', {
   subscriptionStartDate: integer('subscription_start_date', { mode: 'timestamp' }),
   subscriptionEndDate: integer('subscription_end_date', { mode: 'timestamp' }),
   adminNote: text('admin_note'), // Super Admin notes for the subscription
+
+  // === NEW PAGE BUILDER HOMEPAGE LINK ===
+  // Links to a new builder page (builder_pages.id) to use as homepage in funnel mode
+  homepageBuilderPageId: text('homepage_builder_page_id'),
 
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // Soft delete timestamp (null = not deleted)
@@ -197,10 +206,16 @@ export const productCollections = sqliteTable('product_collections', {
 export const customers = sqliteTable('customers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  email: text('email').notNull(),
+  email: text('email'), // Optional - BD customers usually only provide phone
   name: text('name'),
   phone: text('phone'),
   address: text('address'), // JSON object with address details
+
+  // === CUSTOMER AUTHENTICATION (Premium/Business only) ===
+  passwordHash: text('password_hash'), // For email/password login
+  googleId: text('google_id'), // Google OAuth subject ID
+  authProvider: text('auth_provider').$type<'email' | 'google'>(), // How customer signed up
+  lastLoginAt: integer('last_login_at', { mode: 'timestamp' }), // Last login timestamp
   // Fraud check cache
   riskScore: integer('risk_score'), // 0-100 (higher = more risky)
   riskCheckedAt: integer('risk_checked_at', { mode: 'timestamp' }), // Last check time
@@ -225,6 +240,7 @@ export const customers = sqliteTable('customers', {
   index('customers_store_id_idx').on(table.storeId),
   index('customers_email_idx').on(table.storeId, table.email),
   index('customers_segment_idx').on(table.storeId, table.segment),
+  index('customers_google_id_idx').on(table.storeId, table.googleId),
 ]);
 
 // ============================================================================
@@ -279,8 +295,8 @@ export const orders = sqliteTable('orders', {
 export const orderItems = sqliteTable('order_items', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id),
-  variantId: integer('variant_id').references(() => productVariants.id),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
+  variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'set null' }),
   title: text('title').notNull(),
   variantTitle: text('variant_title'), // e.g., "Red / Large"
   quantity: integer('quantity').notNull(),
@@ -690,7 +706,7 @@ export const emailCampaignsRelations = relations(emailCampaigns, ({ one }) => ({
 export const savedLandingConfigs = sqliteTable('saved_landing_configs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
   name: text('name').notNull(), // e.g., "Homepage Backup - Jan 2026"
   landingConfig: text('landing_config').notNull(), // Full JSON config
   offerSlug: text('offer_slug'), // Custom slug like "old-home"
@@ -725,7 +741,7 @@ export const publishedPages = sqliteTable('published_pages', {
 
   // Page identification
   pageType: text('page_type').$type<'landing' | 'product'>().default('landing'),
-  productId: integer('product_id').references(() => products.id), // For product-specific landing pages
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }), // For product-specific landing pages
 
   // Cached content
   htmlContent: text('html_content').notNull(), // Full rendered HTML

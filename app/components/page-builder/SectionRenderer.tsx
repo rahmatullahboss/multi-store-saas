@@ -27,21 +27,51 @@ import { HowToOrderPreview } from './sections/HowToOrderPreview';
 import { ShowcaseSectionPreview } from './sections/ShowcaseSectionPreview';
 import { CustomHtmlSectionPreview } from './sections/CustomHtmlSectionPreview';
 import { OrderButtonSectionPreview } from './sections/OrderButtonSectionPreview';
+import { HeaderSectionPreview } from './sections/HeaderSectionPreview';
+import { CountdownSectionPreview } from './sections/CountdownSectionPreview';
+import { StatsSectionPreview } from './sections/StatsSectionPreview';
+import { ContactSectionPreview } from './sections/ContactSectionPreview';
+import { FooterSectionPreview } from './sections/FooterSectionPreview';
 import { PlaceholderSection } from './sections/PlaceholderSection';
+
+// Product type for order form
+interface ProductData {
+  id: number;
+  title: string;
+  price: number;
+  compareAtPrice?: number | null;
+  images: string[];
+  description?: string | null;
+  variants?: Array<{
+    id: number;
+    name: string;
+    price: number;
+  }>;
+}
 
 interface SectionRendererProps {
   sections: BuilderSection[];
   activeSectionId?: string | null;
   onSelectSection?: (id: string) => void;
+  // For order submission on live pages
+  storeId?: number;
+  productId?: number;
+  product?: ProductData | null;
 }
 
 export function SectionRenderer({ 
   sections, 
   activeSectionId, 
-  onSelectSection 
+  onSelectSection,
+  storeId,
+  productId,
+  product,
 }: SectionRendererProps) {
   // Sort by sortOrder
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
+  
+  // Determine if we're in editor mode (onSelectSection is provided)
+  const isEditorMode = !!onSelectSection;
   
   return (
     <div className="min-h-full">
@@ -51,6 +81,10 @@ export function SectionRenderer({
           section={section}
           isActive={activeSectionId === section.id}
           onClick={() => onSelectSection?.(section.id)}
+          isEditorMode={isEditorMode}
+          storeId={storeId}
+          productId={productId}
+          product={product}
         />
       ))}
       
@@ -67,10 +101,19 @@ interface SectionWrapperProps {
   section: BuilderSection;
   isActive: boolean;
   onClick: () => void;
+  isEditorMode: boolean;
+  storeId?: number;
+  productId?: number;
+  product?: ProductData | null;
 }
 
-function SectionWrapper({ section, isActive, onClick }: SectionWrapperProps) {
+function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, productId, product }: SectionWrapperProps) {
   const meta = getSectionMeta(section.type);
+  
+  // Only apply editor styling when in editor mode
+  if (!isEditorMode) {
+    return <SectionContent section={section} storeId={storeId} productId={productId} product={product} />;
+  }
   
   return (
     <div
@@ -90,12 +133,19 @@ function SectionWrapper({ section, isActive, onClick }: SectionWrapperProps) {
       </div>
       
       {/* Actual section content */}
-      <SectionContent section={section} />
+      <SectionContent section={section} storeId={storeId} productId={productId} product={product} />
     </div>
   );
 }
 
-function SectionContent({ section }: { section: BuilderSection }) {
+interface SectionContentProps {
+  section: BuilderSection;
+  storeId?: number;
+  productId?: number;
+  product?: ProductData | null;
+}
+
+function SectionContent({ section, storeId, productId, product }: SectionContentProps) {
   const { type, props } = section;
   
   switch (type) {
@@ -110,7 +160,7 @@ function SectionContent({ section }: { section: BuilderSection }) {
     case 'trust-badges':
       return <TrustBadgesSectionPreview props={props} />;
     case 'cta':
-      return <CTASectionPreview props={props} />;
+      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} />;
     case 'video':
       return <VideoSectionPreview props={props} />;
     case 'guarantee':
@@ -135,6 +185,16 @@ function SectionContent({ section }: { section: BuilderSection }) {
       return <CustomHtmlSectionPreview {...props as any} />;
     case 'order-button':
       return <OrderButtonSectionPreview props={props} />;
+    case 'header':
+      return <HeaderSectionPreview props={props} />;
+    case 'countdown':
+      return <CountdownSectionPreview props={props} />;
+    case 'stats':
+      return <StatsSectionPreview props={props} />;
+    case 'contact':
+      return <ContactSectionPreview props={props} />;
+    case 'footer':
+      return <FooterSectionPreview props={props} />;
     default:
       return <PlaceholderSection type={type} />;
   }

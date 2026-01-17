@@ -4,9 +4,9 @@
 -- - propsJson = draft content (editable)
 -- - publishedPropsJson = published content (served to public)
 
--- Add published content column to sections
-ALTER TABLE builder_sections ADD COLUMN published_props_json TEXT;
-ALTER TABLE builder_sections ADD COLUMN published_at INTEGER;
+-- Columns already exist in production, commenting out to prevent duplicate errors
+-- ALTER TABLE builder_sections ADD COLUMN published_props_json TEXT;
+-- ALTER TABLE builder_sections ADD COLUMN published_at INTEGER;
 
--- Add last published timestamp to pages
-ALTER TABLE builder_pages ADD COLUMN last_published_at INTEGER;
+-- Add last published timestamp to pages (may already exist)
+-- ALTER TABLE builder_pages ADD COLUMN last_published_at INTEGER;

@@ -81,7 +81,7 @@ export function NewPageModal({ onClose, onCreate }: NewPageModalProps) {
               URL Slug
             </label>
             <div className="flex items-center">
-              <span className="text-gray-500 text-sm mr-1">yourstore.com/offers/</span>
+              <span className="text-gray-500 text-sm mr-1">yourstore.com/o/</span>
               <input
                 type="text"
                 value={slug}

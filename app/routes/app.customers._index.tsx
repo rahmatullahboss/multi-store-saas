@@ -125,8 +125,8 @@ export default function CustomersListPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <PageHeader
-          title={t('navCustomers')}
-          description="Manage your customer base and view their history"
+          title={t('customersTitle')}
+          description={t('customersDescription')}
         />
         {/* Placeholder for Add Customer (Manual) - MVP P1 */}
         {/* <button className="btn-primary flex items-center gap-2">
@@ -142,7 +142,7 @@ export default function CustomersListPage() {
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Total Customers</p>
+            <p className="text-sm font-medium text-gray-500">{t('totalCustomers')}</p>
             <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function CustomersListPage() {
             <UserPlus className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">New (30 Days)</p>
+            <p className="text-sm font-medium text-gray-500">{t('newCustomers30Days')}</p>
             <p className="text-2xl font-bold text-gray-900">{stats.newThisMonth}</p>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function CustomersListPage() {
             <ShoppingBag className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Returning Customers</p>
+            <p className="text-sm font-medium text-gray-500">{t('returningCustomers')}</p>
             <p className="text-2xl font-bold text-gray-900">{stats.returning}</p>
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function CustomersListPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder={t('search')}
+              placeholder={t('searchCustomers')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -186,24 +186,24 @@ export default function CustomersListPage() {
         {allCustomers.length === 0 ? (
           <EmptyState
             icon={<Users className="w-10 h-10" />}
-            title="No customers yet"
-            description="Customers will appear here once you receive your first order."
+            title={t('noCustomersTitle')}
+            description={t('noCustomersDescription')}
           />
         ) : filteredCustomers.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
-            No customers match your search.
+            {t('noCustomersMatchSearch')}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3">Customer</th>
-                  <th className="px-6 py-3">Contact</th>
-                  <th className="px-6 py-3">Orders</th>
-                  <th className="px-6 py-3">Total Spent</th>
-                  <th className="px-6 py-3">Last Active</th>
-                  <th className="px-6 py-3 text-right">Action</th>
+                  <th className="px-6 py-3">{t('customerLabel')}</th>
+                  <th className="px-6 py-3">{t('contactLabel')}</th>
+                  <th className="px-6 py-3">{t('customerOrdersLabel')}</th>
+                  <th className="px-6 py-3">{t('totalSpentLabel')}</th>
+                  <th className="px-6 py-3">{t('lastActiveLabel')}</th>
+                  <th className="px-6 py-3 text-right">{t('customerActionLabel')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -215,7 +215,7 @@ export default function CustomersListPage() {
                           {(customer.name || customer.email || '?').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{customer.name || 'Guest'}</p>
+                          <p className="font-medium text-gray-900">{customer.name || t('guestLabel')}</p>
                           {customer.segment && (
                             <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 uppercase tracking-wide">
                               {customer.segment.replace('_', ' ')}
@@ -241,7 +241,7 @@ export default function CustomersListPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-gray-600">
-                      {customer.totalOrders || 0} orders
+                      {t('ordersCount', { count: customer.totalOrders || 0 })}
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900">
                       {formatPrice(customer.totalSpent || 0)}

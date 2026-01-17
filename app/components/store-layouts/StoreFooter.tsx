@@ -124,7 +124,7 @@ export function StoreFooter({
         {/* Bottom Bar */}
         <div className={`mt-12 pt-8 border-t ${borderColor}`}>
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className={`text-sm ${mutedColor}`}>
+            <p className={`text-sm ${mutedColor}`} suppressHydrationWarning>
               © {new Date().getFullYear()} {storeName}. All rights reserved.
             </p>
             <div className="flex gap-6">
@@ -140,20 +140,19 @@ export function StoreFooter({
             </div>
           </div>
           
-          {/* Viral Loop / Branding */}
-          {(planType === 'free' || showPoweredBy) && (
-            <div className={`mt-6 pt-4 border-t ${borderColor} flex justify-center items-center`}>
-              <a 
-                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className={`text-xs ${mutedColor} hover:text-indigo-500 transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0`}
-              >
-                <span>Powered by</span>
-                <span className="font-bold tracking-tight text-sm">Ozzyl</span>
-              </a>
-            </div>
-          )}
+          {/* Powered by Ozzyl - Always visible (non-removable) */}
+          <div className={`mt-6 pt-4 border-t ${borderColor} flex justify-center items-center`}>
+            <a 
+              href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={`text-xs ${mutedColor} hover:text-indigo-500 transition-colors flex items-center gap-1.5`}
+            >
+              <span>Powered by</span>
+              <span className="font-bold tracking-tight text-sm">Ozzyl</span>
+              <span className="hidden sm:inline">• বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম</span>
+            </a>
+          </div>
         </div>
       </div>
     </footer>

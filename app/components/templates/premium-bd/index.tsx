@@ -58,7 +58,7 @@ export function PremiumBDTemplate({
             {config.orderFormText?.footerTagline || 'অরিজিনাল এবং প্রিমিয়াম প্রডাক্টের নির্ভরযোগ্য প্রতিষ্ঠান। প্রতিটি ডেলিভারি আমাদের জন্য বিশেষ।'}
           </p>
           
-          <div className="text-gray-600 text-xs font-black uppercase tracking-[0.3em] mb-12">
+          <div className="text-gray-600 text-xs font-black uppercase tracking-[0.3em] mb-12" suppressHydrationWarning>
             {config.orderFormText?.footerCopyright ? (
               <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
             ) : (

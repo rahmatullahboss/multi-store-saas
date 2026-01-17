@@ -67,6 +67,18 @@ interface BuilderLayoutProps {
     slug: string;
     title: string | null;
     status: 'draft' | 'published';
+    // Floating button settings
+    whatsappEnabled?: number | null;
+    whatsappNumber?: string | null;
+    whatsappMessage?: string | null;
+    callEnabled?: number | null;
+    callNumber?: string | null;
+    // Order button settings
+    orderEnabled?: number | null;
+    orderText?: string | null;
+    orderBgColor?: string | null;
+    orderTextColor?: string | null;
+    buttonPosition?: string | null;
   } | null;
   sections: BuilderSection[];
   activeSectionId: string | null;
@@ -91,6 +103,8 @@ interface BuilderLayoutProps {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  // Settings save
+  onSaveSettings?: (settings: Record<string, unknown>) => void;
 }
 
 export function BuilderLayout({
@@ -117,6 +131,7 @@ export function BuilderLayout({
   onRedo,
   canUndo = false,
   canRedo = false,
+  onSaveSettings,
 }: BuilderLayoutProps) {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -129,6 +144,27 @@ export function BuilderLayout({
       iframeRef.current.contentWindow.postMessage({ 
         type: 'BUILDER_UPDATE',
         sections: enabledSections 
+      }, '*');
+    }
+  }, []);
+  
+  // Notify preview iframe about product selection for real-time preview
+  const notifyProductUpdate = useCallback((productData: Product | null) => {
+    if (iframeRef.current?.contentWindow) {
+      const normalizedProduct = productData ? {
+        id: productData.id,
+        title: productData.name,
+        price: productData.price,
+        images: productData.imageUrl ? [productData.imageUrl] : [],
+        variants: productData.bundlePricing?.map((tier, idx) => ({
+          id: idx + 1,
+          name: tier.label,
+          price: tier.price,
+        })) || [],
+      } : null;
+      iframeRef.current.contentWindow.postMessage({ 
+        type: 'PRODUCT_UPDATE',
+        product: normalizedProduct 
       }, '*');
     }
   }, []);
@@ -150,18 +186,20 @@ export function BuilderLayout({
     ? sections.find(s => s.id === pendingDeleteId) 
     : null;
   
-  // Floating button settings state
+  // Floating button settings state - initialize from page data
   const [showFloatingSettings, setShowFloatingSettings] = useState(false);
-  const [floatingSettings, setFloatingSettings] = useState({
-    whatsappEnabled: true,
-    whatsappNumber: '',
-    whatsappMessage: 'হ্যালো! আমি অর্ডার করতে চাই।',
-    callEnabled: true,
-    callNumber: '',
-    orderEnabled: true,
-    orderText: 'অর্ডার করুন',
-    position: 'bottom-right' as const,
-  });
+  const [floatingSettings, setFloatingSettings] = useState(() => ({
+    whatsappEnabled: page?.whatsappEnabled === 1,
+    whatsappNumber: page?.whatsappNumber || '',
+    whatsappMessage: page?.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।',
+    callEnabled: page?.callEnabled === 1,
+    callNumber: page?.callNumber || '',
+    orderEnabled: page?.orderEnabled === 1 || page?.orderEnabled === undefined,
+    orderText: page?.orderText || 'অর্ডার করুন',
+    orderBgColor: page?.orderBgColor || '#6366F1',
+    orderTextColor: page?.orderTextColor || '#FFFFFF',
+    position: (page?.buttonPosition || 'bottom-right') as 'bottom-right' | 'bottom-left' | 'bottom-center',
+  }));
   
   // DnD sensors
   const sensors = useSensors(
@@ -230,7 +268,7 @@ export function BuilderLayout({
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <Link 
-              to="/app/campaigns" 
+              to="/app/new-builder" 
               className="text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm"
             >
               <ArrowLeft size={16} />
@@ -333,6 +371,7 @@ export function BuilderLayout({
               }
               onClose={() => onSelectSection(null)}
               products={products}
+              onProductChange={notifyProductUpdate}
             />
           </div>
         )}
@@ -517,6 +556,19 @@ export function BuilderLayout({
               settings: newSettings,
             }, '*');
           }
+          // Persist to database - include all settings
+          onSaveSettings?.({
+            whatsappEnabled: newSettings.whatsappEnabled,
+            whatsappNumber: newSettings.whatsappNumber,
+            whatsappMessage: newSettings.whatsappMessage,
+            callEnabled: newSettings.callEnabled,
+            callNumber: newSettings.callNumber,
+            orderEnabled: newSettings.orderEnabled,
+            orderText: newSettings.orderText,
+            orderBgColor: newSettings.orderBgColor,
+            orderTextColor: newSettings.orderTextColor,
+            buttonPosition: newSettings.position,
+          });
         }}
       />
     </div>

@@ -25,10 +25,12 @@ import { useState, useEffect, useRef } from 'react';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
+import { RovoProductDetail } from '~/components/store-layouts/RovoProductDetail';
 import { BDShopProductDetail } from '~/components/store-layouts/BDShopProductDetail';
 import { GhorerBazarProductDetail } from '~/components/store-layouts/GhorerBazarProductDetail';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
+import { getCustomer } from '~/services/customer-auth.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
@@ -94,6 +96,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
   const socialLinks = storeConfig.socialLinks ? storeConfig.socialLinks : parseSocialLinks(store.socialLinks as string | null);
+  
+  // Load customer session for Google Sign-In header
+  const customer = await getCustomer(request, context.cloudflare.env, db);
   
   // Fetch product with store_id filter for security
   const result = await db
@@ -199,6 +204,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     categories,
     relatedProducts,
     planType: store?.planType || 'free',
+    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
   });
 }
 
@@ -395,7 +401,7 @@ function ReviewList({ reviews, isDark = false }: { reviews: Array<{
                 <StarRating rating={review.rating} size="sm" isDark={isDark} />
               </div>
             </div>
-            <span className={`text-sm ${textMuted}`}>
+            <span className={`text-sm ${textMuted}`} suppressHydrationWarning>
               {review.createdAt 
                 ? new Date(review.createdAt).toLocaleDateString() 
                 : ''}
@@ -432,7 +438,8 @@ export default function ProductDetail() {
     themeConfig,
     footerConfig,
     categories,
-    planType
+    planType,
+    customer
   } = useLoaderData<typeof loader>();
   
   const hasTracked = useRef(false);
@@ -440,6 +447,24 @@ export default function ProductDetail() {
   const isDaraz = storeTemplateId === 'daraz';
   const isBDShop = storeTemplateId === 'bdshop';
   const isGhorerBazar = storeTemplateId === 'ghorer-bazar';
+  const isRovo = storeTemplateId === 'rovo';
+  
+  // =========== Rovo Theme Product Detail ===========
+  if (isRovo) {
+    return (
+      <RovoProductDetail 
+        product={product}
+        relatedProducts={relatedProducts}
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        categories={categories}
+      />
+    );
+  }
   
   // Template-aware styling
   const cardBg = isDaraz 
@@ -500,7 +525,7 @@ export default function ProductDetail() {
           <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm overflow-x-auto">
             <Link to="/" className={`${textMuted} hover:text-orange-500 transition shrink-0`}>Home</Link>
             <ChevronRight className={`w-3 h-3 md:w-4 md:h-4 ${textMuted} shrink-0`} />
-            <Link to="/" className={`${textMuted} hover:text-orange-500 transition shrink-0`}>Products</Link>
+            <Link to="/products" className={`${textMuted} hover:text-orange-500 transition shrink-0`}>Products</Link>
             <ChevronRight className={`w-3 h-3 md:w-4 md:h-4 ${textMuted} shrink-0`} />
             <span className={`${textPrimary} truncate`}>{product.title}</span>
           </div>
@@ -716,6 +741,7 @@ export default function ProductDetail() {
       config={themeConfig}
       footerConfig={footerConfig}
       planType={planType}
+      customer={customer}
     >
       {content}
     </StorePageWrapper>

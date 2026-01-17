@@ -388,7 +388,7 @@ export function TemplateGallery({
                 </label>
                 <div className="flex items-center">
                   <span className="px-4 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-xl text-gray-500 text-sm">
-                    /offers/
+                    /o/
                   </span>
                   <input
                     type="text"

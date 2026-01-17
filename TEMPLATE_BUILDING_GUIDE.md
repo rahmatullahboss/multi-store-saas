@@ -60,7 +60,36 @@ graph TD
 
 ## **Phase 2: Hydration & SSR Safety (Crucial)**
 
-Templates rely on client-side storage for Cart and Wishlist. To prevent **Hydration Mismatches**, you **MUST** use the `ClientOnly` wrapper.
+Templates rely on client-side storage for Cart and Wishlist. To prevent **Hydration Mismatches** (React errors #418 and #426), follow these rules:
+
+### **2.1 Dynamic Content That Causes Mismatches**
+
+The following cause hydration errors because server and client render different values:
+
+| Cause              | Problem                    | Solution                                      |
+| ------------------ | -------------------------- | --------------------------------------------- |
+| `new Date()`       | Server/client time differs | Add `suppressHydrationWarning` to the element |
+| `Math.random()`    | Random values differ       | Use stable IDs from data                      |
+| `localStorage`     | Not available on server    | Use `ClientOnly` wrapper                      |
+| Browser extensions | Inject extra elements      | Unavoidable, ignore in incognito              |
+
+### **2.2 Copyright Year Example (CORRECT)**
+
+```tsx
+// ✅ CORRECT: Add suppressHydrationWarning for date-based content
+<p className="text-sm text-gray-500" suppressHydrationWarning>
+  © {new Date().getFullYear()} {storeName}. All rights reserved.
+</p>
+
+// ❌ WRONG: No suppressHydrationWarning will cause React error #418
+<p className="text-sm text-gray-500">
+  © {new Date().getFullYear()} {storeName}. All rights reserved.
+</p>
+```
+
+### **2.3 ClientOnly Wrapper for Browser-Only APIs**
+
+Use `ClientOnly` for components that rely on browser-only APIs like `localStorage`, `window`, etc:
 
 ```tsx
 import { ClientOnly } from "remix-utils/client-only";
@@ -71,6 +100,22 @@ export function TemplateWrapper({ config, children }: any) {
     <ClientOnly fallback={<SkeletonLoader />}>{() => children}</ClientOnly>
   );
 }
+```
+
+> [!CAUTION] > **DO NOT** wrap SSR-safe components (Header, Footer) in `ClientOnly`. This causes React error #426 on hard reload. Only use `ClientOnly` for truly client-only content like cart state or localStorage.
+
+### **2.4 ClientDate Component for Formatted Dates**
+
+For formatted dates (toLocaleDateString, etc.), use the existing `ClientDate` component:
+
+```tsx
+import { ClientDate } from '~/components/ui/ClientDate';
+
+// ✅ CORRECT: Use ClientDate for formatted dates
+<ClientDate date={order.createdAt} format={{ month: 'short', day: 'numeric' }} />
+
+// ❌ WRONG: Direct formatting will cause hydration mismatch
+<span>{new Date(order.createdAt).toLocaleDateString()}</span>
 ```
 
 ---

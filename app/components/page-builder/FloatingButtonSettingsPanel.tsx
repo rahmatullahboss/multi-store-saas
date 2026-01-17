@@ -5,7 +5,7 @@
  * for the page builder.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, MessageCircle, Phone, ShoppingCart, MapPin } from 'lucide-react';
 
 interface FloatingButtonSettings {
@@ -35,6 +35,13 @@ export function FloatingButtonSettingsPanel({
   onSave,
 }: FloatingButtonSettingsPanelProps) {
   const [localSettings, setLocalSettings] = useState<FloatingButtonSettings>(settings);
+
+  // Sync local state with settings prop when modal opens or settings change
+  useEffect(() => {
+    if (isOpen) {
+      setLocalSettings(settings);
+    }
+  }, [isOpen, settings]);
 
   if (!isOpen) return null;
 

@@ -257,10 +257,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
          ...clientContext
        });
 
-       // Increment usage
-       // Only increment KV if we are in Daily/Trial mode
-       // Deduct credits
-       await deductCredits(db, user.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
+       // Deduct credits BEFORE sending the response
+        const deductResult = await deductCredits(db, user.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'AI Chat Message');
+
+        if (!deductResult.success) {
+          console.error('[AI Chat] Credit deduction failed:', deductResult.error);
+          return json(
+            { 
+              error: deductResult.error || 'Failed to deduct credits',
+              code: 'CREDIT_DEDUCTION_FAILED'
+            }, 
+            { status: 402 }
+          );
+        }
     }
 
     // 4. Save Assistant Response

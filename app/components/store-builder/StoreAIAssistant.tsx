@@ -98,7 +98,7 @@ export function StoreAIAssistant({
   onApplyConfig, 
   onApplyCommand,
   storeContext,
-  aiCredits = 0
+  aiCredits: initialCredits = 0
 }: StoreAIAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     { 
@@ -110,6 +110,7 @@ export function StoreAIAssistant({
   const [pendingCommand, setPendingCommand] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'chat' | 'help'>('chat');
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [credits, setCredits] = useState(initialCredits); // Track credits locally
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -122,6 +123,11 @@ export function StoreAIAssistant({
     themeFetcher.state === 'submitting' ||
     themeFetcher.state === 'loading';
 
+  // Update credits when prop changes (e.g., after page reload)
+  useEffect(() => {
+    setCredits(initialCredits);
+  }, [initialCredits]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -129,6 +135,11 @@ export function StoreAIAssistant({
   useEffect(() => {
     if (commandFetcher.data?.success && commandFetcher.data?.data) {
       const command = commandFetcher.data.data;
+      
+      // Update credits from API response
+      if (typeof commandFetcher.data.newBalance === 'number') {
+        setCredits(commandFetcher.data.newBalance);
+      }
       
       if (command.confidence < 0.7 || command.requiresConfirmation) {
         setPendingCommand(command);
@@ -157,6 +168,12 @@ export function StoreAIAssistant({
   useEffect(() => {
     if (themeFetcher.data?.success && themeFetcher.data?.data) {
       const config = themeFetcher.data.data;
+      
+      // Update credits from API response
+      if (typeof themeFetcher.data.newBalance === 'number') {
+        setCredits(themeFetcher.data.newBalance);
+      }
+      
       onApplyConfig(config);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
@@ -288,7 +305,7 @@ export function StoreAIAssistant({
                   <h2 className="font-semibold text-lg leading-none">AI ডিজাইনার</h2>
                   <Link to="/app/credits" className="text-xs text-violet-200 hover:text-white flex items-center gap-1 mt-1">
                     <Coins className="w-3 h-3" />
-                    {aiCredits} ক্রেডিটস
+                    {credits} ক্রেডিটস
                   </Link>
                 </div>
               </div>

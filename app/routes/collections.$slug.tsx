@@ -17,6 +17,7 @@ import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { getCustomer } from '~/services/customer-auth.server';
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { slug } = params;
@@ -54,6 +55,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       businessInfo = JSON.parse(storeData.businessInfo as string);
     }
   } catch {}
+
+  // Load customer session for Google Sign-In header
+  const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
   // Fetch products in this collection (category)
   let collectionProducts = [];
@@ -108,6 +112,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     collection,
     products: collectionProducts,
     planType: storeData?.planType || 'free',
+    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
   });
 }
 
@@ -124,7 +129,8 @@ export default function CollectionPage() {
     themeConfig,
     collection,
     products,
-    planType
+    planType,
+    customer
   } = useLoaderData<typeof loader>();
 
   const isDaraz = storeTemplateId === 'daraz';
@@ -207,6 +213,7 @@ export default function CollectionPage() {
       socialLinks={socialLinks}
       businessInfo={businessInfo}
       planType={planType}
+      customer={customer}
     >
         {content}
     </StorePageWrapper>

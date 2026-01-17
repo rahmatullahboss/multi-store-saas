@@ -6,7 +6,8 @@ import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/
 
 interface GalleryProps extends SectionStyleProps {
   title?: string;
-  images?: Array<{ url: string; caption?: string }>;
+  // Images can be either string[] (from schema) or {url, caption}[] (legacy)
+  images?: string[] | Array<{ url: string; caption?: string }>;
 }
 
 export function GallerySectionPreview({ props }: { props: Record<string, unknown> }) {
@@ -25,6 +26,18 @@ export function GallerySectionPreview({ props }: { props: Record<string, unknown
   const headingStyle = getHeadingStyle({ headingColor, textColor });
   
   const finalHeadingColor = headingColor || textColor || '#111827';
+  
+  // Normalize images to always get the URL string
+  const normalizeImageUrl = (img: string | { url: string; caption?: string }): string => {
+    if (typeof img === 'string') return img;
+    return img.url || '';
+  };
+  
+  // Filter out empty images
+  const validImages = images.filter((img) => {
+    const url = normalizeImageUrl(img);
+    return url && url.length > 0;
+  });
   
   return (
     <section 
@@ -47,23 +60,22 @@ export function GallerySectionPreview({ props }: { props: Record<string, unknown
           </h2>
         )}
         
-        {images.length > 0 ? (
+        {validImages.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {images.map((img, i) => (
-              <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-                {img.url ? (
+            {validImages.map((img, i) => {
+              const url = normalizeImageUrl(img);
+              const caption = typeof img === 'object' ? img.caption : undefined;
+              
+              return (
+                <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
                   <img 
-                    src={img.url} 
-                    alt={img.caption || `Image ${i + 1}`}
+                    src={url} 
+                    alt={caption || `Image ${i + 1}`}
                     className="w-full h-full object-cover hover:scale-105 transition-transform"
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    No Image
-                  </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -78,3 +90,4 @@ export function GallerySectionPreview({ props }: { props: Record<string, unknown
     </section>
   );
 }
+

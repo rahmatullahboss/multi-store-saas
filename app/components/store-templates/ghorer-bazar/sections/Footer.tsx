@@ -62,7 +62,7 @@ export function GhorerBazarFooter({ storeName, logo, socialLinks, footerConfig, 
       <div className="text-white py-4" style={{ backgroundColor: primary }}>
         <div className="max-w-7xl mx-auto px-4 flex flex-col items-center gap-4">
           <div className="w-full flex justify-between text-sm">
-            <p>© {new Date().getFullYear()} {storeName}.</p>
+            <p suppressHydrationWarning>© {new Date().getFullYear()} {storeName}.</p>
             <div className="flex gap-4">
                {socialLinks?.facebook && <a href={socialLinks.facebook} className="hover:opacity-80 transition-opacity"><Facebook size={18}/></a>}
             </div>

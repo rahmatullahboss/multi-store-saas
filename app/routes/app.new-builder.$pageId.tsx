@@ -14,7 +14,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { requireAuth } from '~/lib/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { products } from '@db/schema';
+import { products, productVariants } from '@db/schema';
 import {
   getPageWithSections,
   listSections,
@@ -29,10 +29,20 @@ import {
   createPage,
   initializePageWithDefaults,
 } from '~/lib/page-builder/actions.server';
+import { invalidatePageCache } from '~/lib/page-builder/cache.server';
 import { isValidSectionType, getSectionMeta, AVAILABLE_SECTIONS } from '~/lib/page-builder/registry';
 import type { BuilderSection, SectionType } from '~/lib/page-builder/types';
 import { BuilderLayout } from '~/components/page-builder/BuilderLayout';
 import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
+
+// Action response type
+interface ActionData {
+  success: boolean;
+  error?: string;
+  pageId?: string;
+  section?: BuilderSection;
+  newVersion?: number;
+}
 
 // ============================================================================
 // LOADER
@@ -92,6 +102,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         businessInfo: store.businessInfo,
       },
       products: storeProducts,
+      product: null,
       isNew: true,
     });
   }
@@ -100,6 +111,47 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   
   if (!page) {
     throw new Response('Page not found', { status: 404 });
+  }
+  
+  // Fetch selected product details if productId is set
+  let selectedProduct: {
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    images: string[];
+    variants?: Array<{ id: number; name: string; price: number }>;
+  } | null = null;
+  
+  if (page.productId) {
+    const [productRow] = await odb.select().from(products).where(eq(products.id, page.productId)).limit(1);
+    if (productRow) {
+      // Fetch variants
+      const variantRows = await odb.select().from(productVariants).where(eq(productVariants.productId, page.productId));
+      
+      // Parse images
+      let parsedImages: string[] = [];
+      try {
+        if (productRow.images) {
+          parsedImages = typeof productRow.images === 'string' 
+            ? JSON.parse(productRow.images) 
+            : Array.isArray(productRow.images) ? productRow.images : [];
+        }
+      } catch { parsedImages = []; }
+      
+      selectedProduct = {
+        id: productRow.id,
+        title: productRow.title,
+        price: productRow.price,
+        compareAtPrice: productRow.compareAtPrice,
+        images: parsedImages,
+        variants: variantRows.map(v => ({
+          id: v.id,
+          name: [v.option1Value, v.option2Value, v.option3Value].filter(Boolean).join(' / ') || `Variant ${v.id}`,
+          price: v.price ?? productRow.price,
+        })),
+      };
+    }
   }
   
   return json({
@@ -120,6 +172,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       businessInfo: store.businessInfo,
     },
     products: storeProducts,
+    product: selectedProduct,
     isNew: false,
   });
 }
@@ -259,12 +312,44 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         const title = formData.get('title') as string;
         const seoTitle = formData.get('seoTitle') as string;
         const seoDescription = formData.get('seoDescription') as string;
+        // Floating button settings - WhatsApp & Call
+        const whatsappEnabled = formData.get('whatsappEnabled');
+        const whatsappNumber = formData.get('whatsappNumber') as string;
+        const whatsappMessage = formData.get('whatsappMessage') as string;
+        const callEnabled = formData.get('callEnabled');
+        const callNumber = formData.get('callNumber') as string;
+        // Order button settings
+        const orderEnabled = formData.get('orderEnabled');
+        const orderText = formData.get('orderText') as string;
+        const orderBgColor = formData.get('orderBgColor') as string;
+        const orderTextColor = formData.get('orderTextColor') as string;
+        const buttonPosition = formData.get('buttonPosition') as 'bottom-right' | 'bottom-left' | 'bottom-center';
+        // Product
+        const productId = formData.get('productId');
         
         await updatePageSettings(db, pageId, store.id, {
           title: title || undefined,
           seoTitle: seoTitle || undefined,
           seoDescription: seoDescription || undefined,
+          whatsappEnabled: whatsappEnabled !== null ? whatsappEnabled === 'true' : undefined,
+          whatsappNumber: whatsappNumber || undefined,
+          whatsappMessage: whatsappMessage || undefined,
+          callEnabled: callEnabled !== null ? callEnabled === 'true' : undefined,
+          callNumber: callNumber || undefined,
+          orderEnabled: orderEnabled !== null ? orderEnabled === 'true' : undefined,
+          orderText: orderText || undefined,
+          orderBgColor: orderBgColor || undefined,
+          orderTextColor: orderTextColor || undefined,
+          buttonPosition: buttonPosition || undefined,
+          productId: productId ? Number(productId) : undefined,
         });
+        
+        // CACHE INVALIDATION: Clear cached page when settings change
+        const kv = (context.cloudflare.env as any).STORE_CACHE as KVNamespace | undefined;
+        const updatedPage = await getPageWithSections(db, pageId, store.id);
+        if (updatedPage && kv) {
+          await invalidatePageCache(kv, store.id, updatedPage.slug);
+        }
         
         return json({ success: true });
       }
@@ -273,6 +358,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       case 'publish': {
         const pageId = params.pageId as string;
         await publishPage(db, pageId, store.id);
+        
+        // CACHE INVALIDATION: Clear cached page when published (new content)
+        const kv = (context.cloudflare.env as any).STORE_CACHE as KVNamespace | undefined;
+        const publishedPage = await getPageWithSections(db, pageId, store.id);
+        if (publishedPage && kv) {
+          await invalidatePageCache(kv, store.id, publishedPage.slug);
+        }
+        
         return json({ success: true });
       }
       
@@ -292,8 +385,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function NewBuilderPage() {
-  const { page, sections: initialSections, store, products, isNew } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const { page, sections: initialSections, store, products, product, isNew } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher<ActionData>();
   const navigate = useNavigate();
   
   // Undo/redo history for sections
@@ -445,6 +538,29 @@ export default function NewBuilderPage() {
     );
   }, [fetcher]);
   
+  // Handle save settings (floating buttons, etc.)
+  const handleSaveSettings = useCallback((settings: Record<string, unknown>) => {
+    fetcher.submit(
+      { 
+        intent: 'update-settings',
+        // WhatsApp settings
+        whatsappEnabled: String(settings.whatsappEnabled),
+        whatsappNumber: settings.whatsappNumber as string || '',
+        whatsappMessage: settings.whatsappMessage as string || '',
+        // Call settings
+        callEnabled: String(settings.callEnabled),
+        callNumber: settings.callNumber as string || '',
+        // Order button settings
+        orderEnabled: String(settings.orderEnabled),
+        orderText: settings.orderText as string || '',
+        orderBgColor: settings.orderBgColor as string || '',
+        orderTextColor: settings.orderTextColor as string || '',
+        buttonPosition: settings.buttonPosition as string || '',
+      },
+      { method: 'post' }
+    );
+  }, [fetcher]);
+  
   // Redirect after page creation
   if (fetcher.data?.success && fetcher.data?.pageId && isNew) {
     navigate(`/app/new-builder/${fetcher.data.pageId}`, { replace: true });
@@ -483,6 +599,7 @@ export default function NewBuilderPage() {
       onRedo={redo}
       canUndo={canUndo}
       canRedo={canRedo}
+      onSaveSettings={handleSaveSettings}
     />
   );
 }

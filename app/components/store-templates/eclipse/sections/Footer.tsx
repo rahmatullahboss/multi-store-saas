@@ -69,7 +69,7 @@ export function EclipseFooter({ storeName, logo, socialLinks, footerConfig, busi
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-white/30">
-          <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
+          <p suppressHydrationWarning>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
 
           {/* Viral Loop / Branding */}
           {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (

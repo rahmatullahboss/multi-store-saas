@@ -18,6 +18,7 @@ import { Store, ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
+import { accountInfoSchema, storeInfoSchema, bdPhoneSchema, emailSchema } from '~/lib/validations/auth';
 import { getUserId, register, createUserSession } from '~/services/auth.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
@@ -230,12 +231,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Check if email already exists
   if (step === 'check_email') {
     const email = formData.get('email') as string;
+    const phone = formData.get('phone') as string;
 
-    if (!email || !email.includes('@')) {
+    // Validate email with Zod
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
       return json({ error: t('validEmailRequired'), field: 'email' }, { status: 400 });
     }
 
+    // Validate phone with Zod
+    const phoneResult = bdPhoneSchema.safeParse(phone);
+    if (!phoneResult.success) {
+      return json({ error: t('validMobileRequired'), field: 'phone' }, { status: 400 });
+    }
+
     const db = drizzle(env.DB);
+    
+    // Check if email already exists
     const existingUser = await db
       .select({ id: users.id })
       .from(users)
@@ -247,6 +259,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
         error: t('emailAlreadyRegistered'),
         field: 'email',
         emailExists: true
+      }, { status: 400 });
+    }
+
+    // Check if phone already exists
+    const existingPhone = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.phone, phone))
+      .limit(1);
+
+    if (existingPhone.length > 0) {
+      return json({
+        error: t('phoneAlreadyRegistered'),
+        field: 'phone',
+        phoneExists: true
       }, { status: 400 });
     }
 
@@ -419,7 +446,7 @@ export default function OnboardingPage() {
   const [storeCreationFailed, setStoreCreationFailed] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
-  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean }>();
+  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; phoneExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean }>();
 
   const { t, lang: language } = useTranslation();
 
@@ -445,6 +472,8 @@ export default function OnboardingPage() {
       setIsCheckingSubdomain(false);
       if (fetcher.data.emailExists) {
         setErrors({ email: fetcher.data.error });
+      } else if (fetcher.data.phoneExists) {
+        setErrors({ phone: fetcher.data.error });
       } else if (fetcher.data.subdomainTaken) {
         setErrors({ subdomain: fetcher.data.error });
       } else {
@@ -511,12 +540,13 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Check if email exists
+      // Check if email and phone exist
       setIsCheckingEmail(true);
       setErrors({});
       const checkData = new FormData();
       checkData.append('step', 'check_email');
       checkData.append('email', formData.email);
+      checkData.append('phone', formData.phone);
       fetcher.submit(checkData, { method: 'POST' });
       return;
     }

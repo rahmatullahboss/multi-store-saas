@@ -109,7 +109,7 @@ export const onboarding = {
   passwordRequired: 'Password is required',
   
   // Plan Features
-  feature1Product: '1 Product',
+  feature1Product: '5 Products',
   feature50Orders: '50 Orders/Month',
   featureLandingPageMode: 'Landing Page Mode',
   featureBasicSupport: 'Basic Support',

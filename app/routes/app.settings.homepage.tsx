@@ -138,7 +138,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const planType = (store.planType as PlanType) || 'free';
     if (!canUseStoreMode(planType)) {
       return json({ 
-        error: 'Full Store mode requires a paid plan. Please upgrade.' 
+        errorKey: 'upgradeRequiredStoreMode' 
       }, { status: 403 });
     }
   }
@@ -182,9 +182,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     newMode,
     savedConfigId,
     featuredProductId: store.featuredProductId,
-    message: newMode === 'store' && savedConfigId 
-      ? 'Your landing page has been saved as a campaign!' 
-      : 'Homepage strategy updated successfully.'
+    messageKey: newMode === 'store' && savedConfigId 
+      ? 'landingSavedAsCampaign' 
+      : 'homepageStrategyUpdated'
   });
 }
 
@@ -258,7 +258,7 @@ export default function HomepageStrategyPage() {
       {actionData && 'success' in actionData && actionData.success && !actionData.savedConfigId && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {actionData.message}
+          {actionData.messageKey ? t(actionData.messageKey) : (actionData as any).message}
         </div>
       )}
 
@@ -266,6 +266,11 @@ export default function HomepageStrategyPage() {
       {actionData && 'error' in actionData && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
           {actionData.error}
+        </div>
+      )}
+      {actionData && 'errorKey' in actionData && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+          {t(actionData.errorKey as string)}
         </div>
       )}
 

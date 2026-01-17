@@ -1,1 +1,1 @@
-DROP TABLE `landing_templates`;
+DROP TABLE IF EXISTS `landing_templates`;

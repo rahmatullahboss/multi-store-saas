@@ -25,26 +25,26 @@ export function FirstSaleChecklist({ productCount, storeUrl, className = '' }: F
   const steps = [
     {
       id: 'product',
-      title: 'Add your first product',
-      description: 'Start by adding a product to sell.',
+      title: t('firstProductTitle'),
+      description: t('firstProductDesc'),
       icon: Package,
       isCompleted: productCount > 0,
       action: {
-        label: 'Add Product',
+        label: t('addProduct'),
         url: '/app/products/new',
         primary: true,
       }
     },
     {
       id: 'view',
-      title: 'Visit your store',
-      description: 'See how your store looks to customers.',
+      title: t('visitStoreTitle'),
+      description: t('visitStoreDesc'),
       icon: ExternalLink,
       isCompleted: false, // Cannot easily track "visited", so we keep it as an action
       // Or we can assume if products > 0, they might have visited. 
       // Let's make it always "actionable" until the first sale happens (when this widget disappears).
       action: {
-        label: 'View Store',
+        label: t('viewStore'),
         url: storeUrl,
         external: true,
         primary: false,
@@ -52,12 +52,12 @@ export function FirstSaleChecklist({ productCount, storeUrl, className = '' }: F
     },
     {
       id: 'share',
-      title: 'Share your store link',
-      description: 'Share on social media to get visitors.',
+      title: t('shareStoreTitle'),
+      description: t('shareStoreDesc'),
       icon: Share2,
       isCompleted: false,
       action: {
-        label: copied ? 'Copied!' : 'Copy Link',
+        label: copied ? t('copiedMsg') : t('copyLink'),
         onClick: () => {
           navigator.clipboard.writeText(storeUrl);
           setCopied(true);
@@ -78,15 +78,15 @@ export function FirstSaleChecklist({ productCount, storeUrl, className = '' }: F
           <div>
             <h2 className="text-xl font-bold text-indigo-900 flex items-center gap-2">
               <PartyPopper className="w-6 h-6 text-indigo-600" />
-              Let's get your first sale!
+              {t('letsGetYourFirstSale')}
             </h2>
             <p className="text-indigo-700 mt-1">
-              Complete these steps to launch your business effectively.
+              {t('completeStepsToLaunch')}
             </p>
           </div>
           <div className="hidden md:block text-right">
              <span className="text-2xl font-bold text-indigo-600">{Math.round(progress)}%</span>
-             <span className="text-sm text-indigo-400 block">Ready</span>
+             <span className="text-sm text-indigo-400 block">{t('readyStatus')}</span>
           </div>
         </div>
         
@@ -122,7 +122,7 @@ export function FirstSaleChecklist({ productCount, storeUrl, className = '' }: F
               <div className="flex-shrink-0">
                 {isDone ? (
                    <span className="inline-flex items-center gap-1 text-sm font-medium text-green-600 px-3 py-1 bg-green-50 rounded-full">
-                     Done
+                     {t('done')}
                    </span>
                 ) : (
                   step.action.onClick ? (

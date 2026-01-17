@@ -134,6 +134,7 @@ export const HeroPropsSchema = z.object({
   badgeText: z.string().optional(),
   priceLabel: z.string().optional(),
   backgroundImage: z.string().optional(),
+  variant: z.enum(['centered', 'split-left', 'split-right', 'glow', 'modern']).optional().default('centered'),
   features: z.array(z.object({
     icon: z.string(),
     text: z.string(),
@@ -155,6 +156,7 @@ export const FeaturesPropsSchema = z.object({
     { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
     { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'পছন্দ না হলে ফেরত' },
   ]),
+  variant: z.enum(['grid', 'bento', 'cards']).optional().default('grid'),
 });
 export type FeaturesProps = z.infer<typeof FeaturesPropsSchema>;
 
@@ -220,11 +222,24 @@ export const CTAPropsSchema = z.object({
   subheadline: z.string().optional().default('সীমিত সময়ের জন্য বিশেষ অফার!'),
   buttonText: z.string().default('অর্ডার কনফার্ম করুন'),
   
+  // Template variation
+  template: z.enum(['minimal', 'premium', 'urgent', 'singleColumn', 'withImage']).optional().default('minimal'),
+  
+  // Product Selection (from store products)
+  productId: z.number().nullable().optional(),
+  
   // Pricing
   productPrice: z.number().optional().default(1990),
   discountedPrice: z.number().optional().default(1490),
   insideDhakaCharge: z.number().optional().default(60),
   outsideDhakaCharge: z.number().optional().default(120),
+  
+  // Free Shipping & COD Surcharge
+  enableFreeShipping: z.boolean().optional().default(false),
+  freeShippingThreshold: z.number().optional().default(2000), // Free shipping above this amount
+  freeShippingMessage: z.string().optional().default('৳{remaining} আরো কিনলে ফ্রি ডেলিভারি!'),
+  enableCodSurcharge: z.boolean().optional().default(false),
+  codSurchargeAmount: z.number().optional().default(50), // Extra charge for COD
   
   // Variants/Packages
   variants: z.array(VariantSchema).default([
@@ -236,7 +251,7 @@ export const CTAPropsSchema = z.object({
   
   // Form placeholders
   phonePlaceholder: z.string().optional().default('আপনার মোবাইল নম্বর'),
-  addressPlaceholder: z.string().optional().default('পূর্ণ ডেলিভারি ঠিকানা লিখুন'),
+  addressPlaceholder: z.string().optional().default('বাসা নম্বর, রোড, এলাকা'),
   
   // Labels
   quantityLabel: z.string().optional().default('পরিমাণ'),
@@ -246,12 +261,62 @@ export const CTAPropsSchema = z.object({
   deliveryLabel: z.string().optional().default('ডেলিভারি চার্জ'),
   totalLabel: z.string().optional().default('সর্বমোট'),
   
+  // ============================================================================
+  // BD ADDRESS SYSTEM
+  // ============================================================================
+  // Address field visibility
+  showDistrictField: z.boolean().optional().default(true),
+  showUpazilaField: z.boolean().optional().default(true),
+  
+  // Address labels (Bengali defaults)
+  districtLabel: z.string().optional().default('জেলা'),
+  upazilaLabel: z.string().optional().default('উপজেলা/থানা'),
+  addressLabel: z.string().optional().default('বিস্তারিত ঠিকানা'),
+  
+  // District placeholder
+  districtPlaceholder: z.string().optional().default('জেলা নির্বাচন করুন'),
+  upazilaPlaceholder: z.string().optional().default('উপজেলা নির্বাচন করুন'),
+  
+  // Shipping zone calculation mode
+  // 'auto' = calculate from district (Dhaka division = inside, others = outside)
+  // 'manual' = user picks Dhaka/Outside toggle (current/legacy behavior)
+  shippingZoneMode: z.enum(['auto', 'manual']).optional().default('auto'),
+  
+  // ============================================================================
+  // SIMPLIFIED FIELD BUILDER
+  // ============================================================================
+  // Field visibility toggles (Name, Phone, District, Address are always required)
+  showEmailField: z.boolean().optional().default(false),
+  showAltPhoneField: z.boolean().optional().default(false),
+  showNoteField: z.boolean().optional().default(true),
+  
+  // Field labels (customizable)
+  nameLabel: z.string().optional().default('আপনার নাম'),
+  namePlaceholder: z.string().optional().default('আপনার নাম লিখুন'),
+  emailLabel: z.string().optional().default('ইমেইল'),
+  emailPlaceholder: z.string().optional().default('আপনার ইমেইল (ঐচ্ছিক)'),
+  altPhoneLabel: z.string().optional().default('বিকল্প ফোন'),
+  altPhonePlaceholder: z.string().optional().default('বিকল্প মোবাইল নম্বর'),
+  noteLabel: z.string().optional().default('অর্ডার নোট'),
+  notePlaceholder: z.string().optional().default('অতিরিক্ত তথ্য/নির্দেশনা (ঐচ্ছিক)'),
+  
+  // ============================================================================
+  // THANK YOU PAGE CUSTOMIZATION
+  // ============================================================================
+  thankYouHeadline: z.string().optional().default('অর্ডার সফল হয়েছে! 🎉'),
+  thankYouMessage: z.string().optional().default('ধন্যবাদ! আমরা শীঘ্রই আপনার সাথে যোগাযোগ করবো।'),
+  thankYouRedirectUrl: z.string().url().optional(), // Custom redirect URL (optional)
+  showOrderDetails: z.boolean().optional().default(true), // Show order summary on thank-you
+  showWhatsAppButton: z.boolean().optional().default(false), // WhatsApp contact button
+  whatsAppNumber: z.string().optional(), // WhatsApp number for contact
+  
   // Trust badges
   showTrustBadges: z.boolean().optional().default(true),
   codLabel: z.string().optional().default('ক্যাশ অন ডেলিভারি'),
   secureLabel: z.string().optional().default('১০০% সিকিউর অর্ডার'),
 });
 export type CTAProps = z.infer<typeof CTAPropsSchema>;
+
 
 // ============================================================================
 // TRUST BADGES SECTION
@@ -262,10 +327,10 @@ export const TrustBadgesPropsSchema = z.object({
     icon: z.string(),
     text: z.string(),
   })).default([
-    { icon: '✅', text: 'অরিজিনাল প্রোডাক্ট' },
     { icon: '🚚', text: 'দ্রুত ডেলিভারি' },
     { icon: '🔒', text: 'নিরাপদ পেমেন্ট' },
   ]),
+  variant: z.enum(['grid', 'marquee']).optional().default('grid'),
 });
 export type TrustBadgesProps = z.infer<typeof TrustBadgesPropsSchema>;
 
@@ -401,6 +466,210 @@ export const OrderButtonPropsSchema = z.object({
 export type OrderButtonProps = z.infer<typeof OrderButtonPropsSchema>;
 
 // ============================================================================
+// HEADER SECTION - Page header with logo, navigation, and CTA
+// ============================================================================
+const NavLinkSchema = z.object({
+  label: z.string(),
+  url: z.string(),
+});
+
+export const HeaderPropsSchema = z.object({
+  // Branding
+  logoUrl: z.string().optional().default(''),
+  logoText: z.string().optional().default(''),
+  logoSize: z.enum(['sm', 'md', 'lg']).optional().default('md'),
+  
+  // Navigation Links
+  showNavLinks: z.boolean().default(true),
+  navLinks: z.array(NavLinkSchema).default([
+    { label: 'হোম', url: '#' },
+    { label: 'প্রোডাক্ট', url: '#product' },
+    { label: 'রিভিউ', url: '#reviews' },
+    { label: 'অর্ডার', url: '#order' },
+  ]),
+  
+  // CTA Button
+  showCta: z.boolean().default(true),
+  ctaText: z.string().default('অর্ডার করুন'),
+  ctaLink: z.string().optional().default('#order'),
+  ctaStyle: z.enum(['solid', 'outline', 'ghost']).optional().default('solid'),
+  
+  // Styling
+  variant: z.enum(['simple', 'centered', 'minimal']).optional().default('simple'),
+  bgColor: z.string().default('#FFFFFF'),
+  textColor: z.string().default('#18181B'),
+  ctaBgColor: z.string().default('#6366F1'),
+  ctaTextColor: z.string().default('#FFFFFF'),
+  
+  // Sticky Header
+  isSticky: z.boolean().default(true),
+  
+  // Mobile Menu
+  mobileMenuBgColor: z.string().optional().default('#FFFFFF'),
+});
+export type HeaderProps = z.infer<typeof HeaderPropsSchema>;
+
+// ============================================================================
+// COUNTDOWN TIMER SECTION - Flash sale urgency timer
+// ============================================================================
+export const CountdownPropsSchema = z.object({
+  // Timer Settings
+  endDate: z.string().default(''), // ISO date string
+  endTime: z.string().default('23:59'), // HH:MM format
+  
+  // Content
+  title: z.string().default('⏰ অফার শেষ হচ্ছে!'),
+  subtitle: z.string().optional().default(''),
+  expiredMessage: z.string().default('অফার শেষ হয়ে গেছে!'),
+  
+  // Display Options
+  showDays: z.boolean().default(true),
+  showHours: z.boolean().default(true),
+  showMinutes: z.boolean().default(true),
+  showSeconds: z.boolean().default(true),
+  
+  // Labels (Bengali)
+  daysLabel: z.string().default('দিন'),
+  hoursLabel: z.string().default('ঘন্টা'),
+  minutesLabel: z.string().default('মিনিট'),
+  secondsLabel: z.string().default('সেকেন্ড'),
+  
+  // Styling
+  variant: z.enum(['banner', 'card', 'minimal', 'urgent']).optional().default('banner'),
+  bgColor: z.string().default('#DC2626'),
+  textColor: z.string().default('#FFFFFF'),
+  numberBgColor: z.string().default('rgba(255,255,255,0.2)'),
+  numberTextColor: z.string().default('#FFFFFF'),
+  
+  // Animation
+  pulseAnimation: z.boolean().default(true),
+  shakeOnLowTime: z.boolean().default(true), // Shake when < 1 hour left
+});
+export type CountdownProps = z.infer<typeof CountdownPropsSchema>;
+
+// ============================================================================
+// STATS SECTION - Animated counter statistics
+// ============================================================================
+const StatItemSchema = z.object({
+  value: z.number().default(0),
+  suffix: z.string().optional().default(''), // e.g., '+', '%', 'K'
+  prefix: z.string().optional().default(''), // e.g., '৳'
+  label: z.string(),
+  icon: z.string().optional().default(''), // emoji or icon name
+});
+
+export const StatsPropsSchema = z.object({
+  // Title
+  title: z.string().optional().default(''),
+  subtitle: z.string().optional().default(''),
+  
+  // Stats Items
+  stats: z.array(StatItemSchema).default([
+    { value: 10000, suffix: '+', label: 'সন্তুষ্ট গ্রাহক', icon: '👥' },
+    { value: 50000, suffix: '+', label: 'অর্ডার ডেলিভারি', icon: '📦' },
+    { value: 4.9, suffix: '', label: 'গ্রাহক রেটিং', icon: '⭐' },
+    { value: 100, suffix: '%', label: 'অরিজিনাল প্রোডাক্ট', icon: '✓' },
+  ]),
+  
+  // Display Options
+  columns: z.enum(['2', '3', '4']).optional().default('4'),
+  animateOnScroll: z.boolean().default(true),
+  showIcons: z.boolean().default(true),
+  
+  // Styling
+  variant: z.enum(['simple', 'cards', 'highlight', 'minimal']).optional().default('simple'),
+  bgColor: z.string().default('#F9FAFB'),
+  textColor: z.string().default('#111827'),
+  accentColor: z.string().default('#6366F1'),
+  valueFontSize: z.enum(['md', 'lg', 'xl', '2xl']).optional().default('xl'),
+});
+export type StatsProps = z.infer<typeof StatsPropsSchema>;
+
+// ============================================================================
+// CONTACT SECTION - Contact form and information
+// ============================================================================
+export const ContactPropsSchema = z.object({
+  // Title
+  title: z.string().default('যোগাযোগ করুন'),
+  subtitle: z.string().optional().default('আমরা আপনার সেবায় সদা প্রস্তুত'),
+  
+  // Contact Information
+  showContactInfo: z.boolean().default(true),
+  phone: z.string().optional().default(''),
+  whatsapp: z.string().optional().default(''),
+  email: z.string().optional().default(''),
+  address: z.string().optional().default(''),
+  
+  // Business Hours
+  showHours: z.boolean().default(true),
+  hoursTitle: z.string().default('অফিস সময়'),
+  hours: z.string().default('সকাল ১০টা - রাত ১০টা (শুক্রবার বন্ধ)'),
+  
+  // Form Settings
+  showForm: z.boolean().default(true),
+  formTitle: z.string().default('মেসেজ পাঠান'),
+  nameLabel: z.string().default('নাম'),
+  phoneLabel: z.string().default('ফোন নম্বর'),
+  messageLabel: z.string().default('আপনার মেসেজ'),
+  submitButtonText: z.string().default('পাঠান'),
+  
+  // Layout
+  variant: z.enum(['split', 'stacked', 'form-only', 'info-only']).optional().default('split'),
+  
+  // Styling
+  bgColor: z.string().default('#F9FAFB'),
+  textColor: z.string().default('#111827'),
+  cardBgColor: z.string().default('#FFFFFF'),
+  accentColor: z.string().default('#6366F1'),
+  
+  // Social Links
+  showSocialLinks: z.boolean().default(true),
+  facebookUrl: z.string().optional().default(''),
+  instagramUrl: z.string().optional().default(''),
+  whatsappUrl: z.string().optional().default(''),
+});
+export type ContactProps = z.infer<typeof ContactPropsSchema>;
+
+// ============================================================================
+// FOOTER SECTION - Page footer with social links and contact info
+// ============================================================================
+const SocialLinkSchema = z.object({
+  platform: z.enum(['facebook', 'instagram', 'youtube', 'tiktok', 'whatsapp', 'telegram']),
+  url: z.string(),
+});
+
+export const FooterPropsSchema = z.object({
+  // Branding
+  storeName: z.string().optional().default(''),
+  logoUrl: z.string().optional().default(''),
+  tagline: z.string().optional().default('আমাদের সাথে থাকার জন্য ধন্যবাদ'),
+  
+  // Contact Info
+  showContactInfo: z.boolean().default(true),
+  phone: z.string().optional().default(''),
+  email: z.string().optional().default(''),
+  address: z.string().optional().default(''),
+  
+  // Social Links
+  showSocialLinks: z.boolean().default(true),
+  socialLinks: z.array(SocialLinkSchema).default([]),
+  
+  // Payment & Trust
+  showPaymentMethods: z.boolean().default(true),
+  paymentMethods: z.array(z.string()).default(['বিকাশ', 'নগদ', 'রকেট', 'ক্যাশ অন ডেলিভারি']),
+  
+  // Styling
+  bgColor: z.string().default('#18181B'),
+  textColor: z.string().default('#FFFFFF'),
+  accentColor: z.string().default('#10B981'),
+  
+  // Copyright
+  copyrightText: z.string().optional().default(''),
+  showPoweredBy: z.boolean().default(true),
+});
+export type FooterProps = z.infer<typeof FooterPropsSchema>;
+
+// ============================================================================
 // MASTER SCHEMA MAP
 // ============================================================================
 export const SectionSchemas: Record<string, z.ZodTypeAny> = {
@@ -422,6 +691,11 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'showcase': ShowcasePropsSchema,
   'custom-html': CustomHtmlPropsSchema,
   'order-button': OrderButtonPropsSchema,
+  'header': HeaderPropsSchema,
+  'countdown': CountdownPropsSchema,
+  'stats': StatsPropsSchema,
+  'contact': ContactPropsSchema,
+  'footer': FooterPropsSchema,
 };
 
 /**

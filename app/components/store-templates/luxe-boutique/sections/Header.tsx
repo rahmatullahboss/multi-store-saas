@@ -4,6 +4,7 @@ import { Menu, X, Search, Heart, ShoppingBag } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useCartCount } from '~/hooks/useCartCount';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import type { ThemeConfig } from '@db/types';
 
 interface LuxeBoutiqueHeaderProps {
@@ -18,6 +19,7 @@ interface LuxeBoutiqueHeaderProps {
   setMobileMenuOpen?: (open: boolean) => void;
   searchOpen?: boolean;
   setSearchOpen?: (open: boolean) => void;
+  isPreview?: boolean;
 }
 
 export function LuxeBoutiqueHeader({
@@ -30,6 +32,7 @@ export function LuxeBoutiqueHeader({
   setMobileMenuOpen: setMobileMenuOpenProp,
   searchOpen: searchOpenProp,
   setSearchOpen: setSearchOpenProp,
+  isPreview,
 }: LuxeBoutiqueHeaderProps) {
   const { t } = useTranslation();
   const theme = LUXE_BOUTIQUE_THEME;
@@ -66,7 +69,7 @@ export function LuxeBoutiqueHeader({
           </button>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center">
+          <PreviewSafeLink to="/" className="flex items-center" isPreview={isPreview}>
             {logo ? (
               <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />
             ) : (
@@ -77,11 +80,11 @@ export function LuxeBoutiqueHeader({
                 {storeName}
               </span>
             )}
-          </Link>
+          </PreviewSafeLink>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            <Link 
+            <PreviewSafeLink 
               to="/"
               className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
               style={{ 
@@ -89,11 +92,12 @@ export function LuxeBoutiqueHeader({
                 borderBottom: !currentCategory ? `2px solid ${theme.accent}` : 'none',
                 paddingBottom: '4px'
               }}
+              isPreview={isPreview}
             >
               {t('allProducts')}
-            </Link>
+            </PreviewSafeLink>
             {validCategories.slice(0, 5).map((category) => (
-              <Link
+              <PreviewSafeLink
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
                 className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
@@ -102,9 +106,10 @@ export function LuxeBoutiqueHeader({
                   borderBottom: currentCategory === category ? `2px solid ${theme.accent}` : 'none',
                   paddingBottom: '4px'
                 }}
+                isPreview={isPreview}
               >
                 {category}
-              </Link>
+              </PreviewSafeLink>
             ))}
           </nav>
 
@@ -119,9 +124,10 @@ export function LuxeBoutiqueHeader({
             <button className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100">
               <Heart className="w-5 h-5" style={{ color: theme.text }} />
             </button>
-            <Link 
+            <PreviewSafeLink 
               to="/cart" 
               className="p-2 rounded-full transition-colors hover:bg-gray-100 relative"
+              isPreview={isPreview}
             >
               <ShoppingBag className="w-5 h-5" style={{ color: theme.text }} />
               <span 
@@ -130,7 +136,7 @@ export function LuxeBoutiqueHeader({
               >
                 {count}
               </span>
-            </Link>
+            </PreviewSafeLink>
           </div>
         </div>
       </div>
@@ -153,24 +159,26 @@ export function LuxeBoutiqueHeader({
       {mobileMenuOpen && (
         <div className="lg:hidden absolute inset-x-0 top-full bg-white border-b border-gray-200 shadow-lg">
           <nav className="py-4">
-            <Link 
+            <PreviewSafeLink 
               to="/"
               className="block px-6 py-3 text-sm font-medium uppercase tracking-wide"
               style={{ color: !currentCategory ? theme.accent : theme.text }}
               onClick={() => setMobileMenuOpen(false)}
+              isPreview={isPreview}
             >
               {t('allProducts')}
-            </Link>
+            </PreviewSafeLink>
             {validCategories.map((category) => (
-              <Link
+              <PreviewSafeLink
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
                 className="block px-6 py-3 text-sm font-medium uppercase tracking-wide"
                 style={{ color: currentCategory === category ? theme.accent : theme.text }}
                 onClick={() => setMobileMenuOpen(false)}
+                isPreview={isPreview}
               >
                 {category}
-              </Link>
+              </PreviewSafeLink>
             ))}
           </nav>
         </div>

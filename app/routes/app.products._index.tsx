@@ -15,14 +15,15 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link, Form, useNavigation, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc, inArray, sql, and, like, count } from 'drizzle-orm';
-import { products, stores } from '@db/schema';
+import { eq, desc, inArray, sql, and, like, count, or } from 'drizzle-orm';
+import { products, stores, orderItems, savedLandingConfigs, publishedPages, productVariants, productCollections, reviews, orderBumps, upsellOffers, productRecommendations } from '@db/schema';
+import { builderPages } from '@db/schema_page_builder';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
   AlertTriangle, CheckCircle, Archive, Rocket, Check, Copy, Star
 } from 'lucide-react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -109,8 +110,66 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   switch (intent) {
     case 'delete':
-      await db.delete(products).where(inArray(products.id, productIds));
-      return json({ success: true, message: `${productIds.length} product(s) deleted` });
+      try {
+        // First, set null on orderItems productId references (preserve order history)
+        await db.update(orderItems)
+          .set({ productId: null })
+          .where(inArray(orderItems.productId, productIds));
+        
+        // Set null on savedLandingConfigs productId references
+        await db.update(savedLandingConfigs)
+          .set({ productId: null })
+          .where(inArray(savedLandingConfigs.productId, productIds));
+        
+        // Set null on publishedPages productId references
+        await db.update(publishedPages)
+          .set({ productId: null })
+          .where(inArray(publishedPages.productId, productIds));
+        
+        // Set null on builderPages productId references (new page builder)
+        await db.update(builderPages)
+          .set({ productId: null })
+          .where(inArray(builderPages.productId, productIds));
+        
+        // Delete related records that have onDelete: 'cascade' defined
+        // (These should cascade but we delete explicitly to be safe)
+        await db.delete(productVariants).where(inArray(productVariants.productId, productIds));
+        await db.delete(productCollections).where(inArray(productCollections.productId, productIds));
+        await db.delete(reviews).where(inArray(reviews.productId, productIds));
+        
+        // Delete orderBumps where productId OR bumpProductId matches
+        await db.delete(orderBumps).where(
+          or(
+            inArray(orderBumps.productId, productIds),
+            inArray(orderBumps.bumpProductId, productIds)
+          )
+        );
+        
+        // Delete upsellOffers where productId OR offerProductId matches
+        await db.delete(upsellOffers).where(
+          or(
+            inArray(upsellOffers.productId, productIds),
+            inArray(upsellOffers.offerProductId, productIds)
+          )
+        );
+        
+        // Delete productRecommendations where sourceProductId OR recommendedProductId matches
+        await db.delete(productRecommendations).where(
+          or(
+            inArray(productRecommendations.sourceProductId, productIds),
+            inArray(productRecommendations.recommendedProductId, productIds)
+          )
+        );
+        
+        // Now delete the products
+        await db.delete(products).where(inArray(products.id, productIds));
+        return json({ success: true, message: `${productIds.length} product(s) deleted` });
+      } catch (error) {
+        console.error('Delete error:', error);
+        return json({ 
+          error: `Failed to delete products: ${error instanceof Error ? error.message : 'Unknown error'}` 
+        }, { status: 500 });
+      }
 
     case 'publish':
       await db.update(products).set({ isPublished: true }).where(inArray(products.id, productIds));
@@ -141,6 +200,24 @@ export default function ProductsIndexPage() {
   
   // Ad Link copy state - shows checkmark briefly after copy
   const [copiedProductId, setCopiedProductId] = useState<number | null>(null);
+  
+  // Hydration-safe pattern: ensures event handlers work correctly
+  // This prevents React Hydration Error #418 from breaking click handlers
+  const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+  
+  // Delete confirmation modal state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Close modal and clear selection when form is submitting
+  useEffect(() => {
+    if (isSubmitting && showDeleteConfirm) {
+      setShowDeleteConfirm(false);
+      clearSelection();
+    }
+  }, [isSubmitting, showDeleteConfirm]);
   
   // Status tabs configuration
   const statusTabs = [
@@ -358,24 +435,15 @@ export default function ProductsIndexPage() {
                 <EyeOff className="w-4 h-4" /> {t('unpublish')}
               </button>
             </Form>
-            <Form method="post" className="inline" onSubmit={(e) => {
-              if (!confirm(`Delete ${selectedIds.size} product(s)? This cannot be undone.`)) {
-                e.preventDefault();
-              }
-            }}>
-              {Array.from(selectedIds).map(id => (
-                <input key={id} type="hidden" name="productIds" value={id} />
-              ))}
-              <button
-                type="submit"
-                name="intent"
-                value="delete"
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-              >
-                <Trash2 className="w-4 h-4" /> {t('delete')}
-              </button>
-            </Form>
+            {/* Delete button - opens confirmation modal */}
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isSubmitting || !isHydrated}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" /> {t('delete')}
+            </button>
             <button
               onClick={clearSelection}
               className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
@@ -511,13 +579,13 @@ export default function ProductsIndexPage() {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <StockBadge stock={product.inventory || 0} />
+                      <StockBadge stock={product.inventory || 0} lang={lang} />
                     </td>
                     <td className="px-4 py-4">
                       <span className="text-gray-600">{product.category || '—'}</span>
                     </td>
                     <td className="px-4 py-4">
-                      <StatusBadge published={product.isPublished ?? true} />
+                      <StatusBadge published={product.isPublished ?? true} lang={lang} />
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="inline-flex items-center gap-2">
@@ -597,11 +665,11 @@ export default function ProductsIndexPage() {
                           </span>
                         )}
                       </div>
-                      <StatusBadge published={product.isPublished ?? true} />
+                      <StatusBadge published={product.isPublished ?? true} lang={lang} />
                     </div>
                     <div className="mt-1 flex items-center gap-4 text-sm">
                       <span className="font-semibold text-gray-900">{formatPrice(product.price)}</span>
-                      <StockBadge stock={product.inventory || 0} />
+                      <StockBadge stock={product.inventory || 0} lang={lang} />
                     </div>
                     {product.category && (
                       <p className="mt-1 text-xs text-gray-500">{product.category}</p>
@@ -650,6 +718,44 @@ export default function ProductsIndexPage() {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-xl max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {lang === 'bn' ? 'প্রোডাক্ট ডিলিট করুন?' : 'Delete Products?'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {lang === 'bn' 
+                ? `${selectedIds.size}টি প্রোডাক্ট ডিলিট হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।`
+                : `${selectedIds.size} product(s) will be deleted. This cannot be undone.`}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
+              >
+                {t('cancel')}
+              </button>
+              <Form method="post" className="inline">
+                {Array.from(selectedIds).map(id => (
+                  <input key={id} type="hidden" name="productIds" value={id} />
+                ))}
+                <button
+                  type="submit"
+                  name="intent"
+                  value="delete"
+                  className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                >
+                  {t('delete')}
+                </button>
+              </Form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Loading overlay */}
       {isSubmitting && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
@@ -666,7 +772,10 @@ export default function ProductsIndexPage() {
 // ============================================================================
 // STATUS BADGE COMPONENT
 // ============================================================================
-function StatusBadge({ published }: { published: boolean }) {
+function StatusBadge({ published, lang }: { published: boolean; lang: string }) {
+  const label = published 
+    ? (lang === 'bn' ? 'প্রকাশিত' : 'Published') 
+    : (lang === 'bn' ? 'ড্রাফট' : 'Draft');
   return (
     <span
       className={`
@@ -676,8 +785,9 @@ function StatusBadge({ published }: { published: boolean }) {
           : 'bg-gray-100 text-gray-600'
         }
       `}
+      suppressHydrationWarning
     >
-      {published ? 'Published' : 'Draft'}
+      {label}
     </span>
   );
 }
@@ -685,21 +795,21 @@ function StatusBadge({ published }: { published: boolean }) {
 // ============================================================================
 // STOCK BADGE COMPONENT
 // ============================================================================
-function StockBadge({ stock }: { stock: number }) {
+function StockBadge({ stock, lang }: { stock: number; lang: string }) {
   if (stock <= 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full" suppressHydrationWarning>
         <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-        Out of stock
+        {lang === 'bn' ? 'স্টক নেই' : 'Out of stock'}
       </span>
     );
   }
   
   if (stock <= 5) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full" suppressHydrationWarning>
         <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
-        {stock} left
+        {lang === 'bn' ? `${stock}টি বাকি` : `${stock} left`}
       </span>
     );
   }
