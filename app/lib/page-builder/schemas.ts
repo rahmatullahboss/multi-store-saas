@@ -453,6 +453,44 @@ export const HeaderPropsSchema = z.object({
 export type HeaderProps = z.infer<typeof HeaderPropsSchema>;
 
 // ============================================================================
+// COUNTDOWN TIMER SECTION - Flash sale urgency timer
+// ============================================================================
+export const CountdownPropsSchema = z.object({
+  // Timer Settings
+  endDate: z.string().default(''), // ISO date string
+  endTime: z.string().default('23:59'), // HH:MM format
+  
+  // Content
+  title: z.string().default('⏰ অফার শেষ হচ্ছে!'),
+  subtitle: z.string().optional().default(''),
+  expiredMessage: z.string().default('অফার শেষ হয়ে গেছে!'),
+  
+  // Display Options
+  showDays: z.boolean().default(true),
+  showHours: z.boolean().default(true),
+  showMinutes: z.boolean().default(true),
+  showSeconds: z.boolean().default(true),
+  
+  // Labels (Bengali)
+  daysLabel: z.string().default('দিন'),
+  hoursLabel: z.string().default('ঘন্টা'),
+  minutesLabel: z.string().default('মিনিট'),
+  secondsLabel: z.string().default('সেকেন্ড'),
+  
+  // Styling
+  variant: z.enum(['banner', 'card', 'minimal', 'urgent']).optional().default('banner'),
+  bgColor: z.string().default('#DC2626'),
+  textColor: z.string().default('#FFFFFF'),
+  numberBgColor: z.string().default('rgba(255,255,255,0.2)'),
+  numberTextColor: z.string().default('#FFFFFF'),
+  
+  // Animation
+  pulseAnimation: z.boolean().default(true),
+  shakeOnLowTime: z.boolean().default(true), // Shake when < 1 hour left
+});
+export type CountdownProps = z.infer<typeof CountdownPropsSchema>;
+
+// ============================================================================
 // FOOTER SECTION - Page footer with social links and contact info
 // ============================================================================
 const SocialLinkSchema = z.object({
@@ -514,6 +552,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'custom-html': CustomHtmlPropsSchema,
   'order-button': OrderButtonPropsSchema,
   'header': HeaderPropsSchema,
+  'countdown': CountdownPropsSchema,
   'footer': FooterPropsSchema,
 };
 

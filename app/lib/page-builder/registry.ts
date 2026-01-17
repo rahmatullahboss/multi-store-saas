@@ -27,6 +27,7 @@ import {
   CustomHtmlPropsSchema,
   OrderButtonPropsSchema,
   HeaderPropsSchema,
+  CountdownPropsSchema,
   FooterPropsSchema,
   validateSectionProps,
 } from './schemas';
@@ -234,6 +235,16 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     icon: 'LayoutPanelTop',
     schema: HeaderPropsSchema,
     defaultProps: HeaderPropsSchema.parse({}),
+  },
+  'countdown': {
+    type: 'countdown',
+    name: 'কাউন্টডাউন',
+    nameEn: 'Countdown Timer',
+    description: 'অফার শেষ হওয়ার সময় দেখান',
+    descriptionEn: 'Show offer expiry countdown',
+    icon: 'Timer',
+    schema: CountdownPropsSchema,
+    defaultProps: CountdownPropsSchema.parse({}),
   },
   'footer': {
     type: 'footer',

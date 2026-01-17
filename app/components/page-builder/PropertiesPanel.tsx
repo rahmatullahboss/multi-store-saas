@@ -1192,6 +1192,154 @@ function renderPropsForm(
         </>
       );
     
+    case 'countdown':
+      return (
+        <>
+          {/* Timer Settings */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">⏰ টাইমার সেটিংস</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">End Date</label>
+              <input
+                type="date"
+                value={props.endDate as string || ''}
+                onChange={(e) => updateProp('endDate', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              />
+            </div>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">End Time</label>
+              <input
+                type="time"
+                value={props.endTime as string || '23:59'}
+                onChange={(e) => updateProp('endTime', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              />
+            </div>
+            <p className="text-[10px] text-gray-400 mt-1">
+              💡 Date সেট না করলে ডেমো কাউন্টডাউন দেখাবে
+            </p>
+          </div>
+          
+          {/* Content */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 কনটেন্ট</h5>
+            <TextField 
+              label="Title" 
+              value={props.title as string || '⏰ অফার শেষ হচ্ছে!'} 
+              onChange={(v) => updateProp('title', v)} 
+            />
+            <TextField 
+              label="Subtitle (Optional)" 
+              value={props.subtitle as string || ''} 
+              onChange={(v) => updateProp('subtitle', v)} 
+            />
+            <TextField 
+              label="Expired Message" 
+              value={props.expiredMessage as string || 'অফার শেষ হয়ে গেছে!'} 
+              onChange={(v) => updateProp('expiredMessage', v)} 
+            />
+          </div>
+          
+          {/* Display Options */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🔢 ডিসপ্লে অপশন</h5>
+            <div className="grid grid-cols-2 gap-2">
+              <ToggleField 
+                label="Show Days" 
+                value={props.showDays as boolean ?? true} 
+                onChange={(v) => updateProp('showDays', v)} 
+              />
+              <ToggleField 
+                label="Show Hours" 
+                value={props.showHours as boolean ?? true} 
+                onChange={(v) => updateProp('showHours', v)} 
+              />
+              <ToggleField 
+                label="Show Minutes" 
+                value={props.showMinutes as boolean ?? true} 
+                onChange={(v) => updateProp('showMinutes', v)} 
+              />
+              <ToggleField 
+                label="Show Seconds" 
+                value={props.showSeconds as boolean ?? true} 
+                onChange={(v) => updateProp('showSeconds', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Labels */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🏷️ লেবেল</h5>
+            <div className="grid grid-cols-2 gap-2">
+              <TextField 
+                label="Days" 
+                value={props.daysLabel as string || 'দিন'} 
+                onChange={(v) => updateProp('daysLabel', v)} 
+              />
+              <TextField 
+                label="Hours" 
+                value={props.hoursLabel as string || 'ঘন্টা'} 
+                onChange={(v) => updateProp('hoursLabel', v)} 
+              />
+              <TextField 
+                label="Minutes" 
+                value={props.minutesLabel as string || 'মিনিট'} 
+                onChange={(v) => updateProp('minutesLabel', v)} 
+              />
+              <TextField 
+                label="Seconds" 
+                value={props.secondsLabel as string || 'সেকেন্ড'} 
+                onChange={(v) => updateProp('secondsLabel', v)} 
+              />
+            </div>
+          </div>
+          
+          {/* Styling */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 স্টাইল</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Variant</label>
+              <select
+                value={props.variant as string || 'banner'}
+                onChange={(e) => updateProp('variant', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="banner">Banner (Full Width)</option>
+                <option value="card">Card (Centered)</option>
+                <option value="urgent">Urgent (Flash Sale)</option>
+                <option value="minimal">Minimal (Inline)</option>
+              </select>
+            </div>
+            <ColorPickerField 
+              label="Background Color" 
+              value={props.bgColor as string || '#DC2626'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+            />
+            <ColorPickerField 
+              label="Text Color" 
+              value={props.textColor as string || '#FFFFFF'} 
+              onChange={(v) => updateProp('textColor', v)} 
+            />
+          </div>
+          
+          {/* Animation */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">✨ অ্যানিমেশন</h5>
+            <ToggleField 
+              label="Pulse Animation" 
+              value={props.pulseAnimation as boolean ?? true} 
+              onChange={(v) => updateProp('pulseAnimation', v)} 
+            />
+            <ToggleField 
+              label="Shake on Low Time (<1 hour)" 
+              value={props.shakeOnLowTime as boolean ?? true} 
+              onChange={(v) => updateProp('shakeOnLowTime', v)} 
+            />
+          </div>
+        </>
+      );
+    
     default:
       return (
         <div className="text-sm text-gray-500">
