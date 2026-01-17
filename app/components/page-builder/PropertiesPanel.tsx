@@ -318,6 +318,26 @@ function renderPropsForm(
       const selectedProductId = props.productId as number | undefined;
       const selectedProduct = products.find(p => p.id === selectedProductId);
       
+      // Auto-select first product if none selected and products available
+      if (!selectedProductId && products.length > 0) {
+        const firstProduct = products[0];
+        // Trigger auto-selection with a small delay to let state update
+        setTimeout(() => {
+          updateProp('productId', firstProduct.id);
+          updateProp('productPrice', firstProduct.price);
+          updateProp('discountedPrice', firstProduct.price);
+          if (firstProduct.bundlePricing && firstProduct.bundlePricing.length > 0) {
+            const variantsData = firstProduct.bundlePricing.map((tier, idx) => ({
+              id: String(idx + 1),
+              name: tier.label,
+              price: tier.price,
+            }));
+            updateProp('variants', variantsData);
+          }
+          onProductChange?.(firstProduct);
+        }, 100);
+      }
+      
       // Handler for product selection - auto-fills pricing and variants
       const handleProductSelect = (productId: number | null) => {
         if (productId === null) {
