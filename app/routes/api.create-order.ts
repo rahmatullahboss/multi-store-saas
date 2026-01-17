@@ -114,6 +114,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
       }
     }
+    
+    // ========================================================================
+    // ANTI-SPAM: HONEYPOT CHECK
+    // ========================================================================
+    // If the hidden 'website' field is filled, it's likely a bot
+    if (body.website && String(body.website).trim() !== '') {
+      console.log('[SPAM] Honeypot triggered from:', request.headers.get('CF-Connecting-IP') || 'unknown');
+      return json(
+        { success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে।' },
+        { status: 400 }
+      );
+    }
+    
+    // ========================================================================
+    // PHONE NORMALIZATION
+    // ========================================================================
+    // Normalize BD phone number if present
+    if (body.phone && typeof body.phone === 'string') {
+      let phone = body.phone.replace(/[\s-]/g, ''); // Remove spaces and dashes
+      // Convert to standard format
+      if (phone.startsWith('+880')) {
+        phone = '0' + phone.slice(4);
+      } else if (phone.startsWith('880')) {
+        phone = '0' + phone.slice(3);
+      }
+      body.phone = phone;
+    }
 
     // Extend Schema for Cart Items
     const CartItemSchema = z.object({

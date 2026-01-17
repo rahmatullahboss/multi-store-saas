@@ -158,11 +158,46 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   // Form state
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [address, setAddress] = useState('');
   const [selectedVariant, setSelectedVariant] = useState(actualVariants[0] || null);
   const [quantity, setQuantity] = useState(1);
   const [isInsideDhaka, setIsInsideDhaka] = useState(true);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  // Honeypot for spam protection (hidden field)
+  const [honeypot, setHoneypot] = useState('');
+  
+  // BD Phone validation
+  const validateBDPhone = (value: string): boolean => {
+    const cleaned = value.replace(/[\s-]/g, '');
+    // BD phone: 01XXXXXXXXX (11 digits starting with 01)
+    const bdPhoneRegex = /^01[3-9]\d{8}$/;
+    return bdPhoneRegex.test(cleaned);
+  };
+  
+  const handlePhoneChange = (value: string) => {
+    // Only allow numbers and common separators
+    const cleanedValue = value.replace(/[^0-9\s-]/g, '');
+    setPhone(cleanedValue);
+    
+    // Validate only if user has entered something
+    if (cleanedValue.length > 0) {
+      const cleaned = cleanedValue.replace(/[\s-]/g, '');
+      if (cleaned.length >= 11) {
+        if (!validateBDPhone(cleanedValue)) {
+          setPhoneError('সঠিক নম্বর দিন (01XXXXXXXXX)');
+        } else {
+          setPhoneError('');
+        }
+      } else if (cleaned.length > 3 && !cleaned.startsWith('01')) {
+        setPhoneError('নম্বর 01 দিয়ে শুরু করুন');
+      } else {
+        setPhoneError('');
+      }
+    } else {
+      setPhoneError('');
+    }
+  };
   
   // BD Address state
   const [selectedDistrictId, setSelectedDistrictId] = useState('');
@@ -469,6 +504,16 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                   {selectedVariant?.id && (
                     <input type="hidden" name="variant_id" value={selectedVariant.id} />
                   )}
+                  {/* Honeypot field - hidden from real users, bots will fill it */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    style={{ display: 'none' }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
                   
                   {/* Name Input */}
                   <div>
@@ -489,23 +534,38 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                     />
                   </div>
                   
-                  {/* Phone Input */}
+                  {/* Phone Input with BD Validation */}
                   <div>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder={phonePlaceholder}
-                      className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
-                      style={{ 
-                        backgroundColor: inputBg, 
-                        border: `2px solid ${inputBorder}`,
-                        color: inputText,
-                      }}
-                      required
-                      disabled={fetcher.state !== 'idle'}
-                    />
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={phone}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
+                        placeholder={phonePlaceholder}
+                        maxLength={14}
+                        className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400"
+                        style={{ 
+                          backgroundColor: inputBg, 
+                          border: `2px solid ${phoneError ? '#EF4444' : (phone && validateBDPhone(phone) ? '#10B981' : inputBorder)}`,
+                          color: inputText,
+                        }}
+                        required
+                        disabled={fetcher.state !== 'idle'}
+                      />
+                      {/* Phone validation indicator */}
+                      {phone && (
+                        <span 
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium"
+                          style={{ color: validateBDPhone(phone) ? '#10B981' : '#9CA3AF' }}
+                        >
+                          {validateBDPhone(phone) ? '✓' : `${phone.replace(/[\s-]/g, '').length}/11`}
+                        </span>
+                      )}
+                    </div>
+                    {phoneError && (
+                      <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+                    )}
                   </div>
                   
                   {/* Address Section - BD Style */}
