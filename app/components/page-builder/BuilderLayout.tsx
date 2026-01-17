@@ -73,6 +73,12 @@ interface BuilderLayoutProps {
     whatsappMessage?: string | null;
     callEnabled?: number | null;
     callNumber?: string | null;
+    // Order button settings
+    orderEnabled?: number | null;
+    orderText?: string | null;
+    orderBgColor?: string | null;
+    orderTextColor?: string | null;
+    buttonPosition?: string | null;
   } | null;
   sections: BuilderSection[];
   activeSectionId: string | null;
@@ -167,11 +173,11 @@ export function BuilderLayout({
     whatsappMessage: page?.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।',
     callEnabled: page?.callEnabled === 1,
     callNumber: page?.callNumber || '',
-    orderEnabled: true,
-    orderText: 'অর্ডার করুন',
-    orderBgColor: '#6366F1',
-    orderTextColor: '#FFFFFF',
-    position: 'bottom-right' as 'bottom-right' | 'bottom-left' | 'bottom-center',
+    orderEnabled: page?.orderEnabled === 1 || page?.orderEnabled === undefined,
+    orderText: page?.orderText || 'অর্ডার করুন',
+    orderBgColor: page?.orderBgColor || '#6366F1',
+    orderTextColor: page?.orderTextColor || '#FFFFFF',
+    position: (page?.buttonPosition || 'bottom-right') as 'bottom-right' | 'bottom-left' | 'bottom-center',
   }));
   
   // DnD sensors
