@@ -125,7 +125,7 @@ export function PropertiesPanel({ section, onUpdate, onClose, products = [], onP
       
       {/* Dynamic Form */}
       <div className="space-y-4">
-        {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem, products)}
+        {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem, products, onProductChange)}
       </div>
       
       {/* Section Styling Panel */}
@@ -142,7 +142,8 @@ function renderPropsForm(
   updateArrayItem: (key: string, index: number, value: unknown) => void,
   addArrayItem: (key: string, template: unknown) => void,
   removeArrayItem: (key: string, index: number) => void,
-  products: Product[] = []
+  products: Product[] = [],
+  onProductChange?: (product: Product | null) => void
 ) {
   switch (type) {
     case 'hero':
