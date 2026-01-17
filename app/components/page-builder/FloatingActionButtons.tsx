@@ -62,6 +62,13 @@ export function FloatingActionButtons({
     'bottom-center': 'left-1/2 -translate-x-1/2',
   };
   
+  // Alignment classes based on position
+  const alignmentClasses = {
+    'bottom-right': 'items-end',
+    'bottom-left': 'items-start',
+    'bottom-center': 'items-center',
+  };
+  
   // Check if any button is enabled
   const hasButtons = (whatsappEnabled && whatsappNumber) || (callEnabled && callNumber) || orderEnabled;
   
@@ -69,7 +76,7 @@ export function FloatingActionButtons({
   
   return (
     <div 
-      className={`fixed bottom-4 ${positionClasses[position]} z-50 flex flex-col items-end gap-2`}
+      className={`fixed bottom-4 ${positionClasses[position]} z-50 flex flex-col ${alignmentClasses[position]} gap-2`}
       style={{ 
         // Add safe area inset for mobile
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
