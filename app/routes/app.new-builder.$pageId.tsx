@@ -34,6 +34,15 @@ import type { BuilderSection, SectionType } from '~/lib/page-builder/types';
 import { BuilderLayout } from '~/components/page-builder/BuilderLayout';
 import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 
+// Action response type
+interface ActionData {
+  success: boolean;
+  error?: string;
+  pageId?: string;
+  section?: BuilderSection;
+  newVersion?: number;
+}
+
 // ============================================================================
 // LOADER
 // ============================================================================
@@ -307,7 +316,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 // ============================================================================
 export default function NewBuilderPage() {
   const { page, sections: initialSections, store, products, isNew } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<ActionData>();
   const navigate = useNavigate();
   
   // Undo/redo history for sections
