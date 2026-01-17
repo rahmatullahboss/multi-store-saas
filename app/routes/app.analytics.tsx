@@ -342,7 +342,7 @@ export default function AnalyticsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('analytics')}</h1>
-          <p className="text-gray-600">{lang === 'bn' ? 'আপনার স্টোরের পারফরম্যান্স ট্র্যাক করুন' : 'Track your store performance'}</p>
+          <p className="text-gray-600">{t('analyticsSubtitle')}</p>
         </div>
         <div>
           <Link
@@ -350,7 +350,7 @@ export default function AnalyticsPage() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-sm font-medium"
           >
             <Layout className="w-4 h-4" />
-            {lang === 'bn' ? 'টেমপ্লেট পারফরম্যান্স রিপোর্ট' : 'Template Performance Report'}
+            {t('templatePerformanceReport')}
           </Link>
         </div>
       </div>
@@ -358,30 +358,30 @@ export default function AnalyticsPage() {
       {/* Stats Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Today"
+          title={t('analyticsToday')}
           value={formatPrice(stats.today.revenue)}
-          subtitle={`${stats.today.orders} orders • ${stats.today.visitors} visits`}
+          subtitle={`${stats.today.orders} ${t('orders')} • ${stats.today.visitors} ${t('visits')}`}
           icon={<Calendar className="w-5 h-5" />}
           color="emerald"
         />
         <StatCard
-          title="This Week"
+          title={t('analyticsThisWeek')}
           value={formatPrice(stats.week.revenue)}
-          subtitle={`${stats.week.orders} orders • ${stats.week.visitors} visits`}
+          subtitle={`${stats.week.orders} ${t('orders')} • ${stats.week.visitors} ${t('visits')}`}
           icon={<TrendingUp className="w-5 h-5" />}
           color="blue"
         />
         <StatCard
-          title="This Month"
+          title={t('analyticsThisMonth')}
           value={formatPrice(stats.month.revenue)}
-          subtitle={`${stats.month.orders} orders • ${stats.month.visitors} visits`}
+          subtitle={`${stats.month.orders} ${t('orders')} • ${stats.month.visitors} ${t('visits')}`}
           icon={<DollarSign className="w-5 h-5" />}
           color="purple"
         />
         <StatCard
-          title="All Time"
+          title={t('analyticsAllTime')}
           value={formatPrice(stats.allTime.revenue)}
-          subtitle={`${stats.allTime.orders} orders • ${stats.allTime.visitors} visits`}
+          subtitle={`${stats.allTime.orders} ${t('orders')} • ${stats.allTime.visitors} ${t('visits')}`}
           icon={<ShoppingCart className="w-5 h-5" />}
           color="orange"
         />
@@ -389,7 +389,7 @@ export default function AnalyticsPage() {
 
       {/* Revenue Chart */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue - Last 7 Days</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('revenueLast7Days')}</h2>
         <div className="space-y-3">
           {dailyRevenue.map((day, index) => (
             <div key={index} className="flex items-center gap-4">
@@ -405,7 +405,7 @@ export default function AnalyticsPage() {
                   </span>
                 )}
               </div>
-              <div className="w-16 text-sm text-gray-500 text-right">{day.orders} orders</div>
+              <div className="w-16 text-sm text-gray-500 text-right">{day.orders} {t('orders')}</div>
             </div>
           ))}
         </div>
@@ -414,13 +414,16 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Order Status Breakdown */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Status</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Package className="w-5 h-4" />
+            {t('orderStatus')}
+          </h2>
           <div className="space-y-3">
-            <StatusRow label="Pending" count={statusBreakdown.pending} color="yellow" />
-            <StatusRow label="Processing" count={statusBreakdown.processing} color="blue" />
-            <StatusRow label="Shipped" count={statusBreakdown.shipped} color="purple" />
-            <StatusRow label="Delivered" count={statusBreakdown.delivered} color="emerald" />
-            <StatusRow label="Cancelled" count={statusBreakdown.cancelled} color="red" />
+            <StatusRow label={t('pending')} count={statusBreakdown.pending} color="yellow" />
+            <StatusRow label={t('processing')} count={statusBreakdown.processing} color="blue" />
+            <StatusRow label={t('shipped')} count={statusBreakdown.shipped} color="purple" />
+            <StatusRow label={t('delivered')} count={statusBreakdown.delivered} color="emerald" />
+            <StatusRow label={t('cancelled')} count={statusBreakdown.cancelled} color="red" />
           </div>
         </div>
 
@@ -428,7 +431,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Package className="w-5 h-5 text-gray-400" />
-            Top Selling Products
+            {t('topSellingProducts')}
           </h2>
           {topProducts.length > 0 ? (
             <div className="space-y-3">
@@ -443,14 +446,14 @@ export default function AnalyticsPage() {
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{product.totalQty} sold</p>
+                    <p className="text-sm font-medium text-gray-900">{product.totalQty} {t('sold')}</p>
                     <p className="text-xs text-gray-500">{formatPrice(product.totalRevenue || 0)}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No sales data yet</p>
+            <p className="text-gray-500 text-center py-8">{t('noSalesDataYet') || 'No sales data yet'}</p>
           )}
         </div>
       </div>
@@ -461,22 +464,22 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-gray-400" />
-            Customer Demographics
+            {t('customerDemographics')}
           </h2>
           <div className="space-y-4">
             {/* Customer Stats */}
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <p className="text-2xl font-bold text-gray-900">{customerDemographics.totalCustomers}</p>
-                <p className="text-xs text-gray-500">Total Customers</p>
+                <p className="text-xs text-gray-500">{t('totalCustomers')}</p>
               </div>
               <div className="text-center p-3 bg-emerald-50 rounded-lg">
                 <p className="text-2xl font-bold text-emerald-600">{customerDemographics.newCustomers}</p>
-                <p className="text-xs text-gray-500">First-time</p>
+                <p className="text-xs text-gray-500">{t('firstTimeLabel')}</p>
               </div>
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">{customerDemographics.returningCustomers}</p>
-                <p className="text-xs text-gray-500">Returning</p>
+                <p className="text-xs text-gray-500">{t('returningLabel')}</p>
               </div>
             </div>
             
@@ -484,19 +487,19 @@ export default function AnalyticsPage() {
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                Top Cities
+                {t('topCities')}
               </h3>
               {customerDemographics.topCities.length > 0 ? (
                 <div className="space-y-2">
                   {customerDemographics.topCities.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">{item.city}</span>
-                      <span className="font-medium text-gray-900">{item.orders} orders</span>
+                      <span className="font-medium text-gray-900">{item.orders} {t('orders')}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No geographic data yet</p>
+                <p className="text-sm text-gray-500">{t('noGeographicData')}</p>
               )}
             </div>
           </div>
@@ -506,7 +509,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Percent className="w-5 h-5 text-gray-400" />
-            Conversion Metrics
+            {t('conversionMetrics')}
           </h2>
           <div className="space-y-4">
             {/* Metrics Grid */}
@@ -514,31 +517,33 @@ export default function AnalyticsPage() {
               <div className="p-4 bg-orange-50 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <ShoppingBag className="w-4 h-4 text-orange-600" />
-                  <span className="text-xs font-medium text-orange-600">Abandoned Rate</span>
+                  <span className="text-xs font-medium text-orange-600">{t('abandonedRate')}</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">{conversionMetrics.abandonedRate}%</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {conversionMetrics.totalAbandoned} abandoned, {conversionMetrics.recoveredCarts} recovered
+                  {t('abandonedSubtext', { abandoned: conversionMetrics.totalAbandoned, recovered: conversionMetrics.recoveredCarts })}
                 </p>
               </div>
               <div className="p-4 bg-purple-50 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign className="w-4 h-4 text-purple-600" />
-                  <span className="text-xs font-medium text-purple-600">Avg Order Value</span>
+                  <span className="text-xs font-medium text-purple-600">{t('customerAvgOrderValue')}</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">{formatPrice(conversionMetrics.avgOrderValue)}</p>
-                <p className="text-xs text-gray-500 mt-1">Per paid order</p>
+                <p className="text-xs text-gray-500 mt-1">{t('avgOrderValueSubtext')}</p>
               </div>
             </div>
             
             {/* Quick Insights */}
             <div className="p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Quick Insights</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">{t('quickInsights')}</h3>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• {customerDemographics.totalCustomers > 0 
+                <li>• {t('returningCustomerRate', { 
+                  rate: customerDemographics.totalCustomers > 0 
                   ? Math.round((customerDemographics.returningCustomers / customerDemographics.totalCustomers) * 100) 
-                  : 0}% returning customer rate</li>
-                <li>• {conversionMetrics.recoveredCarts} recovered carts</li>
+                  : 0 
+                })}</li>
+                <li>• {t('recoveredCartsCount', { count: conversionMetrics.recoveredCarts })}</li>
               </ul>
             </div>
           </div>
@@ -549,25 +554,25 @@ export default function AnalyticsPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-gray-400" />
-          Recent Orders
+          {t('recentOrders')}
         </h2>
         {recentOrders.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-100">
-                  <th className="pb-3 font-medium">Order</th>
-                  <th className="pb-3 font-medium">Customer</th>
-                  <th className="pb-3 font-medium">Amount</th>
-                  <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium">Date</th>
+                  <th className="pb-3 font-medium">{t('order')}</th>
+                  <th className="pb-3 font-medium">{t('customerLabel')}</th>
+                  <th className="pb-3 font-medium">{t('amountLabel')}</th>
+                  <th className="pb-3 font-medium">{t('status')}</th>
+                  <th className="pb-3 font-medium">{t('date')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {recentOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="py-3 font-medium text-gray-900">#{order.orderNumber}</td>
-                    <td className="py-3 text-gray-600">{order.customerName || 'Guest'}</td>
+                    <td className="py-3 text-gray-600">{order.customerName || t('guestLabel')}</td>
                     <td className="py-3 font-medium text-gray-900">{formatPrice(order.total)}</td>
                     <td className="py-3">
                       <StatusBadge status={order.status || 'pending'} />
@@ -581,7 +586,7 @@ export default function AnalyticsPage() {
             </table>
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">No orders yet</p>
+          <p className="text-gray-500 text-center py-8">{t('noOrdersYet')}</p>
         )}
       </div>
     </div>

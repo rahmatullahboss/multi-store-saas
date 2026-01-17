@@ -183,6 +183,17 @@ export const store = {
   freeShippingAbove: 'Free Shipping Above',
   estimatedDeliveryTime: 'Estimated Delivery Time',
   regionsDistricts: 'Regions / Districts',
+  zoneNamePlaceholder: 'e.g., Dhaka City, Whole Bangladesh',
+  freeAbovePlaceholder: 'e.g., 2000',
+  estimatedDaysPlaceholder: 'e.g., 2-3 days',
+  regionsPlaceholder: 'e.g., Dhaka, Chittagong...',
+  createZone: 'Create Zone',
+  updateZone: 'Update Zone',
+  deleteZoneConfirm: 'Are you sure you want to delete this shipping zone?',
+  noShippingZones: 'No shipping zones set up yet',
+  addFirstZone: 'Add your first shipping zone',
+  free: 'Free',
+  freeAbove: 'Free above',
   shippingCost: 'Shipping Cost',
   
   // Discounts & Coupons
