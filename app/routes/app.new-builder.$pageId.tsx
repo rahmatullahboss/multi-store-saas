@@ -14,7 +14,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { requireAuth } from '~/lib/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { products } from '@db/schema';
+import { products, productVariants } from '@db/schema';
 import {
   getPageWithSections,
   listSections,
@@ -102,6 +102,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         businessInfo: store.businessInfo,
       },
       products: storeProducts,
+      product: null,
       isNew: true,
     });
   }
@@ -110,6 +111,47 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   
   if (!page) {
     throw new Response('Page not found', { status: 404 });
+  }
+  
+  // Fetch selected product details if productId is set
+  let selectedProduct: {
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    images: string[];
+    variants?: Array<{ id: number; name: string; price: number }>;
+  } | null = null;
+  
+  if (page.productId) {
+    const [productRow] = await odb.select().from(products).where(eq(products.id, page.productId)).limit(1);
+    if (productRow) {
+      // Fetch variants
+      const variantRows = await odb.select().from(productVariants).where(eq(productVariants.productId, page.productId));
+      
+      // Parse images
+      let parsedImages: string[] = [];
+      try {
+        if (productRow.images) {
+          parsedImages = typeof productRow.images === 'string' 
+            ? JSON.parse(productRow.images) 
+            : Array.isArray(productRow.images) ? productRow.images : [];
+        }
+      } catch { parsedImages = []; }
+      
+      selectedProduct = {
+        id: productRow.id,
+        title: productRow.title,
+        price: productRow.price,
+        compareAtPrice: productRow.compareAtPrice,
+        images: parsedImages,
+        variants: variantRows.map(v => ({
+          id: v.id,
+          name: [v.option1Value, v.option2Value, v.option3Value].filter(Boolean).join(' / ') || `Variant ${v.id}`,
+          price: v.price ?? productRow.price,
+        })),
+      };
+    }
   }
   
   return json({
@@ -130,6 +172,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       businessInfo: store.businessInfo,
     },
     products: storeProducts,
+    product: selectedProduct,
     isNew: false,
   });
 }
@@ -342,7 +385,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function NewBuilderPage() {
-  const { page, sections: initialSections, store, products, isNew } = useLoaderData<typeof loader>();
+  const { page, sections: initialSections, store, products, product, isNew } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<ActionData>();
   const navigate = useNavigate();
   
