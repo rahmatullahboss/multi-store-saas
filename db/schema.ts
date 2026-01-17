@@ -295,8 +295,8 @@ export const orders = sqliteTable('orders', {
 export const orderItems = sqliteTable('order_items', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id),
-  variantId: integer('variant_id').references(() => productVariants.id),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
+  variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'set null' }),
   title: text('title').notNull(),
   variantTitle: text('variant_title'), // e.g., "Red / Large"
   quantity: integer('quantity').notNull(),
@@ -706,7 +706,7 @@ export const emailCampaignsRelations = relations(emailCampaigns, ({ one }) => ({
 export const savedLandingConfigs = sqliteTable('saved_landing_configs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
   name: text('name').notNull(), // e.g., "Homepage Backup - Jan 2026"
   landingConfig: text('landing_config').notNull(), // Full JSON config
   offerSlug: text('offer_slug'), // Custom slug like "old-home"
@@ -741,7 +741,7 @@ export const publishedPages = sqliteTable('published_pages', {
 
   // Page identification
   pageType: text('page_type').$type<'landing' | 'product'>().default('landing'),
-  productId: integer('product_id').references(() => products.id), // For product-specific landing pages
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }), // For product-specific landing pages
 
   // Cached content
   htmlContent: text('html_content').notNull(), // Full rendered HTML

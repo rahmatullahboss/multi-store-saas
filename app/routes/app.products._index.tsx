@@ -16,7 +16,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link, Form, useNavigation, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, inArray, sql, and, like, count } from 'drizzle-orm';
-import { products, stores } from '@db/schema';
+import { products, stores, orderItems, savedLandingConfigs, publishedPages, productVariants, productCollections, reviews, orderBumps, upsellOffers } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
@@ -109,8 +109,39 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   switch (intent) {
     case 'delete':
-      await db.delete(products).where(inArray(products.id, productIds));
-      return json({ success: true, message: `${productIds.length} product(s) deleted` });
+      try {
+        // First, set null on orderItems productId references (preserve order history)
+        await db.update(orderItems)
+          .set({ productId: null })
+          .where(inArray(orderItems.productId, productIds));
+        
+        // Set null on savedLandingConfigs productId references
+        await db.update(savedLandingConfigs)
+          .set({ productId: null })
+          .where(inArray(savedLandingConfigs.productId, productIds));
+        
+        // Set null on publishedPages productId references
+        await db.update(publishedPages)
+          .set({ productId: null })
+          .where(inArray(publishedPages.productId, productIds));
+        
+        // Delete related records that have onDelete: 'cascade' defined
+        // (These should cascade but we delete explicitly to be safe)
+        await db.delete(productVariants).where(inArray(productVariants.productId, productIds));
+        await db.delete(productCollections).where(inArray(productCollections.productId, productIds));
+        await db.delete(reviews).where(inArray(reviews.productId, productIds));
+        await db.delete(orderBumps).where(inArray(orderBumps.productId, productIds));
+        await db.delete(upsellOffers).where(inArray(upsellOffers.productId, productIds));
+        
+        // Now delete the products
+        await db.delete(products).where(inArray(products.id, productIds));
+        return json({ success: true, message: `${productIds.length} product(s) deleted` });
+      } catch (error) {
+        console.error('Delete error:', error);
+        return json({ 
+          error: `Failed to delete products: ${error instanceof Error ? error.message : 'Unknown error'}` 
+        }, { status: 500 });
+      }
 
     case 'publish':
       await db.update(products).set({ isPublished: true }).where(inArray(products.id, productIds));

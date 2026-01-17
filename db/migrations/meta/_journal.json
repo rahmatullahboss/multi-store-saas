@@ -323,6 +323,13 @@
       "when": 1768491171098,
       "tag": "0045_dashing_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "6",
+      "when": 1768645263669,
+      "tag": "0046_material_legion",
+      "breakpoints": true
     }
   ]
 }
