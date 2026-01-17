@@ -44,6 +44,9 @@ export function SectionRenderer({
   // Sort by sortOrder
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
   
+  // Determine if we're in editor mode (onSelectSection is provided)
+  const isEditorMode = !!onSelectSection;
+  
   return (
     <div className="min-h-full">
       {sortedSections.map((section) => (
@@ -52,6 +55,7 @@ export function SectionRenderer({
           section={section}
           isActive={activeSectionId === section.id}
           onClick={() => onSelectSection?.(section.id)}
+          isEditorMode={isEditorMode}
         />
       ))}
       
@@ -68,10 +72,16 @@ interface SectionWrapperProps {
   section: BuilderSection;
   isActive: boolean;
   onClick: () => void;
+  isEditorMode: boolean;
 }
 
-function SectionWrapper({ section, isActive, onClick }: SectionWrapperProps) {
+function SectionWrapper({ section, isActive, onClick, isEditorMode }: SectionWrapperProps) {
   const meta = getSectionMeta(section.type);
+  
+  // Only apply editor styling when in editor mode
+  if (!isEditorMode) {
+    return <SectionContent section={section} />;
+  }
   
   return (
     <div
