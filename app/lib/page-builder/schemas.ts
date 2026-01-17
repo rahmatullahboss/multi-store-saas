@@ -529,6 +529,51 @@ export const StatsPropsSchema = z.object({
 export type StatsProps = z.infer<typeof StatsPropsSchema>;
 
 // ============================================================================
+// CONTACT SECTION - Contact form and information
+// ============================================================================
+export const ContactPropsSchema = z.object({
+  // Title
+  title: z.string().default('যোগাযোগ করুন'),
+  subtitle: z.string().optional().default('আমরা আপনার সেবায় সদা প্রস্তুত'),
+  
+  // Contact Information
+  showContactInfo: z.boolean().default(true),
+  phone: z.string().optional().default(''),
+  whatsapp: z.string().optional().default(''),
+  email: z.string().optional().default(''),
+  address: z.string().optional().default(''),
+  
+  // Business Hours
+  showHours: z.boolean().default(true),
+  hoursTitle: z.string().default('অফিস সময়'),
+  hours: z.string().default('সকাল ১০টা - রাত ১০টা (শুক্রবার বন্ধ)'),
+  
+  // Form Settings
+  showForm: z.boolean().default(true),
+  formTitle: z.string().default('মেসেজ পাঠান'),
+  nameLabel: z.string().default('নাম'),
+  phoneLabel: z.string().default('ফোন নম্বর'),
+  messageLabel: z.string().default('আপনার মেসেজ'),
+  submitButtonText: z.string().default('পাঠান'),
+  
+  // Layout
+  variant: z.enum(['split', 'stacked', 'form-only', 'info-only']).optional().default('split'),
+  
+  // Styling
+  bgColor: z.string().default('#F9FAFB'),
+  textColor: z.string().default('#111827'),
+  cardBgColor: z.string().default('#FFFFFF'),
+  accentColor: z.string().default('#6366F1'),
+  
+  // Social Links
+  showSocialLinks: z.boolean().default(true),
+  facebookUrl: z.string().optional().default(''),
+  instagramUrl: z.string().optional().default(''),
+  whatsappUrl: z.string().optional().default(''),
+});
+export type ContactProps = z.infer<typeof ContactPropsSchema>;
+
+// ============================================================================
 // FOOTER SECTION - Page footer with social links and contact info
 // ============================================================================
 const SocialLinkSchema = z.object({
@@ -592,6 +637,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'header': HeaderPropsSchema,
   'countdown': CountdownPropsSchema,
   'stats': StatsPropsSchema,
+  'contact': ContactPropsSchema,
   'footer': FooterPropsSchema,
 };
 

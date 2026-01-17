@@ -37,6 +37,7 @@ export type SectionType =
   | 'header'
   | 'countdown'
   | 'stats'
+  | 'contact'
   | 'footer';
 
 // ============================================================================

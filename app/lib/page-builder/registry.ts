@@ -29,6 +29,7 @@ import {
   HeaderPropsSchema,
   CountdownPropsSchema,
   StatsPropsSchema,
+  ContactPropsSchema,
   FooterPropsSchema,
   validateSectionProps,
 } from './schemas';
@@ -256,6 +257,16 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     icon: 'BarChart3',
     schema: StatsPropsSchema,
     defaultProps: StatsPropsSchema.parse({}),
+  },
+  'contact': {
+    type: 'contact',
+    name: 'যোগাযোগ',
+    nameEn: 'Contact',
+    description: 'ফোন, ঠিকানা ও মেসেজ ফর্ম',
+    descriptionEn: 'Phone, address and message form',
+    icon: 'MessageCircle',
+    schema: ContactPropsSchema,
+    defaultProps: ContactPropsSchema.parse({}),
   },
   'footer': {
     type: 'footer',
