@@ -495,11 +495,17 @@ export function CTASectionPreview({ props, theme, storeId, productId }: CTASecti
                       disabled={fetcher.state !== 'idle'}
                     />
                   </div>
+                  {/* Warning if no product linked */}
+                  {!productId && storeId && (
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm mb-2">
+                      ⚠️ এই পেজে কোনো প্রোডাক্ট সেট করা হয়নি। Page Builder থেকে প্রোডাক্ট সিলেক্ট করুন।
+                    </div>
+                  )}
                   
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={fetcher.state !== 'idle' || !storeId || !productId}
+                    disabled={fetcher.state !== 'idle' || !storeId}
                     className="w-full py-5 font-bold text-xl rounded-xl transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                     style={{ 
                       background: buttonBg,
