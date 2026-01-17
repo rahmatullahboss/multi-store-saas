@@ -29,6 +29,7 @@ import {
   createPage,
   initializePageWithDefaults,
 } from '~/lib/page-builder/actions.server';
+import { invalidatePageCache } from '~/lib/page-builder/cache.server';
 import { isValidSectionType, getSectionMeta, AVAILABLE_SECTIONS } from '~/lib/page-builder/registry';
 import type { BuilderSection, SectionType } from '~/lib/page-builder/types';
 import { BuilderLayout } from '~/components/page-builder/BuilderLayout';
@@ -300,6 +301,13 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           productId: productId ? Number(productId) : undefined,
         });
         
+        // CACHE INVALIDATION: Clear cached page when settings change
+        const kv = (context.cloudflare.env as any).STORE_CACHE as KVNamespace | undefined;
+        const updatedPage = await getPageWithSections(db, pageId, store.id);
+        if (updatedPage && kv) {
+          await invalidatePageCache(kv, store.id, updatedPage.slug);
+        }
+        
         return json({ success: true });
       }
       
@@ -307,6 +315,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       case 'publish': {
         const pageId = params.pageId as string;
         await publishPage(db, pageId, store.id);
+        
+        // CACHE INVALIDATION: Clear cached page when published (new content)
+        const kv = (context.cloudflare.env as any).STORE_CACHE as KVNamespace | undefined;
+        const publishedPage = await getPageWithSections(db, pageId, store.id);
+        if (publishedPage && kv) {
+          await invalidatePageCache(kv, store.id, publishedPage.slug);
+        }
+        
         return json({ success: true });
       }
       
