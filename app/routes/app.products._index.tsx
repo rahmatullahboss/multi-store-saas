@@ -511,13 +511,13 @@ export default function ProductsIndexPage() {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <StockBadge stock={product.inventory || 0} />
+                      <StockBadge stock={product.inventory || 0} lang={lang} />
                     </td>
                     <td className="px-4 py-4">
                       <span className="text-gray-600">{product.category || '—'}</span>
                     </td>
                     <td className="px-4 py-4">
-                      <StatusBadge published={product.isPublished ?? true} />
+                      <StatusBadge published={product.isPublished ?? true} lang={lang} />
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="inline-flex items-center gap-2">
@@ -597,11 +597,11 @@ export default function ProductsIndexPage() {
                           </span>
                         )}
                       </div>
-                      <StatusBadge published={product.isPublished ?? true} />
+                      <StatusBadge published={product.isPublished ?? true} lang={lang} />
                     </div>
                     <div className="mt-1 flex items-center gap-4 text-sm">
                       <span className="font-semibold text-gray-900">{formatPrice(product.price)}</span>
-                      <StockBadge stock={product.inventory || 0} />
+                      <StockBadge stock={product.inventory || 0} lang={lang} />
                     </div>
                     {product.category && (
                       <p className="mt-1 text-xs text-gray-500">{product.category}</p>
