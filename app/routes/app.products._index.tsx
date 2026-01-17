@@ -666,7 +666,10 @@ export default function ProductsIndexPage() {
 // ============================================================================
 // STATUS BADGE COMPONENT
 // ============================================================================
-function StatusBadge({ published }: { published: boolean }) {
+function StatusBadge({ published, lang }: { published: boolean; lang: string }) {
+  const label = published 
+    ? (lang === 'bn' ? 'প্রকাশিত' : 'Published') 
+    : (lang === 'bn' ? 'ড্রাফট' : 'Draft');
   return (
     <span
       className={`
@@ -676,8 +679,9 @@ function StatusBadge({ published }: { published: boolean }) {
           : 'bg-gray-100 text-gray-600'
         }
       `}
+      suppressHydrationWarning
     >
-      {published ? 'Published' : 'Draft'}
+      {label}
     </span>
   );
 }
@@ -685,21 +689,21 @@ function StatusBadge({ published }: { published: boolean }) {
 // ============================================================================
 // STOCK BADGE COMPONENT
 // ============================================================================
-function StockBadge({ stock }: { stock: number }) {
+function StockBadge({ stock, lang }: { stock: number; lang: string }) {
   if (stock <= 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full" suppressHydrationWarning>
         <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-        Out of stock
+        {lang === 'bn' ? 'স্টক নেই' : 'Out of stock'}
       </span>
     );
   }
   
   if (stock <= 5) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full" suppressHydrationWarning>
         <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
-        {stock} left
+        {lang === 'bn' ? `${stock}টি বাকি` : `${stock} left`}
       </span>
     );
   }

@@ -1340,6 +1340,136 @@ function renderPropsForm(
         </>
       );
     
+    case 'stats':
+      return (
+        <>
+          {/* Title */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📝 শিরোনাম</h5>
+            <TextField 
+              label="Title (Optional)" 
+              value={props.title as string || ''} 
+              onChange={(v) => updateProp('title', v)} 
+            />
+            <TextField 
+              label="Subtitle (Optional)" 
+              value={props.subtitle as string || ''} 
+              onChange={(v) => updateProp('subtitle', v)} 
+            />
+          </div>
+          
+          {/* Stats Items */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📊 পরিসংখ্যান</h5>
+            <ArrayField
+              label="Stats Items"
+              items={(props.stats as Array<{ value: number; suffix: string; prefix: string; label: string; icon: string }>) || []}
+              onAdd={() => addArrayItem('stats', { value: 0, suffix: '+', prefix: '', label: 'নতুন স্ট্যাট', icon: '📈' })}
+              onRemove={(i) => removeArrayItem('stats', i)}
+              renderItem={(item, index) => (
+                <div key={index} className="space-y-2 p-2 bg-gray-50 rounded">
+                  <div className="grid grid-cols-3 gap-2">
+                    <TextField 
+                      label="Icon" 
+                      value={item.icon || ''} 
+                      onChange={(v) => updateArrayItem('stats', index, { ...item, icon: v })} 
+                    />
+                    <NumberField 
+                      label="Value" 
+                      value={item.value || 0} 
+                      onChange={(v) => updateArrayItem('stats', index, { ...item, value: v })} 
+                    />
+                    <TextField 
+                      label="Suffix" 
+                      value={item.suffix || ''} 
+                      onChange={(v) => updateArrayItem('stats', index, { ...item, suffix: v })} 
+                    />
+                  </div>
+                  <TextField 
+                    label="Label" 
+                    value={item.label || ''} 
+                    onChange={(v) => updateArrayItem('stats', index, { ...item, label: v })} 
+                  />
+                </div>
+              )}
+            />
+          </div>
+          
+          {/* Display Options */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎛️ ডিসপ্লে</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Columns</label>
+              <select
+                value={props.columns as string || '4'}
+                onChange={(e) => updateProp('columns', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="2">2 Columns</option>
+                <option value="3">3 Columns</option>
+                <option value="4">4 Columns</option>
+              </select>
+            </div>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Value Size</label>
+              <select
+                value={props.valueFontSize as string || 'xl'}
+                onChange={(e) => updateProp('valueFontSize', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+                <option value="xl">Extra Large</option>
+                <option value="2xl">2X Large</option>
+              </select>
+            </div>
+            <ToggleField 
+              label="Show Icons" 
+              value={props.showIcons as boolean ?? true} 
+              onChange={(v) => updateProp('showIcons', v)} 
+            />
+            <ToggleField 
+              label="Animate on Scroll" 
+              value={props.animateOnScroll as boolean ?? true} 
+              onChange={(v) => updateProp('animateOnScroll', v)} 
+            />
+          </div>
+          
+          {/* Styling */}
+          <div>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎨 স্টাইল</h5>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Variant</label>
+              <select
+                value={props.variant as string || 'simple'}
+                onChange={(e) => updateProp('variant', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 outline-none"
+              >
+                <option value="simple">Simple</option>
+                <option value="cards">Cards</option>
+                <option value="highlight">Highlight</option>
+                <option value="minimal">Minimal</option>
+              </select>
+            </div>
+            <ColorPickerField 
+              label="Background Color" 
+              value={props.bgColor as string || '#F9FAFB'} 
+              onChange={(v) => updateProp('bgColor', v)} 
+            />
+            <ColorPickerField 
+              label="Text Color" 
+              value={props.textColor as string || '#111827'} 
+              onChange={(v) => updateProp('textColor', v)} 
+            />
+            <ColorPickerField 
+              label="Accent Color" 
+              value={props.accentColor as string || '#6366F1'} 
+              onChange={(v) => updateProp('accentColor', v)} 
+            />
+          </div>
+        </>
+      );
+    
     default:
       return (
         <div className="text-sm text-gray-500">

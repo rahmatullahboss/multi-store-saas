@@ -28,6 +28,7 @@ import {
   OrderButtonPropsSchema,
   HeaderPropsSchema,
   CountdownPropsSchema,
+  StatsPropsSchema,
   FooterPropsSchema,
   validateSectionProps,
 } from './schemas';
@@ -245,6 +246,16 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     icon: 'Timer',
     schema: CountdownPropsSchema,
     defaultProps: CountdownPropsSchema.parse({}),
+  },
+  'stats': {
+    type: 'stats',
+    name: 'পরিসংখ্যান',
+    nameEn: 'Stats Counter',
+    description: 'সন্তুষ্ট গ্রাহক ও অর্ডার সংখ্যা',
+    descriptionEn: 'Animated statistics counters',
+    icon: 'BarChart3',
+    schema: StatsPropsSchema,
+    defaultProps: StatsPropsSchema.parse({}),
   },
   'footer': {
     type: 'footer',

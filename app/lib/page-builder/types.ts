@@ -36,6 +36,7 @@ export type SectionType =
   | 'order-button'
   | 'header'
   | 'countdown'
+  | 'stats'
   | 'footer';
 
 // ============================================================================

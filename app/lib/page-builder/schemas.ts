@@ -491,6 +491,44 @@ export const CountdownPropsSchema = z.object({
 export type CountdownProps = z.infer<typeof CountdownPropsSchema>;
 
 // ============================================================================
+// STATS SECTION - Animated counter statistics
+// ============================================================================
+const StatItemSchema = z.object({
+  value: z.number().default(0),
+  suffix: z.string().optional().default(''), // e.g., '+', '%', 'K'
+  prefix: z.string().optional().default(''), // e.g., '৳'
+  label: z.string(),
+  icon: z.string().optional().default(''), // emoji or icon name
+});
+
+export const StatsPropsSchema = z.object({
+  // Title
+  title: z.string().optional().default(''),
+  subtitle: z.string().optional().default(''),
+  
+  // Stats Items
+  stats: z.array(StatItemSchema).default([
+    { value: 10000, suffix: '+', label: 'সন্তুষ্ট গ্রাহক', icon: '👥' },
+    { value: 50000, suffix: '+', label: 'অর্ডার ডেলিভারি', icon: '📦' },
+    { value: 4.9, suffix: '', label: 'গ্রাহক রেটিং', icon: '⭐' },
+    { value: 100, suffix: '%', label: 'অরিজিনাল প্রোডাক্ট', icon: '✓' },
+  ]),
+  
+  // Display Options
+  columns: z.enum(['2', '3', '4']).optional().default('4'),
+  animateOnScroll: z.boolean().default(true),
+  showIcons: z.boolean().default(true),
+  
+  // Styling
+  variant: z.enum(['simple', 'cards', 'highlight', 'minimal']).optional().default('simple'),
+  bgColor: z.string().default('#F9FAFB'),
+  textColor: z.string().default('#111827'),
+  accentColor: z.string().default('#6366F1'),
+  valueFontSize: z.enum(['md', 'lg', 'xl', '2xl']).optional().default('xl'),
+});
+export type StatsProps = z.infer<typeof StatsPropsSchema>;
+
+// ============================================================================
 // FOOTER SECTION - Page footer with social links and contact info
 // ============================================================================
 const SocialLinkSchema = z.object({
@@ -553,6 +591,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'order-button': OrderButtonPropsSchema,
   'header': HeaderPropsSchema,
   'countdown': CountdownPropsSchema,
+  'stats': StatsPropsSchema,
   'footer': FooterPropsSchema,
 };
 

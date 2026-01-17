@@ -29,6 +29,7 @@ import { CustomHtmlSectionPreview } from './sections/CustomHtmlSectionPreview';
 import { OrderButtonSectionPreview } from './sections/OrderButtonSectionPreview';
 import { HeaderSectionPreview } from './sections/HeaderSectionPreview';
 import { CountdownSectionPreview } from './sections/CountdownSectionPreview';
+import { StatsSectionPreview } from './sections/StatsSectionPreview';
 import { FooterSectionPreview } from './sections/FooterSectionPreview';
 import { PlaceholderSection } from './sections/PlaceholderSection';
 
@@ -187,6 +188,8 @@ function SectionContent({ section, storeId, productId, product }: SectionContent
       return <HeaderSectionPreview props={props} />;
     case 'countdown':
       return <CountdownSectionPreview props={props} />;
+    case 'stats':
+      return <StatsSectionPreview props={props} />;
     case 'footer':
       return <FooterSectionPreview props={props} />;
     default:
