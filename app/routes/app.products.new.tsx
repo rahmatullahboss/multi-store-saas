@@ -404,6 +404,7 @@ export default function NewProductPage() {
               type="text"
               id="title"
               name="title"
+              required
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
@@ -426,6 +427,7 @@ export default function NewProductPage() {
                 name="price"
                 step="0.01"
                 min="0"
+                required
                 value={formPrice}
                 onChange={(e) => setFormPrice(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
@@ -444,6 +446,8 @@ export default function NewProductPage() {
                 id="stock"
                 name="stock"
                 min="0"
+                required
+                defaultValue="0"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="0"
               />
