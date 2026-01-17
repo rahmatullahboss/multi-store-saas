@@ -99,9 +99,12 @@ import { MinimalLightTemplate } from '~/components/templates/minimal-light';
 import { VideoFocusTemplate } from '~/components/templates/video-focus';
 import { ModernPremiumTemplate } from '~/components/templates/modern-premium';
 import { QuickStartTemplate } from '~/components/templates/quick-start';
-
-
-
+// New Unique Templates
+import { TrustFirstTemplate } from '~/components/templates/trust-first';
+import { StoryDrivenTemplate } from '~/components/templates/story-driven';
+import { MinimalCleanTemplate } from '~/components/templates/minimal-clean';
+import { SocialProofTemplate } from '~/components/templates/social-proof';
+import { UrgencyScarcityTemplate } from '~/components/templates/urgency-scarcity';
 
 
 
@@ -192,7 +195,44 @@ export const TEMPLATES: TemplateDefinition[] = [
     thumbnail: '/templates/quick-start.png',
     component: QuickStartTemplate,
   },
-
+  // ============================================================================
+  // NEW UNIQUE TEMPLATES - Completely different designs
+  // ============================================================================
+  {
+    id: 'trust-first',
+    name: '💚 Trust First (Testimonial Heavy)',
+    description: 'Testimonial-focused design with floating review cards, before/after sections, and customer photos. Perfect for health & beauty products.',
+    thumbnail: '/templates/trust-first.png',
+    component: TrustFirstTemplate,
+  },
+  {
+    id: 'story-driven',
+    name: '📖 Story Driven (Emotional)',
+    description: 'Long-form storytelling layout with warm colors and personal narrative. Perfect for products that solve personal problems.',
+    thumbnail: '/templates/story-driven.png',
+    component: StoryDrivenTemplate,
+  },
+  {
+    id: 'minimal-clean',
+    name: '⬜ Minimal Clean (Apple-like)',
+    description: 'Ultra minimal black/white design with massive typography and lots of whitespace. Perfect for premium, simple products.',
+    thumbnail: '/templates/minimal-clean.png',
+    component: MinimalCleanTemplate,
+  },
+  {
+    id: 'social-proof',
+    name: '👥 Social Proof (Facebook Style)',
+    description: 'Facebook/WhatsApp inspired design with chat bubbles, comments, and social reactions. Familiar and trustworthy feel.',
+    thumbnail: '/templates/social-proof.png',
+    component: SocialProofTemplate,
+  },
+  {
+    id: 'urgency-scarcity',
+    name: '🚨 Urgency & Scarcity (FOMO)',
+    description: 'High-pressure design with countdowns, stock warnings, and live viewer counts. Dark dramatic theme for flash sales.',
+    thumbnail: '/templates/urgency-scarcity.png',
+    component: UrgencyScarcityTemplate,
+  },
 ];
 
 // ============================================================================
