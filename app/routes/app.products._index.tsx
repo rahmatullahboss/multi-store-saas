@@ -17,6 +17,7 @@ import { useLoaderData, Link, Form, useNavigation, useSearchParams } from '@remi
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, inArray, sql, and, like, count, or } from 'drizzle-orm';
 import { products, stores, orderItems, savedLandingConfigs, publishedPages, productVariants, productCollections, reviews, orderBumps, upsellOffers, productRecommendations } from '@db/schema';
+import { builderPages } from '@db/schema_page_builder';
 import { getStoreId } from '~/services/auth.server';
 import { 
   Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
@@ -124,6 +125,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
         await db.update(publishedPages)
           .set({ productId: null })
           .where(inArray(publishedPages.productId, productIds));
+        
+        // Set null on builderPages productId references (new page builder)
+        await db.update(builderPages)
+          .set({ productId: null })
+          .where(inArray(builderPages.productId, productIds));
         
         // Delete related records that have onDelete: 'cascade' defined
         // (These should cascade but we delete explicitly to be safe)

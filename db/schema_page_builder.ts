@@ -24,7 +24,7 @@ export const builderPages = sqliteTable('builder_pages', {
   title: text('title'), // Display title
   
   // Featured product (for landing pages)
-  productId: integer('product_id').references(() => products.id),
+  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
   
   // Status
   status: text('status').$type<'draft' | 'published'>().default('draft'),
