@@ -5,33 +5,28 @@ import { RovoLayout } from './RovoLayout';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 
 export function RovoTemplate(props: StoreTemplateProps) {
-  // Use config or defaults
   const sections = props.config?.sections || [];
+  const filteredCategories = props.categories.filter((c): c is string => c !== null);
 
   return (
     <RovoLayout {...props}>
       <RovoHeader 
         storeName={props.storeName} 
         logo={props.logo} 
-        categories={props.categories}
-        currentCategory={props.currentCategory}
+        categories={filteredCategories}
+        currentCategory={props.currentCategory || null}
         socialLinks={props.socialLinks}
       />
       
       <main className="min-h-screen">
         {sections.length > 0 ? (
-          // Render configured sections
-          sections.map((section: any, index: number) => (
-            <SectionRenderer 
-              key={section.id || index} 
-              section={section} 
-              products={props.products}
-              categories={props.categories}
-              storeId={props.storeId}
-            />
-          ))
+          <SectionRenderer 
+            sections={sections} 
+            products={props.products}
+            categories={filteredCategories}
+            storeId={props.storeId}
+          />
         ) : (
-          // Default empty state or placeholder
           <div className="py-20 text-center">
             <h2 className="text-2xl font-bold">Welcome to {props.storeName}</h2>
             <p className="text-gray-500 mt-2">Configure your sections in the editor.</p>
@@ -44,7 +39,7 @@ export function RovoTemplate(props: StoreTemplateProps) {
         logo={props.logo}
         businessInfo={props.businessInfo}
         socialLinks={props.socialLinks}
-        categories={props.categories}
+        categories={filteredCategories}
       />
     </RovoLayout>
   );

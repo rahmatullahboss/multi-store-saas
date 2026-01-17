@@ -447,6 +447,24 @@ export default function ProductDetail() {
   const isDaraz = storeTemplateId === 'daraz';
   const isBDShop = storeTemplateId === 'bdshop';
   const isGhorerBazar = storeTemplateId === 'ghorer-bazar';
+  const isRovo = storeTemplateId === 'rovo';
+  
+  // =========== Rovo Theme Product Detail ===========
+  if (isRovo) {
+    return (
+      <RovoProductDetail 
+        product={product}
+        relatedProducts={relatedProducts}
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        categories={categories}
+      />
+    );
+  }
   
   // Template-aware styling
   const cardBg = isDaraz 
