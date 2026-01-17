@@ -12,6 +12,7 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { getPageFromCache, cachePageData } from '~/lib/page-builder/cache.server';
 import { getPublishedPageBySlug } from '~/lib/page-builder/actions.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
+import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
 import { OzzylBranding } from '~/components/OzzylBranding';
 
 // ============================================================================
@@ -26,6 +27,17 @@ interface LoaderData {
     seoTitle?: string | null;
     seoDescription?: string | null;
     ogImage?: string | null;
+    // Floating button settings
+    whatsappEnabled?: number | null;
+    whatsappNumber?: string | null;
+    whatsappMessage?: string | null;
+    callEnabled?: number | null;
+    callNumber?: string | null;
+    orderEnabled?: number | null;
+    orderText?: string | null;
+    orderBgColor?: string | null;
+    orderTextColor?: string | null;
+    buttonPosition?: string | null;
   };
   sections: Array<{
     id: string;
@@ -123,6 +135,17 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       seoTitle: page.seoTitle,
       seoDescription: page.seoDescription,
       ogImage: page.ogImage,
+      // Floating button settings
+      whatsappEnabled: page.whatsappEnabled,
+      whatsappNumber: page.whatsappNumber,
+      whatsappMessage: page.whatsappMessage,
+      callEnabled: page.callEnabled,
+      callNumber: page.callNumber,
+      orderEnabled: page.orderEnabled,
+      orderText: page.orderText,
+      orderBgColor: page.orderBgColor,
+      orderTextColor: page.orderTextColor,
+      buttonPosition: page.buttonPosition,
     },
     sections: page.sections.map((s: { id: string; type: string; enabled: boolean; sortOrder: number; props: Record<string, unknown> }) => ({
       id: s.id,
@@ -158,6 +181,20 @@ export default function PublicOfferPage() {
       <SectionRenderer
         sections={visibleSections as any}
         activeSectionId={null}
+      />
+      
+      {/* Floating Action Buttons - WhatsApp, Call, Order */}
+      <FloatingActionButtons
+        whatsappEnabled={page.whatsappEnabled === 1}
+        whatsappNumber={page.whatsappNumber || ''}
+        whatsappMessage={page.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।'}
+        callEnabled={page.callEnabled === 1}
+        callNumber={page.callNumber || ''}
+        orderEnabled={page.orderEnabled === 1 || page.orderEnabled === undefined || page.orderEnabled === null}
+        orderText={page.orderText || 'অর্ডার করুন'}
+        orderBgColor={page.orderBgColor || '#6366F1'}
+        orderTextColor={page.orderTextColor || '#FFFFFF'}
+        position={(page.buttonPosition || 'bottom-right') as 'bottom-right' | 'bottom-left' | 'bottom-center'}
       />
       
       {/* Powered by Ozzyl - Non-removable branding */}
