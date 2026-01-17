@@ -47,6 +47,8 @@ export function FeaturesSectionPreview({ props, theme }: FeaturesSectionPreviewP
   const finalTextColor = textColor || defaultTextColor;
   const finalHeadingColor = headingColor || textColor || defaultTextColor;
   
+  const { variant = 'grid' } = props as FeaturesProps & { variant?: 'grid' | 'bento' | 'cards' };
+
   return (
     <section 
       className="py-12 px-6" 
@@ -58,40 +60,68 @@ export function FeaturesSectionPreview({ props, theme }: FeaturesSectionPreviewP
         paddingBottom: sectionStyle.paddingBottom,
       }}
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {title && (
           <h2 
-            className="text-2xl font-bold text-center mb-8"
+            className="text-2xl md:text-4xl font-bold text-center mb-12"
             style={{ color: finalHeadingColor, ...headingStyle }}
           >
             {title}
           </h2>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <div 
-              key={index} 
-              className="text-center p-6 rounded-xl transition-all hover:-translate-y-1"
-              style={{ backgroundColor: cardBg }}
-            >
-              <div 
-                className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center text-2xl"
-                style={{ backgroundColor: primaryColor, color: '#FFFFFF' }}
-              >
-                {feature.icon}
-              </div>
-              <h3 
-                className="text-lg font-semibold mb-2"
-                style={{ color: finalTextColor }}
-              >
-                {feature.title}
-              </h3>
-              <p className="text-sm" style={{ color: mutedColor }}>
-                {feature.description}
-              </p>
-            </div>
-          ))}
+        <div className={`grid gap-6 ${
+            variant === 'bento' ? 'grid-cols-1 md:grid-cols-3 auto-rows-[200px]' : 
+            variant === 'cards' ? 'grid-cols-1 md:grid-cols-3' : 
+            'grid-cols-1 md:grid-cols-3'
+        }`}>
+          {features.map((feature, index) => {
+            const isBentoLarge = variant === 'bento' && (index === 0 || index === 3);
+            
+            return (
+                <div 
+                  key={index} 
+                  className={`
+                    rounded-2xl transition-all hover:-translate-y-1 relative overflow-hidden group
+                    ${variant === 'bento' ? (isBentoLarge ? 'md:col-span-2 md:row-span-2 p-8 flex flex-col justify-end' : 'p-6 flex flex-col justify-center') : 'p-8 text-center'}
+                    ${variant === 'cards' ? 'shadow-lg hover:shadow-2xl border border-transparent hover:border-indigo-500/30' : ''}
+                  `}
+                  style={{ 
+                    backgroundColor: cardBg,
+                    // For bento, we might want slightly different vibes per card
+                  }}
+                >
+                    {/* Glow effect for cards variant */}
+                    {variant === 'cards' && (
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    )}
+
+                  <div 
+                    className={`
+                        mb-4 rounded-xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110
+                        ${isBentoLarge ? 'w-16 h-16 text-3xl mb-6' : 'w-14 h-14 mx-auto'}
+                    `}
+                    style={{ backgroundColor: primaryColor, color: '#FFFFFF' }}
+                  >
+                    {feature.icon}
+                  </div>
+                  
+                  <h3 
+                    className={`font-bold mb-2 ${isBentoLarge ? 'text-3xl' : 'text-xl'}`}
+                    style={{ color: finalTextColor }}
+                  >
+                    {feature.title}
+                  </h3>
+                  
+                  <p 
+                    className={`text-sm leading-relaxed ${isBentoLarge ? 'text-lg opacity-90' : 'opacity-80'}`} 
+                    style={{ color: mutedColor }}
+                  >
+                    {feature.description}
+                  </p>
+                </div>
+            );
+          })}
         </div>
         
         {features.length === 0 && (

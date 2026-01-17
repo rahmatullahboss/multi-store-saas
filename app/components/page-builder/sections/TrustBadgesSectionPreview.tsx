@@ -39,12 +39,15 @@ export function TrustBadgesSectionPreview({ props, theme }: TrustBadgesSectionPr
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
   const headingStyle = getHeadingStyle({ headingColor, textColor });
   
+  // Final colors (per-section overrides theme)
   const finalTextColor = textColor || defaultTextColor;
   const finalHeadingColor = headingColor || textColor || defaultTextColor;
   
+  const { variant = 'grid' } = props as TrustBadgesProps & { variant?: 'grid' | 'marquee' };
+
   return (
     <section 
-      className="py-6 px-6"
+      className={`py-8 px-6 overflow-hidden ${variant === 'marquee' ? 'relative' : ''}`}
       style={{
         backgroundColor: sectionStyle.backgroundColor || defaultBgColor,
         background: sectionStyle.background,
@@ -55,33 +58,72 @@ export function TrustBadgesSectionPreview({ props, theme }: TrustBadgesSectionPr
         borderBottom: `1px solid ${borderColor}`,
       }}
     >
-      <div className="max-w-4xl mx-auto">
+      <div className={variant === 'marquee' ? 'w-full' : 'max-w-4xl mx-auto'}>
         {title && (
           <h3 
-            className="text-lg font-semibold text-center mb-4"
+            className="text-lg font-semibold text-center mb-6"
             style={{ color: finalHeadingColor, ...headingStyle }}
           >
             {title}
           </h3>
         )}
         
-        <div className="flex flex-wrap justify-center gap-6">
-          {badges.map((badge, index) => (
-            <div 
-              key={index}
-              className="flex items-center gap-2"
-              style={{ color: finalTextColor }}
-            >
-              <span 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm"
-                style={{ backgroundColor: iconBg }}
-              >
-                {badge.icon}
-              </span>
-              <span className="text-sm font-medium">{badge.text}</span>
+        {variant === 'marquee' ? (
+             <div className="relative w-full flex overflow-x-hidden group">
+                 <div className="animate-marquee whitespace-nowrap flex gap-12 items-center">
+                    {/* Double the list for seamless loop */}
+                    {[...badges, ...badges, ...badges].map((badge, index) => (
+                        <div 
+                        key={index}
+                        className="flex items-center gap-3 mx-4"
+                        style={{ color: finalTextColor }}
+                        >
+                            <span 
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg shadow-sm"
+                                style={{ backgroundColor: iconBg }}
+                            >
+                                {badge.icon}
+                            </span>
+                            <span className="text-base font-medium whitespace-nowrap">{badge.text}</span>
+                        </div>
+                    ))}
+                 </div>
+                 
+                 {/* Duplicate for seamless effect if needed by CSS animation, 
+                     but standard Tailwind 'animate-marquee' usually needs manually extended content or a second div. 
+                     Let's stick to a simple overflow approach for now or assume a global animate-marquee exists.
+                     If not, we'll use a style tag injection for safety.
+                 */}
+                 <style dangerouslySetInnerHTML={{__html: `
+                    @keyframes marquee {
+                        0% { transform: translateX(0); }
+                        100% { transform: translateX(-50%); }
+                    }
+                    .animate-marquee {
+                        display: flex;
+                        animation: marquee 20s linear infinite;
+                    }
+                 `}} />
+             </div>
+        ) : (
+            <div className="flex flex-wrap justify-center gap-6">
+            {badges.map((badge, index) => (
+                <div 
+                key={index}
+                className="flex items-center gap-2"
+                style={{ color: finalTextColor }}
+                >
+                <span 
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm"
+                    style={{ backgroundColor: iconBg }}
+                >
+                    {badge.icon}
+                </span>
+                <span className="text-sm font-medium">{badge.text}</span>
+                </div>
+            ))}
             </div>
-          ))}
-        </div>
+        )}
         
         {badges.length === 0 && (
           <p className="text-center py-4" style={{ color: theme?.mutedTextColor || '#9CA3AF' }}>

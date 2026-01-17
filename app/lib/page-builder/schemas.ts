@@ -134,6 +134,7 @@ export const HeroPropsSchema = z.object({
   badgeText: z.string().optional(),
   priceLabel: z.string().optional(),
   backgroundImage: z.string().optional(),
+  variant: z.enum(['centered', 'split-left', 'split-right', 'glow', 'modern']).optional().default('centered'),
   features: z.array(z.object({
     icon: z.string(),
     text: z.string(),
@@ -155,6 +156,7 @@ export const FeaturesPropsSchema = z.object({
     { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনে ডেলিভারি' },
     { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'পছন্দ না হলে ফেরত' },
   ]),
+  variant: z.enum(['grid', 'bento', 'cards']).optional().default('grid'),
 });
 export type FeaturesProps = z.infer<typeof FeaturesPropsSchema>;
 
@@ -265,10 +267,10 @@ export const TrustBadgesPropsSchema = z.object({
     icon: z.string(),
     text: z.string(),
   })).default([
-    { icon: '✅', text: 'অরিজিনাল প্রোডাক্ট' },
     { icon: '🚚', text: 'দ্রুত ডেলিভারি' },
     { icon: '🔒', text: 'নিরাপদ পেমেন্ট' },
   ]),
+  variant: z.enum(['grid', 'marquee']).optional().default('grid'),
 });
 export type TrustBadgesProps = z.infer<typeof TrustBadgesPropsSchema>;
 
