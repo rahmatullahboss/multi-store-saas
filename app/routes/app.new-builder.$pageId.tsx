@@ -324,8 +324,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         const orderBgColor = formData.get('orderBgColor') as string;
         const orderTextColor = formData.get('orderTextColor') as string;
         const buttonPosition = formData.get('buttonPosition') as 'bottom-right' | 'bottom-left' | 'bottom-center';
-        // Product
-        const productId = formData.get('productId');
+        // Product - handle empty string as null, otherwise convert to number
+        const productId = formData.get('productId') as string | null;
+        const productIdParsed = productId && productId.trim() !== '' ? Number(productId) : null;
         
         await updatePageSettings(db, pageId, store.id, {
           title: title || undefined,
@@ -341,7 +342,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           orderBgColor: orderBgColor || undefined,
           orderTextColor: orderTextColor || undefined,
           buttonPosition: buttonPosition || undefined,
-          productId: productId ? Number(productId) : undefined,
+          // Only update productId if it was explicitly provided in the form
+          ...(productId !== null ? { productId: productIdParsed } : {}),
         });
         
         // CACHE INVALIDATION: Clear cached page when settings change
@@ -561,6 +563,17 @@ export default function NewBuilderPage() {
     );
   }, [fetcher]);
   
+  // Handle product ID change (page-level) - persists productId when product is selected in CTA
+  const handleProductIdChange = useCallback((productId: number | null) => {
+    fetcher.submit(
+      { 
+        intent: 'update-settings',
+        productId: productId !== null ? String(productId) : '',
+      },
+      { method: 'post' }
+    );
+  }, [fetcher]);
+  
   // Redirect after page creation
   if (fetcher.data?.success && fetcher.data?.pageId && isNew) {
     navigate(`/app/new-builder/${fetcher.data.pageId}`, { replace: true });
@@ -600,6 +613,7 @@ export default function NewBuilderPage() {
       canUndo={canUndo}
       canRedo={canRedo}
       onSaveSettings={handleSaveSettings}
+      onProductIdChange={handleProductIdChange}
     />
   );
 }

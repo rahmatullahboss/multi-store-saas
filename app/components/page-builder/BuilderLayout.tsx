@@ -105,6 +105,8 @@ interface BuilderLayoutProps {
   canRedo?: boolean;
   // Settings save
   onSaveSettings?: (settings: Record<string, unknown>) => void;
+  // Product ID save (page-level) - when product is selected in CTA section
+  onProductIdChange?: (productId: number | null) => void;
 }
 
 export function BuilderLayout({
@@ -132,6 +134,7 @@ export function BuilderLayout({
   canUndo = false,
   canRedo = false,
   onSaveSettings,
+  onProductIdChange,
 }: BuilderLayoutProps) {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -372,6 +375,7 @@ export function BuilderLayout({
               onClose={() => onSelectSection(null)}
               products={products}
               onProductChange={notifyProductUpdate}
+              onProductIdChange={onProductIdChange}
             />
           </div>
         )}

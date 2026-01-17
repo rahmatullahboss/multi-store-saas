@@ -63,9 +63,11 @@ interface PropertiesPanelProps {
   onClose: () => void;
   products?: Product[];
   onProductChange?: (product: Product | null) => void;
+  // Callback to persist page-level productId when product is selected in CTA section
+  onProductIdChange?: (productId: number | null) => void;
 }
 
-export function PropertiesPanel({ section, onUpdate, onClose, products = [], onProductChange }: PropertiesPanelProps) {
+export function PropertiesPanel({ section, onUpdate, onClose, products = [], onProductChange, onProductIdChange }: PropertiesPanelProps) {
   const [localProps, setLocalProps] = useState<Record<string, unknown>>(section.props);
   const meta = getSectionMeta(section.type);
   
@@ -125,7 +127,7 @@ export function PropertiesPanel({ section, onUpdate, onClose, products = [], onP
       
       {/* Dynamic Form */}
       <div className="space-y-4">
-        {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem, products, onProductChange)}
+        {renderPropsForm(section.type, localProps, updateProp, updateArrayItem, addArrayItem, removeArrayItem, products, onProductChange, onProductIdChange)}
       </div>
       
       {/* Section Styling Panel */}
@@ -143,7 +145,8 @@ function renderPropsForm(
   addArrayItem: (key: string, template: unknown) => void,
   removeArrayItem: (key: string, index: number) => void,
   products: Product[] = [],
-  onProductChange?: (product: Product | null) => void
+  onProductChange?: (product: Product | null) => void,
+  onProductIdChange?: (productId: number | null) => void
 ) {
   switch (type) {
     case 'hero':
@@ -323,6 +326,7 @@ function renderPropsForm(
         if (productId === null) {
           updateProp('productId', null);
           onProductChange?.(null); // Notify for real-time preview
+          onProductIdChange?.(null); // Persist to page-level productId
           return;
         }
         const product = products.find(p => p.id === productId);
@@ -346,6 +350,8 @@ function renderPropsForm(
           
           // Notify for real-time preview
           onProductChange?.(product);
+          // Persist to page-level productId (critical for production rendering)
+          onProductIdChange?.(product.id);
         }
       };
       
