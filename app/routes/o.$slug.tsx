@@ -128,15 +128,23 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   if (cached && cached.page.status === 'published') {
     // Type assertion for cached page which may have storeId/productId from cache
     const cachedPage = cached.page as typeof cached.page & { storeId?: number; productId?: number | null };
-    const cachedProductId = cachedPage.productId;
+    
+    // Determine productId - check page-level first, then fallback to CTA section props
+    let cachedEffectiveProductId = cachedPage.productId;
+    if (!cachedEffectiveProductId) {
+      const ctaSection = cached.sections?.find(s => s.type === 'cta');
+      if (ctaSection && ctaSection.props && typeof ctaSection.props.productId === 'number') {
+        cachedEffectiveProductId = ctaSection.props.productId;
+      }
+    }
     
     // Even for cached pages, fetch fresh product data if productId exists
     let cachedProductData: LoaderData['product'] = null;
-    if (cachedProductId) {
+    if (cachedEffectiveProductId) {
       const drizzleDb = drizzle(db);
-      const [productRow] = await drizzleDb.select().from(products).where(eq(products.id, cachedProductId)).limit(1);
+      const [productRow] = await drizzleDb.select().from(products).where(eq(products.id, cachedEffectiveProductId)).limit(1);
       if (productRow) {
-        const variantRows = await drizzleDb.select().from(productVariants).where(eq(productVariants.productId, cachedProductId));
+        const variantRows = await drizzleDb.select().from(productVariants).where(eq(productVariants.productId, cachedEffectiveProductId));
         let parsedImages: string[] = [];
         try {
           if (productRow.images) {
@@ -186,16 +194,27 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   // Cache for next request
   await cachePageData(kv, storeId, slug, page);
   
-  // Fetch product details if productId is set
+  // Determine productId - check page-level first, then fallback to CTA section props
+  let effectiveProductId = page.productId;
+  
+  if (!effectiveProductId) {
+    // Check CTA section for productId in props
+    const ctaSection = page.sections?.find(s => s.type === 'cta');
+    if (ctaSection && ctaSection.props && typeof ctaSection.props.productId === 'number') {
+      effectiveProductId = ctaSection.props.productId;
+    }
+  }
+  
+  // Fetch product details if productId is set (from page or section)
   let productData: LoaderData['product'] = null;
-  if (page.productId) {
+  if (effectiveProductId) {
     const drizzleDb = drizzle(db);
     
     // Fetch product
     const [productRow] = await drizzleDb
       .select()
       .from(products)
-      .where(eq(products.id, page.productId))
+      .where(eq(products.id, effectiveProductId))
       .limit(1);
     
     if (productRow) {
@@ -203,7 +222,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       const variantRows = await drizzleDb
         .select()
         .from(productVariants)
-        .where(eq(productVariants.productId, page.productId));
+        .where(eq(productVariants.productId, effectiveProductId));
       
       // Parse images from JSON string
       let parsedImages: string[] = [];
