@@ -18,7 +18,7 @@ import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { 
   ShoppingCart, Clock, Package, Truck, CheckCircle, XCircle, 
-  Phone, Eye, DollarSign, ThumbsUp, Loader2, ChevronDown
+  Phone, Eye, DollarSign, ThumbsUp, Loader2, ChevronDown, Shield
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
@@ -77,7 +77,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
-// ACTION - Update order status inline
+// ACTION - Update order status inline + Fraud Check
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -86,7 +86,80 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const formData = await request.formData();
+  const intent = formData.get('intent') as string;
   const orderId = parseInt(formData.get('orderId') as string);
+
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // ========================================================================
+  // FRAUD_CHECK - Check customer fraud risk and auto-confirm if low risk
+  // ========================================================================
+  if (intent === 'FRAUD_CHECK') {
+    if (!orderId) {
+      return json({ error: 'Order ID required' }, { status: 400 });
+    }
+
+    try {
+      // Get order details
+      const orderResult = await db
+        .select({ 
+          id: orders.id, 
+          customerPhone: orders.customerPhone,
+          status: orders.status 
+        })
+        .from(orders)
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+        .limit(1);
+
+      if (!orderResult[0]) {
+        return json({ error: 'Order not found' }, { status: 404 });
+      }
+
+      const order = orderResult[0];
+
+      // Import and use checkCustomerRisk
+      const { checkCustomerRisk } = await import('~/services/steadfast.server');
+      const riskResult = await checkCustomerRisk(order.customerPhone || '', db, storeId);
+
+      // Auto-confirm if success rate >= 80% and order is pending
+      let autoConfirmed = false;
+      if (riskResult.successRate >= 80 && order.status === 'pending') {
+        await db
+          .update(orders)
+          .set({ 
+            status: 'confirmed',
+            updatedAt: new Date() 
+          })
+          .where(eq(orders.id, orderId));
+        autoConfirmed = true;
+      }
+
+      return json({
+        success: true,
+        intent: 'FRAUD_CHECK',
+        orderId,
+        riskResult: {
+          successRate: riskResult.successRate,
+          totalOrders: riskResult.totalOrders,
+          deliveredOrders: riskResult.deliveredOrders,
+          returnedOrders: riskResult.returnedOrders,
+          isHighRisk: riskResult.isHighRisk,
+          riskScore: riskResult.riskScore,
+        },
+        autoConfirmed,
+        newStatus: autoConfirmed ? 'confirmed' : order.status,
+      });
+    } catch (error) {
+      console.error('Fraud check error:', error);
+      return json({ 
+        error: error instanceof Error ? error.message : 'Fraud check failed' 
+      }, { status: 500 });
+    }
+  }
+
+  // ========================================================================
+  // Default: Update order status
+  // ========================================================================
   const status = formData.get('status') as string;
 
   if (!orderId) {
@@ -96,8 +169,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
     return json({ error: 'Invalid status' }, { status: 400 });
   }
-
-  const db = drizzle(context.cloudflare.env.DB);
 
   // Verify order belongs to this store
   const orderResult = await db
@@ -366,13 +437,16 @@ export default function DashboardOrdersPage() {
                       <StatusDropdown orderId={order.id} currentStatus={order.status || 'pending'} />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        to={`/app/orders/${order.id}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
-                      >
-                        <Eye className="w-4 h-4" />
-                        {t('view')}
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <FraudCheckButton orderId={order.id} currentStatus={order.status || 'pending'} />
+                        <Link
+                          to={`/app/orders/${order.id}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
+                        >
+                          <Eye className="w-4 h-4" />
+                          {t('view')}
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -529,5 +603,78 @@ function StatusBadge({ status }: { status: string }) {
       <Icon className="w-3.5 h-3.5" />
       {t(config.labelKey)}
     </span>
+  );
+}
+
+// ============================================================================
+// FRAUD CHECK BUTTON COMPONENT
+// ============================================================================
+interface FraudCheckResult {
+  successRate: number;
+  totalOrders: number;
+  deliveredOrders: number;
+  returnedOrders: number;
+  isHighRisk: boolean;
+}
+
+function FraudCheckButton({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
+  const fetcher = useFetcher<{ 
+    success?: boolean; 
+    riskResult?: FraudCheckResult; 
+    autoConfirmed?: boolean;
+    error?: string;
+  }>();
+  const [showResult, setShowResult] = useState(false);
+  const isChecking = fetcher.state !== 'idle';
+  
+  // Only show for pending orders (most useful for pending)
+  const showButton = ['pending', 'confirmed'].includes(currentStatus);
+  
+  const handleCheck = () => {
+    fetcher.submit(
+      { intent: 'FRAUD_CHECK', orderId: String(orderId) },
+      { method: 'POST' }
+    );
+    setShowResult(true);
+  };
+  
+  // If we have a result
+  if (fetcher.data?.success && showResult) {
+    const result = fetcher.data.riskResult!;
+    const successColor = result.successRate >= 80 
+      ? 'bg-green-100 text-green-700 border-green-200' 
+      : result.successRate >= 50 
+        ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+        : 'bg-red-100 text-red-700 border-red-200';
+    
+    return (
+      <div className="flex items-center gap-1">
+        <span className={`text-xs px-2 py-1 rounded-full border ${successColor} font-medium`}>
+          {result.successRate}% ({result.deliveredOrders}/{result.totalOrders})
+        </span>
+        {fetcher.data.autoConfirmed && (
+          <span className="text-xs text-green-600 font-medium">✓ Auto</span>
+        )}
+      </div>
+    );
+  }
+  
+  if (!showButton) return null;
+  
+  return (
+    <button
+      type="button"
+      onClick={handleCheck}
+      disabled={isChecking}
+      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 hover:text-white hover:bg-orange-500 border border-orange-200 hover:border-orange-500 rounded-lg transition disabled:opacity-50"
+      title="ফ্রড চেক করুন"
+    >
+      {isChecking ? (
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+      ) : (
+        <Shield className="w-3.5 h-3.5" />
+      )}
+      চেক
+    </button>
   );
 }
