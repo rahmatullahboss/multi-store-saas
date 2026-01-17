@@ -220,6 +220,9 @@ export const CTAPropsSchema = z.object({
   subheadline: z.string().optional().default('সীমিত সময়ের জন্য বিশেষ অফার!'),
   buttonText: z.string().default('অর্ডার কনফার্ম করুন'),
   
+  // Product Selection (from store products)
+  productId: z.number().nullable().optional(),
+  
   // Pricing
   productPrice: z.number().optional().default(1990),
   discountedPrice: z.number().optional().default(1490),
