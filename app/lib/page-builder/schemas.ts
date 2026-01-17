@@ -293,6 +293,16 @@ export const CTAPropsSchema = z.object({
   noteLabel: z.string().optional().default('অর্ডার নোট'),
   notePlaceholder: z.string().optional().default('অতিরিক্ত তথ্য/নির্দেশনা (ঐচ্ছিক)'),
   
+  // ============================================================================
+  // THANK YOU PAGE CUSTOMIZATION
+  // ============================================================================
+  thankYouHeadline: z.string().optional().default('অর্ডার সফল হয়েছে! 🎉'),
+  thankYouMessage: z.string().optional().default('ধন্যবাদ! আমরা শীঘ্রই আপনার সাথে যোগাযোগ করবো।'),
+  thankYouRedirectUrl: z.string().url().optional(), // Custom redirect URL (optional)
+  showOrderDetails: z.boolean().optional().default(true), // Show order summary on thank-you
+  showWhatsAppButton: z.boolean().optional().default(false), // WhatsApp contact button
+  whatsAppNumber: z.string().optional(), // WhatsApp number for contact
+  
   // Trust badges
   showTrustBadges: z.boolean().optional().default(true),
   codLabel: z.string().optional().default('ক্যাশ অন ডেলিভারি'),

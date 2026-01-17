@@ -685,6 +685,55 @@ function renderPropsForm(
               </div>
             )}
           </div>
+          
+          {/* Thank You Page Settings */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🎉 ধন্যবাদ পেজ</h5>
+            <div className="space-y-3">
+              <TextField 
+                label="সাকসেস হেডলাইন" 
+                value={props.thankYouHeadline as string || 'অর্ডার সফল হয়েছে! 🎉'} 
+                onChange={(v) => updateProp('thankYouHeadline', v)} 
+              />
+              <TextAreaField 
+                label="সাকসেস মেসেজ" 
+                value={props.thankYouMessage as string || 'ধন্যবাদ! আমরা শীঘ্রই আপনার সাথে যোগাযোগ করবো।'} 
+                onChange={(v) => updateProp('thankYouMessage', v)} 
+              />
+              <ToggleField
+                label="অর্ডার ডিটেইলস দেখাবে"
+                value={props.showOrderDetails as boolean ?? true}
+                onChange={(v) => updateProp('showOrderDetails', v)}
+              />
+              <ToggleField
+                label="WhatsApp বাটন দেখাবে"
+                value={props.showWhatsAppButton as boolean ?? false}
+                onChange={(v) => updateProp('showWhatsAppButton', v)}
+              />
+              {(props.showWhatsAppButton as boolean) && (
+                <TextField 
+                  label="WhatsApp নম্বর" 
+                  value={props.whatsAppNumber as string || ''} 
+                  onChange={(v) => updateProp('whatsAppNumber', v)} 
+                />
+              )}
+              <details className="mt-2">
+                <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                  🔗 Advanced: Custom Redirect URL
+                </summary>
+                <div className="mt-2">
+                  <TextField 
+                    label="Redirect URL (Optional)" 
+                    value={props.thankYouRedirectUrl as string || ''} 
+                    onChange={(v) => updateProp('thankYouRedirectUrl', v || undefined)} 
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    খালি রাখলে default thank-you page দেখাবে
+                  </p>
+                </div>
+              </details>
+            </div>
+          </div>
         </>
       );
     
