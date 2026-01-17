@@ -8,10 +8,12 @@
  * - Quantity selector with +/- buttons
  * - Dynamic price calculation
  * - Theme support
+ * - REAL ORDER SUBMISSION to /api/create-order
  */
 
 import { useState, useEffect } from 'react';
-import { ShieldCheck, Truck, ArrowRight, Package } from 'lucide-react';
+import { useFetcher, useNavigate } from '@remix-run/react';
+import { ShieldCheck, Truck, ArrowRight, Package, Loader2, CheckCircle } from 'lucide-react';
 import type { SectionTheme } from '~/lib/page-builder/types';
 
 interface Variant {
@@ -55,9 +57,15 @@ interface CTAProps {
 interface CTASectionPreviewProps {
   props: Record<string, unknown>;
   theme?: SectionTheme;
+  // Required for order submission on live pages
+  storeId?: number;
+  productId?: number;
 }
 
-export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
+export function CTASectionPreview({ props, theme, storeId, productId }: CTASectionPreviewProps) {
+  const fetcher = useFetcher<{ success: boolean; orderId?: number; orderNumber?: string; error?: string }>();
+  const navigate = useNavigate();
+  
   const {
     headline = 'এখনই অর্ডার করুন',
     subheadline = 'সীমিত সময়ের জন্য বিশেষ অফার!',
@@ -93,15 +101,30 @@ export function CTASectionPreview({ props, theme }: CTASectionPreviewProps) {
     secureLabel = '১০০% সিকিউর অর্ডার',
   } = props as CTAProps;
   
-  // State for form (preview only - no actual submission)
+  // Form state
+  const [customerName, setCustomerName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [selectedVariant, setSelectedVariant] = useState(variants[0] || null);
   const [quantity, setQuantity] = useState(1);
   const [isInsideDhaka, setIsInsideDhaka] = useState(true);
+  const [orderSuccess, setOrderSuccess] = useState(false);
   
-  // Reset selectedVariant when variants prop changes (e.g., new product selected)
+  // Reset selectedVariant when variants prop changes
   useEffect(() => {
     setSelectedVariant(variants[0] || null);
   }, [variants]);
+  
+  // Handle successful order - redirect to thank-you page
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.orderId) {
+      setOrderSuccess(true);
+      // Redirect to thank-you page after a brief success message
+      setTimeout(() => {
+        navigate(`/thank-you/${fetcher.data.orderId}`);
+      }, 1500);
+    }
+  }, [fetcher.data, navigate]);
   
   // Calculate prices
   const basePrice = selectedVariant?.price || discountedPrice;

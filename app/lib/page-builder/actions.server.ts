@@ -134,6 +134,7 @@ export async function getPageWithSections(
     orderBgColor: page.orderBgColor,
     orderTextColor: page.orderTextColor,
     buttonPosition: page.buttonPosition,
+    templateId: page.templateId,
     sections: sections.map(parseSection),
   };
 }
@@ -227,6 +228,7 @@ export async function getPublishedPageBySlug(
     orderBgColor: page.orderBgColor,
     orderTextColor: page.orderTextColor,
     buttonPosition: page.buttonPosition,
+    templateId: page.templateId,
     sections: sections.map(parseSectionPublished), // Use published props!
   };
 }
@@ -686,6 +688,7 @@ export async function createPageFromTemplate(
     slug,
     title: title || template.name,
     status: 'draft',
+    templateId,
   });
   
   // Create sections from template

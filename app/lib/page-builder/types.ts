@@ -102,6 +102,7 @@ export interface BuilderPage {
   seoTitle?: string | null;
   seoDescription?: string | null;
   ogImage?: string | null;
+  templateId?: string | null; // Template ID for custom layouts
   publishedAt?: Date | null;
   // Floating button settings - WhatsApp
   whatsappEnabled?: number | null;

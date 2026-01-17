@@ -21,6 +21,7 @@ import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
 import { OzzylBrandingMini } from '~/components/OzzylBranding';
+import { TemplateLayoutRenderer } from '~/components/page-builder/TemplateLayoutRenderer';
 
 // ============================================================================
 // LOADER
@@ -60,6 +61,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       orderTextColor: page.orderTextColor || '#FFFFFF',
       position: page.buttonPosition || 'bottom-right',
     },
+    templateId: page.templateId || 'default', // Pass templateId for custom layouts
   });
 }
 
@@ -101,7 +103,7 @@ export default function PreviewPage() {
   }, [loaderData.pageSettings]);
   
   return (
-    <div className="bg-white min-h-screen">
+    <TemplateLayoutRenderer templateId={loaderData.templateId}>
       <SectionRenderer
         sections={liveSections}
         activeSectionId={null}
@@ -124,6 +126,6 @@ export default function PreviewPage() {
         orderTextColor={liveSettings.orderTextColor}
         position={liveSettings.position as 'bottom-right' | 'bottom-left' | 'bottom-center'}
       />
-    </div>
+    </TemplateLayoutRenderer>
   );
 }

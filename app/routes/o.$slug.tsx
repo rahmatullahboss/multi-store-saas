@@ -14,6 +14,7 @@ import { getPublishedPageBySlug } from '~/lib/page-builder/actions.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
 import { OzzylBranding } from '~/components/OzzylBranding';
+import { TemplateLayoutRenderer } from '~/components/page-builder/TemplateLayoutRenderer';
 
 // ============================================================================
 // TYPES
@@ -38,6 +39,7 @@ interface LoaderData {
     orderBgColor?: string | null;
     orderTextColor?: string | null;
     buttonPosition?: string | null;
+    templateId?: string | null;
   };
   sections: Array<{
     id: string;
@@ -146,6 +148,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       orderBgColor: page.orderBgColor,
       orderTextColor: page.orderTextColor,
       buttonPosition: page.buttonPosition,
+      templateId: page.templateId,
     },
     sections: page.sections.map((s: { id: string; type: string; enabled: boolean; sortOrder: number; props: Record<string, unknown> }) => ({
       id: s.id,
@@ -176,7 +179,7 @@ export default function PublicOfferPage() {
     .sort((a, b) => a.sortOrder - b.sortOrder);
   
   return (
-    <div className="min-h-screen bg-white">
+    <TemplateLayoutRenderer templateId={page.templateId || 'default'}>
       {/* Render all visible sections */}
       <SectionRenderer
         sections={visibleSections as any}
@@ -199,7 +202,7 @@ export default function PublicOfferPage() {
       
       {/* Powered by Ozzyl - Non-removable branding */}
       <OzzylBranding />
-    </div>
+    </TemplateLayoutRenderer>
   );
 }
 
