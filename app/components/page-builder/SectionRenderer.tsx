@@ -30,6 +30,21 @@ import { OrderButtonSectionPreview } from './sections/OrderButtonSectionPreview'
 import { FooterSectionPreview } from './sections/FooterSectionPreview';
 import { PlaceholderSection } from './sections/PlaceholderSection';
 
+// Product type for order form
+interface ProductData {
+  id: number;
+  title: string;
+  price: number;
+  compareAtPrice?: number | null;
+  images: string[];
+  description?: string | null;
+  variants?: Array<{
+    id: number;
+    name: string;
+    price: number;
+  }>;
+}
+
 interface SectionRendererProps {
   sections: BuilderSection[];
   activeSectionId?: string | null;
@@ -37,6 +52,7 @@ interface SectionRendererProps {
   // For order submission on live pages
   storeId?: number;
   productId?: number;
+  product?: ProductData | null;
 }
 
 export function SectionRenderer({ 
@@ -45,6 +61,7 @@ export function SectionRenderer({
   onSelectSection,
   storeId,
   productId,
+  product,
 }: SectionRendererProps) {
   // Sort by sortOrder
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -63,6 +80,7 @@ export function SectionRenderer({
           isEditorMode={isEditorMode}
           storeId={storeId}
           productId={productId}
+          product={product}
         />
       ))}
       
@@ -82,14 +100,15 @@ interface SectionWrapperProps {
   isEditorMode: boolean;
   storeId?: number;
   productId?: number;
+  product?: ProductData | null;
 }
 
-function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, productId }: SectionWrapperProps) {
+function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, productId, product }: SectionWrapperProps) {
   const meta = getSectionMeta(section.type);
   
   // Only apply editor styling when in editor mode
   if (!isEditorMode) {
-    return <SectionContent section={section} storeId={storeId} productId={productId} />;
+    return <SectionContent section={section} storeId={storeId} productId={productId} product={product} />;
   }
   
   return (
@@ -110,7 +129,7 @@ function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, pro
       </div>
       
       {/* Actual section content */}
-      <SectionContent section={section} storeId={storeId} productId={productId} />
+      <SectionContent section={section} storeId={storeId} productId={productId} product={product} />
     </div>
   );
 }
@@ -119,9 +138,10 @@ interface SectionContentProps {
   section: BuilderSection;
   storeId?: number;
   productId?: number;
+  product?: ProductData | null;
 }
 
-function SectionContent({ section, storeId, productId }: SectionContentProps) {
+function SectionContent({ section, storeId, productId, product }: SectionContentProps) {
   const { type, props } = section;
   
   switch (type) {
@@ -136,7 +156,7 @@ function SectionContent({ section, storeId, productId }: SectionContentProps) {
     case 'trust-badges':
       return <TrustBadgesSectionPreview props={props} />;
     case 'cta':
-      return <CTASectionPreview props={props} storeId={storeId} productId={productId} />;
+      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} />;
     case 'video':
       return <VideoSectionPreview props={props} />;
     case 'guarantee':

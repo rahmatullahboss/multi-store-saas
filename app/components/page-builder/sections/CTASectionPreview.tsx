@@ -54,15 +54,31 @@ interface CTAProps {
   secureLabel?: string;
 }
 
+// Product data passed from page loader
+interface ProductInfo {
+  id: number;
+  title: string;
+  price: number;
+  compareAtPrice?: number | null;
+  images: string[];
+  description?: string | null;
+  variants?: Array<{
+    id: number;
+    name: string;
+    price: number;
+  }>;
+}
+
 interface CTASectionPreviewProps {
   props: Record<string, unknown>;
   theme?: SectionTheme;
   // Required for order submission on live pages
   storeId?: number;
   productId?: number;
+  product?: ProductInfo | null;
 }
 
-export function CTASectionPreview({ props, theme, storeId, productId }: CTASectionPreviewProps) {
+export function CTASectionPreview({ props, theme, storeId, productId, product }: CTASectionPreviewProps) {
   const fetcher = useFetcher<{ success: boolean; orderId?: number; orderNumber?: string; error?: string }>();
   const navigate = useNavigate();
   
@@ -73,13 +89,13 @@ export function CTASectionPreview({ props, theme, storeId, productId }: CTASecti
     phonePlaceholder = 'আপনার মোবাইল নম্বর',
     addressPlaceholder = 'পূর্ণ ডেলিভারি ঠিকানা লিখুন',
     
-    // Pricing
+    // Pricing (fallbacks when no product selected)
     productPrice = 1990,
     discountedPrice = 1490,
     insideDhakaCharge = 60,
     outsideDhakaCharge = 120,
     
-    // Variants - demo data
+    // Variants - demo data (used when no product has variants)
     variants = [
       { id: '1', name: '১ পিস', price: 1490 },
       { id: '2', name: '২ পিস (সেভ ৳২০০)', price: 2780 },
@@ -101,19 +117,28 @@ export function CTASectionPreview({ props, theme, storeId, productId }: CTASecti
     secureLabel = '১০০% সিকিউর অর্ডার',
   } = props as CTAProps;
   
+  // Use product data if available, otherwise use prop defaults
+  const actualPrice = product?.price ?? discountedPrice;
+  const actualComparePrice = product?.compareAtPrice ?? productPrice;
+  const actualVariants = (product?.variants && product.variants.length > 0) 
+    ? product.variants.map(v => ({ id: String(v.id), name: v.name, price: v.price }))
+    : variants;
+  const productImage = product?.images?.[0] || null;
+  const productTitle = product?.title || null;
+  
   // Form state
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [selectedVariant, setSelectedVariant] = useState(variants[0] || null);
+  const [selectedVariant, setSelectedVariant] = useState(actualVariants[0] || null);
   const [quantity, setQuantity] = useState(1);
   const [isInsideDhaka, setIsInsideDhaka] = useState(true);
   const [orderSuccess, setOrderSuccess] = useState(false);
   
-  // Reset selectedVariant when variants prop changes
+  // Reset selectedVariant when variants change (including product change)
   useEffect(() => {
-    setSelectedVariant(variants[0] || null);
-  }, [variants]);
+    setSelectedVariant(actualVariants[0] || null);
+  }, [product?.id, actualVariants.length]);
   
   // Handle successful order - redirect to thank-you page
   useEffect(() => {
@@ -127,8 +152,8 @@ export function CTASectionPreview({ props, theme, storeId, productId }: CTASecti
     }
   }, [fetcher.data, navigate]);
   
-  // Calculate prices
-  const basePrice = selectedVariant?.price || discountedPrice;
+  // Calculate prices using actual product price or selected variant
+  const basePrice = selectedVariant?.price || actualPrice;
   const subtotal = basePrice * quantity;
   const deliveryCharge = isInsideDhaka ? insideDhakaCharge : outsideDhakaCharge;
   const total = subtotal + deliveryCharge;
@@ -201,8 +226,38 @@ export function CTASectionPreview({ props, theme, storeId, productId }: CTASecti
               className="p-8 border-b md:border-b-0 md:border-r"
               style={{ borderColor: cardBorder }}
             >
-              {/* Variant Selection */}
-              {variants.length > 0 && (
+              {/* Product Image & Title */}
+              {productImage && (
+                <div className="mb-6 text-center">
+                  <img 
+                    src={productImage} 
+                    alt={productTitle || 'প্রোডাক্ট'} 
+                    className="w-full max-w-[200px] mx-auto rounded-xl shadow-lg mb-4 object-cover aspect-square"
+                  />
+                  {productTitle && (
+                    <h3 
+                      className="text-lg font-bold"
+                      style={{ color: textColor }}
+                    >
+                      {productTitle}
+                    </h3>
+                  )}
+                  {/* Show price with compare price */}
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    {actualComparePrice > actualPrice && (
+                      <span className="text-lg line-through opacity-60" style={{ color: mutedColor }}>
+                        ৳{actualComparePrice}
+                      </span>
+                    )}
+                    <span className="text-2xl font-bold" style={{ color: primaryColor }}>
+                      ৳{actualPrice}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Variant Selection - use actualVariants */}
+              {actualVariants.length > 0 && (
                 <div className="mb-6">
                   <label 
                     className="block text-sm font-bold mb-3 uppercase tracking-wide"
@@ -211,7 +266,7 @@ export function CTASectionPreview({ props, theme, storeId, productId }: CTASecti
                     {variantLabel}
                   </label>
                   <div className="space-y-2">
-                    {variants.map((variant) => (
+                    {actualVariants.map((variant) => (
                       <button
                         key={variant.id}
                         type="button"

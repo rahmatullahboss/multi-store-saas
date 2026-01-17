@@ -8,6 +8,9 @@
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
+import { products, productVariants } from '@db/schema';
 
 import { getPageFromCache, cachePageData } from '~/lib/page-builder/cache.server';
 import { getPublishedPageBySlug } from '~/lib/page-builder/actions.server';
@@ -43,6 +46,20 @@ interface LoaderData {
     buttonPosition?: string | null;
     templateId?: string | null;
   };
+  // Product details for order form
+  product?: {
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    images: string[];
+    description?: string | null;
+    variants?: Array<{
+      id: number;
+      name: string;
+      price: number;
+    }>;
+  } | null;
   sections: Array<{
     id: string;
     type: string;
@@ -137,6 +154,59 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   // Cache for next request
   await cachePageData(kv, storeId, slug, page);
   
+  // Fetch product details if productId is set
+  let productData: LoaderData['product'] = null;
+  if (page.productId) {
+    const drizzleDb = drizzle(db);
+    
+    // Fetch product
+    const [productRow] = await drizzleDb
+      .select()
+      .from(products)
+      .where(eq(products.id, page.productId))
+      .limit(1);
+    
+    if (productRow) {
+      // Fetch variants
+      const variantRows = await drizzleDb
+        .select()
+        .from(productVariants)
+        .where(eq(productVariants.productId, page.productId));
+      
+      // Parse images from JSON string
+      let parsedImages: string[] = [];
+      try {
+        if (productRow.images) {
+          parsedImages = typeof productRow.images === 'string' 
+            ? JSON.parse(productRow.images) 
+            : Array.isArray(productRow.images) ? productRow.images : [];
+        }
+      } catch {
+        parsedImages = [];
+      }
+      
+      productData = {
+        id: productRow.id,
+        title: productRow.title,
+        price: productRow.price,
+        compareAtPrice: productRow.compareAtPrice,
+        images: parsedImages,
+        description: productRow.description,
+        variants: variantRows.map(v => {
+          // Construct variant name from option values
+          const variantName = [v.option1Value, v.option2Value, v.option3Value]
+            .filter(Boolean)
+            .join(' / ') || `Variant ${v.id}`;
+          return {
+            id: v.id,
+            name: variantName,
+            price: v.price ?? productRow.price, // Fall back to product price if variant has no price
+          };
+        }),
+      };
+    }
+  }
+  
   return json<LoaderData>({
     page: {
       id: page.id,
@@ -160,6 +230,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       buttonPosition: page.buttonPosition,
       templateId: page.templateId,
     },
+    product: productData,
     sections: page.sections.map((s: { id: string; type: string; enabled: boolean; sortOrder: number; props: Record<string, unknown> }) => ({
       id: s.id,
       type: s.type,
@@ -181,7 +252,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ============================================================================
 
 export default function PublicOfferPage() {
-  const { page, sections } = useLoaderData<typeof loader>();
+  const { page, sections, product } = useLoaderData<typeof loader>();
   
   // Filter and sort sections for rendering
   const visibleSections = sections
@@ -196,6 +267,7 @@ export default function PublicOfferPage() {
         activeSectionId={null}
         storeId={page.storeId}
         productId={page.productId || undefined}
+        product={product}
       />
       
       {/* Floating Action Buttons - WhatsApp, Call, Order */}
