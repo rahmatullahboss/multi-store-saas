@@ -201,20 +201,6 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   const actualProductImage = product?.images?.[0] || (props as CTAProps).productImage || null;
   const actualProductTitle = product?.title || (props as CTAProps).productTitle || null;
   
-  // DEBUG: Client-side logging - check browser console (F12)
-  if (typeof window !== 'undefined') {
-    console.log('=== CTASectionPreview DEBUG ===');
-    console.log('product prop:', product);
-    console.log('productId prop:', productId);
-    console.log('storeId prop:', storeId);
-    console.log('props.productId:', (props as any).productId);
-    console.log('props.productImage:', (props as any).productImage);
-    console.log('props.productTitle:', (props as any).productTitle);
-    console.log('actualProductImage:', actualProductImage);
-    console.log('actualProductTitle:', actualProductTitle);
-    console.log('===============================');
-  }
-  
   // Form state
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -412,14 +398,16 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
               className="p-8 border-b md:border-b-0 md:border-r"
               style={{ borderColor: cardBorder }}
             >
-              {/* Product Image & Title */}
-              {actualProductImage && (
+              {/* Product Image & Title - show even without image */}
+              {(actualProductImage || actualProductTitle) && (
                 <div className="mb-6 text-center">
-                  <img 
-                    src={actualProductImage} 
-                    alt={actualProductTitle || 'প্রোডাক্ট'} 
-                    className="w-full max-w-[200px] mx-auto rounded-xl shadow-lg mb-4 object-cover aspect-square"
-                  />
+                  {actualProductImage && (
+                    <img 
+                      src={actualProductImage} 
+                      alt={actualProductTitle || 'প্রোডাক্ট'} 
+                      className="w-full max-w-[200px] mx-auto rounded-xl shadow-lg mb-4 object-cover aspect-square"
+                    />
+                  )}
                   {actualProductTitle && (
                     <h3 
                       className="text-lg font-bold"

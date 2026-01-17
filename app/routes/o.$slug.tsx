@@ -151,6 +151,12 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
             parsedImages = typeof productRow.images === 'string' ? JSON.parse(productRow.images) : Array.isArray(productRow.images) ? productRow.images : [];
           }
         } catch { parsedImages = []; }
+        
+        // Fallback: use imageUrl if images array is empty
+        if (parsedImages.length === 0 && productRow.imageUrl) {
+          parsedImages = [productRow.imageUrl];
+        }
+        
         cachedProductData = {
           id: productRow.id,
           title: productRow.title,
@@ -224,7 +230,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         .from(productVariants)
         .where(eq(productVariants.productId, effectiveProductId));
       
-      // Parse images from JSON string
+      // Parse images from JSON string, fallback to imageUrl if images array is empty
       let parsedImages: string[] = [];
       try {
         if (productRow.images) {
@@ -234,6 +240,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         }
       } catch {
         parsedImages = [];
+      }
+      
+      // Fallback: use imageUrl if images array is empty
+      if (parsedImages.length === 0 && productRow.imageUrl) {
+        parsedImages = [productRow.imageUrl];
       }
       
       productData = {

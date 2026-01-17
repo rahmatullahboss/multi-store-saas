@@ -139,6 +139,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         }
       } catch { parsedImages = []; }
       
+      // Fallback: use imageUrl if images array is empty
+      if (parsedImages.length === 0 && productRow.imageUrl) {
+        parsedImages = [productRow.imageUrl];
+      }
+      
       selectedProduct = {
         id: productRow.id,
         title: productRow.title,
