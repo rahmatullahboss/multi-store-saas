@@ -77,23 +77,41 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     throw new Response('Slug is required', { status: 400 });
   }
   
-  // Get store from request (multi-tenant)
-  // For now, we'll use a simpler approach - get from hostname or default
-  const url = new URL(request.url);
-  const hostname = url.hostname;
-  
-  // Try to get store from context (set by middleware) or use default
-  const store = (context as any).store;
-  
-  if (!store) {
-    throw new Response('Store not found', { status: 404 });
-  }
-  
   const db = context.cloudflare.env.DB;
   const kv = context.cloudflare.env.STORE_CACHE as KVNamespace | undefined;
   
+  // Get store from context (multi-tenant middleware) or find from hostname
+  let store = (context as any).store;
+  let storeId = store?.id as number | undefined;
+  
+  // Fallback: Get store from context.storeId or find from database
+  if (!store || !storeId) {
+    // Try storeId from context
+    storeId = (context as any).storeId as number | undefined;
+    
+    if (!storeId) {
+      // Fallback: Find first active store (for dev/testing)
+      const { drizzle } = await import('drizzle-orm/d1');
+      const { stores } = await import('@db/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const drizzleDb = drizzle(db);
+      const [fallbackStore] = await drizzleDb
+        .select()
+        .from(stores)
+        .where(eq(stores.isActive, true))
+        .limit(1);
+      
+      if (!fallbackStore) {
+        throw new Response('Store not found', { status: 404 });
+      }
+      
+      storeId = fallbackStore.id;
+    }
+  }
+  
   // Try cache first (if KV is available)
-  const cached = await getPageFromCache(kv, store.id, slug);
+  const cached = await getPageFromCache(kv, storeId!, slug);
   
   if (cached && cached.page.status === 'published') {
     return json<LoaderData>({
@@ -109,14 +127,14 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   }
   
   // Fetch from D1 (getPublishedPageBySlug only returns published pages)
-  const page = await getPublishedPageBySlug(db, store.id, slug);
+  const page = await getPublishedPageBySlug(db, storeId!, slug);
   
   if (!page) {
     throw new Response('Page not found', { status: 404 });
   }
   
   // Cache for next request
-  await cachePageData(kv, store.id, slug, page);
+  await cachePageData(kv, storeId!, slug, page);
   
   return json<LoaderData>({
     page: {
