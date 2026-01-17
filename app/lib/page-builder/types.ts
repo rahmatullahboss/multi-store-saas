@@ -34,6 +34,7 @@ export type SectionType =
   | 'showcase'
   | 'custom-html'
   | 'order-button'
+  | 'header'
   | 'footer';
 
 // ============================================================================

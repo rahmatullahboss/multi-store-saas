@@ -409,6 +409,50 @@ export const OrderButtonPropsSchema = z.object({
 export type OrderButtonProps = z.infer<typeof OrderButtonPropsSchema>;
 
 // ============================================================================
+// HEADER SECTION - Page header with logo, navigation, and CTA
+// ============================================================================
+const NavLinkSchema = z.object({
+  label: z.string(),
+  url: z.string(),
+});
+
+export const HeaderPropsSchema = z.object({
+  // Branding
+  logoUrl: z.string().optional().default(''),
+  logoText: z.string().optional().default(''),
+  logoSize: z.enum(['sm', 'md', 'lg']).optional().default('md'),
+  
+  // Navigation Links
+  showNavLinks: z.boolean().default(true),
+  navLinks: z.array(NavLinkSchema).default([
+    { label: 'হোম', url: '#' },
+    { label: 'প্রোডাক্ট', url: '#product' },
+    { label: 'রিভিউ', url: '#reviews' },
+    { label: 'অর্ডার', url: '#order' },
+  ]),
+  
+  // CTA Button
+  showCta: z.boolean().default(true),
+  ctaText: z.string().default('অর্ডার করুন'),
+  ctaLink: z.string().optional().default('#order'),
+  ctaStyle: z.enum(['solid', 'outline', 'ghost']).optional().default('solid'),
+  
+  // Styling
+  variant: z.enum(['simple', 'centered', 'minimal']).optional().default('simple'),
+  bgColor: z.string().default('#FFFFFF'),
+  textColor: z.string().default('#18181B'),
+  ctaBgColor: z.string().default('#6366F1'),
+  ctaTextColor: z.string().default('#FFFFFF'),
+  
+  // Sticky Header
+  isSticky: z.boolean().default(true),
+  
+  // Mobile Menu
+  mobileMenuBgColor: z.string().optional().default('#FFFFFF'),
+});
+export type HeaderProps = z.infer<typeof HeaderPropsSchema>;
+
+// ============================================================================
 // FOOTER SECTION - Page footer with social links and contact info
 // ============================================================================
 const SocialLinkSchema = z.object({
@@ -469,6 +513,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'showcase': ShowcasePropsSchema,
   'custom-html': CustomHtmlPropsSchema,
   'order-button': OrderButtonPropsSchema,
+  'header': HeaderPropsSchema,
   'footer': FooterPropsSchema,
 };
 

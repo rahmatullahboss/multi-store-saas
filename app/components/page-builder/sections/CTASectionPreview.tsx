@@ -397,31 +397,7 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                 </div>
               </div>
               
-              {/* Trust Badges */}
-              {showTrustBadges && (
-                <div className="flex flex-wrap gap-3 mt-6">
-                  <div 
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
-                    style={{ 
-                      backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : '#D1FAE5',
-                      color: '#059669',
-                    }}
-                  >
-                    <ShieldCheck size={14} />
-                    {secureLabel}
-                  </div>
-                  <div 
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
-                    style={{ 
-                      backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#DBEAFE',
-                      color: '#2563EB',
-                    }}
-                  >
-                    <Truck size={14} />
-                    {codLabel}
-                  </div>
-                </div>
-              )}
+              {/* Trust Badges moved to right column */}
             </div>
             
             {/* Right Column - Order Form */}
@@ -607,6 +583,32 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                   >
                     🔒 আপনার তথ্য সম্পূর্ণ নিরাপদ থাকবে
                   </p>
+                  
+                  {/* Trust Badges */}
+                  {showTrustBadges && (
+                    <div className="flex flex-wrap justify-center gap-3 mt-4">
+                      <div 
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
+                        style={{ 
+                          backgroundColor: isDark ? 'rgba(16,185,129,0.1)' : '#D1FAE5',
+                          color: '#059669',
+                        }}
+                      >
+                        <ShieldCheck size={14} />
+                        {secureLabel}
+                      </div>
+                      <div 
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
+                        style={{ 
+                          backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#DBEAFE',
+                          color: '#2563EB',
+                        }}
+                      >
+                        <Truck size={14} />
+                        {codLabel}
+                      </div>
+                    </div>
+                  )}
                 </fetcher.Form>
               )}
             </div>
