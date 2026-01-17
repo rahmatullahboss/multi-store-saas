@@ -4,6 +4,13 @@ interface RovoLayoutProps {
   children: ReactNode;
   storeName?: string;
   logo?: string | null;
+  storeId?: number;
+  categories?: string[];
+  currency?: string;
+  socialLinks?: unknown;
+  businessInfo?: unknown;
+  config?: unknown;
+  products?: unknown[];
 }
 
 export function RovoLayout({ children, storeName, logo }: RovoLayoutProps) {

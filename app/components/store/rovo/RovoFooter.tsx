@@ -5,6 +5,9 @@ import type { SocialLinks } from '@db/types';
 interface RovoFooterProps {
   storeName: string;
   socialLinks?: SocialLinks | null;
+  logo?: string | null;
+  businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  categories?: string[];
 }
 
 export function RovoFooter({ storeName, socialLinks }: RovoFooterProps) {

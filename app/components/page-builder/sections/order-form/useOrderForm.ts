@@ -50,7 +50,7 @@ export interface OrderFormCalculations {
   deliveryCharge: number;
   total: number;
   calculatedShippingZone: 'dhaka' | 'outside';
-  availableUpazilas: Array<{ id: string; name: string; nameBn: string }>;
+  availableUpazilas: Array<{ id: string; name: string; nameEn: string; districtId: string }>;
   actualPrice: number;
   actualComparePrice: number;
   actualVariants: ProductVariant[];

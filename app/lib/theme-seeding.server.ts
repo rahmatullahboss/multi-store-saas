@@ -21,6 +21,7 @@ import {
   themeSettingsPublished,
   type TemplateKey,
 } from '@db/schema';
+import { getThemePreset, ROVO_PRESET, type ThemePresetDefinition } from './theme-presets';
 
 // ============================================================================
 // TYPES
@@ -47,6 +48,27 @@ interface ThemePresetConfig {
   name: string;
   settings: Record<string, unknown>;
   templates: TemplateDefinition[];
+}
+
+/**
+ * Convert ThemePresetDefinition to ThemePresetConfig format
+ */
+function convertPresetToConfig(preset: ThemePresetDefinition): ThemePresetConfig {
+  return {
+    id: preset.id,
+    name: preset.name,
+    settings: preset.settings,
+    templates: preset.templates.map(t => ({
+      key: t.key,
+      title: t.title,
+      sections: t.sections.map(s => ({
+        type: s.type,
+        enabled: s.enabled,
+        props: s.props,
+        blocks: s.blocks,
+      })),
+    })),
+  };
 }
 
 // ============================================================================
@@ -479,4 +501,47 @@ export async function ensureTheme(
   
   const result = await seedDefaultTheme(db, storeId);
   return { themeId: result.success ? result.themeId : null, created: true };
+}
+
+/**
+ * Install a theme from a preset ID
+ */
+export async function installThemePreset(
+  db: D1Database,
+  storeId: number,
+  presetId: string
+): Promise<{ themeId: string; success: boolean; error?: string }> {
+  const preset = getThemePreset(presetId);
+  
+  if (!preset) {
+    return {
+      themeId: '',
+      success: false,
+      error: `Theme preset "${presetId}" not found`,
+    };
+  }
+  
+  // Deactivate existing themes
+  const drizzleDb = drizzle(db);
+  await drizzleDb
+    .update(themes)
+    .set({ isActive: 0 })
+    .where(eq(themes.shopId, storeId));
+  
+  // Convert preset to config and seed
+  const config = convertPresetToConfig(preset);
+  return seedDefaultTheme(db, storeId, config);
+}
+
+/**
+ * Get available theme presets for display in admin UI
+ */
+export function getAvailablePresets() {
+  return [
+    { id: 'rovo', name: 'Rovo', description: 'Clean, modern, conversion-focused', category: 'modern' },
+    { id: 'daraz', name: 'Daraz Style', description: 'Marketplace-inspired with orange theme', category: 'marketplace' },
+    { id: 'nova-lux', name: 'Nova Lux', description: 'Luxury design with rose gold accents', category: 'luxury' },
+    { id: 'zenith-rise', name: 'Zenith Rise', description: 'Futuristic dark mode design', category: 'modern' },
+    { id: 'turbo-sale', name: 'Turbo Sale', description: 'High urgency BD-optimized template', category: 'modern' },
+  ];
 }

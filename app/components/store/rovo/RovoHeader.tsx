@@ -5,6 +5,9 @@ interface RovoHeaderProps {
   storeName: string;
   logo?: string | null;
   cartCount?: number;
+  categories?: string[];
+  currentCategory?: string | null;
+  socialLinks?: unknown;
 }
 
 export function RovoHeader({ storeName, logo, cartCount = 0 }: RovoHeaderProps) {
