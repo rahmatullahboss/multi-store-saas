@@ -44,6 +44,10 @@ interface CTAProps {
   insideDhakaCharge?: number;
   outsideDhakaCharge?: number;
   
+  // Product info from section props (stored when product is selected)
+  productImage?: string | null;
+  productTitle?: string | null;
+  
   // Variants
   variants?: Variant[];
   variantLabel?: string;
@@ -193,8 +197,9 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   const actualVariants = (product?.variants && product.variants.length > 0) 
     ? product.variants.map(v => ({ id: String(v.id), name: v.name, price: v.price }))
     : variants;
-  const productImage = product?.images?.[0] || null;
-  const productTitle = product?.title || null;
+  // Use product data if available (from page-level fetch), otherwise fallback to section props
+  const actualProductImage = product?.images?.[0] || (props as CTAProps).productImage || null;
+  const actualProductTitle = product?.title || (props as CTAProps).productTitle || null;
   
   // Form state
   const [customerName, setCustomerName] = useState('');
@@ -355,7 +360,7 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   
   // Template-specific layout
   const isSingleColumn = template === 'singleColumn';
-  const showProductImage = template === 'withImage' && productImage;
+  const showProductImage = template === 'withImage' && actualProductImage;
   
   return (
     <section 
@@ -394,19 +399,19 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
               style={{ borderColor: cardBorder }}
             >
               {/* Product Image & Title */}
-              {productImage && (
+              {actualProductImage && (
                 <div className="mb-6 text-center">
                   <img 
-                    src={productImage} 
-                    alt={productTitle || 'প্রোডাক্ট'} 
+                    src={actualProductImage} 
+                    alt={actualProductTitle || 'প্রোডাক্ট'} 
                     className="w-full max-w-[200px] mx-auto rounded-xl shadow-lg mb-4 object-cover aspect-square"
                   />
-                  {productTitle && (
+                  {actualProductTitle && (
                     <h3 
                       className="text-lg font-bold"
                       style={{ color: textColor }}
                     >
-                      {productTitle}
+                      {actualProductTitle}
                     </h3>
                   )}
                   {/* Show price with compare price */}

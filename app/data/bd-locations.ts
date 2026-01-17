@@ -315,6 +315,48 @@ export const UPAZILAS: Upazila[] = [
   { id: 'trishal', name: 'ত্রিশাল', nameEn: 'Trishal', districtId: 'mymensingh' },
   { id: 'tarakanda', name: 'তারাকান্দা', nameEn: 'Tarakanda', districtId: 'mymensingh' },
 
+  // Barguna District (Barisal Division)
+  { id: 'barguna_sadar', name: 'বরগুনা সদর', nameEn: 'Barguna Sadar', districtId: 'barguna' },
+  { id: 'amtali', name: 'আমতলী', nameEn: 'Amtali', districtId: 'barguna' },
+  { id: 'bamna', name: 'বামনা', nameEn: 'Bamna', districtId: 'barguna' },
+  { id: 'betagi', name: 'বেতাগী', nameEn: 'Betagi', districtId: 'barguna' },
+  { id: 'patharghata', name: 'পাথরঘাটা', nameEn: 'Patharghata', districtId: 'barguna' },
+  { id: 'taltali', name: 'তালতলী', nameEn: 'Taltali', districtId: 'barguna' },
+
+  // Bhola District
+  { id: 'bhola_sadar', name: 'ভোলা সদর', nameEn: 'Bhola Sadar', districtId: 'bhola' },
+  { id: 'borhanuddin', name: 'বোরহানউদ্দিন', nameEn: 'Borhanuddin', districtId: 'bhola' },
+  { id: 'charfasson', name: 'চরফ্যাশন', nameEn: 'Charfasson', districtId: 'bhola' },
+  { id: 'daulatkhan', name: 'দৌলতখান', nameEn: 'Daulatkhan', districtId: 'bhola' },
+  { id: 'lalmohan', name: 'লালমোহন', nameEn: 'Lalmohan', districtId: 'bhola' },
+  { id: 'manpura', name: 'মনপুরা', nameEn: 'Manpura', districtId: 'bhola' },
+  { id: 'tazumuddin', name: 'তজুমুদ্দিন', nameEn: 'Tazumuddin', districtId: 'bhola' },
+
+  // Jhalokati District
+  { id: 'jhalokati_sadar', name: 'ঝালকাঠি সদর', nameEn: 'Jhalokati Sadar', districtId: 'jhalokati' },
+  { id: 'kathalia', name: 'কাঠালিয়া', nameEn: 'Kathalia', districtId: 'jhalokati' },
+  { id: 'nalchity', name: 'নলছিটি', nameEn: 'Nalchity', districtId: 'jhalokati' },
+  { id: 'rajapur_jhalokati', name: 'রাজাপুর', nameEn: 'Rajapur', districtId: 'jhalokati' },
+
+  // Patuakhali District
+  { id: 'patuakhali_sadar', name: 'পটুয়াখালী সদর', nameEn: 'Patuakhali Sadar', districtId: 'patuakhali' },
+  { id: 'bauphal', name: 'বাউফল', nameEn: 'Bauphal', districtId: 'patuakhali' },
+  { id: 'dashmina', name: 'দশমিনা', nameEn: 'Dashmina', districtId: 'patuakhali' },
+  { id: 'dumki', name: 'দুমকি', nameEn: 'Dumki', districtId: 'patuakhali' },
+  { id: 'galachipa', name: 'গলাচিপা', nameEn: 'Galachipa', districtId: 'patuakhali' },
+  { id: 'kalapara', name: 'কলাপাড়া', nameEn: 'Kalapara', districtId: 'patuakhali' },
+  { id: 'mirzaganj', name: 'মির্জাগঞ্জ', nameEn: 'Mirzaganj', districtId: 'patuakhali' },
+  { id: 'rangabali', name: 'রাঙ্গাবালী', nameEn: 'Rangabali', districtId: 'patuakhali' },
+
+  // Pirojpur District
+  { id: 'pirojpur_sadar', name: 'পিরোজপুর সদর', nameEn: 'Pirojpur Sadar', districtId: 'pirojpur' },
+  { id: 'bhandaria', name: 'ভাণ্ডারিয়া', nameEn: 'Bhandaria', districtId: 'pirojpur' },
+  { id: 'kawkhali', name: 'কাউখালী', nameEn: 'Kawkhali', districtId: 'pirojpur' },
+  { id: 'mathbaria', name: 'মঠবাড়িয়া', nameEn: 'Mathbaria', districtId: 'pirojpur' },
+  { id: 'nazirpur', name: 'নাজিরপুর', nameEn: 'Nazirpur', districtId: 'pirojpur' },
+  { id: 'nesarabad', name: 'নেছারাবাদ', nameEn: 'Nesarabad', districtId: 'pirojpur' },
+  { id: 'zianagar', name: 'জিয়ানগর', nameEn: 'Zianagar', districtId: 'pirojpur' },
+
   // Default "Other" option for districts without detailed upazilas
   // This will be used as a catch-all
 ];

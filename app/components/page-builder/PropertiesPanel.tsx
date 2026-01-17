@@ -325,6 +325,8 @@ function renderPropsForm(
       const handleProductSelect = (productId: number | null) => {
         if (productId === null) {
           updateProp('productId', null);
+          updateProp('productImage', null);
+          updateProp('productTitle', null);
           onProductChange?.(null); // Notify for real-time preview
           onProductIdChange?.(null); // Persist to page-level productId
           return;
@@ -334,6 +336,10 @@ function renderPropsForm(
           updateProp('productId', product.id);
           updateProp('productPrice', product.price);
           updateProp('discountedPrice', product.price); // Can adjust for discount later
+          
+          // Save product image and title for live site display
+          updateProp('productImage', product.imageUrl || null);
+          updateProp('productTitle', product.name || null);
           
           // Convert bundlePricing to variants format for CTASectionPreview
           if (product.bundlePricing && product.bundlePricing.length > 0) {
