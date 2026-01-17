@@ -117,9 +117,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       const order = orderResult[0];
 
-      // Import and use checkCustomerRisk
+      // Import and use checkCustomerRisk - check across ALL stores (platform-wide)
       const { checkCustomerRisk } = await import('~/services/steadfast.server');
-      const riskResult = await checkCustomerRisk(order.customerPhone || '', db, storeId);
+      // Pass undefined for storeId to check across all Ozzyl platform orders
+      const riskResult = await checkCustomerRisk(order.customerPhone || '', db);
 
       // Auto-confirm if success rate >= 80% and order is pending
       let autoConfirmed = false;
