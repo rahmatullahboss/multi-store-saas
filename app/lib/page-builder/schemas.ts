@@ -234,6 +234,13 @@ export const CTAPropsSchema = z.object({
   insideDhakaCharge: z.number().optional().default(60),
   outsideDhakaCharge: z.number().optional().default(120),
   
+  // Free Shipping & COD Surcharge
+  enableFreeShipping: z.boolean().optional().default(false),
+  freeShippingThreshold: z.number().optional().default(2000), // Free shipping above this amount
+  freeShippingMessage: z.string().optional().default('৳{remaining} আরো কিনলে ফ্রি ডেলিভারি!'),
+  enableCodSurcharge: z.boolean().optional().default(false),
+  codSurchargeAmount: z.number().optional().default(50), // Extra charge for COD
+  
   // Variants/Packages
   variants: z.array(VariantSchema).default([
     { id: '1', name: '১ পিস', price: 1490 },
