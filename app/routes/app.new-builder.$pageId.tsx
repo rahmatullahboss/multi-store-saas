@@ -328,6 +328,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         const productId = formData.get('productId') as string | null;
         const productIdParsed = productId && productId.trim() !== '' ? Number(productId) : null;
         
+        // DEBUG: Log productId for troubleshooting
+        console.log('[update-settings] productId received:', productId, 'parsed:', productIdParsed);
+        
         await updatePageSettings(db, pageId, store.id, {
           title: title || undefined,
           seoTitle: seoTitle || undefined,

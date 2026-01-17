@@ -466,17 +466,22 @@ export function BuilderLayout({
             )}
             <button
               onClick={onPublish}
-              disabled={isSaving || page?.status === 'published'}
+              disabled={isSaving}
               className={`flex items-center gap-1 px-4 py-1.5 text-sm rounded-lg transition-colors ${
                 page?.status === 'published'
-                  ? 'bg-green-100 text-green-700 cursor-default'
+                  ? 'bg-green-600 text-white hover:bg-green-700'
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'
               }`}
             >
-              {page?.status === 'published' ? (
+              {isSaving ? (
                 <>
-                  <Eye size={16} />
-                  Published
+                  <Loader2 size={16} className="animate-spin" />
+                  Saving...
+                </>
+              ) : page?.status === 'published' ? (
+                <>
+                  <Globe size={16} />
+                  Update
                 </>
               ) : (
                 <>
