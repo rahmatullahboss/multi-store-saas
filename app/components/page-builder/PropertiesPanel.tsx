@@ -505,6 +505,65 @@ function renderPropsForm(
             </p>
           </div>
           
+          {/* BD Address System */}
+          <div className="border-b border-gray-100 pb-4 mb-4">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📍 ঠিকানা সিস্টেম</h5>
+            
+            {/* Shipping Zone Mode */}
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1">শিপিং জোন মোড</label>
+              <select
+                value={(props.shippingZoneMode as string) || 'auto'}
+                onChange={(e) => updateProp('shippingZoneMode', e.target.value)}
+                className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              >
+                <option value="auto">🔄 Auto (জেলা থেকে ক্যালকুলেট)</option>
+                <option value="manual">✋ Manual (ঢাকা/বাইরে বাটন)</option>
+              </select>
+              <p className="text-xs text-gray-400 mt-1">
+                {(props.shippingZoneMode as string) === 'manual' 
+                  ? 'কাস্টমার ঢাকা/বাইরে বাটন সিলেক্ট করবে'
+                  : 'জেলা সিলেক্ট করলে অটো শিপিং চার্জ বসবে'
+                }
+              </p>
+            </div>
+            
+            {/* Show District/Upazila Toggles - Only visible in auto mode */}
+            {(props.shippingZoneMode as string) !== 'manual' && (
+              <div className="space-y-2 mt-3 p-3 bg-gray-50 rounded-lg">
+                <ToggleField
+                  label="জেলা ফিল্ড দেখাবে"
+                  value={props.showDistrictField as boolean ?? true}
+                  onChange={(v) => updateProp('showDistrictField', v)}
+                />
+                <ToggleField
+                  label="উপজেলা/থানা ফিল্ড দেখাবে"
+                  value={props.showUpazilaField as boolean ?? true}
+                  onChange={(v) => updateProp('showUpazilaField', v)}
+                />
+              </div>
+            )}
+            
+            {/* Address Labels */}
+            <div className="space-y-2 mt-3">
+              <TextField 
+                label="জেলা লেবেল" 
+                value={props.districtLabel as string || 'জেলা'} 
+                onChange={(v) => updateProp('districtLabel', v)} 
+              />
+              <TextField 
+                label="উপজেলা লেবেল" 
+                value={props.upazilaLabel as string || 'উপজেলা/থানা'} 
+                onChange={(v) => updateProp('upazilaLabel', v)} 
+              />
+              <TextField 
+                label="ঠিকানা লেবেল" 
+                value={props.addressLabel as string || 'বিস্তারিত ঠিকানা'} 
+                onChange={(v) => updateProp('addressLabel', v)} 
+              />
+            </div>
+          </div>
+          
           {/* Labels */}
           <div className="border-b border-gray-100 pb-4 mb-4">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">🏷️ লেবেল কাস্টমাইজ</h5>

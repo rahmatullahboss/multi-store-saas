@@ -244,7 +244,7 @@ export const CTAPropsSchema = z.object({
   
   // Form placeholders
   phonePlaceholder: z.string().optional().default('আপনার মোবাইল নম্বর'),
-  addressPlaceholder: z.string().optional().default('পূর্ণ ডেলিভারি ঠিকানা লিখুন'),
+  addressPlaceholder: z.string().optional().default('বাসা নম্বর, রোড, এলাকা'),
   
   // Labels
   quantityLabel: z.string().optional().default('পরিমাণ'),
@@ -254,12 +254,34 @@ export const CTAPropsSchema = z.object({
   deliveryLabel: z.string().optional().default('ডেলিভারি চার্জ'),
   totalLabel: z.string().optional().default('সর্বমোট'),
   
+  // ============================================================================
+  // BD ADDRESS SYSTEM
+  // ============================================================================
+  // Address field visibility
+  showDistrictField: z.boolean().optional().default(true),
+  showUpazilaField: z.boolean().optional().default(true),
+  
+  // Address labels (Bengali defaults)
+  districtLabel: z.string().optional().default('জেলা'),
+  upazilaLabel: z.string().optional().default('উপজেলা/থানা'),
+  addressLabel: z.string().optional().default('বিস্তারিত ঠিকানা'),
+  
+  // District placeholder
+  districtPlaceholder: z.string().optional().default('জেলা নির্বাচন করুন'),
+  upazilaPlaceholder: z.string().optional().default('উপজেলা নির্বাচন করুন'),
+  
+  // Shipping zone calculation mode
+  // 'auto' = calculate from district (Dhaka division = inside, others = outside)
+  // 'manual' = user picks Dhaka/Outside toggle (current/legacy behavior)
+  shippingZoneMode: z.enum(['auto', 'manual']).optional().default('auto'),
+  
   // Trust badges
   showTrustBadges: z.boolean().optional().default(true),
   codLabel: z.string().optional().default('ক্যাশ অন ডেলিভারি'),
   secureLabel: z.string().optional().default('১০০% সিকিউর অর্ডার'),
 });
 export type CTAProps = z.infer<typeof CTAPropsSchema>;
+
 
 // ============================================================================
 // TRUST BADGES SECTION

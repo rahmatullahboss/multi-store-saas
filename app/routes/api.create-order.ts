@@ -47,8 +47,11 @@ const OrderSchema = z.object({
     .refine(val => bdPhoneRegex.test(val.replace(/[\s-]/g, '')), {
       message: 'সঠিক বাংলাদেশী মোবাইল নম্বর দিন (01XXXXXXXXX)',
     }),
-  address: z.string().min(10, 'ঠিকানা কমপক্ষে ১০ অক্ষর হতে হবে').max(500),
+  address: z.string().min(5, 'ঠিকানা কমপক্ষে ৫ অক্ষর হতে হবে').max(500),
   division: z.enum(validDivisions as [string, ...string[]]).default('dhaka'), // Inside/Outside Dhaka
+  // BD Address System - District & Upazila
+  district: z.string().max(50).optional(), // District ID from bd-locations
+  upazila: z.string().max(50).optional(), // Upazila ID from bd-locations
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation

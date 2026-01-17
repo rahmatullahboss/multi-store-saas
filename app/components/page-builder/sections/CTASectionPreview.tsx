@@ -11,10 +11,17 @@
  * - REAL ORDER SUBMISSION to /api/create-order
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useFetcher, useNavigate } from '@remix-run/react';
-import { ShieldCheck, Truck, ArrowRight, Package, Loader2, CheckCircle } from 'lucide-react';
+import { ShieldCheck, Truck, ArrowRight, Package, Loader2, CheckCircle, MapPin, ChevronDown } from 'lucide-react';
 import type { SectionTheme } from '~/lib/page-builder/types';
+import { 
+  DISTRICTS, 
+  getUpazilasByDistrict, 
+  getShippingZone,
+  type District,
+  type Upazila 
+} from '~/data/bd-locations';
 
 interface Variant {
   id: string;
@@ -48,6 +55,16 @@ interface CTAProps {
   subtotalLabel?: string;
   deliveryLabel?: string;
   totalLabel?: string;
+  
+  // BD Address System
+  showDistrictField?: boolean;
+  showUpazilaField?: boolean;
+  districtLabel?: string;
+  upazilaLabel?: string;
+  addressLabel?: string;
+  districtPlaceholder?: string;
+  upazilaPlaceholder?: string;
+  shippingZoneMode?: 'auto' | 'manual';
   
   // Trust badges
   showTrustBadges?: boolean;
@@ -89,7 +106,7 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
     buttonText = 'অর্ডার কনফার্ম করুন',
     template = 'minimal' as 'minimal' | 'premium' | 'urgent' | 'singleColumn' | 'withImage',
     phonePlaceholder = 'আপনার মোবাইল নম্বর',
-    addressPlaceholder = 'পূর্ণ ডেলিভারি ঠিকানা লিখুন',
+    addressPlaceholder = 'বাসা নম্বর, রোড, এলাকা',
     
     // Pricing (fallbacks when no product selected)
     productPrice = 1990,
@@ -112,6 +129,16 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
     subtotalLabel = 'সাবটোটাল',
     deliveryLabel = 'ডেলিভারি চার্জ',
     totalLabel = 'সর্বমোট',
+    
+    // BD Address System
+    showDistrictField = true,
+    showUpazilaField = true,
+    districtLabel = 'জেলা',
+    upazilaLabel = 'উপজেলা/থানা',
+    addressLabel = 'বিস্তারিত ঠিকানা',
+    districtPlaceholder = 'জেলা নির্বাচন করুন',
+    upazilaPlaceholder = 'উপজেলা নির্বাচন করুন',
+    shippingZoneMode = 'auto' as 'auto' | 'manual',
     
     // Trust badges
     showTrustBadges = true,
@@ -137,6 +164,36 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   const [isInsideDhaka, setIsInsideDhaka] = useState(true);
   const [orderSuccess, setOrderSuccess] = useState(false);
   
+  // BD Address state
+  const [selectedDistrictId, setSelectedDistrictId] = useState('');
+  const [selectedUpazilaId, setSelectedUpazilaId] = useState('');
+  
+  // Get upazilas for selected district
+  const availableUpazilas = useMemo(() => {
+    if (!selectedDistrictId) return [];
+    return getUpazilasByDistrict(selectedDistrictId);
+  }, [selectedDistrictId]);
+  
+  // Reset upazila when district changes
+  useEffect(() => {
+    setSelectedUpazilaId('');
+  }, [selectedDistrictId]);
+  
+  // Calculate shipping zone from district (auto mode)
+  const calculatedShippingZone = useMemo(() => {
+    if (shippingZoneMode === 'manual') {
+      return isInsideDhaka ? 'dhaka' : 'outside';
+    }
+    // Auto mode: calculate from district
+    if (!selectedDistrictId) return 'dhaka'; // Default to dhaka if not selected
+    return getShippingZone(selectedDistrictId);
+  }, [shippingZoneMode, selectedDistrictId, isInsideDhaka]);
+  
+  // Get selected district name for display
+  const selectedDistrict = useMemo(() => {
+    return DISTRICTS.find(d => d.id === selectedDistrictId);
+  }, [selectedDistrictId]);
+  
   // Reset selectedVariant when variants change (including product change)
   useEffect(() => {
     setSelectedVariant(actualVariants[0] || null);
@@ -157,7 +214,8 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
   // Calculate prices using actual product price or selected variant
   const basePrice = selectedVariant?.price || actualPrice;
   const subtotal = basePrice * quantity;
-  const deliveryCharge = isInsideDhaka ? insideDhakaCharge : outsideDhakaCharge;
+  // Use calculated shipping zone for delivery charge
+  const deliveryCharge = calculatedShippingZone === 'dhaka' ? insideDhakaCharge : outsideDhakaCharge;
   const total = subtotal + deliveryCharge;
   
   // Format price in Bengali
@@ -405,7 +463,9 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                   <input type="hidden" name="store_id" value={storeId || ''} />
                   <input type="hidden" name="product_id" value={productId || ''} />
                   <input type="hidden" name="quantity" value={quantity} />
-                  <input type="hidden" name="division" value={isInsideDhaka ? 'dhaka' : 'outside_dhaka'} />
+                  <input type="hidden" name="division" value={calculatedShippingZone === 'dhaka' ? 'dhaka' : 'outside_dhaka'} />
+                  <input type="hidden" name="district" value={selectedDistrictId} />
+                  <input type="hidden" name="upazila" value={selectedUpazilaId} />
                   {selectedVariant?.id && (
                     <input type="hidden" name="variant_id" value={selectedVariant.id} />
                   )}
@@ -448,68 +508,169 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
                     />
                   </div>
                   
-                  {/* Delivery Location - Dual Buttons */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setIsInsideDhaka(true)}
-                      className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
-                      style={{
-                        backgroundColor: isInsideDhaka ? primaryColor : inputBg,
-                        color: isInsideDhaka ? '#FFFFFF' : textColor,
-                        border: `2px solid ${isInsideDhaka ? primaryColor : inputBorder}`,
-                      }}
-                      disabled={fetcher.state !== 'idle'}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Package size={16} className="flex-shrink-0" />
-                        <span className="text-sm sm:text-base">{insideDhakaLabel}</span>
+                  {/* Address Section - BD Style */}
+                  {shippingZoneMode === 'auto' && showDistrictField ? (
+                    <>
+                      {/* District Dropdown */}
+                      <div>
+                        <label 
+                          className="block text-sm font-medium mb-1.5"
+                          style={{ color: mutedColor }}
+                        >
+                          {districtLabel} <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <select
+                            name="district_select"
+                            value={selectedDistrictId}
+                            onChange={(e) => setSelectedDistrictId(e.target.value)}
+                            className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400 appearance-none cursor-pointer"
+                            style={{ 
+                              backgroundColor: inputBg, 
+                              border: `2px solid ${selectedDistrictId ? primaryColor : inputBorder}`,
+                              color: inputText,
+                            }}
+                            required
+                            disabled={fetcher.state !== 'idle'}
+                          >
+                            <option value="">{districtPlaceholder}</option>
+                            {DISTRICTS.map((d) => (
+                              <option key={d.id} value={d.id}>
+                                {d.name} ({d.nameEn})
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown 
+                            size={20} 
+                            className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                            style={{ color: mutedColor }}
+                          />
+                        </div>
+                        {/* Show shipping zone indicator */}
+                        {selectedDistrictId && (
+                          <div 
+                            className="mt-1.5 flex items-center gap-1.5 text-xs font-medium"
+                            style={{ color: calculatedShippingZone === 'dhaka' ? '#10B981' : '#F59E0B' }}
+                          >
+                            <Truck size={12} />
+                            <span>
+                              {calculatedShippingZone === 'dhaka' 
+                                ? `${insideDhakaLabel}: ৳${insideDhakaCharge}` 
+                                : `${outsideDhakaLabel}: ৳${outsideDhakaCharge}`
+                              }
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <span 
-                        className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
-                        style={{ 
-                          backgroundColor: isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
-                          color: isInsideDhaka ? '#FFFFFF' : primaryColor,
+                      
+                      {/* Upazila Dropdown */}
+                      {showUpazilaField && selectedDistrictId && availableUpazilas.length > 0 && (
+                        <div>
+                          <label 
+                            className="block text-sm font-medium mb-1.5"
+                            style={{ color: mutedColor }}
+                          >
+                            {upazilaLabel}
+                          </label>
+                          <div className="relative">
+                            <select
+                              name="upazila_select"
+                              value={selectedUpazilaId}
+                              onChange={(e) => setSelectedUpazilaId(e.target.value)}
+                              className="w-full px-5 py-4 rounded-xl font-medium outline-none transition-all focus:ring-2 focus:ring-purple-400 appearance-none cursor-pointer"
+                              style={{ 
+                                backgroundColor: inputBg, 
+                                border: `2px solid ${selectedUpazilaId ? primaryColor : inputBorder}`,
+                                color: inputText,
+                              }}
+                              disabled={fetcher.state !== 'idle'}
+                            >
+                              <option value="">{upazilaPlaceholder}</option>
+                              {availableUpazilas.map((u) => (
+                                <option key={u.id} value={u.id}>
+                                  {u.name} ({u.nameEn})
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown 
+                              size={20} 
+                              className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                              style={{ color: mutedColor }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    /* Manual Mode - Dhaka/Outside Toggle Buttons */
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsInsideDhaka(true)}
+                        className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
+                        style={{
+                          backgroundColor: isInsideDhaka ? primaryColor : inputBg,
+                          color: isInsideDhaka ? '#FFFFFF' : textColor,
+                          border: `2px solid ${isInsideDhaka ? primaryColor : inputBorder}`,
                         }}
+                        disabled={fetcher.state !== 'idle'}
                       >
-                        ৳{insideDhakaCharge}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsInsideDhaka(false)}
-                      className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
-                      style={{
-                        backgroundColor: !isInsideDhaka ? primaryColor : inputBg,
-                        color: !isInsideDhaka ? '#FFFFFF' : textColor,
-                        border: `2px solid ${!isInsideDhaka ? primaryColor : inputBorder}`,
-                      }}
-                      disabled={fetcher.state !== 'idle'}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Truck size={16} className="flex-shrink-0" />
-                        <span className="text-sm sm:text-base">{outsideDhakaLabel}</span>
-                      </div>
-                      <span 
-                        className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
-                        style={{ 
-                          backgroundColor: !isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
-                          color: !isInsideDhaka ? '#FFFFFF' : primaryColor,
+                        <div className="flex items-center gap-2">
+                          <Package size={16} className="flex-shrink-0" />
+                          <span className="text-sm sm:text-base">{insideDhakaLabel}</span>
+                        </div>
+                        <span 
+                          className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
+                          style={{ 
+                            backgroundColor: isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
+                            color: isInsideDhaka ? '#FFFFFF' : primaryColor,
+                          }}
+                        >
+                          ৳{insideDhakaCharge}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsInsideDhaka(false)}
+                        className="py-3 sm:py-4 px-3 rounded-xl font-bold transition-all flex items-center justify-between sm:justify-center gap-2"
+                        style={{
+                          backgroundColor: !isInsideDhaka ? primaryColor : inputBg,
+                          color: !isInsideDhaka ? '#FFFFFF' : textColor,
+                          border: `2px solid ${!isInsideDhaka ? primaryColor : inputBorder}`,
                         }}
+                        disabled={fetcher.state !== 'idle'}
                       >
-                        ৳{outsideDhakaCharge}
-                      </span>
-                    </button>
-                  </div>
+                        <div className="flex items-center gap-2">
+                          <Truck size={16} className="flex-shrink-0" />
+                          <span className="text-sm sm:text-base">{outsideDhakaLabel}</span>
+                        </div>
+                        <span 
+                          className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0"
+                          style={{ 
+                            backgroundColor: !isInsideDhaka ? 'rgba(255,255,255,0.2)' : `${primaryColor}20`,
+                            color: !isInsideDhaka ? '#FFFFFF' : primaryColor,
+                          }}
+                        >
+                          ৳{outsideDhakaCharge}
+                        </span>
+                      </button>
+                    </div>
+                  )}
                   
-                  {/* Address Input */}
+                  {/* Detailed Address Input */}
                   <div>
+                    <label 
+                      className="block text-sm font-medium mb-1.5"
+                      style={{ color: mutedColor }}
+                    >
+                      {addressLabel} <span className="text-red-500">*</span>
+                    </label>
                     <textarea
                       name="address"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder={addressPlaceholder}
-                      rows={3}
+                      rows={2}
                       className="w-full px-5 py-4 rounded-xl font-medium outline-none resize-none transition-all focus:ring-2 focus:ring-purple-400"
                       style={{ 
                         backgroundColor: inputBg, 
