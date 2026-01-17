@@ -964,6 +964,331 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────
+  // TRUST-FIRST - Testimonial Heavy Design
+  // ─────────────────────────────────────────────────────────────────────────
+  'trust-first': {
+    id: 'trust-first',
+    name: 'ট্রাস্ট ফার্স্ট',
+    nameEn: '💚 Trust First (Testimonial Heavy)',
+    description: 'টেস্টিমোনিয়াল ও কাস্টমার রিভিউ ফোকাসড ডিজাইন',
+    descriptionEn: 'Testimonial and customer review focused design',
+    thumbnail: '/templates/trust-first.png',
+    category: 'sales',
+    emoji: '💚',
+    colors: {
+      primary: '#059669',
+      accent: '#10B981',
+      bg: 'linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)',
+    },
+    sections: [
+      {
+        type: 'hero',
+        props: {
+          headline: 'হাজারো সন্তুষ্ট গ্রাহকের বিশ্বস্ত পছন্দ',
+          subheadline: '১৫,০০০+ গ্রাহক আমাদের উপর ভরসা করেছেন। ৪.৯/৫ রেটিং এবং ৯৮% পজিটিভ রিভিউ।',
+          ctaText: 'এখনই অর্ডার করুন',
+          badgeText: '✓ ১০০% অরিজিনাল প্রোডাক্ট',
+        },
+      },
+      {
+        type: 'trust-badges',
+        props: {
+          badges: [
+            { icon: '👥', text: '১৫,০০০+ সন্তুষ্ট গ্রাহক' },
+            { icon: '⭐', text: '৪.৯/৫ রেটিং' },
+            { icon: '✓', text: '৯৮% পজিটিভ রিভিউ' },
+            { icon: '🚚', text: 'ফ্রি ডেলিভারি' },
+          ],
+        },
+      },
+      {
+        type: 'testimonials',
+        props: {
+          title: '💬 আমাদের গ্রাহকদের অভিজ্ঞতা',
+          testimonials: [
+            { name: 'রহিম আহমেদ', location: 'ঢাকা', text: 'অসাধারণ প্রোডাক্ট! দ্রুত ডেলিভারি পেয়েছি। কোয়ালিটি দেখে মুগ্ধ হয়ে গেছি।', rating: 5 },
+            { name: 'ফাতেমা বেগম', location: 'চট্টগ্রাম', text: 'এত ভালো সার্ভিস আর কোথাও পাইনি। আবার অর্ডার করব ইনশাআল্লাহ।', rating: 5 },
+            { name: 'করিম উদ্দিন', location: 'সিলেট', text: 'বন্ধুদেরও রেকমেন্ড করেছি। সবাই খুশি!', rating: 5 },
+            { name: 'সাবরিনা আক্তার', location: 'রাজশাহী', text: 'প্রোডাক্ট হাতে পেয়ে সত্যিই অবাক হয়েছি। দারুণ কোয়ালিটি!', rating: 5 },
+          ],
+        },
+      },
+      {
+        type: 'comparison',
+        props: {
+          title: 'কেন আমাদের থেকে কিনবেন?',
+          beforeLabel: 'অন্যান্য সেলার',
+          afterLabel: 'আমরা',
+          description: 'আমরা সবসময় গ্রাহক সন্তুষ্টিকে প্রথম স্থানে রাখি।',
+        },
+      },
+      {
+        type: 'benefits',
+        props: {
+          title: 'আমাদের প্রতিশ্রুতি',
+          benefits: [
+            { icon: '🏆', title: '১০০% অরিজিনাল', description: 'নকল প্রোডাক্ট পেলে পুরো টাকা ফেরত' },
+            { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ দিনের মধ্যে ডেলিভারি' },
+            { icon: '↩️', title: '৭ দিন রিটার্ন', description: 'প্রশ্নহীন রিটার্ন পলিসি' },
+            { icon: '📞', title: '২৪/৭ সাপোর্ট', description: 'যেকোনো সময় কল করুন' },
+          ],
+        },
+      },
+      {
+        type: 'guarantee',
+        props: {
+          title: '১০০% সন্তুষ্টি গ্যারান্টি',
+          text: 'আমরা আপনার সন্তুষ্টির জন্য প্রতিশ্রুতিবদ্ধ। পণ্য পছন্দ না হলে ৭ দিনের মধ্যে ফেরত দিন।',
+          badgeLabel: '৭ দিন মানি ব্যাক গ্যারান্টি',
+        },
+      },
+      {
+        type: 'cta',
+        props: {
+          headline: '💚 আজই অর্ডার করুন',
+          subheadline: 'হাজারো সন্তুষ্ট গ্রাহকের দলে যোগ দিন',
+          buttonText: 'অর্ডার কনফার্ম করুন',
+        },
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // STORY-DRIVEN - Emotional Narrative Design
+  // ─────────────────────────────────────────────────────────────────────────
+  'story-driven': {
+    id: 'story-driven',
+    name: 'স্টোরি ড্রিভেন',
+    nameEn: '📖 Story Driven (Emotional)',
+    description: 'সমস্যা থেকে সমাধান - আবেগপূর্ণ গল্প বলার ডিজাইন',
+    descriptionEn: 'Problem to solution - emotional storytelling design',
+    thumbnail: '/templates/story-driven.png',
+    category: 'sales',
+    emoji: '📖',
+    colors: {
+      primary: '#D97706',
+      accent: '#F59E0B',
+      bg: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+    },
+    sections: [
+      {
+        type: 'hero',
+        props: {
+          headline: 'আপনি কি এই সমস্যায় ভুগছেন?',
+          subheadline: 'আমিও একসময় ঠিক আপনার মতোই ছিলাম। কিন্তু তারপর এই প্রোডাক্ট আমার জীবন বদলে দিয়েছে...',
+          ctaText: 'আমার গল্প পড়ুন',
+          badgeText: '💛 আমার অভিজ্ঞতা',
+        },
+      },
+      {
+        type: 'problem-solution',
+        props: {
+          problemTitle: '😔 আমি যে সমস্যায় ভুগছিলাম...',
+          problems: [
+            'প্রতিদিন একই সমস্যা, একই হতাশা',
+            'বাজারে কিছুই কাজ করছিল না',
+            'আশা ছেড়ে দিতে বসেছিলাম',
+          ],
+          solutionTitle: '✨ তারপর আমি এটা খুঁজে পেলাম!',
+          solutions: [
+            'প্রথম সপ্তাহেই পার্থক্য বুঝতে পারলাম',
+            'এখন আমি সম্পূর্ণ সুস্থ ও খুশি',
+            'সবাইকে রেকমেন্ড করছি',
+          ],
+        },
+      },
+      {
+        type: 'showcase',
+        props: {
+          title: '❤️ কেন এটা কাজ করে?',
+          features: [
+            'বিশেষ ফর্মুলা যা অন্যদের নেই',
+            'প্রাকৃতিক উপাদানে তৈরি',
+            'কোনো পার্শ্বপ্রতিক্রিয়া নেই',
+            'দ্রুত ফলাফল পাওয়া যায়',
+          ],
+        },
+      },
+      {
+        type: 'testimonials',
+        props: {
+          title: '💬 অন্যরা কি বলছেন?',
+          testimonials: [
+            { name: 'শারমিন সুলতানা', text: 'একই অভিজ্ঞতা! সত্যিই কাজ করে।', rating: 5 },
+            { name: 'রাকিব হাসান', text: 'বন্ধুর রেকমেন্ডেশনে কিনেছিলাম, এখন নিজেও রেকমেন্ড করছি।', rating: 5 },
+          ],
+        },
+      },
+      {
+        type: 'guarantee',
+        props: {
+          title: '💛 আমার প্রতিশ্রুতি',
+          text: 'আমি নিজে ব্যবহার করে দেখেছি, তাই আপনাকেও গ্যারান্টি দিচ্ছি - পছন্দ না হলে টাকা ফেরত।',
+          badgeLabel: '১০০% সন্তুষ্টি গ্যারান্টি',
+        },
+      },
+      {
+        type: 'cta',
+        props: {
+          headline: '💛 হ্যাঁ, আমিও চেষ্টা করতে চাই!',
+          subheadline: 'আপনার জার্নি আজই শুরু করুন',
+          buttonText: 'এখনই অর্ডার করুন',
+        },
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SOCIAL-PROOF - Facebook/WhatsApp Style
+  // ─────────────────────────────────────────────────────────────────────────
+  'social-proof-style': {
+    id: 'social-proof-style',
+    name: 'সোশ্যাল প্রুফ',
+    nameEn: '👥 Social Proof (Facebook Style)',
+    description: 'ফেসবুক ও হোয়াটসঅ্যাপ স্টাইলের পরিচিত ডিজাইন',
+    descriptionEn: 'Facebook and WhatsApp style familiar design',
+    thumbnail: '/templates/social-proof.png',
+    category: 'sales',
+    emoji: '👥',
+    colors: {
+      primary: '#1877F2',
+      accent: '#25D366',
+      bg: '#F0F2F5',
+    },
+    sections: [
+      {
+        type: 'hero',
+        props: {
+          headline: '🔥 এই প্রোডাক্ট এখন ভাইরাল!',
+          subheadline: '২,৪০০+ লাইক • ৩৪৭ মন্তব্য • ৮৯ শেয়ার',
+          ctaText: 'এখনই অর্ডার করুন',
+          badgeText: '📱 সোশ্যাল মিডিয়ায় ট্রেন্ডিং',
+        },
+      },
+      {
+        type: 'trust-badges',
+        props: {
+          badges: [
+            { icon: '👍', text: '২.৪K লাইক' },
+            { icon: '💬', text: '৩৪৭ কমেন্ট' },
+            { icon: '🔄', text: '৮৯ শেয়ার' },
+            { icon: '⭐', text: '৫ স্টার' },
+          ],
+        },
+      },
+      {
+        type: 'testimonials',
+        props: {
+          title: '💬 কাস্টমার কমেন্টস',
+          testimonials: [
+            { name: 'Rahim Ahmed', text: 'আমি অর্ডার করেছি, খুবই ভালো প্রোডাক্ট! 👍', rating: 5 },
+            { name: 'Fatema Begum', text: 'গতকালই পেয়েছি, অসাধারণ! 🔥', rating: 5 },
+            { name: 'Karim Uddin', text: 'বন্ধুদেরও বলে দিয়েছি অর্ডার করতে ❤️', rating: 5 },
+          ],
+        },
+      },
+      {
+        type: 'features',
+        props: {
+          title: '✅ প্রোডাক্ট ফিচার',
+          features: [
+            { icon: '✓', title: '১০০% অরিজিনাল', description: 'গ্যারান্টি সহ' },
+            { icon: '✓', title: 'ক্যাশ অন ডেলিভারি', description: 'হাতে পেয়ে টাকা দিন' },
+            { icon: '✓', title: 'ফ্রি শিপিং', description: 'সারাদেশে' },
+          ],
+        },
+      },
+      {
+        type: 'cta',
+        props: {
+          headline: '📱 এখনই অর্ডার করুন',
+          subheadline: '৩৪৭ জন অর্ডার করেছেন',
+          buttonText: 'Send Order',
+        },
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // URGENCY-SCARCITY - FOMO Focused Design
+  // ─────────────────────────────────────────────────────────────────────────
+  'urgency-scarcity': {
+    id: 'urgency-scarcity',
+    name: 'আর্জেন্সি স্কারসিটি',
+    nameEn: '🚨 Urgency & Scarcity (FOMO)',
+    description: 'কাউন্টডাউন, স্টক সতর্কতা এবং FOMO ফোকাসড ডিজাইন',
+    descriptionEn: 'Countdown, stock warning and FOMO focused design',
+    thumbnail: '/templates/urgency-scarcity.png',
+    category: 'sales',
+    emoji: '🚨',
+    colors: {
+      primary: '#DC2626',
+      accent: '#FBBF24',
+      bg: '#0F0F0F',
+    },
+    sections: [
+      {
+        type: 'hero',
+        props: {
+          headline: '⚠️ সতর্কতা: মাত্র ১৫টি বাকি!',
+          subheadline: '⏰ অফার শেষ হতে আর মাত্র ২ ঘণ্টা ৪৫ মিনিট বাকি! এই সুযোগ মিস করবেন না।',
+          ctaText: '🔥 এখনই অর্ডার করুন',
+          badgeText: '⚡ ফ্ল্যাশ সেল চলছে',
+        },
+      },
+      {
+        type: 'trust-badges',
+        props: {
+          badges: [
+            { icon: '👁️', text: '৪৭ জন এখন দেখছে' },
+            { icon: '📦', text: 'মাত্র ১৫টি বাকি' },
+            { icon: '⏰', text: 'সীমিত সময়' },
+            { icon: '🔥', text: 'দ্রুত বিক্রি হচ্ছে' },
+          ],
+        },
+      },
+      {
+        type: 'features',
+        props: {
+          title: '🔥 কেন এখনই অর্ডার করবেন?',
+          features: [
+            { icon: '💰', title: '৫০% ছাড়', description: 'শুধু আজকের জন্য' },
+            { icon: '🎁', title: 'ফ্রি গিফট', description: 'প্রথম ২০ অর্ডারে' },
+            { icon: '🚚', title: 'ফ্রি ডেলিভারি', description: 'আজই অর্ডার করলে' },
+          ],
+        },
+      },
+      {
+        type: 'testimonials',
+        props: {
+          title: '⭐ সাম্প্রতিক অর্ডার',
+          testimonials: [
+            { name: 'Rahim', location: 'ঢাকা', text: '২ মিনিট আগে অর্ডার করেছেন', rating: 5 },
+            { name: 'Fatema', location: 'চট্টগ্রাম', text: '৫ মিনিট আগে অর্ডার করেছেন', rating: 5 },
+            { name: 'Karim', location: 'সিলেট', text: '১২ মিনিট আগে অর্ডার করেছেন', rating: 5 },
+          ],
+        },
+      },
+      {
+        type: 'guarantee',
+        props: {
+          title: '🛡️ রিস্ক ফ্রি পারচেজ',
+          text: 'পছন্দ না হলে ৭ দিনের মধ্যে টাকা ফেরত।',
+          badgeLabel: '১০০% মানি ব্যাক গ্যারান্টি',
+        },
+      },
+      {
+        type: 'cta',
+        props: {
+          headline: '⏰ অফার শেষ হওয়ার আগেই অর্ডার করুন!',
+          subheadline: 'মাত্র ১৫টি স্টক বাকি আছে',
+          buttonText: '🔥 এখনই অর্ডার করুন',
+        },
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
   // BLANK - Start from Scratch
   // ─────────────────────────────────────────────────────────────────────────
   'blank': {
