@@ -152,6 +152,14 @@ export default function ProductsIndexPage() {
   // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
+  // Close modal and clear selection when form is submitting
+  useEffect(() => {
+    if (isSubmitting && showDeleteConfirm) {
+      setShowDeleteConfirm(false);
+      clearSelection();
+    }
+  }, [isSubmitting, showDeleteConfirm]);
+  
   // Status tabs configuration
   const statusTabs = [
     { id: 'all', label: t('allOrders'), count: stats.total },
@@ -679,10 +687,6 @@ export default function ProductsIndexPage() {
                   type="submit"
                   name="intent"
                   value="delete"
-                  onClick={() => {
-                    setShowDeleteConfirm(false);
-                    clearSelection();
-                  }}
                   className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                 >
                   {t('delete')}
