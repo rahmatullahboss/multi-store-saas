@@ -23,7 +23,7 @@ import {
   categories,
   stores,
 } from '@db/schema';
-import { requireAuth } from '~/services/auth.server';
+import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 
