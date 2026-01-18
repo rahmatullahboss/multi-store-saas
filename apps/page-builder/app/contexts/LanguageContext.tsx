@@ -25,7 +25,18 @@ interface LanguageContextValue {
   availableLanguages: LanguageConfig[];
 }
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+// Default fallback for SSR or when outside provider
+const defaultContextValue: LanguageContextValue = {
+  lang: DEFAULT_LANGUAGE,
+  t: (key: string | TranslationKey, options?: Record<string, string | number>) => 
+    i18nCustomT(key as TranslationKey, DEFAULT_LANGUAGE, options),
+  setLang: () => {},
+  toggleLang: () => {},
+  currentLanguage: LANGUAGES.find(l => l.code === DEFAULT_LANGUAGE),
+  availableLanguages: LANGUAGES,
+};
+
+const LanguageContext = createContext<LanguageContextValue>(defaultContextValue);
 
 export function LanguageProvider({ 
   children, 
@@ -85,11 +96,7 @@ export function LanguageProvider({
 }
 
 export function useLanguage(): LanguageContextValue {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
+  return useContext(LanguageContext);
 }
 
 export function useTranslation() {
