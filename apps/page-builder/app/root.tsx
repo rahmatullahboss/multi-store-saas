@@ -6,7 +6,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/cloudflare";
-import { LanguageProvider, useTranslation } from '~/contexts/LanguageContext';
+import { LanguageProvider } from '~/contexts/LanguageContext';
 
 import "./tailwind.css";
 
@@ -17,10 +17,8 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { lang } = useTranslation();
-  
   return (
-    <html lang={lang} className="h-full" suppressHydrationWarning>
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
