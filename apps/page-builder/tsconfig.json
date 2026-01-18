@@ -2,7 +2,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "../../db/**/*.ts"
+    "./db/**/*.ts"
   ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
@@ -21,8 +21,9 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./app/*"],
-      "@db/*": ["../../db/*"]
+      "@db/*": ["./db/*"]
     },
     "noEmit": true
   }
 }
+
