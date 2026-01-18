@@ -248,7 +248,7 @@ type NavSection = {
 };
 
 const navSections: NavSection[] = [
-  // === HOME (Always visible) ===
+  // === HOME ===
   {
     titleKey: 'sidebarHome',
     items: [
@@ -256,33 +256,30 @@ const navSections: NavSection[] = [
       { to: '/app/tutorials', labelKey: 'navTutorials', icon: BookOpen },
     ],
   },
-  // === ORDERS (Store-gated) ===
+  // === ORDERS ===
   {
     titleKey: 'sidebarOrders',
-    storeOnly: true,
     items: [
       { to: '/app/orders', labelKey: 'navAllOrders', icon: ShoppingCart },
       { to: '/app/abandoned-carts', labelKey: 'navAbandonedCarts', icon: ShoppingBag },
     ],
   },
-  // === CUSTOMERS (Store-gated, separate section) ===
+  // === CUSTOMERS ===
   {
     titleKey: 'sidebarCustomers',
-    storeOnly: true,
     items: [
       { to: '/app/customers', labelKey: 'navCustomers', icon: Users },
     ],
   },
-  // === CATALOG (Store-gated) ===
+  // === CATALOG ===
   {
     titleKey: 'sidebarCatalog',
-    storeOnly: true,
     items: [
       { to: '/app/products', labelKey: 'navProducts', icon: Package },
       { to: '/app/inventory', labelKey: 'navInventory', icon: Warehouse },
     ],
   },
-  // === ONLINE STORE (Always visible - for pages & theme) ===
+  // === ONLINE STORE (Pages & Theme) ===
   {
     titleKey: 'sidebarOnlineStore',
     items: [
@@ -290,27 +287,27 @@ const navSections: NavSection[] = [
       { to: '/app/store-design', labelKey: 'navTheme', icon: Palette },
     ],
   },
-  // === MARKETING (Always visible, some items gated) ===
+  // === MARKETING ===
   {
     titleKey: 'sidebarMarketing',
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
       { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon as any },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
-      { to: '/app/discounts', labelKey: 'navDiscounts', icon: Tag, storeOnly: true },
-      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, storeOnly: true },
+      { to: '/app/discounts', labelKey: 'navDiscounts', icon: Tag },
+      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
       { to: '/app/analytics', labelKey: 'navAnalytics', icon: BarChart3 },
     ],
   },
-  // === SETTINGS (Always visible, individual items gated) ===
+  // === SETTINGS ===
   {
     titleKey: 'sidebarSettings',
     items: [
       { to: '/app/settings', labelKey: 'navGeneral', icon: Settings },
       { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
-      { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck, storeOnly: true },
-      { to: '/app/settings/payment', labelKey: 'navPayments', icon: CreditCard, storeOnly: true },
+      { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
+      { to: '/app/settings/payment', labelKey: 'navPayments', icon: CreditCard },
       { to: '/app/billing', labelKey: 'navPlanBilling', icon: Crown },
       { to: '/app/settings/team', labelKey: 'navTeam', icon: Users },
     ],

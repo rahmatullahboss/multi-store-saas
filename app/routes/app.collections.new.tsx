@@ -13,8 +13,7 @@ import { getStoreId } from '~/services/auth.server';
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Loader2, Upload, X, Search, Check } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
-import { RichTextEditor } from '~/components/RichTextEditor';
-import { ClientOnly } from 'remix-utils/client-only';
+import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
     const storeId = await getStoreId(request, context.cloudflare.env);
@@ -102,7 +101,7 @@ export default function NewCollectionPage() {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
                             <div><label className="block text-sm font-medium text-gray-700 mb-1">Title</label><input type="text" name="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Summer Sale" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />{actionData?.errors?.title && <p className="text-red-500 text-sm mt-1">{actionData.errors.title}</p>}</div>
-                            <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><input type="hidden" name="description" value={description} /><ClientOnly fallback={<div className="h-32 bg-gray-50 rounded border" />}>{() => <RichTextEditor content={description} onChange={setDescription} />}</ClientOnly></div>
+                            <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><input type="hidden" name="description" value={description} /><LazyRichTextEditor content={description} onChange={setDescription} /></div>
                         </div>
                         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
                             <h3 className="font-semibold text-gray-900">Products</h3>

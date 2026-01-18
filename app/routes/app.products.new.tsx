@@ -24,8 +24,7 @@ import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
-import { RichTextEditor } from '~/components/RichTextEditor';
-import { ClientOnly } from 'remix-utils/client-only';
+import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Ozzyl' }];
@@ -484,9 +483,7 @@ export default function NewProductPage() {
               {t('description')}
             </label>
             <input type="hidden" name="description" value={formDescription} />
-            <ClientOnly fallback={<div className="h-32 bg-gray-50 rounded border" />}>
-              {() => <RichTextEditor content={formDescription} onChange={setFormDescription} placeholder={t('describeProduct')} />}
-            </ClientOnly>
+            <LazyRichTextEditor content={formDescription} onChange={setFormDescription} placeholder={t('describeProduct')} />
           </div>
         </div>
 
