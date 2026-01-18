@@ -1,0 +1,632 @@
+/**
+ * Type definitions for Hybrid Mode configurations
+ */
+
+// Typography settings for editors
+export interface TypographySettings {
+  headingSize?: 'small' | 'medium' | 'large';  // H1: 24/32/40px
+  bodySize?: 'small' | 'medium' | 'large';     // 14/16/18px
+  lineHeight?: 'compact' | 'normal' | 'relaxed'; // 1.4/1.6/1.8
+  letterSpacing?: 'tight' | 'normal' | 'wide';   // -0.02/0/0.02em
+}
+
+// Typography CSS values mapping
+export const TYPOGRAPHY_VALUES = {
+  headingSize: {
+    small: { fontSize: '1.5rem', lineHeight: '1.3' },   // 24px
+    medium: { fontSize: '2rem', lineHeight: '1.25' },   // 32px
+    large: { fontSize: '2.5rem', lineHeight: '1.2' },   // 40px
+  },
+  bodySize: {
+    small: '0.875rem',  // 14px
+    medium: '1rem',     // 16px
+    large: '1.125rem',  // 18px
+  },
+  lineHeight: {
+    compact: '1.4',
+    normal: '1.6',
+    relaxed: '1.8',
+  },
+  letterSpacing: {
+    tight: '-0.02em',
+    normal: '0',
+    wide: '0.02em',
+  },
+} as const;
+
+// Landing page configuration stored in landingConfig JSON field
+export interface LandingConfig {
+  templateId?: string; // Template ID (e.g., 'modern-dark', 'minimal-light', 'video-focus')
+  headline: string;
+  subheadline?: string;
+  videoUrl?: string;
+  ctaText: string;
+  ctaSubtext?: string;
+  testimonials?: {
+    name: string;
+    text?: string; // Optional - can show just photo
+    avatar?: string;
+    imageUrl?: string; // Customer photo/screenshot
+  }[];
+  features?: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
+  urgencyText?: string; // e.g., "Only 5 left!" or "Sale ends in 2 hours"
+  guaranteeText?: string;
+  socialProof?: {
+    count: number; // e.g., "500+ sold"
+    text: string;
+    title?: string;
+    images?: string[];
+  };
+  // === NEW: Landing Page Builder Fields ===
+  faq?: {
+    question: string;
+    answer: string;
+  }[];
+  sectionOrder?: string[]; // e.g., ['hero', 'features', 'video', 'testimonials', 'faq', 'cta']
+  hiddenSections?: string[]; // Sections to hide
+  // WhatsApp Integration
+  whatsappEnabled?: boolean;
+  whatsappNumber?: string; // e.g., '8801712345678'
+  whatsappMessage?: string; // Pre-filled message template
+  // Call Button
+  callEnabled?: boolean;
+  callNumber?: string; // e.g., '01712345678'
+  // Countdown Timer
+  countdownEnabled?: boolean;
+  countdownEndTime?: string; // ISO date string
+  countdownText?: string; // e.g., "অফার শেষ হতে বাকি"
+  // Stock Counter Display
+  showStockCounter?: boolean;
+  lowStockThreshold?: number; // Show warning below this number
+  // Social Proof Popup
+  showSocialProof?: boolean;
+  socialProofInterval?: number; // Seconds between popups
+  // Product Gallery
+  productImages?: string[];
+  // Photo Gallery Section (multiple images)
+  galleryImages?: string[];
+  // Benefits / Why Buy Us Section
+  benefits?: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
+  // Before/After Comparison Section
+  comparison?: {
+    beforeImage?: string;
+    afterImage?: string;
+    beforeLabel?: string;
+    afterLabel?: string;
+    description?: string;
+  };
+  // Color Theme Customization
+  primaryColor?: string; // Main brand color (buttons, accents)
+  accentColor?: string;  // Secondary accent color
+  // Extended Colors (Phase 1)
+  backgroundColor?: string; // Page background
+  textColor?: string;       // Main text color
+  borderColor?: string;     // Border/divider color
+  // Typography Settings (Phase 1)
+  typography?: TypographySettings;
+  // Order Form Layout Variant
+  orderFormVariant?: 'full-width' | 'compact'; // Default: 'full-width'
+  // Trust Badges
+  trustBadges?: {
+    icon: string;
+    text: string;
+  }[];
+  // Delivery Info
+  deliveryInfo?: {
+    title: string;
+    description: string;
+    areas?: string[];
+  };
+  // Custom CSS for advanced styling
+  customCSS?: string;
+  // Custom code injection (for FB Pixel, Google Analytics, etc.)
+  customHeadCode?: string; // Injected in <head>
+  customBodyCode?: string; // Injected before </body>
+  // Font Family
+  fontFamily?: string;
+  // Landing Page Language (for visitor default view)
+  landingLanguage?: 'bn' | 'en';
+  // Custom HTML Sections (positionable)
+  customSections?: CustomSection[];
+  // Localization & Page Titles (Editable for i18n)
+  trustTitle?: string;
+  benefitsTitle?: string;
+  comparisonTitle?: string;
+  testimonialsTitle?: string; // "What They Say"
+  reviewsSubtitle?: string;   // "Patron Reviews"
+  faqTitle?: string;          // "Concierge Service"
+  faqSubtitle?: string;       // "Frequently Asked Questions"
+  galleryTitle?: string;
+  videoTitle?: string;
+  socialProofTitle?: string;
+  featuresTitle?: string;     // "Exclusive Features"
+  guaranteeBadgeLabel?: string;
+  establishedDate?: string;   // "Est. 2024"
+  shippingConfig?: {
+    insideDhaka: number;
+    outsideDhaka: number;
+    freeShippingAbove: number;
+    enabled: boolean;
+  };
+  // Hero Section Customization
+  heroBadgeText?: string;
+  heroCountdownText?: string;
+  heroCtaText?: string;
+  heroPriceLabel?: string;
+  heroFeatures?: {
+    icon: string;
+    text: string;
+  }[];
+  // Product Variants (e.g., 1kg, 2kg, Red, White)
+  // Product Variants (e.g., 1kg, 2kg, Red, White)
+  productVariants?: LandingProductVariant[];
+  // Problem/Solution Section
+  problems?: string[];
+  solutions?: string[];
+  // Structured Problem & Solution
+  problemSolution?: {
+    beforeTitle?: string;
+    afterTitle?: string;
+    problems: string[];
+    solutions: string[];
+  };
+  // Showcase Data
+  showcaseData?: {
+    title?: string;
+    image?: string;
+    features: string[];
+  };
+  // Pricing Data
+  pricingData?: {
+    features: string[];
+    title?: string;
+    buttonText?: string;
+  };
+  // How To Order Data
+  howToOrderData?: {
+    title?: string;
+    steps: {
+      title: string;
+      description: string;
+    }[];
+  };
+  // Order Form & Footer Text Customization
+  orderFormText?: {
+    // Labels
+    headline?: string;
+    subheadline?: string;
+    nameLabel?: string;
+    phoneLabel?: string;
+    addressLabel?: string;
+    quantityLabel?: string;
+    variantLabel?: string;
+    shippingLabel?: string;
+    totalLabel?: string;
+    codLabel?: string;
+    
+    // Delivery & Shipping Labels
+    deliveryAreaLabel?: string;
+    insideDhakaLabel?: string;
+    outsideDhakaLabel?: string;
+    deliveryChargeLabel?: string;
+    freeShippingText?: string;
+
+    // Price Summary Labels
+    productPriceLabel?: string;
+
+    // Trust & Support Labels
+    authenticProductGuarantee?: string;
+    fastDelivery?: string;
+    callForSupport?: string;
+
+    // Section Titles
+    billingInfoTitle?: string;
+    
+    // Buttons
+    placeOrderButtonLabel?: string;
+    submitButtonText?: string;
+    processingButtonText?: string;
+    
+    // Placeholders
+    namePlaceholder?: string;
+    phonePlaceholder?: string;
+    addressPlaceholder?: string;
+    
+    // Footer
+    footerTagline?: string;
+    copyrightText?: string;
+    footerCopyright?: string;
+    secureCheckoutLabel?: string;
+  };
+  
+  // SEO Settings for Landing Page
+  seoTitle?: string;
+  seoDescription?: string;
+  ogImage?: string;
+}
+
+export interface LandingProductVariant {
+  id: string;
+  name: string;
+  price?: number;        // Price override for this variant
+  compareAtPrice?: number; // Compare at price override
+}
+
+// Custom HTML Section with position support
+export type CustomSectionPosition = 
+  | 'before-hero' 
+  | 'after-hero' 
+  | 'before-features' 
+  | 'after-features' 
+  | 'before-testimonials' 
+  | 'after-testimonials' 
+  | 'before-form' 
+  | 'after-form' 
+  | 'before-footer';
+
+export interface CustomSection {
+  id: string;
+  name: string;
+  html: string;
+  css?: string;
+  position: CustomSectionPosition;
+}
+
+// Store template configuration for full store mode
+export interface StoreTemplateConfig {
+  templateId: string; // 'luxe-boutique' | 'tech-modern' | 'artisan-market'
+  settings?: {
+    headerStyle?: 'minimal' | 'full' | 'centered';
+    productGridColumns?: 2 | 3 | 4;
+    showQuickView?: boolean;
+    showWishlist?: boolean;
+  };
+}
+
+// Theme configuration for full store mode
+export interface ThemeConfig {
+  primaryColor: string;
+  accentColor: string;
+  customAccentColor?: string; // Override preset accent color
+  // Extended Colors (Phase 1)
+  backgroundColor?: string; // Page background
+  textColor?: string;       // Main text color
+  borderColor?: string;     // Border/divider color
+  // Typography Settings (Phase 1)
+  typography?: TypographySettings;
+  fontFamily?: string; // Global font family
+  storeTemplateId?: string; // Selected store template ID
+  checkoutStyle?: 'standard' | 'minimal' | 'one_page'; // Checkout Layout Style
+  bannerUrl?: string;
+  bannerText?: string;
+  collections?: {
+    id: string;
+    name: string;
+    imageUrl?: string;
+  }[];
+  announcement?: {
+    text: string;
+    link?: string;
+  };
+  footerLinks?: {
+    title: string;
+    url: string;
+  }[];
+  // Advanced customization
+  customCSS?: string; // Custom CSS injected into store
+  headerLayout?: 'centered' | 'left-logo' | 'minimal';
+  headerShowSearch?: boolean;
+  headerShowCart?: boolean;
+  // Footer customization
+  footerColumns?: Array<{
+    title: string;
+    links: Array<{ label: string; url: string }>;
+  }>;
+  footerDescription?: string;
+  copyrightText?: string;
+  // Floating Contact Buttons
+  floatingWhatsappEnabled?: boolean;
+  floatingWhatsappNumber?: string;
+  floatingWhatsappMessage?: string;
+  floatingCallEnabled?: boolean;
+  floatingCallNumber?: string;
+  // Visual Editor Sections
+  sections?: any[]; // StoreSections structure for Home Page
+  productSections?: any[];
+  collectionSections?: any[];
+  cartSections?: any[]; // StoreSections structure for Product Details Page
+  // Marketing & Sales
+  flashSale?: {
+    isActive: boolean;
+    text?: string;
+    endTime?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    discountPercentage?: number;
+    discountType?: 'percent' | 'fixed';
+  };
+  trustBadges?: {
+    showPaymentIcons: boolean;
+    showGuaranteeSeals: boolean;
+    customText?: string;
+  };
+  marketingPopup?: {
+    isActive: boolean;
+    title?: string;
+    description?: string;
+    delay?: number;
+    offerCode?: string;
+  };
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    ogImage?: string;
+  };
+}
+
+// Social media links configuration
+export interface SocialLinks {
+  facebook?: string;
+  instagram?: string;
+  whatsapp?: string;
+  twitter?: string;
+}
+
+// Footer customization configuration
+export interface FooterConfig {
+  description?: string;
+  links?: {
+    title: string;
+    url: string;
+  }[];
+  showPoweredBy?: boolean;
+}
+
+// Helper to parse social links
+export function parseSocialLinks(json: string | null): SocialLinks | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as SocialLinks;
+  } catch {
+    return null;
+  }
+}
+
+// Helper to parse footer config
+export function parseFooterConfig(json: string | null): FooterConfig | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as FooterConfig;
+  } catch {
+    return null;
+  }
+}
+
+// Helper to parse JSON config safely
+export function parseLandingConfig(json: string | null): LandingConfig | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as LandingConfig;
+  } catch {
+    return null;
+  }
+}
+
+export interface ManualPaymentConfig {
+  bkashPersonal?: string;
+  bkashMerchant?: string;
+  nagadPersonal?: string;
+  nagadMerchant?: string;
+  rocketPersonal?: string;
+  rocketMerchant?: string;
+  instructions?: string; // Markdown supported
+}
+
+export function parseThemeConfig(json: string | null): ThemeConfig | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as ThemeConfig;
+  } catch {
+    return null;
+  }
+}
+
+export function parseManualPaymentConfig(json: string | null): ManualPaymentConfig | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as ManualPaymentConfig;
+  } catch {
+    return null;
+  }
+}
+
+// Default landing config for new stores
+export const defaultLandingConfig: LandingConfig = {
+  headline: "আপনার পণ্যের আকর্ষণীয় শিরোনাম এখানে দিন",
+  subheadline: "আপনার পণ্যের প্রধান বৈশিষ্ট্য বা অফার সম্পর্কে সংক্ষেপে লিখুন",
+  ctaText: "অর্ডার করতে ক্লিক করুন",
+  ctaSubtext: "ক্যাশ অন ডেলিভারি সুবিধা",
+  urgencyText: "সীমিত সময়ের অফার!",
+  guaranteeText: "১০০% অরিজিনাল পন্যের নিশ্চয়তা। পন্য হাতে পেয়ে পেমেন্ট করার সুবিধা।",
+  sectionOrder: ['hero', 'video', 'trust', 'problem-solution', 'features', 'benefits', 'showcase', 'comparison', 'gallery', 'social', 'testimonials', 'delivery', 'pricing', 'guarantee', 'how-to-order', 'cta', 'faq'],
+  trustBadges: [
+    { icon: '✅', text: 'অরিজিনাল প্রোডাক্ট' },
+    { icon: '🚚', text: 'দ্রুত ডেলিভারি' },
+    { icon: '🔒', text: 'নিরাপদ পেমেন্ট' }
+  ],
+  benefits: [
+    { icon: '💎', title: 'সেরা মান', description: 'আমরা দিচ্ছি সেরা মানের নিশ্চয়তা' },
+    { icon: '💰', title: 'সাশ্রয়ী মূল্য', description: 'বাজেটের মধ্যে সেরা পন্য' },
+    { icon: '⭐', title: 'প্রিমিয়াম সার্ভিস', description: 'কাস্টমারদের জন্য থাকছে সর্বোচ্চ গুরুত্ব' }
+  ],
+  deliveryInfo: {
+    title: "সারাদেশে ক্যাশ অন ডেলিভারি",
+    description: "ঢাকায় ১-২ দিন, ঢাকার বাইরে ২-৩ দিনের মধ্যে ডেলিভারি",
+    areas: ["ঢাকা", "চট্টগ্রাম", "সিলেট", "রাজশাহী", "খুলনা", "বরিশাল", "রংপুর"]
+  },
+  socialProof: {
+    count: 250,
+    text: "জনেরও বেশি কাস্টমার আমাদের থেকে কিনেছেন"
+  },
+  comparison: {
+    beforeLabel: "আগে",
+    afterLabel: "পরে",
+    description: "আমাদের পন্য ব্যবহারের আগের এবং পরের পার্থক্য দেখুন"
+  },
+  videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  trustTitle: "আমাদের ওপর কেন ভরসা করবেন?",
+  benefitsTitle: "কেন আমাদের থেকে কিনবেন?",
+  comparisonTitle: "পার্থক্য নিজেই দেখুন",
+  testimonialsTitle: "কাস্টমারদের মতামত",
+  faqTitle: "সাধারণ কিছু জিজ্ঞাসা",
+  galleryTitle: "পন্যের কিছু ছবি",
+  videoTitle: "ভিডিও রিভিউ",
+  socialProofTitle: "কাস্টমার রিভিউ",
+  guaranteeBadgeLabel: "১০০% নিরাপদ ও নির্ভরযোগ্য",
+  shippingConfig: {
+    insideDhaka: 60,
+    outsideDhaka: 120,
+    freeShippingAbove: 0,
+    enabled: true
+  },
+  heroBadgeText: "সীমিত অফার",
+  heroCtaText: "এখনই অর্ডার করুন",
+  heroPriceLabel: "মূল্য:",
+  heroFeatures: [
+    { icon: "✓", text: "১০০% অরিজিনাল পণ্য" },
+    { icon: "✓", text: "ক্যাশ অন ডেলিভারি" },
+    { icon: "✓", text: "দ্রুত ডেলিভারি" }
+  ],
+  productVariants: [
+    { id: 'v1', name: '১ কেজি' },
+    { id: 'v2', name: '২ কেজি', price: 1.8 }
+  ],
+  // New Sections Defaults
+  problemSolution: {
+    problems: [
+      "নকল পণ্যের ভিড়ে আসল পণ্য খুঁজে পাচ্ছেন না?",
+      "পণ্যের গুণমান নিয়ে চিন্তিত?",
+      "ডেলিভারি পেতে অনেক সময় লাগে?"
+    ],
+    solutions: [
+      "আমরা দিচ্ছি ১০০% অরিজিনাল পণ্যের গ্যারান্টি।",
+      "আমাদের প্রতিটি পণ্য কড়া মান নিয়ন্ত্রণ করে পাঠানো হয়।",
+      "আমরা দিচ্ছি দ্রুততম হোম ডেলিভারি সুবিধা।"
+    ]
+  },
+  showcaseData: {
+    features: [
+      "প্রিমিয়াম ডিজাইন ও ফিনিশিং",
+      "হাই কোয়ালিটি মেটেরিয়াল দিয়ে তৈরি",
+      "লং লাস্টিং ও টেকসই",
+      "অত্যাধুনিক প্রযুক্তির ব্যবহার"
+    ]
+  },
+  pricingData: {
+    features: [
+      "১০০% অরিজিনাল প্রোডাক্ট",
+      "সারা দেশে ফ্রি হোম ডেলিভারি",
+      "৭ দিনের রিপ্লেসমেন্ট গ্যারান্টি",
+      "২৪/৭ কাস্টমার সাপোর্ট"
+    ]
+  },
+  howToOrderData: {
+    steps: [
+      { title: "অর্ডার করুন", description: "নিচের ফর্মটি পূরণ করে 'অর্ডার করুন' বাটনে ক্লিক করুন" },
+      { title: "কনফার্মেশন", description: "আমাদের প্রতিনিধি আপনাকে কল করে অর্ডার কনফার্ম করবেন" },
+      { title: "ডেলিভারি", description: "আপনার ঠিকানায় পণ্য পৌঁছে যাবে, চেক করে পেমেন্ট করুন" }
+    ]
+  }
+};
+
+// Default theme config for new stores
+// Default theme config for new stores (Rich Preset)
+export const defaultThemeConfig: ThemeConfig = {
+  primaryColor: "#4f46e5", // Indigo-600 (More professional than 500)
+  accentColor: "#f59e0b",  // Amber-500
+  backgroundColor: "#ffffff",
+  textColor: "#1f2937",    // Gray-800
+  borderColor: "#e5e7eb",  // Gray-200
+  fontFamily: 'inter',
+  typography: {
+    headingSize: 'medium',
+    bodySize: 'medium',
+    lineHeight: 'normal',
+    letterSpacing: 'normal'
+  },
+  checkoutStyle: 'standard',
+  headerLayout: 'centered', // Modern default
+  headerShowSearch: true,
+  headerShowCart: true,
+  bannerText: "Free delivery inside Dhaka on orders over 2000 BDT! 🚚",
+  
+  // Day 1 Ready Content:
+  sections: [
+    {
+      id: 'default-hero',
+      type: 'hero',
+      settings: {
+        title: 'Premium Quality, Delivered.',
+        subtitle: 'Experience the best shopping experience with our curated collection of authentic products.',
+        buttonText: 'Shop All Products',
+        buttonLink: '/products',
+        align: 'center',
+        overlayOpacity: 50,
+        height: 'large',
+        image: '' // Fallback to gray placeholder in component if empty
+      }
+    },
+    {
+        id: 'default-features',
+        type: 'features',
+        settings: {
+            title: 'Why Shop With Us?',
+            columns: 3,
+            features: [
+                { icon: 'ShieldCheck', title: '100% Authentic', description: 'Original products guaranteed.' },
+                { icon: 'Truck', title: 'Fast Delivery', description: '24H delivery inside Dhaka.' },
+                { icon: 'Headphones', title: 'Support 24/7', description: 'Always here to help you.' }
+            ]
+        }
+    },
+    {
+      id: 'default-products',
+      type: 'product-grid',
+      settings: {
+        title: 'New Arrivals',
+        collectionId: 'all',
+        limit: 8,
+        columns: 4,
+        showViewAll: true
+      }
+    }
+  ],
+  footerDescription: "Your trusted destination for quality products. We prioritize customer satisfaction above all else.",
+  footerColumns: [
+    {
+      title: "Shop",
+      links: [
+        { label: "All Products", url: "/products" },
+        { label: "New Arrivals", url: "/products?sort=newest" },
+        { label: "Top Sellers", url: "/products?sort=best_selling" }
+      ]
+    },
+    {
+      title: "Company",
+      links: [
+        { label: "About Us", url: "/pages/about" },
+        { label: "Contact", url: "/pages/contact" },
+        { label: "Terms", url: "/pages/terms" }
+      ]
+    }
+  ],
+  copyrightText: "© 2024. All Rights Reserved."
+};
