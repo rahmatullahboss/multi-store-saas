@@ -32,7 +32,9 @@ import BlockLibraryModal from './BlockLibraryModal';
 import ContextMenu from './ContextMenu';
 import { AISidebar } from './ai-sidebar';
 import { toast } from 'sonner';
-import { useTranslation } from '~/contexts/LanguageContext';
+
+// Simple translation stub for standalone worker
+const useTranslation = () => ({ t: (key: string) => key });
 
 interface GrapesEditorProps {
   pageId?: string;

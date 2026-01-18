@@ -1885,6 +1885,101 @@ export const templateAnalyticsRelations = relations(templateAnalytics, ({ one })
 }));
 
 // ============================================================================
+// CARTS TABLE - Server-side shopping cart
+// ============================================================================
+// Enables: Cross-device sync, abandoned cart with items, server-side stock validation
+export const carts = sqliteTable('carts', {
+  id: text('id').primaryKey(), // UUID
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+
+  // Customer/Visitor identification
+  customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  visitorId: text('visitor_id'), // Anonymous visitor tracking (localStorage ID)
+  sessionId: text('session_id'), // Server session ID
+
+  // Currency for price consistency
+  currency: text('currency').default('BDT'),
+
+  // Status and expiration
+  status: text('status').$type<'active' | 'converted' | 'abandoned' | 'merged'>().default('active'),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }), // For cleanup
+
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_carts_store').on(table.storeId),
+  index('idx_carts_customer').on(table.customerId),
+  index('idx_carts_visitor').on(table.visitorId),
+  index('idx_carts_status').on(table.storeId, table.status),
+]);
+
+export const cartsRelations = relations(carts, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [carts.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [carts.customerId],
+    references: [customers.id],
+  }),
+  items: many(cartItems),
+}));
+
+export type Cart = typeof carts.$inferSelect;
+export type NewCart = typeof carts.$inferInsert;
+
+// ============================================================================
+// CART ITEMS TABLE - Individual items in a cart
+// ============================================================================
+export const cartItems = sqliteTable('cart_items', {
+  id: text('id').primaryKey(), // UUID
+  cartId: text('cart_id').notNull().references(() => carts.id, { onDelete: 'cascade' }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+
+  // Product reference
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'set null' }),
+
+  // Quantity
+  quantity: integer('quantity').notNull().default(1),
+
+  // Price snapshot at add time (for comparison / discount detection)
+  unitPriceSnapshot: real('unit_price_snapshot'),
+  titleSnapshot: text('title_snapshot'),
+  imageSnapshot: text('image_snapshot'),
+  variantTitleSnapshot: text('variant_title_snapshot'),
+
+  // Metadata
+  addedAt: integer('added_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_cart_items_cart').on(table.cartId),
+  index('idx_cart_items_product').on(table.productId),
+]);
+
+export const cartItemsRelations = relations(cartItems, ({ one }) => ({
+  cart: one(carts, {
+    fields: [cartItems.cartId],
+    references: [carts.id],
+  }),
+  store: one(stores, {
+    fields: [cartItems.storeId],
+    references: [stores.id],
+  }),
+  product: one(products, {
+    fields: [cartItems.productId],
+    references: [products.id],
+  }),
+  variant: one(productVariants, {
+    fields: [cartItems.variantId],
+    references: [productVariants.id],
+  }),
+}));
+
+export type CartItem = typeof cartItems.$inferSelect;
+export type NewCartItem = typeof cartItems.$inferInsert;
+
+// ============================================================================
 // CHECKOUT SESSIONS TABLE - Server-side checkout with stock reservation
 // ============================================================================
 // Enables: Stock reservation, abandoned checkout recovery, server-side pricing, idempotent order creation
