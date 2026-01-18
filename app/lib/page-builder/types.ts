@@ -155,6 +155,7 @@ export interface SectionMeta {
   description: string;
   descriptionEn: string;
   icon: string;
+  allowedPages?: string[]; // Optional: which page types this section can be used on
 }
 
 // ============================================================================

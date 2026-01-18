@@ -310,7 +310,7 @@ export default function ThemeEditor() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Page Templates</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(templateConfig).map(([key, config]) => {
-              const template = templates.find(t => t.templateKey === key);
+              const template = templates.find(t => t && t.templateKey === key);
               const Icon = config.icon;
               
               return (
