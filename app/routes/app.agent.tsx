@@ -1,9 +1,9 @@
 import { json, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, Link, Outlet, useLocation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, count, sql, gte } from 'drizzle-orm';
+import { eq, count, sql } from 'drizzle-orm';
 import * as schema from '../../db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { getStoreId } from '~/services/auth.server';
 import { Sparkles, MessageSquare, Settings, Book, Bot, Zap, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -76,7 +76,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 export default function AgentDashboard() {
   const { agent, isLocked, stats, aiPlan } = useLoaderData<typeof loader>();
   const location = useLocation();
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
 
   const tabs = [
     { name: t('overview'), to: '/app/agent', icon: Bot, exact: true },
@@ -216,7 +216,6 @@ export default function AgentDashboard() {
                     <h3 className="text-lg font-bold text-gray-900 mb-6">{t('activityOverview7Days')}</h3>
                     <div className="h-[300px] w-full" style={{ width: '100%', height: 300, minHeight: 300 }}>
                         <ClientOnly fallback={<div className="h-[300px] bg-gray-50 rounded animate-pulse" />}>
-                          {() => (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={stats?.daily && stats.daily.length > 0 ? stats.daily : [{date: 'Today', count: 0}]}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -226,7 +225,6 @@ export default function AgentDashboard() {
                                     <Area type="monotone" dataKey="count" stroke="#10B981" fill="#D1FAE5" strokeWidth={2} />
                                 </AreaChart>
                             </ResponsiveContainer>
-                          )}
                         </ClientOnly>
                     </div>
                 </div>

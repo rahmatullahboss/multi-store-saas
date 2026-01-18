@@ -31,7 +31,7 @@ const productLoopPlugin: Plugin = (editor) => {
         ],
         script: function() {
             // Script to handle dynamic updates if needed (mostly handled by CSS/HTML structure for now)
-            // @ts-ignore
+            // @ts-expect-error - GrapesJS script context
             const el = this as HTMLElement;
             const showBadge = el.getAttribute('data-show-badge') === 'true';
             const badgeText = el.getAttribute('data-badge-text') || '';
@@ -46,7 +46,7 @@ const productLoopPlugin: Plugin = (editor) => {
       },
     },
     view: {
-        onRender({ el }) {
+        onRender({ el: _el }) {
             const comps = this.model.components();
             if (comps.length === 0) {
                 this.model.components(`
@@ -115,13 +115,9 @@ const productLoopPlugin: Plugin = (editor) => {
       }
     },
     view: {
-        onRender({ el }) {
+        onRender({ el: _el }) {
             const comps = this.model.components();
             if (comps.length === 0) {
-                // Remove existing classes that might conflict with traits initially or just reset
-                 const desktopCols = 'md:grid-cols-4'; // default
-                 const gap = 'gap-4'; // default
-
                 // Add 4 placeholder cards
                 this.model.components([
                     { type: 'product-card' },
