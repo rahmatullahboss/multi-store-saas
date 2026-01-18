@@ -365,7 +365,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       
       // Redirect to builder page if it exists and is published
       if (builderPage && builderPage.status === 'published') {
-        const redirectUrl = `/o/${builderPage.slug}`;
+        const redirectUrl = `/p/${builderPage.slug}`;
         return new Response(null, {
           status: 302,
           headers: {

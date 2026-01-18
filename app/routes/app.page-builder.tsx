@@ -268,7 +268,7 @@ export default function PageBuilder() {
                 </a>
                 {page.isPublished && (
                   <a
-                    href={`${publishedBaseUrl}/o/${page.slug}`}
+                    href={`${publishedBaseUrl}/p/${page.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors"

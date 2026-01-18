@@ -280,7 +280,7 @@ export default function HomepageSettingsPage() {
                         )}
                       </div>
                       <p className="text-sm text-gray-500">
-                        /o/{page.slug}
+                        /p/{page.slug}
                       </p>
                     </div>
                   </button>

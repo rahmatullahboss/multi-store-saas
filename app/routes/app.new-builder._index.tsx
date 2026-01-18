@@ -167,7 +167,7 @@ export default function NewBuilderIndex() {
                       <Edit size={18} />
                     </button>
                     <a
-                      href={`https://${storeSlug}.ozzyl.com/o/${page.slug}`}
+                      href={`https://${storeSlug}.ozzyl.com/p/${page.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-3 bg-white rounded-full text-gray-700 hover:bg-green-600 hover:text-white transition-colors"
@@ -192,7 +192,7 @@ export default function NewBuilderIndex() {
                       <h3 className="font-semibold text-gray-900 truncate">
                         {page.title || 'Untitled Page'}
                       </h3>
-                      <p className="text-sm text-gray-500 truncate">/o/{page.slug}</p>
+                      <p className="text-sm text-gray-500 truncate">/p/{page.slug}</p>
                     </div>
                     <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${
                       page.status === 'published' 
@@ -208,7 +208,7 @@ export default function NewBuilderIndex() {
                       Created {new Date(page.createdAt ?? Date.now()).toLocaleDateString('bn-BD')}
                     </span>
                     <a
-                      href={`https://${storeSlug}.ozzyl.com/o/${page.slug}`}
+                      href={`https://${storeSlug}.ozzyl.com/p/${page.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
