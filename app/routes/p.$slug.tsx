@@ -244,6 +244,14 @@ function CustomPageRenderer({ page }: { page: any }) {
           }
         }
       `}} />
+      {/* FIX: Initialize Tailwind CSS gradient variables - CDN mode doesn't set these properly */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        *, ::before, ::after {
+          --tw-gradient-from-position: 0%;
+          --tw-gradient-via-position: 50%;
+          --tw-gradient-to-position: 100%;
+        }
+      `}} />
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet" />
       <script src="https://unpkg.com/lucide@latest"></script>
