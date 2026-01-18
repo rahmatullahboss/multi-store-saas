@@ -21,9 +21,9 @@ import { eq, count, sum } from 'drizzle-orm';
 import { stores, products, customers, orders, emailSubscribers, savedLandingConfigs, emailCampaigns } from '@db/schema';
 import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
-import { fontOptions } from '~/lib/theme';
-import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
-import { Store, Globe, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Layout, ShoppingBag, FileText, Crown, Lock, Trash2, AlertTriangle, Palette } from 'lucide-react';
+
+
+import { Store, Globe, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, FileText, AlertTriangle, Palette } from 'lucide-react';
 import { StoreDeleteWarningModal } from '~/components/StoreDeleteWarningModal';
 import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
@@ -55,8 +55,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const footerConfig = parseFooterConfig(store.footerConfig as string | null);
 
-  const planType = (store.planType as PlanType) || 'free';
-  const allowStoreMode = canUseStoreMode(planType);
+  const planType = store.planType || 'free';
+  // Note: allowStoreMode removed - mode control now in Homepage Settings
 
   // Fetch data counts for retention modal
   const [productsCount, customersCount, ordersData, subscribersCount, landingPagesCount, campaignsCount] = await Promise.all([
@@ -76,7 +76,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       customDomain: store.customDomain,
       currency: store.currency,
       defaultLanguage: store.defaultLanguage || 'en',
-      mode: store.mode || 'landing',
+      // Note: mode field removed - use storeEnabled from Homepage Settings instead
       planType,
       theme: store.theme,
       logo: store.logo,
@@ -86,7 +86,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       footerConfig: footerConfig || { description: '', showPoweredBy: true },
       businessInfo: store.businessInfo ? JSON.parse(store.businessInfo) : { phone: '', email: '', address: '' },
     },
-    allowStoreMode,
+    // Note: allowStoreMode removed - handled in Homepage Settings
     dataCounts: {
       products: productsCount[0]?.count || 0,
       customers: customersCount[0]?.count || 0,
@@ -152,7 +152,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const businessEmail = formData.get('businessEmail') as string;
   const businessAddress = formData.get('businessAddress') as string;
   const customDomain = formData.get('customDomain') as string;
-  const storeMode = formData.get('storeMode') as 'landing' | 'store' | null;
+  // Note: storeMode handling removed - use Homepage Settings (storeEnabled) instead
   const defaultLanguage = formData.get('defaultLanguage') as 'en' | 'bn' | null;
   
   // Social links
@@ -165,21 +165,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'storeNameMinLength' }, { status: 400 });
   }
 
-  // ========================================================================
-  // SERVER-SIDE VALIDATION: Prevent free users from switching to store mode
-  // ========================================================================
-  if (storeMode === 'store') {
-    // Get current plan from database (not from client!)
-    const storeData = await db.select({ planType: stores.planType }).from(stores).where(eq(stores.id, storeId)).limit(1);
-    const planType = (storeData[0]?.planType as PlanType) || 'free';
-    
-    if (!canUseStoreMode(planType)) {
-      console.warn(`[SECURITY] Free user (store ${storeId}) attempted to switch to store mode`);
-      return json({ 
-        error: 'storeModeUpgradeRequired' 
-      }, { status: 403 });
-    }
-  }
+  // Note: Store mode validation removed - handled in Homepage Settings (storeEnabled)
 
   // Build update object
   const updateData: Record<string, unknown> = {
@@ -204,10 +190,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     updatedAt: new Date(),
   };
 
-  // Only update mode if provided and validated above
-  if (storeMode && (storeMode === 'landing' || storeMode === 'store')) {
-    updateData.mode = storeMode;
-  }
+  // Note: mode field update removed - use Homepage Settings (storeEnabled) instead
 
   await db
     .update(stores)
@@ -259,20 +242,20 @@ const currencies = [
   { value: 'INR', labelKey: 'currencyINR' },
 ];
 
-
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 export default function SettingsPage() {
-  const { store, allowStoreMode, dataCounts } = useLoaderData<typeof loader>();
+  const { store, dataCounts } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>() as { success?: boolean; error?: string } | undefined;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const [showSuccess, setShowSuccess] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState(store.theme || 'default');
-  const [selectedFont, setSelectedFont] = useState(store.fontFamily || 'inter');
-  const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode as 'landing' | 'store' || 'landing');
+  // Theme and font selection - used by ThemePreview component
+  const selectedTheme = store.theme || 'default';
+  const selectedFont = store.fontFamily || 'inter';
+  // Note: Store mode selection removed from this page. Use Homepage Settings (storeEnabled toggle) instead.
   const [showPreview, setShowPreview] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   
@@ -649,107 +632,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Store Mode Selection Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-              <Layout className="w-5 h-5 text-violet-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('storeMode')}</h2>
-              <p className="text-sm text-gray-500">{t('storeModeDesc')}</p>
-            </div>
-          </div>
-
-          {/* Hidden input for form submission */}
-          <input type="hidden" name="storeMode" value={storeMode} />
-
-          {allowStoreMode ? (
-            /* Paid Users - Can toggle between modes */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Landing Page Option */}
-              <button
-                type="button"
-                onClick={() => setStoreMode('landing')}
-                className={`relative flex flex-col items-start p-4 border-2 rounded-xl transition text-left ${
-                  storeMode === 'landing'
-                    ? 'border-violet-500 bg-violet-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-3">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t('landingPage')}</h3>
-                <p className="text-sm text-gray-500">{t('landingPageDesc')}</p>
-                {storeMode === 'landing' && (
-                  <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
-                )}
-              </button>
-
-              {/* Full Store Option */}
-              <button
-                type="button"
-                onClick={() => setStoreMode('store')}
-                className={`relative flex flex-col items-start p-4 border-2 rounded-xl transition text-left ${
-                  storeMode === 'store'
-                    ? 'border-violet-500 bg-violet-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-3">
-                  <ShoppingBag className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t('fullStore')}</h3>
-                <p className="text-sm text-gray-500">{t('fullStoreDesc')}</p>
-                {storeMode === 'store' && (
-                  <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
-                )}
-              </button>
-            </div>
-          ) : (
-            /* Free Users - Locked to Landing Page with upgrade prompt */
-            <div className="space-y-4">
-              {/* Current Mode - Landing Page */}
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{t('landingPageMode')}</h3>
-                  <p className="text-sm text-gray-500">{t('landingPageModeActive')}</p>
-                </div>
-                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">{t('active')}</span>
-              </div>
-
-              {/* Upgrade Prompt for Full Store */}
-              <div className="relative p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 opacity-75">
-                <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-                  <Lock className="w-3 h-3" />
-                  Pro
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center opacity-50">
-                    <ShoppingBag className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-700">{t('fullStoreMode')}</h3>
-                    <p className="text-sm text-gray-500">{t('fullStoreModeLocked')}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Upgrade CTA */}
-              <a
-                href="/app/upgrade"
-                className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-lg shadow-amber-500/20"
-              >
-                <Crown className="w-5 h-5" />
-                {t('upgradeToUnlockFullStore')}
-              </a>
-            </div>
-          )}
-        </div>
+        {/* Note: Store Mode Selection Card removed - use Homepage Settings (/app/settings/homepage) instead */}
 
         {/* Theme Preview Modal */}
         <ThemePreview

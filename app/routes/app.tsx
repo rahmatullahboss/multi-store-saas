@@ -199,6 +199,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         name: store.name,
         subdomain: store.subdomain,
         planType: store.planType || 'free',
+        storeEnabled: store.storeEnabled ?? true, // Hybrid mode: show store items if enabled
       },
       user: {
         id: user.id,
@@ -229,20 +230,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response(`Dashboard error: ${errorMessage}`, { status: 500 });
   }
 }
-
 // ============================================================================
-// NAVIGATION ITEMS - Grouped by Category (Shopify-inspired)
+// NAVIGATION ITEMS - Grouped by Category (World-class IA with store gating)
 // ============================================================================
 type NavItem = {
   to: string;
   labelKey: TranslationKey;
   icon: typeof LayoutDashboard;
   isPaidOnly?: boolean; // Feature requires paid plan
+  storeOnly?: boolean; // Only show when storeEnabled=true
 };
 
 type NavSection = {
   titleKey: TranslationKey;
   items: NavItem[];
+  storeOnly?: boolean; // Hide entire section if store disabled
 };
 
 const navSections: NavSection[] = [
@@ -254,15 +256,8 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    titleKey: 'sidebarCatalog',
-    items: [
-      { to: '/app/products', labelKey: 'navProducts', icon: Package },
-      { to: '/app/inventory', labelKey: 'navInventory', icon: Warehouse },
-      { to: '/app/discounts', labelKey: 'navDiscounts', icon: Tag },
-    ],
-  },
-  {
-    titleKey: 'sidebarOrders',
+    titleKey: 'sidebarOrders', // Sales section - store-gated
+    storeOnly: true,
     items: [
       { to: '/app/orders', labelKey: 'navAllOrders', icon: ShoppingCart },
       { to: '/app/customers', labelKey: 'navCustomers', icon: Users },
@@ -270,34 +265,42 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    titleKey: 'sidebarMarketing',
+    titleKey: 'sidebarCatalog', // Catalog section - store-gated
+    storeOnly: true,
+    items: [
+      { to: '/app/products', labelKey: 'navProducts', icon: Package },
+      { to: '/app/inventory', labelKey: 'navInventory', icon: Warehouse },
+      { to: '/app/discounts', labelKey: 'navDiscounts', icon: Tag },
+    ],
+  },
+  {
+    titleKey: 'sidebarMarketing', // Always visible, some items gated
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
       { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon as any },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
-      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
+      { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare, storeOnly: true },
     ],
   },
   {
-    titleKey: 'sidebarAnalytics',
+    titleKey: 'sidebarAnalytics', // Always visible
     items: [
       { to: '/app/analytics', labelKey: 'navOverview', icon: BarChart3 },
       { to: '/app/reports', labelKey: 'navReports', icon: FileText },
     ],
   },
   {
-    titleKey: 'sidebarSettings',
+    titleKey: 'sidebarSettings', // Always visible, some items gated
     items: [
       { to: '/app/new-builder', labelKey: 'navStoreEditor', icon: UserPen },
       { to: '/app/page-builder', labelKey: 'navPageBuilder', icon: Rocket },
       { to: '/app/store-design', labelKey: 'navStoreTemplates', icon: Palette },
       { to: '/app/settings/homepage', labelKey: 'navHomepage', icon: Home },
-      { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
+      { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck, storeOnly: true },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/billing', labelKey: 'navBilling', icon: CreditCard },
       { to: '/app/credits', labelKey: 'navCredits', icon: Sparkles },
       { to: '/app/settings', labelKey: 'navAllSettings', icon: Settings },
-
     ],
   },
 ];
@@ -443,63 +446,76 @@ export default function AppLayout() {
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
-            {navSections.map((section) => (
-              <div key={section.titleKey}>
-                {/* Section Header - hide for Home */}
-                {section.titleKey !== 'sidebarHome' && (
-                  <div className="px-3 pb-2">
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                      {t(section.titleKey)}
-                    </span>
+            {navSections
+              // Filter out entire sections that are storeOnly when store is disabled
+              .filter(section => !section.storeOnly || store.storeEnabled)
+              .map((section) => {
+                // Filter out individual storeOnly items within sections
+                const visibleItems = section.items.filter(
+                  item => !item.storeOnly || store.storeEnabled
+                );
+                
+                // Skip rendering section if no visible items
+                if (visibleItems.length === 0) return null;
+
+                return (
+                  <div key={section.titleKey}>
+                    {/* Section Header - hide for Home */}
+                    {section.titleKey !== 'sidebarHome' && (
+                      <div className="px-3 pb-2">
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          {t(section.titleKey)}
+                        </span>
+                      </div>
+                    )}
+                    {/* Section Items */}
+                    <div className="space-y-1">
+                      {visibleItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.to);
+                        const isLocked = item.isPaidOnly && store.planType === 'free';
+
+                        // Locked items - show disabled state with upgrade prompt
+                        if (isLocked) {
+                          const featureName = item.to.split('/').pop() || 'marketing';
+                          return (
+                            <Link
+                              key={item.to}
+                              to={`/app/upgrade?feature=${featureName}`}
+                              onClick={() => setSidebarOpen(false)}
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group"
+                            >
+                              <Icon className="w-5 h-5" />
+                              <span className="flex-1">{t(item.labelKey)}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium group-hover:bg-amber-200">
+                                {t('upgrade')}
+                              </span>
+                            </Link>
+                          );
+                        }
+
+                        return (
+                          <Link
+                            key={item.to}
+                            to={item.to}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`
+                              flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
+                              ${active
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                              }
+                            `}
+                          >
+                            <Icon className={`w-5 h-5 ${active ? 'text-emerald-600' : ''}`} />
+                            {t(item.labelKey)}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
-                {/* Section Items */}
-                <div className="space-y-1">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.to);
-                    const isLocked = item.isPaidOnly && store.planType === 'free';
-
-                    // Locked items - show disabled state with upgrade prompt
-                    if (isLocked) {
-                      const featureName = item.to.split('/').pop() || 'marketing';
-                      return (
-                        <Link
-                          key={item.to}
-                          to={`/app/upgrade?feature=${featureName}`}
-                          onClick={() => setSidebarOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group"
-                        >
-                          <Icon className="w-5 h-5" />
-                          <span className="flex-1">{t(item.labelKey)}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium group-hover:bg-amber-200">
-                            {t('upgrade')}
-                          </span>
-                        </Link>
-                      );
-                    }
-
-                    return (
-                      <Link
-                        key={item.to}
-                        to={item.to}
-                        onClick={() => setSidebarOpen(false)}
-                        className={`
-                          flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
-                          ${active
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                          }
-                        `}
-                      >
-                        <Icon className={`w-5 h-5 ${active ? 'text-emerald-600' : ''}`} />
-                        {t(item.labelKey)}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+                );
+              })}
 
             {/* Admin Section */}
             {user.role === 'admin' && (
