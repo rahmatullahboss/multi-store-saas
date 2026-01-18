@@ -3,13 +3,10 @@
  * Common logic used across all order form variants
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useFetcher, useNavigate } from '@remix-run/react';
-import { 
-  DISTRICTS, 
-  getUpazilasByDistrict, 
-  getShippingZone,
-} from '~/data/bd-locations';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useFetcher } from '@remix-run/react';
+import { DISTRICTS, getShippingZone } from '~/data/bd-locations';
+import { formatCurrency } from '~/utils/money';
 import type { OrderFormProps, ProductVariant, ProductInfo } from './types';
 
 export interface OrderFormState {
@@ -161,6 +158,7 @@ export function useOrderForm(
   // Reset selectedVariant when variants change
   useEffect(() => {
     setSelectedVariant(actualVariants[0] || null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?.id, actualVariants.length]);
   
   // Handle successful order
@@ -188,9 +186,13 @@ export function useOrderForm(
   const deliveryCharge = calculatedShippingZone === 'dhaka' ? insideDhakaCharge : outsideDhakaCharge;
   const total = subtotal + deliveryCharge;
   
-  // Format price in Bengali
-  // Note: Landing page configs store prices in taka (not cents), so no division needed
-  const formatPrice = useCallback((price: number) => `৳${price.toLocaleString('bn-BD')}`, []);
+  // Format price using central utility
+  // Note: Landing page configs store prices in taka (not cents), so no fromCents conversion
+  // TODO: Pass store currency from props when multi-currency is implemented
+  const formatPrice = useCallback(
+    (price: number, currencyCode: string = 'BDT') => formatCurrency(price, currencyCode),
+    []
+  );
   
   const state: OrderFormState = {
     customerName,

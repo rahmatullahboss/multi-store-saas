@@ -87,6 +87,93 @@ export function formatMoney(
   return formatted;
 }
 
+// ============================================================================
+// MULTI-CURRENCY CONFIGURATION
+// ============================================================================
+
+/**
+ * Currency configuration for multi-currency support
+ * subunits: How many smallest units in 1 main unit (e.g., 100 paisa = 1 taka)
+ */
+export const CURRENCY_CONFIG: Record<string, {
+  symbol: string;
+  code: string;
+  subunits: number; // 100 for most currencies
+  locale: string;
+  decimals: number;
+  name: string;
+  nameBn?: string;
+}> = {
+  BDT: {
+    symbol: '৳',
+    code: 'BDT',
+    subunits: 100, // 100 paisa = 1 taka
+    locale: 'bn-BD',
+    decimals: 0, // BDT typically shown without decimals
+    name: 'Bangladeshi Taka',
+    nameBn: 'বাংলাদেশি টাকা',
+  },
+  USD: {
+    symbol: '$',
+    code: 'USD',
+    subunits: 100, // 100 cents = 1 dollar
+    locale: 'en-US',
+    decimals: 2,
+    name: 'US Dollar',
+  },
+  EUR: {
+    symbol: '€',
+    code: 'EUR',
+    subunits: 100,
+    locale: 'de-DE',
+    decimals: 2,
+    name: 'Euro',
+  },
+  GBP: {
+    symbol: '£',
+    code: 'GBP',
+    subunits: 100,
+    locale: 'en-GB',
+    decimals: 2,
+    name: 'British Pound',
+  },
+  INR: {
+    symbol: '₹',
+    code: 'INR',
+    subunits: 100, // 100 paise = 1 rupee
+    locale: 'en-IN',
+    decimals: 0, // INR typically shown without decimals
+    name: 'Indian Rupee',
+  },
+};
+
+/**
+ * Get currency config with fallback to BDT
+ */
+export function getCurrencyConfig(currencyCode: string = 'BDT') {
+  return CURRENCY_CONFIG[currencyCode] || CURRENCY_CONFIG.BDT;
+}
+
+/**
+ * Format money with currency-aware settings
+ * Automatically uses correct locale, decimals, and symbol for the currency
+ */
+export function formatCurrency(
+  amount: number,
+  currencyCode: string = 'BDT',
+  options: { fromCents?: boolean } = {}
+): string {
+  const config = getCurrencyConfig(currencyCode);
+  const displayAmount = options.fromCents ? amount / config.subunits : amount;
+  
+  return formatMoney(displayAmount, {
+    currency: currencyCode,
+    locale: config.locale,
+    decimals: config.decimals,
+    showSymbol: true,
+  });
+}
+
 /**
  * Format money from cents
  * @example formatMoneyFromCents(150050) => "৳1,500.50"
