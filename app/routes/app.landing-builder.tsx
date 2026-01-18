@@ -22,8 +22,8 @@ import { stores, products, savedLandingConfigs } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import {
-  Loader2, CheckCircle, ArrowLeft, Eye, Sparkles, Save,
-  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp, Paintbrush, Rocket
+  Loader2, CheckCircle, ArrowLeft, Eye, Save,
+  Layout, Settings, Palette, MessageCircle, ExternalLink, Star, Plus, Trash2, Image, HelpCircle, Timer, TrendingUp, Paintbrush
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -35,7 +35,7 @@ import {
   LANDING_TEMPLATES,
   mergeSectionOrder
 } from '~/components/landing-builder';
-import { getTemplateComponent, type TemplateProps } from '~/templates/registry';
+
 
 // Default features for new stores (English)
 const DEFAULT_FEATURES_EN = [
@@ -141,10 +141,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Save landing page configuration
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
+  const storeIdRaw = await getStoreId(request, context.cloudflare.env);
+  if (!storeIdRaw) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
+  // Validated storeId (non-null) for use in nested functions
+  const storeId = storeIdRaw;
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
@@ -361,7 +363,7 @@ export default function LandingBuilderPage() {
   const { store, products: storeProducts, saasDomain, pageId, pageTitle } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const { t, lang: language } = useTranslation();
+  const { lang: language } = useTranslation();
 
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
@@ -406,10 +408,10 @@ export default function LandingBuilderPage() {
   const [countdownEndTime, setCountdownEndTime] = useState(store.landingConfig.countdownEndTime || '');
   const [showStockCounter, setShowStockCounter] = useState(store.landingConfig.showStockCounter || false);
   const [lowStockThreshold, setLowStockThreshold] = useState(store.landingConfig.lowStockThreshold || 10);
-  const [showSocialProof, setShowSocialProof] = useState(store.landingConfig.showSocialProof || false);
-  const [socialProofInterval, setSocialProofInterval] = useState(store.landingConfig.socialProofInterval || 15);
+  const [showSocialProof] = useState(store.landingConfig.showSocialProof || false);
+  const [socialProofInterval] = useState(store.landingConfig.socialProofInterval || 15);
 
-  // Color theme state
+
   // Color theme state
   const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '');
   const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '');
@@ -491,7 +493,7 @@ export default function LandingBuilderPage() {
 
   // Auto-save functionality
   const autoSaveFetcher = useFetcher();
-  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
+  const [, setLastAutoSave] = useState<Date | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Auto-save effect - runs every 30 seconds if there are unsaved changes
@@ -539,7 +541,7 @@ export default function LandingBuilderPage() {
     }, 30000); // 30 seconds
 
     return () => clearInterval(autoSaveInterval);
-  }, [hasChanges, validateBeforeSave, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, guaranteeText, features, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, autoSaveFetcher]);
+  }, [hasChanges, validateBeforeSave, templateId, featuredProductId, headline, subheadline, ctaText, ctaSubtext, urgencyText, videoUrl, sectionOrder, hiddenSections, whatsappEnabled, whatsappNumber, whatsappMessage, testimonials, faq, guaranteeText, features, countdownEnabled, countdownEndTime, showStockCounter, lowStockThreshold, primaryColor, accentColor, storeMode, autoSaveFetcher, pageId]);
 
   // Update auto-save status when fetcher completes
   useEffect(() => {
@@ -586,50 +588,6 @@ export default function LandingBuilderPage() {
 
   // Get selected template info
   const selectedTemplate = LANDING_TEMPLATES.find(t => t.id === templateId);
-
-  // Build live preview config from current editor state
-  const previewConfig: LandingConfig = {
-    templateId,
-    headline: headline || 'Your Amazing Headline',
-    subheadline: subheadline || '',
-    ctaText: ctaText || 'Order Now',
-    ctaSubtext: ctaSubtext || '',
-    urgencyText: urgencyText || '',
-    videoUrl: videoUrl || '',
-    guaranteeText: guaranteeText || '',
-    features,
-    sectionOrder: sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER,
-    hiddenSections,
-    whatsappEnabled,
-    whatsappNumber,
-    whatsappMessage,
-    testimonials,
-    faq,
-    countdownEnabled,
-    countdownEndTime,
-    showStockCounter,
-    lowStockThreshold,
-    showSocialProof,
-    socialProofInterval,
-    primaryColor: primaryColor || undefined,
-    accentColor: accentColor || undefined,
-  };
-
-
-  // Mock product for preview (use selected product or demo)
-  const selectedProduct = storeProducts.find(p => p.id === parseInt(featuredProductId));
-  const previewProduct = selectedProduct || {
-    id: 0,
-    storeId: store.id,
-    title: 'Demo Product',
-    description: 'This is a demo product for preview purposes.',
-    price: 1999,
-    compareAtPrice: 2999,
-    imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
-  };
-
-  // Get template component for live preview
-  const TemplateComponent = getTemplateComponent(templateId);
 
   return (
     <div className="min-h-screen bg-gray-50">
