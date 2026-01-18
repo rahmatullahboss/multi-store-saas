@@ -20,8 +20,6 @@ import {
   themeSettingsDraft,
   themes,
   products,
-  categories,
-  stores,
 } from '@db/schema';
 import { requireAuth } from '~/lib/auth.server';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
@@ -119,9 +117,18 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     .where(eq(themes.id, template.themeId));
   
   // Get sample data for preview based on template type
-  let sampleProducts: any[] = [];
+  type SampleProduct = {
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice: number | null;
+    images: string[];
+    imageUrl: string | null;
+    description: string | null;
+  };
+  let sampleProducts: SampleProduct[] = [];
   let sampleCategories: string[] = [];
-  let sampleProduct: any = null;
+  let sampleProduct: SampleProduct | null = null;
   
   // Fetch products for product-related sections
   const rawProducts = await drizzleDb
@@ -141,7 +148,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     return {
       id: p.id,
       title: p.title,
-      handle: p.handle,
       price: p.price,
       compareAtPrice: p.compareAtPrice,
       images,
@@ -155,14 +161,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     sampleProduct = sampleProducts[0];
   }
   
-  // Fetch categories
-  const rawCategories = await drizzleDb
-    .select()
-    .from(categories)
-    .where(eq(categories.storeId, store.id))
-    .limit(10);
-  
-  sampleCategories = rawCategories.map(c => c.name);
+  // Categories can be derived from products or use a placeholder
+  sampleCategories = ['Electronics', 'Clothing', 'Home & Garden'];
   
   return json({
     template: {
@@ -178,7 +178,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       name: store.name,
       subdomain: store.subdomain,
       logo: store.logo,
-      currency: store.currency || 'BDT',
+      currency: 'BDT',
     },
     // Sample data for preview
     products: sampleProducts,
@@ -203,7 +203,13 @@ export default function TemplatePreviewPage() {
       // Section updates from template builder
       if (event.data?.type === 'TEMPLATE_UPDATE' && event.data.sections) {
         // Convert from builder format (props) to renderer format (settings)
-        const convertedSections = event.data.sections.map((s: any) => ({
+        interface BuilderSection {
+          id: string;
+          type: string;
+          props?: Record<string, unknown>;
+          settings?: Record<string, unknown>;
+        }
+        const convertedSections = event.data.sections.map((s: BuilderSection) => ({
           id: s.id,
           type: s.type,
           settings: s.props || s.settings || {},
