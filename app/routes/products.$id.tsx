@@ -25,12 +25,9 @@ import { Star, Send, CheckCircle, ShoppingBag, ChevronRight, Truck, Shield, Rota
 import { useState, useEffect, useRef } from 'react';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
-import { RovoProductDetail } from '~/components/store-layouts/RovoProductDetail';
-import { BDShopProductDetail } from '~/components/store-layouts/BDShopProductDetail';
-import { GhorerBazarProductDetail } from '~/components/store-layouts/GhorerBazarProductDetail';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
+import { StoreSectionRenderer } from '~/components/store/StoreSectionRenderer';
+import type { RenderContext, ProductContext } from '~/lib/template-resolver.server';
 import { getCustomer } from '~/services/customer-auth.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {

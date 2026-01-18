@@ -131,8 +131,8 @@ export default function App() {
   // Inject analytics scripts client-side to avoid hydration mismatches
   // These are dynamic and should not be server-rendered
   useEffect(() => {
-    // Set window.ENV
-    (window as any).ENV = ENV;
+    // Set window.ENV for client-side access
+    (window as Window & { ENV?: typeof ENV }).ENV = ENV;
 
     // Google Analytics 4
     if (store.googleAnalyticsId) {
@@ -198,11 +198,10 @@ export default function App() {
 export function ErrorBoundary() {
   const error = useRouteError();
   
-  // Capture the error in Sentry
-  // @ts-ignore - Sentry types might not be perfectly resolved in this context without stricter check, but this is safe
-  if (typeof window !== 'undefined' && 'Sentry' in window) {
-      // (window as any).Sentry?.captureException(error);
-  }
+  // Capture the error in Sentry (commented out - enable when Sentry is configured)
+  // if (typeof window !== 'undefined' && 'Sentry' in window) {
+  //   window.Sentry?.captureException(error);
+  // }
   
   // Layout wraps ErrorBoundary, so we don't need isRootError anymore
   // Just return the error content directly
