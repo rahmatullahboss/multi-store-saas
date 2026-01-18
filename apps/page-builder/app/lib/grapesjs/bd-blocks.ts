@@ -227,7 +227,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
         <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
           <!-- Left: Product Details -->
           <div class="space-y-6">
-            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80" alt="Product" class="w-full rounded-2xl shadow-lg border border-gray-100" />
+            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80" alt="Product" class="w-full rounded-2xl shadow-lg border border-gray-100 product-image" />
             <h3 class="text-2xl font-bold text-gray-900 border-b pb-2">প্যাকেজে যা যা থাকছে:</h3>
             <ul class="space-y-3">
               <li class="flex items-center gap-3 text-lg font-medium text-gray-700">
