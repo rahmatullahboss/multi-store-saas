@@ -37,6 +37,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
   
+  // Route guard: Check if store routes are enabled
+  if (storeData.storeEnabled === false) {
+    throw new Response('Store mode is not enabled for this shop.', { status: 404 });
+  }
+  
   // Parse theme
   let themeConfig = null;
   try {

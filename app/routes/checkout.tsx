@@ -50,6 +50,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeData = storeResult[0] as Store;
   
   const themeConfig = parseThemeConfig(storeData.themeConfig as string | null);
+  
+  // Route guard: Check if store routes are enabled
+  if (storeData.storeEnabled === false) {
+    throw new Response('Store mode is not enabled for this shop.', { status: 404 });
+  }
+  
   const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);

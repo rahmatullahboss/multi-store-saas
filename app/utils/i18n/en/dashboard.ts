@@ -750,6 +750,7 @@ export const dashboard = {
 
   // Homepage Strategy
   homepageSettings: 'Homepage Strategy',
+  homepageSettingsDesc: 'Configure what visitors see when they visit your store.',
   homepageDesc: "Choose how your store's homepage appears to customers",
   landingPageSaved: 'Your landing page has been saved!',
   landingPageSavedDesc: 'Your previous homepage is now available as a campaign link.',
@@ -774,6 +775,17 @@ export const dashboard = {
   unlockStorefrontModeStatus: 'Unlock Storefront Mode',
   upgradeToSwitchModes: 'Upgrade to a paid plan to switch between modes.',
   savedCampaignsCountMsg: 'You have {{count}} saved campaign(s) from previous mode switches.',
+  
+  // Hybrid Mode Settings (NEW)
+  enableStoreRoutes: 'Enable Store Routes',
+  enableStoreRoutesDesc: 'When enabled, /products, /cart, and /checkout routes will be accessible.',
+  homepageSelection: 'Homepage Selection',
+  homepageSelectionDesc: 'Choose what visitors see on your homepage.',
+  storeHome: 'Store Catalog',
+  storeHomeDesc: 'Show your product catalog as the homepage.',
+  noPublishedPages: 'No published landing pages yet.',
+  createLandingPage: 'Create a Landing Page',
+  yourStoreUrl: 'Your Store URL',
 
   // Page Builder
   pageBuilderTitle: 'Drag & Drop Builder',

@@ -72,6 +72,11 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     throw new Response('Store configuration not found', { status: 404 });
   }
 
+  // Route guard: Check if store routes are enabled
+  if (store.storeEnabled === false) {
+    throw new Response('Store mode is not enabled for this shop.', { status: 404 });
+  }
+
   const { themeConfig, businessInfo, footerConfig } = storeConfig;
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
