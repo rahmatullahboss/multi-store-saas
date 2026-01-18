@@ -187,11 +187,7 @@ export default function Checkout() {
   // Order Bumps
   const [selectedBumps, setSelectedBumps] = useState<number[]>([]);
 
-  const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
-  const isDaraz = storeTemplateId === 'daraz';
-  const isBDShop = storeTemplateId === 'bdshop';
-  const isGhorerBazar = storeTemplateId === 'ghorer-bazar';
-  const primaryColor = isDaraz ? DARAZ_THEME.orange : theme.primary;
+  const primaryColor = theme.primary;
 
   // Load cart from local storage
   useEffect(() => {
@@ -774,11 +770,6 @@ export default function Checkout() {
         </StorePageWrapper>
       );
   }
-
-  // Standard Layout (Default)
-  if (isBDShop) return <BDShopPageWrapper storeName={storeName} storeId={storeId} logo={logo} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} pageTitle="Checkout" showBreadcrumbBanner={true} breadcrumb={[{ label: 'Checkout' }]}>{content}</BDShopPageWrapper>;
-  if (isGhorerBazar) return <GhorerBazarPageWrapper storeName={storeName} storeId={storeId} logo={logo} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} pageTitle="Checkout" showBreadcrumbBanner={true} breadcrumb={[{ label: 'Checkout' }]}>{content}</GhorerBazarPageWrapper>;
-  if (isDaraz) return <DarazPageWrapper storeName={storeName} storeId={storeId} logo={logo} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo}>{content}</DarazPageWrapper>;
 
   return (
     <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} planType={planType} customer={customer}>
