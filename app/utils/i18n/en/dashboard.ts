@@ -132,6 +132,7 @@ export const dashboard = {
   sidebarCustomers: 'Customers',
   sidebarOnlineStore: 'Online Store',
   navPages: 'Pages',
+  navDragDropBuilder: 'Drag & Drop Builder',
   navTheme: 'Theme',
   navGeneral: 'General',
   navStorefront: 'Storefront',

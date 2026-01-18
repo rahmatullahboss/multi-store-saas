@@ -133,6 +133,7 @@ export const dashboard = {
   sidebarCustomers: 'কাস্টমার',
   sidebarOnlineStore: 'অনলাইন স্টোর',
   navPages: 'পেজ',
+  navDragDropBuilder: 'ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার',
   navTheme: 'থিম',
   navGeneral: 'সাধারণ',
   navStorefront: 'স্টোরফ্রন্ট',

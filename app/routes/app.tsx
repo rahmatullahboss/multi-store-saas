@@ -32,6 +32,7 @@ import {
   ShoppingBag,
   FileText,
   Mail,
+  Layers,
   Eye,
   CreditCard,
   Palette,
@@ -239,6 +240,7 @@ type NavItem = {
   icon: typeof LayoutDashboard;
   isPaidOnly?: boolean; // Feature requires paid plan
   storeOnly?: boolean; // Only show when storeEnabled=true
+  isExternal?: boolean; // Opens in new tab (for builder.ozzyl.com)
 };
 
 type NavSection = {
@@ -284,6 +286,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarOnlineStore',
     items: [
       { to: '/app/new-builder', labelKey: 'navPages', icon: FileText },
+      { to: '/app/page-builder', labelKey: 'navDragDropBuilder', icon: Layers },
       { to: '/app/store-design', labelKey: 'navTheme', icon: Palette },
     ],
   },
