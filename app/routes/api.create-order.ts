@@ -14,7 +14,7 @@
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers, templateAnalytics, savedLandingConfigs } from '@db/schema';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers, templateAnalytics, savedLandingConfigs, checkoutSessions } from '@db/schema';
 import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { sendPushNotification } from '~/services/push.server';
@@ -27,6 +27,7 @@ import { sendSmartNotification } from '~/services/messaging.server';
 import { addLoyaltyPoints } from '~/services/loyalty.server';
 import { triggerAutomation } from '~/services/automation.server';
 import { parseLandingConfig } from '@db/types';
+import { generateCheckoutIdempotencyKey } from '~/services/webhook-utils.server';
 
 
 // ============================================================================
@@ -259,6 +260,63 @@ export async function action({ request, context }: ActionFunctionArgs) {
         // Don't block on duplicate check failure
         console.error('[Duplicate Check] Failed:', e);
       }
+    }
+
+    // ========================================================================
+    // IDEMPOTENT ORDER CREATION via checkout_sessions
+    // ========================================================================
+    // Generate idempotency key from phone + first product + time bucket
+    const idempotencyKey = generateCheckoutIdempotencyKey(
+      input.store_id,
+      input.phone,
+      primaryProductId || 0
+    );
+
+    // Check for existing checkout session with this key
+    try {
+      const existingSession = await db
+        .select({
+          id: checkoutSessions.id,
+          status: checkoutSessions.status,
+          orderId: checkoutSessions.orderId,
+        })
+        .from(checkoutSessions)
+        .where(eq(checkoutSessions.idempotencyKey, idempotencyKey))
+        .limit(1);
+
+      if (existingSession.length > 0) {
+        const session = existingSession[0];
+        
+        // If already completed, return existing order
+        if (session.status === 'completed' && session.orderId) {
+          const existingOrder = await db
+            .select({ orderNumber: orders.orderNumber, id: orders.id, total: orders.total })
+            .from(orders)
+            .where(eq(orders.id, session.orderId))
+            .limit(1);
+
+          if (existingOrder.length > 0) {
+            console.warn('[IDEMPOTENT] Returning existing order:', existingOrder[0].orderNumber);
+            return json({
+              success: true,
+              orderId: existingOrder[0].id,
+              orderNumber: existingOrder[0].orderNumber,
+              total: existingOrder[0].total,
+              message: 'Order already exists',
+              isIdempotent: true,
+            });
+          }
+        }
+        // If pending/processing, wait or return busy
+        if (session.status === 'pending' || session.status === 'processing') {
+          return json(
+            { success: false, error: 'অর্ডার প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।', code: 'PROCESSING' },
+            { status: 409 }
+          );
+        }
+      }
+    } catch (e) {
+      console.error('[Idempotency Check] Failed:', e);
     }
 
     // Normalize input to a list of items
@@ -570,6 +628,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
           })),
           created_at: now.toISOString(),
         }).catch(e => console.error('[Webhook] order.created failed:', e))
+      );
+
+      // ========== CHECKOUT SESSION: MARK COMPLETED ==========
+      // Create checkout session for idempotency tracking
+      context.cloudflare.ctx.waitUntil(
+        db.insert(checkoutSessions).values({
+          id: crypto.randomUUID(),
+          storeId: input.store_id,
+          cartJson: JSON.stringify(orderItemsData),
+          phone: input.phone,
+          customerName: input.customer_name,
+          email: input.customer_email || null,
+          shippingAddressJson: JSON.stringify({
+            address: input.address,
+            division: input.division,
+            district: input.district,
+            upazila: input.upazila,
+          }),
+          pricingJson: JSON.stringify({ subtotal, shipping, tax, total }),
+          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'stripe',
+          status: 'completed',
+          idempotencyKey,
+          orderId,
+          landingPageId: input.landing_page_id,
+          createdAt: now,
+          updatedAt: now,
+        }).catch(e => console.error('[Checkout Session] Creation failed:', e))
       );
 
     } catch (orderError) {

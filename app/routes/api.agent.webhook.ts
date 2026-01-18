@@ -65,6 +65,44 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 async function processWebhookEvent(payload: any, env: Env) {
   const db = drizzle(env.DB, { schema });
 
+  // ========== WEBHOOK IDEMPOTENCY CHECK ==========
+  // Generate event ID from payload to prevent duplicate processing
+  let eventId: string | null = null;
+  
+  if (payload.object === 'whatsapp_business_account') {
+    // Use entry.id + first message.id if available
+    eventId = `wa_${payload.entry?.[0]?.id}_${payload.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.id || Date.now()}`;
+  } else if (payload.object === 'page') {
+    // Use entry.id + messaging.message.mid if available
+    eventId = `fb_${payload.entry?.[0]?.id}_${payload.entry?.[0]?.messaging?.[0]?.message?.mid || Date.now()}`;
+  }
+
+  if (eventId) {
+    // Check if already processed using webhookEvents table
+    const existing = await db.select({ id: schema.webhookEvents.id })
+      .from(schema.webhookEvents)
+      .where(and(
+        eq(schema.webhookEvents.provider, 'meta'),
+        eq(schema.webhookEvents.eventId, eventId)
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      console.warn('[Meta Webhook] Duplicate event skipped:', eventId);
+      return; // Already processed
+    }
+
+    // Mark as processing
+    await db.insert(schema.webhookEvents).values({
+      provider: 'meta',
+      eventId,
+      eventType: payload.object,
+      payloadJson: JSON.stringify(payload),
+      status: 'processed',
+      processedAt: new Date(),
+    }).catch(e => console.error('[Webhook Event] Insert failed:', e));
+  }
+
   // Handle WhatsApp
   if (payload.object === 'whatsapp_business_account') {
     for (const entry of payload.entry) {
