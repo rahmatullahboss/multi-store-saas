@@ -66,74 +66,11 @@ function isMainDomain(hostname: string): boolean {
     (hostname.endsWith('.pages.dev') && hostname.split('.').length <= 3);
 }
 
-// Reserved subdomains that should be proxied to their own workers
-const RESERVED_SUBDOMAINS: Record<string, string> = {
-  'builder.ozzyl.com': 'https://multi-store-saas-builder.pages.dev',
-};
-
-/**
- * Proxy requests to reserved subdomains
- * Preserves the original Host as X-Forwarded-Host for cookie validation
- */
-async function proxyToWorker(request: Request, targetWorkerUrl: string, originalHost: string): Promise<Response> {
-  const url = new URL(request.url);
-  const targetUrl = new URL(url.pathname + url.search, targetWorkerUrl);
-  
-  // Clone headers and add X-Forwarded-Host
-  const headers = new Headers(request.headers);
-  headers.set('X-Forwarded-Host', originalHost);
-  headers.set('X-Original-URL', request.url);
-  
-  // Create forwarded request
-  const forwardRequest = new Request(targetUrl.toString(), {
-    method: request.method,
-    headers: headers,
-    body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : null,
-    redirect: 'manual',
-  });
-  
-  try {
-    const response = await fetch(forwardRequest);
-    
-    // If it's a redirect, rewrite the Location header to use the original host
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get('Location');
-      if (location) {
-        const newHeaders = new Headers(response.headers);
-        // Rewrite redirect URL to use original host
-        const locationUrl = new URL(location, targetWorkerUrl);
-        if (locationUrl.hostname === new URL(targetWorkerUrl).hostname) {
-          locationUrl.hostname = originalHost.split(':')[0];
-          locationUrl.protocol = 'https:';
-          newHeaders.set('Location', locationUrl.toString());
-        }
-        return new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: newHeaders,
-        });
-      }
-    }
-    
-    return response;
-  } catch (error) {
-    console.error('Proxy error:', error);
-    return new Response('Proxy error', { status: 502 });
-  }
-}
+// Note: builder.ozzyl.com is handled by the multi-store-saas-builder Worker
+// via explicit route configuration, so no proxy needed here
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const onRequest = async (context: any): Promise<Response> => {
-  const request = context.request;
-  const hostname = request.headers.get('host') || new URL(request.url).hostname;
-  
-  // Check if this is a reserved subdomain that needs proxying
-  const targetWorkerUrl = RESERVED_SUBDOMAINS[hostname];
-  if (targetWorkerUrl) {
-    return proxyToWorker(request, targetWorkerUrl, hostname);
-  }
-  
-  // Otherwise, use the standard Remix handler
   return pagesFunctionHandler(context);
 };
 
