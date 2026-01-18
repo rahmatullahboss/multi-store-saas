@@ -740,28 +740,30 @@ export default function AdminAnalytics() {
                 Conversion Funnel (Last 30 Days)
               </h3>
               <div className="h-[400px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={funnelData} layout="vertical" margin={{ left: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                    <XAxis type="number" stroke="#64748b" hide />
-                    <YAxis 
-                      dataKey="name" 
-                      type="category" 
-                      stroke="#94a3b8" 
-                      fontSize={14} 
-                      width={100}
-                    />
-                    <Tooltip 
-                      cursor={{ fill: '#1e293b', opacity: 0.5 }}
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
-                    />
-                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={40}>
-                      {funnelData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <ClientOnly fallback={<div className="h-[400px] bg-slate-800/50 rounded animate-pulse" />}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={funnelData} layout="vertical" margin={{ left: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+                      <XAxis type="number" stroke="#64748b" hide />
+                      <YAxis 
+                        dataKey="name" 
+                        type="category" 
+                        stroke="#94a3b8" 
+                        fontSize={14} 
+                        width={100}
+                      />
+                      <Tooltip 
+                        cursor={{ fill: '#1e293b', opacity: 0.5 }}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
+                      />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={40}>
+                        {funnelData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ClientOnly>
               </div>
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-4">
                 {funnelData.map((step, i) => (
@@ -833,60 +835,59 @@ export default function AdminAnalytics() {
             </div>
             
             <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={forecastData}>
-                  <defs>
-                    <linearGradient id="colorRevenueForecast" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                  <XAxis 
-                    dataKey="displayDate" 
-                    stroke="#64748b" 
-                    fontSize={12} 
-                    tickLine={false}
-                    axisLine={false}
-                    minTickGap={30}
-                  />
-                  <YAxis 
-                    stroke="#64748b" 
-                    fontSize={12} 
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `৳${value}`}
-                  />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
-                    labelStyle={{ color: '#94a3b8' }}
-                  />
-                  <Legend />
-                  <Area 
-                    name="Historical Revenue"
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="#10b981" 
-                    strokeWidth={2}
-                    fillOpacity={1} 
-                    fill="url(#colorRevenueForecast)" 
-                    connectNulls
-                  />
-                  <Line 
-                    name="Forecast"
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="#f59e0b" 
-                    strokeDasharray="5 5" 
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                    // Filter to only show forecast part in this line if needed, 
-                    // but for continuity we plot all. 
-                    // Ideally we'd separate data keys but this works for visual trend
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
+              <ClientOnly fallback={<div className="h-[300px] bg-slate-800/50 rounded animate-pulse" />}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={forecastData}>
+                    <defs>
+                      <linearGradient id="colorRevenueForecast" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                    <XAxis 
+                      dataKey="displayDate" 
+                      stroke="#64748b" 
+                      fontSize={12} 
+                      tickLine={false}
+                      axisLine={false}
+                      minTickGap={30}
+                    />
+                    <YAxis 
+                      stroke="#64748b" 
+                      fontSize={12} 
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => `৳${value}`}
+                    />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
+                      labelStyle={{ color: '#94a3b8' }}
+                    />
+                    <Legend />
+                    <Area 
+                      name="Historical Revenue"
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke="#10b981" 
+                      strokeWidth={2}
+                      fillOpacity={1} 
+                      fill="url(#colorRevenueForecast)" 
+                      connectNulls
+                    />
+                    <Line 
+                      name="Forecast"
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke="#f59e0b" 
+                      strokeDasharray="5 5" 
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </ClientOnly>
             </div>
             <div className="mt-4 p-4 bg-slate-800/50 rounded-lg">
               <p className="text-sm text-slate-500">
