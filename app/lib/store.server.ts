@@ -34,7 +34,7 @@ export interface StoreContext {
 
 export interface StoreContextWithTemplate extends StoreContext {
   template: TemplateResolution | null;
-  themeSettings: ThemeSettings | null;
+  theme: ThemeSettings | null;
 }
 
 // ============================================================================
@@ -182,7 +182,7 @@ export async function resolveStoreWithTemplate(
     return {
       ...storeContext,
       template: null,
-      themeSettings: null,
+      theme: null,
     };
   }
   
@@ -197,7 +197,7 @@ export async function resolveStoreWithTemplate(
   return {
     ...storeContext,
     template,
-    themeSettings: template?.settings || null,
+    theme: template?.settings || null,
   };
 }
 
