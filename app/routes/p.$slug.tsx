@@ -3,21 +3,27 @@
  * 
  * Routes: /p/:slug
  * 
- * Supports two types of pages:
- * 1. Custom Pages (GrapesJS): Renders pre-built HTML/CSS from `landingPages` table.
- * 2. Campaign Pages (Quick Builder): Renders Dynamic Templates from `savedLandingConfigs` table.
+ * Supports THREE types of pages:
+ * 1. Page Builder v2 (Section-based): From `builderPages` table - checked FIRST
+ * 2. Custom Pages (GrapesJS): Renders pre-built HTML/CSS from `landingPages` table.
+ * 3. Campaign Pages (Quick Builder): Renders Dynamic Templates from `savedLandingConfigs` table.
  * 
- * Priority: Custom Pages -> Campaign Pages -> 404
+ * Priority: Builder v2 -> Custom Pages -> Campaign Pages -> 404
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, asc } from 'drizzle-orm';
 import { landingPages, savedLandingConfigs, stores, products, productVariants, orderBumps, templateAnalytics } from '@db/schema';
+import { builderPages, builderSections } from '@db/schema_page_builder';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps, type SerializedProduct } from '~/templates/registry';
 import { useTrackVisit } from '~/hooks/use-track-visit';
+import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
+import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
+import { OzzylBranding } from '~/components/OzzylBranding';
+import { TemplateLayoutRenderer } from '~/components/page-builder/TemplateLayoutRenderer';
 
 // Type Guards
 interface CustomPageData {
@@ -32,17 +38,95 @@ interface QuickPageData {
   currency: string;
   config: LandingConfig;
   product: SerializedProduct | null;
-  productVariants: any[];
-  orderBumps: any[];
+  productVariants: Array<{
+    id: number;
+    option1Name: string | null;
+    option1Value: string | null;
+    option2Name: string | null;
+    option2Value: string | null;
+    price: number | null;
+    inventory: number | null;
+    isAvailable: boolean | null;
+  }>;
+  orderBumps: Array<{
+    id: number;
+    title: string;
+    description: string | null;
+    discount: number;
+    bumpProduct: {
+      id: number;
+      title: string;
+      price: number;
+      imageUrl: string | null;
+    };
+  }>;
   planType: string;
   landingPageId: number; // For Analytics
 }
 
-type LoaderData = CustomPageData | QuickPageData;
+// Page Builder v2 data type
+interface BuilderPageData {
+  type: 'builder';
+  page: {
+    id: string;
+    slug: string;
+    title: string | null;
+    storeId: number;
+    productId?: number | null;
+    seoTitle?: string | null;
+    seoDescription?: string | null;
+    ogImage?: string | null;
+    whatsappEnabled?: number | null;
+    whatsappNumber?: string | null;
+    whatsappMessage?: string | null;
+    callEnabled?: number | null;
+    callNumber?: string | null;
+    orderEnabled?: number | null;
+    orderText?: string | null;
+    orderBgColor?: string | null;
+    orderTextColor?: string | null;
+    buttonPosition?: string | null;
+    templateId?: string | null;
+  };
+  product?: {
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    images: string[];
+    description?: string | null;
+    variants?: Array<{
+      id: number;
+      name: string;
+      price: number;
+    }>;
+  } | null;
+  sections: Array<{
+    id: string;
+    type: string;
+    enabled: boolean;
+    sortOrder: number;
+    props: Record<string, unknown>;
+  }>;
+}
+
+type LoaderData = CustomPageData | QuickPageData | BuilderPageData;
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data || 'error' in data) {
     return [{ title: 'Page Not Found' }];
+  }
+
+  if (data.type === 'builder') {
+    const title = data.page.seoTitle || data.page.title || 'Landing Page';
+    const description = data.page.seoDescription || '';
+    return [
+      { title },
+      { name: 'description', content: description },
+      { property: 'og:title', content: title },
+      { property: 'og:description', content: description },
+      ...(data.page.ogImage ? [{ property: 'og:image', content: data.page.ogImage }] : []),
+    ];
   }
 
   if (data.type === 'custom') {
@@ -62,7 +146,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   }
 };
 
-export async function loader({ params, context, request }: LoaderFunctionArgs) {
+export async function loader({ params, context, request: _request }: LoaderFunctionArgs) {
   const { slug } = params;
   const storeId = context.storeId; // Assumed injected by middleware
 
@@ -76,7 +160,122 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // 1. Try Fetching Custom Page (GrapesJS)
+  // ========== 1. TRY PAGE BUILDER V2 (builder_pages) ==========
+  const [builderPage] = await db
+    .select()
+    .from(builderPages)
+    .where(
+      and(
+        eq(builderPages.slug, slug),
+        eq(builderPages.storeId, storeId as number),
+        eq(builderPages.status, 'published')
+      )
+    )
+    .limit(1);
+
+  if (builderPage) {
+    // Get sections with published props
+    const sections = await db
+      .select()
+      .from(builderSections)
+      .where(eq(builderSections.pageId, builderPage.id))
+      .orderBy(asc(builderSections.sortOrder));
+
+    // Parse sections
+    const parsedSections = sections.map(row => {
+      let props: Record<string, unknown> = {};
+      try {
+        const propsSource = row.publishedPropsJson || row.propsJson || '{}';
+        props = JSON.parse(propsSource);
+      } catch {
+        props = {};
+      }
+      return {
+        id: row.id,
+        type: row.type,
+        enabled: Boolean(row.enabled),
+        sortOrder: row.sortOrder,
+        props,
+      };
+    });
+
+    // Get product data if productId is set
+    let productData: BuilderPageData['product'] = null;
+    const effectiveProductId = builderPage.productId;
+
+    if (effectiveProductId) {
+      const [productRow] = await db
+        .select()
+        .from(products)
+        .where(eq(products.id, effectiveProductId))
+        .limit(1);
+
+      if (productRow) {
+        const variantRows = await db
+          .select()
+          .from(productVariants)
+          .where(eq(productVariants.productId, effectiveProductId));
+
+        let parsedImages: string[] = [];
+        try {
+          if (productRow.images) {
+            parsedImages = typeof productRow.images === 'string'
+              ? JSON.parse(productRow.images)
+              : Array.isArray(productRow.images) ? productRow.images : [];
+          }
+        } catch {
+          parsedImages = [];
+        }
+
+        if (parsedImages.length === 0 && productRow.imageUrl) {
+          parsedImages = [productRow.imageUrl];
+        }
+
+        productData = {
+          id: productRow.id,
+          title: productRow.title,
+          price: productRow.price,
+          compareAtPrice: productRow.compareAtPrice,
+          images: parsedImages,
+          description: productRow.description,
+          variants: variantRows.map(v => ({
+            id: v.id,
+            name: [v.option1Value, v.option2Value, v.option3Value].filter(Boolean).join(' / ') || `Variant ${v.id}`,
+            price: v.price ?? productRow.price,
+          })),
+        };
+      }
+    }
+
+    return json<BuilderPageData>({
+      type: 'builder',
+      page: {
+        id: builderPage.id,
+        slug: builderPage.slug,
+        title: builderPage.title,
+        storeId: builderPage.storeId,
+        productId: builderPage.productId,
+        seoTitle: builderPage.seoTitle,
+        seoDescription: builderPage.seoDescription,
+        ogImage: builderPage.ogImage,
+        whatsappEnabled: builderPage.whatsappEnabled,
+        whatsappNumber: builderPage.whatsappNumber,
+        whatsappMessage: builderPage.whatsappMessage,
+        callEnabled: builderPage.callEnabled,
+        callNumber: builderPage.callNumber,
+        orderEnabled: builderPage.orderEnabled,
+        orderText: builderPage.orderText,
+        orderBgColor: builderPage.orderBgColor,
+        orderTextColor: builderPage.orderTextColor,
+        buttonPosition: builderPage.buttonPosition,
+        templateId: builderPage.templateId,
+      },
+      product: productData,
+      sections: parsedSections,
+    });
+  }
+
+  // ========== 2. TRY CUSTOM PAGE (GrapesJS - landing_pages) ==========
   const customPage = await db
     .select()
     .from(landingPages)
@@ -215,11 +414,55 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
 export default function PublishedPageRoute() {
   const data = useLoaderData<typeof loader>();
 
+  if (data.type === 'builder') {
+    return <BuilderPageRenderer data={data} />;
+  }
+  
   if (data.type === 'custom') {
     return <CustomPageRenderer page={data.page} />;
   } else {
     return <QuickPageRenderer data={data as unknown as QuickPageData} />;
   }
+}
+
+// Sub-component for Page Builder v2 pages
+function BuilderPageRenderer({ data }: { data: BuilderPageData }) {
+  const { page, sections, product } = data;
+
+  // Filter and sort sections for rendering
+  const visibleSections = sections
+    .filter(s => s.enabled)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return (
+    <TemplateLayoutRenderer templateId={page.templateId || 'default'}>
+      {/* Render all visible sections */}
+      <SectionRenderer
+        sections={visibleSections as Parameters<typeof SectionRenderer>[0]['sections']}
+        activeSectionId={null}
+        storeId={page.storeId}
+        productId={page.productId || undefined}
+        product={product}
+      />
+
+      {/* Floating Action Buttons - WhatsApp, Call, Order */}
+      <FloatingActionButtons
+        whatsappEnabled={page.whatsappEnabled === 1}
+        whatsappNumber={page.whatsappNumber || ''}
+        whatsappMessage={page.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।'}
+        callEnabled={page.callEnabled === 1}
+        callNumber={page.callNumber || ''}
+        orderEnabled={page.orderEnabled === 1 || page.orderEnabled === undefined || page.orderEnabled === null}
+        orderText={page.orderText || 'অর্ডার করুন'}
+        orderBgColor={page.orderBgColor || '#6366F1'}
+        orderTextColor={page.orderTextColor || '#FFFFFF'}
+        position={(page.buttonPosition || 'bottom-right') as 'bottom-right' | 'bottom-left' | 'bottom-center'}
+      />
+
+      {/* Powered by Ozzyl - Non-removable branding */}
+      <OzzylBranding />
+    </TemplateLayoutRenderer>
+  );
 }
 
 // Sub-component for Custom Pages (GrapesJS)
