@@ -10,10 +10,10 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useNavigate, Link } from '@remix-run/react';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { requireAuth } from '~/services/auth.server';
+import { getStoreId } from '~/services/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
-import { products, themes, themeTemplates, themeSettingsDraft } from '@db/schema';
+import { products, themes, themeTemplates, themeSettingsDraft, stores } from '@db/schema';
 import {
   getTemplateWithSections,
   addTemplateSection,
@@ -96,19 +96,32 @@ const TEMPLATE_ICONS: Record<string, typeof Layout> = {
 // ============================================================================
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const { user, store } = await requireAuth(request, context);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   const templateId = params.templateId;
   
   if (!templateId) {
     throw new Response('Template ID required', { status: 400 });
   }
   
-  if (!store) {
+  if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
   
   const db = context.cloudflare.env.DB;
   const drizzleDb = drizzle(db);
+  
+  // Get store info
+  const [store] = await drizzleDb
+    .select()
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+  
+  if (!store) {
+    throw new Response('Store not found', { status: 404 });
+  }
+  
+
   
   // Get template with sections
   const template = await getTemplateWithSections(db, templateId, store.id);
@@ -184,13 +197,13 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ============================================================================
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const { user, store } = await requireAuth(request, context);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   const db = context.cloudflare.env.DB;
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
   const templateId = params.templateId as string;
   
-  if (!store) {
+  if (!storeId) {
     return json({ success: false, error: 'Store not found' }, { status: 404 });
   }
   
@@ -204,7 +217,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           return json({ success: false, error: 'Invalid section type' }, { status: 400 });
         }
         
-        const result = await addTemplateSection(db, templateId, store.id, type);
+        const result = await addTemplateSection(db, templateId, storeId, type);
         
         if ('error' in result) {
           return json({ success: false, error: result.error }, { status: 400 });
@@ -292,7 +305,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       
       // Publish template
       case 'publish': {
-        const result = await publishTemplate(db, templateId, store.id);
+        const result = await publishTemplate(db, templateId, storeId);
         
         if (!result.success) {
           return json({ success: false, error: result.error }, { status: 400 });

@@ -16,10 +16,11 @@ import {
   themes, 
   themeTemplates, 
   themeSettingsDraft,
+  stores,
   type Theme,
   type ThemeTemplate,
 } from '@db/schema';
-import { requireAuth } from '~/services/auth.server';
+import { getStoreId } from '~/services/auth.server';
 import { ensureTheme, installThemePreset, getAvailablePresets } from '~/lib/theme-seeding.server';
 import { 
   Palette, 
@@ -42,14 +43,21 @@ import {
 // ============================================================================
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { user, store } = await requireAuth(request, context);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
-  if (!store) {
+  if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
   
   const db = context.cloudflare.env.DB;
   const drizzleDb = drizzle(db);
+  
+  // Get store info
+  const [store] = await drizzleDb
+    .select()
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
   
   // Ensure store has a theme
   const { themeId, created } = await ensureTheme(db, store.id);
@@ -109,9 +117,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { user, store } = await requireAuth(request, context);
+  const storeId = await getStoreId(request, context.cloudflare.env);
   
-  if (!store) {
+  if (!storeId) {
     return json({ error: 'Store not found' }, { status: 404 });
   }
   
@@ -125,7 +133,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Preset ID is required' }, { status: 400 });
     }
     
-    const result = await installThemePreset(context.cloudflare.env.DB, store.id, presetId);
+    const result = await installThemePreset(context.cloudflare.env.DB, storeId, presetId);
     
     if (!result.success) {
       return json({ error: result.error }, { status: 400 });

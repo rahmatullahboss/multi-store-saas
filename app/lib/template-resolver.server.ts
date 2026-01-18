@@ -25,6 +25,9 @@ import {
 } from '@db/schema';
 import type { Store } from '@db/schema';
 
+// Re-export TemplateKey for use by other modules
+export type { TemplateKey };
+
 // ============================================================================
 // TYPES
 // ============================================================================
