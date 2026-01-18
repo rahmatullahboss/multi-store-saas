@@ -1,0 +1,11 @@
+node_modules
+build
+.wrangler
+playwright-report
+test-results
+*.min.js
+*.min.css
+public/build
+functions
+.cache
+**/*.d.ts
