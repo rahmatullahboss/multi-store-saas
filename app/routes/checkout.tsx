@@ -27,6 +27,7 @@ import { PaymentMethodSelector } from '~/components/checkout/PaymentMethodSelect
 import { useState, useEffect, useMemo } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
+import { resolveTemplate } from '~/lib/template-resolver.server';
 import { toast } from 'sonner';
 
 export const meta: MetaFunction = () => {
@@ -100,6 +101,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Load customer session for Google Sign-In header
   const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
+  
+  // ========== TEMPLATE RESOLUTION (New Template System) ==========
+  const checkoutTemplate = await resolveTemplate(cloudflare.env.DB, storeId as number, 'checkout');
+  
   return json({
     storeId: storeId as number,
     storeName: storeData.name,
@@ -116,6 +121,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     themeConfig,
     planType: storeData.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    checkoutTemplate,
   });
 }
 

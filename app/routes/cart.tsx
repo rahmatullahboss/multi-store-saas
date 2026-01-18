@@ -21,6 +21,7 @@ import { BDShopPageWrapper, BDSHOP_THEME } from '~/components/store-layouts/BDSh
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from '~/components/store-layouts/GhorerBazarPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
+import { resolveTemplate } from '~/lib/template-resolver.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
 
@@ -60,6 +61,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Load customer session for Google Sign-In header
   const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
   
+  // ========== TEMPLATE RESOLUTION (New Template System) ==========
+  const cartTemplate = await resolveTemplate(cloudflare.env.DB, storeId as number, 'cart');
+  
   return json({
     storeId: storeId as number,
     storeName: storeData?.name || 'Store',
@@ -72,6 +76,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     themeConfig, // Return theme config to check for cart sections
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    cartTemplate,
   });
 }
 

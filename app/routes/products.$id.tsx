@@ -13,7 +13,8 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import { useLoaderData, Link, useFetcher } from '@remix-run/react';
 import { eq, and, desc, ne, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { resolveStore } from '~/lib/store.server';
+import { resolveStore, resolveStoreWithTemplate } from '~/lib/store.server';
+import { resolveTemplate } from '~/lib/template-resolver.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
@@ -98,7 +99,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const socialLinks = storeConfig.socialLinks ? storeConfig.socialLinks : parseSocialLinks(store.socialLinks as string | null);
   
   // Load customer session for Google Sign-In header
-  const customer = await getCustomer(request, context.cloudflare.env, db);
+  const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
   
   // Fetch product with store_id filter for security
   const result = await db
@@ -185,6 +186,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     }
   }
   
+  // ========== TEMPLATE RESOLUTION (New Template System) ==========
+  // Fetch published template sections for the product page
+  const productTemplate = await resolveTemplate(context.cloudflare.env.DB, storeId, 'product');
+  
   return json({
     product,
     storeName: store?.name || 'Store',
@@ -205,6 +210,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     relatedProducts,
     planType: store?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    // New template system
+    productTemplate,
   });
 }
 
@@ -439,7 +446,8 @@ export default function ProductDetail() {
     footerConfig,
     categories,
     planType,
-    customer
+    customer,
+    productTemplate,
   } = useLoaderData<typeof loader>();
   
   const hasTracked = useRef(false);
