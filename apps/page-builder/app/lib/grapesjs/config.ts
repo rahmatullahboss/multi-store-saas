@@ -134,8 +134,8 @@ export const getGrapesConfig = (container: HTMLElement, pageId?: string, planTyp
       autoload: false, // Changed to false per Context7 docs - load manually after onReady to prevent blocking
       options: {
         remote: {
-          urlLoad: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
-          urlStore: `/api/page-builder/storage${pageId ? `?id=${pageId}` : ''}`,
+          urlLoad: `/api/storage${pageId ? `?id=${pageId}` : ''}`,
+          urlStore: `/api/storage${pageId ? `?id=${pageId}` : ''}`,
           
           // Include credentials for session cookies
           credentials: 'include',

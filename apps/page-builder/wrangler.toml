@@ -40,6 +40,8 @@ SAAS_DOMAIN = "ozzyl.com"
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
 MAIN_APP_URL = "https://ozzyl.com"
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
+# NOTE: SESSION_SECRET should be set via Cloudflare Dashboard > Settings > Variables
+# Must match the SESSION_SECRET from the main app for cross-subdomain auth
 
 # ============================================================================
 # DEVELOPMENT SETTINGS

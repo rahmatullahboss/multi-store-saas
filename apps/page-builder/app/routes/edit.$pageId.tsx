@@ -10,8 +10,9 @@ import { useLoaderData } from '@remix-run/react';
 import { Suspense, lazy, useState, useEffect } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
-import { landingPages, stores, users } from '@db/schema';
+import { landingPages, stores } from '@db/schema';
 import { Check, ExternalLink } from 'lucide-react';
+import { getAuthFromSession } from '~/services/auth.server';
 
 // Lazy load the GrapesJS editor
 const GrapesEditor = lazy(() => import('~/components/page-builder/Editor'));
@@ -19,25 +20,6 @@ const GrapesEditor = lazy(() => import('~/components/page-builder/Editor'));
 export const meta: MetaFunction = () => {
   return [{ title: 'Page Builder | Ozzyl' }];
 };
-
-// Simple auth check using session cookie
-async function getAuthFromCookie(request: Request, env: any) {
-  const cookie = request.headers.get('Cookie') || '';
-  const sessionMatch = cookie.match(/__session=([^;]+)/);
-  if (!sessionMatch) return null;
-  
-  const sessionId = sessionMatch[1];
-  const db = drizzle(env.DB);
-  
-  // Get user from session (simplified - you may want to use your existing auth logic)
-  const user = await db
-    .select({ id: users.id, storeId: users.storeId })
-    .from(users)
-    .where(eq(users.sessionToken, sessionId))
-    .get();
-  
-  return user;
-}
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const env = (context as any).cloudflare.env;
@@ -48,7 +30,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   }
   
   // Check auth
-  const user = await getAuthFromCookie(request, env);
+  const user = await getAuthFromSession(request, env);
   if (!user?.storeId) {
     // Redirect to main app login
     const mainAppUrl = env.MAIN_APP_URL || 'https://ozzyl.com';
