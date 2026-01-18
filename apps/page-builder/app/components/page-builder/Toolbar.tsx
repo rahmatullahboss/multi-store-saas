@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Monitor, 
   Smartphone, 
@@ -51,6 +51,52 @@ export default function EditorToolbar({
   const [connectedButtonsCount, setConnectedButtonsCount] = useState(0);
 
   const [selectedComponent, setSelectedComponent] = useState<any>(null);
+
+  // Helper function to count existing connections
+  const countExistingConnections = useCallback(() => {
+    if (!editor) return 0;
+    const wrapper = editor.getWrapper();
+    if (!wrapper) return 0;
+    
+    const allComponents = wrapper.findType('*');
+    let count = 0;
+    allComponents.forEach((comp: any) => {
+      const attrs = comp.getAttributes();
+      if (attrs['data-ozzyl-action']) {
+        count++;
+      }
+    });
+    return count;
+  }, [editor]);
+
+  // Count existing connections when editor is ready
+  useEffect(() => {
+    if (!editor) return;
+    
+    // Count on editor ready
+    const handleEditorReady = () => {
+      const count = countExistingConnections();
+      setConnectedButtonsCount(count);
+    };
+    
+    // Try to count immediately (editor might already be ready)
+    setTimeout(handleEditorReady, 500);
+    
+    // Also listen for load event
+    editor.on('load', handleEditorReady);
+    
+    return () => {
+      editor.off('load', handleEditorReady);
+    };
+  }, [editor, countExistingConnections]);
+
+  // Update count when modal opens
+  useEffect(() => {
+    if (isConnectorModalOpen && editor) {
+      const count = countExistingConnections();
+      setConnectedButtonsCount(count);
+    }
+  }, [isConnectorModalOpen, editor, countExistingConnections]);
 
   useEffect(() => {
     if (!editor) return;
