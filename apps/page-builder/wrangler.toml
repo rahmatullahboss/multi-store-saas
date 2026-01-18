@@ -5,12 +5,22 @@ compatibility_date = "2024-11-18"
 compatibility_flags = ["nodejs_compat"]
 
 # ============================================================================
-# CLOUDFLARE PAGES CONFIGURATION
+# CLOUDFLARE WORKER CONFIGURATION
 # ============================================================================
-# For Pages deployment - Pages uses the functions directory automatically
-# Deploy with: npx wrangler pages deploy ./build/client --project-name=multi-store-saas-builder
+# For Worker deployment with explicit route control
+# Deploy with: npx wrangler deploy
 
-pages_build_output_dir = "build/client"
+# Worker entry point
+main = "worker.ts"
+
+# Static assets from Remix client build
+[assets]
+directory = "build/client"
+
+# Routes - explicit routing for builder subdomain
+[[routes]]
+pattern = "builder.ozzyl.com/*"
+zone_name = "ozzyl.com"
 
 # ============================================================================
 # BINDINGS - Same as main app (shared D1, R2, KV)

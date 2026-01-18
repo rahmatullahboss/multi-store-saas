@@ -4,8 +4,8 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
-import { DISTRICTS, getShippingZone } from '~/data/bd-locations';
+import { useFetcher, useNavigate } from '@remix-run/react';
+import { DISTRICTS, getShippingZone, getUpazilasByDistrict } from '~/data/bd-locations';
 import { formatCurrency } from '~/utils/money';
 import type { OrderFormProps, ProductVariant, ProductInfo } from './types';
 
