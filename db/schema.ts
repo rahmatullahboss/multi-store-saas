@@ -35,8 +35,12 @@ export const stores = sqliteTable('stores', {
   setupStep: integer('setup_step').default(0), // Current step in onboarding wizard
 
   // === HYBRID MODE FIELDS ===
-  // 'landing' = Single product sales page, 'store' = Full e-commerce
-  mode: text('mode').$type<'landing' | 'store'>().default('store'),
+  // All users (including free) have access to both store + landing pages
+  // Limits are enforced via usage_limits (products, orders per month)
+  // When true, /products, /cart, /checkout routes are enabled
+  storeEnabled: integer('store_enabled', { mode: 'boolean' }).default(true),
+  // Homepage entry point - 'store_home' or 'page:{pageId}' format
+  homeEntry: text('home_entry').default('store_home'),
   // Featured product for landing mode (direct checkout)
   featuredProductId: integer('featured_product_id'),
   // Landing page config: { headline, subheadline, videoUrl, ctaText, testimonials }
@@ -47,6 +51,7 @@ export const stores = sqliteTable('stores', {
   themeConfig: text('theme_config'),
   // Business info: { phone, email, address, city, country }
   businessInfo: text('business_info'),
+
 
   // === BRANDING ===
   logo: text('logo'),

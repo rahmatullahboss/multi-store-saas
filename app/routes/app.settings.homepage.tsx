@@ -1,37 +1,35 @@
 /**
- * Homepage Strategy Settings Page
+ * Homepage Settings Page - Hybrid Mode
  * 
  * Route: /app/settings/homepage
  * 
- * Allows paid users to choose their homepage strategy:
- * - Funnel Mode: Landing page as homepage (single product focus)
- * - Storefront Mode: Full catalog as homepage
- * 
- * CRITICAL: When switching from Funnel to Storefront, auto-saves
- * the current landing config as a campaign for zero data loss.
+ * All users (including free) have access to both store + landing pages.
+ * This page allows merchants to:
+ * 1. Toggle Store routes on/off
+ * 2. Select what to show on homepage (store catalog or a landing page)
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
-import { stores, products, savedLandingConfigs } from '@db/schema';
+import { eq, and } from 'drizzle-orm';
+import { stores } from '@db/schema';
+import { builderPages } from '@db/schema_page_builder';
 import { getStoreId } from '~/services/auth.server';
-import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
 import { 
   Home, ShoppingBag, FileText, CheckCircle, Loader2, 
-  Rocket, Crown, ExternalLink, ArrowRight, Sparkles
+  Settings, ExternalLink, ArrowRight, Globe, Layers
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Homepage Strategy - Settings' }];
+  return [{ title: 'Homepage Settings' }];
 };
 
 // ============================================================================
-// LOADER - Fetch current store mode and plan
+// LOADER - Fetch current store settings and available pages
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -41,16 +39,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // Get store with new hybrid mode fields
   const storeResult = await db
     .select({
       id: stores.id,
       name: stores.name,
       subdomain: stores.subdomain,
       customDomain: stores.customDomain,
-      mode: stores.mode,
+      storeEnabled: stores.storeEnabled,
+      homeEntry: stores.homeEntry,
       planType: stores.planType,
-      featuredProductId: stores.featuredProductId,
-      landingConfig: stores.landingConfig,
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -61,25 +59,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const planType = (store.planType as PlanType) || 'free';
-  const allowStoreMode = canUseStoreMode(planType);
-
-  // Get featured product name if exists
-  let featuredProduct = null;
-  if (store.featuredProductId) {
-    const productResult = await db
-      .select({ id: products.id, title: products.title })
-      .from(products)
-      .where(eq(products.id, store.featuredProductId))
-      .limit(1);
-    featuredProduct = productResult[0] || null;
-  }
-
-  // Get saved landing configs count
-  const savedConfigs = await db
-    .select({ id: savedLandingConfigs.id })
-    .from(savedLandingConfigs)
-    .where(eq(savedLandingConfigs.storeId, storeId));
+  // Get published builder pages for homepage selection
+  const publishedPages = await db
+    .select({
+      id: builderPages.id,
+      title: builderPages.title,
+      slug: builderPages.slug,
+    })
+    .from(builderPages)
+    .where(and(
+      eq(builderPages.storeId, storeId),
+      eq(builderPages.status, 'published')
+    ));
 
   return json({
     store: {
@@ -87,19 +78,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       name: store.name,
       subdomain: store.subdomain,
       customDomain: store.customDomain,
-      mode: store.mode || 'landing',
-      planType,
-      featuredProductId: store.featuredProductId,
-      hasLandingConfig: !!store.landingConfig,
+      storeEnabled: store.storeEnabled ?? true,
+      homeEntry: store.homeEntry || 'store_home',
+      planType: store.planType || 'free',
     },
-    featuredProduct,
-    savedConfigsCount: savedConfigs.length,
-    allowStoreMode,
+    publishedPages: publishedPages.map(p => ({
+      id: p.id,
+      name: p.title || p.slug, // Use title, fallback to slug
+      slug: p.slug,
+    })),
   });
 }
 
 // ============================================================================
-// ACTION - Handle mode switch with auto-save
+// ACTION - Handle settings update
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -108,102 +100,45 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const formData = await request.formData();
-  const newMode = formData.get('mode') as 'landing' | 'store';
+  const storeEnabled = formData.get('storeEnabled') === 'true';
+  const homeEntry = formData.get('homeEntry') as string;
 
-  if (!newMode || !['landing', 'store'].includes(newMode)) {
-    return json({ error: 'Invalid mode' }, { status: 400 });
+  if (!homeEntry) {
+    return json({ error: 'Homepage selection is required' }, { status: 400 });
   }
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Get current store data
-  const storeResult = await db
-    .select({
-      mode: stores.mode,
-      planType: stores.planType,
-      landingConfig: stores.landingConfig,
-      featuredProductId: stores.featuredProductId,
-    })
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-
-  const store = storeResult[0];
-  if (!store) {
-    return json({ error: 'Store not found' }, { status: 404 });
-  }
-
-  // Validate plan for store mode
-  if (newMode === 'store') {
-    const planType = (store.planType as PlanType) || 'free';
-    if (!canUseStoreMode(planType)) {
-      return json({ 
-        errorKey: 'upgradeRequiredStoreMode' 
-      }, { status: 403 });
-    }
-  }
-
-  // If switching from landing to store, auto-save the landing config
-  let savedConfigId: number | null = null;
-  if (store.mode === 'landing' && newMode === 'store' && store.landingConfig) {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { 
-      month: 'short', 
-      year: 'numeric' 
-    });
-
-    // Insert saved landing config
-    const insertResult = await db
-      .insert(savedLandingConfigs)
-      .values({
-        storeId,
-        productId: store.featuredProductId,
-        name: `Homepage Backup - ${dateStr}`,
-        landingConfig: store.landingConfig,
-        isHomepageBackup: true,
-        createdAt: now,
-      })
-      .returning({ id: savedLandingConfigs.id });
-
-    savedConfigId = insertResult[0]?.id || null;
-    console.log(`[MODE_SWITCH] Saved landing config ${savedConfigId} for store ${storeId}`);
-  }
-
-  // Update store mode
+  // Update store settings
   await db.update(stores).set({
-    mode: newMode,
+    storeEnabled,
+    homeEntry,
     updatedAt: new Date(),
   }).where(eq(stores.id, storeId));
 
-  console.log(`[MODE_SWITCH] Store ${storeId} switched from ${store.mode} to ${newMode}`);
-
   return json({ 
     success: true, 
-    newMode,
-    savedConfigId,
-    featuredProductId: store.featuredProductId,
-    messageKey: newMode === 'store' && savedConfigId 
-      ? 'landingSavedAsCampaign' 
-      : 'homepageStrategyUpdated'
+    messageKey: 'homepageSettingsUpdated'
   });
 }
 
 // ============================================================================
 // COMPONENT
 // ============================================================================
-export default function HomepageStrategyPage() {
-  const { store, featuredProduct, savedConfigsCount, allowStoreMode } = useLoaderData<typeof loader>();
+export default function HomepageSettingsPage() {
+  const { store, publishedPages } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   
-  const [selectedMode, setSelectedMode] = useState<'landing' | 'store'>(store.mode as 'landing' | 'store');
+  const [storeEnabled, setStoreEnabled] = useState(store.storeEnabled);
+  const [homeEntry, setHomeEntry] = useState(store.homeEntry);
 
-  // Build offer URL for showing after mode switch
-  const getOfferUrl = () => {
+  // Get store URL
+  const getStoreUrl = () => {
     const domain = store.customDomain || `${store.subdomain}.ozzyl.com`;
-    return `https://${domain}/offers/${store.featuredProductId}`;
+    return `https://${domain}`;
   };
 
   return (
@@ -212,53 +147,18 @@ export default function HomepageStrategyPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Home className="w-6 h-6 text-violet-600" />
-          {t('homepageSettings')}
+          {t('homepageSettings') || 'Homepage Settings'}
         </h1>
         <p className="text-gray-600 mt-1">
-          {t('homepageDesc')}
+          {t('homepageSettingsDesc') || 'Configure what visitors see when they visit your store.'}
         </p>
       </div>
 
-      {/* Success Message with Offer Link */}
-      {actionData && 'success' in actionData && actionData.success && actionData.savedConfigId && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <CheckCircle className="w-6 h-6 text-emerald-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-emerald-800 text-lg">
-                {t('landingPageSaved')}
-              </h3>
-              <p className="text-emerald-700 mt-1">
-                {t('landingPageSavedDesc')}
-              </p>
-              <div className="mt-4 p-3 bg-white rounded-lg border border-emerald-200">
-                <p className="text-sm text-gray-600 mb-2">{t('campaignLink')}:</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm bg-gray-50 px-3 py-2 rounded border text-violet-600 font-mono">
-                    {getOfferUrl()}
-                  </code>
-                  <a
-                    href={getOfferUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition inline-flex items-center gap-1"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Simple Success Message */}
-      {actionData && 'success' in actionData && actionData.success && !actionData.savedConfigId && (
+      {/* Success Message */}
+      {actionData && 'success' in actionData && actionData.success && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {actionData.messageKey ? t(actionData.messageKey) : (actionData as any).message}
+          {t('settingsSaved') || 'Settings saved successfully!'}
         </div>
       )}
 
@@ -268,169 +168,183 @@ export default function HomepageStrategyPage() {
           {actionData.error}
         </div>
       )}
-      {actionData && 'errorKey' in actionData && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {t(actionData.errorKey as string)}
-        </div>
-      )}
 
-      {/* Current Status */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold text-gray-900">{t('currentHomepage')}</h2>
-            <p className="text-sm text-gray-500">
-              {store.mode === 'landing' 
-                ? t('singleProductFocus') 
-                : t('fullStoreDesc')}
-            </p>
-          </div>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-            store.mode === 'landing' 
-              ? 'bg-violet-100 text-violet-700' 
-              : 'bg-emerald-100 text-emerald-700'
-          }`}>
-            {store.mode === 'landing' ? t('funnelMode') : t('storefrontMode')}
-          </span>
-        </div>
+      <Form method="post" className="space-y-6">
+        <input type="hidden" name="storeEnabled" value={storeEnabled.toString()} />
+        <input type="hidden" name="homeEntry" value={homeEntry} />
 
-        {/* Featured Product Info */}
-        {store.mode === 'landing' && featuredProduct && (
-          <div className="mt-4 p-3 bg-violet-50 rounded-lg border border-violet-100">
-            <p className="text-sm text-violet-700">
-              <Sparkles className="w-4 h-4 inline mr-1" />
-              <strong>{t('featuredProductLabel')}:</strong> {featuredProduct.title}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Mode Selection */}
-      {allowStoreMode ? (
-        <Form method="post" className="space-y-4">
-          <input type="hidden" name="mode" value={selectedMode} />
-
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">{t('chooseStrategy')}</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Funnel Mode */}
-              <button
-                type="button"
-                onClick={() => setSelectedMode('landing')}
-                className={`relative flex flex-col items-start p-5 border-2 rounded-xl transition text-left ${
-                  selectedMode === 'landing'
-                    ? 'border-violet-500 bg-violet-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-3">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t('funnelMode')}</h3>
+        {/* Store Routes Toggle */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                <ShoppingBag className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-gray-900">
+                  {t('enableStoreRoutes') || 'Enable Store Routes'}
+                </h2>
                 <p className="text-sm text-gray-500">
-                  {t('funnelModeDesc')}
+                  {t('enableStoreRoutesDesc') || 'When enabled, /products, /cart, and /checkout routes will be accessible.'}
                 </p>
-                {selectedMode === 'landing' && (
-                  <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-violet-600" />
-                )}
-              </button>
-
-              {/* Storefront Mode */}
-              <button
-                type="button"
-                onClick={() => setSelectedMode('store')}
-                className={`relative flex flex-col items-start p-5 border-2 rounded-xl transition text-left ${
-                  selectedMode === 'store'
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-3">
-                  <ShoppingBag className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t('storefrontMode')}</h3>
-                <p className="text-sm text-gray-500">
-                  {t('storefrontModeDesc')}
-                </p>
-                {selectedMode === 'store' && (
-                  <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-emerald-600" />
-                )}
-              </button>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setStoreEnabled(!storeEnabled)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                storeEnabled ? 'bg-emerald-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  storeEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          
+          {!storeEnabled && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-700">
+                ⚠️ {t('storeRoutesDisabledWarning') || 'Store routes are disabled. Visitors cannot browse products or checkout.'}
+              </p>
+            </div>
+          )}
+        </div>
 
-            {/* Auto-save Notice */}
-            {store.mode === 'landing' && selectedMode === 'store' && store.hasLandingConfig && (
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Rocket className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-800">
-                      {t('landingSavedAuto')}
-                    </p>
-                    <p className="text-sm text-blue-600 mt-1">
-                      {t('campaignLinkNotice')}
-                    </p>
-                  </div>
+        {/* Homepage Selection */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Globe className="w-5 h-5 text-violet-600" />
+            {t('homepageSelection') || 'Homepage Selection'}
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            {t('homepageSelectionDesc') || 'Choose what visitors see when they visit your main URL.'}
+          </p>
+
+          <div className="space-y-3">
+            {/* Store Home Option */}
+            <button
+              type="button"
+              onClick={() => setHomeEntry('store_home')}
+              className={`w-full flex items-start gap-4 p-4 border-2 rounded-xl transition text-left ${
+                homeEntry === 'store_home'
+                  ? 'border-violet-500 bg-violet-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Layers className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-gray-900">
+                    {t('storeHome') || 'Store Catalog'}
+                  </h3>
+                  {homeEntry === 'store_home' && (
+                    <CheckCircle className="w-5 h-5 text-violet-600" />
+                  )}
                 </div>
+                <p className="text-sm text-gray-500">
+                  {t('storeHomeDesc') || 'Show your product catalog with categories and featured items.'}
+                </p>
+              </div>
+            </button>
+
+            {/* Landing Page Options */}
+            {publishedPages.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide px-1">
+                  {t('orSelectLandingPage') || 'Or select a landing page'}
+                </p>
+                {publishedPages.map((page) => (
+                  <button
+                    key={page.id}
+                    type="button"
+                    onClick={() => setHomeEntry(`page:${page.id}`)}
+                    className={`w-full flex items-start gap-4 p-4 border-2 rounded-xl transition text-left ${
+                      homeEntry === `page:${page.id}`
+                        ? 'border-violet-500 bg-violet-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-gray-900">{page.name}</h3>
+                        {homeEntry === `page:${page.id}` && (
+                          <CheckCircle className="w-5 h-5 text-violet-600" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        /o/{page.slug}
+                      </p>
+                    </div>
+                  </button>
+                ))}
               </div>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting || selectedMode === store.mode}
-              className="mt-6 w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {t('switching')}
-                </>
-              ) : selectedMode === store.mode ? (
-                t('noChanges')
-              ) : (
-                <>
-                  {t('applyStrategy')}
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </button>
-          </div>
-        </Form>
-      ) : (
-        /* Free User - Upgrade Prompt */
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Crown className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              {t('unlockStorefrontModeStatus')}
-            </h2>
-            <p className="text-gray-600 mb-6">
-              {t('upgradeToSwitchModes')}
-            </p>
-            <Link
-              to="/app/upgrade"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition"
-            >
-              <Crown className="w-5 h-5" />
-              {t('upgradeNow')}
-            </Link>
+            {/* No pages message */}
+            {publishedPages.length === 0 && (
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <p className="text-sm text-gray-500">
+                  {t('noPublishedPages') || 'No published landing pages. Create one in the Page Builder!'}
+                </p>
+                <Link
+                  to="/app/new-builder"
+                  className="inline-flex items-center gap-1 mt-2 text-sm text-violet-600 hover:text-violet-700 font-medium"
+                >
+                  {t('createLandingPage') || 'Create Landing Page'}
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Saved Configs Info */}
-      {savedConfigsCount > 0 && (
+        {/* Current Preview */}
         <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">
-            <Rocket className="w-4 h-4 inline mr-1 text-violet-600" />
-            {t('savedCampaignsCountMsg').replace('{count}', String(savedConfigsCount))}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-700">
+                {t('yourStoreUrl') || 'Your Store URL'}
+              </p>
+              <p className="text-sm text-gray-500">{getStoreUrl()}</p>
+            </div>
+            <a
+              href={getStoreUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-gray-500 hover:text-violet-600 transition"
+            >
+              <ExternalLink className="w-5 h-5" />
+            </a>
+          </div>
         </div>
-      )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              {t('saving') || 'Saving...'}
+            </>
+          ) : (
+            <>
+              <Settings className="w-5 h-5" />
+              {t('saveSettings') || 'Save Settings'}
+            </>
+          )}
+        </button>
+      </Form>
     </div>
   );
 }

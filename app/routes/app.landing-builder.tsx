@@ -127,7 +127,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: store.id,
       name: store.name,
       subdomain: store.subdomain,
-      mode: store.mode || 'store',
       featuredProductId: store.featuredProductId,
       landingConfig,
     },
@@ -219,11 +218,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (pageId) {
       await updateConfig(newConfig);
     } else {
-      // Special case for Store: Update mode to 'landing' when selecting template
+      // Update store landing config
       await db
         .update(stores)
         .set({
-          mode: 'landing',
           landingConfig: JSON.stringify(newConfig),
           updatedAt: new Date(),
         })
@@ -304,8 +302,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const primaryColor = formData.get('primaryColor') as string || '';
     const accentColor = formData.get('accentColor') as string || '';
 
-    // Store Mode (landing or store)
-    const storeMode = formData.get('storeMode') as 'landing' | 'store' || 'landing';
+    // Note: storeMode field removed - hybrid mode uses storeEnabled/homeEntry instead
 
     const newConfig: LandingConfig = {
       templateId,
@@ -344,7 +341,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
       await db
         .update(stores)
         .set({
-          mode: storeMode,
           featuredProductId: featuredProductId ? parseInt(featuredProductId) : null,
           landingConfig: JSON.stringify(newConfig),
           updatedAt: new Date(),
@@ -414,11 +410,13 @@ export default function LandingBuilderPage() {
   const [socialProofInterval, setSocialProofInterval] = useState(store.landingConfig.socialProofInterval || 15);
 
   // Color theme state
+  // Color theme state
   const [primaryColor, setPrimaryColor] = useState(store.landingConfig.primaryColor || '');
   const [accentColor, setAccentColor] = useState(store.landingConfig.accentColor || '');
 
-  // Store Mode state (landing or store)
-  const [storeMode, setStoreMode] = useState<'landing' | 'store'>(store.mode || 'landing');
+  // storeMode is now always 'landing' since mode toggle is deprecated
+  // Kept for backward compatibility with form submissions
+  const storeMode = 'landing' as const;
 
   // Current tab
   const [activeTab, setActiveTab] = useState<'template' | 'content' | 'sections' | 'conversion' | 'testimonials' | 'faq' | 'whatsapp' | 'colors'>('template');

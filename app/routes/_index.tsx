@@ -1,9 +1,9 @@
 /**
  * Store Homepage Route - Hybrid Mode
  * 
- * Displays either:
- * - Landing Page (single product focus) if store.mode === 'landing'
- * - Full Store (product catalog) if store.mode === 'store'
+ * Uses homeEntry field to determine what to show:
+ * - 'store_home' = Full product catalog (default)
+ * - 'page:{pageId}' = Redirect to a builder page
  * 
  * CACHING STRATEGY:
  * - max-age=60: Browser cache for 1 minute
@@ -23,14 +23,11 @@ import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, productVariants, orderBumps, templateAnalytics, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, parseThemeConfig, parseSocialLinks, parseFooterConfig, defaultLandingConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
-import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps } from '~/templates/registry';
+import { getTemplate, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { StoreLayout } from '~/components/templates/StoreLayout';
-import { MarketingHeader } from '~/components/MarketingHeader';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { MarketingLanding } from '~/components/MarketingLanding';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
-import { canUseStoreMode, type PlanType } from '~/utils/plans.server';
 import { useTrackVisit } from '~/hooks/use-track-visit';
 
 // ============================================================================
@@ -319,55 +316,50 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   const storeUrl = new URL(request.url);
   const category = storeUrl.searchParams.get('category');
   
-  // Determine store mode with safe fallback
-  const dbMode = (validatedStore as Store & { mode?: 'landing' | 'store' }).mode || 'store';
-  const rawPlanType = validatedStore.planType;
-  // Safeguard: Ensure planType is a valid PlanType, fallback to 'free'
-  const validPlanTypes = ['free', 'starter', 'premium', 'business'] as const;
-  const planType: PlanType = (validPlanTypes.includes(rawPlanType as PlanType) ? rawPlanType : 'free') as PlanType;
-  
   // ========================================================================
-  // HYBRID MODE ENFORCEMENT - Free users CANNOT access store mode
+  // HYBRID MODE - homeEntry based resolution
   // ========================================================================
-  // Free tier users are forced to landing mode regardless of DB setting.
-  // When they upgrade, the system simply stops forcing landing mode,
-  // instantly unlocking their chosen layout without data migration.
-  const storeMode = canUseStoreMode(planType) ? dbMode : 'landing';
-
+  // All users (including free) have access to both store + landing pages
+  // Limits are enforced via usage_limits (products, orders per month)
+  const homeEntry = (validatedStore as Store & { homeEntry?: string }).homeEntry || 'store_home';
   
-  // ========== LANDING MODE ==========
-  if (storeMode === 'landing') {
+  // Check if homepage should show a builder page
+  const isBuilderPageHome = homeEntry.startsWith('page:');
+  
+  // ========== BUILDER PAGE AS HOMEPAGE ==========
+  if (isBuilderPageHome) {
     try {
       // ========================================================================
-      // CHECK FOR NEW BUILDER HOMEPAGE - Redirect to /offers/{slug} if set
+      // HOMEPAGE IS A BUILDER PAGE - Extract pageId and redirect
       // ========================================================================
-      const homepageBuilderPageId = (validatedStore as Store & { homepageBuilderPageId?: string }).homepageBuilderPageId;
+      // homeEntry format: 'page:{pageId}' or 'page:{slug}'
+      const pageIdentifier = homeEntry.replace('page:', '');
       const { builderPages } = await import('@db/schema_page_builder');
-      const { desc } = await import('drizzle-orm');
       
       let builderPage: { slug: string; status: string | null } | null = null;
       
-      if (homepageBuilderPageId) {
-        // Explicit homepage builder page set - use it
+      // Try to find by ID first (numeric), then by slug
+      const isNumericId = /^\d+$/.test(pageIdentifier);
+      
+      if (isNumericId) {
+        // Lookup by page ID
         const [result] = await db
           .select({ slug: builderPages.slug, status: builderPages.status })
           .from(builderPages)
           .where(and(
-            eq(builderPages.id, homepageBuilderPageId),
+            eq(builderPages.id, pageIdentifier),
             eq(builderPages.storeId, validatedStoreId)
           ));
         builderPage = result || null;
       } else {
-        // Auto-find first published builder page for this store
+        // Lookup by slug
         const [result] = await db
           .select({ slug: builderPages.slug, status: builderPages.status })
           .from(builderPages)
           .where(and(
-            eq(builderPages.storeId, validatedStoreId),
-            eq(builderPages.status, 'published')
-          ))
-          .orderBy(desc(builderPages.publishedAt))
-          .limit(1);
+            eq(builderPages.slug, pageIdentifier),
+            eq(builderPages.storeId, validatedStoreId)
+          ));
         builderPage = result || null;
       }
       

@@ -1,0 +1,32 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "multi-store-saas-builder"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+pages_build_output_dir = "build/client"
+
+# Same D1 Database as main app
+[[d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db"
+database_id = "bf882d16-d67a-4007-b503-33646bd693af"
+
+# Same R2 Storage as main app
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "multi-store-saas-media"
+
+# Same KV for caching
+[[kv_namespaces]]
+binding = "STORE_CACHE"
+id = "026696313f02475c846dc70197a3c98f"
+
+[vars]
+SAAS_DOMAIN = "ozzyl.com"
+R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
+MAIN_APP_URL = "https://ozzyl.com"
+
+[dev]
+port = 8788
+local_protocol = "http"
