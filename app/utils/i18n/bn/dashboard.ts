@@ -769,7 +769,7 @@ export const dashboard = {
   liveEditor: 'লাইভ এডিটর',
 
   // Homepage Strategy
-  homepageSettings: 'হোমপেজ স্ট্র্যাটেজি',
+  homepageSettings: 'হোমপেজ সেটিংস',
   homepageDesc: 'আপনার স্টোরের হোমপেজ কাস্টমারদের কাছে কীভাবে দেখাবে তা বেছে নিন',
   landingPageSaved: 'আপনার ল্যান্ডিং পেজ সেভ করা হয়েছে!',
   landingPageSavedDesc: 'আপনার আগের হোমপেজটি এখন ক্যাম্পেইন লিংক হিসেবে পাওয়া যাবে।',
@@ -1131,4 +1131,17 @@ export const dashboard = {
   orderStatus: 'অর্ডারের অবস্থা',
   sold: 'টি বিক্রি',
   revenue: 'রাজস্ব',
+  homepageSettingsDesc: 'আপনার ভিজিটররা যখন আপনার সাইটে প্রবেশ করবে তখন তারা কী দেখবে তা কনফিগার করুন।',
+  enableStoreRoutes: 'স্টোর রুট সক্রিয় করুন',
+  enableStoreRoutesDesc: 'সক্রিয় থাকলে, /products, /cart, এবং /checkout রুটগুলো অ্যাক্সেসযোগ্য হবে।',
+  storeRoutesDisabledWarning: 'স্টোর রুটগুলো নিষ্ক্রিয় করা হয়েছে। ভিজিটররা পণ্য ব্রাউজ বা চেকআউট করতে পারবে না।',
+  homepageSelection: 'হোমপেজ নির্বাচন',
+  homepageSelectionDesc: 'আপনার প্রধান ইউআরএল-এ ভিজিটররা কী দেখবে তা নির্বাচন করুন।',
+  storeHome: 'স্টোর ক্যাটালগ',
+  storeHomeDesc: 'বিভাগ এবং ফিচার আইটেম সহ আপনার পণ্যের ক্যাটালগ দেখান।',
+  orSelectLandingPage: 'অথবা একটি ল্যান্ডিং পেজ নির্বাচন করুন',
+  noPublishedPages: 'কোনো প্রকাশিত ল্যান্ডিং পেজ নেই। পেজ বিল্ডারে একটি তৈরি করুন।',
+  createLandingPage: 'একটি ল্যান্ডিং পেজ তৈরি করুন',
+  yourStoreUrl: 'আপনার স্টোর ইউআরএল',
+  homepageSettingsUpdated: 'হোমপেজ সেটিংস সফলভাবে আপডেট করা হয়েছে!',
 };
