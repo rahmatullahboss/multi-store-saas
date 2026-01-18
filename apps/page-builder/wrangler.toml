@@ -26,6 +26,7 @@ id = "026696313f02475c846dc70197a3c98f"
 SAAS_DOMAIN = "ozzyl.com"
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
 MAIN_APP_URL = "https://ozzyl.com"
+SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 
 [dev]
 port = 8788
