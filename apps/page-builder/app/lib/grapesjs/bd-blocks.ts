@@ -1432,8 +1432,8 @@ export const bdBlocksPlugin = (editor: Editor) => {
                   </div>
                </div>
                <div class="mb-8">
-                  <div class="text-5xl font-black text-slate-900 mb-2">৳১২৫০</div>
-                  <div class="text-slate-400 font-medium line-through">৳১৫০০</div>
+                  <div class="text-5xl font-black text-slate-900 mb-2 product-price">৳১২৫০</div>
+                  <div class="text-slate-400 font-medium line-through product-compare-price">৳১৫০০</div>
                </div>
                <ul class="space-y-4 mb-10">
                   <li class="flex items-center gap-3 font-bold text-slate-700">
@@ -1464,8 +1464,8 @@ export const bdBlocksPlugin = (editor: Editor) => {
                     </div>
                   </div>
                   <div class="mb-8">
-                    <div class="text-5xl font-black text-indigo-600 mb-2">৳২০০০</div>
-                    <div class="text-slate-400 font-medium line-through">৳২৫০০</div>
+                    <div class="text-5xl font-black text-indigo-600 mb-2 product-price">৳২০০০</div>
+                    <div class="text-slate-400 font-medium line-through product-compare-price">৳২৫০০</div>
                   </div>
                   <ul class="space-y-4 mb-10 relative z-10">
                     <li class="flex items-center gap-3 font-bold text-slate-700">
