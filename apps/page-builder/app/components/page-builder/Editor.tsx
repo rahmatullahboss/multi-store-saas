@@ -383,46 +383,64 @@ export default function GrapesEditor({
   useEffect(() => {
     if (!editor || !isEditorReady || !pageConfig) return;
     
-    const wrapper = editor.getWrapper();
-    if (!wrapper) return;
+    // Use Canvas document for direct DOM manipulation
+    const canvasDoc = editor.Canvas.getDocument();
+    if (!canvasDoc) return;
 
+    console.warn('[Product Sync] Syncing product data:', {
+      name: pageConfig.featuredProductName,
+      price: pageConfig.featuredProductPrice,
+      image: pageConfig.featuredProductImage,
+    });
+
+    // Sync product name
     if (pageConfig.featuredProductName) {
-      wrapper.find('.product-name').forEach((comp: any) => {
-        comp.set('content', pageConfig.featuredProductName);
+      const nameElements = canvasDoc.querySelectorAll('.product-name');
+      console.warn(`[Product Sync] Found ${nameElements.length} .product-name elements`);
+      nameElements.forEach((el: Element) => {
+        el.textContent = pageConfig.featuredProductName || '';
       });
     }
 
-    // Sync product price to all .product-price elements
+    // Sync product price
     if (pageConfig.featuredProductPrice) {
       const formattedPrice = `৳${pageConfig.featuredProductPrice.toLocaleString('bn-BD')}`;
-      wrapper.find('.product-price').forEach((comp: any) => {
-        comp.set('content', formattedPrice);
+      const priceElements = canvasDoc.querySelectorAll('.product-price');
+      console.warn(`[Product Sync] Found ${priceElements.length} .product-price elements`);
+      priceElements.forEach((el: Element) => {
+        el.textContent = formattedPrice;
       });
     }
 
-    // Sync compare/original price to all .product-compare-price elements
+    // Sync compare price
     if (pageConfig.featuredProductComparePrice) {
       const formattedCompare = `৳${pageConfig.featuredProductComparePrice.toLocaleString('bn-BD')}`;
-      wrapper.find('.product-compare-price').forEach((comp: any) => {
-        comp.set('content', formattedCompare);
+      const compareElements = canvasDoc.querySelectorAll('.product-compare-price');
+      console.warn(`[Product Sync] Found ${compareElements.length} .product-compare-price elements`);
+      compareElements.forEach((el: Element) => {
+        el.textContent = formattedCompare;
       });
     }
 
-    // Sync product image to all .product-image elements
+    // Sync product image
     if (pageConfig.featuredProductImage) {
-      wrapper.find('.product-image').forEach((comp: any) => {
-        if (comp.get('tagName') === 'img') {
-          comp.addAttributes({ src: pageConfig.featuredProductImage });
+      const imageElements = canvasDoc.querySelectorAll('.product-image');
+      console.warn(`[Product Sync] Found ${imageElements.length} .product-image elements`);
+      imageElements.forEach((el: Element) => {
+        if (el.tagName.toLowerCase() === 'img') {
+          (el as HTMLImageElement).src = pageConfig.featuredProductImage || '';
         }
       });
     }
 
+    // Sync WhatsApp link
     if (pageConfig.whatsappNumber) {
       const msg = encodeURIComponent(pageConfig.whatsappMessage || '');
       const url = `https://wa.me/${pageConfig.whatsappNumber}?text=${msg}`;
-      wrapper.find('.whatsapp-link').forEach((comp: any) => {
-        if (comp.get('type') === 'link' || comp.get('tagName') === 'a') {
-          comp.addAttributes({ href: url });
+      const whatsappLinks = canvasDoc.querySelectorAll('.whatsapp-link');
+      whatsappLinks.forEach((el: Element) => {
+        if (el.tagName.toLowerCase() === 'a') {
+          (el as HTMLAnchorElement).href = url;
         }
       });
     }

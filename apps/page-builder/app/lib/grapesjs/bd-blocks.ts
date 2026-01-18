@@ -109,7 +109,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
           <p class="text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto font-light">আল্ট্রা লো ল্যাটেন্সি এবং ক্রিস্টাল ক্লিয়ার সাউন্ড। প্রফেশনাল গেমারদের প্রথম পছন্দ।</p>
           <div class="flex flex-col sm:flex-row gap-5 justify-center">
              <a href="#order" class="px-10 py-5 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-pink-500/30 hover:scale-105 transition-all">
-               অর্ডার করুন - ১২৫০৳
+               অর্ডার করুন - <span class="product-price">১২৫০৳</span>
              </a>
              <button class="px-10 py-5 bg-white/10 backdrop-blur-md text-white border border-white/20 font-bold text-lg rounded-full hover:bg-white/20 transition-all flex items-center justify-center gap-3">
                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
