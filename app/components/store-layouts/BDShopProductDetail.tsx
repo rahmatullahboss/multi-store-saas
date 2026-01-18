@@ -79,8 +79,8 @@ export function BDShopProductDetail({
   const [activeTab, setActiveTab] = useState<'description' | 'specifications'>('description');
   const [copied, setCopied] = useState(false);
 
-  const formatPrice = (price: number) => {
-    return `৳${price.toLocaleString('en-BD')}`;
+  const formatPrice = (priceInCents: number) => {
+    return `৳${(priceInCents / 100).toLocaleString('en-BD')}`;
   };
 
   const handleQuantityChange = (delta: number) => {

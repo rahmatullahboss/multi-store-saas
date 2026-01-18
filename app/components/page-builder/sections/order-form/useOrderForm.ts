@@ -189,7 +189,7 @@ export function useOrderForm(
   const total = subtotal + deliveryCharge;
   
   // Format price in Bengali
-  const formatPrice = useCallback((price: number) => `৳${price.toLocaleString('bn-BD')}`, []);
+  const formatPrice = useCallback((priceInCents: number) => `৳${(priceInCents / 100).toLocaleString('bn-BD')}`, []);
   
   const state: OrderFormState = {
     customerName,

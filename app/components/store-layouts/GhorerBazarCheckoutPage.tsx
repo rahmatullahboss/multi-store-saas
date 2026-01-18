@@ -65,8 +65,8 @@ export function GhorerBazarCheckoutPage({
 
   const { primaryColor } = GHORER_BAZAR_THEME;
 
-  const formatPrice = (price: number) => {
-    return `৳${price.toLocaleString('en-BD')}`;
+  const formatPrice = (priceInCents: number) => {
+    return `৳${(priceInCents / 100).toLocaleString('en-BD')}`;
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);

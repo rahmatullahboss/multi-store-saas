@@ -72,8 +72,8 @@ export function BDShopCartPage({
   onUpdateQuantity,
   onRemoveItem,
 }: BDShopCartPageProps) {
-  const formatPrice = (price: number) => {
-    return `৳${price.toLocaleString('en-BD')}`;
+  const formatPrice = (priceInCents: number) => {
+    return `৳${(priceInCents / 100).toLocaleString('en-BD')}`;
   };
 
   const handleQuantityChange = (itemId: number, currentQty: number, delta: number) => {

@@ -414,7 +414,7 @@ export default function AdminAnalytics() {
       }
     });
   
-  const formatCurrency = (amount: number) => `৳${amount.toLocaleString()}`;
+  const formatCurrency = (amountInCents: number) => `৳${(amountInCents / 100).toLocaleString()}`;
   
   const getPlanBadge = (planType: string) => {
     switch (planType) {

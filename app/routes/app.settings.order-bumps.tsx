@@ -165,7 +165,8 @@ export default function OrderBumpsSettings() {
   
   const isSubmitting = navigation.state === 'submitting';
   
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceInCents: number) => {
+    const price = priceInCents / 100;
     if (currency === 'BDT' || currency === '৳') {
       return `৳${price.toLocaleString()}`;
     }

@@ -137,7 +137,7 @@ export default function CustomerAccountPage() {
             </div>
             <div className="text-center border-x border-gray-200">
               <p className="text-2xl font-bold" style={{ color: theme.primary }}>
-                ৳{customer.totalSpent.toLocaleString()}
+                ৳{(customer.totalSpent / 100).toLocaleString()}
               </p>
               <p className="text-sm text-gray-500">Total Spent</p>
             </div>

@@ -67,8 +67,8 @@ export function GhorerBazarProductDetail({
 
   const { primaryColor, redDiscount, cyanBadge } = GHORER_BAZAR_THEME;
 
-  const formatPrice = (price: number) => {
-    return `৳${price.toLocaleString('en-BD')}`;
+  const formatPrice = (priceInCents: number) => {
+    return `৳${(priceInCents / 100).toLocaleString('en-BD')}`;
   };
 
   const discountAmount = product.compareAtPrice && product.compareAtPrice > product.price
