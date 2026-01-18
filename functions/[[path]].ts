@@ -48,7 +48,8 @@ function parseHostname(hostname: string, saasDomain: string): { type: 'subdomain
 }
 
 /**
- * Check if hostname is a main domain (should show marketing page)
+ * Check if hostname is a main domain (should show marketing page) 
+ * or a reserved subdomain (handled by separate workers/pages)
  */
 function isMainDomain(hostname: string): boolean {
   const mainDomains = [
@@ -57,13 +58,67 @@ function isMainDomain(hostname: string): boolean {
     'multi-store-saas.pages.dev',
     'ozzyl.com',
     'www.ozzyl.com',
+    // Reserved subdomains - handled by separate Cloudflare Pages workers
+    'builder.ozzyl.com', // Page builder worker
   ];
   
   return mainDomains.includes(hostname) || 
     (hostname.endsWith('.pages.dev') && hostname.split('.').length <= 3);
 }
 
-export const onRequest = createPagesFunctionHandler({
+// Reserved subdomains that should be handled by separate workers
+const RESERVED_SUBDOMAINS: Record<string, string> = {
+  'builder.ozzyl.com': 'https://multi-store-saas-builder.pages.dev',
+};
+
+/**
+ * Handle reserved subdomain routing
+ * These subdomains are served by separate Cloudflare Pages workers
+ */
+async function handleReservedSubdomain(request: Request, targetWorkerUrl: string): Promise<Response> {
+  const url = new URL(request.url);
+  const targetUrl = new URL(url.pathname + url.search, targetWorkerUrl);
+  
+  // Create a new request to forward to the page-builder worker
+  const forwardRequest = new Request(targetUrl.toString(), {
+    method: request.method,
+    headers: request.headers,
+    body: request.body,
+    redirect: 'manual',
+  });
+  
+  // Fetch from the page-builder worker
+  const response = await fetch(forwardRequest);
+  
+  // Return the response with modified headers
+  const newHeaders = new Headers(response.headers);
+  // Ensure CORS headers allow the subdomain
+  newHeaders.set('Access-Control-Allow-Origin', `https://builder.ozzyl.com`);
+  
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: newHeaders,
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const onRequest = async (context: any): Promise<Response> => {
+  const request = context.request;
+  const url = new URL(request.url);
+  const hostname = request.headers.get('host') || url.hostname;
+  
+  // Check for reserved subdomains and forward to their respective workers
+  const targetWorkerUrl = RESERVED_SUBDOMAINS[hostname];
+  if (targetWorkerUrl) {
+    return handleReservedSubdomain(request, targetWorkerUrl);
+  }
+  
+  // Otherwise, use the standard Remix handler
+  return pagesFunctionHandler(context);
+};
+
+const pagesFunctionHandler = createPagesFunctionHandler({
   build: build as unknown as ServerBuild,
   getLoadContext: async (context) => {
     const env = context.env as {

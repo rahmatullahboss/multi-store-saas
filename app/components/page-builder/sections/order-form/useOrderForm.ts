@@ -189,7 +189,8 @@ export function useOrderForm(
   const total = subtotal + deliveryCharge;
   
   // Format price in Bengali
-  const formatPrice = useCallback((priceInCents: number) => `৳${(priceInCents / 100).toLocaleString('bn-BD')}`, []);
+  // Note: Landing page configs store prices in taka (not cents), so no division needed
+  const formatPrice = useCallback((price: number) => `৳${price.toLocaleString('bn-BD')}`, []);
   
   const state: OrderFormState = {
     customerName,
