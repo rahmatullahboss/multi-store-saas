@@ -15,19 +15,17 @@ import { useLoaderData, useFetcher, useNavigate, Link } from '@remix-run/react';
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, stores, orderBumps, type Store } from '@db/schema';
-import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
+import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
-import { BDShopPageWrapper } from '~/components/store-layouts/BDShopPageWrapper';
-import { GhorerBazarPageWrapper } from '~/components/store-layouts/GhorerBazarPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { PaymentMethodSelector } from '~/components/checkout/PaymentMethodSelector';
 import { useState, useEffect, useMemo } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
-import { resolveTemplate } from '~/lib/template-resolver.server';
+import { resolveTemplate, type CheckoutContext } from '~/lib/template-resolver.server';
+import { StoreSectionRenderer } from '~/components/store/StoreSectionRenderer';
 import { toast } from 'sonner';
 
 export const meta: MetaFunction = () => {

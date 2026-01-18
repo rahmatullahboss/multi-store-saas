@@ -1,27 +1,22 @@
 /**
  * Cart Page
  * 
- * Template-aware shopping cart with local state and checkout flow.
- * Uses StorePageWrapper for consistent template styling.
- * Fires InitiateCheckout tracking event when proceeding to checkout.
+ * Template-aware shopping cart using the NEW template system.
+ * Renders sections from published template via StoreSectionRenderer.
  */
 
 import { useState, useEffect } from "react";
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, Link } from '@remix-run/react';
+import { useLoaderData, useFetcher } from '@remix-run/react';
 import { eq, and, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { products, stores, type Store } from '@db/schema';
-import { parseThemeConfig, parseSocialLinks, type ThemeConfig, type SocialLinks } from '@db/types';
-import { useTranslation } from '~/contexts/LanguageContext';
+import { products, stores } from '@db/schema';
+import { parseSocialLinks } from '@db/types';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
-import { BDShopPageWrapper, BDSHOP_THEME } from '~/components/store-layouts/BDShopPageWrapper';
-import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from '~/components/store-layouts/GhorerBazarPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
-import { resolveTemplate } from '~/lib/template-resolver.server';
+import { StoreSectionRenderer } from '~/components/store/StoreSectionRenderer';
+import { resolveTemplate, type CartContext } from '~/lib/template-resolver.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
 
@@ -31,38 +26,45 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (!store || !storeId) {
     throw new Response('Store not found', { status: 404 });
   }
-
+  
   const db = drizzle(cloudflare.env.DB);
   
-  // Fetch store details for template config
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId as number))
-    .limit(1);
+  // Get store data
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId as number)).limit(1);
+  const storeData = storeResult[0];
   
-  const storeData = storeResult[0] as Store | undefined;
+  if (!storeData) {
+    throw new Response('Store not found', { status: 404 });
+  }
   
-  const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
-  const socialLinks = parseSocialLinks(storeData?.socialLinks as string | null);
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
-  
-  // Parse businessInfo safely
-  let businessInfo: { phone?: string; email?: string; address?: string } | null = null;
+  // Parse theme
+  let themeConfig = null;
   try {
-    if (storeData?.businessInfo) {
+    if (storeData.themeConfig) {
+      themeConfig = JSON.parse(storeData.themeConfig as string);
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  
+  let businessInfo = null;
+  try {
+    if (storeData.businessInfo) {
       businessInfo = JSON.parse(storeData.businessInfo as string);
     }
   } catch {
     // Ignore parse errors
   }
   
-  // Load customer session for Google Sign-In header
+  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+  const theme = getStoreTemplateTheme(storeTemplateId);
+  const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
+  
+  // Load customer session
   const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
   
-  // ========== TEMPLATE RESOLUTION (New Template System) ==========
-  const cartTemplate = await resolveTemplate(cloudflare.env.DB, storeId as number, 'cart');
+  // Template resolution (NEW SYSTEM)
+  const template = await resolveTemplate(cloudflare.env.DB, storeId as number, 'cart');
   
   return json({
     storeId: storeId as number,
@@ -73,362 +75,176 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     theme,
     socialLinks,
     businessInfo,
-    themeConfig, // Return theme config to check for cart sections
+    themeConfig,
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
-    cartTemplate,
+    template,
   });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { storeId, cloudflare } = context;
-  const formData = await request.formData();
-  const intent = formData.get('intent');
   
-  if (intent === 'get-products') {
-    // Get product details for cart items
-    const productIds = formData.get('productIds')?.toString().split(',').map(Number) || [];
-    
-    if (productIds.length === 0) {
-      return json({ products: [] });
-    }
-    
-    const db = drizzle(cloudflare.env.DB);
-    const cartProducts = await db
-      .select()
-      .from(products)
-      .where(
-        and(
-          eq(products.storeId, storeId as number),
-          inArray(products.id, productIds)
-        )
-      );
-    
-    return json({ products: cartProducts });
+  if (!storeId) {
+    return json({ error: 'Store not found' }, { status: 404 });
   }
   
-  return json({ error: 'Invalid intent' }, { status: 400 });
+  const db = drizzle(cloudflare.env.DB);
+  const formData = await request.formData();
+  const productIds = formData.get('productIds');
+  
+  if (!productIds) {
+    return json({ products: [] });
+  }
+  
+  const ids = JSON.parse(productIds as string) as number[];
+  
+  if (ids.length === 0) {
+    return json({ products: [] });
+  }
+  
+  // Fetch fresh product data
+  const cartProducts = await db
+    .select({
+      id: products.id,
+      title: products.title,
+      price: products.price,
+      imageUrl: products.imageUrl,
+    })
+    .from(products)
+    .where(and(eq(products.storeId, storeId as number), inArray(products.id, ids)));
+  
+  return json({ products: cartProducts });
 }
 
-export default function Cart() {
-  const { 
+// ============================================================================
+// CART ITEM TYPE
+// ============================================================================
+interface CartItem {
+  productId: number;
+  title: string;
+  price: number;
+  imageUrl: string | null;
+  quantity: number;
+  variantName?: string;
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+export default function CartPage() {
+  const {
     storeId,
-    storeName, 
+    storeName,
     logo,
-    currency, 
-    storeTemplateId, 
+    currency,
+    storeTemplateId,
     theme,
     socialLinks,
     businessInfo,
     themeConfig,
     planType,
-    customer
+    customer,
+    template,
   } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
-  const { t } = useTranslation();
   
-  const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
-  const isDaraz = storeTemplateId === 'daraz';
-  const isBDShop = storeTemplateId === 'bdshop';
-  const isGhorerBazar = storeTemplateId === 'ghorer-bazar';
+  const fetcher = useFetcher<{ products: Array<{ id: number; title: string; price: number; imageUrl: string | null }> }>();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
   
-  // Template-aware styling
-  const cardBg = isDaraz 
-    ? 'bg-white border-gray-200' 
-    : isDarkTheme 
-      ? 'bg-gray-800 border-gray-700' 
-      : 'bg-white border-gray-200';
-  const textPrimary = isDaraz ? 'text-gray-800' : isDarkTheme ? 'text-white' : 'text-gray-900';
-  const textMuted = isDaraz ? 'text-gray-500' : isDarkTheme ? 'text-gray-400' : 'text-gray-600';
-  const borderColor = isDaraz ? 'border-gray-200' : isDarkTheme ? 'border-gray-700' : 'border-gray-200';
-  const inputBg = isDaraz ? 'bg-white border-gray-300' : isDarkTheme ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300';
-  
-  // Use correct primary color based on template
-  const primaryColor = isDaraz ? DARAZ_THEME.orange : theme.primary;
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).format(price);
-  };
-
-  // Cart State Management
-  const [cartItems, setCartItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Load cart from localStorage
+  // Load cart from localStorage on mount
   useEffect(() => {
-    const loadCart = () => {
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
       try {
-        const saved = localStorage.getItem('cart');
-        if (saved) {
-          setCartItems(JSON.parse(saved));
+        const items = JSON.parse(storedCart) as CartItem[];
+        setCart(items);
+        
+        // Fetch fresh product data
+        if (items.length > 0) {
+          const productIds = items.map(item => item.productId);
+          fetcher.submit(
+            { productIds: JSON.stringify(productIds) },
+            { method: 'post' }
+          );
         }
-      } catch (e) {
-        console.error("Failed to load cart", e);
-      } finally {
-        setLoading(false);
+      } catch {
+        // Ignore parse errors
       }
-    };
-    
-    loadCart();
-    // Listen for storage events (if updated from other tabs/components)
-    window.addEventListener('storage', loadCart);
-    // Custom event for same-tab updates
-    window.addEventListener('cart-updated', loadCart);
-    return () => {
-      window.removeEventListener('storage', loadCart);
-      window.removeEventListener('cart-updated', loadCart);
-    };
+    }
+    setIsHydrated(true);
   }, []);
-
-  const updateQuantity = (id: number, delta: number) => {
-    const newCart = cartItems.map(item => {
-      if (item.id === id) {
+  
+  // Update cart with fresh prices
+  useEffect(() => {
+    if (fetcher.data?.products && cart.length > 0) {
+      const productMap = new Map(fetcher.data.products.map(p => [p.id, p]));
+      setCart(prev => prev.map(item => {
+        const fresh = productMap.get(item.productId);
+        if (fresh) {
+          return { ...item, price: fresh.price, title: fresh.title, imageUrl: fresh.imageUrl };
+        }
+        return item;
+      }));
+    }
+  }, [fetcher.data]);
+  
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem('cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('cart-updated'));
+    }
+  }, [cart, isHydrated]);
+  
+  const updateQuantity = (productId: number, delta: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.productId === productId) {
         const newQty = Math.max(1, item.quantity + delta);
         return { ...item, quantity: newQty };
       }
       return item;
-    });
-    setCartItems(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-    window.dispatchEvent(new Event('cart-updated'));
+    }));
   };
-
-  const removeItem = (id: number) => {
-    const newCart = cartItems.filter(item => item.id !== id);
-    setCartItems(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-    window.dispatchEvent(new Event('cart-updated'));
+  
+  const removeItem = (productId: number) => {
+    setCart(prev => prev.filter(item => item.productId !== productId));
   };
-
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   
-  // Flash Sale Discount Logic
-  const flashSaleConfig = themeConfig?.flashSale;
-  let discountAmount = 0;
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const hasTemplateSections = template?.sections && template.sections.length > 0;
   
-  // Basic check - can add time validation here
-  if (flashSaleConfig?.isActive && flashSaleConfig?.discountPercentage) {
-     if (flashSaleConfig.discountType === 'fixed') {
-         discountAmount = flashSaleConfig.discountPercentage;
-     } else {
-         // Default to percent
-         discountAmount = (subtotal * flashSaleConfig.discountPercentage) / 100;
-     }
-  }
-  
-  const total = Math.max(0, subtotal - discountAmount);
-
-  // Cart content that will be wrapped by the appropriate wrapper
-  let cartContent = (
-    <>
-      {/* Breadcrumb */}
-      <nav className="border-b border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-2 md:py-3">
-          <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm">
-            <Link to="/" className="text-gray-500 hover:text-orange-500 transition">Home</Link>
-            <ChevronRight className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-            <span className={textPrimary}>{t('cart')}</span>
-          </div>
-        </div>
-      </nav>
-      
-      {/* Cart Content */}
-      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 lg:py-12">
-        <h1 className={`text-xl md:text-2xl lg:text-3xl font-bold ${textPrimary} mb-4 md:mb-8`}>{t('yourCart')}</h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
-          {/* Cart Items List */}
-          <div className="lg:col-span-2 space-y-3 md:space-y-4">
-            {loading ? (
-              <div className="p-8 text-center text-gray-500">Loading cart...</div>
-            ) : cartItems.length === 0 ? (
-              /* Empty Cart Placeholder */
-              <div className={`rounded-lg md:rounded-xl border ${cardBg} p-4 md:p-6 lg:p-8 text-center`}>
-                <div 
-                  className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full flex items-center justify-center mb-3 md:mb-4"
-                  style={{ backgroundColor: `${primaryColor}20` }}
-                >
-                  <ShoppingBag className="w-6 h-6 md:w-8 md:h-8" style={{ color: primaryColor }} />
-                </div>
-                <p className={`text-base md:text-lg font-medium ${textPrimary} mb-2`}>{t('cartEmpty')}</p>
-                <p className={`${textMuted} text-sm md:text-base mb-4 md:mb-6`}>Add some products to get started!</p>
-                <Link 
-                  to="/" 
-                  className="inline-flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium text-white text-sm md:text-base transition hover:opacity-90"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {t('continueShopping')}
-                </Link>
-              </div>
-            ) : (
-              /* Mapped Cart Items */
-              cartItems.map((item) => (
-                <div key={item.id} className={`flex gap-4 p-4 rounded-lg border ${cardBg}`}>
-                  <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                     <img src={item.image || '/placeholder.png'} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className={`font-medium ${textPrimary} line-clamp-2`}>{item.name}</h3>
-                      {item.variant && <p className="text-sm text-gray-500 mt-1">{item.variant}</p>}
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                       <p className={`font-bold ${textPrimary}`}>{formatPrice(item.price)}</p>
-                       <div className="flex items-center gap-3">
-                         <div className="flex items-center border border-gray-300 rounded overflow-hidden">
-                           <button onClick={() => updateQuantity(item.id, -1)} className="p-1 hover:bg-gray-100"><Minus className="w-4 h-4" /></button>
-                           <span className={`px-2 text-sm ${textPrimary}`}>{item.quantity}</span>
-                           <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:bg-gray-100"><Plus className="w-4 h-4" /></button>
-                         </div>
-                         <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 p-1">
-                           <Trash2 className="w-4 h-4" />
-                         </button>
-                       </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className={`rounded-lg md:rounded-xl border ${cardBg} p-4 md:p-6 sticky top-20 md:top-24`}>
-              <h2 className={`text-base md:text-lg font-semibold ${textPrimary} mb-3 md:mb-4`}>{t('orderSummary')}</h2>
-              
-              <div className="space-y-2 md:space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className={textMuted}>{t('subtotal')}</span>
-                  <span className={`font-medium ${textPrimary}`}>{formatPrice(subtotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className={textMuted}>{t('shipping') || 'Shipping'}</span>
-                  <span className={textMuted}>Calculated at checkout</span>
-                </div>
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount {flashSaleConfig?.discountType === 'fixed' ? '' : `(${flashSaleConfig?.discountPercentage}%)`}</span>
-                    <span>-{formatPrice(discountAmount)}</span>
-                  </div>
-                )}
-                {cartItems.length > 0 && (
-                   <div className={`border-t ${borderColor} pt-2 md:pt-3 flex justify-between`}>
-                     <span className={`font-semibold ${textPrimary}`}>{t('total')}</span>
-                     <span className={`font-bold text-base md:text-lg`} style={{ color: primaryColor }}>{formatPrice(total)}</span>
-                   </div>
-                )}
-              </div>
-              
-              <Link 
-                to="/checkout"
-                className={`w-full mt-4 md:mt-6 inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-4 rounded-lg font-bold text-white text-sm md:text-base transition hover:opacity-90 ${cartItems.length === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
-                style={{ backgroundColor: primaryColor }}
-                onClick={() => {
-                  trackingEvents.initiateCheckout(total, cartItems.length, currency);
-                }}
-              >
-                {t('proceedToCheckout')}
-              </Link>
-              
-              {/* Trust Badges */}
-              <div className={`mt-4 md:mt-6 pt-3 md:pt-4 border-t ${borderColor} space-y-1.5 md:space-y-2`}>
-                <p className={`text-xs ${textMuted} flex items-center gap-2`}>
-                  🔒 Secure checkout
-                </p>
-                <p className={`text-xs ${textMuted} flex items-center gap-2`}>
-                  🚚 Fast delivery
-                </p>
-                <p className={`text-xs ${textMuted} flex items-center gap-2`}>
-                  ↩️ Easy returns
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
-  // Render with appropriate wrapper based on template
-  if (isBDShop) {
-    return (
-      <BDShopPageWrapper
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        currency={currency}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-        pageTitle={t('cart')}
-        showBreadcrumbBanner={true}
-        breadcrumb={[{ label: t('cart') }]}
-      >
-        {cartContent}
-      </BDShopPageWrapper>
-    );
-  }
-
-  if (isGhorerBazar) {
-    return (
-      <GhorerBazarPageWrapper
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        currency={currency}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-        pageTitle={t('cart')}
-        showBreadcrumbBanner={true}
-        breadcrumb={[{ label: t('cart') }]}
-      >
-        {cartContent}
-      </GhorerBazarPageWrapper>
-    );
-  }
-
-  if (isDaraz) {
-    return (
-      <DarazPageWrapper
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        currency={currency}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-      >
-        {cartContent}
-      </DarazPageWrapper>
-    );
-  }
-
-  // CHECK FOR DYNAMIC SECTIONS
-  if ((themeConfig?.cartSections?.length ?? 0) > 0) {
-    const sectionProps = {
-        theme: isDaraz ? DARAZ_THEME : (theme || {}),
-        storeId,
-        currency,
-        storeName,
-        businessInfo,
-        socialLinks,
-        store: {
-          name: storeName,
-          currency: currency,
-          email: businessInfo?.email,
-          phone: businessInfo?.phone,
-          address: businessInfo?.address
-        }
-    };
-    
-    cartContent = (
-      <SectionRenderer 
-        sections={themeConfig?.cartSections || []}
-        {...sectionProps}
-      />
-    );
-  }
+  // Build RenderContext for sections (CartContext)
+  const renderContext: CartContext = {
+    kind: 'cart',
+    shop: {
+      name: storeName,
+      currency,
+      domain: '',
+    },
+    theme: template?.settings || {
+      primaryColor: theme.primary,
+      accentColor: theme.accent,
+      backgroundColor: theme.background,
+      textColor: theme.text,
+      headingFont: 'Inter',
+      bodyFont: 'Inter',
+    },
+    currency,
+    cart: {
+      items: cart.map(item => ({
+        id: String(item.productId),
+        productId: String(item.productId),
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        imageUrl: item.imageUrl || undefined,
+        variantName: item.variantName,
+      })),
+      subtotal,
+      total: subtotal, // Will add shipping in checkout
+    },
+  };
 
   return (
     <StorePageWrapper
@@ -442,8 +258,149 @@ export default function Cart() {
       businessInfo={businessInfo}
       planType={planType}
       customer={customer}
+      config={themeConfig}
     >
-      {cartContent}
+      {hasTemplateSections ? (
+        <StoreSectionRenderer
+          sections={template!.sections}
+          context={renderContext}
+        />
+      ) : (
+        // Fallback: Default cart display
+        <div className="min-h-screen py-8 px-4" style={{ backgroundColor: theme.background }}>
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-2xl font-bold mb-8" style={{ color: theme.text }}>
+              Shopping Cart
+            </h1>
+            
+            {cart.length === 0 ? (
+              <div className="text-center py-16">
+                <ShoppingBag size={64} className="mx-auto mb-4 opacity-30" />
+                <h2 className="text-xl font-semibold mb-2" style={{ color: theme.text }}>
+                  Your cart is empty
+                </h2>
+                <p className="mb-6" style={{ color: theme.muted }}>
+                  Add some products to get started!
+                </p>
+                <a
+                  href="/products"
+                  className="inline-block px-6 py-3 rounded-lg text-white font-semibold"
+                  style={{ backgroundColor: theme.primary }}
+                >
+                  Continue Shopping
+                </a>
+              </div>
+            ) : (
+              <div className="grid lg:grid-cols-3 gap-8">
+                {/* Cart Items */}
+                <div className="lg:col-span-2 space-y-4">
+                  {cart.map(item => (
+                    <div
+                      key={item.productId}
+                      className="flex gap-4 p-4 rounded-xl border"
+                      style={{ borderColor: theme.muted + '20' }}
+                    >
+                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold truncate" style={{ color: theme.text }}>
+                          {item.title}
+                        </h3>
+                        {item.variantName && (
+                          <p className="text-sm" style={{ color: theme.muted }}>{item.variantName}</p>
+                        )}
+                        <p className="font-bold mt-1" style={{ color: theme.primary }}>
+                          {currency} {item.price}
+                        </p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <button
+                            onClick={() => updateQuantity(item.productId, -1)}
+                            className="w-8 h-8 rounded-full border flex items-center justify-center"
+                            style={{ borderColor: theme.muted + '40' }}
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="w-8 text-center font-medium">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.productId, 1)}
+                            className="w-8 h-8 rounded-full border flex items-center justify-center"
+                            style={{ borderColor: theme.muted + '40' }}
+                          >
+                            <Plus size={14} />
+                          </button>
+                          <button
+                            onClick={() => removeItem(item.productId)}
+                            className="ml-auto text-red-500 hover:text-red-600"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Order Summary */}
+                <div className="lg:col-span-1">
+                  <div
+                    className="rounded-xl p-6 sticky top-4"
+                    style={{ backgroundColor: theme.cardBg || '#fff', border: `1px solid ${theme.muted}20` }}
+                  >
+                    <h2 className="text-lg font-bold mb-4" style={{ color: theme.text }}>
+                      Order Summary
+                    </h2>
+                    <div className="space-y-3 mb-6">
+                      <div className="flex justify-between">
+                        <span style={{ color: theme.muted }}>Subtotal ({cart.length} items)</span>
+                        <span className="font-semibold" style={{ color: theme.text }}>
+                          {currency} {subtotal.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span style={{ color: theme.muted }}>Shipping</span>
+                        <span style={{ color: theme.muted }}>Calculated at checkout</span>
+                      </div>
+                      <hr style={{ borderColor: theme.muted + '20' }} />
+                      <div className="flex justify-between text-lg font-bold">
+                        <span style={{ color: theme.text }}>Total</span>
+                        <span style={{ color: theme.primary }}>
+                          {currency} {subtotal.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <a
+                      href="/checkout"
+                      onClick={() => {
+                        trackingEvents.initiateCheckout({
+                          items: cart.map(item => ({
+                            id: String(item.productId),
+                            name: item.title,
+                            price: item.price,
+                            quantity: item.quantity,
+                          })),
+                          total: subtotal,
+                          currency,
+                        });
+                      }}
+                      className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition"
+                      style={{ backgroundColor: theme.primary }}
+                    >
+                      Proceed to Checkout <ChevronRight size={18} />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </StorePageWrapper>
   );
 }
