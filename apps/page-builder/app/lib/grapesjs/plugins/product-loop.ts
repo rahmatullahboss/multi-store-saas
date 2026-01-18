@@ -52,20 +52,20 @@ const productLoopPlugin: Plugin = (editor) => {
                 this.model.components(`
                     <div class="relative aspect-[4/5] overflow-hidden bg-gray-100">
                         <span class="product-badge absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded z-10">20% OFF</span>
-                        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&q=80" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Product" />
+                        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&q=80" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 product-image" alt="Product" />
                         <button class="absolute bottom-3 right-3 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-primary opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                         </button>
                     </div>
                     <div class="p-4">
-                        <h3 class="font-bold text-gray-800 text-sm mb-1 line-clamp-2 leading-snug group-hover:text-primary transition-colors">Premium Urban Sneakers</h3>
+                        <h3 class="font-bold text-gray-800 text-sm mb-1 line-clamp-2 leading-snug group-hover:text-primary transition-colors product-name">Premium Urban Sneakers</h3>
                         <div class="flex items-center gap-1 mb-2 text-yellow-400 text-xs">
                            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span> <span class="text-gray-300 text-[10px]">(45)</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <div class="flex flex-col">
-                                <span class="text-xs text-gray-400 line-through">৳ 2,500</span>
-                                <span class="text-lg font-black text-primary">৳ 1,950</span>
+                                <span class="text-xs text-gray-400 line-through product-compare-price">৳ 2,500</span>
+                                <span class="text-lg font-black text-primary product-price">৳ 1,950</span>
                             </div>
                         </div>
                         <button class="w-full mt-3 bg-gray-900 text-white text-xs font-bold py-2.5 rounded-lg hover:bg-primary transition-colors">
