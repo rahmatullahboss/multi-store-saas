@@ -17,6 +17,11 @@ export function t(key: TranslationKey, lang: Language = 'en', params?: Record<st
   const enDict = translations.en as Record<string, string>;
   let text = dict[key] || enDict[key] || key;
 
+  // DEBUG: Log translation lookup
+  if (typeof window !== 'undefined' && text === key) {
+    console.warn(`[i18n DEBUG] Missing translation for key: "${key}" in lang: "${lang}". Dict has ${Object.keys(dict).length} keys.`);
+  }
+
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       // Support both {{key}} and {key}
