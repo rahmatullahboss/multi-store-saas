@@ -78,7 +78,7 @@ const staticAllowedOrigins = [
 // Trusted domain patterns
 const trustedPatterns = [
   /^https:\/\/.*\.ozzyl\.com$/,        // *.ozzyl.com subdomains
-  /^https:\/\/.*\.digitalcare\.site$/, // Temporary - digitalcare.site
+  /^https:\/\/.*\.digitalcare\.site$/, // Temporary - ozzyl.com
 ];
 
 /**
