@@ -330,6 +330,13 @@
       "when": 1768645263669,
       "tag": "0046_material_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "6",
+      "when": 1768700042243,
+      "tag": "0047_outgoing_overlord",
+      "breakpoints": true
     }
   ]
 }
