@@ -34,7 +34,8 @@ export default function EditorToolbar({
   isAISidebarOpen,
   publishedPageUrl,
   pageId,
-  editor
+  editor,
+  mainAppUrl = 'https://ozzyl.com'
 }: { 
   isAiLocked?: boolean,
   onOpenLibrary?: () => void,
@@ -42,7 +43,8 @@ export default function EditorToolbar({
   isAISidebarOpen?: boolean,
   publishedPageUrl?: string,
   pageId?: string,
-  editor?: any
+  editor?: any,
+  mainAppUrl?: string
 }) {
   const { t } = useLanguage();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
@@ -525,7 +527,7 @@ export default function EditorToolbar({
                 toast.loading(t('savingForPreview') || 'Preparing preview...', { id: 'preview' });
                 await editor.store();
                 toast.dismiss('preview');
-                window.open(`/app/page-builder/preview/${pageId}`, '_blank');
+                window.open(`${mainAppUrl}/preview/${pageId}`, '_blank');
               } catch (error) {
                 console.error('Preview save error:', error);
                 toast.error(t('previewFailed'), { id: 'preview' });

@@ -208,6 +208,7 @@ export default function EditPage() {
             publishedBaseUrl={data.publishedBaseUrl}
             pageSlug={data.pageSlug}
             initialProjectData={data.initialProjectData}
+            mainAppUrl={data.mainAppUrl}
           />
         </Suspense>
       </div>

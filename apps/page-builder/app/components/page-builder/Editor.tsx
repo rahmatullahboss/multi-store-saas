@@ -41,6 +41,7 @@ interface GrapesEditorProps {
   publishedBaseUrl?: string;
   pageSlug?: string;
   initialProjectData?: any; // Pre-fetched from route loader to skip autoload blocking
+  mainAppUrl?: string;
 }
 
 interface PageConfig {
@@ -70,7 +71,8 @@ export default function GrapesEditor({
   onStorageStatusChange, 
   publishedBaseUrl, 
   pageSlug,
-  initialProjectData 
+  initialProjectData,
+  mainAppUrl = 'https://ozzyl.com'
 }: GrapesEditorProps) {
   const { t } = useTranslation();
   // Core state
@@ -519,6 +521,7 @@ export default function GrapesEditor({
           publishedPageUrl={publishedPageUrl}
           pageId={pageId}
           editor={editor}
+          mainAppUrl={mainAppUrl}
         />
         
         <div className="flex flex-1 overflow-hidden min-h-0">
