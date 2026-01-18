@@ -1,0 +1,51 @@
+import { redirect } from '@remix-run/cloudflare';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
+import { stores } from '@db/schema';
+import type { AppLoadContext } from '@remix-run/cloudflare';
+
+/**
+ * Check if store has storeEnabled=true
+ * If not, redirect to Homepage Settings with a prompt to enable store
+ * 
+ * Usage in loader:
+ * await requireStoreEnabled(storeId, context);
+ */
+export async function requireStoreEnabled(
+  storeId: number,
+  context: AppLoadContext,
+  redirectTo = '/app/settings/homepage?enable_store=1'
+): Promise<void> {
+  const db = drizzle(context.cloudflare.env.DB);
+  
+  const result = await db
+    .select({ storeEnabled: stores.storeEnabled })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+
+  const store = result[0];
+  
+  if (!store || store.storeEnabled === false) {
+    throw redirect(redirectTo);
+  }
+}
+
+/**
+ * Get store's storeEnabled status
+ * Useful for components that need to conditionally render based on store status
+ */
+export async function getStoreEnabled(
+  storeId: number,
+  context: AppLoadContext
+): Promise<boolean> {
+  const db = drizzle(context.cloudflare.env.DB);
+  
+  const result = await db
+    .select({ storeEnabled: stores.storeEnabled })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+
+  return result[0]?.storeEnabled ?? true;
+}

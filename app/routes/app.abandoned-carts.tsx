@@ -45,6 +45,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
+  // Guard: Store-only page - redirect if store is disabled
+  const { requireStoreEnabled } = await import('~/services/store-guard.server');
+  await requireStoreEnabled(storeId, context);
+
   const db = drizzle(context.cloudflare.env.DB);
 
   // Fetch store info

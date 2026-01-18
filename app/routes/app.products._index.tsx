@@ -37,6 +37,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
+  // Guard: Store-only page - redirect if store is disabled
+  const { requireStoreEnabled } = await import('~/services/store-guard.server');
+  await requireStoreEnabled(storeId, context);
+
   const db = drizzle(context.cloudflare.env.DB);
 
   // Fetch store info for currency
@@ -75,7 +79,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeCustomDomain: store.customDomain || null,
     // Featured product for Primary Product badge
     featuredProductId: store.featuredProductId || null,
-    storeMode: store.mode || 'landing',
     stats: {
       total: totalProducts,
       published: publishedCount,
@@ -185,7 +188,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ProductsIndexPage() {
-  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, storeMode, canAddProduct, productLimitMessage } = useLoaderData<typeof loader>();
+  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, canAddProduct, productLimitMessage } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
