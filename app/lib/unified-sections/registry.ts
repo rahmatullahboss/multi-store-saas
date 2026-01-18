@@ -70,12 +70,15 @@ export type UnifiedSectionType =
   | 'product-grid'
   | 'product-scroll'
   | 'category-list'
+  | 'collection-list'
   | 'related-products'
   | 'product-header'
   | 'product-gallery'
   | 'product-info'
+  | 'product-main'
   | 'product-description'
   | 'product-reviews'
+  | 'featured-products'
   // Social proof
   | 'testimonials'
   | 'trust-badges'
@@ -91,6 +94,9 @@ export type UnifiedSectionType =
   // Cart/Checkout
   | 'cart-items'
   | 'cart-summary'
+  | 'cart-upsell'
+  | 'checkout-form'
+  | 'checkout-summary'
   | 'collection-header'
   // Utility
   | 'faq'
@@ -829,6 +835,96 @@ export const UNIFIED_SECTION_REGISTRY: Record<UnifiedSectionType, UnifiedSection
       placeholderText: 'Enter your email',
       successMessage: 'Thanks for subscribing!',
     },
+  },
+  
+  // =========================================================================
+  // NEW STORE TEMPLATE SECTIONS
+  // =========================================================================
+  
+  'collection-list': {
+    type: 'collection-list',
+    name: 'Collection List',
+    description: 'Display category/collection cards',
+    icon: 'LayoutGrid',
+    category: 'products',
+    allowedPages: ['home'],
+    defaultProps: {
+      heading: 'Shop by Category',
+      columns: 3,
+    },
+    storeComponent: '~/components/store/sections/home/CollectionListSection',
+  },
+  
+  'product-main': {
+    type: 'product-main',
+    name: 'Product Main',
+    description: 'Main product display with gallery, info, and add to cart',
+    icon: 'Package',
+    category: 'products',
+    allowedPages: ['product'],
+    defaultProps: {
+      showQuantity: true,
+      showVariants: true,
+      showTrustBadges: true,
+    },
+    storeComponent: '~/components/store/sections/product/ProductMainSection',
+  },
+  
+  'featured-products': {
+    type: 'featured-products',
+    name: 'Featured Products',
+    description: 'Highlight top products in a grid',
+    icon: 'Star',
+    category: 'products',
+    allowedPages: ['home'],
+    defaultProps: {
+      heading: 'Featured Products',
+      productCount: 8,
+      columns: 4,
+    },
+    storeComponent: '~/components/store/sections/home/FeaturedProductsSection',
+  },
+  
+  'cart-upsell': {
+    type: 'cart-upsell',
+    name: 'Cart Upsell',
+    description: 'Recommended products in cart',
+    icon: 'TrendingUp',
+    category: 'conversion',
+    allowedPages: ['cart'],
+    defaultProps: {
+      heading: 'You Might Also Like',
+      maxProducts: 4,
+    },
+    storeComponent: '~/components/store/sections/cart/CartUpsellSection',
+  },
+  
+  'checkout-form': {
+    type: 'checkout-form',
+    name: 'Checkout Form',
+    description: 'Customer info, shipping, and payment form',
+    icon: 'ClipboardList',
+    category: 'conversion',
+    allowedPages: ['checkout'],
+    defaultProps: {
+      showNotes: true,
+      defaultPaymentMethod: 'cod',
+    },
+    storeComponent: '~/components/store/sections/checkout/CheckoutFormSection',
+  },
+  
+  'checkout-summary': {
+    type: 'checkout-summary',
+    name: 'Checkout Summary',
+    description: 'Order summary in checkout',
+    icon: 'Receipt',
+    category: 'conversion',
+    allowedPages: ['checkout'],
+    defaultProps: {
+      showDiscount: true,
+      showShipping: true,
+    },
+    storeComponent: '~/components/store/sections/checkout/CheckoutSummarySection',
   },
 };
 

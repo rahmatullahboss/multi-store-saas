@@ -122,8 +122,9 @@ export default function StoreHomePage() {
     categories,
   } = useLoaderData<typeof loader>();
   
-  // Build RenderContext for sections
+  // Build RenderContext for sections (HomeContext type)
   const renderContext: RenderContext = {
+    kind: 'home',
     shop: {
       name: storeName,
       currency,
@@ -137,13 +138,8 @@ export default function StoreHomePage() {
       headingFont: 'Inter',
       bodyFont: 'Inter',
     },
-    page: {
-      kind: 'home',
-      title: 'Home',
-      handle: 'home',
-      currency,
-    },
-    products: featuredProducts.map(p => ({
+    currency,
+    featuredProducts: featuredProducts.map(p => ({
       id: String(p.id),
       handle: p.handle,
       title: p.title,

@@ -88,7 +88,13 @@ export interface TemplateResolution {
 // ============================================================================
 
 interface BaseContext {
-  shop: Store;
+  shop: {
+    name: string;
+    currency: string;
+    domain?: string;
+    // Allow additional store properties
+    [key: string]: unknown;
+  };
   theme: ThemeSettings;
   currency: string;
 }
@@ -379,7 +385,11 @@ export function buildRenderContext(
   data: Record<string, unknown> = {}
 ): RenderContext {
   const base: BaseContext = {
-    shop,
+    shop: {
+      name: shop.name,
+      currency: shop.currency || 'BDT',
+      domain: shop.customDomain || shop.subdomain,
+    },
     theme: settings,
     currency: shop.currency || 'BDT',
   };
