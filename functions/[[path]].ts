@@ -66,52 +66,19 @@ function isMainDomain(hostname: string): boolean {
     (hostname.endsWith('.pages.dev') && hostname.split('.').length <= 3);
 }
 
-// Reserved subdomains that should be handled by separate workers
-const RESERVED_SUBDOMAINS: Record<string, string> = {
-  'builder.ozzyl.com': 'https://multi-store-saas-builder.pages.dev',
-};
-
-/**
- * Handle reserved subdomain routing
- * These subdomains are served by separate Cloudflare Pages workers
- */
-async function handleReservedSubdomain(request: Request, targetWorkerUrl: string): Promise<Response> {
-  const url = new URL(request.url);
-  const targetUrl = new URL(url.pathname + url.search, targetWorkerUrl);
-  
-  // Create a new request to forward to the page-builder worker
-  const forwardRequest = new Request(targetUrl.toString(), {
-    method: request.method,
-    headers: request.headers,
-    body: request.body,
-    redirect: 'manual',
-  });
-  
-  // Fetch from the page-builder worker
-  const response = await fetch(forwardRequest);
-  
-  // Return the response with modified headers
-  const newHeaders = new Headers(response.headers);
-  // Ensure CORS headers allow the subdomain
-  newHeaders.set('Access-Control-Allow-Origin', `https://builder.ozzyl.com`);
-  
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: newHeaders,
-  });
-}
+// Reserved subdomains that should NOT be handled by this worker
+// These are handled directly by their own Cloudflare Pages custom domains
+const RESERVED_SUBDOMAINS = ['builder.ozzyl.com'];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const onRequest = async (context: any): Promise<Response> => {
   const request = context.request;
-  const url = new URL(request.url);
-  const hostname = request.headers.get('host') || url.hostname;
+  const hostname = request.headers.get('host') || new URL(request.url).hostname;
   
-  // Check for reserved subdomains and forward to their respective workers
-  const targetWorkerUrl = RESERVED_SUBDOMAINS[hostname];
-  if (targetWorkerUrl) {
-    return handleReservedSubdomain(request, targetWorkerUrl);
+  // If this is a reserved subdomain, it should be handled by its own worker
+  // Return 404 to let Cloudflare route it properly
+  if (RESERVED_SUBDOMAINS.includes(hostname)) {
+    return new Response('This subdomain is served by a different worker', { status: 421 });
   }
   
   // Otherwise, use the standard Remix handler
