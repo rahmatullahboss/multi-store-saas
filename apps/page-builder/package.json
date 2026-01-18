@@ -6,8 +6,8 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev",
-    "start": "wrangler pages dev ./build/client",
-    "deploy": "npm run build && wrangler pages deploy ./build/client --project-name=multi-store-saas-builder",
+    "start": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc"
   },
   "dependencies": {
