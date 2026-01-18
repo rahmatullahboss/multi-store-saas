@@ -125,7 +125,8 @@ export default function CustomerDetailsPage() {
   const { customer, orders: customerOrders, stats, address, currency } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceInCents: number) => {
+    const price = priceInCents / 100;
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,

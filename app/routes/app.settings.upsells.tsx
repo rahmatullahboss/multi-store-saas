@@ -155,7 +155,8 @@ export default function UpsellSettingsPage() {
 
   const isSubmitting = navigation.state === 'submitting';
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceInCents: number) => {
+    const price = priceInCents / 100;
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,

@@ -59,7 +59,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   // Currency formatter
   const currency = store.currency || 'BDT';
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceInCents: number) => {
+    const price = priceInCents / 100;
     return new Intl.NumberFormat('en-BD', {
       style: 'currency',
       currency,
