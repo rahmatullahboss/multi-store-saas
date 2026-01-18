@@ -4,7 +4,7 @@
  * Provides translation support using the migrated i18n utilities.
  */
 
-import { createContext, useContext, useMemo, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useSearchParams } from '@remix-run/react';
 import { 
   LANGUAGES, 
@@ -18,7 +18,7 @@ import {
 
 interface LanguageContextValue {
   lang: Language;
-  t: (key: string | TranslationKey, options?: any) => string;
+  t: (key: string | TranslationKey, options?: Record<string, string | number>) => string;
   setLang: (lang: Language) => void;
   toggleLang: () => void;
   currentLanguage: LanguageConfig | undefined;
@@ -49,20 +49,20 @@ export function LanguageProvider({
     }
   }, [urlLang, lang]);
 
-  const setLang = (newLang: Language) => {
+  const setLang = useCallback((newLang: Language) => {
     setLangState(newLang);
     const newParams = new URLSearchParams(searchParams);
     newParams.set('lang', newLang);
     setSearchParams(newParams, { preventScrollReset: true });
-  };
+  }, [searchParams, setSearchParams]);
 
-  const toggleLang = () => {
+  const toggleLang = useCallback(() => {
     setLang(lang === 'en' ? 'bn' : 'en');
-  };
+  }, [lang, setLang]);
 
-  const t = (key: string | TranslationKey, options?: any) => {
+  const t = useCallback((key: string | TranslationKey, options?: Record<string, string | number>) => {
     return i18nCustomT(key as TranslationKey, lang, options);
-  };
+  }, [lang]);
 
   const currentLanguage = useMemo(() => {
     return LANGUAGES.find(l => l.code === lang);
@@ -75,7 +75,7 @@ export function LanguageProvider({
     toggleLang,
     currentLanguage,
     availableLanguages: LANGUAGES,
-  }), [lang, currentLanguage]);
+  }), [lang, currentLanguage, setLang, toggleLang, t]);
 
   return (
     <LanguageContext.Provider value={value}>
