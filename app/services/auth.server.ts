@@ -56,6 +56,8 @@ export function getSessionStorage(env: Env) {
       secrets: [env.SESSION_SECRET],
       secure: true,
       maxAge: 60 * 60 * 24 * 7, // 7 days
+      // Enable cross-subdomain access (e.g., builder.ozzyl.com)
+      domain: '.ozzyl.com',
     },
   });
 }
