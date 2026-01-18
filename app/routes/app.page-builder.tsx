@@ -7,14 +7,13 @@
  * GrapesJS editor is hosted at: builder.ozzyl.com/edit/:pageId
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams, Form, useNavigation, useFetcher, Link } from '@remix-run/react';
+import { useLoaderData, Form, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc, and } from 'drizzle-orm';
 import { landingPages, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { useTranslation } from '~/contexts/LanguageContext';
 import { Plus, FileText, Globe, Lock, ExternalLink, Trash2, Check, Pencil, X } from 'lucide-react';
 
 export const meta: MetaFunction = () => {
@@ -96,14 +95,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     
     const newPage = await db.insert(landingPages).values({
-      id: crypto.randomUUID(),
       storeId,
       name,
       slug,
       isPublished: false,
       projectData: JSON.stringify({ pages: [], styles: '', assets: [] }),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     }).returning({ id: landingPages.id });
 
     // Redirect to the new page-builder worker
@@ -112,7 +108,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   if (intent === 'delete') {
-    const pageId = formData.get('pageId') as string;
+    const pageId = Number(formData.get('pageId'));
     await db.delete(landingPages).where(
       and(
         eq(landingPages.id, pageId),
@@ -123,10 +119,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   if (intent === 'rename') {
-    const pageId = formData.get('pageId') as string;
+    const pageId = Number(formData.get('pageId'));
     const newName = formData.get('name') as string;
     await db.update(landingPages)
-      .set({ name: newName, updatedAt: new Date().toISOString() })
+      .set({ name: newName })
       .where(
         and(
           eq(landingPages.id, pageId),
@@ -143,13 +139,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function PageBuilder() {
-  const { pages, planType, publishedBaseUrl, builderUrl } = useLoaderData<typeof loader>();
-  const [searchParams] = useSearchParams();
+  const { pages, publishedBaseUrl, builderUrl } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const fetcher = useFetcher();
-  const { t } = useTranslation();
   
-  const [editingPageId, setEditingPageId] = useState<string | null>(null);
+  const [editingPageId, setEditingPageId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPageName, setNewPageName] = useState('');
