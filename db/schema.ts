@@ -1885,6 +1885,76 @@ export const templateAnalyticsRelations = relations(templateAnalytics, ({ one })
 }));
 
 // ============================================================================
+// CHECKOUT SESSIONS TABLE - Server-side checkout with stock reservation
+// ============================================================================
+// Enables: Stock reservation, abandoned checkout recovery, server-side pricing, idempotent order creation
+export const checkoutSessions = sqliteTable('checkout_sessions', {
+  id: text('id').primaryKey(), // UUID
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+
+  // Cart snapshot (items, quantities, prices at checkout time)
+  cartJson: text('cart_json').notNull(), // JSON: [{ variantId, qty, price, title, image }]
+
+  // Customer info
+  customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  email: text('email'),
+  phone: text('phone'),
+  customerName: text('customer_name'),
+
+  // Addresses
+  shippingAddressJson: text('shipping_address_json'), // JSON: { name, phone, address, district, upazila, postcode }
+  billingAddressJson: text('billing_address_json'), // JSON: same structure
+
+  // Server-calculated pricing (prevents client-side manipulation)
+  pricingJson: text('pricing_json'), // JSON: { subtotal, shipping, discount, tax, total }
+  discountCode: text('discount_code'),
+
+  // Payment method selection
+  paymentMethod: text('payment_method').$type<'cod' | 'bkash' | 'nagad' | 'stripe'>().default('cod'),
+
+  // Status tracking
+  status: text('status').$type<'pending' | 'processing' | 'completed' | 'abandoned' | 'expired'>().default('pending'),
+
+  // Idempotency (prevents duplicate order creation)
+  idempotencyKey: text('idempotency_key').unique(),
+  orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }), // Created order if completed
+
+  // Expiration for stock release
+  expiresAt: integer('expires_at', { mode: 'timestamp' }),
+
+  // Attribution
+  landingPageId: integer('landing_page_id'),
+  utmSource: text('utm_source'),
+  utmMedium: text('utm_medium'),
+  utmCampaign: text('utm_campaign'),
+
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_checkout_sessions_store').on(table.storeId),
+  index('idx_checkout_sessions_status').on(table.storeId, table.status),
+  index('idx_checkout_sessions_expires').on(table.expiresAt),
+]);
+
+export const checkoutSessionsRelations = relations(checkoutSessions, ({ one }) => ({
+  store: one(stores, {
+    fields: [checkoutSessions.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [checkoutSessions.customerId],
+    references: [customers.id],
+  }),
+  order: one(orders, {
+    fields: [checkoutSessions.orderId],
+    references: [orders.id],
+  }),
+}));
+
+export type CheckoutSession = typeof checkoutSessions.$inferSelect;
+export type NewCheckoutSession = typeof checkoutSessions.$inferInsert;
+
+// ============================================================================
 // WEBHOOK EVENTS TABLE - Idempotent Webhook Processing (P0 Critical)
 // ============================================================================
 // Prevents duplicate processing of webhooks from Stripe, bKash, couriers, etc.
