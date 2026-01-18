@@ -41,12 +41,14 @@ export default function CartItemsSection({ sectionId, props, context }: CartItem
   const themeColors = context.theme;
   const currency = context.currency || 'BDT';
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceInCents: number) => {
+    // Values are now stored as cents, divide by 100 for display
+    const displayPrice = priceInCents / 100;
     return new Intl.NumberFormat('bn-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
-    }).format(price);
+    }).format(displayPrice);
   };
 
   if (items.length === 0) {

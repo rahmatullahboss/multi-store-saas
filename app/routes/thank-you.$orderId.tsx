@@ -92,12 +92,13 @@ export default function ThankYouPage() {
     console.log('[Tracking] Purchase event fired:', order.orderNumber, order.total);
   }, [order, items, currency]);
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceInCents: number) => {
+    const displayPrice = priceInCents / 100;
     return new Intl.NumberFormat('bn-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
-    }).format(price);
+    }).format(displayPrice);
   };
 
   const formatDate = (date: string | Date) => {

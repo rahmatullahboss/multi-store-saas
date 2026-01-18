@@ -310,7 +310,9 @@ export default function ReportsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, lang } = useTranslation();
 
-  const formatPrice = (amount: number) => {
+  const formatPrice = (amountInCents: number) => {
+    // Values are now stored as cents, divide by 100 for display
+    const amount = amountInCents / 100;
     const symbols: Record<string, string> = { BDT: '৳', USD: '$', EUR: '€', GBP: '£', INR: '₹' };
     return `${symbols[currency] || currency} ${amount.toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-BD')}`;
   };

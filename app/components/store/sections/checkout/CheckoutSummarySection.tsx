@@ -39,12 +39,13 @@ export default function CheckoutSummarySection({ sectionId, props, context }: Ch
   const themeColors = context.theme;
   const currency = context.currency || 'BDT';
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceInCents: number) => {
+    const displayPrice = priceInCents / 100;
     return new Intl.NumberFormat('bn-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
-    }).format(price);
+    }).format(displayPrice);
   };
 
   const subtotal = cart.subtotal || items.reduce((sum, i) => sum + i.price * i.quantity, 0);
