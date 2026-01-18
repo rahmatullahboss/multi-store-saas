@@ -19,8 +19,7 @@ import {
   Copy,
   ExternalLink,
   Link2,
-  PanelRightOpen,
-  Globe
+  PanelRightOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '~/contexts/LanguageContext';
@@ -45,7 +44,7 @@ export default function EditorToolbar({
   pageId?: string,
   editor?: any
 }) {
-  const { t, lang, toggleLang } = useLanguage();
+  const { t } = useLanguage();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
   const [isConnectorModalOpen, setIsConnectorModalOpen] = useState(false);
@@ -358,16 +357,6 @@ export default function EditorToolbar({
           title={t('clearCanvas')}
         >
           <Trash2 size={16} className="text-gray-500 group-hover:text-red-600" />
-        </button>
-        <div className="w-[1px] h-6 bg-gray-200 mx-1" />
-        {/* Language Toggle */}
-        <button 
-          onClick={toggleLang}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition group border border-gray-200"
-          title={lang === 'en' ? 'Switch to Bengali' : 'Switch to English'}
-        >
-          <Globe size={14} className="text-gray-400 group-hover:text-emerald-600" />
-          <span className="font-bold">{lang === 'en' ? 'EN' : 'বাং'}</span>
         </button>
       </div>
 
