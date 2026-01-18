@@ -40,26 +40,13 @@ export default defineConfig({
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         // Split heavy client-only libraries into separate chunks
-        // IMPORTANT: Order matters - check vendor libs FIRST to prevent leakage
+        // NOTE: Do NOT put React into a separate chunk - it breaks initialization order
         manualChunks(id) {
-          // FIRST: Put React and core libs in a dedicated vendor chunk
-          // This prevents jsx-runtime from being bundled into any library chunk
-          if (
-            id.includes('node_modules/react/') ||
-            id.includes('node_modules/react-dom/') ||
-            id.includes('react/jsx-runtime') ||
-            id.includes('react/jsx-dev-runtime') ||
-            id.includes('@remix-run/react') ||
-            id.includes('scheduler')
-          ) {
-            return 'vendor-react';
-          }
-          
           // GrapesJS and related plugins - ~1.4MB
           if (id.includes('grapesjs')) {
             return 'grapesjs';
           }
-          // Recharts - ~315KB (must check BEFORE d3 to avoid double-chunking)
+          // Recharts - ~315KB
           if (id.includes('recharts')) {
             return 'recharts';
           }
