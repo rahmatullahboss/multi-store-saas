@@ -265,8 +265,8 @@ export const bdBlocksPlugin = (editor: Editor) => {
                
                <div class="bg-white p-3 rounded-xl border border-dashed border-gray-300">
                   <div class="flex justify-between items-center mb-2">
-                     <span class="text-sm font-bold text-gray-500">প্রোডাক্টের নাম</span>
-                     <span class="text-sm font-bold text-gray-900">৳৯৫০</span>
+                     <span class="text-sm font-bold text-gray-500 product-name">প্রোডাক্টের নাম</span>
+                     <span class="text-sm font-bold text-gray-900 product-price">৳৯৫০</span>
                   </div>
                   <div class="flex justify-between items-center text-primary">
                      <span class="text-xs font-bold uppercase">ডেলিভারি চার্জ</span>
@@ -274,7 +274,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
                   </div>
                   <div class="border-t border-gray-100 my-2 pt-2 flex justify-between items-center text-xl font-black text-gray-900">
                      <span>সর্বমোট</span>
-                     <span>৳৯৫০</span>
+                     <span class="product-price">৳৯৫০</span>
                   </div>
                </div>
 
