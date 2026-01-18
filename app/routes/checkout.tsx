@@ -24,8 +24,7 @@ import { PaymentMethodSelector } from '~/components/checkout/PaymentMethodSelect
 import { useState, useEffect, useMemo } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
-import { resolveTemplate, type CheckoutContext } from '~/lib/template-resolver.server';
-import { StoreSectionRenderer } from '~/components/store/StoreSectionRenderer';
+import { resolveTemplate } from '~/lib/template-resolver.server';
 import { toast } from 'sonner';
 
 export const meta: MetaFunction = () => {
