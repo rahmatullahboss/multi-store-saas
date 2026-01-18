@@ -2073,3 +2073,101 @@ export const webhookEventsRelations = relations(webhookEvents, ({ one }) => ({
     references: [stores.id],
   }),
 }));
+
+// ============================================================================
+// SHOP DOMAINS TABLE - Multi-domain support per store
+// ============================================================================
+export const shopDomains = sqliteTable('shop_domains', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  domain: text('domain').notNull().unique(),
+  isPrimary: integer('is_primary', { mode: 'boolean' }).default(false),
+  sslStatus: text('ssl_status').$type<'pending' | 'provisioning' | 'active' | 'failed'>().default('pending'),
+  verifiedAt: integer('verified_at', { mode: 'timestamp' }),
+  dnsVerified: integer('dns_verified', { mode: 'boolean' }).default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_shop_domains_store').on(table.storeId),
+  index('idx_shop_domains_domain').on(table.domain),
+]);
+
+export const shopDomainsRelations = relations(shopDomains, ({ one }) => ({
+  store: one(stores, {
+    fields: [shopDomains.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type ShopDomain = typeof shopDomains.$inferSelect;
+export type NewShopDomain = typeof shopDomains.$inferInsert;
+
+// ============================================================================
+// LOCATIONS TABLE - Multi-warehouse inventory management
+// ============================================================================
+export const locations = sqliteTable('locations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  code: text('code'), // Short code like "DHK-1"
+  address: text('address'),
+  city: text('city'),
+  district: text('district'),
+  phone: text('phone'),
+  isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  fulfillmentPriority: integer('fulfillment_priority').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_locations_store').on(table.storeId),
+  index('idx_locations_active').on(table.storeId, table.isActive),
+]);
+
+export const locationsRelations = relations(locations, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [locations.storeId],
+    references: [stores.id],
+  }),
+  inventory: many(locationInventory),
+}));
+
+export type Location = typeof locations.$inferSelect;
+export type NewLocation = typeof locations.$inferInsert;
+
+// ============================================================================
+// LOCATION INVENTORY TABLE - Per-location stock levels
+// ============================================================================
+export const locationInventory = sqliteTable('location_inventory', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  locationId: integer('location_id').notNull().references(() => locations.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'cascade' }),
+  quantity: integer('quantity').notNull().default(0),
+  reservedQuantity: integer('reserved_quantity').notNull().default(0),
+  reorderPoint: integer('reorder_point').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_location_inventory_location').on(table.locationId),
+  index('idx_location_inventory_product').on(table.productId),
+  index('idx_location_inventory_variant').on(table.variantId),
+]);
+
+export const locationInventoryRelations = relations(locationInventory, ({ one }) => ({
+  location: one(locations, {
+    fields: [locationInventory.locationId],
+    references: [locations.id],
+  }),
+  product: one(products, {
+    fields: [locationInventory.productId],
+    references: [products.id],
+  }),
+  variant: one(productVariants, {
+    fields: [locationInventory.variantId],
+    references: [productVariants.id],
+  }),
+}));
+
+export type LocationInventory = typeof locationInventory.$inferSelect;
+export type NewLocationInventory = typeof locationInventory.$inferInsert;
