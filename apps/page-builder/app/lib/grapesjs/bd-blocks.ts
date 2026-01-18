@@ -175,7 +175,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
             <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                <div class="flex justify-between font-bold text-lg">
                  <span>সর্বমোট মূল্য:</span>
-                 <span class="text-primary">৳ ১৯৫০</span>
+                 <span class="text-primary product-price">৳ ১৯৫০</span>
                </div>
             </div>
             <button type="submit" class="w-full bg-primary text-white text-xl font-extrabold py-5 rounded-2xl shadow-lg hover:opacity-90 transition">অর্ডার কনফার্ম করুন</button>
@@ -824,13 +824,13 @@ export const bdBlocksPlugin = (editor: Editor) => {
               <div class="bg-emerald-50 rounded-3xl p-6 border border-emerald-100 relative overflow-hidden">
                 <div class="flex items-center gap-6">
                   <div class="w-24 h-24 bg-white rounded-2xl overflow-hidden shadow-md flex-shrink-0 p-1">
-                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&q=80" class="w-full h-full object-cover rounded-xl" />
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&q=80" class="w-full h-full object-cover rounded-xl product-image" />
                   </div>
                   <div>
                     <h4 class="text-xl font-black text-gray-900 mb-2">প্রিমিয়াম কোয়ালিটি পণ্য</h4>
                     <div class="flex items-center gap-3">
-                      <span class="text-emerald-600 font-black text-3xl">৳৯৫০</span>
-                      <span class="text-gray-400 line-through text-lg">৳১,৯৫০</span>
+                      <span class="text-emerald-600 font-black text-3xl product-price">৳৯৫০</span>
+                      <span class="text-gray-400 line-through text-lg product-compare-price">৳১,৯৫০</span>
                     </div>
                   </div>
                 </div>
@@ -889,7 +889,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
                 </div>
                 <div class="pt-3 border-t border-gray-200 flex justify-between items-center text-gray-900">
                   <span class="text-xl font-black">সর্বমোট মূল্য:</span>
-                  <span class="text-3xl font-black text-emerald-600">৳৯৫০</span>
+                  <span class="text-3xl font-black text-emerald-600 product-price">৳৯৫০</span>
                 </div>
               </div>
 
@@ -1655,7 +1655,7 @@ export const bdBlocksPlugin = (editor: Editor) => {
                
                <div class="flex justify-between items-center py-2 bg-gray-50 px-3 rounded-lg">
                   <span class="text-sm font-bold text-gray-500">মোট বিল</span>
-                  <span class="text-lg font-black text-primary">১২৫০ টাকা</span>
+                  <span class="text-lg font-black text-primary product-price">১২৫০ টাকা</span>
                </div>
                
                <button type="submit" class="w-full bg-primary text-white text-lg font-bold py-3 rounded-xl shadow hover:bg-red-700 transition">অর্ডার কনফার্ম করুন</button>

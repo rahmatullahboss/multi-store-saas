@@ -46,6 +46,10 @@ interface GrapesEditorProps {
 interface PageConfig {
   featuredProductId?: number;
   featuredProductName?: string;
+  featuredProductPrice?: number;
+  featuredProductComparePrice?: number | null;
+  featuredProductImage?: string | null;
+  featuredProductVariants?: Array<{ id: number; name: string; price: number }>;
   whatsappNumber?: string;
   whatsappMessage?: string;
   timerEndDate?: string;
@@ -385,6 +389,31 @@ export default function GrapesEditor({
     if (pageConfig.featuredProductName) {
       wrapper.find('.product-name').forEach((comp: any) => {
         comp.set('content', pageConfig.featuredProductName);
+      });
+    }
+
+    // Sync product price to all .product-price elements
+    if (pageConfig.featuredProductPrice) {
+      const formattedPrice = `৳${pageConfig.featuredProductPrice.toLocaleString('bn-BD')}`;
+      wrapper.find('.product-price').forEach((comp: any) => {
+        comp.set('content', formattedPrice);
+      });
+    }
+
+    // Sync compare/original price to all .product-compare-price elements
+    if (pageConfig.featuredProductComparePrice) {
+      const formattedCompare = `৳${pageConfig.featuredProductComparePrice.toLocaleString('bn-BD')}`;
+      wrapper.find('.product-compare-price').forEach((comp: any) => {
+        comp.set('content', formattedCompare);
+      });
+    }
+
+    // Sync product image to all .product-image elements
+    if (pageConfig.featuredProductImage) {
+      wrapper.find('.product-image').forEach((comp: any) => {
+        if (comp.get('tagName') === 'img') {
+          comp.addAttributes({ src: pageConfig.featuredProductImage });
+        }
       });
     }
 

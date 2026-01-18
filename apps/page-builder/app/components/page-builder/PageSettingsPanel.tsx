@@ -5,6 +5,10 @@ import { useTranslation } from '~/contexts/LanguageContext';
 interface PageConfig {
   featuredProductId?: number;
   featuredProductName?: string;
+  featuredProductPrice?: number;
+  featuredProductComparePrice?: number | null;
+  featuredProductImage?: string | null;
+  featuredProductVariants?: Array<{ id: number; name: string; price: number }>;
   whatsappNumber?: string;
   whatsappMessage?: string;
   timerEndDate?: string;
@@ -67,7 +71,11 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
       onChange({
         ...config,
         featuredProductId: product.id,
-        featuredProductName: product.title
+        featuredProductName: product.title,
+        featuredProductPrice: product.price,
+        featuredProductComparePrice: product.compareAtPrice || null,
+        featuredProductImage: product.imageUrl || product.images?.[0] || null,
+        featuredProductVariants: product.variants || [],
       });
     }
   };
