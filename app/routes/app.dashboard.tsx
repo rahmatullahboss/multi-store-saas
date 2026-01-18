@@ -27,7 +27,10 @@ import {
   ExternalLink,
   Sparkles,
   Clock,
-  Bot
+  Bot,
+  FileText,
+  Store,
+  Users
 } from 'lucide-react';
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
 import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
@@ -154,6 +157,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     currency: store.currency || 'BDT',
     greeting,
     planType: store.planType || 'free',
+    storeEnabled: store.storeEnabled ?? true,
     usage,
     stats: {
       products: productCount,
@@ -186,6 +190,7 @@ export default function DashboardPage() {
     currency, 
     greeting,
     planType,
+    storeEnabled,
     usage,
     stats, 
     salesData, 
@@ -251,8 +256,34 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* First Sale Checklist (Only if 0 orders) */}
-      {stats.orders === 0 && (
+      {/* Enable Store CTA (Only for landing-only users) */}
+      {!storeEnabled && (
+        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl p-6 text-white">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Store className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold mb-1">{t('enableStoreTitle') || 'Ready to Sell Products?'}</h2>
+                <p className="text-violet-100">
+                  {t('enableStoreDescription') || 'Enable your online store to add products, accept orders, and grow your business.'}
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/app/settings/homepage?enable_store=1"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-violet-600 font-semibold rounded-xl hover:bg-violet-50 transition shadow-lg"
+            >
+              <Store className="w-5 h-5" />
+              {t('enableStoreButton') || 'Enable Store'}
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* First Sale Checklist (Only if 0 orders AND store is enabled) */}
+      {storeEnabled && stats.orders === 0 && (
          <FirstSaleChecklist productCount={stats.products} storeUrl={storeUrl} />
       )}
 
@@ -365,26 +396,51 @@ export default function DashboardPage() {
       </div>
 
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Conditional based on storeEnabled */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link
-          to="/app/products/new"
-          className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:shadow-md transition text-center group"
-        >
-          <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition">
-            <Package className="w-6 h-6 text-emerald-600" />
-          </div>
-          <span className="font-medium text-gray-900">{t('addProduct')}</span>
-        </Link>
-        <Link
-          to="/app/orders"
-          className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition text-center group"
-        >
-          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition">
-            <ShoppingCart className="w-6 h-6 text-blue-600" />
-          </div>
-          <span className="font-medium text-gray-900">{t('viewOrders')}</span>
-        </Link>
+        {storeEnabled ? (
+          <>
+            <Link
+              to="/app/products/new"
+              className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:shadow-md transition text-center group"
+            >
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition">
+                <Package className="w-6 h-6 text-emerald-600" />
+              </div>
+              <span className="font-medium text-gray-900">{t('addProduct')}</span>
+            </Link>
+            <Link
+              to="/app/orders"
+              className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition text-center group"
+            >
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition">
+                <ShoppingCart className="w-6 h-6 text-blue-600" />
+              </div>
+              <span className="font-medium text-gray-900">{t('viewOrders')}</span>
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/app/pages"
+              className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-200 hover:border-violet-300 hover:shadow-md transition text-center group"
+            >
+              <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center group-hover:bg-violet-200 transition">
+                <FileText className="w-6 h-6 text-violet-600" />
+              </div>
+              <span className="font-medium text-gray-900">{t('navPages') || 'Pages'}</span>
+            </Link>
+            <Link
+              to="/app/campaigns"
+              className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition text-center group"
+            >
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <span className="font-medium text-gray-900">{t('navCampaigns') || 'Campaigns'}</span>
+            </Link>
+          </>
+        )}
         <Link
           to="/app/analytics"
           className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition text-center group"

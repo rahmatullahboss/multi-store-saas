@@ -141,6 +141,12 @@ export const dashboard = {
   navTeam: 'টিম',
   navOverview: 'ওভারভিউ',
   navReports: 'রিপোর্ট',
+
+  // Enable Store CTA
+  enableStoreTitle: 'প্রোডাক্ট বিক্রি করতে প্রস্তুত?',
+  enableStoreDescription: 'আপনার অনলাইন স্টোর সক্রিয় করুন, প্রোডাক্ট যোগ করুন, অর্ডার গ্রহণ করুন এবং আপনার ব্যবসা বাড়ান।',
+  enableStoreButton: 'স্টোর সক্রিয় করুন',
+
   sidebarSettings: 'সেটিংস',
   navPageBuilder: 'অ্যাডভান্সড বিল্ডার (কাজ চলছে)',
   navPageBuilderV2: 'নতুন ল্যান্ডিং বিল্ডার',

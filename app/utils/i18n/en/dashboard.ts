@@ -140,6 +140,12 @@ export const dashboard = {
   navTeam: 'Team',
   navOverview: 'Overview',
   navReports: 'Reports',
+
+  // Enable Store CTA
+  enableStoreTitle: 'Ready to Sell Products?',
+  enableStoreDescription: 'Enable your online store to add products, accept orders, and grow your business.',
+  enableStoreButton: 'Enable Store',
+
   // navPlans already defined
   navPageBuilder: 'Advanced Builder (WIP)',
   navPageBuilderV2: 'New Landing Builder',
