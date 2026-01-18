@@ -560,7 +560,7 @@ export function BuilderLayout({
               <iframe
                 ref={iframeRef}
                 key={`preview-${previewDevice}`}
-                src={`/builder-preview/${page.id}`}
+                src={`/preview/${page.id}`}
                 className="w-full h-full border-0"
                 style={{
                   paddingTop: previewDevice === 'mobile' ? '2rem' : 0,
