@@ -11,8 +11,9 @@ import { Suspense, lazy, useState, useEffect } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { landingPages, stores } from '@db/schema';
-import { Check, ExternalLink } from 'lucide-react';
+import { Check, ExternalLink, Globe } from 'lucide-react';
 import { getAuthFromSession } from '~/services/auth.server';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 // Lazy load the GrapesJS editor
 const GrapesEditor = lazy(() => import('~/components/page-builder/Editor'));
@@ -96,6 +97,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
 export default function EditPage() {
   const data = useLoaderData<typeof loader>();
+  const { lang, toggleLang, t } = useLanguage();
   const [storageStatus, setStorageStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isMounted, setIsMounted] = useState(false);
   
@@ -108,7 +110,7 @@ export default function EditPage() {
       <div className="h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading Editor...</p>
+          <p className="text-gray-400">{t('loadingEditor') || 'Loading Editor...'}</p>
         </div>
       </div>
     );
@@ -123,12 +125,12 @@ export default function EditPage() {
             href={`${data.mainAppUrl}/app/page-builder`}
             className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-gray-300 hover:text-white rounded-lg transition text-xs font-bold border border-gray-700"
           >
-            ← Exit Editor
+            ← {t('exitEditor') || 'Exit Editor'}
           </a>
           <div className="h-4 w-[1px] bg-gray-700" />
           <div className="flex flex-col">
             <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest leading-none mb-1">
-              Editing Page
+              {t('editingPage') || 'Editing Page'}
             </span>
             <h2 className="text-white text-xs font-bold leading-none truncate max-w-[200px]">
               {data.pageName}
@@ -137,6 +139,16 @@ export default function EditPage() {
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Language Toggle */}
+          <button
+            onClick={toggleLang}
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 hover:bg-gray-700 rounded-full transition text-xs font-bold border border-gray-700"
+            title={lang === 'en' ? 'বাংলায় দেখুন' : 'Switch to English'}
+          >
+            <Globe size={12} className="text-gray-400" />
+            <span className="text-gray-300">{lang === 'en' ? 'EN' : 'বাং'}</span>
+          </button>
+          
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full min-w-[120px] justify-center">
             {storageStatus === 'saving' ? (
               <>
