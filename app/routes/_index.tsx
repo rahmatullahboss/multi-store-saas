@@ -323,64 +323,87 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   // Limits are enforced via usage_limits (products, orders per month)
   const homeEntry = (validatedStore as Store & { homeEntry?: string }).homeEntry || 'store_home';
   
-  // Check if homepage should show a builder page
-  const isBuilderPageHome = homeEntry.startsWith('page:');
+  // Check if homepage should show a page (builder or grapes)
+  const isPageHome = homeEntry.startsWith('page:');
   
-  // ========== BUILDER PAGE AS HOMEPAGE ==========
-  if (isBuilderPageHome) {
+  // ========== PAGE AS HOMEPAGE (Builder v2 or GrapesJS) ==========
+  if (isPageHome) {
     try {
-      // ========================================================================
-      // HOMEPAGE IS A BUILDER PAGE - Extract pageId and redirect
-      // ========================================================================
-      // homeEntry format: 'page:{pageId}' or 'page:{slug}'
+      // homeEntry format: 'page:{id}' (builder) or 'page:grapes:{id}' (GrapesJS)
       const pageIdentifier = homeEntry.replace('page:', '');
-      const { builderPages } = await import('@db/schema_page_builder');
+      const isGrapesPage = pageIdentifier.startsWith('grapes:');
       
-      let builderPage: { slug: string; status: string | null } | null = null;
-      
-      // Try to find by ID first (numeric), then by slug
-      const isNumericId = /^\d+$/.test(pageIdentifier);
-      
-      if (isNumericId) {
-        // Lookup by page ID
-        const [result] = await db
-          .select({ slug: builderPages.slug, status: builderPages.status })
-          .from(builderPages)
+      if (isGrapesPage) {
+        // ========== GrapesJS PAGE HOMEPAGE ==========
+        const grapesId = parseInt(pageIdentifier.replace('grapes:', ''), 10);
+        const { landingPages } = await import('@db/schema');
+        
+        const [grapesPage] = await db
+          .select({ slug: landingPages.slug, isPublished: landingPages.isPublished })
+          .from(landingPages)
           .where(and(
-            eq(builderPages.id, pageIdentifier),
-            eq(builderPages.storeId, validatedStoreId)
+            eq(landingPages.id, grapesId),
+            eq(landingPages.storeId, validatedStoreId)
           ));
-        builderPage = result || null;
+        
+        if (grapesPage && grapesPage.isPublished) {
+          const redirectUrl = `/p/${grapesPage.slug}`;
+          return new Response(null, {
+            status: 302,
+            headers: {
+              'Location': redirectUrl,
+              'Cache-Control': 'no-cache',
+            },
+          });
+        }
+        
+        console.warn(`[LOADER] GrapesJS page '${grapesId}' not found or not published, showing store catalog instead`);
       } else {
-        // Lookup by slug
-        const [result] = await db
-          .select({ slug: builderPages.slug, status: builderPages.status })
-          .from(builderPages)
-          .where(and(
-            eq(builderPages.slug, pageIdentifier),
-            eq(builderPages.storeId, validatedStoreId)
-          ));
-        builderPage = result || null;
+        // ========== BUILDER PAGE HOMEPAGE ==========
+        const { builderPages } = await import('@db/schema_page_builder');
+        
+        let builderPage: { slug: string; status: string | null } | null = null;
+        
+        // Try to find by ID first (numeric), then by slug
+        const isNumericId = /^\d+$/.test(pageIdentifier);
+        
+        if (isNumericId) {
+          const [result] = await db
+            .select({ slug: builderPages.slug, status: builderPages.status })
+            .from(builderPages)
+            .where(and(
+              eq(builderPages.id, pageIdentifier),
+              eq(builderPages.storeId, validatedStoreId)
+            ));
+          builderPage = result || null;
+        } else {
+          const [result] = await db
+            .select({ slug: builderPages.slug, status: builderPages.status })
+            .from(builderPages)
+            .where(and(
+              eq(builderPages.slug, pageIdentifier),
+              eq(builderPages.storeId, validatedStoreId)
+            ));
+          builderPage = result || null;
+        }
+        
+        if (builderPage && builderPage.status === 'published') {
+          const redirectUrl = `/p/${builderPage.slug}`;
+          return new Response(null, {
+            status: 302,
+            headers: {
+              'Location': redirectUrl,
+              'Cache-Control': 'no-cache',
+            },
+          });
+        }
+        
+        console.warn(`[LOADER] Builder page '${pageIdentifier}' not found or not published, showing store catalog instead`);
       }
-      
-      // Redirect to builder page if it exists and is published
-      if (builderPage && builderPage.status === 'published') {
-        const redirectUrl = `/p/${builderPage.slug}`;
-        return new Response(null, {
-          status: 302,
-          headers: {
-            'Location': redirectUrl,
-            'Cache-Control': 'no-cache',
-          },
-        });
-      }
-      
-      // Builder page not found or not published - fall through to show store catalog
-      console.warn(`[LOADER] Builder page '${pageIdentifier}' not found or not published, showing store catalog instead`);
       
     } catch (error) {
       if (error instanceof Response) throw error;
-      console.error('[loader] Builder page lookup failed:', error);
+      console.error('[loader] Page lookup failed:', error);
       // Fall through to store mode on error
     }
   }

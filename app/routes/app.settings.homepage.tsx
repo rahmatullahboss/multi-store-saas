@@ -14,7 +14,7 @@ import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
-import { stores } from '@db/schema';
+import { stores, landingPages } from '@db/schema';
 import { builderPages } from '@db/schema_page_builder';
 import { getStoreId } from '~/services/auth.server';
 import { 
@@ -59,8 +59,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  // Get published builder pages for homepage selection
-  const publishedPages = await db
+  // Get published builder pages (Page Builder v2) for homepage selection
+  const publishedBuilderPages = await db
     .select({
       id: builderPages.id,
       title: builderPages.title,
@@ -72,6 +72,35 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       eq(builderPages.status, 'published')
     ));
 
+  // Get published GrapesJS pages (landing_pages) for homepage selection
+  const publishedGrapesPages = await db
+    .select({
+      id: landingPages.id,
+      name: landingPages.name,
+      slug: landingPages.slug,
+    })
+    .from(landingPages)
+    .where(and(
+      eq(landingPages.storeId, storeId),
+      eq(landingPages.isPublished, true)
+    ));
+
+  // Combine both page types with type badges
+  const allPublishedPages = [
+    ...publishedBuilderPages.map(p => ({
+      id: p.id,
+      name: p.title || p.slug,
+      slug: p.slug,
+      type: 'builder' as const, // Page Builder v2
+    })),
+    ...publishedGrapesPages.map(p => ({
+      id: `grapes:${p.id}`, // Prefix to distinguish from builder pages
+      name: p.name || p.slug,
+      slug: p.slug,
+      type: 'grapes' as const, // GrapesJS
+    })),
+  ];
+
   return json({
     store: {
       id: store.id,
@@ -82,11 +111,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       homeEntry: store.homeEntry || 'store_home',
       planType: store.planType || 'free',
     },
-    publishedPages: publishedPages.map(p => ({
-      id: p.id,
-      name: p.title || p.slug, // Use title, fallback to slug
-      slug: p.slug,
-    })),
+    publishedPages: allPublishedPages,
   });
 }
 
@@ -269,12 +294,25 @@ export default function HomepageSettingsPage() {
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      page.type === 'grapes' 
+                        ? 'bg-gradient-to-br from-orange-500 to-red-600'
+                        : 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                    }`}>
                       <FileText className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-gray-900">{page.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-gray-900">{page.name}</h3>
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${
+                            page.type === 'grapes'
+                              ? 'bg-orange-100 text-orange-700'
+                              : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {page.type === 'grapes' ? 'GrapesJS' : 'Page Builder'}
+                          </span>
+                        </div>
                         {homeEntry === `page:${page.id}` && (
                           <CheckCircle className="w-5 h-5 text-violet-600" />
                         )}
