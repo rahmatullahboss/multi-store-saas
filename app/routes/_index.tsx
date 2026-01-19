@@ -18,7 +18,7 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
 import { useLoaderData, useRouteError, isRouteErrorResponse, useSearchParams } from '@remix-run/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
@@ -699,23 +699,33 @@ export default function Index() {
   const storeTemplateId = (data.themeConfig as ThemeConfig | null)?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const { component: StoreTemplateComponent } = getStoreTemplate(storeTemplateId);
   
+  // Suspense is required because store templates use React.lazy() for code splitting
   return (
-    <StoreTemplateComponent
-      storeName={data.storeName}
-      storeId={data.storeId}
-      logo={data.logo}
-      theme={data.theme}
-      fontFamily={data.fontFamily}
-      products={data.products || []}
-      categories={data.categories || []}
-      currentCategory={data.currentCategory}
-      config={data.themeConfig as ThemeConfig | null}
-      currency={data.currency}
-      socialLinks={data.socialLinks as SocialLinks | null}
-      footerConfig={data.footerConfig as FooterConfig | null}
-      businessInfo={data.businessInfo}
-      planType={data.planType}
-    />
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading store...</p>
+        </div>
+      </div>
+    }>
+      <StoreTemplateComponent
+        storeName={data.storeName}
+        storeId={data.storeId}
+        logo={data.logo}
+        theme={data.theme}
+        fontFamily={data.fontFamily}
+        products={data.products || []}
+        categories={data.categories || []}
+        currentCategory={data.currentCategory}
+        config={data.themeConfig as ThemeConfig | null}
+        currency={data.currency}
+        socialLinks={data.socialLinks as SocialLinks | null}
+        footerConfig={data.footerConfig as FooterConfig | null}
+        businessInfo={data.businessInfo}
+        planType={data.planType}
+      />
+    </Suspense>
   );
 }
 
