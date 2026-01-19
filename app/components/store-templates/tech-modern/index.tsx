@@ -86,9 +86,23 @@ export function TechModernTemplate({
              heading: config?.bannerText || `Next-Gen Tech from ${storeName}`,
              subheading: 'Discover the latest innovations. Premium quality, unbeatable prices.',
              primaryAction: { label: t('buyNow'), url: '/#products' },
+             secondaryAction: { label: 'Browse Categories', url: '/#categories' },
              image: config?.bannerUrl,
              layout: 'standard',
              alignment: 'left'
+           }
+         },
+         {
+           id: 'features',
+           type: 'modern-features',
+           settings: {
+             heading: 'Why Tech Lovers Choose Us',
+             subheading: 'Fast delivery, verified gadgets, and trusted support.',
+             features: [
+               { icon: '⚡', title: 'Fast Delivery', description: '24-48 hour delivery nationwide.' },
+               { icon: '✅', title: 'Verified Gadgets', description: 'Every product is quality checked.' },
+               { icon: '🔒', title: 'Secure Checkout', description: 'Multiple payment options available.' },
+             ]
            }
          },
          {
@@ -100,6 +114,15 @@ export function TechModernTemplate({
            }
          },
          {
+           id: 'scroll',
+           type: 'product-scroll',
+           settings: {
+             heading: 'Top Deals',
+             limit: 10,
+             mode: 'default'
+           }
+         },
+         {
            id: 'products',
            type: 'product-grid',
            settings: {
@@ -107,6 +130,27 @@ export function TechModernTemplate({
              productCount: 12,
              paddingTop: 'large',
              paddingBottom: 'large'
+           }
+         },
+         {
+           id: 'faq',
+           type: 'faq',
+           settings: {
+             heading: 'Tech Store FAQs',
+             faqs: [
+               { question: 'Do you offer warranty?', answer: 'Yes, most products include brand warranty.' },
+               { question: 'Can I pay with mobile wallets?', answer: 'We accept mobile payments and cards.' },
+               { question: 'How fast is delivery?', answer: 'Delivery takes 2-4 business days.' }
+             ]
+           }
+         },
+         {
+           id: 'newsletter',
+           type: 'newsletter',
+           settings: {
+             heading: 'Get Tech Deals First',
+             subheading: 'Subscribe for launches, offers, and tips.',
+             alignment: 'center'
            }
          }
        ]).map((section: any) => {

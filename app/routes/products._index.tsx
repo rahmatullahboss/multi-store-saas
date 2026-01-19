@@ -8,7 +8,7 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, and, desc, asc, gte, lte } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
@@ -21,6 +21,7 @@ import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/st
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
 import { useState } from 'react';
 import { getCustomer } from '~/services/customer-auth.server';
+import { parsePriceRange } from '~/utils/price';
 
 // Serialized product type for client components
 interface SerializedProduct {
@@ -83,6 +84,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const category = url.searchParams.get('category');
   const sortBy = url.searchParams.get('sort') || 'newest';
+  const inStock = url.searchParams.get('inStock') === 'true';
+  const onSale = url.searchParams.get('onSale') === 'true';
+  const { minPrice, maxPrice } = parsePriceRange(url.searchParams.get('minPrice'), url.searchParams.get('maxPrice'));
   
   // Load customer session for Google Sign-In header
   const customer = await getCustomer(request, context.cloudflare.env, db);
@@ -102,7 +106,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       and(
         eq(products.storeId, storeId),
         eq(products.isPublished, true),
-        category ? eq(products.category, category) : undefined
+        category ? eq(products.category, category) : undefined,
+        inStock ? gte(products.inventory, 1) : undefined,
+        onSale ? gte(products.compareAtPrice, products.price) : undefined,
+        minPrice !== null ? gte(products.price, minPrice) : undefined,
+        maxPrice !== null ? lte(products.price, maxPrice) : undefined
       )
     )
     .orderBy(orderByClause)
@@ -131,6 +139,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     categories,
     currentCategory: category,
     sortBy,
+    inStock,
+    onSale,
+    minPrice,
+    maxPrice,
     planType: store?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
   });
@@ -152,6 +164,10 @@ export default function ProductsIndex() {
     categories,
     currentCategory,
     sortBy,
+    inStock,
+    onSale,
+    minPrice,
+    maxPrice,
     planType,
     customer
   } = useLoaderData<typeof loader>();
@@ -187,6 +203,36 @@ export default function ProductsIndex() {
       params.set('category', cat);
     } else {
       params.delete('category');
+    }
+    setSearchParams(params);
+  };
+
+  const handleInStockToggle = (checked: boolean) => {
+    const params = new URLSearchParams(searchParams);
+    if (checked) {
+      params.set('inStock', 'true');
+    } else {
+      params.delete('inStock');
+    }
+    setSearchParams(params);
+  };
+
+  const handlePriceChange = (type: 'min' | 'max', value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value) {
+      params.set(type === 'min' ? 'minPrice' : 'maxPrice', value);
+    } else {
+      params.delete(type === 'min' ? 'minPrice' : 'maxPrice');
+    }
+    setSearchParams(params);
+  };
+
+  const handleOnSaleToggle = (checked: boolean) => {
+    const params = new URLSearchParams(searchParams);
+    if (checked) {
+      params.set('onSale', 'true');
+    } else {
+      params.delete('onSale');
     }
     setSearchParams(params);
   };
@@ -239,7 +285,7 @@ export default function ProductsIndex() {
             </div>
             
             {/* Controls */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {/* View Mode Toggle */}
               <div className={`flex rounded-lg border ${borderColor} overflow-hidden`}>
                 <button
@@ -266,6 +312,46 @@ export default function ProductsIndex() {
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
               </select>
+
+              {/* Stock */}
+              <label className={`flex items-center gap-2 text-sm ${textMuted}`}>
+                <input
+                  type="checkbox"
+                  checked={inStock}
+                  onChange={(e) => handleInStockToggle(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                In stock
+              </label>
+
+              {/* On Sale */}
+              <label className={`flex items-center gap-2 text-sm ${textMuted}`}>
+                <input
+                  type="checkbox"
+                  checked={onSale}
+                  onChange={(e) => handleOnSaleToggle(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                On sale
+              </label>
+
+              {/* Price Range */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={minPrice ?? ''}
+                  onChange={(e) => handlePriceChange('min', e.target.value)}
+                  placeholder="Min"
+                  className={`w-24 px-2 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                />
+                <input
+                  type="number"
+                  value={maxPrice ?? ''}
+                  onChange={(e) => handlePriceChange('max', e.target.value)}
+                  placeholder="Max"
+                  className={`w-24 px-2 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                />
+              </div>
             </div>
           </div>
 

@@ -23,7 +23,7 @@ import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 
 
-import { Store, Globe, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, FileText, AlertTriangle, Palette } from 'lucide-react';
+import { Store, Globe, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, FileText, AlertTriangle, Palette, List } from 'lucide-react';
 import { StoreDeleteWarningModal } from '~/components/StoreDeleteWarningModal';
 import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
@@ -877,6 +877,15 @@ export default function SettingsPage() {
                 <Palette className="w-4 h-4 text-rose-600" />
               </div>
               <span className="font-medium text-gray-700">{t('landingModeLink')}</span>
+            </a>
+            <a
+              href="/app/settings/navigation"
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <List className="w-4 h-4 text-emerald-600" />
+              </div>
+              <span className="font-medium text-gray-700">{t('navigationSettings') || 'Navigation'}</span>
             </a>
             <a
               href="/app/settings/courier"

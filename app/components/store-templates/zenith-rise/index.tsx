@@ -47,6 +47,7 @@ export function ZenithRiseTemplate({
         titleHighlight: 'Future',
         subheading: 'Experience the next generation of digital commerce. Fast, secure, and beautiful.',
         primaryAction: { label: 'Get Started', url: '/?category=all' },
+        secondaryAction: { label: 'Browse Products', url: '/#products' },
         image: config?.bannerUrl
       }
     },
@@ -77,7 +78,17 @@ export function ZenithRiseTemplate({
         productCount: 8,
         paddingTop: 'large',
         paddingBottom: 'large',
-        cardStyle: 'minimal' // Assuming generic grid supports styles or defaults
+        cardStyle: 'minimal'
+      }
+    },
+    {
+      id: 'z-banner',
+      type: 'banner',
+      settings: {
+        heading: 'Early Access Drops',
+        subheading: 'Exclusive product launches for subscribers.',
+        primaryAction: { label: 'Join Now', url: '/#newsletter' },
+        image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&q=80'
       }
     },
     {
@@ -85,7 +96,12 @@ export function ZenithRiseTemplate({
        type: 'faq',
        settings: {
           heading: "Questions? We've got answers.",
-          backgroundColor: 'transparent'
+          backgroundColor: 'transparent',
+          faqs: [
+            { question: 'What makes this store different?', answer: 'We focus on premium, curated product collections.' },
+            { question: 'Do you offer support?', answer: 'Yes, our team is available 24/7.' },
+            { question: 'Can I return products?', answer: 'We offer a 7-day return policy.' }
+          ]
        }
     },
     {

@@ -1,115 +1,228 @@
 /**
- * Page Builder v2 - Preview Route (for iframe embedding)
+ * GrapesJS Page Builder - Preview Route
  * 
- * Renders page sections in isolation for accurate mobile preview.
- * Used by the builder's iframe preview.
+ * Renders the HTML/CSS content saved by GrapesJS editor.
+ * This route loads from the landing_pages table where GrapesJS stores its data.
  * 
- * This route renders ONLY the section content (no <html> wrapper)
- * because Remix's root.tsx Layout already provides the document structure.
- * 
- * For iframe isolation, the parent should use sandbox attributes
- * or consider a dedicated preview domain in production.
+ * This is a resource route that returns a complete HTML document,
+ * bypassing the Remix root layout.
  */
 
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
-import { useEffect, useState } from 'react';
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
-
-import { getPageWithSections } from '~/lib/page-builder/actions.server';
 import { requireAuth } from '~/lib/auth.server';
-import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
-import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
-import { OzzylBrandingMini } from '~/components/OzzylBranding';
 
 // ============================================================================
-// LOADER
+// TYPES
 // ============================================================================
+interface LandingPage {
+  id: number;
+  storeId: number;
+  name: string;
+  slug: string;
+  htmlContent: string | null;
+  cssContent: string | null;
+  pageConfig: string | null;
+  isPublished: number;
+}
 
+interface ThemeConfig {
+  primaryColor?: string;
+  secondaryColor?: string;
+  fontHeading?: string;
+  fontBody?: string;
+}
+
+// ============================================================================
+// LOADER - Returns complete HTML document
+// ============================================================================
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { pageId } = params;
-  
+
   if (!pageId) {
-    throw new Response('Missing page ID', { status: 400 });
+    return new Response('Missing page ID', { status: 400 });
   }
-  
-  // Auth check (preview is only for logged-in users editing)
+
+  // Auth check - preview is only for logged-in users editing their pages
   const auth = await requireAuth(request, context);
-  
+
   const db = context.cloudflare.env.DB;
-  const page = await getPageWithSections(db, pageId, auth.store.id);
-  
+
+  // Fetch the landing page with HTML/CSS content
+  const page = await db.prepare(
+    `SELECT 
+      id, 
+      store_id as storeId, 
+      name, 
+      slug, 
+      html_content as htmlContent, 
+      css_content as cssContent, 
+      page_config as pageConfig,
+      is_published as isPublished
+    FROM landing_pages 
+    WHERE id = ? AND store_id = ? 
+    LIMIT 1`
+  ).bind(parseInt(pageId), auth.store.id).first<LandingPage>();
+
   if (!page) {
-    throw new Response('Page not found', { status: 404 });
+    return new Response('Page not found', { status: 404 });
   }
+
+  // Parse configs
+  let themeConfig: ThemeConfig = {
+    primaryColor: '#059669',
+    secondaryColor: '#2563eb',
+    fontHeading: 'Hind Siliguri',
+    fontBody: 'Hind Siliguri',
+  };
   
-  return json({
-    sections: page.sections.filter(s => s.enabled),
-    pageSettings: {
-      whatsappEnabled: page.whatsappEnabled ?? true,
-      whatsappNumber: page.whatsappNumber || '',
-      whatsappMessage: page.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।',
-      callEnabled: page.callEnabled ?? true,
-      callNumber: page.callNumber || '',
+  try {
+    if (page.pageConfig) {
+      const parsed = JSON.parse(page.pageConfig);
+      if (parsed.themeConfig) {
+        themeConfig = { ...themeConfig, ...parsed.themeConfig };
+      }
+    }
+  } catch (e) {
+    console.error('Failed to parse page config:', e);
+  }
+
+  // Convert hex to RGB for opacity support
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 0, 0';
+  };
+
+  const primaryRgb = hexToRgb(themeConfig.primaryColor || '#059669');
+  const secondaryRgb = hexToRgb(themeConfig.secondaryColor || '#2563eb');
+
+  // Generate the complete HTML document
+  const html = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(page.name || 'Preview')} - Preview</title>
+  
+  <!-- Google Fonts -->
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap" 
+    rel="stylesheet" 
+  />
+  
+  <!-- Pre-compiled Tailwind CSS -->
+  <link href="/css/canvas-tailwind.css" rel="stylesheet" />
+  
+  <!-- Swiper CSS for sliders -->
+  <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet" />
+  
+  <!-- Animations CSS -->
+  <link href="/animations.css" rel="stylesheet" />
+  
+  <!-- Theme Variables -->
+  <style>
+    :root {
+      --primary-color: ${themeConfig.primaryColor};
+      --secondary-color: ${themeConfig.secondaryColor};
+      --primary-rgb: ${primaryRgb};
+      --secondary-rgb: ${secondaryRgb};
+      --font-heading: "${themeConfig.fontHeading}", sans-serif;
+      --font-body: "${themeConfig.fontBody}", sans-serif;
+    }
+    
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
+    body, p, a, div, span, button, input, textarea, select, label { font-family: var(--font-body); }
+    
+    /* Primary Color Utilities */
+    .text-primary { color: var(--primary-color) !important; }
+    .bg-primary { background-color: var(--primary-color) !important; }
+    .border-primary { border-color: var(--primary-color) !important; }
+    .decoration-primary { text-decoration-color: var(--primary-color) !important; }
+    
+    /* Primary with opacity */
+    .bg-primary\\/10 { background-color: rgba(var(--primary-rgb), 0.1) !important; }
+    .bg-primary\\/20 { background-color: rgba(var(--primary-rgb), 0.2) !important; }
+    .bg-primary\\/30 { background-color: rgba(var(--primary-rgb), 0.3) !important; }
+    .border-primary\\/30 { border-color: rgba(var(--primary-rgb), 0.3) !important; }
+    
+    /* Secondary Color Utilities */
+    .text-secondary { color: var(--secondary-color) !important; }
+    .bg-secondary { background-color: var(--secondary-color) !important; }
+    .border-secondary { border-color: var(--secondary-color) !important; }
+    
+    /* Hover states */
+    .hover\\:text-primary:hover { color: var(--primary-color) !important; }
+    .hover\\:bg-primary:hover { background-color: var(--primary-color) !important; }
+    .hover\\:opacity-90:hover { opacity: 0.9; }
+    
+    /* Focus states */
+    .focus\\:ring-primary:focus { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.3) !important; }
+    .focus\\:border-primary:focus { border-color: var(--primary-color) !important; }
+    
+    /* Smooth scrolling */
+    html { scroll-behavior: smooth; }
+    
+    /* Body base styles */
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background-color: #ffffff;
+    }
+  </style>
+  
+  <!-- Page-specific CSS from GrapesJS -->
+  ${page.cssContent ? `<style>${page.cssContent}</style>` : ''}
+</head>
+<body>
+  <!-- Render HTML content from GrapesJS -->
+  ${page.htmlContent || '<div class="p-10 text-center text-gray-500">No content yet. Add some blocks in the editor!</div>'}
+  
+  <!-- Preview Badge -->
+  <div style="position: fixed; top: 16px; right: 16px; z-index: 9999; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 9999px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 6px; font-family: system-ui, sans-serif;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+    PREVIEW MODE
+  </div>
+  
+  <!-- Swiper JS for sliders -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  
+  <!-- Initialize any Swipers -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize all Swiper instances
+      document.querySelectorAll('.swiper').forEach(function(el) {
+        new Swiper(el, {
+          loop: true,
+          autoplay: { delay: 3000, disableOnInteraction: false },
+          pagination: { el: '.swiper-pagination', clickable: true },
+          navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+        });
+      });
+    });
+  </script>
+</body>
+</html>`;
+
+  return new Response(html, {
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
     },
   });
 }
 
-// ============================================================================
-// COMPONENT - Renders section content within Remix's document structure
-// ============================================================================
-
-export default function PreviewPage() {
-  const loaderData = useLoaderData<typeof loader>();
-  const [liveSections, setLiveSections] = useState(loaderData.sections);
-  const [liveSettings, setLiveSettings] = useState(loaderData.pageSettings);
-  
-  // Listen for live updates from parent window (receives sections data directly)
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'BUILDER_UPDATE' && event.data.sections) {
-        // Receive sections data directly - instant update!
-        setLiveSections(event.data.sections);
-      }
-      if (event.data?.type === 'SETTINGS_UPDATE' && event.data.settings) {
-        setLiveSettings(event.data.settings);
-      }
-    };
-    
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  // Update from loader when navigating/refreshing
-  useEffect(() => {
-    setLiveSections(loaderData.sections);
-  }, [loaderData.sections]);
-
-  useEffect(() => {
-    setLiveSettings(loaderData.pageSettings);
-  }, [loaderData.pageSettings]);
-  
-  return (
-    <div className="bg-white min-h-screen">
-      <SectionRenderer
-        sections={liveSections}
-        activeSectionId={null}
-        onSelectSection={() => {}}
-      />
-      
-      {/* Powered by Ozzyl branding */}
-      <OzzylBrandingMini />
-      
-      {/* Floating Action Buttons */}
-      <FloatingActionButtons
-        whatsappEnabled={Boolean(liveSettings.whatsappEnabled)}
-        whatsappNumber={liveSettings.whatsappNumber}
-        whatsappMessage={liveSettings.whatsappMessage}
-        callEnabled={Boolean(liveSettings.callEnabled)}
-        callNumber={liveSettings.callNumber}
-        orderEnabled={true}
-        orderText="অর্ডার করুন"
-      />
-    </div>
-  );
+// Helper function to escape HTML
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
 }

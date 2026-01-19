@@ -21,6 +21,7 @@ interface StoreHeaderProps {
   templateId: string;
   cartCount?: number;
   storeId?: number;
+  config?: { headerMenu?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string }> }> }> } | null;
   customer?: {
     id: number;
     name: string | null;
@@ -35,6 +36,7 @@ export function StoreHeader({
   templateId,
   cartCount = 0,
   storeId,
+  config,
   customer
 }: StoreHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -55,6 +57,17 @@ export function StoreHeader({
   const hoverBg = isDarkTheme ? 'hover:bg-gray-800' : 'hover:bg-gray-100';
 
   const count = useCartCount();
+  const navMenu = config?.headerMenu?.length
+    ? config.headerMenu
+    : [
+        { label: 'Home', url: '/' },
+        { label: 'Shop', url: '/products', children: [
+          { label: 'New Arrivals', url: '/products?sort=newest' },
+          { label: 'Best Sellers', url: '/products?sort=popular' },
+        ]},
+        { label: 'About', url: '/pages/about' },
+        { label: 'Contact', url: '/pages/contact' },
+      ];
 
   return (
     <header className={`sticky top-0 z-50 w-full border-b ${headerBg} backdrop-blur supports-[backdrop-filter]:bg-opacity-60`}>
@@ -81,23 +94,33 @@ export function StoreHeader({
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center justify-center gap-6 flex-1">
-          <Link to="/" className={`text-sm font-medium ${mutedColor} hover:${textColor} transition-colors`}>
-            Home
-          </Link>
-          <Link 
-            to="/products" 
-            className="text-sm font-medium transition-colors"
-            style={{ color: theme.primary }}
-          >
-            Shop
-          </Link>
-          <Link to="/about" className={`text-sm font-medium ${mutedColor} hover:${textColor} transition-colors`}>
-            About
-          </Link>
-          <Link to="/contact" className={`text-sm font-medium ${mutedColor} hover:${textColor} transition-colors`}>
-            Contact
-          </Link>
+        <nav className="hidden md:flex items-center justify-center gap-6 flex-1" aria-label="Main">
+          {navMenu.map((link) => (
+            <div key={`${link.label}-${link.url}`} className="relative group">
+              <Link
+                to={link.url}
+                className={`text-sm font-medium ${mutedColor} hover:${textColor} transition-colors inline-flex items-center gap-1`}
+                aria-haspopup={link.children && link.children.length > 0 ? 'menu' : undefined}
+              >
+                {link.label}
+              </Link>
+              {link.children && link.children.length > 0 && (
+                <div className={`absolute left-0 top-full mt-3 min-w-[220px] rounded-xl border ${isDarkTheme ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} shadow-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50`}>
+                  <div className="py-2">
+                    {link.children.map((child) => (
+                      <Link
+                        key={`${child.label}-${child.url}`}
+                        to={child.url}
+                        className={`block px-4 py-2 text-sm ${mutedColor} ${hoverBg} transition`}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </nav>
 
         {/* Actions */}
@@ -209,37 +232,33 @@ export function StoreHeader({
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <nav className={`md:hidden border-t ${isDarkTheme ? 'border-gray-800 bg-gray-900' : 'border-gray-100 bg-white'}`}>
+        <nav className={`md:hidden border-t ${isDarkTheme ? 'border-gray-800 bg-gray-900' : 'border-gray-100 bg-white'}`} aria-label="Mobile">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
-            <Link 
-              to="/" 
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium ${hoverBg} transition ${textColor}`}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/products" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition"
-              style={{ backgroundColor: `${theme.primary}15`, color: theme.primary }}
-            >
-              Shop
-            </Link>
-            <Link 
-              to="/about" 
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium ${hoverBg} transition ${textColor}`}
-            >
-              About
-            </Link>
-            <Link 
-              to="/contact" 
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium ${hoverBg} transition ${textColor}`}
-            >
-              Contact
-            </Link>
+            {navMenu.map((link) => (
+              <div key={`${link.label}-${link.url}`} className="space-y-1">
+                <Link
+                  to={link.url}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-base font-medium ${hoverBg} transition ${textColor}`}
+                >
+                  <span>{link.label}</span>
+                </Link>
+                {link.children && link.children.length > 0 && (
+                  <div className="ml-4 space-y-1">
+                    {link.children.map((child) => (
+                      <Link
+                        key={`${child.label}-${child.url}`}
+                        to={child.url}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm ${hoverBg} transition ${mutedColor}`}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
             
             {/* Mobile Google Sign-In */}
             {!customer && storeId && (

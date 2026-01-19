@@ -326,57 +326,140 @@ function CustomPageRenderer({ page }: { page: any }) {
   // UseTrackVisit hook for client-side unique visitor tracking
   useTrackVisit(page.storeId);
 
+  // Parse theme config for CSS variables
+  let themeConfig = {
+    primaryColor: '#059669',
+    secondaryColor: '#2563eb',
+    fontHeading: 'Hind Siliguri',
+    fontBody: 'Hind Siliguri',
+  };
+  
+  try {
+    if (page.pageConfig) {
+      const parsed = JSON.parse(page.pageConfig);
+      if (parsed.themeConfig) {
+        themeConfig = { ...themeConfig, ...parsed.themeConfig };
+      }
+    }
+  } catch (e) {
+    // Use defaults
+  }
+
+  // Convert hex to RGB for opacity support
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 0, 0';
+  };
+
+  const primaryRgb = hexToRgb(themeConfig.primaryColor);
+  const secondaryRgb = hexToRgb(themeConfig.secondaryColor);
+
   return (
     <>
-      <script src="https://cdn.tailwindcss.com"></script>
-      <script dangerouslySetInnerHTML={{
-        __html: `
-        tailwind.config = {
-          theme: {
-            extend: {
-              colors: {
-                emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
-                primary: '#059669',
-                secondary: '#2563eb',
-              }
-            }
-          }
-        }
-      `}} />
-      {/* FIX: Initialize Tailwind CSS gradient variables - CDN mode doesn't set these properly */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        *, ::before, ::after {
-          --tw-gradient-from-position: 0%;
-          --tw-gradient-via-position: 50%;
-          --tw-gradient-to-position: 100%;
-        }
-      `}} />
-      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      {/* Pre-compiled Tailwind CSS - No CDN dependency */}
+      <link href="/css/canvas-tailwind.css" rel="stylesheet" />
+      
+      {/* Google Fonts */}
+      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      
+      {/* Swiper CSS */}
       <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet" />
-      <script src="https://unpkg.com/lucide@latest"></script>
-      <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+      
+      {/* Animations CSS */}
+      <link href="/animations.css" rel="stylesheet" />
+      
+      {/* Theme Variables & Primary/Secondary Colors */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --primary-color: ${themeConfig.primaryColor};
+          --secondary-color: ${themeConfig.secondaryColor};
+          --primary-rgb: ${primaryRgb};
+          --secondary-rgb: ${secondaryRgb};
+          --font-heading: "${themeConfig.fontHeading}", sans-serif;
+          --font-body: "${themeConfig.fontBody}", sans-serif;
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
+        body, p, a, div, span, button, input, textarea, select, label { font-family: var(--font-body); }
+        
+        /* Primary Color Utilities */
+        .text-primary { color: var(--primary-color) !important; }
+        .bg-primary { background-color: var(--primary-color) !important; }
+        .border-primary { border-color: var(--primary-color) !important; }
+        
+        /* Primary with opacity */
+        .bg-primary\\/10 { background-color: rgba(var(--primary-rgb), 0.1) !important; }
+        .bg-primary\\/20 { background-color: rgba(var(--primary-rgb), 0.2) !important; }
+        .bg-primary\\/30 { background-color: rgba(var(--primary-rgb), 0.3) !important; }
+        
+        /* Secondary Color Utilities */
+        .text-secondary { color: var(--secondary-color) !important; }
+        .bg-secondary { background-color: var(--secondary-color) !important; }
+        .border-secondary { border-color: var(--secondary-color) !important; }
+        
+        /* Hover states */
+        .hover\\:text-primary:hover { color: var(--primary-color) !important; }
+        .hover\\:bg-primary:hover { background-color: var(--primary-color) !important; }
+        .hover\\:opacity-90:hover { opacity: 0.9; }
+        
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+        
+        /* Body base */
+        body { margin: 0; padding: 0; min-height: 100vh; background-color: #ffffff; }
+      `}} />
+      
+      {/* Page-specific CSS from GrapesJS */}
       <style dangerouslySetInnerHTML={{ __html: page.cssContent || '' }} />
+      
+      {/* Page HTML Content */}
       <div dangerouslySetInnerHTML={{ __html: page.htmlContent || '' }} />
 
+      {/* Lucide Icons */}
+      <script src="https://unpkg.com/lucide@latest"></script>
+      
+      {/* Swiper JS */}
+      <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+      
+      {/* Runtime Scripts */}
       <script dangerouslySetInnerHTML={{
         __html: `
         (function() {
-          /* Simplified Runtime Script for Button Actions */
-           var config = { storeId: ${page.storeId} };
-           function initHandlers() {
-             document.querySelectorAll('[data-ozzyl-action]').forEach(btn => {
-               btn.addEventListener('click', e => {
-                 e.preventDefault();
-                 const action = btn.getAttribute('data-ozzyl-action');
-                 if(action === 'whatsapp') {
-                    const phone = (btn.getAttribute('data-ozzyl-phone') || '').replace(/[^0-9]/g, '');
-                    if(phone) window.open('https://wa.me/' + phone, '_blank');
-                 }
-               });
-             });
-           }
-           if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHandlers);
-           else initHandlers();
+          var config = { storeId: ${page.storeId} };
+          
+          function initHandlers() {
+            // Button action handlers
+            document.querySelectorAll('[data-ozzyl-action]').forEach(btn => {
+              btn.addEventListener('click', e => {
+                e.preventDefault();
+                const action = btn.getAttribute('data-ozzyl-action');
+                if(action === 'whatsapp') {
+                   const phone = (btn.getAttribute('data-ozzyl-phone') || '').replace(/[^0-9]/g, '');
+                   if(phone) window.open('https://wa.me/' + phone, '_blank');
+                }
+              });
+            });
+            
+            // Initialize Swiper sliders
+            document.querySelectorAll('.swiper').forEach(function(el) {
+              new Swiper(el, {
+                loop: true,
+                autoplay: { delay: 3000, disableOnInteraction: false },
+                pagination: { el: '.swiper-pagination', clickable: true },
+                navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+              });
+            });
+            
+            // Initialize Lucide icons
+            if(window.lucide) lucide.createIcons();
+          }
+          
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHandlers);
+          } else {
+            initHandlers();
+          }
         })();
       `}} />
     </>

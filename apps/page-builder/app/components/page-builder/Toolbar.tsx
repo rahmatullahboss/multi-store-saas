@@ -543,6 +543,7 @@ export default function EditorToolbar({
           <Eye size={14} />
           {t('preview')}
         </button>
+
       </div>
 
       {/* Right side - Save & Publish (always visible), hamburger menu on mobile */}

@@ -12,7 +12,7 @@
 import { type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
-import { stores, products } from '@db/schema';
+import { stores, products, collections, landingPages } from '@db/schema';
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
   const { storeId, store, cloudflare } = context;
@@ -51,6 +51,24 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     )
     .limit(1000);
 
+  const storeCollections = await db
+    .select({
+      slug: collections.slug,
+      updatedAt: collections.updatedAt,
+    })
+    .from(collections)
+    .where(and(eq(collections.storeId, storeId as number), eq(collections.isActive, true)))
+    .limit(500);
+
+  const storeLandingPages = await db
+    .select({
+      slug: landingPages.slug,
+      updatedAt: landingPages.updatedAt,
+    })
+    .from(landingPages)
+    .where(and(eq(landingPages.storeId, storeId as number), eq(landingPages.isPublished, true)))
+    .limit(500);
+
   // Build sitemap XML
   const urls = [
     // Homepage
@@ -65,6 +83,20 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>`,
+    // Collections
+    ...storeCollections.map(collection => `  <url>
+    <loc>${baseUrl}/collections/${collection.slug}</loc>
+    <lastmod>${collection.updatedAt ? new Date(collection.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`),
+    // Landing pages
+    ...storeLandingPages.map(page => `  <url>
+    <loc>${baseUrl}/p/${page.slug}</loc>
+    <lastmod>${page.updatedAt ? new Date(page.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>`),
     // Individual products and offer pages
     ...storeProducts.flatMap(product => [
       `  <url>

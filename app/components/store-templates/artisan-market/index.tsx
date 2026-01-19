@@ -80,9 +80,25 @@ export function ArtisanMarketTemplate({
              heading: config?.bannerText || `Artisan Goods from ${storeName}`,
              subheading: 'Each piece tells a story. Discover unique handmade products crafted by skilled artisans using traditional techniques.',
              primaryAction: { label: 'Browse Products', url: '/#products' },
+             secondaryAction: { label: 'Explore Categories', url: '/#categories' },
              image: config?.bannerUrl,
-             layout: 'standard', // Using standard for now, but could be 'image_right' if I implemented split layout properly in HeroSection
+             layout: 'standard',
              alignment: 'left'
+           }
+         },
+         {
+           id: 'features',
+           type: 'features',
+           settings: {
+             heading: 'Why Artisan Market',
+             subheading: 'Handcrafted quality with ethical sourcing.',
+             backgroundColor: 'white',
+             features: [
+               { icon: 'Leaf', title: 'Sustainable', description: 'Eco-friendly materials and packaging.' },
+               { icon: 'ThumbsUp', title: 'Handmade Quality', description: 'Crafted by skilled artisans.' },
+               { icon: 'Gift', title: 'Perfect Gifting', description: 'Unique gifts for loved ones.' },
+               { icon: 'Shield', title: 'Secure Payments', description: 'Trusted checkout options.' },
+             ]
            }
          },
          {
@@ -111,6 +127,37 @@ export function ArtisanMarketTemplate({
              text: 'Every product in our collection is made by skilled artisans who pour their heart and soul into their craft. We believe in sustainable practices, fair wages, and preserving traditional techniques that have been passed down through generations.',
              alignment: 'center',
              backgroundColor: ARTISAN_MARKET_THEME.cream
+           }
+         },
+         {
+           id: 'banner',
+           type: 'banner',
+           settings: {
+             heading: 'Limited Edition Drops',
+             subheading: 'Small-batch collections inspired by local artisans.',
+             primaryAction: { label: 'Shop New', url: '/products?sort=newest' },
+             image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=1200&q=80'
+           }
+         },
+         {
+           id: 'faq',
+           type: 'faq',
+           settings: {
+             heading: 'Artisan FAQs',
+             faqs: [
+               { question: 'Are products handmade?', answer: 'Yes, each item is crafted by artisans with traditional techniques.' },
+               { question: 'Do you offer returns?', answer: 'We offer a 7-day return window on eligible items.' },
+               { question: 'How long does shipping take?', answer: 'Delivery typically takes 2-5 business days.' }
+             ]
+           }
+         },
+         {
+           id: 'newsletter',
+           type: 'newsletter',
+           settings: {
+             heading: 'Join the Artisan Circle',
+             subheading: 'Get early access to new collections.',
+             alignment: 'center'
            }
          }
        ]).map((section: any) => {

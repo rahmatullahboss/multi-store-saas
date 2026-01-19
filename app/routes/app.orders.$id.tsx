@@ -485,7 +485,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 
   // Send shipping notification if status changed to shipped/delivered and customer has email
-  const shippingStatuses = ['shipped', 'delivered'];
+  const shippingStatuses = ['shipped', 'out_for_delivery', 'delivered'];
   if (
     shippingStatuses.includes(status) && 
     previousStatus !== status &&
@@ -515,6 +515,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           orderNumber: order.orderNumber || `#${orderId}`,
           storeName,
           status: status as 'shipped' | 'out_for_delivery' | 'delivered',
+          trackingNumber: order.courierConsignmentId || undefined,
+          trackingUrl: order.courierConsignmentId
+            ? `https://${storeName.toLowerCase().replace(/\s+/g, '')}.ozzyl.com/track/${order.courierConsignmentId}`
+            : undefined,
         })
       );
       

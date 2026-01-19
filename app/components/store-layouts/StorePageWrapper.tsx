@@ -100,6 +100,7 @@ export function StorePageWrapper({
           templateId={templateId}
           cartCount={cartCount}
           storeId={storeId}
+          config={config}
           customer={customer}
         />
       )}
@@ -129,6 +130,7 @@ export function StorePageWrapper({
           businessInfo={businessInfo}
           planType={planType}
           showPoweredBy={footerConfig?.showPoweredBy ?? true}
+          config={config}
         />
       )}
     </div>

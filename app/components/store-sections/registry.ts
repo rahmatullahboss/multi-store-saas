@@ -504,11 +504,31 @@ export const DEFAULT_SECTIONS: StoreSection[] = [
     type: 'hero',
     settings: {
       heading: 'Welcome to Our Store',
-      subheading: 'Discover our premium collection',
+      subheading: 'Discover premium products curated for you.',
       primaryAction: { label: 'Shop Now', url: '/#products' },
+      secondaryAction: { label: 'Browse Categories', url: '/#categories' },
       alignment: 'center',
+      layout: 'standard',
       paddingTop: 'none',
       paddingBottom: 'none'
+    }
+  },
+  {
+    id: 'features-1',
+    type: 'features',
+    settings: {
+      heading: 'Why Shop With Us',
+      subheading: 'Trusted service, quality products, fast delivery.',
+      backgroundColor: 'white'
+    }
+  },
+  {
+    id: 'categories-1',
+    type: 'category-list',
+    settings: {
+      heading: 'Shop by Category',
+      layout: 'grid',
+      limit: 8
     }
   },
   {
@@ -519,6 +539,47 @@ export const DEFAULT_SECTIONS: StoreSection[] = [
       productCount: 8,
       paddingTop: 'large',
       paddingBottom: 'large'
+    }
+  },
+  {
+    id: 'banner-1',
+    type: 'banner',
+    settings: {
+      heading: 'Limited Time Offer',
+      subheading: 'Save up to 30% on selected items',
+      primaryAction: { label: 'Shop Sale', url: '/products?sort=popular' },
+      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&q=80'
+    }
+  },
+  {
+    id: 'scroll-1',
+    type: 'product-scroll',
+    settings: {
+      heading: 'New Arrivals',
+      limit: 10,
+      mode: 'default'
+    }
+  },
+  {
+    id: 'story-1',
+    type: 'rich-text',
+    settings: {
+      heading: 'Our Story',
+      text: 'We partner with trusted suppliers to bring you quality products backed by responsive support.',
+      alignment: 'center',
+      backgroundColor: 'transparent'
+    }
+  },
+  {
+    id: 'faq-1',
+    type: 'faq',
+    settings: {
+      heading: 'Frequently Asked Questions',
+      faqs: [
+        { question: 'What payment methods do you accept?', answer: 'We accept cards, mobile payments, and cash on delivery where available.' },
+        { question: 'How long does shipping take?', answer: 'Standard delivery takes 2-5 business days depending on location.' },
+        { question: 'What is the return policy?', answer: 'We offer a 7-day return window for eligible items.' }
+      ]
     }
   },
   {

@@ -3,9 +3,10 @@ import { RovoHeader } from './sections/Header';
 import { RovoFooter } from './sections/Footer';
 import { RovoLayout } from './sections/Layout';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
+import { DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 
 export function RovoTemplate(props: StoreTemplateProps) {
-  const sections = props.config?.sections || [];
+  const sections = props.config?.sections?.length ? props.config.sections : DEFAULT_SECTIONS;
   const filteredCategories = props.categories.filter((c): c is string => c !== null);
 
   return (

@@ -80,6 +80,7 @@ export function BDShopTemplate({
              heading: config?.bannerText || 'Amazing Deals Await!',
              subheading: 'Shop the best products at unbeatable prices',
              primaryAction: { label: 'SHOP NOW', url: '/?category=all' },
+             secondaryAction: { label: 'Browse Categories', url: '/#categories' },
              image: config?.bannerUrl,
              layout: 'marketplace',
              alignment: 'left'
@@ -98,7 +99,7 @@ export function BDShopTemplate({
            type: 'product-scroll',
            settings: {
              heading: 'Top Deals',
-             mode: 'flash-sale', // Using flash sale mode for countdown or distinct look if preferred, or default
+             mode: 'flash-sale',
              limit: 12
            }
          },
@@ -113,13 +114,24 @@ export function BDShopTemplate({
            }
          },
          {
+           id: 'banner',
+           type: 'banner',
+           settings: {
+             heading: 'Mega Deals Week',
+             subheading: 'Extra savings on electronics and fashion.',
+             primaryAction: { label: 'Shop Offers', url: '/products?sort=popular' },
+             image: 'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1200&q=80'
+           }
+         },
+         {
            id: 'faq',
            type: 'faq',
            settings: {
              heading: 'Frequently Asked Questions',
              faqs: [
                 { question: 'What payment methods do you accept?', answer: 'We accept bKash, Nagad, Visa, Mastercard, and Cash on Delivery (COD) for all orders within Bangladesh.' },
-                { question: 'What are your delivery times and charges?', answer: 'Delivery within Dhaka takes 1-2 business days. Outside Dhaka takes 3-5 business days. Free delivery on orders over ৳500.' }
+                { question: 'What are your delivery times and charges?', answer: 'Delivery within Dhaka takes 1-2 business days. Outside Dhaka takes 3-5 business days. Free delivery on orders over ৳500.' },
+                { question: 'How can I track my order?', answer: 'We provide tracking updates via SMS.' }
              ]
            }
          },
@@ -127,8 +139,18 @@ export function BDShopTemplate({
            id: 'features', // Trust Bar
            type: 'features',
            settings: {
-             heading: '',
+             heading: 'Trusted by Bangladesh Shoppers',
+             subheading: 'Secure payments, fast delivery, easy returns.',
              backgroundColor: 'white'
+           }
+         },
+         {
+           id: 'newsletter',
+           type: 'newsletter',
+           settings: {
+             heading: 'BDShop Deals Inbox',
+             subheading: 'Get special offers and updates weekly.',
+             alignment: 'center'
            }
          }
        ]).map((section: any) => {

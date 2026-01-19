@@ -66,6 +66,7 @@ export function TurboSaleTemplate({
        type: 'features',
        settings: {
           heading: 'আমাদের পণ্য কেন সেরা?',
+          subheading: 'দ্রুত ডেলিভারি, সহজ রিটার্ন, ক্যাশ অন ডেলিভারি।',
           backgroundColor: '#FFF'
        }
     },
@@ -80,12 +81,36 @@ export function TurboSaleTemplate({
       }
     },
     {
+      id: 'banner',
+      type: 'banner',
+      settings: {
+        heading: 'আজই অর্ডার করুন',
+        subheading: 'সীমিত সময়ের জন্য বিশেষ অফার',
+        primaryAction: { label: 'অর্ডার করুন', url: '/products' },
+        image: 'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1200&q=80'
+      }
+    },
+    {
        id: 'faq-section',
        type: 'faq',
        settings: {
           heading: "সচরাচর জিজ্ঞাসিত প্রশ্ন",
-          backgroundColor: '#F9FAFB'
+          backgroundColor: '#F9FAFB',
+          faqs: [
+            { question: 'ক্যাশ অন ডেলিভারি আছে?', answer: 'হ্যাঁ, ক্যাশ অন ডেলিভারি পাওয়া যায়।' },
+            { question: 'ডেলিভারি কত দিনে?', answer: '১-৩ কর্মদিবসের মধ্যে ডেলিভারি হয়।' },
+            { question: 'রিটার্ন করা যাবে?', answer: '৭ দিনের মধ্যে রিটার্ন করা যায়।' }
+          ]
        }
+    },
+    {
+      id: 'newsletter',
+      type: 'newsletter',
+      settings: {
+        heading: 'অফার আপডেট পেতে সাবস্ক্রাইব করুন',
+        subheading: 'সেরা ডিলস পেতে ইমেইল দিন।',
+        alignment: 'center'
+      }
     }
   ];
 

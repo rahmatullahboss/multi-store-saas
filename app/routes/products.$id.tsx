@@ -29,12 +29,19 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   
   const title = data.product.seoTitle || `${data.product.title} | ${data.storeName}`;
   const description = data.product.seoDescription || (data.product.description || `Shop ${data.product.title}`).slice(0, 160);
+  const url = data.productUrl || '';
 
   const metaTags: ReturnType<MetaFunction>  = [
     { title },
     { name: 'description', content: description },
+    { name: 'robots', content: 'index, follow' },
     { property: 'og:title', content: title },
     { property: 'og:description', content: description },
+    { property: 'og:type', content: 'product' },
+    { property: 'og:url', content: url },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:description', content: description },
   ];
 
   if (data.product.seoKeywords) {
@@ -43,6 +50,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
   if (data.product.imageUrl) {
     metaTags.push({ property: 'og:image', content: data.product.imageUrl });
+    metaTags.push({ name: 'twitter:image', content: data.product.imageUrl });
   }
 
   return metaTags;
@@ -170,6 +178,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   // Template resolution (NEW SYSTEM)
   const template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'product');
   
+  const url = new URL(request.url);
+  const productUrl = `${url.protocol}//${url.host}/products/${product.id}`;
+
   return json({
     product,
     storeName: store?.name || 'Store',
@@ -191,6 +202,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     planType: store?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     template,
+    productUrl,
   });
 }
 
@@ -219,6 +231,7 @@ export default function ProductDetail() {
     planType,
     customer,
     template,
+    productUrl,
   } = useLoaderData<typeof loader>();
   
   const hasTracked = useRef(false);
@@ -306,6 +319,31 @@ export default function ProductDetail() {
   // Check if we have published template sections
   const hasTemplateSections = template?.sections && template.sections.length > 0;
 
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.seoDescription || product.description || product.title,
+    image: product.imageUrl ? [product.imageUrl] : undefined,
+    sku: product.sku || undefined,
+    brand: storeName ? { '@type': 'Brand', name: storeName } : undefined,
+    offers: {
+      '@type': 'Offer',
+      url: productUrl,
+      priceCurrency: currency,
+      price: product.price,
+      availability: product.inventory && product.inventory > 0
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+    aggregateRating: reviewCount > 0 ? {
+      '@type': 'AggregateRating',
+      ratingValue: avgRating,
+      reviewCount: reviewCount,
+    } : undefined,
+  };
+
   return (
     <StorePageWrapper
       storeName={storeName}
@@ -322,6 +360,10 @@ export default function ProductDetail() {
       planType={planType}
       customer={customer}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       {hasTemplateSections ? (
         <StoreSectionRenderer
           sections={template!.sections}

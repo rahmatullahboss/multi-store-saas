@@ -18,3 +18,13 @@ export function formatCurrency(amount: number, currency = 'BDT'): string {
     maximumFractionDigits: isBDT ? 0 : 2,
   }).format(amount);
 }
+
+export function parsePriceRange(min?: string | null, max?: string | null) {
+  const parsedMin = min ? Number(min) : null;
+  const parsedMax = max ? Number(max) : null;
+
+  return {
+    minPrice: Number.isFinite(parsedMin) && parsedMin! >= 0 ? parsedMin : null,
+    maxPrice: Number.isFinite(parsedMax) && parsedMax! >= 0 ? parsedMax : null,
+  };
+}

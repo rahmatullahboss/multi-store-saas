@@ -18,6 +18,7 @@ interface StoreFooterProps {
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   planType?: string;
   showPoweredBy?: boolean;
+  config?: { footerColumns?: Array<{ title: string; links: Array<{ label: string; url: string }> }>; footerDescription?: string } | null;
 }
 
 export function StoreFooter({ 
@@ -28,7 +29,8 @@ export function StoreFooter({
   socialLinks,
   businessInfo,
   planType = 'free',
-  showPoweredBy = true
+  showPoweredBy = true,
+  config
 }: StoreFooterProps) {
   const isDarkTheme = templateId === 'modern-premium' || templateId === 'tech-modern';
   
@@ -37,6 +39,27 @@ export function StoreFooter({
   const textColor = isDarkTheme ? 'text-white' : 'text-gray-900';
   const mutedColor = isDarkTheme ? 'text-gray-400' : 'text-gray-500';
   const hoverColor = isDarkTheme ? 'hover:text-white' : 'hover:text-gray-900';
+  const footerColumns = config?.footerColumns && config.footerColumns.length > 0
+    ? config.footerColumns
+    : [
+        {
+          title: 'Shop',
+          links: [
+            { label: 'All Products', url: '/products' },
+            { label: 'New Arrivals', url: '/products?sort=newest' },
+            { label: 'Best Sellers', url: '/products?sort=popular' },
+          ],
+        },
+        {
+          title: 'Company',
+          links: [
+            { label: 'About Us', url: '/pages/about' },
+            { label: 'Contact', url: '/pages/contact' },
+            { label: 'Terms', url: '/pages/terms' },
+          ],
+        },
+      ];
+  const footerDescription = config?.footerDescription || 'Quality products with excellent customer service.';
 
   return (
     <footer className={`relative z-10 border-t ${borderColor} ${footerBg}`}>
@@ -49,7 +72,7 @@ export function StoreFooter({
               {storeName}
             </Link>
             <p className={`text-sm ${mutedColor}`}>
-              Quality products with excellent customer service.
+              {footerDescription}
             </p>
             <div className="flex gap-4 justify-center md:justify-start">
               {socialLinks?.facebook && (
@@ -70,27 +93,20 @@ export function StoreFooter({
             </div>
           </div>
 
-          {/* Shop Links */}
-          <div className="text-center md:text-left">
-            <h3 className={`font-semibold mb-4 ${textColor}`}>Shop</h3>
-            <ul className="space-y-2">
-              <li><Link to="/products" className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>All Products</Link></li>
-              <li><Link to="/products?sort=newest" className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>New Arrivals</Link></li>
-              <li><Link to="/products?sort=popular" className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>Best Sellers</Link></li>
-              <li><Link to="/products?sale=true" className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>Sale</Link></li>
-            </ul>
-          </div>
-
-          {/* Support Links */}
-          <div className="text-center md:text-left">
-            <h3 className={`font-semibold mb-4 ${textColor}`}>Support</h3>
-            <ul className="space-y-2">
-              <li><Link to="/contact" className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>Contact Us</Link></li>
-              <li><Link to="/faq" className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>FAQs</Link></li>
-              <li><Link to="/returns" className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>Returns</Link></li>
-              <li><Link to="/track-order" className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>Track Order</Link></li>
-            </ul>
-          </div>
+          {footerColumns.map((column) => (
+            <div key={column.title} className="text-center md:text-left">
+              <h3 className={`font-semibold mb-4 ${textColor}`}>{column.title}</h3>
+              <ul className="space-y-2">
+                {column.links.map((link) => (
+                  <li key={`${column.title}-${link.label}-${link.url}`}>
+                    <Link to={link.url} className={`text-sm ${mutedColor} ${hoverColor} transition-colors`}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
           {/* Contact Info */}
           <div className="text-center md:text-left">

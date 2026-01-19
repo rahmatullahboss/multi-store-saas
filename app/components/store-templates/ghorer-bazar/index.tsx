@@ -100,9 +100,28 @@ export function GhorerBazarTemplate({
               heading: config?.bannerText || `${storeName} এ স্বাগতম`,
               subheading: 'সেরা মানের পণ্য সেরা দামে',
               primaryAction: { label: 'এখনই কিনুন', url: '/products' },
+              secondaryAction: { label: 'ক্যাটাগরি দেখুন', url: '/#categories' },
               image: config?.bannerUrl,
-              layout: 'simple_centered',
+              layout: 'standard',
               alignment: 'center'
+            }
+          },
+          {
+            id: 'categories',
+            type: 'category-list',
+            settings: {
+              heading: 'ক্যাটাগরি অনুযায়ী পণ্য',
+              layout: 'grid',
+              limit: 12
+            }
+          },
+          {
+            id: 'scroll',
+            type: 'product-scroll',
+            settings: {
+              heading: 'বেস্ট সেলার',
+              limit: 10,
+              mode: 'default'
             }
           },
           {
@@ -116,11 +135,43 @@ export function GhorerBazarTemplate({
             }
           },
           {
+            id: 'banner',
+            type: 'banner',
+            settings: {
+              heading: 'বিশেষ অফার',
+              subheading: 'পছন্দের পণ্যে বিশেষ ছাড়',
+              primaryAction: { label: 'অফার দেখুন', url: '/products?sort=popular' },
+              image: 'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1200&q=80'
+            }
+          },
+          {
             id: 'features',
             type: 'features',
             settings: {
               heading: 'কেন আমাদের থেকে কিনবেন?',
+              subheading: 'দ্রুত ডেলিভারি, সহজ রিটার্ন, নিরাপদ পেমেন্ট।',
               backgroundColor: 'white'
+            }
+          },
+          {
+            id: 'faq',
+            type: 'faq',
+            settings: {
+              heading: 'সাধারণ প্রশ্নাবলী',
+              faqs: [
+                { question: 'ক্যাশ অন ডেলিভারি আছে?', answer: 'হ্যাঁ, বেশিরভাগ স্থানে ক্যাশ অন ডেলিভারি পাওয়া যায়।' },
+                { question: 'ডেলিভারি সময় কত?', answer: 'ঢাকার ভিতরে ১-২ দিন, ঢাকার বাইরে ৩-৫ দিন।' },
+                { question: 'রিটার্ন পলিসি কি?', answer: '৭ দিনের মধ্যে রিটার্ন করা যায়।' }
+              ]
+            }
+          },
+          {
+            id: 'newsletter',
+            type: 'newsletter',
+            settings: {
+              heading: 'অফার জানতে সাবস্ক্রাইব করুন',
+              subheading: 'নতুন অফার আর আপডেট পেতে ইমেইল দিন।',
+              alignment: 'center'
             }
           }
         ]).map((section: any) => {

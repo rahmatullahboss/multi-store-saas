@@ -296,6 +296,9 @@ export interface ThemeConfig {
   primaryColor: string;
   accentColor: string;
   customAccentColor?: string; // Override preset accent color
+  headerMenu?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string }> }> }>;
+  footerColumns?: Array<{ title: string; links: Array<{ label: string; url: string }> }>;
+  footerDescription?: string;
   // Extended Colors (Phase 1)
   backgroundColor?: string; // Page background
   textColor?: string;       // Main text color
@@ -551,6 +554,28 @@ export const defaultLandingConfig: LandingConfig = {
 // Default theme config for new stores (Rich Preset)
 export const defaultThemeConfig: ThemeConfig = {
   primaryColor: "#4f46e5", // Indigo-600 (More professional than 500)
+  headerMenu: [
+    { label: 'Home', url: '/' },
+    { label: 'Shop', url: '/products', children: [
+      { label: 'New Arrivals', url: '/products?sort=newest' },
+      { label: 'Best Sellers', url: '/products?sort=popular' },
+    ]},
+    { label: 'About', url: '/pages/about' },
+    { label: 'Contact', url: '/pages/contact' },
+  ],
+  footerColumns: [
+    { title: 'Shop', links: [
+      { label: 'All Products', url: '/products' },
+      { label: 'New Arrivals', url: '/products?sort=newest' },
+      { label: 'Best Sellers', url: '/products?sort=popular' },
+    ]},
+    { title: 'Company', links: [
+      { label: 'About Us', url: '/pages/about' },
+      { label: 'Contact', url: '/pages/contact' },
+      { label: 'Terms', url: '/policies/terms' },
+    ]},
+  ],
+  footerDescription: 'Quality products with excellent customer service.',
   accentColor: "#f59e0b",  // Amber-500
   backgroundColor: "#ffffff",
   textColor: "#1f2937",    // Gray-800
@@ -607,25 +632,6 @@ export const defaultThemeConfig: ThemeConfig = {
         columns: 4,
         showViewAll: true
       }
-    }
-  ],
-  footerDescription: "Your trusted destination for quality products. We prioritize customer satisfaction above all else.",
-  footerColumns: [
-    {
-      title: "Shop",
-      links: [
-        { label: "All Products", url: "/products" },
-        { label: "New Arrivals", url: "/products?sort=newest" },
-        { label: "Top Sellers", url: "/products?sort=best_selling" }
-      ]
-    },
-    {
-      title: "Company",
-      links: [
-        { label: "About Us", url: "/pages/about" },
-        { label: "Contact", url: "/pages/contact" },
-        { label: "Terms", url: "/pages/terms" }
-      ]
     }
   ],
   copyrightText: "© 2024. All Rights Reserved."

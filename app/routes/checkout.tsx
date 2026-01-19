@@ -497,7 +497,7 @@ export default function Checkout() {
                 {bumpProducts.length > 0 && (
                     <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <p className="text-sm font-bold text-yellow-800 mb-3 flex items-center gap-2">
-                            🔥 {lang === 'bn' ? 'স্পেশাল অফার!' : 'Simited Time Offer!'}
+                            🔥 {lang === 'bn' ? 'স্পেশাল অফার!' : 'Limited Time Offer!'}
                         </p>
                         <div className="space-y-3">
                             {bumpProducts.map((bump: any) => (
@@ -563,9 +563,16 @@ export default function Checkout() {
                     {lang === 'bn' ? 'অর্ডার কনফার্ম করুন' : 'Place Order'}
                 </button>
                 
-                <p className="text-xs text-center text-gray-500 mt-4">
-                    Secure checkout powered by Ozzyl
-                </p>
+                <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">🔒 Secure</span>
+                        <span className="flex items-center gap-1">✓ Verified</span>
+                        <span className="flex items-center gap-1">📦 Fast Delivery</span>
+                    </div>
+                    <p className="text-xs text-center text-gray-400">
+                        Powered by Ozzyl
+                    </p>
+                </div>
             </div>
         </div>
     </div>

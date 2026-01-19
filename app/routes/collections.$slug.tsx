@@ -7,8 +7,8 @@
  */
 
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
-import { eq, and, desc, like } from 'drizzle-orm';
+import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
+import { eq, and, desc, like, asc, gte, lte } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, stores, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
@@ -18,6 +18,7 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
+import { parsePriceRange } from '~/utils/price';
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { slug } = params;
@@ -59,37 +60,49 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   // Load customer session for Google Sign-In header
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
+  const url = new URL(request.url);
+  const sortBy = url.searchParams.get('sort') || 'newest';
+  const onSale = url.searchParams.get('onSale') === 'true';
+  const inStock = url.searchParams.get('inStock') === 'true';
+  const { minPrice, maxPrice } = parsePriceRange(url.searchParams.get('minPrice'), url.searchParams.get('maxPrice'));
+
+  const orderByClause = sortBy === 'price-low'
+    ? asc(products.price)
+    : sortBy === 'price-high'
+      ? desc(products.price)
+      : desc(products.createdAt);
+
+  const baseFilters = [
+    eq(products.storeId, storeId),
+    eq(products.isPublished, true),
+    inStock ? gte(products.inventory, 1) : undefined,
+    minPrice !== null ? gte(products.price, minPrice) : undefined,
+    maxPrice !== null ? lte(products.price, maxPrice) : undefined,
+    onSale ? gte(products.compareAtPrice, products.price) : undefined,
+  ].filter(Boolean);
+
   // Fetch products in this collection (category)
   let collectionProducts = [];
-  
-  // "all" slug means show everything
+
   if (slug === 'all') {
     collectionProducts = await db
       .select()
       .from(products)
-      .where(
-        and(
-          eq(products.storeId, storeId),
-          eq(products.isPublished, true)
-        )
-      )
+      .where(and(...(baseFilters as any)))
       .limit(50)
-      .orderBy(desc(products.createdAt));
+      .orderBy(orderByClause);
   } else {
-    // Basic category matching - in future this could be a real "Collection" or "Category" table join
     collectionProducts = await db
       .select()
       .from(products)
       .where(
         and(
-          eq(products.storeId, storeId),
-          eq(products.isPublished, true),
-          // Simple case-insensitive match for category name
-          like(products.category, slug) 
+          ...(baseFilters as any),
+          like(products.category, slug)
         )
       )
       .limit(50)
-      .orderBy(desc(products.createdAt));
+      .orderBy(orderByClause);
   }
   
   // Mock collection object for header
@@ -111,6 +124,11 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     themeConfig,
     collection,
     products: collectionProducts,
+    sortBy,
+    inStock,
+    onSale,
+    minPrice,
+    maxPrice,
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
   });
@@ -129,11 +147,53 @@ export default function CollectionPage() {
     themeConfig,
     collection,
     products,
+    sortBy,
+    inStock,
+    onSale,
+    minPrice,
+    maxPrice,
     planType,
     customer
   } = useLoaderData<typeof loader>();
 
   const isDaraz = storeTemplateId === 'daraz';
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handleSortChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('sort', value);
+    setSearchParams(params);
+  };
+
+  const handleInStockToggle = (checked: boolean) => {
+    const params = new URLSearchParams(searchParams);
+    if (checked) {
+      params.set('inStock', 'true');
+    } else {
+      params.delete('inStock');
+    }
+    setSearchParams(params);
+  };
+
+  const handlePriceChange = (type: 'min' | 'max', value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value) {
+      params.set(type === 'min' ? 'minPrice' : 'maxPrice', value);
+    } else {
+      params.delete(type === 'min' ? 'minPrice' : 'maxPrice');
+    }
+    setSearchParams(params);
+  };
+
+  const handleOnSaleToggle = (checked: boolean) => {
+    const params = new URLSearchParams(searchParams);
+    if (checked) {
+      params.set('onSale', 'true');
+    } else {
+      params.delete('onSale');
+    }
+    setSearchParams(params);
+  };
   
   // 1. Get sections from themeConfig or use default
   const collectionSections = themeConfig?.collectionSections || [
@@ -179,6 +239,62 @@ export default function CollectionPage() {
 
   const content = (
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme?.background || '#ffffff' }}>
+        <div className="border-b border-gray-200 bg-white/70 backdrop-blur">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{collection.title}</h1>
+              <p className="text-sm text-gray-600">{collection.description}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Sort</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                </select>
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={inStock}
+                  onChange={(e) => handleInStockToggle(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                In stock
+              </label>
+              <label className="inline-flex items-center gap-2 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={onSale}
+                  onChange={(e) => handleOnSaleToggle(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                On sale
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={minPrice ?? ''}
+                  onChange={(e) => handlePriceChange('min', e.target.value)}
+                  placeholder="Min"
+                  className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+                <input
+                  type="number"
+                  value={maxPrice ?? ''}
+                  onChange={(e) => handlePriceChange('max', e.target.value)}
+                  placeholder="Max"
+                  className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         <SectionRenderer 
           sections={collectionSections}
           {...sectionProps}

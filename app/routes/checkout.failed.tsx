@@ -81,6 +81,17 @@ export default function CheckoutFailedPage() {
           </p>
         </div>
 
+        {/* Helpful Tips */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left">
+          <p className="text-sm font-medium text-amber-900 mb-2">💡 Try these steps:</p>
+          <ul className="text-xs text-amber-700 space-y-1">
+            <li>• Check your mobile wallet balance</li>
+            <li>• Make sure you entered the correct transaction ID</li>
+            <li>• Try using Cash on Delivery (COD) instead</li>
+            <li>• Contact support if the issue persists</li>
+          </ul>
+        </div>
+
         {/* Order Info */}
         {order && (
           <div className="bg-gray-50 rounded-lg p-3 mb-6 text-sm">

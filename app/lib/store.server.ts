@@ -66,6 +66,7 @@ export function isRouteAllowedForMode(pathname: string, mode: StoreMode): boolea
     /^\/$/,                    // Home (landing)
     /^\/p\/[^/]+$/,           // Landing pages /p/:slug
     /^\/o\/[^/]+$/,           // Offer pages /o/:slug
+    /^\/pages\/[^/]+$/,       // Custom pages /pages/:slug (Shopify-style)
     /^\/about$/,
     /^\/contact$/,
     /^\/policies\/.*/,

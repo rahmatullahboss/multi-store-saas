@@ -80,6 +80,7 @@ export function DarazTemplate({
              heading: config?.bannerText || 'Amazing Deals Await!',
              subheading: 'Shop the best products at unbeatable prices',
              primaryAction: { label: 'SHOP NOW', url: '/?category=all' },
+             secondaryAction: { label: 'Browse Categories', url: '/#categories' },
              image: config?.bannerUrl,
              layout: 'marketplace',
              alignment: 'left'
@@ -113,11 +114,43 @@ export function DarazTemplate({
            }
          },
          {
+           id: 'banner',
+           type: 'banner',
+           settings: {
+             heading: 'Mega Offer',
+             subheading: 'Big savings across top categories',
+             primaryAction: { label: 'Shop Deals', url: '/products?sort=popular' },
+             image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200&q=80'
+           }
+         },
+         {
            id: 'features',
            type: 'features',
            settings: {
-             heading: '',
+             heading: 'Why Shop on Daraz Style',
+             subheading: 'Fast delivery, easy returns, and secure payment.',
              backgroundColor: 'white'
+           }
+         },
+         {
+           id: 'faq',
+           type: 'faq',
+           settings: {
+             heading: 'Shopping FAQs',
+             faqs: [
+               { question: 'Do you offer Cash on Delivery?', answer: 'Yes, COD is available in most areas.' },
+               { question: 'How fast is delivery?', answer: 'Delivery within 2-5 business days.' },
+               { question: 'How can I track my order?', answer: 'We provide tracking updates via SMS.' }
+             ]
+           }
+         },
+         {
+           id: 'newsletter',
+           type: 'newsletter',
+           settings: {
+             heading: 'Get Daraz Deals',
+             subheading: 'Exclusive offers and discounts straight to your inbox.',
+             alignment: 'center'
            }
          }
        ]).map((section: any) => {

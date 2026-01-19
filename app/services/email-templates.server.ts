@@ -32,6 +32,9 @@ export function getOrderConfirmationHtml(data: {
   currency: string;
   total: number;
   shippingAddress?: string;
+  storeName: string;
+  storeLogo?: string;
+  primaryColor?: string;
 }) {
   const symbol = getSymbol(data.currency);
   
@@ -41,11 +44,16 @@ export function getOrderConfirmationHtml(data: {
       <tr>
         <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.title}</td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${symbol}${item.price.toLocaleString()}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${symbol}${(item.price * item.quantity).toLocaleString()}</td>
       </tr>
     `
     )
     .join('');
+
+  const themeColor = data.primaryColor || '#10b981';
+  const brandHeader = data.storeLogo
+    ? `<img src="${data.storeLogo}" alt="${data.storeName}" style="height: 40px; margin-bottom: 16px; object-fit: contain;">`
+    : `<h2 style="margin: 0 0 12px; color: ${themeColor}; font-size: 20px;">${data.storeName}</h2>`;
 
   return `
     <!DOCTYPE html>
@@ -55,13 +63,14 @@ export function getOrderConfirmationHtml(data: {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+      <div style="background: linear-gradient(135deg, ${themeColor} 0%, #059669 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+        ${brandHeader}
         <h1 style="color: white; margin: 0; font-size: 24px;">Order Confirmed! 🎉</h1>
       </div>
       
       <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
         <p style="font-size: 16px;">Hi <strong>${data.customerName}</strong>,</p>
-        <p>Thank you for your order! We've received your order and will process it shortly.</p>
+        <p>Thank you for your order from ${data.storeName}! We've received your order and will process it shortly.</p>
         
         <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <p style="margin: 0 0 10px 0;"><strong>Order Number:</strong> #${data.orderNumber}</p>
@@ -155,6 +164,7 @@ export function getShippingUpdateHtml(data: {
   storeName: string;
   courierName?: string;
   trackingNumber?: string;
+  trackingUrl?: string;
 }) {
   const statusMessages = {
     shipped: { title: 'Your Order Has Shipped! 📦', color: '#8b5cf6', message: 'Your order is on its way!' },
@@ -163,6 +173,13 @@ export function getShippingUpdateHtml(data: {
   };
 
   const status = statusMessages[data.status];
+
+  const trackingBlock = data.trackingNumber
+    ? `<div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0 0 10px 0;"><strong>Tracking:</strong> ${data.trackingNumber}</p>
+          ${data.trackingUrl ? `<a href="${data.trackingUrl}" style="display: inline-block; margin-top: 10px; background: ${status.color}; color: white; padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: 600;">Track Order</a>` : ''}
+        </div>`
+    : '';
 
   return `
     <!DOCTYPE html>
@@ -183,8 +200,9 @@ export function getShippingUpdateHtml(data: {
           <p style="margin: 0 0 10px 0;"><strong>Order:</strong> #${data.orderNumber}</p>
           <p style="margin: 0 0 10px 0;"><strong>Store:</strong> ${data.storeName}</p>
           ${data.courierName ? `<p style="margin: 0 0 10px 0;"><strong>Courier:</strong> ${data.courierName}</p>` : ''}
-          ${data.trackingNumber ? `<p style="margin: 0;"><strong>Tracking:</strong> ${data.trackingNumber}</p>` : ''}
         </div>
+
+        ${trackingBlock}
         
         <p style="color: #6b7280; font-size: 14px;">Thank you for shopping with us!</p>
       </div>
