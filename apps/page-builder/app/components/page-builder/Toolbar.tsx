@@ -17,7 +17,8 @@ import {
   Lock,
   Layout,
   ExternalLink,
-  Link2
+  Link2,
+  Menu
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '~/contexts/LanguageContext';
@@ -48,6 +49,7 @@ export default function EditorToolbar({
   const [codeContent, setCodeContent] = useState('');
   const [isConnectorModalOpen, setIsConnectorModalOpen] = useState(false);
   const [connectedButtonsCount, setConnectedButtonsCount] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [selectedComponent, setSelectedComponent] = useState<any>(null);
 
@@ -353,45 +355,49 @@ export default function EditorToolbar({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200 shadow-sm relative z-10">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between px-2 md:px-4 py-2 bg-white border-b border-gray-200 shadow-sm relative z-10">
+      {/* Left side - Device switcher & Undo/Redo (always visible) */}
+      <div className="flex items-center gap-1 md:gap-2">
         <button 
           onClick={() => handleDeviceChange('Desktop')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition group"
+          className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group"
           title={t('desktopView')}
         >
-          <Monitor size={18} className="text-gray-500 group-hover:text-emerald-600" />
+          <Monitor size={16} className="md:w-[18px] md:h-[18px] text-gray-500 group-hover:text-emerald-600" />
         </button>
         <button 
           onClick={() => handleDeviceChange('Tablet')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition group"
+          className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group hidden sm:flex"
           title={t('tabletView')}
         >
-          <Tablet size={18} className="text-gray-500 group-hover:text-emerald-600" />
+          <Tablet size={16} className="md:w-[18px] md:h-[18px] text-gray-500 group-hover:text-emerald-600" />
         </button>
         <button 
           onClick={() => handleDeviceChange('Mobile')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition group"
+          className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group"
           title={t('mobileView')}
         >
-          <Smartphone size={18} className="text-gray-500 group-hover:text-emerald-600" />
+          <Smartphone size={16} className="md:w-[18px] md:h-[18px] text-gray-500 group-hover:text-emerald-600" />
         </button>
-        <div className="w-[1px] h-6 bg-gray-200 mx-1" />
+        <div className="w-[1px] h-5 md:h-6 bg-gray-200 mx-0.5 md:mx-1 hidden sm:block" />
         <button 
           onClick={() => editor.UndoManager.undo()}
-          className="p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
+          className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
           title={t('undo')}
         >
-          <Undo size={16} className="text-gray-500 group-hover:text-emerald-600" />
+          <Undo size={14} className="md:w-4 md:h-4 text-gray-500 group-hover:text-emerald-600" />
         </button>
-      <button 
+        <button 
           onClick={() => editor.UndoManager.redo()}
-          className="p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
+          className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
           title={t('redo')}
         >
-          <Redo size={16} className="text-gray-500 group-hover:text-emerald-600" />
+          <Redo size={14} className="md:w-4 md:h-4 text-gray-500 group-hover:text-emerald-600" />
         </button>
-        <div className="w-[1px] h-6 bg-gray-200 mx-1" />
+      </div>
+
+      {/* Center - Primary actions (hidden on mobile, shown on md+) */}
+      <div className="hidden md:flex items-center gap-3">
         <button 
           onClick={() => {
             if (confirm(t('confirmClearCanvas'))) {
@@ -403,9 +409,6 @@ export default function EditorToolbar({
         >
           <Trash2 size={16} className="text-gray-500 group-hover:text-red-600" />
         </button>
-      </div>
-
-      <div className="flex items-center gap-3">
         <button 
           onClick={onOpenLibrary}
           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-white hover:border-indigo-500 hover:text-indigo-600 rounded-xl transition border shadow-sm group"
@@ -540,23 +543,125 @@ export default function EditorToolbar({
           <Eye size={14} />
           {t('preview')}
         </button>
+      </div>
+
+      {/* Right side - Save & Publish (always visible), hamburger menu on mobile */}
+      <div className="flex items-center gap-1 md:gap-2">
+        {/* Mobile hamburger menu button */}
+        <button 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 hover:bg-gray-100 rounded-lg transition md:hidden"
+          title="Menu"
+        >
+          {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
+        
         <button 
           onClick={handleSave}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-md shadow-emerald-100"
+          className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg md:rounded-xl transition shadow-md shadow-emerald-100"
         >
-          <Save size={14} />
-          {t('saveDraft')}
+          <Save size={12} className="md:w-[14px] md:h-[14px]" />
+          <span className="hidden sm:inline">{t('saveDraft')}</span>
         </button>
         <button 
           onClick={handlePublish}
-          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md shadow-blue-100"
+          className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg md:rounded-xl transition shadow-md shadow-blue-100"
         >
-          <Send size={14} />
-          {t('publish')}
+          <Send size={12} className="md:w-[14px] md:h-[14px]" />
+          <span className="hidden sm:inline">{t('publish')}</span>
         </button>
-
       </div>
 
+      {/* Mobile dropdown menu */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg py-2 px-3 md:hidden z-50 animate-in slide-in-from-top-2 duration-200">
+          <div className="grid grid-cols-3 gap-2">
+            <button 
+              onClick={() => {
+                if (confirm(t('confirmClearCanvas'))) {
+                  editor.DomComponents.clear();
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex flex-col items-center gap-1 p-3 hover:bg-red-50 rounded-xl transition"
+            >
+              <Trash2 size={18} className="text-gray-500" />
+              <span className="text-[10px] font-medium text-gray-600">{t('clearCanvas')}</span>
+            </button>
+            <button 
+              onClick={() => {
+                onOpenLibrary?.();
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex flex-col items-center gap-1 p-3 hover:bg-indigo-50 rounded-xl transition"
+            >
+              <Layout size={18} className="text-indigo-600" />
+              <span className="text-[10px] font-medium text-gray-600">{t('addBlock')}</span>
+            </button>
+            <button 
+              onClick={() => {
+                if (isAiLocked) {
+                  editor.runCommand('open-magic-modal');
+                } else if (onToggleAISidebar) {
+                  onToggleAISidebar();
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex flex-col items-center gap-1 p-3 hover:bg-purple-50 rounded-xl transition"
+            >
+              <Wand2 size={18} className="text-purple-600" />
+              <span className="text-[10px] font-medium text-gray-600">{t('magicAi')}</span>
+            </button>
+            <button 
+              onClick={() => {
+                handleOpenCode();
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex flex-col items-center gap-1 p-3 hover:bg-gray-100 rounded-xl transition"
+            >
+              <Code size={18} className="text-gray-600" />
+              <span className="text-[10px] font-medium text-gray-600">{t('code')}</span>
+            </button>
+            <button 
+              onClick={() => {
+                setIsConnectorModalOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex flex-col items-center gap-1 p-3 hover:bg-indigo-50 rounded-xl transition relative"
+            >
+              <Link2 size={18} className="text-indigo-600" />
+              <span className="text-[10px] font-medium text-gray-600">{t('connect')}</span>
+              {connectedButtonsCount > 0 && (
+                <span className="absolute top-1 right-1 px-1.5 py-0.5 bg-indigo-600 text-white text-[8px] rounded-full">
+                  {connectedButtonsCount}
+                </span>
+              )}
+            </button>
+            <button 
+              onClick={async () => {
+                if (pageId) {
+                  try {
+                    toast.loading(t('savingForPreview') || 'Preparing preview...', { id: 'preview' });
+                    await editor.store();
+                    toast.dismiss('preview');
+                    window.open(`${mainAppUrl}/preview/${pageId}`, '_blank');
+                  } catch (error) {
+                    console.error('Preview save error:', error);
+                    toast.error(t('previewFailed'), { id: 'preview' });
+                  }
+                } else {
+                  editor.runCommand('core:preview');
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex flex-col items-center gap-1 p-3 hover:bg-gray-100 rounded-xl transition"
+            >
+              <Eye size={18} className="text-gray-600" />
+              <span className="text-[10px] font-medium text-gray-600">{t('preview')}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Code Editor Modal */}
       {isCodeModalOpen && (

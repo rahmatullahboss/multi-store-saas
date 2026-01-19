@@ -88,6 +88,7 @@ export default function GrapesEditor({
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(false); // AI Sidebar closed by default
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [activeSidebarTab, setActiveSidebarTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar toggle
   
   // Configuration state - use refs to avoid stale closures in event handlers
   const [pageConfig, setPageConfig] = useState<PageConfig>({});
@@ -524,9 +525,34 @@ export default function GrapesEditor({
           mainAppUrl={mainAppUrl}
         />
         
-        <div className="flex flex-1 overflow-hidden min-h-0">
-          {/* Sidebar */}
-          <div className="h-full overflow-hidden flex-shrink-0">
+        <div className="flex flex-1 overflow-hidden min-h-0 relative">
+          {/* Mobile Sidebar Toggle Button */}
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="fixed left-2 bottom-20 z-50 md:hidden w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-700 transition"
+          >
+            {isSidebarOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            )}
+          </button>
+
+          {/* Mobile Sidebar Overlay */}
+          {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
+          {/* Sidebar - Hidden on mobile by default, slide-in when open */}
+          <div className={`
+            fixed md:relative inset-y-0 left-0 z-50 md:z-auto
+            h-full overflow-hidden flex-shrink-0
+            transform transition-transform duration-300 ease-in-out
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          `}>
             <SidebarPanel 
               themeConfig={themeConfig} 
               onThemeChange={setThemeConfig}
