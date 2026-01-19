@@ -35,8 +35,8 @@ const BKASH_PAYMENT_NUMBER = '01739416661';
 
 const PLAN_PRICING = {
   free: 0,
-  starter: 500,
-  premium: 2000,
+  starter: 50000,
+  premium: 200000,
 };
 
 // ==============================================================================

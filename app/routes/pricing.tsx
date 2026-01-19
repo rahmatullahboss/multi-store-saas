@@ -145,7 +145,7 @@ const pricingPlans: PricingPlan[] = [
     id: 'starter',
     name: 'Starter',
     nameBn: 'স্টার্টার',
-    price: 499,
+    price: 49900,
     priceDisplay: '৳৪৯৯',
     description: 'বাড়তে থাকা ব্যবসার জন্য',
     aiFeatures: ['Visitor AI', 'Merchant AI'],
@@ -173,7 +173,7 @@ const pricingPlans: PricingPlan[] = [
     id: 'premium',
     name: 'Premium',
     nameBn: 'প্রিমিয়াম',
-    price: 1999,
+    price: 199900,
     priceDisplay: '৳১,৯৯৯',
     description: 'সিরিয়াস ব্যবসার জন্য',
     aiFeatures: ['Visitor AI', 'Merchant AI', 'Customer AI'],
@@ -314,7 +314,7 @@ const PricingCard = ({ plan, index }: { plan: PricingPlan; index: number }) => {
           <div className="flex items-baseline justify-center gap-1">
             <span className="text-lg text-white/60">৳</span>
             <span className="text-5xl font-black text-white">
-              <AnimatedPrice value={plan.price} delay={index * 100} />
+              <AnimatedPrice value={plan.id === 'free' ? 0 : plan.price / 100} delay={index * 100} />
             </span>
             <span className={`text-lg ${plan.isPopular ? 'text-white/70' : 'text-white/40'}`}>/মাস</span>
           </div>

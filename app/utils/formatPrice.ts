@@ -41,13 +41,14 @@ export function formatPrice(
   const { locale = 'en', currency = 'USD', showSymbol = true } = options;
 
   const intlLocale = LOCALE_MAP[locale];
+  const isBDT = currency === 'BDT';
   
   try {
     const formatted = new Intl.NumberFormat(intlLocale, {
       style: showSymbol ? 'currency' : 'decimal',
       currency: currency,
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: isBDT ? 0 : 2,
       // Force Latin numerals
       numberingSystem: 'latn',
     }).format(price);

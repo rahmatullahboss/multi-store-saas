@@ -31,6 +31,7 @@ import {
   Send
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatCurrency } from '~/utils/money';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Upgrade Plan' }];
@@ -43,7 +44,7 @@ const UPGRADE_PLANS = {
   starter: {
     name: 'Starter',
     nameBn: 'স্টার্টার',
-    price: 499,
+    price: 49900,
     description: 'For growing businesses',
     descriptionBn: 'বাড়তে থাকা ব্যবসার জন্য',
     icon: Zap,
@@ -70,7 +71,7 @@ const UPGRADE_PLANS = {
   premium: {
     name: 'Premium',
     nameBn: 'প্রিমিয়াম',
-    price: 1999,
+    price: 199900,
     description: 'For serious businesses',
     descriptionBn: 'সিরিয়াস ব্যবসার জন্য',
     icon: Crown,
@@ -489,10 +490,12 @@ export default function UpgradePage() {
                 {/* Price with discount */}
                 <div className="mt-4">
                   {originalPrice && (
-                    <p className="text-lg text-gray-400 line-through">৳{originalPrice.toLocaleString()}</p>
+                    <p className="text-lg text-gray-400 line-through">
+                      {formatCurrency(originalPrice, 'BDT', { fromCents: true })}
+                    </p>
                   )}
                    <p className={`text-4xl font-bold ${showDiscount ? 'text-green-600' : 'text-gray-900'}`}>
-                    ৳{displayPrice.toLocaleString()}
+                    {formatCurrency(displayPrice, 'BDT', { fromCents: true })}
                     <span className="text-base font-normal text-gray-500">{t('perMonth')}</span>
                   </p>
                   {showDiscount && (

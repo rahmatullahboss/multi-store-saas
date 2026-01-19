@@ -49,6 +49,7 @@ import {
   Cell
 } from 'recharts';
 import { ClientOnly } from '~/components/LazySection';
+import { formatCurrency as formatCurrencyUtil } from '~/utils/money';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Analytics - Super Admin' }];
@@ -415,7 +416,9 @@ export default function AdminAnalytics() {
       }
     });
   
-  const formatCurrency = (amountInCents: number) => `৳${(amountInCents / 100).toLocaleString()}`;
+  const formatCurrency = (amountInCents: number) => {
+    return formatCurrencyUtil(amountInCents, 'BDT', { fromCents: true });
+  };
   
   const getPlanBadge = (planType: string) => {
     switch (planType) {

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../**/*.{ts,tsx}";
+@source "../lib/**/*.{ts,tsx}";
+
 /* Custom color scheme for e-commerce */
 @theme {
   --color-primary: #6366f1;

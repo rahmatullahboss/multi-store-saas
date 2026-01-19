@@ -130,7 +130,13 @@ export default function GrapesEditor({
       
       console.log('Initializing GrapesJS...');
       
-      const config = getGrapesConfig(containerRef.current, pageId, planType);
+      const canvasStyleLinks = Array.from(
+        document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][href]')
+      )
+        .map((link) => link.href)
+        .filter((href) => href && !href.includes('grapes.min.css') && !href.includes('grapesjs'));
+
+      const config = getGrapesConfig(containerRef.current, pageId, planType, canvasStyleLinks);
       
       editorInstance = grapesjs.init({
         ...config,
@@ -387,20 +393,71 @@ export default function GrapesEditor({
       doc.head.appendChild(styleEl);
     }
     
+    // Generate lighter/darker variants for theme colors
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 0, g: 0, b: 0 };
+    };
+    
+    const primaryRgb = hexToRgb(themeConfig.primaryColor);
+    const secondaryRgb = hexToRgb(themeConfig.secondaryColor);
+    
     styleEl.innerHTML = `
       :root {
         --primary-color: ${themeConfig.primaryColor};
         --secondary-color: ${themeConfig.secondaryColor};
+        --primary-rgb: ${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b};
+        --secondary-rgb: ${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b};
         --font-heading: "${themeConfig.fontHeading}", sans-serif;
         --font-body: "${themeConfig.fontBody}", sans-serif;
       }
+      
+      /* Typography */
       h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
-      body, p, a, div, span, button, input { font-family: var(--font-body); }
+      body, p, a, div, span, button, input, textarea, select, label { font-family: var(--font-body); }
+      
+      /* Primary Color Utilities */
       .text-primary { color: var(--primary-color) !important; }
       .bg-primary { background-color: var(--primary-color) !important; }
       .border-primary { border-color: var(--primary-color) !important; }
+      .decoration-primary { text-decoration-color: var(--primary-color) !important; }
+      .ring-primary { --tw-ring-color: var(--primary-color) !important; }
+      
+      /* Primary with opacity */
+      .bg-primary\/10 { background-color: rgba(var(--primary-rgb), 0.1) !important; }
+      .bg-primary\/20 { background-color: rgba(var(--primary-rgb), 0.2) !important; }
+      .bg-primary\/30 { background-color: rgba(var(--primary-rgb), 0.3) !important; }
+      .border-primary\/30 { border-color: rgba(var(--primary-rgb), 0.3) !important; }
+      .border-primary\/50 { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+      
+      /* Secondary Color Utilities */
       .text-secondary { color: var(--secondary-color) !important; }
       .bg-secondary { background-color: var(--secondary-color) !important; }
+      .border-secondary { border-color: var(--secondary-color) !important; }
+      
+      /* Secondary with opacity */
+      .bg-secondary\/10 { background-color: rgba(var(--secondary-rgb), 0.1) !important; }
+      .bg-secondary\/20 { background-color: rgba(var(--secondary-rgb), 0.2) !important; }
+      
+      /* Hover states */
+      .hover\\:text-primary:hover { color: var(--primary-color) !important; }
+      .hover\\:bg-primary:hover { background-color: var(--primary-color) !important; }
+      .hover\\:border-primary:hover { border-color: var(--primary-color) !important; }
+      .hover\\:bg-primary\\/90:hover { background-color: rgba(var(--primary-rgb), 0.9) !important; }
+      
+      /* Focus states */
+      .focus\\:ring-primary:focus { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.3) !important; }
+      .focus\\:border-primary:focus { border-color: var(--primary-color) !important; }
+      
+      /* Gradient support */
+      .from-primary { --tw-gradient-from: var(--primary-color); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(var(--primary-rgb), 0)); }
+      .to-primary { --tw-gradient-to: var(--primary-color); }
+      .from-secondary { --tw-gradient-from: var(--secondary-color); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(var(--secondary-rgb), 0)); }
+      .to-secondary { --tw-gradient-to: var(--secondary-color); }
     `;
   }, [themeConfig, isEditorReady, editor]);
 

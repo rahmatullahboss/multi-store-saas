@@ -26,6 +26,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import { formatCurrency } from '~/utils/money';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Super Admin' }];
@@ -141,7 +142,7 @@ export default function AdminDashboard() {
     },
     {
       title: 'Monthly Revenue',
-      value: `৳${metrics.monthlyRevenue.toLocaleString()}`,
+      value: formatCurrency(metrics.monthlyRevenue, 'BDT', { fromCents: true }),
       subtitle: 'This month',
       icon: DollarSign,
       color: 'green',

@@ -42,6 +42,7 @@ import {
   FileText
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { formatCurrency as formatCurrencyUtil } from '~/utils/money';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { ClientOnly } from '~/components/LazySection';
 
@@ -52,8 +53,8 @@ export const meta: MetaFunction = () => {
 // Plan config for display
 const PLAN_CONFIG = {
   free: { label: 'Free', price: 0, icon: Gift, color: 'gray' },
-  starter: { label: 'Starter', price: 500, icon: Zap, color: 'emerald' },
-  premium: { label: 'Premium', price: 2000, icon: Crown, color: 'purple' },
+  starter: { label: 'Starter', price: 50000, icon: Zap, color: 'emerald' },
+  premium: { label: 'Premium', price: 200000, icon: Crown, color: 'purple' },
 } as const;
 
 // ============================================================================
@@ -558,7 +559,7 @@ export default function AdminBilling() {
   };
   
   const formatCurrency = (amount: number) => {
-    return `৳${amount.toLocaleString('en-BD')}`;
+    return formatCurrencyUtil(amount, 'BDT', { fromCents: true });
   };
   
   // Get today's date in YYYY-MM-DD format for date inputs
@@ -663,7 +664,7 @@ export default function AdminBilling() {
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
                   itemStyle={{ color: '#10b981' }}
-                  formatter={(value: number | undefined) => [`৳${(value || 0).toLocaleString()}`, 'Revenue']}
+                  formatter={(value: number | undefined) => [formatCurrencyUtil(value || 0, 'BDT', { fromCents: true }), 'Revenue']}
                 />
                 <Area 
                   type="monotone" 
@@ -884,7 +885,7 @@ export default function AdminBilling() {
                           <PlanBadge plan={payment.planType || 'active'} />
                         </td>
                         <td className="px-4 py-4 font-medium text-white">
-                          ৳{payment.amount?.toLocaleString() || 0}
+                          {formatCurrencyUtil(payment.amount || 0, 'BDT', { fromCents: true })}
                         </td>
                         <td className="px-4 py-4">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${

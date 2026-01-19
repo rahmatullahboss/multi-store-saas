@@ -10,10 +10,11 @@ export function calculateDiscountPercentage(price: number, compareAtPrice: numbe
  * Format currency (simple fallback if context not used)
  */
 export function formatCurrency(amount: number, currency = 'BDT'): string {
+  const isBDT = currency === 'BDT';
   return new Intl.NumberFormat('en-BD', {
     style: 'currency',
     currency: currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: isBDT ? 0 : 2,
+    maximumFractionDigits: isBDT ? 0 : 2,
   }).format(amount);
 }
