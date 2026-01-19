@@ -209,12 +209,12 @@ export function GhorerBazarFooter({
               </h4>
               <ul className="space-y-2.5">
                 <li>
-                  <Link to="/about" className="text-sm hover:text-orange-400 transition" style={{ color: '#999' }}>
+                  <Link to="?page=about" className="text-sm hover:text-orange-400 transition" style={{ color: '#999' }}>
                     আমাদের সম্পর্কে
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="text-sm hover:text-orange-400 transition" style={{ color: '#999' }}>
+                  <Link to="?page=contact" className="text-sm hover:text-orange-400 transition" style={{ color: '#999' }}>
                     যোগাযোগ
                   </Link>
                 </li>
@@ -241,7 +241,7 @@ export function GhorerBazarFooter({
               </h4>
               <ul className="space-y-2.5">
                 <li>
-                  <Link to="/faq" className="text-sm hover:text-orange-400 transition" style={{ color: '#999' }}>
+                  <Link to="?page=faq" className="text-sm hover:text-orange-400 transition" style={{ color: '#999' }}>
                     সাধারণ জিজ্ঞাসা
                   </Link>
                 </li>
