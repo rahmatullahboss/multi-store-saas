@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
-import { useWishlist } from '~/hooks/useWishlist';
+// useWishlist must be used inside WishlistProvider - removed from top level
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
@@ -46,7 +46,6 @@ export function DarazTemplate({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchParams] = useSearchParams();
   const count = useCartCount();
-  const { count: wishlistCount } = useWishlist();
   const { t } = useTranslation();
 
 

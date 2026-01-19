@@ -271,6 +271,17 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: ROVO_THEME.footerBg,
     footerText: ROVO_THEME.footerText,
   },
+  'sokol': {
+    primary: SOKOL_THEME.primary,
+    accent: SOKOL_THEME.accent,
+    background: SOKOL_THEME.background,
+    text: SOKOL_THEME.text,
+    muted: SOKOL_THEME.muted,
+    cardBg: SOKOL_THEME.cardBg,
+    headerBg: SOKOL_THEME.headerBg,
+    footerBg: SOKOL_THEME.footerBg,
+    footerText: SOKOL_THEME.footerText,
+  },
 };
 
 // ============================================================================
@@ -282,6 +293,7 @@ import { AURORA_THEME } from '~/components/store-templates/aurora-minimal/theme'
 import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styles/tokens';
 import { TURBO_SALE_THEME } from '~/components/store-templates/turbo-sale/styles/tokens';
 import { ROVO_THEME } from '~/components/store-templates/rovo/theme';
+import { SOKOL_THEME } from '~/components/store-templates/sokol/theme';
 
 const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/luxe-boutique/index').then(m => ({ default: m.LuxeBoutiqueTemplate })));
 const TechModernTemplate = React.lazy(() => import('~/components/store-templates/tech-modern/index').then(m => ({ default: m.TechModernTemplate })));
@@ -296,6 +308,7 @@ const FreshnessTemplate = React.lazy(() => import('~/components/store-templates/
 const ZenithRiseTemplate = React.lazy(() => import('~/components/store-templates/zenith-rise/index').then(m => ({ default: m.ZenithRiseTemplate })));
 const TurboSaleTemplate = React.lazy(() => import('~/components/store-templates/turbo-sale/index').then(m => ({ default: m.TurboSaleTemplate })));
 const RovoTemplate = React.lazy(() => import('~/components/store-templates/rovo/index').then(m => ({ default: m.RovoTemplate })));
+const SokolTemplate = React.lazy(() => import('~/components/store-templates/sokol/index').then(m => ({ default: m.SokolTemplate })));
 
 // Header Components
 const DarazHeader = React.lazy(() => import('~/components/store-templates/daraz/sections/Header').then(m => ({ default: m.DarazHeader })));
@@ -327,6 +340,9 @@ const TurboSaleFooter = React.lazy(() => import('~/components/store-templates/tu
 
 const RovoHeader = React.lazy(() => import('~/components/store-templates/rovo/sections/Header').then(m => ({ default: m.RovoHeader })));
 const RovoFooter = React.lazy(() => import('~/components/store-templates/rovo/sections/Footer').then(m => ({ default: m.RovoFooter })));
+
+const SokolHeader = React.lazy(() => import('~/components/store-templates/sokol/sections/Header').then(m => ({ default: m.SokolHeader })));
+const SokolFooter = React.lazy(() => import('~/components/store-templates/sokol/sections/Footer').then(m => ({ default: m.SokolFooter })));
 
 // ============================================================================
 // STORE TEMPLATES REGISTRY
@@ -526,6 +542,21 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: RovoTemplate,
     Header: RovoHeader,
     Footer: RovoFooter,
+  },
+  {
+    id: 'sokol',
+    name: 'Sokol Modern',
+    description: 'Clean modern template with rose accent, default sections, and dummy products pre-configured. Perfect for quick setup.',
+    thumbnail: '/templates/sokol.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['sokol'],
+    fonts: {
+      heading: 'Poppins',
+      body: 'Inter',
+    },
+    component: SokolTemplate,
+    Header: SokolHeader,
+    Footer: SokolFooter,
   },
 ];
 
