@@ -313,8 +313,8 @@ function StoreFooter({ storeName, onNavigate }: { storeName: string; onNavigate:
             <h3 className="text-lg font-bold mb-4" style={{ color: theme.footerText }}>{storeName}</h3>
             <p className="text-sm mb-4" style={{ color: theme.footerText + 'cc' }}>{DEMO_FOOTER_CONFIG.description}</p>
             <div className="flex gap-3">
-              <a href="#" className="p-2 rounded-full" style={{ backgroundColor: theme.footerText + '20' }}><Facebook className="w-4 h-4" style={{ color: theme.footerText }} /></a>
-              <a href="#" className="p-2 rounded-full" style={{ backgroundColor: theme.footerText + '20' }}><Instagram className="w-4 h-4" style={{ color: theme.footerText }} /></a>
+              <a href={DEMO_SOCIAL_LINKS.facebook || '#'} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full hover:opacity-80 transition" style={{ backgroundColor: theme.footerText + '20' }}><Facebook className="w-4 h-4" style={{ color: theme.footerText }} /></a>
+              <a href={DEMO_SOCIAL_LINKS.instagram || '#'} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full hover:opacity-80 transition" style={{ backgroundColor: theme.footerText + '20' }}><Instagram className="w-4 h-4" style={{ color: theme.footerText }} /></a>
             </div>
           </div>
           <div>
@@ -887,6 +887,82 @@ function OrderSuccessPage({ onNavigate }: { onNavigate: (page: PageType) => void
 }
 
 // ============================================================================
+// COMPONENT: Contact Form (Functional)
+// ============================================================================
+function ContactForm() {
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    // Simulate form submission
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      setFormData({ name: '', email: '', message: '' });
+    }, 1000);
+  };
+
+  if (isSubmitted) {
+    return (
+      <div className="p-6 rounded-xl text-center" style={{ backgroundColor: theme.cardBg }}>
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: theme.primary + '15' }}>
+          <Check className="w-8 h-8" style={{ color: theme.primary }} />
+        </div>
+        <h3 className="text-lg font-semibold mb-2" style={{ color: theme.text }}>ধন্যবাদ!</h3>
+        <p style={{ color: theme.muted }}>আপনার মেসেজ পাঠানো হয়েছে। শীঘ্রই আমরা আপনার সাথে যোগাযোগ করব।</p>
+        <button onClick={() => setIsSubmitted(false)} className="mt-4 px-6 py-2 rounded-lg font-medium" style={{ backgroundColor: theme.primary, color: '#fff' }}>আরেকটি মেসেজ পাঠান</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
+      <h2 className="font-semibold text-lg mb-4" style={{ color: theme.text }}>মেসেজ পাঠান</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input 
+          type="text" 
+          placeholder="আপনার নাম" 
+          required
+          value={formData.name}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" 
+          style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} 
+        />
+        <input 
+          type="email" 
+          placeholder="ইমেইল" 
+          required
+          value={formData.email}
+          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+          className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" 
+          style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} 
+        />
+        <textarea 
+          rows={4} 
+          placeholder="আপনার মেসেজ" 
+          required
+          value={formData.message}
+          onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+          className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" 
+          style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} 
+        />
+        <button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="px-6 py-3 rounded-lg text-white font-medium transition hover:opacity-90 disabled:opacity-50" 
+          style={{ backgroundColor: theme.primary }}
+        >
+          {isSubmitting ? 'পাঠানো হচ্ছে...' : 'পাঠান'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ============================================================================
 // PAGE: Static Pages (About, Contact, FAQ, Policies)
 // ============================================================================
 function StaticPage({ pageId, onNavigate }: { pageId: string; onNavigate: (page: PageType) => void; }) {
@@ -942,15 +1018,7 @@ function StaticPage({ pageId, onNavigate }: { pageId: string; onNavigate: (page:
                 </div>
               </div>
             </div>
-            <div className="p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
-              <h2 className="font-semibold text-lg mb-4" style={{ color: theme.text }}>মেসেজ পাঠান</h2>
-              <form className="space-y-4">
-                <input type="text" placeholder="আপনার নাম" className="w-full px-4 py-3 rounded-lg border" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} />
-                <input type="email" placeholder="ইমেইল" className="w-full px-4 py-3 rounded-lg border" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} />
-                <textarea rows={4} placeholder="আপনার মেসেজ" className="w-full px-4 py-3 rounded-lg border" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} />
-                <button type="button" className="px-6 py-3 rounded-lg text-white font-medium" style={{ backgroundColor: theme.primary }}>পাঠান</button>
-              </form>
-            </div>
+            <ContactForm />
           </div>
         ) : (
           <div className="p-6 rounded-xl prose max-w-none" style={{ backgroundColor: theme.cardBg }}>

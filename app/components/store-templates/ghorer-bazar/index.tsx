@@ -103,6 +103,57 @@ function formatPrice(price: number): string {
 }
 
 // ============================================================================
+// COMPONENT: Coupon Input (Functional)
+// ============================================================================
+function CouponInput() {
+  const [code, setCode] = useState('');
+  const [status, setStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
+  const theme = GHORER_BAZAR_THEME;
+
+  const handleApply = () => {
+    if (!code.trim()) return;
+    setStatus('checking');
+    // Simulate coupon check
+    setTimeout(() => {
+      if (code.toUpperCase() === 'DEMO10') {
+        setStatus('success');
+      } else {
+        setStatus('error');
+      }
+    }, 800);
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5" style={{ color: theme.text }}>
+        কুপন কোড (যদি থাকে)
+      </label>
+      <div className="flex gap-2">
+        <input 
+          type="text"
+          placeholder="কুপন কোড"
+          value={code}
+          onChange={(e) => { setCode(e.target.value); setStatus('idle'); }}
+          className="flex-1 px-3 py-2.5 rounded-lg border focus:outline-none"
+          style={{ borderColor: status === 'error' ? '#ef4444' : status === 'success' ? '#22c55e' : theme.border }}
+        />
+        <button 
+          type="button"
+          onClick={handleApply}
+          disabled={status === 'checking'}
+          className="px-4 py-2.5 rounded-lg font-medium text-sm transition hover:opacity-80 disabled:opacity-50"
+          style={{ backgroundColor: theme.primary, color: '#fff' }}
+        >
+          {status === 'checking' ? '...' : 'Apply'}
+        </button>
+      </div>
+      {status === 'success' && <p className="text-xs mt-1 text-green-600">✓ কুপন প্রয়োগ হয়েছে!</p>}
+      {status === 'error' && <p className="text-xs mt-1 text-red-500">✗ কুপন কোড সঠিক নয়। DEMO10 ট্রাই করুন।</p>}
+    </div>
+  );
+}
+
+// ============================================================================
 // PRODUCT CARD - GhorerBazar Style (White bg, Quick Add, badges)
 // ============================================================================
 interface ProductCardProps {
@@ -528,26 +579,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
               </div>
 
               {/* Coupon */}
-              <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: theme.text }}>
-                  কুপন কোড (যদি থাকে)
-                </label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text"
-                    placeholder="কুপন কোড"
-                    className="flex-1 px-3 py-2.5 rounded-lg border focus:outline-none"
-                    style={{ borderColor: theme.border }}
-                  />
-                  <button 
-                    type="button"
-                    className="px-4 py-2.5 rounded-lg border font-medium text-sm"
-                    style={{ borderColor: theme.border }}
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
+              <CouponInput />
             </form>
           )}
         </div>
@@ -598,6 +630,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                 </button>
                 <button 
                   type="button"
+                  onClick={() => alert('অনলাইন পেমেন্ট শীঘ্রই আসছে! এখন ক্যাশ অন ডেলিভারি ব্যবহার করুন।')}
                   className="w-full py-3 rounded-lg font-bold transition hover:opacity-90"
                   style={{ backgroundColor: theme.warning, color: theme.secondary }}
                 >
