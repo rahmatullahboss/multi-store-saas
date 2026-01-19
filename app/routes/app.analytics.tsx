@@ -15,7 +15,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, gte, desc, sql, count, countDistinct } from 'drizzle-orm';
-import { orders, orderItems, products, stores, abandonedCarts, pageViews } from '@db/schema';
+import { orders, orderItems, products, stores, abandonedCarts, pageViews, carts, checkoutSessions } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   TrendingUp, 
@@ -29,9 +29,11 @@ import {
   MapPin,
   Percent,
   ShoppingBag,
-  Layout
+  Layout,
+  RefreshCcw
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { getAbandonedCartRecoveryStats } from '~/services/analytics.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Analytics - Ozzyl' }];
@@ -286,10 +288,53 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ? ((totalAbandoned - recoveredCarts) / (totalAbandoned + allOrders.length) * 100).toFixed(1)
     : '0';
 
+  // Recovery stats
+  const recoveryStats = await getAbandonedCartRecoveryStats(db as any, storeId);
+
   // Average order value (from non-cancelled orders)
   const avgOrderValue = validOrders.length > 0 
     ? Math.round(validOrders.reduce((sum, o) => sum + (o.total || 0), 0) / validOrders.length)
     : 0;
+
+  // Funnel metrics (unique visitors)
+  const funnelViews = await db
+    .select({ count: sql<number>`count(distinct ${pageViews.visitorId})` })
+    .from(pageViews)
+    .where(eq(pageViews.storeId, storeId));
+
+  const funnelCarts = await db
+    .select({ count: sql<number>`count(distinct ${carts.visitorId})` })
+    .from(carts)
+    .where(eq(carts.storeId, storeId));
+
+  const funnelCheckouts = await db
+    .select({ count: sql<number>`count(distinct ${checkoutSessions.id})` })
+    .from(checkoutSessions)
+    .where(eq(checkoutSessions.storeId, storeId));
+
+  const funnelOrders = await db
+    .select({ count: sql<number>`count(distinct ${orders.id})` })
+    .from(orders)
+    .where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`));
+
+  const viewCount = Number(funnelViews[0]?.count || 0);
+  const cartCount = Number(funnelCarts[0]?.count || 0);
+  const checkoutCount = Number(funnelCheckouts[0]?.count || 0);
+  const orderCount = Number(funnelOrders[0]?.count || 0);
+
+  const rate = (numerator: number, denominator: number) =>
+    denominator > 0 ? Number(((numerator / denominator) * 100).toFixed(1)) : 0;
+
+  const funnel = {
+    views: viewCount,
+    carts: cartCount,
+    checkouts: checkoutCount,
+    orders: orderCount,
+    viewToCartRate: rate(cartCount, viewCount),
+    cartToCheckoutRate: rate(checkoutCount, cartCount),
+    checkoutToOrderRate: rate(orderCount, checkoutCount),
+    viewToOrderRate: rate(orderCount, viewCount),
+  };
 
   return json({
     stats,
@@ -309,7 +354,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       avgOrderValue,
       totalAbandoned,
       recoveredCarts,
+      recoveryRate: recoveryStats.recoveryRate,
+      recoveredRevenue: recoveryStats.recoveredRevenue,
     },
+    funnel,
   });
 }
 
@@ -326,6 +374,7 @@ export default function AnalyticsPage() {
     currency,
     customerDemographics,
     conversionMetrics,
+    funnel,
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
 
@@ -512,7 +561,36 @@ export default function AnalyticsPage() {
             <Percent className="w-5 h-5 text-gray-400" />
             {t('conversionMetrics')}
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Funnel */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Conversion Funnel</h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Views</span>
+                  <span className="font-medium text-gray-900">{funnel.views}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Add to Cart</span>
+                  <span className="font-medium text-gray-900">{funnel.carts}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Checkout</span>
+                  <span className="font-medium text-gray-900">{funnel.checkouts}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Orders</span>
+                  <span className="font-medium text-gray-900">{funnel.orders}</span>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                <span>View → Cart: {funnel.viewToCartRate}%</span>
+                <span>Cart → Checkout: {funnel.cartToCheckoutRate}%</span>
+                <span>Checkout → Order: {funnel.checkoutToOrderRate}%</span>
+                <span>View → Order: {funnel.viewToOrderRate}%</span>
+              </div>
+            </div>
+
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-orange-50 rounded-lg">
@@ -525,6 +603,14 @@ export default function AnalyticsPage() {
                   {t('abandonedSubtext', { abandoned: conversionMetrics.totalAbandoned, recovered: conversionMetrics.recoveredCarts })}
                 </p>
               </div>
+              <div className="p-4 bg-emerald-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <RefreshCcw className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-medium text-emerald-600">Recovery Rate</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{conversionMetrics.recoveryRate}%</p>
+                <p className="text-xs text-gray-500 mt-1">Recovered carts</p>
+              </div>
               <div className="p-4 bg-purple-50 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign className="w-4 h-4 text-purple-600" />
@@ -532,6 +618,14 @@ export default function AnalyticsPage() {
                 </div>
                 <p className="text-2xl font-bold text-gray-900">{formatPrice(conversionMetrics.avgOrderValue)}</p>
                 <p className="text-xs text-gray-500 mt-1">{t('avgOrderValueSubtext')}</p>
+              </div>
+              <div className="p-4 bg-emerald-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-medium text-emerald-600">Recovered Revenue</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{formatPrice(conversionMetrics.recoveredRevenue)}</p>
+                <p className="text-xs text-gray-500 mt-1">Recovered from carts</p>
               </div>
             </div>
             

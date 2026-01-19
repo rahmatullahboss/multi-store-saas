@@ -48,7 +48,8 @@ import {
   AlertCircle,
   BookOpen,
   UserPen,
-  Users
+  Users,
+  Bell
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -297,6 +298,7 @@ const navSections: NavSection[] = [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
       { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon as any },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
+      { to: '/app/push', labelKey: 'navPushNotifications', icon: Bell },
       { to: '/app/discounts', labelKey: 'navDiscounts', icon: Tag },
       { to: '/app/reviews', labelKey: 'navReviews', icon: MessageSquare },
       { to: '/app/analytics', labelKey: 'navAnalytics', icon: BarChart3 },

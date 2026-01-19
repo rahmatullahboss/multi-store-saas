@@ -1,26 +1,41 @@
 import { json } from "@remix-run/cloudflare";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { resolveStore } from "~/lib/store.server";
+import { parseThemeConfig } from "@db/types";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const storeResolution = await resolveStore(context as any, request);
+  const store = storeResolution?.store;
+  const themeConfig = store?.themeConfig ? parseThemeConfig(store.themeConfig as string) : null;
+
+  const name = store?.name || "Ozzyl Store";
+  const shortName = store?.name?.slice(0, 12) || "Shop";
+  const logo = store?.logo || "/icons/icon-512x512.png";
+  const themeColor = themeConfig?.primaryColor || "#4f46e5";
+  const startUrl = '/?source=pwa';
+
   return json(
     {
-      short_name: "Shop",
-      name: "Ozzyl E-commerce Platform",
+      short_name: shortName,
+      name: `${name} Store`,
       icons: [
         {
-          src: "/icons/icon-192x192.png",
+          src: logo,
           sizes: "192x192",
           type: "image/png",
+          purpose: "any maskable",
         },
         {
-          src: "/icons/icon-512x512.png",
+          src: logo,
           sizes: "512x512",
           type: "image/png",
+          purpose: "any maskable",
         },
       ],
-      start_url: "/",
+      start_url: startUrl,
+      scope: "/",
       display: "standalone",
-      theme_color: "#4f46e5",
+      theme_color: themeColor,
       background_color: "#ffffff",
     },
     {

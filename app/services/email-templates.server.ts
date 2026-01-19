@@ -212,6 +212,89 @@ export function getShippingUpdateHtml(data: {
 }
 
 // ============================================================================
+// ABANDONED CART RECOVERY
+// ============================================================================
+export function getAbandonedCartRecoveryHtml(data: {
+  customerName: string;
+  storeName: string;
+  cartUrl: string;
+  currency: string;
+  items: OrderItem[];
+  total: number;
+  storeLogo?: string;
+  primaryColor?: string;
+}) {
+  const symbol = getSymbol(data.currency);
+  const themeColor = data.primaryColor || '#10b981';
+  const brandHeader = data.storeLogo
+    ? `<img src="${data.storeLogo}" alt="${data.storeName}" style="height: 40px; margin-bottom: 16px; object-fit: contain;">`
+    : `<h2 style="margin: 0 0 12px; color: ${themeColor}; font-size: 20px;">${data.storeName}</h2>`;
+
+  const itemsHtml = data.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.title}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${symbol}${(item.price * item.quantity).toLocaleString()}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, ${themeColor} 0%, #059669 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+        ${brandHeader}
+        <h1 style="color: white; margin: 0; font-size: 24px;">You left something behind 🛒</h1>
+      </div>
+      
+      <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+        <p style="font-size: 16px;">Hi <strong>${data.customerName}</strong>,</p>
+        <p>Your cart is waiting at ${data.storeName}. Complete checkout before items go out of stock.</p>
+        
+        <h3 style="color: #374151; border-bottom: 2px solid ${themeColor}; padding-bottom: 10px;">Cart Summary</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f3f4f6;">
+              <th style="padding: 12px; text-align: left;">Item</th>
+              <th style="padding: 12px; text-align: center;">Qty</th>
+              <th style="padding: 12px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+            <tr>
+              <td colspan="2" style="padding: 12px; text-align: right;"><strong>Total:</strong></td>
+              <td style="padding: 12px; text-align: right; font-size: 18px; color: ${themeColor};"><strong>${symbol}${data.total.toLocaleString()}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="${data.cartUrl}" style="display: inline-block; background: ${themeColor}; color: #ffffff; font-weight: 600; padding: 12px 28px; border-radius: 8px; text-decoration: none;">Return to Checkout</a>
+        </div>
+
+        <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+          If you have any questions, reply to this email and we’ll help right away.
+        </p>
+      </div>
+      
+      <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px;">
+        This reminder was sent because you started checkout at ${data.storeName}.
+      </p>
+    </body>
+    </html>
+  `;
+}
+
+// ============================================================================
 // LOW STOCK ALERT
 // ============================================================================
 export function getLowStockAlertHtml(data: {

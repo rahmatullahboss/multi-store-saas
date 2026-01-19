@@ -2,7 +2,8 @@ import type { Database } from "../lib/db.server";
 import { abandonedCarts, stores, customers, orders } from "../../db/schema";
 import { eq, and, lt, gt, isNull, not, like } from "drizzle-orm";
 import { sendSmartNotification } from "./messaging.server";
-import { triggerAutomation } from "./automation.server";
+import { createEmailService } from "./email.server";
+import { parseThemeConfig } from "@db/types";
 
 /**
  * SCHEDULER SERVICE
@@ -56,32 +57,37 @@ async function processAbandonedCarts(db: Database, env: Env) {
     if (!cart.customerPhone) continue; // Skip if no phone number
 
     try {
+      const storeUrl = cart.store.customDomain
+        ? `https://${cart.store.customDomain}`
+        : `https://${cart.store.subdomain}.ozzyl.com`;
+      const cartUrl = `${storeUrl}/checkout?recovery=${cart.sessionId}`;
+
       // 2. Send Smart Notification (WhatsApp -> SMS)
       await sendSmartNotification(db, env, 0, cart.storeId, 'ABANDONED_CART', {
         phone: cart.customerPhone,
         customerName: cart.customerName || 'Guest',
-        cartUrl: `https://${cart.store.subdomain}.ozzyl.com/checkout?recovery=${cart.sessionId}`,
+        cartUrl,
         amount: cart.totalAmount,
         currency: cart.currency
       });
       
-      // 2b. Also trigger email automation if customer has email
+      // 2b. Send recovery email if customer has email
       if (cart.customerEmail && !cart.customerEmail.includes('@phone.local')) {
-        await triggerAutomation(
-          env.DB,
-          'cart_abandoned',
-          {
-            storeId: cart.storeId,
-            customerEmail: cart.customerEmail,
-            customerName: cart.customerName || 'Guest',
-            metadata: {
-              cartUrl: `https://${cart.store.subdomain}.ozzyl.com/checkout?recovery=${cart.sessionId}`,
-              amount: cart.totalAmount,
-              currency: cart.currency,
-            }
-          },
-          env.RESEND_API_KEY
-        );
+        const emailService = createEmailService(env.RESEND_API_KEY);
+        const themeConfig = cart.store.themeConfig ? parseThemeConfig(cart.store.themeConfig as string) : null;
+        const items = cart.cartItems ? JSON.parse(cart.cartItems) : [];
+
+        await emailService.sendAbandonedCartRecovery({
+          customerEmail: cart.customerEmail,
+          customerName: cart.customerName || 'Guest',
+          storeName: cart.store.name,
+          cartUrl,
+          currency: cart.currency || 'BDT',
+          items,
+          total: cart.totalAmount,
+          storeLogo: cart.store.logo || undefined,
+          primaryColor: themeConfig?.primaryColor || undefined,
+        });
       }
 
       // 3. Mark as sent

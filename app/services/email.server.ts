@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { getFirstSaleCelebrationHtml, getOrderConfirmationHtml, getShippingUpdateHtml } from './email-templates.server';
+import { getFirstSaleCelebrationHtml, getOrderConfirmationHtml, getShippingUpdateHtml, getAbandonedCartRecoveryHtml } from './email-templates.server';
 // Env is globally declared
 
 /**
@@ -172,6 +172,18 @@ interface SendShippingUpdateParams {
   trackingUrl?: string;
 }
 
+interface SendAbandonedCartParams {
+  customerEmail: string;
+  customerName: string;
+  storeName: string;
+  cartUrl: string;
+  currency: string;
+  items: { title: string; quantity: number; price: number }[];
+  total: number;
+  storeLogo?: string;
+  primaryColor?: string;
+}
+
 interface SendStaffInviteParams {
   email: string;
   inviteLink: string;
@@ -312,6 +324,26 @@ export function createEmailService(apiKey: string) {
         from: fromEmail,
         to: [customerEmail],
         subject: `${subject} - ${storeName}`,
+        html,
+      });
+    },
+
+    async sendAbandonedCartRecovery({ customerEmail, customerName, storeName, cartUrl, currency, items, total, storeLogo, primaryColor }: SendAbandonedCartParams) {
+      const html = getAbandonedCartRecoveryHtml({
+        customerName,
+        storeName,
+        cartUrl,
+        currency,
+        items,
+        total,
+        storeLogo,
+        primaryColor,
+      });
+
+      return resend.emails.send({
+        from: fromEmail,
+        to: [customerEmail],
+        subject: `You left items in your cart - ${storeName}`,
         html,
       });
     },

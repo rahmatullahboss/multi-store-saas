@@ -3,16 +3,15 @@
  * Handles offline fallback and Push Notifications
  */
 
-const CACHE_NAME = 'multi-store-saas-v1';
-const OFFLINE_URL = '/offline.html'; // We might need to create this later
+const CACHE_NAME = 'multi-store-saas-v2';
+const OFFLINE_URL = '/offline';
 
 // Install Event
 self.addEventListener('install', (event) => {
   console.log('[Service Worker] Install');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-        // Cache critical assets if needed
-        return cache.addAll([]);
+        return cache.addAll([OFFLINE_URL]);
     })
   );
   self.skipWaiting();
@@ -36,10 +35,35 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Event - Network First pattern for dynamic content
-// Note: We removed the empty fetch listener to allow the browser to handle requests normally 
-// and prevent "message channel closed" errors when the SW is active but not responding.
-// self.addEventListener('fetch', (event) => { ... });
+// Fetch Event - Network first with per-origin cache
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+
+  event.respondWith((async () => {
+    try {
+      const networkResponse = await fetch(request);
+      const responseClone = networkResponse.clone();
+      const cache = await caches.open(CACHE_NAME);
+      // Cache only same-origin requests
+      if (request.url.startsWith(self.location.origin)) {
+        cache.put(request, responseClone);
+      }
+      return networkResponse;
+    } catch (error) {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(request);
+      if (cached) return cached;
+
+      // fallback to offline page for navigations
+      if (request.mode === 'navigate') {
+        const offline = await cache.match(OFFLINE_URL);
+        if (offline) return offline;
+      }
+      throw error;
+    }
+  })());
+});
 
 // Push Notification Event
 self.addEventListener('push', function(event) {
@@ -50,8 +74,8 @@ self.addEventListener('push', function(event) {
     const title = data.title || 'New Notification';
     const options = {
       body: data.body || 'You have a new update.',
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-192x192.png',
+      icon: data.icon || '/icons/icon-192x192.png',
+      badge: data.icon || '/icons/icon-192x192.png',
       data: {
         url: data.url || '/'
       }

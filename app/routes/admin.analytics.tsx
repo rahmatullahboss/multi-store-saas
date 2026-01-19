@@ -15,7 +15,8 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql, count, sum, gte, and } from 'drizzle-orm';
-import { stores, orders, products, pageViews, users } from '@db/schema';
+import { stores, orders, products, pageViews, users, carts, checkoutSessions } from '@db/schema';
+import { getAbandonedCartRecoveryStats } from '~/services/analytics.server';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 import { 
@@ -30,7 +31,8 @@ import {
   Gift,
   Store,
   ArrowUpRight,
-  Package
+  Package,
+  RefreshCcw
 } from 'lucide-react';
 import { useState } from 'react';
 import { 
@@ -299,31 +301,39 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     })
     .sort((a, b) => b.visitorOrderRatio - a.visitorOrderRatio);
   
+  const recoveryStats = await getAbandonedCartRecoveryStats(drizzleDb as any);
+
   // ===== FUNNEL ANALYSIS (Last 30 Days) =====
-  // We approximate steps based on page paths and actual orders
-  const funnelMetricsRaw = await drizzleDb.all(sql`
-    SELECT 
-      COUNT(DISTINCT visitor_id) as total_visitors,
-      COUNT(DISTINCT CASE WHEN path LIKE '%/p/%' OR path LIKE '%/products/%' THEN visitor_id END) as product_viewers,
-      COUNT(DISTINCT CASE WHEN path LIKE '%/cart%' THEN visitor_id END) as cart_adders,
-      COUNT(DISTINCT CASE WHEN path LIKE '%/checkout%' THEN visitor_id END) as checkout_initiators
-    FROM page_views
-    WHERE created_at >= ${thirtyDaysAgo.getTime()}
-  `);
-  
-  const funnelDataRawResult = funnelMetricsRaw[0] as any;
-  const totalPeriodOrdersResult = await drizzleDb.all(sql`
-    SELECT COUNT(DISTINCT customer_email) as count 
-    FROM orders 
-    WHERE created_at >= ${thirtyDaysAgo.getTime()} AND status != 'cancelled'
-  `);
-  
+  const funnelViews = await drizzleDb
+    .select({ count: sql<number>`count(distinct ${pageViews.visitorId})` })
+    .from(pageViews)
+    .where(gte(pageViews.createdAt, monthStart));
+
+  const funnelCarts = await drizzleDb
+    .select({ count: sql<number>`count(distinct ${carts.visitorId})` })
+    .from(carts)
+    .where(gte(carts.createdAt, monthStart));
+
+  const funnelCheckouts = await drizzleDb
+    .select({ count: sql<number>`count(distinct ${checkoutSessions.id})` })
+    .from(checkoutSessions)
+    .where(gte(checkoutSessions.createdAt, monthStart));
+
+  const funnelOrders = await drizzleDb
+    .select({ count: sql<number>`count(distinct ${orders.id})` })
+    .from(orders)
+    .where(and(gte(orders.createdAt, monthStart), sql`${orders.status} != 'cancelled'`));
+
+  const viewCount = Number(funnelViews[0]?.count || 0);
+  const cartCount = Number(funnelCarts[0]?.count || 0);
+  const checkoutCount = Number(funnelCheckouts[0]?.count || 0);
+  const orderCount = Number(funnelOrders[0]?.count || 0);
+
   const funnelData = [
-    { name: 'All Visitors', value: Number(funnelDataRawResult?.total_visitors) || 0, fill: '#3b82f6' },
-    { name: 'View Product', value: Number(funnelDataRawResult?.product_viewers) || 0, fill: '#0ea5e9' },
-    { name: 'Add to Cart', value: Number(funnelDataRawResult?.cart_adders) || 0, fill: '#8b5cf6' },
-    { name: 'Checkout', value: Number(funnelDataRawResult?.checkout_initiators) || 0, fill: '#d946ef' },
-    { name: 'Purchase', value: Number((totalPeriodOrdersResult[0] as any)?.count) || 0, fill: '#10b981' },
+    { name: 'All Visitors', value: viewCount, fill: '#3b82f6' },
+    { name: 'Add to Cart', value: cartCount, fill: '#8b5cf6' },
+    { name: 'Checkout', value: checkoutCount, fill: '#d946ef' },
+    { name: 'Purchase', value: orderCount, fill: '#10b981' },
   ];
 
   // ===== REVENUE FORECASTING (Linear Regression) =====
@@ -380,7 +390,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     unusualActivityStores,
     chartData,
     funnelData,
-    forecastData
+    forecastData,
+    recoveryStats
   });
 }
 
@@ -396,7 +407,8 @@ export default function AdminAnalytics() {
     unusualActivityStores,
     chartData,
     funnelData,
-    forecastData
+    forecastData,
+    recoveryStats
   } = useLoaderData<typeof loader>();
   
   const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'growth'>('overview');
@@ -511,6 +523,13 @@ export default function AdminAnalytics() {
           subtitle="Need attention"
           icon={<AlertTriangle className="w-5 h-5" />}
           color={storesApproachingLimits.length > 0 ? 'red' : 'slate'}
+        />
+        <StatCard
+          title="Recovery Rate"
+          value={`${recoveryStats.recoveryRate}%`}
+          subtitle={`${recoveryStats.recovered} recovered carts`}
+          icon={<RefreshCcw className="w-5 h-5" />}
+          color="emerald"
         />
       </div>
 

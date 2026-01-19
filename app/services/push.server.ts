@@ -32,7 +32,10 @@ export async function sendPushToStore(
 
     if (subs.length === 0) return;
 
-    const payload = JSON.stringify(message);
+    const payload = JSON.stringify({
+    icon: message.icon || '/icons/icon-192x192.png',
+    ...message,
+  });
 
     await Promise.allSettled(
       subs.map(async (sub) => {

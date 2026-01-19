@@ -8,6 +8,7 @@
 import type { ReactNode } from 'react';
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
+import { StorePushPrompt } from '~/components/store/StorePushPrompt';
 import { getStoreTemplate, getStoreTemplateTheme, type StoreTemplateTheme } from '~/templates/store-registry';
 import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
 
@@ -107,6 +108,9 @@ export function StorePageWrapper({
 
       {/* Main Content */}
       <main className="relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <StorePushPrompt storeName={storeName} />
+        </div>
         {children}
       </main>
 

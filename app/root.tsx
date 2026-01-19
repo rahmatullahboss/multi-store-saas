@@ -17,6 +17,7 @@ import { LanguageProvider } from '~/contexts/LanguageContext';
 import i18nextServer from '~/services/i18n.server';
 import { useChangeLanguage } from 'remix-i18next/react';
 import { useEffect } from 'react';
+import { parseThemeConfig } from '@db/types';
 
 export const links: LinksFunction = () => [
   // DNS prefetch and preconnect for faster font loading
@@ -44,9 +45,11 @@ export const links: LinksFunction = () => [
  */
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const storeName = data?.store?.name || 'Ozzyl';
+  const themeColor = data?.store?.themeColor || '#4f46e5';
   return [
     { title: storeName },
     { name: 'description', content: `Welcome to ${storeName}` },
+    { name: 'theme-color', content: themeColor },
   ];
 };
 
@@ -62,6 +65,8 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // The tenant middleware has already resolved the store
   // Access it from context (populated by Hono middleware)
   const { storeId, store, isCustomDomain } = context;
+  const themeConfig = store?.themeConfig ? parseThemeConfig(store.themeConfig as string) : null;
+  const themeColor = themeConfig?.primaryColor || '#4f46e5';
   
   // Get locale from request
   const locale = await i18nextServer.getLocale(request);
@@ -74,6 +79,8 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       name: store?.name || 'Ozzyl',
       logo: store?.logo || null,
       theme: store?.theme || 'default',
+      themeConfig: themeConfig || null,
+      themeColor,
       currency: store?.currency || 'BDT',
       // Tracking IDs - each store has their own (data isolation)
       facebookPixelId: store?.facebookPixelId || null,

@@ -1,5 +1,5 @@
 import type { Database } from "../lib/db.server";
-import { orders, products, stores, abandonedCarts, customers } from "../../db/schema";
+import { orders, products, stores, abandonedCarts, customers, pageViews, checkoutSessions, carts } from "../../db/schema";
 import { eq, and, gte, lt, sql, count, desc } from "drizzle-orm";
 
 /**
@@ -161,6 +161,72 @@ export async function getRevenueForecast(db: Database, storeId: number, daysToPr
   }
 
   return forecast;
+}
+
+export async function getAbandonedCartRecoveryStats(db: Database, storeId?: number) {
+  const conditions = storeId ? eq(abandonedCarts.storeId, storeId) : undefined;
+
+  const totals = await db
+    .select({
+      total: sql<number>`count(*)`,
+      recovered: sql<number>`sum(case when ${abandonedCarts.status} = 'recovered' then 1 else 0 end)`,
+      recoveredRevenue: sql<number>`sum(case when ${abandonedCarts.status} = 'recovered' then ${abandonedCarts.totalAmount} else 0 end)`,
+    })
+    .from(abandonedCarts)
+    .where(conditions ?? undefined);
+
+  const total = Number(totals[0]?.total || 0);
+  const recovered = Number(totals[0]?.recovered || 0);
+  const recoveredRevenue = Number(totals[0]?.recoveredRevenue || 0);
+  const recoveryRate = total > 0 ? Number(((recovered / total) * 100).toFixed(1)) : 0;
+
+  return {
+    total,
+    recovered,
+    recoveredRevenue,
+    recoveryRate,
+  };
+}
+
+export async function getStoreFunnelMetrics(db: Database, storeId: number) {
+  const views = await db
+    .select({ count: sql<number>`count(distinct ${pageViews.visitorId})` })
+    .from(pageViews)
+    .where(eq(pageViews.storeId, storeId));
+
+  const cartsCount = await db
+    .select({ count: sql<number>`count(distinct ${carts.visitorId})` })
+    .from(carts)
+    .where(eq(carts.storeId, storeId));
+
+  const checkouts = await db
+    .select({ count: sql<number>`count(distinct ${checkoutSessions.id})` })
+    .from(checkoutSessions)
+    .where(eq(checkoutSessions.storeId, storeId));
+
+  const ordersCount = await db
+    .select({ count: sql<number>`count(distinct ${orders.id})` })
+    .from(orders)
+    .where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`));
+
+  const viewCount = Number(views[0]?.count || 0);
+  const cartCount = Number(cartsCount[0]?.count || 0);
+  const checkoutCount = Number(checkouts[0]?.count || 0);
+  const orderCount = Number(ordersCount[0]?.count || 0);
+
+  const rate = (numerator: number, denominator: number) =>
+    denominator > 0 ? Number(((numerator / denominator) * 100).toFixed(1)) : 0;
+
+  return {
+    views: viewCount,
+    carts: cartCount,
+    checkouts: checkoutCount,
+    orders: orderCount,
+    viewToCartRate: rate(cartCount, viewCount),
+    cartToCheckoutRate: rate(checkoutCount, cartCount),
+    checkoutToOrderRate: rate(orderCount, checkoutCount),
+    viewToOrderRate: rate(orderCount, viewCount),
+  };
 }
 
 export async function getPredictedCLV(db: Database, storeId: number) {
