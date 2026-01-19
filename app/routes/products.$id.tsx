@@ -57,153 +57,174 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
-  const productId = parseInt(params.id || '', 10);
-  
-  if (isNaN(productId)) {
-    throw new Response('Invalid product ID', { status: 400 });
-  }
-  
-  const storeContext = await resolveStore(context, request);
-  
-  if (!storeContext) {
-    throw new Response('Store not found.', { status: 404 });
-  }
-  
-  const { storeId, store } = storeContext;
-  const db = createDb(context.cloudflare.env.DB);
-  const cache = new D1Cache(db);
-  
-  // Use cached store configuration
-  const storeConfig = await getStoreConfig(db, cache, storeId);
-  
-  if (!storeConfig) {
-    throw new Response('Store configuration not found', { status: 404 });
-  }
-
-  // Route guard: Check if store routes are enabled
-  if (store.storeEnabled === false) {
-    throw new Response('Store mode is not enabled for this shop.', { status: 404 });
-  }
-
-  const { themeConfig, businessInfo, footerConfig } = storeConfig;
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
-  const socialLinks = storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
-  
-  // Load customer session
-  const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
-  
-  // Batch fetch product, reviews, categories
-  const showReviews = store?.planType !== 'free';
-  const categoryCacheKey = `store:${storeId}:categories`;
-  let categories = await cache.get<string[]>(categoryCacheKey);
-  
-  type QueryType = ReturnType<typeof db.select>;
-  const queries: QueryType[] = [
-    db.select()
-      .from(products)
-      .where(and(eq(products.id, productId), eq(products.storeId, storeId), eq(products.isPublished, true)))
-      .limit(1)
-  ];
-  
-  if (showReviews) {
-    queries.push(
-      db.select({
-        id: reviews.id,
-        customerName: reviews.customerName,
-        rating: reviews.rating,
-        comment: reviews.comment,
-        createdAt: reviews.createdAt,
-      })
-      .from(reviews)
-      .where(and(eq(reviews.productId, productId), eq(reviews.storeId, storeId), eq(reviews.status, 'approved')))
-      .orderBy(desc(reviews.createdAt))
-      .limit(20)
-    );
-  }
-  
-  if (!categories) {
-    queries.push(
-      db.select({ category: products.category })
-        .from(products)
-        .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
-    );
-  }
-  
-  const batchResults = await db.batch(queries as Parameters<typeof db.batch>[0]);
-  
-  const product = batchResults[0][0];
-  if (!product) {
-    throw new Response('Product not found', { status: 404 });
-  }
-  
-  const productReviews = showReviews ? batchResults[1] : [];
-  
-  // Handle categories
-  if (!categories) {
-    const categoriesResult = (showReviews ? batchResults[2] : batchResults[1]) as Array<{ category: string | null }>;
-    categories = [...new Set(categoriesResult.map(p => p.category).filter((c): c is string => Boolean(c)))];
-    await cache.set(categoryCacheKey, categories, 3600);
-  }
-  
-  const reviewCount = productReviews.length;
-  const avgRating = reviewCount > 0 
-    ? productReviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviewCount 
-    : 0;
-
-  // Related products
-  let relatedProducts: typeof product[] = [];
-  if (product.category) {
-    relatedProducts = await db
-      .select()
-      .from(products)
-      .where(and(eq(products.storeId, storeId), ne(products.id, productId), like(products.category, product.category)))
-      .limit(8);
-  }
-  
-  if (relatedProducts.length < 4) {
-    const moreProducts = await db
-      .select()
-      .from(products)
-      .where(and(eq(products.storeId, storeId), ne(products.id, productId)))
-      .limit(8 - relatedProducts.length)
-      .orderBy(desc(products.createdAt));
-      
-    const existingIds = new Set(relatedProducts.map(p => p.id));
-    for (const p of moreProducts) {
-      if (!existingIds.has(p.id)) relatedProducts.push(p);
+  try {
+    const productId = parseInt(params.id || '', 10);
+    
+    if (isNaN(productId)) {
+      throw new Response('Invalid product ID', { status: 400 });
     }
-  }
-  
-  // Template resolution (NEW SYSTEM)
-  const template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'product');
-  
-  const url = new URL(request.url);
-  const productUrl = `${url.protocol}//${url.host}/products/${product.id}`;
+    
+    const storeContext = await resolveStore(context, request);
+    
+    if (!storeContext) {
+      throw new Response('Store not found.', { status: 404 });
+    }
+    
+    const { storeId, store } = storeContext;
+    const db = createDb(context.cloudflare.env.DB);
+    const cache = new D1Cache(db);
+    
+    // Use cached store configuration
+    const storeConfig = await getStoreConfig(db, cache, storeId);
+    
+    if (!storeConfig) {
+      throw new Response('Store configuration not found', { status: 404 });
+    }
 
-  return json({
-    product,
-    storeName: store?.name || 'Store',
-    logo: store.logo || null,
-    currency: store?.currency || 'BDT',
-    showReviews,
-    reviews: productReviews,
-    avgRating: Math.round(avgRating * 10) / 10,
-    reviewCount,
-    storeId,
-    storeTemplateId,
-    theme,
-    socialLinks,
-    businessInfo,
-    themeConfig,
-    footerConfig,
-    categories,
-    relatedProducts,
-    planType: store?.planType || 'free',
-    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
-    template,
-    productUrl,
-  });
+    // Route guard: Check if store routes are enabled
+    if (store.storeEnabled === false) {
+      throw new Response('Store mode is not enabled for this shop.', { status: 404 });
+    }
+
+    const { themeConfig, businessInfo, footerConfig } = storeConfig;
+    const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+    const theme = getStoreTemplateTheme(storeTemplateId);
+    const socialLinks = storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
+    
+    // Load customer session
+    const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
+    
+    // Batch fetch product, reviews, categories
+    const showReviews = store?.planType !== 'free';
+    const categoryCacheKey = `store:${storeId}:categories`;
+    let categories = await cache.get<string[]>(categoryCacheKey);
+    
+    type QueryType = ReturnType<typeof db.select>;
+    const queries: QueryType[] = [
+      db.select()
+        .from(products)
+        .where(and(eq(products.id, productId), eq(products.storeId, storeId), eq(products.isPublished, true)))
+        .limit(1)
+    ];
+    
+    if (showReviews) {
+      queries.push(
+        db.select({
+          id: reviews.id,
+          customerName: reviews.customerName,
+          rating: reviews.rating,
+          comment: reviews.comment,
+          createdAt: reviews.createdAt,
+        })
+        .from(reviews)
+        .where(and(eq(reviews.productId, productId), eq(reviews.storeId, storeId), eq(reviews.status, 'approved')))
+        .orderBy(desc(reviews.createdAt))
+        .limit(20)
+      );
+    }
+    
+    if (!categories) {
+      queries.push(
+        db.select({ category: products.category })
+          .from(products)
+          .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
+      );
+    }
+    
+    const batchResults = await db.batch(queries as Parameters<typeof db.batch>[0]);
+    
+    const product = batchResults[0][0];
+    if (!product) {
+      throw new Response('Product not found', { status: 404 });
+    }
+    
+    const productReviews = showReviews ? batchResults[1] : [];
+    
+    // Handle categories
+    if (!categories) {
+      const categoriesResult = (showReviews ? batchResults[2] : batchResults[1]) as Array<{ category: string | null }>;
+      categories = [...new Set(categoriesResult.map(p => p.category).filter((c): c is string => Boolean(c)))];
+      await cache.set(categoryCacheKey, categories, 3600);
+    }
+    
+    const reviewCount = productReviews.length;
+    const avgRating = reviewCount > 0 
+      ? productReviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviewCount 
+      : 0;
+
+    // Related products
+    let relatedProducts: typeof product[] = [];
+    if (product.category) {
+      relatedProducts = await db
+        .select()
+        .from(products)
+        .where(and(eq(products.storeId, storeId), ne(products.id, productId), like(products.category, product.category)))
+        .limit(8);
+    }
+    
+    if (relatedProducts.length < 4) {
+      const moreProducts = await db
+        .select()
+        .from(products)
+        .where(and(eq(products.storeId, storeId), ne(products.id, productId)))
+        .limit(8 - relatedProducts.length)
+        .orderBy(desc(products.createdAt));
+        
+      const existingIds = new Set(relatedProducts.map(p => p.id));
+      for (const p of moreProducts) {
+        if (!existingIds.has(p.id)) relatedProducts.push(p);
+      }
+    }
+    
+    // Template resolution (NEW SYSTEM) - wrapped in try-catch for safety
+    let template = null;
+    try {
+      template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'product');
+    } catch (templateError) {
+      console.error('[products.$id] Template resolution failed:', templateError);
+      // Continue without template - fallback UI will be used
+    }
+    
+    const url = new URL(request.url);
+    const productUrl = `${url.protocol}//${url.host}/products/${product.id}`;
+
+    return json({
+      product,
+      storeName: store?.name || 'Store',
+      logo: store.logo || null,
+      currency: store?.currency || 'BDT',
+      showReviews,
+      reviews: productReviews,
+      avgRating: Math.round(avgRating * 10) / 10,
+      reviewCount,
+      storeId,
+      storeTemplateId,
+      theme,
+      socialLinks,
+      businessInfo,
+      themeConfig,
+      footerConfig,
+      categories,
+      relatedProducts,
+      planType: store?.planType || 'free',
+      customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+      template,
+      productUrl,
+    });
+  } catch (error) {
+    // Re-throw Response errors as-is
+    if (error instanceof Response) {
+      throw error;
+    }
+    
+    // Log the actual error for debugging
+    console.error('[products.$id] Loader error:', error);
+    
+    throw new Response(
+      `Product page error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      { status: 500, statusText: 'Internal Server Error' }
+    );
+  }
 }
 
 // ============================================================================

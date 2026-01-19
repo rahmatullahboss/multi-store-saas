@@ -1,37 +1,60 @@
 /**
- * Store Template Full-Page Preview Route
+ * Immersive Store Template Preview
  * 
  * Route: /store-template-preview/:templateId
  * 
- * Opens a full-page preview of any store template with:
- * - Demo products and data
- * - Device toggle (desktop/mobile)
- * - Navigation to product detail and cart pages
- * - Apply template functionality
+ * A full-featured, immersive store preview experience that looks and feels
+ * like a real store. No control bars or admin UI - pure store experience.
+ * 
+ * Features:
+ * - Full store navigation (home, products, collections, cart, checkout)
+ * - Working cart with local state
+ * - Simulated checkout (no real orders)
+ * - Search functionality
+ * - Static pages (About, Contact, FAQ, Policies)
+ * - Responsive design (mobile/desktop)
+ * - Subtle preview indicator that can be dismissed
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { Link, useLoaderData, useSearchParams, useNavigate, Form } from '@remix-run/react';
-import { useState } from 'react';
+import { useLoaderData, useNavigate, Link } from '@remix-run/react';
+import { useState, useCallback, createContext, useContext, useMemo } from 'react';
 import { 
-  ArrowLeft, Monitor, Smartphone, Check, X, Eye, 
-  ShoppingCart, Home, Package, ExternalLink 
+  ShoppingCart, Search, Menu, X, ChevronLeft, ChevronRight,
+  Star, Plus, Minus, Trash2, Check, Phone, Mail, MapPin,
+  Facebook, Instagram, ChevronDown, Heart, Share2, Truck, Shield, RotateCcw,
+  Home, Grid, Tag, Info, HelpCircle, FileText, Eye
 } from 'lucide-react';
-import { getStoreTemplate, STORE_TEMPLATES } from '~/templates/store-registry';
+import { getStoreTemplate, STORE_TEMPLATES, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { 
   DEMO_PRODUCTS, 
   DEMO_CATEGORIES, 
+  DEMO_COLLECTIONS,
   DEMO_SOCIAL_LINKS, 
   DEMO_BUSINESS_INFO, 
   DEMO_FOOTER_CONFIG, 
   DEMO_THEME_CONFIG,
   DEMO_STORE_NAME,
-  DEMO_CART_ITEMS,
+  DEMO_REVIEWS,
+  DEMO_PAGES,
+  DEMO_FAQ,
   getDemoProductById,
+  getDemoProductsByCategory,
+  getDemoProductsByCollection,
+  getRelatedProducts,
+  getProductReviews,
+  searchDemoProducts,
+  type DemoProduct,
 } from '~/utils/store-preview-data';
 
+// ============================================================================
+// META
+// ============================================================================
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return [{ title: `প্রিভিউ: ${data?.templateName || 'টেমপ্লেট'}` }];
+  return [
+    { title: `${data?.storeName || 'ডেমো স্টোর'} - ${data?.templateName || 'থিম প্রিভিউ'}` },
+    { name: 'robots', content: 'noindex, nofollow' },
+  ];
 };
 
 // ============================================================================
@@ -40,513 +63,338 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export async function loader({ params }: LoaderFunctionArgs) {
   const templateId = params.templateId || 'luxe-boutique';
   const template = getStoreTemplate(templateId);
+  const theme = STORE_TEMPLATE_THEMES[templateId] || STORE_TEMPLATE_THEMES['luxe-boutique'];
   
   return json({
     templateId: template.id,
     templateName: template.name,
     templateDescription: template.description,
+    theme,
+    storeName: DEMO_STORE_NAME,
+    products: DEMO_PRODUCTS,
+    categories: DEMO_CATEGORIES,
+    collections: DEMO_COLLECTIONS,
+    socialLinks: DEMO_SOCIAL_LINKS,
+    businessInfo: DEMO_BUSINESS_INFO,
+    footerConfig: DEMO_FOOTER_CONFIG,
+    themeConfig: DEMO_THEME_CONFIG,
+    pages: DEMO_PAGES,
+    faq: DEMO_FAQ,
     templates: STORE_TEMPLATES.map(t => ({ id: t.id, name: t.name })),
   });
 }
 
 // ============================================================================
-// DEMO PRODUCT DETAIL COMPONENT
+// CART CONTEXT
 // ============================================================================
-function DemoProductDetail({ 
-  productId, 
-  onBack,
-  templateId,
-}: { 
-  productId: number; 
-  onBack: () => void;
-  templateId: string;
-}) {
-  const product = getDemoProductById(productId);
-  const template = getStoreTemplate(templateId);
-  const theme = template.theme;
-  
-  if (!product) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center">
-          <p className="text-gray-500 mb-4">প্রোডাক্ট পাওয়া যায়নি</p>
-          <button 
-            onClick={onBack}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg"
-          >
-            ফিরে যান
-          </button>
-        </div>
-      </div>
-    );
-  }
+interface CartItem extends DemoProduct {
+  quantity: number;
+  selectedVariants?: Record<string, string>;
+}
 
-  const formatPrice = (price: number) => `৳${price.toLocaleString('bn-BD')}`;
+interface CartContextType {
+  items: CartItem[];
+  addItem: (product: DemoProduct, quantity?: number, variants?: Record<string, string>) => void;
+  removeItem: (productId: number) => void;
+  updateQuantity: (productId: number, quantity: number) => void;
+  clearCart: () => void;
+  total: number;
+  itemCount: number;
+}
+
+const CartContext = createContext<CartContextType | null>(null);
+
+function useCart() {
+  const context = useContext(CartContext);
+  if (!context) throw new Error('useCart must be used within CartProvider');
+  return context;
+}
+
+function CartProvider({ children }: { children: React.ReactNode }) {
+  const [items, setItems] = useState<CartItem[]>([]);
+
+  const addItem = useCallback((product: DemoProduct, quantity = 1, variants?: Record<string, string>) => {
+    setItems(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => 
+          item.id === product.id 
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity, selectedVariants: variants }];
+    });
+  }, []);
+
+  const removeItem = useCallback((productId: number) => {
+    setItems(prev => prev.filter(item => item.id !== productId));
+  }, []);
+
+  const updateQuantity = useCallback((productId: number, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(productId);
+      return;
+    }
+    setItems(prev => prev.map(item => 
+      item.id === productId ? { ...item, quantity } : item
+    ));
+  }, [removeItem]);
+
+  const clearCart = useCallback(() => setItems([]), []);
+
+  const total = useMemo(() => 
+    items.reduce((sum, item) => sum + item.price * item.quantity, 0), 
+    [items]
+  );
+
+  const itemCount = useMemo(() => 
+    items.reduce((sum, item) => sum + item.quantity, 0), 
+    [items]
+  );
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
-      {/* Header */}
-      <div 
-        className="sticky top-0 z-10 px-4 py-3 shadow-sm"
-        style={{ backgroundColor: theme.headerBg }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="p-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            <ArrowLeft className="w-5 h-5" style={{ color: theme.text }} />
-          </button>
-          <span className="font-medium" style={{ color: theme.text }}>
-            প্রোডাক্ট বিবরণ
-          </span>
-        </div>
-      </div>
-
-      {/* Product Content */}
-      <div className="max-w-6xl mx-auto p-4 md:p-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Image */}
-          <div className="aspect-square rounded-2xl overflow-hidden" style={{ backgroundColor: theme.cardBg }}>
-            <img 
-              src={product.imageUrl || 'https://picsum.photos/seed/default/600/600'} 
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Details */}
-          <div className="space-y-6">
-            <div>
-              <span 
-                className="text-sm font-medium px-3 py-1 rounded-full"
-                style={{ backgroundColor: theme.accent + '20', color: theme.accent }}
-              >
-                {product.category}
-              </span>
-            </div>
-
-            <h1 
-              className="text-2xl md:text-3xl font-bold"
-              style={{ color: theme.text }}
-            >
-              {product.title}
-            </h1>
-
-            <p style={{ color: theme.muted }}>
-              {product.description}
-            </p>
-
-            {/* Price */}
-            <div className="flex items-baseline gap-3">
-              <span 
-                className="text-3xl font-bold"
-                style={{ color: theme.primary }}
-              >
-                {formatPrice(product.price)}
-              </span>
-              {product.compareAtPrice && (
-                <span className="text-lg line-through" style={{ color: theme.muted }}>
-                  {formatPrice(product.compareAtPrice)}
-                </span>
-              )}
-            </div>
-
-            {/* Quantity */}
-            <div className="flex items-center gap-4">
-              <span style={{ color: theme.text }}>পরিমাণ:</span>
-              <div className="flex items-center border rounded-lg overflow-hidden">
-                <button className="px-4 py-2 hover:bg-gray-100">-</button>
-                <span className="px-4 py-2 border-x">1</span>
-                <button className="px-4 py-2 hover:bg-gray-100">+</button>
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button 
-                className="flex-1 py-3 px-6 rounded-lg font-medium text-white transition hover:opacity-90"
-                style={{ backgroundColor: theme.primary }}
-              >
-                কার্টে যোগ করুন
-              </button>
-              <button 
-                className="flex-1 py-3 px-6 rounded-lg font-medium transition hover:opacity-90"
-                style={{ 
-                  backgroundColor: theme.accent, 
-                  color: '#fff' 
-                }}
-              >
-                এখনই কিনুন
-              </button>
-            </div>
-
-            {/* Info */}
-            <div 
-              className="p-4 rounded-lg space-y-2"
-              style={{ backgroundColor: theme.cardBg }}
-            >
-              <p className="flex items-center gap-2 text-sm" style={{ color: theme.muted }}>
-                <Check className="w-4 h-4" style={{ color: theme.accent }} />
-                ১০০% অরিজিনাল প্রোডাক্ট
-              </p>
-              <p className="flex items-center gap-2 text-sm" style={{ color: theme.muted }}>
-                <Check className="w-4 h-4" style={{ color: theme.accent }} />
-                ক্যাশ অন ডেলিভারি সুবিধা
-              </p>
-              <p className="flex items-center gap-2 text-sm" style={{ color: theme.muted }}>
-                <Check className="w-4 h-4" style={{ color: theme.accent }} />
-                ৭ দিনের রিটার্ন পলিসি
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, total, itemCount }}>
+      {children}
+    </CartContext.Provider>
   );
 }
 
 // ============================================================================
-// DEMO CART PAGE COMPONENT
+// TYPES
 // ============================================================================
-function DemoCartPage({ 
-  onBack,
-  templateId,
-}: { 
-  onBack: () => void;
-  templateId: string;
-}) {
-  const template = getStoreTemplate(templateId);
-  const theme = template.theme;
-  
-  const formatPrice = (price: number) => `৳${price.toLocaleString('bn-BD')}`;
-  
-  const subtotal = DEMO_CART_ITEMS.reduce(
-    (sum, item) => sum + (item.price * item.quantity), 
-    0
-  );
-  const shipping = 60;
-  const total = subtotal + shipping;
+type PageType = 
+  | { type: 'home' }
+  | { type: 'product'; productId: number }
+  | { type: 'collection'; collectionId: string }
+  | { type: 'category'; category: string }
+  | { type: 'cart' }
+  | { type: 'checkout' }
+  | { type: 'order-success' }
+  | { type: 'search'; query: string }
+  | { type: 'page'; pageId: string };
 
-  return (
-    <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
-      {/* Header */}
-      <div 
-        className="sticky top-0 z-10 px-4 py-3 shadow-sm"
-        style={{ backgroundColor: theme.headerBg }}
-      >
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="p-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            <ArrowLeft className="w-5 h-5" style={{ color: theme.text }} />
-          </button>
-          <span className="font-medium" style={{ color: theme.text }}>
-            <ShoppingCart className="w-5 h-5 inline-block mr-2" />
-            কার্ট ({DEMO_CART_ITEMS.length} আইটেম)
-          </span>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Cart Items */}
-          <div className="md:col-span-2 space-y-4">
-            {DEMO_CART_ITEMS.map((item) => (
-              <div 
-                key={item.id}
-                className="flex gap-4 p-4 rounded-xl"
-                style={{ backgroundColor: theme.cardBg }}
-              >
-                <img 
-                  src={item.imageUrl || ''} 
-                  alt={item.title}
-                  className="w-24 h-24 object-cover rounded-lg"
-                />
-                <div className="flex-1">
-                  <h3 className="font-medium" style={{ color: theme.text }}>
-                    {item.title}
-                  </h3>
-                  <p className="text-sm" style={{ color: theme.muted }}>
-                    {item.category}
-                  </p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="font-bold" style={{ color: theme.primary }}>
-                      {formatPrice(item.price)}
-                    </span>
-                    <div className="flex items-center border rounded-lg overflow-hidden">
-                      <button className="px-3 py-1 hover:bg-gray-100 text-sm">-</button>
-                      <span className="px-3 py-1 border-x text-sm">{item.quantity}</span>
-                      <button className="px-3 py-1 hover:bg-gray-100 text-sm">+</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Summary */}
-          <div 
-            className="p-6 rounded-xl h-fit sticky top-24"
-            style={{ backgroundColor: theme.cardBg }}
-          >
-            <h3 className="font-semibold mb-4" style={{ color: theme.text }}>
-              অর্ডার সামারি
-            </h3>
-            
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between" style={{ color: theme.muted }}>
-                <span>সাবটোটাল</span>
-                <span>{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between" style={{ color: theme.muted }}>
-                <span>ডেলিভারি চার্জ</span>
-                <span>{formatPrice(shipping)}</span>
-              </div>
-              <div className="border-t pt-3 flex justify-between font-bold" style={{ color: theme.text }}>
-                <span>মোট</span>
-                <span style={{ color: theme.primary }}>{formatPrice(total)}</span>
-              </div>
-            </div>
-
-            <button 
-              className="w-full mt-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90"
-              style={{ backgroundColor: theme.primary }}
-            >
-              চেকআউট করুন
-            </button>
-
-            <p className="text-xs text-center mt-3" style={{ color: theme.muted }}>
-              ক্যাশ অন ডেলিভারি সুবিধা রয়েছে
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+// ============================================================================
+// HELPER: Format Price
+// ============================================================================
+function formatPrice(price: number): string {
+  return `৳${price.toLocaleString('bn-BD')}`;
 }
 
 // ============================================================================
-// MAIN COMPONENT
+// COMPONENT: Store Header
 // ============================================================================
-export default function StoreTemplatePreview() {
-  const { templateId, templateName, templates } = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
-  const [deviceView, setDeviceView] = useState<'desktop' | 'mobile'>('desktop');
-  
-  // Page state from URL params
-  const currentPage = searchParams.get('page') || 'home';
-  const productId = searchParams.get('productId');
-  
-  const template = getStoreTemplate(templateId);
-  const TemplateComponent = template.component;
+function StoreHeader({ 
+  theme, 
+  storeName, 
+  onNavigate,
+  categories,
+}: { 
+  theme: any;
+  storeName: string;
+  onNavigate: (page: PageType) => void;
+  categories: string[];
+}) {
+  const cart = useCart();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Navigation handlers
-  const goToHome = () => setSearchParams({});
-  const goToProduct = (id: number) => setSearchParams({ page: 'product', productId: String(id) });
-  const goToCart = () => setSearchParams({ page: 'cart' });
-
-  // Render content based on current page
-  const renderContent = () => {
-    if (currentPage === 'product' && productId) {
-      return (
-        <DemoProductDetail 
-          productId={Number(productId)} 
-          onBack={goToHome}
-          templateId={templateId}
-        />
-      );
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      onNavigate({ type: 'search', query: searchQuery.trim() });
+      setSearchOpen(false);
     }
-    
-    if (currentPage === 'cart') {
-      return (
-        <DemoCartPage 
-          onBack={goToHome}
-          templateId={templateId}
-        />
-      );
-    }
-    
-    // Home - Main template with product click handlers
-    return (
-      <div onClick={(e) => {
-        // Intercept product card clicks
-        const target = e.target as HTMLElement;
-        const productCard = target.closest('[data-product-id]');
-        if (productCard) {
-          e.preventDefault();
-          const id = productCard.getAttribute('data-product-id');
-          if (id) goToProduct(Number(id));
-        }
-      }}>
-        <TemplateComponent
-          storeName={DEMO_STORE_NAME}
-          storeId={1}
-          logo={null}
-          theme={null}
-          fontFamily="inter"
-          products={DEMO_PRODUCTS}
-          categories={DEMO_CATEGORIES}
-          currentCategory={null}
-          config={DEMO_THEME_CONFIG}
-          currency="BDT"
-          socialLinks={DEMO_SOCIAL_LINKS}
-          footerConfig={DEMO_FOOTER_CONFIG}
-          businessInfo={DEMO_BUSINESS_INFO}
-          isPreview={true}
-        />
-      </div>
-    );
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Floating Control Bar */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-gray-900/95 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-2xl border border-gray-700">
-        {/* Back */}
-        <Link
-          to="/app/store-design"
-          className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
-          title="স্টোর ডিজাইনে ফিরে যান"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        
-        <div className="w-px h-6 bg-gray-700" />
-        
-        {/* Template Name */}
-        <div className="flex items-center gap-2">
-          <Eye className="w-4 h-4 text-purple-400" />
-          <span className="text-sm font-medium text-white">{templateName}</span>
-        </div>
-        
-        <div className="w-px h-6 bg-gray-700" />
-        
-        {/* Page Navigation */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={goToHome}
-            className={`p-2 rounded-lg transition ${
-              currentPage === 'home' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
-            title="হোম পেজ"
-          >
-            <Home className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => goToProduct(1)}
-            className={`p-2 rounded-lg transition ${
-              currentPage === 'product' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
-            title="প্রোডাক্ট পেজ"
-          >
-            <Package className="w-4 h-4" />
-          </button>
-          <button
-            onClick={goToCart}
-            className={`p-2 rounded-lg transition ${
-              currentPage === 'cart' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
-            title="কার্ট পেজ"
-          >
-            <ShoppingCart className="w-4 h-4" />
-          </button>
-        </div>
-        
-        <div className="w-px h-6 bg-gray-700" />
-        
-        {/* Device Toggle */}
-        <div className="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
-          <button
-            onClick={() => setDeviceView('desktop')}
-            className={`p-1.5 rounded-md transition ${
-              deviceView === 'desktop' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-            title="ডেস্কটপ ভিউ"
-          >
-            <Monitor className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setDeviceView('mobile')}
-            className={`p-1.5 rounded-md transition ${
-              deviceView === 'mobile' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-            title="মোবাইল ভিউ"
-          >
-            <Smartphone className="w-4 h-4" />
-          </button>
-        </div>
-        
-        <div className="w-px h-6 bg-gray-700" />
-        
-        {/* Apply Button */}
-        <Form method="post" action="/app/theme-store">
-          <input type="hidden" name="themeId" value={templateId} />
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition"
-          >
-            <Check className="w-4 h-4" />
-            <span className="hidden sm:inline">ব্যবহার করুন</span>
-          </button>
-        </Form>
-      </div>
-
-      {/* Preview Container */}
-      <div className="flex items-start justify-center pt-20 pb-8 px-4 min-h-screen">
+    <>
+      {/* Announcement Bar */}
+      {DEMO_THEME_CONFIG.announcement && (
         <div 
-          className={`bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-300 ${
-            deviceView === 'mobile' 
-              ? 'w-[375px]' 
-              : 'w-full max-w-7xl'
-          }`}
-          style={deviceView === 'mobile' ? {
-            maxWidth: '375px',
-            minHeight: '667px',
-          } : undefined}
+          className="py-2 px-4 text-center text-sm"
+          style={{ backgroundColor: theme.primary, color: '#fff' }}
         >
-          <div 
-            className="overflow-auto"
-            style={{ 
-              maxHeight: 'calc(100vh - 120px)',
-              ...(deviceView === 'mobile' ? {
-                WebkitOverflowScrolling: 'touch',
-              } : {})
-            }}
-          >
-            {renderContent()}
+          {DEMO_THEME_CONFIG.announcement.text}
+        </div>
+      )}
+
+      {/* Main Header */}
+      <header 
+        className="sticky top-0 z-40 shadow-sm"
+        style={{ backgroundColor: theme.headerBg }}
+      >
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2 -ml-2"
+            >
+              <Menu className="w-6 h-6" style={{ color: theme.text }} />
+            </button>
+
+            {/* Logo */}
+            <button 
+              onClick={() => onNavigate({ type: 'home' })}
+              className="flex items-center gap-2"
+            >
+              <span 
+                className="text-xl font-bold"
+                style={{ color: theme.text }}
+              >
+                {storeName}
+              </span>
+            </button>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-6">
+              <button 
+                onClick={() => onNavigate({ type: 'home' })}
+                className="text-sm font-medium hover:opacity-70 transition"
+                style={{ color: theme.text }}
+              >
+                হোম
+              </button>
+              {categories.slice(0, 5).map(cat => (
+                <button 
+                  key={cat}
+                  onClick={() => onNavigate({ type: 'category', category: cat })}
+                  className="text-sm font-medium hover:opacity-70 transition"
+                  style={{ color: theme.text }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </nav>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setSearchOpen(true)}
+                className="p-2 hover:opacity-70 transition"
+              >
+                <Search className="w-5 h-5" style={{ color: theme.text }} />
+              </button>
+              <button 
+                onClick={() => onNavigate({ type: 'cart' })}
+                className="p-2 hover:opacity-70 transition relative"
+              >
+                <ShoppingCart className="w-5 h-5" style={{ color: theme.text }} />
+                {cart.itemCount > 0 && (
+                  <span 
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center text-white"
+                    style={{ backgroundColor: theme.accent }}
+                  >
+                    {cart.itemCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Template Switcher (Bottom) */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-2xl border border-gray-700">
-        <div className="flex items-center gap-2 overflow-x-auto max-w-[90vw]">
-          <span className="text-xs text-gray-400 whitespace-nowrap">অন্য টেমপ্লেট:</span>
-          {templates.filter(t => t.id !== templateId).slice(0, 4).map((t) => (
-            <Link
-              key={t.id}
-              to={`/store-template-preview/${t.id}`}
-              className="px-3 py-1 text-xs font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-full transition whitespace-nowrap"
-            >
-              {t.name}
-            </Link>
-          ))}
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div 
+            className="absolute left-0 top-0 bottom-0 w-72 p-6 overflow-y-auto"
+            style={{ backgroundColor: theme.headerBg }}
+          >
+            <div className="flex items-center justify-between mb-8">
+              <span className="text-lg font-bold" style={{ color: theme.text }}>
+                {storeName}
+              </span>
+              <button onClick={() => setMobileMenuOpen(false)}>
+                <X className="w-6 h-6" style={{ color: theme.text }} />
+              </button>
+            </div>
+            <nav className="space-y-4">
+              <button 
+                onClick={() => { onNavigate({ type: 'home' }); setMobileMenuOpen(false); }}
+                className="block w-full text-left py-2 font-medium"
+                style={{ color: theme.text }}
+              >
+                হোম
+              </button>
+              {categories.map(cat => (
+                <button 
+                  key={cat}
+                  onClick={() => { onNavigate({ type: 'category', category: cat }); setMobileMenuOpen(false); }}
+                  className="block w-full text-left py-2"
+                  style={{ color: theme.text }}
+                >
+                  {cat}
+                </button>
+              ))}
+              <hr style={{ borderColor: theme.muted + '30' }} />
+              <button 
+                onClick={() => { onNavigate({ type: 'page', pageId: 'about' }); setMobileMenuOpen(false); }}
+                className="block w-full text-left py-2"
+                style={{ color: theme.muted }}
+              >
+                আমাদের সম্পর্কে
+              </button>
+              <button 
+                onClick={() => { onNavigate({ type: 'page', pageId: 'contact' }); setMobileMenuOpen(false); }}
+                className="block w-full text-left py-2"
+                style={{ color: theme.muted }}
+              >
+                যোগাযোগ
+              </button>
+            </nav>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+
+      {/* Search Overlay */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50">
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSearchOpen(false)}
+          />
+          <div 
+            className="absolute top-0 left-0 right-0 p-4"
+            style={{ backgroundColor: theme.headerBg }}
+          >
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto flex gap-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="পণ্য খুঁজুন..."
+                autoFocus
+                className="flex-1 px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+                style={{ 
+                  borderColor: theme.muted + '40',
+                  backgroundColor: theme.background,
+                }}
+              />
+              <button 
+                type="submit"
+                className="px-6 py-3 rounded-lg text-white"
+                style={{ backgroundColor: theme.primary }}
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <button 
+                type="button"
+                onClick={() => setSearchOpen(false)}
+                className="p-3"
+              >
+                <X className="w-5 h-5" style={{ color: theme.text }} />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
