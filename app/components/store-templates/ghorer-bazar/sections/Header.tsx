@@ -2,22 +2,22 @@
  * GhorerBazar Header Component
  * 
  * Features:
- * - Announcement bar with phone number
- * - Clean white header with centered logo
- * - Mobile-first hamburger menu
- * - Search overlay
- * - Cart icon with badge
- * - Categories navigation bar
+ * - Slim announcement bar with Bangla text & phone/WhatsApp
+ * - Orange sticky header
+ * - Left: Logo + brand name
+ * - Center: Horizontal mega menu with categories
+ * - Right: Search, Account, Cart icons
+ * - Mobile: Hamburger menu
  */
 
 import { Link, useSearchParams } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import { 
-  Search, ShoppingCart, Menu, X, Phone, ChevronDown,
-  User, Heart, MapPin, Truck, RotateCcw, Shield
+  Search, ShoppingCart, Menu, X, Phone, User, ChevronDown,
+  MessageCircle
 } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
-import { GHORER_BAZAR_THEME, GHORER_BAZAR_FONTS } from '../theme';
+import { GHORER_BAZAR_THEME, GHORER_BAZAR_FONTS, GHORER_BAZAR_CATEGORIES } from '../theme';
 import type { ThemeConfig, SocialLinks } from '@db/types';
 
 interface GhorerBazarHeaderProps {
@@ -29,6 +29,7 @@ interface GhorerBazarHeaderProps {
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  onCartClick?: () => void;
 }
 
 export function GhorerBazarHeader({ 
@@ -36,24 +37,22 @@ export function GhorerBazarHeader({
   logo, 
   isPreview, 
   categories = [], 
-  currentCategory, 
+  currentCategory,
+  socialLinks,
   businessInfo,
-  config 
+  config,
+  onCartClick,
 }: GhorerBazarHeaderProps) {
-  const [searchParams] = useSearchParams();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isScrolled, setIsScrolled] = useState(false);
   const count = useCartCount();
   const theme = GHORER_BAZAR_THEME;
 
-  // Handle scroll for sticky header shadow
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Use provided categories or fallback to default grocery categories
+  const menuCategories = categories.filter(Boolean).length > 0 
+    ? categories.filter(Boolean) as string[]
+    : GHORER_BAZAR_CATEGORIES;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +61,8 @@ export function GhorerBazarHeader({
     }
   };
 
-  const validCategories = categories.filter(Boolean) as string[];
+  const phoneNumber = businessInfo?.phone || '০১৭XX-XXXXXX';
+  const whatsappNumber = socialLinks?.whatsapp || phoneNumber;
 
   return (
     <>
@@ -72,191 +72,170 @@ export function GhorerBazarHeader({
         rel="stylesheet"
       />
 
-      {/* Announcement Bar */}
+      {/* Announcement Bar - Slim with phone/WhatsApp */}
       <div 
-        className="text-white text-sm py-2.5"
-        style={{ backgroundColor: theme.primary }}
+        className="py-2 text-xs md:text-sm"
+        style={{ 
+          backgroundColor: theme.secondary,
+          color: theme.textWhite,
+          fontFamily: GHORER_BAZAR_FONTS.body,
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-6 text-white/90">
+          <p className="hidden md:block text-white/90">
+            🎉 সারাদেশে ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে | ১০০% খাঁটি পণ্যের নিশ্চয়তা
+          </p>
+          <p className="md:hidden text-white/90 text-center flex-1">
+            ১০০% খাঁটি পণ্যের নিশ্চয়তা
+          </p>
+          <div className="flex items-center gap-4">
             <a 
-              href={`tel:${businessInfo?.phone || '+8801700000000'}`}
-              className="flex items-center gap-2 hover:text-white transition"
+              href={`tel:${phoneNumber}`}
+              className="flex items-center gap-1.5 hover:text-white transition"
             >
-              <Phone className="w-4 h-4" />
-              <span className="hidden sm:inline">{businessInfo?.phone || '০১৭XX-XXXXXX'}</span>
+              <Phone className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{phoneNumber}</span>
             </a>
-            <span className="hidden md:flex items-center gap-2">
-              <Truck className="w-4 h-4" />
-              <span>ফ্রি ডেলিভারি ১০০০৳+</span>
-            </span>
-          </div>
-          <div className="hidden sm:flex items-center gap-4 text-white/90 text-xs">
-            <span className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5" />
-              ১০০% অরিজিনাল
-            </span>
-            <span className="flex items-center gap-1">
-              <RotateCcw className="w-3.5 h-3.5" />
-              ইজি রিটার্ন
-            </span>
+            <a 
+              href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-green-400 hover:text-green-300 transition"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Main Header */}
+      {/* Main Header - Orange */}
       <header 
-        className="sticky top-0 z-50 transition-shadow duration-300"
+        className="sticky top-0 z-50"
         style={{ 
           backgroundColor: theme.headerBg,
-          boxShadow: isScrolled ? theme.shadowMd : 'none',
           fontFamily: GHORER_BAZAR_FONTS.body,
         }}
       >
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Left: Menu & Search (Mobile) */}
-            <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center justify-between h-14 md:h-16">
+            {/* Left: Mobile Menu + Logo */}
+            <div className="flex items-center gap-3">
+              {/* Mobile Menu Button */}
               <button 
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition"
+                className="lg:hidden p-1.5 text-white hover:bg-white/10 rounded-lg transition"
                 aria-label="Open menu"
               >
-                <Menu className="w-6 h-6" style={{ color: theme.text }} />
-              </button>
-            </div>
-
-            {/* Left: Search (Desktop) */}
-            <div className="hidden md:flex items-center flex-1">
-              <form onSubmit={handleSearch} className="relative w-full max-w-md">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="পণ্য খুঁজুন..."
-                  className="w-full pl-4 pr-12 py-2.5 rounded-full border border-gray-200 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
-                  style={{ fontSize: '14px' }}
-                />
-                <button 
-                  type="submit"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full text-white transition hover:opacity-90"
-                  style={{ backgroundColor: theme.primary }}
-                >
-                  <Search className="w-4 h-4" />
-                </button>
-              </form>
-            </div>
-
-            {/* Center: Logo */}
-            <Link 
-              to="/" 
-              className="flex items-center justify-center px-4"
-            >
-              {logo ? (
-                <img 
-                  src={logo} 
-                  alt={storeName} 
-                  className="h-10 md:h-12 w-auto object-contain"
-                />
-              ) : (
-                <span 
-                  className="text-2xl md:text-3xl font-bold"
-                  style={{ color: theme.primary, fontFamily: GHORER_BAZAR_FONTS.heading }}
-                >
-                  {storeName}
-                </span>
-              )}
-            </Link>
-
-            {/* Right: Icons */}
-            <div className="flex items-center gap-1 md:gap-3 flex-1 justify-end">
-              {/* Search (Mobile) */}
-              <button 
-                onClick={() => setSearchOpen(true)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition md:hidden"
-                aria-label="Search"
-              >
-                <Search className="w-5 h-5" style={{ color: theme.text }} />
+                <Menu className="w-6 h-6" />
               </button>
 
-              {/* Wishlist (Desktop) */}
-              <Link 
-                to="/wishlist"
-                className="hidden md:flex p-2 hover:bg-gray-100 rounded-lg transition relative"
-                aria-label="Wishlist"
-              >
-                <Heart className="w-5 h-5" style={{ color: theme.text }} />
-              </Link>
-
-              {/* Account (Desktop) */}
-              <Link 
-                to="/account"
-                className="hidden md:flex p-2 hover:bg-gray-100 rounded-lg transition"
-                aria-label="Account"
-              >
-                <User className="w-5 h-5" style={{ color: theme.text }} />
-              </Link>
-
-              {/* Cart */}
-              <Link 
-                to="/cart" 
-                className="p-2 hover:bg-gray-100 rounded-lg transition relative"
-                aria-label="Cart"
-              >
-                <ShoppingCart className="w-5 h-5 md:w-6 md:h-6" style={{ color: theme.text }} />
-                {count > 0 && (
-                  <span 
-                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
-                    style={{ backgroundColor: theme.primary }}
-                  >
-                    {count > 99 ? '99+' : count}
-                  </span>
+              {/* Logo */}
+              <Link to="/" className="flex items-center gap-2">
+                {logo ? (
+                  <img 
+                    src={logo} 
+                    alt={storeName} 
+                    className="h-8 md:h-10 w-auto"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-lg flex items-center justify-center">
+                      <span className="text-lg md:text-xl">🏪</span>
+                    </div>
+                    <span 
+                      className="text-lg md:text-xl font-bold text-white hidden sm:block"
+                      style={{ fontFamily: GHORER_BAZAR_FONTS.heading }}
+                    >
+                      {storeName}
+                    </span>
+                  </div>
                 )}
               </Link>
             </div>
-          </div>
-        </div>
 
-        {/* Categories Navigation (Desktop) */}
-        <nav 
-          className="hidden md:block border-t"
-          style={{ borderColor: theme.borderLight }}
-        >
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-center gap-1 py-2 overflow-x-auto scrollbar-hide">
-              <Link 
-                to="/"
-                className={`px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap ${
-                  !currentCategory 
-                    ? 'text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                style={!currentCategory ? { backgroundColor: theme.primary } : {}}
-              >
-                সব পণ্য
-              </Link>
-              {validCategories.slice(0, 8).map((category) => (
+            {/* Center: Desktop Navigation - Horizontal Mega Menu */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {menuCategories.slice(0, 10).map((category) => (
                 <Link
                   key={category}
                   to={`?category=${encodeURIComponent(category)}`}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap ${
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${
                     currentCategory === category 
-                      ? 'text-white' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-white text-orange-600' 
+                      : 'text-white hover:bg-white/10'
                   }`}
-                  style={currentCategory === category ? { backgroundColor: theme.primary } : {}}
                 >
                   {category}
                 </Link>
               ))}
+              {menuCategories.length > 10 && (
+                <div className="relative group">
+                  <button className="px-3 py-2 text-sm font-medium text-white hover:bg-white/10 rounded-lg transition flex items-center gap-1">
+                    আরও <ChevronDown className="w-4 h-4" />
+                  </button>
+                  <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    {menuCategories.slice(10).map((category) => (
+                      <Link
+                        key={category}
+                        to={`?category=${encodeURIComponent(category)}`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+                      >
+                        {category}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </nav>
+
+            {/* Right: Icons */}
+            <div className="flex items-center gap-1 md:gap-2">
+              {/* Search */}
+              <button 
+                onClick={() => setSearchOpen(true)}
+                className="p-2 text-white hover:bg-white/10 rounded-lg transition"
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
+              {/* Account - Desktop only */}
+              <Link 
+                to="/account"
+                className="hidden md:flex p-2 text-white hover:bg-white/10 rounded-lg transition"
+                aria-label="Account"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+
+              {/* Cart */}
+              <button 
+                onClick={onCartClick}
+                className="p-2 text-white hover:bg-white/10 rounded-lg transition relative"
+                aria-label="Cart"
+              >
+                <ShoppingCart className="w-5 h-5 md:w-6 md:h-6" />
+                {count > 0 && (
+                  <span 
+                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1"
+                    style={{ 
+                      backgroundColor: theme.secondary,
+                      color: theme.textWhite,
+                    }}
+                  >
+                    {count > 99 ? '99+' : count}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
-        </nav>
+        </div>
       </header>
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[200] md:hidden">
+        <div className="fixed inset-0 z-[200] lg:hidden">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50"
@@ -265,53 +244,61 @@ export function GhorerBazarHeader({
           
           {/* Drawer */}
           <div 
-            className="absolute left-0 top-0 bottom-0 w-[280px] bg-white overflow-y-auto"
+            className="absolute left-0 top-0 bottom-0 w-[300px] bg-white overflow-y-auto"
             style={{ fontFamily: GHORER_BAZAR_FONTS.body }}
           >
             {/* Drawer Header */}
             <div 
-              className="sticky top-0 flex items-center justify-between p-4 text-white"
+              className="sticky top-0 flex items-center justify-between p-4"
               style={{ backgroundColor: theme.primary }}
             >
-              <span className="font-bold text-lg">{storeName}</span>
+              <span className="font-bold text-lg text-white">{storeName}</span>
               <button 
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1 hover:bg-white/20 rounded-lg transition"
+                className="p-1 text-white hover:bg-white/10 rounded-lg transition"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            {/* User Actions */}
-            <div className="p-4 border-b" style={{ borderColor: theme.borderLight }}>
-              <Link 
-                to="/account"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition"
-              >
-                <User className="w-5 h-5" style={{ color: theme.primary }} />
-                <span className="font-medium">আমার অ্যাকাউন্ট</span>
-              </Link>
-              <Link 
-                to="/orders"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition"
-              >
-                <Truck className="w-5 h-5" style={{ color: theme.primary }} />
-                <span className="font-medium">আমার অর্ডার</span>
-              </Link>
+            {/* Search in Mobile */}
+            <div className="p-4 border-b" style={{ borderColor: theme.border }}>
+              <form onSubmit={handleSearch}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="পণ্য খুঁজুন..."
+                    className="w-full pl-4 pr-10 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
+                    style={{ 
+                      borderColor: theme.border,
+                      focusRing: theme.primary,
+                    }}
+                  />
+                  <button 
+                    type="submit"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1"
+                  >
+                    <Search className="w-5 h-5" style={{ color: theme.primary }} />
+                  </button>
+                </div>
+              </form>
             </div>
 
             {/* Categories */}
             <div className="p-4">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+              <h3 
+                className="text-xs font-bold uppercase tracking-wider mb-3"
+                style={{ color: theme.textMuted }}
+              >
                 ক্যাটাগরি
               </h3>
               <div className="space-y-1">
                 <Link 
                   to="/"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium transition ${
+                  className={`block px-4 py-2.5 rounded-lg font-medium transition ${
                     !currentCategory 
                       ? 'text-white' 
                       : 'text-gray-700 hover:bg-gray-50'
@@ -320,12 +307,12 @@ export function GhorerBazarHeader({
                 >
                   সব পণ্য
                 </Link>
-                {validCategories.map((category) => (
+                {menuCategories.map((category) => (
                   <Link
                     key={category}
                     to={`?category=${encodeURIComponent(category)}`}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium transition ${
+                    className={`block px-4 py-2.5 rounded-lg font-medium transition ${
                       currentCategory === category 
                         ? 'text-white' 
                         : 'text-gray-700 hover:bg-gray-50'
@@ -338,76 +325,91 @@ export function GhorerBazarHeader({
               </div>
             </div>
 
-            {/* Help Links */}
-            <div className="p-4 border-t" style={{ borderColor: theme.borderLight }}>
+            {/* Account Links */}
+            <div className="p-4 border-t" style={{ borderColor: theme.border }}>
               <Link 
-                to="/contact"
+                to="/account"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-3 text-gray-600 hover:text-gray-900 transition"
+                className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition"
               >
-                যোগাযোগ
+                <User className="w-5 h-5" style={{ color: theme.primary }} />
+                আমার অ্যাকাউন্ট
               </Link>
-              <Link 
-                to="/faq"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-3 text-gray-600 hover:text-gray-900 transition"
+              <a 
+                href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition"
               >
-                সাধারণ জিজ্ঞাসা
-              </Link>
+                <MessageCircle className="w-5 h-5 text-green-500" />
+                WhatsApp অর্ডার
+              </a>
             </div>
           </div>
         </div>
       )}
 
-      {/* Search Overlay (Mobile) */}
+      {/* Search Overlay */}
       {searchOpen && (
-        <div className="fixed inset-0 z-[200] bg-white md:hidden">
-          <div className="p-4">
-            <form onSubmit={handleSearch} className="flex items-center gap-2">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="পণ্য খুঁজুন..."
-                  autoFocus
-                  className="w-full pl-4 pr-10 py-3 rounded-full border border-gray-200 focus:outline-none focus:border-orange-400"
-                  style={{ fontFamily: GHORER_BAZAR_FONTS.body }}
-                />
+        <div className="fixed inset-0 z-[200]">
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSearchOpen(false)}
+          />
+          <div 
+            className="absolute top-0 left-0 right-0 bg-white p-4 shadow-lg"
+            style={{ fontFamily: GHORER_BAZAR_FONTS.body }}
+          >
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="পণ্য খুঁজুন... (যেমন: মধু, খেজুর, বাদাম)"
+                    autoFocus
+                    className="w-full pl-4 pr-12 py-3 rounded-lg border-2 focus:outline-none text-lg"
+                    style={{ borderColor: theme.primary }}
+                  />
+                  <button 
+                    type="submit"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-white"
+                    style={{ backgroundColor: theme.primary }}
+                  >
+                    <Search className="w-5 h-5" />
+                  </button>
+                </div>
                 <button 
-                  type="submit"
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="p-2 text-gray-500 hover:text-gray-700"
                 >
-                  <Search className="w-5 h-5" style={{ color: theme.primary }} />
+                  <X className="w-6 h-6" />
                 </button>
               </div>
-              <button 
-                type="button"
-                onClick={() => setSearchOpen(false)}
-                className="p-2"
-              >
-                <X className="w-6 h-6 text-gray-600" />
-              </button>
+              
+              {/* Popular Searches */}
+              <div className="mt-4">
+                <p className="text-xs text-gray-500 mb-2">জনপ্রিয় সার্চ:</p>
+                <div className="flex flex-wrap gap-2">
+                  {['সুন্দরবনের মধু', 'মরিয়ম খেজুর', 'কাঠবাদাম', 'সরিষার তেল', 'গাওয়া ঘি'].map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery(term);
+                        window.location.href = `/?search=${encodeURIComponent(term)}`;
+                      }}
+                      className="px-3 py-1.5 text-sm rounded-full border hover:border-orange-400 hover:bg-orange-50 transition"
+                      style={{ borderColor: theme.border }}
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </form>
-          </div>
-
-          {/* Quick Search Suggestions */}
-          <div className="px-4 py-2">
-            <p className="text-xs text-gray-500 mb-2">জনপ্রিয় সার্চ</p>
-            <div className="flex flex-wrap gap-2">
-              {['মধু', 'খেজুর', 'বাদাম', 'তেল', 'মশলা'].map((term) => (
-                <button
-                  key={term}
-                  onClick={() => {
-                    setSearchQuery(term);
-                    window.location.href = `/?search=${encodeURIComponent(term)}`;
-                  }}
-                  className="px-3 py-1.5 rounded-full text-sm border border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition"
-                >
-                  {term}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       )}
