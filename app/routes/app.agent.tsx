@@ -5,10 +5,9 @@ import { eq, count, sql } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { Sparkles, MessageSquare, Settings, Book, Bot, Zap, TrendingUp } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { getUsageStats } from '~/utils/plans.server';
-import { ClientOnly } from '~/components/LazySection';
+import { LazyAreaChart } from '~/components/charts/LazyAreaChart';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -214,19 +213,16 @@ export default function AgentDashboard() {
                 {/* Chart Section */}
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">{t('activityOverview7Days')}</h3>
-                    <div className="h-[300px] w-full" style={{ width: '100%', height: 300, minHeight: 300 }}>
-                        <ClientOnly fallback={<div className="h-[300px] bg-gray-50 rounded animate-pulse" />}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={stats?.daily && stats.daily.length > 0 ? stats.daily : [{date: 'Today', count: 0}]}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} dy={10} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} />
-                                    <Tooltip />
-                                    <Area type="monotone" dataKey="count" stroke="#10B981" fill="#D1FAE5" strokeWidth={2} />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </ClientOnly>
-                    </div>
+                    <LazyAreaChart
+                        data={stats?.daily && stats.daily.length > 0 ? stats.daily : [{date: 'Today', count: 0}]}
+                        height={300}
+                        dataKey="count"
+                        xAxisKey="date"
+                        stroke="#10B981"
+                        fill="#D1FAE5"
+                        showGrid={true}
+                        showTooltip={true}
+                    />
                 </div>
                 
                 {/* Fallback if no agent is configured, though cards will show 0 */}

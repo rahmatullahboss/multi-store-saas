@@ -43,8 +43,57 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatCurrency as formatCurrencyUtil } from '~/utils/money';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { ClientOnly } from '~/components/LazySection';
+import { lazy, Suspense } from 'react';
+
+// Lazy load recharts to prevent hydration errors
+const RechartsComponents = lazy(() => 
+  import('recharts').then(mod => ({
+    default: ({ data, formatCurrency }: { data: any[]; formatCurrency: (val: number) => string }) => {
+      const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = mod;
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+            <XAxis 
+              dataKey="name" 
+              stroke="#64748b" 
+              fontSize={12} 
+              tickLine={false} 
+              axisLine={false} 
+            />
+            <YAxis 
+              stroke="#64748b" 
+              fontSize={12} 
+              tickLine={false} 
+              axisLine={false}
+              tickFormatter={(value) => `৳${value}`}
+            />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
+              itemStyle={{ color: '#10b981' }}
+              formatter={(value: number | undefined) => [formatCurrency(value || 0), 'Revenue']}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="revenue" 
+              stroke="#10b981" 
+              strokeWidth={2} 
+              fillOpacity={1} 
+              fill="url(#colorRevenue)" 
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    }
+  }))
+);
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Billing Management - Super Admin' }];
@@ -637,45 +686,13 @@ export default function AdminBilling() {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-white mb-6">Revenue Trend</h3>
         <div className="h-[300px] w-full">
-          <ClientOnly fallback={<div className="h-[300px] bg-slate-800/50 rounded animate-pulse" />}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#64748b" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <YAxis 
-                  stroke="#64748b" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false}
-                  tickFormatter={(value) => `৳${value}`}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
-                  itemStyle={{ color: '#10b981' }}
-                  formatter={(value: number | undefined) => [formatCurrencyUtil(value || 0, 'BDT', { fromCents: true }), 'Revenue']}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#10b981" 
-                  strokeWidth={2} 
-                  fillOpacity={1} 
-                  fill="url(#colorRevenue)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <ClientOnly fallback={<div className="h-[300px] bg-slate-800/50 rounded animate-pulse flex items-center justify-center text-slate-500">Loading chart...</div>}>
+            <Suspense fallback={<div className="h-[300px] bg-slate-800/50 rounded animate-pulse flex items-center justify-center text-slate-500">Loading chart...</div>}>
+              <RechartsComponents 
+                data={chartData} 
+                formatCurrency={(val) => formatCurrencyUtil(val, 'BDT', { fromCents: true })} 
+              />
+            </Suspense>
           </ClientOnly>
         </div>
       </div>
