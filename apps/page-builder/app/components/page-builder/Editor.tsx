@@ -216,6 +216,21 @@ export default function GrapesEditor({
         // Autosave will still work and save new content
         
         setIsEditorReady(true);
+        
+        // Auto-detect viewport and set device accordingly
+        // This ensures canvas shows mobile view when editor is opened on mobile
+        const detectAndSetDevice = () => {
+          const width = window.innerWidth;
+          if (width <= 480) {
+            editorInstance.setDevice('Mobile');
+          } else if (width <= 768) {
+            editorInstance.setDevice('Tablet');
+          }
+          // Desktop is default, no need to set explicitly
+        };
+        
+        // Set initial device based on viewport
+        detectAndSetDevice();
       });
 
       // -- Storage Events --

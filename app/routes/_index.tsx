@@ -23,6 +23,7 @@ import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks, parseFooterConfig, type LandingConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
+import { getTemplate, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { MarketingLanding } from '~/components/MarketingLanding';
