@@ -282,6 +282,17 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: SOKOL_THEME.footerBg,
     footerText: SOKOL_THEME.footerText,
   },
+  'starter-store': {
+    primary: STARTER_STORE_THEME.primary,
+    accent: STARTER_STORE_THEME.accent,
+    background: STARTER_STORE_THEME.background,
+    text: STARTER_STORE_THEME.text,
+    muted: STARTER_STORE_THEME.muted,
+    cardBg: STARTER_STORE_THEME.cardBg,
+    headerBg: STARTER_STORE_THEME.headerBg,
+    footerBg: STARTER_STORE_THEME.footerBg,
+    footerText: STARTER_STORE_THEME.footerText,
+  },
 };
 
 // ============================================================================
@@ -294,6 +305,7 @@ import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styl
 import { TURBO_SALE_THEME } from '~/components/store-templates/turbo-sale/styles/tokens';
 import { ROVO_THEME } from '~/components/store-templates/rovo/theme';
 import { SOKOL_THEME } from '~/components/store-templates/sokol/theme';
+import { STARTER_STORE_THEME } from '~/components/store-templates/starter-store/theme';
 
 const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/luxe-boutique/index').then(m => ({ default: m.LuxeBoutiqueTemplate })));
 const TechModernTemplate = React.lazy(() => import('~/components/store-templates/tech-modern/index').then(m => ({ default: m.TechModernTemplate })));
@@ -309,6 +321,7 @@ const ZenithRiseTemplate = React.lazy(() => import('~/components/store-templates
 const TurboSaleTemplate = React.lazy(() => import('~/components/store-templates/turbo-sale/index').then(m => ({ default: m.TurboSaleTemplate })));
 const RovoTemplate = React.lazy(() => import('~/components/store-templates/rovo/index').then(m => ({ default: m.RovoTemplate })));
 const SokolTemplate = React.lazy(() => import('~/components/store-templates/sokol/index').then(m => ({ default: m.SokolTemplate })));
+const StarterStoreTemplate = React.lazy(() => import('~/components/store-templates/starter-store/index').then(m => ({ default: m.StarterStoreTemplate })));
 
 // Header Components
 const DarazHeader = React.lazy(() => import('~/components/store-templates/daraz/sections/Header').then(m => ({ default: m.DarazHeader })));
@@ -557,6 +570,19 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: SokolTemplate,
     Header: SokolHeader,
     Footer: SokolFooter,
+  },
+  {
+    id: 'starter-store',
+    name: 'Starter Store',
+    description: 'Complete immersive store template with working cart, checkout, search, and all pages. Perfect for demos and quick starts.',
+    thumbnail: '/templates/starter-store.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    fonts: {
+      heading: 'Inter',
+      body: 'Inter',
+    },
+    component: StarterStoreTemplate,
   },
 ];
 
