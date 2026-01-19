@@ -90,6 +90,13 @@ export default function GrapesEditor({
   const [activeSidebarTab, setActiveSidebarTab] = useState<'widgets' | 'design' | 'structure' | 'settings'>('widgets');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar toggle
   
+  // Listen for close-mobile-sidebar event from SidebarPanel when block is inserted
+  useEffect(() => {
+    const handleCloseSidebar = () => setIsSidebarOpen(false);
+    window.addEventListener('close-mobile-sidebar', handleCloseSidebar);
+    return () => window.removeEventListener('close-mobile-sidebar', handleCloseSidebar);
+  }, []);
+  
   // Configuration state - use refs to avoid stale closures in event handlers
   const [pageConfig, setPageConfig] = useState<PageConfig>({});
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({

@@ -16,8 +16,17 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
 
   useEffect(() => {
     if (isOpen && editor) {
-      const allBlocks = editor.BlockManager.getAll().models;
-      setBlocks(allBlocks);
+      // Use editor.Blocks.getAll() which returns an array directly
+      // Fallback to BlockManager for compatibility
+      try {
+        const allBlocks = editor.Blocks?.getAll() || editor.BlockManager?.getAll() || [];
+        // Handle both array and collection types
+        const blocksArray = Array.isArray(allBlocks) ? allBlocks : (allBlocks.models || [...allBlocks]);
+        setBlocks(blocksArray);
+      } catch (e) {
+        console.error('Failed to get blocks:', e);
+        setBlocks([]);
+      }
     }
   }, [isOpen, editor]);
 

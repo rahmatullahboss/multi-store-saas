@@ -165,6 +165,43 @@ function SidebarPanelBase({
     }
   };
 
+  // Click-to-insert for mobile devices (since drag/drop doesn't work on touch)
+  const handleBlockClick = (block: any) => {
+    if (!editor) return;
+    
+    try {
+      let content = block.get?.('content') || block.getContent?.();
+      
+      // Handle lazy content (function)
+      if (typeof content === 'function') {
+        content = content();
+      }
+      
+      if (!content) {
+        console.warn('Block has no content');
+        return;
+      }
+      
+      // Add block to canvas
+      const components = editor.addComponents(content);
+      
+      // Scroll to and select the new component
+      if (components && components.length > 0) {
+        const lastComp = components[components.length - 1];
+        editor.select(lastComp);
+        lastComp.scrollIntoView?.();
+      }
+      
+      // Close sidebar on mobile after inserting
+      if (window.innerWidth < 768) {
+        // Trigger sidebar close if we're on mobile
+        window.dispatchEvent(new CustomEvent('close-mobile-sidebar'));
+      }
+    } catch (e) {
+      console.error('Failed to insert block:', e);
+    }
+  };
+
   return (
     <>
       <style dangerouslySetInnerHTML={{
@@ -403,16 +440,22 @@ function SidebarPanelBase({
                             draggable
                             onDragStart={(ev) => handleDragStart(block, ev)}
                             onDragEnd={(ev) => handleDragEnd(ev)}
-                            className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-grab group bg-white"
+                            onClick={() => handleBlockClick(block)}
+                            onTouchEnd={(ev) => {
+                              // Prevent ghost click on touch devices
+                              ev.preventDefault();
+                              handleBlockClick(block);
+                            }}
+                            className="flex flex-col items-center justify-center p-3 border border-gray-100 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-pointer md:cursor-grab group bg-white active:scale-95 active:bg-indigo-50"
                           >
                             <div
-                              className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
+                              className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110 pointer-events-none"
                               dangerouslySetInnerHTML={{
                                 __html: block.getMedia() || `
                                   <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
                                 ` }}
                             />
-                            <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
+                            <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase pointer-events-none">
                               {block.getLabel()}
                             </span>
                           </div>
