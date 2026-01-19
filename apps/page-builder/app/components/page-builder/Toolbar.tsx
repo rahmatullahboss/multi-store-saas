@@ -619,6 +619,7 @@ export default function EditorToolbar({
         isOpen={isConnectorModalOpen}
         onClose={() => setIsConnectorModalOpen(false)}
         htmlContent={editor?.getHtml() || ''}
+        editor={editor}
         onApply={(connections) => {
           if (!editor) return;
           

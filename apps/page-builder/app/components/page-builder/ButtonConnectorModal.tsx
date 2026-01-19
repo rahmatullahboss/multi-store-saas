@@ -8,7 +8,7 @@
  * - Call Now → Dial phone number
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Link2, ShoppingCart, Phone, MessageCircle, Package, Check, AlertCircle, Search, Loader2 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -59,6 +59,9 @@ interface ButtonConnectorModalProps {
   htmlContent: string;
   defaultPhoneNumber?: string;
   onApply: (connections: ButtonConnection[]) => void;
+  // Optional: pass editor for direct component attribute reading (more reliable)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  editor?: any;
 }
 
 export interface ButtonConnection {
@@ -74,9 +77,10 @@ export default function ButtonConnectorModal({
   onClose,
   htmlContent,
   defaultPhoneNumber = '',
-  onApply
+  onApply,
+  editor
 }: ButtonConnectorModalProps) {
-  const { t, lang } = useTranslation();
+  const { lang } = useTranslation();
   
   const [detectedButtons, setDetectedButtons] = useState<DetectedButton[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -90,8 +94,8 @@ export default function ButtonConnectorModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Detect button type from text
-  const detectButtonType = (text: string): ButtonActionType => {
+  // Detect button type from text - wrapped in useCallback to prevent dependency issues
+  const detectButtonType = useCallback((text: string): ButtonActionType => {
     const lowerText = text.toLowerCase().trim();
     
     for (const pattern of BUTTON_PATTERNS.order) {
@@ -108,71 +112,141 @@ export default function ButtonConnectorModal({
     }
     
     return 'unknown';
-  };
+  }, []);
 
-  // Scan HTML for buttons
+  // Scan for buttons - prefer reading directly from GrapesJS components if editor is available
   useEffect(() => {
-    if (!isOpen || !htmlContent) return;
-
+    if (!isOpen) return;
+    
+    const buttons: DetectedButton[] = [];
+    
     try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
+      // Method 1: Read directly from GrapesJS components (more reliable for saved attributes)
+      if (editor) {
+        const wrapper = editor.getWrapper ? editor.getWrapper() : editor.DomComponents?.getWrapper();
+        if (wrapper) {
+          // Find all button-like components
+          const allComponents = wrapper.findType('*') || [];
+          let buttonIndex = 0;
+          
+          allComponents.forEach((comp: any) => {
+            const tagName = (comp.get('tagName') || 'div').toLowerCase();
+            const attrs = comp.getAttributes() || {};
+            const classes = comp.getClasses?.() || [];
+            const classString = classes.join(' ').toLowerCase();
+            
+            // Check if this is a button-like element
+            const isButton = 
+              tagName === 'button' || 
+              tagName === 'a' ||
+              attrs['role'] === 'button' ||
+              classString.includes('btn') ||
+              classString.includes('button') ||
+              classString.includes('whatsapp') ||
+              classString.includes('call') ||
+              classString.includes('order') ||
+              classString.includes('floating') ||
+              attrs['data-ozzyl-action'] ||
+              attrs['data-action'];
+            
+            if (!isButton) return;
+            
+            // Get text content
+            const text = comp.get('content') || comp.view?.el?.textContent?.trim() || '';
+            if (!text || text.length > 50) return;
+            
+            // Check for existing connections - read directly from component attributes!
+            const existingAction = attrs['data-ozzyl-action'] as ButtonActionType | null;
+            const existingProduct = attrs['data-ozzyl-product'];
+            const existingPhone = attrs['data-ozzyl-phone'];
+            
+            const type = existingAction || detectButtonType(text);
+            
+            // Generate selector
+            let selector = '';
+            if (attrs.id) {
+              selector = `#${attrs.id}`;
+            } else if (classes.length > 0) {
+              const validClasses = classes.filter((c: string) => c && !c.includes(':') && !c.includes('['));
+              if (validClasses.length > 0) {
+                selector = `${tagName}.${validClasses.slice(0, 2).join('.')}`;
+              }
+            }
+            if (!selector) {
+              selector = `${tagName}:nth-of-type(${buttonIndex + 1})`;
+            }
+            
+            buttons.push({
+              id: `btn-${buttonIndex}`,
+              text,
+              tagName,
+              type,
+              selector,
+              connected: !!existingAction,
+              productId: existingProduct ? parseInt(existingProduct) : undefined,
+              phoneNumber: existingPhone || undefined
+            });
+            
+            buttonIndex++;
+          });
+        }
+      }
       
-      // Find all buttons, anchors, and floating action elements
-      // Extended selectors to catch floating WhatsApp, call buttons, etc.
-      const elements = doc.querySelectorAll(
-        'button, a, [role="button"], .btn, [class*="button"], ' +
-        '.whatsapp-link, [data-whatsapp], a[href*="wa.me"], a[href*="whatsapp"], ' +
-        'a[href^="tel:"], .floating-btn, [class*="floating"], [class*="whatsapp"], ' +
-        '[class*="call-btn"], [class*="order-btn"], [data-action]'
-      );
-      const buttons: DetectedButton[] = [];
-      
-      elements.forEach((el, index) => {
-        const text = el.textContent?.trim() || '';
-        if (!text || text.length > 50) return; // Skip empty or very long text
+      // Method 2: Fallback to HTML parsing if no editor or no buttons found
+      if (buttons.length === 0 && htmlContent) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
         
-        const tagName = el.tagName.toLowerCase();
+        const elements = doc.querySelectorAll(
+          'button, a, [role="button"], .btn, [class*="button"], ' +
+          '.whatsapp-link, [data-whatsapp], a[href*="wa.me"], a[href*="whatsapp"], ' +
+          'a[href^="tel:"], .floating-btn, [class*="floating"], [class*="whatsapp"], ' +
+          '[class*="call-btn"], [class*="order-btn"], [data-action], [data-ozzyl-action]'
+        );
         
-        // Check for existing connections
-        const existingAction = el.getAttribute('data-ozzyl-action') as ButtonActionType | null;
-        const existingProduct = el.getAttribute('data-ozzyl-product');
-        const existingPhone = el.getAttribute('data-ozzyl-phone');
-        
-        const type = existingAction || detectButtonType(text);
-        
-        // Generate a selector
-        let selector = '';
-        if (el.id) {
-          selector = `#${el.id}`;
-        } else if (el.className && typeof el.className === 'string') {
-          const classes = el.className.split(' ').filter(c => c && !c.includes(':') && !c.includes('[') && !c.includes(']'));
-          if (classes.length > 0) {
-            selector = `${tagName}.${classes.slice(0, 2).join('.')}`;
+        elements.forEach((el, index) => {
+          const text = el.textContent?.trim() || '';
+          if (!text || text.length > 50) return;
+          
+          const tagName = el.tagName.toLowerCase();
+          const existingAction = el.getAttribute('data-ozzyl-action') as ButtonActionType | null;
+          const existingProduct = el.getAttribute('data-ozzyl-product');
+          const existingPhone = el.getAttribute('data-ozzyl-phone');
+          
+          const type = existingAction || detectButtonType(text);
+          
+          let selector = '';
+          if (el.id) {
+            selector = `#${el.id}`;
+          } else if (el.className && typeof el.className === 'string') {
+            const classes = el.className.split(' ').filter(c => c && !c.includes(':') && !c.includes('[') && !c.includes(']'));
+            if (classes.length > 0) {
+              selector = `${tagName}.${classes.slice(0, 2).join('.')}`;
+            }
           }
-        }
-        if (!selector) {
-          selector = `${tagName}:nth-of-type(${index + 1})`;
-        }
-        
-        buttons.push({
-          id: `btn-${index}`,
-          text,
-          tagName,
-          type,
-          selector,
-          connected: !!existingAction,
-          productId: existingProduct ? parseInt(existingProduct) : undefined,
-          phoneNumber: existingPhone || undefined
+          if (!selector) {
+            selector = `${tagName}:nth-of-type(${index + 1})`;
+          }
+          
+          buttons.push({
+            id: `btn-${index}`,
+            text,
+            tagName,
+            type,
+            selector,
+            connected: !!existingAction,
+            productId: existingProduct ? parseInt(existingProduct) : undefined,
+            phoneNumber: existingPhone || undefined
+          });
         });
-      });
+      }
 
       setDetectedButtons(buttons);
     } catch (err) {
-      console.error('Failed to parse HTML:', err);
-      setError(lang === 'bn' ? 'HTML পার্স করতে সমস্যা হয়েছে' : 'Failed to parse HTML');
+      console.error('Failed to scan buttons:', err);
+      setError(lang === 'bn' ? 'বাটন খুঁজতে সমস্যা হয়েছে' : 'Failed to scan buttons');
     }
-  }, [isOpen, htmlContent, lang]);
+  }, [isOpen, htmlContent, editor, lang, detectButtonType]);
 
   // Fetch products
   useEffect(() => {
