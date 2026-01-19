@@ -5,7 +5,7 @@
  * for non-homepage store pages (cart, product detail, checkout, etc.)
  */
 
-import type { ReactNode } from 'react';
+import { type ReactNode, Suspense } from 'react';
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
 import { StorePushPrompt } from '~/components/store/StorePushPrompt';
@@ -85,28 +85,30 @@ export function StorePageWrapper({
         )}
 
         {/* Header - SSR Safe */}
-        {template.Header ? (
-          <template.Header
-            storeName={storeName}
-            logo={logo}
-            isPreview={isPreview}
-            config={config}
-            categories={categories}
-            currentCategory={currentCategory}
-            socialLinks={socialLinks}
-          />
-        ) : (
-          <StoreHeader
-            storeName={storeName}
-            logo={logo}
-            theme={resolvedTheme}
-            templateId={templateId}
-            cartCount={cartCount}
-            storeId={storeId}
-            config={config}
-            customer={customer}
-          />
-        )}
+        <Suspense fallback={<div className="h-16 bg-gray-100 animate-pulse" />}>
+          {template.Header ? (
+            <template.Header
+              storeName={storeName}
+              logo={logo}
+              isPreview={isPreview}
+              config={config}
+              categories={categories}
+              currentCategory={currentCategory}
+              socialLinks={socialLinks}
+            />
+          ) : (
+            <StoreHeader
+              storeName={storeName}
+              logo={logo}
+              theme={resolvedTheme}
+              templateId={templateId}
+              cartCount={cartCount}
+              storeId={storeId}
+              config={config}
+              customer={customer}
+            />
+          )}
+        </Suspense>
 
         {/* Main Content */}
         <main className="relative z-10">
@@ -117,28 +119,30 @@ export function StorePageWrapper({
         </main>
 
         {/* Footer - SSR Safe */}
-        {template.Footer ? (
-          <template.Footer
-            storeName={storeName}
-            logo={logo}
-            socialLinks={socialLinks}
-            footerConfig={footerConfig}
-            businessInfo={businessInfo}
-            categories={categories}
-          />
-        ) : (
-          <StoreFooter
-            storeName={storeName}
-            logo={logo}
-            theme={resolvedTheme}
-            templateId={templateId}
-            socialLinks={socialLinks}
-            businessInfo={businessInfo}
-            planType={planType}
-            showPoweredBy={footerConfig?.showPoweredBy ?? true}
-            config={config}
-          />
-        )}
+        <Suspense fallback={<div className="h-32 bg-gray-100 animate-pulse" />}>
+          {template.Footer ? (
+            <template.Footer
+              storeName={storeName}
+              logo={logo}
+              socialLinks={socialLinks}
+              footerConfig={footerConfig}
+              businessInfo={businessInfo}
+              categories={categories}
+            />
+          ) : (
+            <StoreFooter
+              storeName={storeName}
+              logo={logo}
+              theme={resolvedTheme}
+              templateId={templateId}
+              socialLinks={socialLinks}
+              businessInfo={businessInfo}
+              planType={planType}
+              showPoweredBy={footerConfig?.showPoweredBy ?? true}
+              config={config}
+            />
+          )}
+        </Suspense>
       </div>
     </WishlistProvider>
   );
