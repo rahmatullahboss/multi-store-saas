@@ -26,6 +26,7 @@ import { parseThemeConfig, parseSocialLinks, parseFooterConfig, type LandingConf
 import { getTemplate, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { WishlistProvider } from '~/contexts/WishlistContext';
 import { MarketingLanding } from '~/components/MarketingLanding';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { useTrackVisit } from '~/hooks/use-track-visit';
@@ -700,6 +701,7 @@ export default function Index() {
   const { component: StoreTemplateComponent } = getStoreTemplate(storeTemplateId);
   
   // Suspense is required because store templates use React.lazy() for code splitting
+  // WishlistProvider ensures sections that use useWishlist hook work correctly
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -709,22 +711,24 @@ export default function Index() {
         </div>
       </div>
     }>
-      <StoreTemplateComponent
-        storeName={data.storeName}
-        storeId={data.storeId}
-        logo={data.logo}
-        theme={data.theme}
-        fontFamily={data.fontFamily}
-        products={data.products || []}
-        categories={data.categories || []}
-        currentCategory={data.currentCategory}
-        config={data.themeConfig as ThemeConfig | null}
-        currency={data.currency}
-        socialLinks={data.socialLinks as SocialLinks | null}
-        footerConfig={data.footerConfig as FooterConfig | null}
-        businessInfo={data.businessInfo}
-        planType={data.planType}
-      />
+      <WishlistProvider>
+        <StoreTemplateComponent
+          storeName={data.storeName}
+          storeId={data.storeId}
+          logo={data.logo}
+          theme={data.theme}
+          fontFamily={data.fontFamily}
+          products={data.products || []}
+          categories={data.categories || []}
+          currentCategory={data.currentCategory}
+          config={data.themeConfig as ThemeConfig | null}
+          currency={data.currency}
+          socialLinks={data.socialLinks as SocialLinks | null}
+          footerConfig={data.footerConfig as FooterConfig | null}
+          businessInfo={data.businessInfo}
+          planType={data.planType}
+        />
+      </WishlistProvider>
     </Suspense>
   );
 }
