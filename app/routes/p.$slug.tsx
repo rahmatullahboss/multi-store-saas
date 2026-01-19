@@ -14,11 +14,9 @@
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, sql, asc } from 'drizzle-orm';
-import { landingPages, savedLandingConfigs, stores, products, productVariants, orderBumps, templateAnalytics } from '@db/schema';
+import { eq, and, asc } from 'drizzle-orm';
+import { landingPages, stores, products, productVariants } from '@db/schema';
 import { builderPages, builderSections } from '@db/schema_page_builder';
-import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
-import { getTemplate, DEFAULT_TEMPLATE_ID, type TemplateProps, type SerializedProduct } from '~/templates/registry';
 import { useTrackVisit } from '~/hooks/use-track-visit';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
@@ -29,39 +27,6 @@ import { TemplateLayoutRenderer } from '~/components/page-builder/TemplateLayout
 interface CustomPageData {
   type: 'custom';
   page: typeof landingPages.$inferSelect;
-}
-
-interface QuickPageData {
-  type: 'quick';
-  storeId: number;
-  storeName: string;
-  currency: string;
-  config: LandingConfig;
-  product: SerializedProduct | null;
-  productVariants: Array<{
-    id: number;
-    option1Name: string | null;
-    option1Value: string | null;
-    option2Name: string | null;
-    option2Value: string | null;
-    price: number | null;
-    inventory: number | null;
-    isAvailable: boolean | null;
-  }>;
-  orderBumps: Array<{
-    id: number;
-    title: string;
-    description: string | null;
-    discount: number;
-    bumpProduct: {
-      id: number;
-      title: string;
-      price: number;
-      imageUrl: string | null;
-    };
-  }>;
-  planType: string;
-  landingPageId: number; // For Analytics
 }
 
 // Page Builder v2 data type
@@ -110,7 +75,7 @@ interface BuilderPageData {
   }>;
 }
 
-type LoaderData = CustomPageData | QuickPageData | BuilderPageData;
+type LoaderData = CustomPageData | BuilderPageData;
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data || 'error' in data) {
@@ -129,21 +94,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     ];
   }
 
-  if (data.type === 'custom') {
-    return [{ title: data.page.name }];
-  } else {
-    // Quick Builder SEO
-    const config = data.config as LandingConfig;
-    const title = config.seoTitle || config.headline || data.storeName;
-    const description = config.seoDescription || config.subheadline || '';
-
-    return [
-      { title },
-      { name: 'description', content: description },
-      { property: 'og:title', content: title },
-      { property: 'og:description', content: description },
-    ];
-  }
+  // Custom page (GrapesJS)
+  return [{ title: data.page.name || 'Page' }];
 };
 
 export async function loader({ params, context, request: _request }: LoaderFunctionArgs) {
@@ -314,121 +266,7 @@ export async function loader({ params, context, request: _request }: LoaderFunct
     return json({ type: 'custom', page: customPage } as CustomPageData);
   }
 
-  // 2. Try Fetching Campaign Page (Quick Builder)
-  const campaignPage = await db
-    .select()
-    .from(savedLandingConfigs)
-    .where(
-      and(
-        eq(savedLandingConfigs.storeId, storeId as number),
-        eq(savedLandingConfigs.offerSlug, slug),
-        eq(savedLandingConfigs.isActive, true)
-      )
-    )
-    .limit(1)
-    .get();
-
-  if (campaignPage) {
-    // Fetch dependencies for Quick Builder Template
-    const storeResult = await db.select().from(stores).where(eq(stores.id, storeId as number)).limit(1).get();
-    if (!storeResult) throw new Response('Store not found', { status: 404 });
-
-    const config = parseLandingConfig(campaignPage.landingConfig as string | null) || defaultLandingConfig;
-
-    // Fetch Product Data (Fallback to store's featured product)
-    const featuredProductId = storeResult.featuredProductId;
-    let product: SerializedProduct | null = null;
-    let productVariantsData: any[] = [];
-    let orderBumpsData: any[] = [];
-
-    if (featuredProductId) {
-      const p = await db.select().from(products).where(eq(products.id, featuredProductId)).limit(1).get();
-
-      if (p) {
-        product = {
-          id: p.id,
-          storeId: p.storeId,
-          title: p.title,
-          description: p.description,
-          price: p.price,
-          compareAtPrice: p.compareAtPrice,
-          imageUrl: p.imageUrl,
-        };
-
-        productVariantsData = await db
-          .select({
-            id: productVariants.id,
-            option1Name: productVariants.option1Name,
-            option1Value: productVariants.option1Value,
-            option2Name: productVariants.option2Name,
-            option2Value: productVariants.option2Value,
-            price: productVariants.price,
-            inventory: productVariants.inventory,
-            isAvailable: productVariants.isAvailable,
-          })
-          .from(productVariants)
-          .where(eq(productVariants.productId, p.id));
-
-        const bumps = await db
-          .select({
-            id: orderBumps.id,
-            title: orderBumps.title,
-            description: orderBumps.description,
-            discount: orderBumps.discount,
-            bumpProductId: orderBumps.bumpProductId,
-          })
-          .from(orderBumps)
-          .where(and(eq(orderBumps.storeId, storeId as number), eq(orderBumps.productId, p.id), eq(orderBumps.isActive, true)));
-
-        for (const bump of bumps) {
-          const bp = await db.select().from(products).where(eq(products.id, bump.bumpProductId)).limit(1).get();
-          if (bp) {
-            orderBumpsData.push({
-              ...bump,
-              discount: bump.discount ?? 0,
-              bumpProduct: {
-                id: bp.id,
-                title: bp.title,
-                price: bp.price,
-                imageUrl: bp.imageUrl,
-              }
-            });
-          }
-        }
-      }
-    }
-
-    // Async Tracking
-    context.cloudflare.ctx.waitUntil((async () => {
-      // Update Page View Count
-      await db.update(savedLandingConfigs)
-        .set({ viewCount: sql`${savedLandingConfigs.viewCount} + 1` })
-        .where(eq(savedLandingConfigs.id, campaignPage.id));
-
-      // Update Template Analytics
-      const templateId = config.templateId || DEFAULT_TEMPLATE_ID;
-      const existing = await db.select().from(templateAnalytics).where(and(eq(templateAnalytics.storeId, storeId as number), eq(templateAnalytics.templateId, templateId))).limit(1).get();
-      if (existing) {
-        await db.update(templateAnalytics).set({ pageViews: sql`${templateAnalytics.pageViews} + 1`, updatedAt: new Date() }).where(eq(templateAnalytics.id, existing.id));
-      } else {
-        await db.insert(templateAnalytics).values({ storeId: storeId as number, templateId, pageViews: 1, ordersGenerated: 0, revenueGenerated: 0, updatedAt: new Date() });
-      }
-    })());
-
-    return json({
-      type: 'quick',
-      storeId: storeResult.id,
-      storeName: storeResult.name,
-      currency: storeResult.currency || 'BDT',
-      config,
-      product,
-      productVariants: productVariantsData,
-      orderBumps: orderBumpsData,
-      planType: storeResult.planType || 'free',
-      landingPageId: campaignPage.id,
-    } as QuickPageData);
-  }
-
+  // No page found - throw 404
   throw new Response('Page not found', { status: 404 });
 }
 
@@ -439,11 +277,8 @@ export default function PublishedPageRoute() {
     return <BuilderPageRenderer data={data} />;
   }
   
-  if (data.type === 'custom') {
-    return <CustomPageRenderer page={data.page} />;
-  } else {
-    return <QuickPageRenderer data={data as unknown as QuickPageData} />;
-  }
+  // Custom page (GrapesJS)
+  return <CustomPageRenderer page={data.page} />;
 }
 
 // Sub-component for Page Builder v2 pages
@@ -546,36 +381,4 @@ function CustomPageRenderer({ page }: { page: any }) {
       `}} />
     </>
   );
-}
-
-// Sub-component for Quick Builder Pages
-function QuickPageRenderer({ data }: { data: QuickPageData }) {
-  const { config } = data;
-  const templateId = config.templateId || DEFAULT_TEMPLATE_ID;
-  const { component: TemplateComponent } = getTemplate(templateId);
-
-  // Default product if null (shouldn't happen in valid setups but safety first)
-  const productStub: SerializedProduct = data.product || {
-    id: 0,
-    storeId: data.storeId,
-    title: 'Product Not Found',
-    description: '',
-    price: 0,
-    compareAtPrice: null,
-    imageUrl: '',
-  };
-
-  const templateProps: TemplateProps = {
-    storeName: data.storeName,
-    storeId: data.storeId,
-    currency: data.currency,
-    config: config,
-    product: productStub,
-    productVariants: data.productVariants,
-    orderBumps: data.orderBumps,
-    planType: data.planType,
-    landingPageId: data.landingPageId,
-  };
-
-  return <TemplateComponent {...templateProps} />;
 }
