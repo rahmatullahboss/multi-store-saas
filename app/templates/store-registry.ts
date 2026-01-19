@@ -184,15 +184,15 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerText: '#FFFFFF',
   },
   'ghorer-bazar': {
-    primary: '#F28C38',
-    accent: '#F28C38',
-    background: '#F5F5F5',
-    text: '#212121',
-    muted: '#757575',
-    cardBg: '#FFFFFF',
-    headerBg: '#F28C38',
-    footerBg: '#F5F5F5',
-    footerText: '#424242',
+    primary: '#fc8934',       // Vibrant Orange (exact from ghorerbazar.com)
+    accent: '#e53935',        // Red for sale badges
+    background: '#f5f5f5',    // Light gray page background
+    text: '#212121',          // Primary text
+    muted: '#757575',         // Muted text
+    cardBg: '#ffffff',        // White card background
+    headerBg: '#ffffff',      // White header
+    footerBg: '#1a1a1a',      // Dark footer
+    footerText: '#ffffff',    // White footer text
   },
   'nova-lux': {
     primary: '#1C1C1E', // DEEP CHARCOAL
