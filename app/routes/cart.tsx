@@ -10,37 +10,34 @@ import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-r
 import { useLoaderData, useFetcher } from '@remix-run/react';
 import { eq, and, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { products, stores } from '@db/schema';
+import { products } from '@db/schema';
 import { parseSocialLinks } from '@db/types';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { StoreSectionRenderer } from '~/components/store/StoreSectionRenderer';
 import { resolveTemplate, type CartContext } from '~/lib/template-resolver.server';
+import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { store, storeId, cloudflare } = context;
+  // Use resolveStore for dev fallback support
+  const storeContext = await resolveStore(context, request);
   
-  if (!store || !storeId) {
+  if (!storeContext) {
     throw new Response('Store not found', { status: 404 });
   }
   
-  const db = drizzle(cloudflare.env.DB);
-  
-  // Get store data
-  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId as number)).limit(1);
-  const storeData = storeResult[0];
-  
-  if (!storeData) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId, store } = storeContext;
   
   // Route guard: Check if store routes are enabled
-  if (storeData.storeEnabled === false) {
+  if (store.storeEnabled === false) {
     throw new Response('Store mode is not enabled for this shop.', { status: 404 });
   }
+  
+  // Use store data directly from storeContext
+  const storeData = store;
   
   // Parse theme
   let themeConfig = null;
@@ -66,10 +63,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
   
   // Load customer session
-  const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
+  const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
   
   // Template resolution (NEW SYSTEM)
-  const template = await resolveTemplate(cloudflare.env.DB, storeId as number, 'cart');
+  const template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'cart');
   
   return json({
     storeId: storeId as number,
@@ -88,13 +85,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { storeId, cloudflare } = context;
+  // Use resolveStore for dev fallback support
+  const storeContext = await resolveStore(context, request);
   
-  if (!storeId) {
+  if (!storeContext) {
     return json({ error: 'Store not found' }, { status: 404 });
   }
   
-  const db = drizzle(cloudflare.env.DB);
+  const { storeId } = storeContext;
+  const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();
   const productIds = formData.get('productIds');
   
