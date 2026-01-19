@@ -121,76 +121,114 @@ export default function ButtonConnectorModal({
     const buttons: DetectedButton[] = [];
     
     try {
-      // Method 1: Read directly from GrapesJS components (more reliable for saved attributes)
-      if (editor) {
-        const wrapper = editor.getWrapper ? editor.getWrapper() : editor.DomComponents?.getWrapper();
-        if (wrapper) {
-          // Find all button-like components
-          const allComponents = wrapper.findType('*') || [];
-          let buttonIndex = 0;
-          
-          allComponents.forEach((comp: any) => {
-            const tagName = (comp.get('tagName') || 'div').toLowerCase();
-            const attrs = comp.getAttributes() || {};
-            const classes = comp.getClasses?.() || [];
-            const classString = classes.join(' ').toLowerCase();
+        // Method 1: Read directly from GrapesJS components (more reliable for saved attributes)
+        if (editor) {
+          const wrapper = editor.getWrapper ? editor.getWrapper() : editor.DomComponents?.getWrapper();
+          if (wrapper) {
+            // Find all button-like components
+            const allComponents = wrapper.findType('*') || [];
+            let buttonIndex = 0;
             
-            // Check if this is a button-like element
-            const isButton = 
-              tagName === 'button' || 
-              tagName === 'a' ||
-              attrs['role'] === 'button' ||
-              classString.includes('btn') ||
-              classString.includes('button') ||
-              classString.includes('whatsapp') ||
-              classString.includes('call') ||
-              classString.includes('order') ||
-              classString.includes('floating') ||
-              attrs['data-ozzyl-action'] ||
-              attrs['data-action'];
-            
-            if (!isButton) return;
-            
-            // Get text content
-            const text = comp.get('content') || comp.view?.el?.textContent?.trim() || '';
-            if (!text || text.length > 50) return;
-            
-            // Check for existing connections - read directly from component attributes!
-            const existingAction = attrs['data-ozzyl-action'] as ButtonActionType | null;
-            const existingProduct = attrs['data-ozzyl-product'];
-            const existingPhone = attrs['data-ozzyl-phone'];
-            
-            const type = existingAction || detectButtonType(text);
-            
-            // Generate selector
-            let selector = '';
-            if (attrs.id) {
-              selector = `#${attrs.id}`;
-            } else if (classes.length > 0) {
-              const validClasses = classes.filter((c: string) => c && !c.includes(':') && !c.includes('['));
-              if (validClasses.length > 0) {
-                selector = `${tagName}.${validClasses.slice(0, 2).join('.')}`;
+            allComponents.forEach((comp: any) => {
+              const tagName = (comp.get('tagName') || 'div').toLowerCase();
+              
+              // Get attributes - try multiple methods for reliability
+              let attrs: Record<string, string> = {};
+              try {
+                // Method 1: getAttributes()
+                attrs = comp.getAttributes() || {};
+              } catch {
+                // Method 2: Read from view element
+                try {
+                  const el = comp.view?.el;
+                  if (el) {
+                    const attrList = el.attributes as NamedNodeMap;
+                    for (let i = 0; i < attrList.length; i++) {
+                      const attr = attrList[i];
+                      attrs[attr.name] = attr.value;
+                    }
+                  }
+                } catch {
+                  // Fallback: use component's get('attributes')
+                  attrs = comp.get('attributes') || {};
+                }
               }
-            }
-            if (!selector) {
-              selector = `${tagName}:nth-of-type(${buttonIndex + 1})`;
-            }
-            
-            buttons.push({
-              id: `btn-${buttonIndex}`,
-              text,
-              tagName,
-              type,
-              selector,
-              connected: !!existingAction,
-              productId: existingProduct ? parseInt(existingProduct) : undefined,
-              phoneNumber: existingPhone || undefined
+              
+              const classes = comp.getClasses?.() || [];
+              const classString = classes.join(' ').toLowerCase();
+              
+              // Check if this is a button-like element
+              const isButton = 
+                tagName === 'button' || 
+                tagName === 'a' ||
+                attrs['role'] === 'button' ||
+                classString.includes('btn') ||
+                classString.includes('button') ||
+                classString.includes('whatsapp') ||
+                classString.includes('call') ||
+                classString.includes('order') ||
+                classString.includes('floating') ||
+                attrs['data-ozzyl-action'] ||
+                attrs['data-action'];
+              
+              if (!isButton) return;
+              
+              // Get text content - try multiple methods
+              let text = '';
+              try {
+                text = comp.get('content') || '';
+                if (!text && comp.view?.el) {
+                  text = comp.view.el.textContent?.trim() || '';
+                }
+                if (!text) {
+                  // Try to get text from child components
+                  const children = comp.components();
+                  if (children && children.length) {
+                    text = children.map((c: any) => c.get('content') || c.view?.el?.textContent || '').join(' ').trim();
+                  }
+                }
+              } catch {
+                text = '';
+              }
+              
+              if (!text || text.length > 50) return;
+              
+              // Check for existing connections - read directly from component attributes!
+              const existingAction = attrs['data-ozzyl-action'] as ButtonActionType | null;
+              const existingProduct = attrs['data-ozzyl-product'];
+              const existingPhone = attrs['data-ozzyl-phone'];
+              
+              const type = existingAction || detectButtonType(text);
+              
+              // Generate selector
+              let selector = '';
+              if (attrs.id) {
+                selector = `#${attrs.id}`;
+              } else if (classes.length > 0) {
+                const validClasses = classes.filter((c: string) => c && !c.includes(':') && !c.includes('['));
+                if (validClasses.length > 0) {
+                  selector = `${tagName}.${validClasses.slice(0, 2).join('.')}`;
+                }
+              }
+              if (!selector) {
+                selector = `${tagName}:nth-of-type(${buttonIndex + 1})`;
+              }
+              
+              buttons.push({
+                id: `btn-${buttonIndex}`,
+                text,
+                tagName,
+                type,
+                selector,
+                connected: !!existingAction,
+                productId: existingProduct ? parseInt(existingProduct) : undefined,
+                phoneNumber: existingPhone || undefined
+              });
+              
+              buttonIndex++;
             });
-            
-            buttonIndex++;
-          });
+          }
         }
-      }
       
       // Method 2: Fallback to HTML parsing if no editor or no buttons found
       if (buttons.length === 0 && htmlContent) {
