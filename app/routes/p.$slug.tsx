@@ -160,6 +160,13 @@ export async function loader({ params, context, request: _request }: LoaderFunct
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // ========== FETCH STORE's homeEntry FOR SEO REDIRECT ==========
+  const [storeInfo] = await db
+    .select({ homeEntry: stores.homeEntry })
+    .from(stores)
+    .where(eq(stores.id, storeId as number))
+    .limit(1);
+
   // ========== 1. TRY PAGE BUILDER V2 (builder_pages) ==========
   const [builderPage] = await db
     .select()
@@ -174,6 +181,20 @@ export async function loader({ params, context, request: _request }: LoaderFunct
     .limit(1);
 
   if (builderPage) {
+    // ========== SEO: 301 REDIRECT IF THIS PAGE IS HOMEPAGE ==========
+    // Prevents duplicate content on /p/{slug} and / for the same page
+    const homeEntry = storeInfo?.homeEntry || 'store_home';
+    const isHomepage = homeEntry === `page:${builderPage.id}`;
+    
+    if (isHomepage) {
+      return new Response(null, {
+        status: 301,
+        headers: {
+          'Location': '/',
+          'Cache-Control': 'public, max-age=3600', // Cache redirect for 1 hour
+        },
+      });
+    }
     // Get sections with published props
     const sections = await db
       .select()
