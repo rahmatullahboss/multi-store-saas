@@ -7,18 +7,39 @@
  * - Simulated checkout (no real orders)
  * - Search functionality  
  * - Static pages (About, Contact, FAQ, Policies)
+ * - Product reviews, variants, related products
  * - Responsive design (mobile/desktop)
  */
 
 import { Link, useSearchParams } from '@remix-run/react';
 import { useState, useCallback, createContext, useContext, useMemo } from 'react';
 import { 
-  ShoppingCart, Search, Menu, X, ChevronRight,
+  ShoppingCart, Search, Menu, X, ChevronLeft, ChevronRight,
   Star, Plus, Minus, Trash2, Check, Phone, Mail, MapPin,
-  Facebook, Instagram, ChevronDown, Heart, Truck, Shield, RotateCcw
+  Facebook, Instagram, ChevronDown, Heart, Share2, Truck, Shield, RotateCcw,
+  Home, Grid, Tag, Info, HelpCircle, FileText, Eye
 } from 'lucide-react';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { STARTER_STORE_THEME, STARTER_STORE_FONTS } from './theme';
+import {
+  DEMO_PRODUCTS,
+  DEMO_CATEGORIES,
+  DEMO_COLLECTIONS,
+  DEMO_REVIEWS,
+  DEMO_PAGES,
+  DEMO_FAQ,
+  DEMO_SOCIAL_LINKS,
+  DEMO_BUSINESS_INFO,
+  DEMO_FOOTER_CONFIG,
+  DEMO_THEME_CONFIG,
+  getDemoProductById,
+  getDemoProductsByCategory,
+  getDemoProductsByCollection,
+  getRelatedProducts,
+  getProductReviews,
+  searchDemoProducts,
+  type DemoProduct,
+} from '~/utils/store-preview-data';
 
 const theme = STARTER_STORE_THEME;
 
@@ -27,17 +48,20 @@ const theme = STARTER_STORE_THEME;
 // ============================================================================
 interface CartItem {
   id: number;
+  storeId: number;
   title: string;
+  description: string | null;
   price: number;
   compareAtPrice: number | null;
   imageUrl: string | null;
   category: string | null;
   quantity: number;
+  selectedVariants?: Record<string, string>;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: SerializedProduct, quantity?: number) => void;
+  addItem: (product: DemoProduct, quantity?: number, variants?: Record<string, string>) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -56,7 +80,7 @@ function useCart() {
 function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  const addItem = useCallback((product: SerializedProduct, quantity = 1) => {
+  const addItem = useCallback((product: DemoProduct, quantity = 1, variants?: Record<string, string>) => {
     setItems(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -66,15 +90,7 @@ function CartProvider({ children }: { children: React.ReactNode }) {
             : item
         );
       }
-      return [...prev, { 
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        compareAtPrice: product.compareAtPrice,
-        imageUrl: product.imageUrl,
-        category: product.category,
-        quantity 
-      }];
+      return [...prev, { ...product, quantity, selectedVariants: variants }];
     });
   }, []);
 
@@ -117,6 +133,7 @@ function CartProvider({ children }: { children: React.ReactNode }) {
 type PageType = 
   | { type: 'home' }
   | { type: 'product'; productId: number }
+  | { type: 'collection'; collectionId: string }
   | { type: 'category'; category: string }
   | { type: 'cart' }
   | { type: 'checkout' }
@@ -134,7 +151,7 @@ function formatPrice(price: number): string {
 // ============================================================================
 // COMPONENT: Store Header
 // ============================================================================
-function StarterStoreHeader({ 
+function StoreHeader({ 
   storeName, 
   onNavigate,
   categories,
@@ -166,7 +183,7 @@ function StarterStoreHeader({
       </div>
 
       {/* Main Header */}
-      <header className="sticky top-0 z-40 shadow-sm bg-white" style={{ fontFamily: STARTER_STORE_FONTS.body }}>
+      <header className="sticky top-0 z-40 shadow-sm" style={{ backgroundColor: theme.headerBg }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Mobile Menu Button */}
@@ -179,24 +196,15 @@ function StarterStoreHeader({
               {logo ? (
                 <img src={logo} alt={storeName} className="h-8 w-auto" />
               ) : (
-                <span className="text-xl font-bold" style={{ color: theme.primary }}>{storeName}</span>
+                <span className="text-xl font-bold" style={{ color: theme.text }}>{storeName}</span>
               )}
             </button>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-6">
-              <button onClick={() => onNavigate({ type: 'home' })} className="text-sm font-medium hover:opacity-70 transition" style={{ color: theme.text }}>
-                হোম
-              </button>
+              <button onClick={() => onNavigate({ type: 'home' })} className="text-sm font-medium hover:opacity-70 transition" style={{ color: theme.text }}>হোম</button>
               {categories.slice(0, 5).map(cat => (
-                <button 
-                  key={cat}
-                  onClick={() => onNavigate({ type: 'category', category: cat })}
-                  className="text-sm font-medium hover:opacity-70 transition"
-                  style={{ color: theme.text }}
-                >
-                  {cat}
-                </button>
+                <button key={cat} onClick={() => onNavigate({ type: 'category', category: cat })} className="text-sm font-medium hover:opacity-70 transition" style={{ color: theme.text }}>{cat}</button>
               ))}
             </nav>
 
@@ -208,9 +216,7 @@ function StarterStoreHeader({
               <button onClick={() => onNavigate({ type: 'cart' })} className="p-2 hover:opacity-70 transition relative">
                 <ShoppingCart className="w-5 h-5" style={{ color: theme.text }} />
                 {cart.itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center text-white" style={{ backgroundColor: theme.accent }}>
-                    {cart.itemCount}
-                  </span>
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center text-white" style={{ backgroundColor: theme.accent }}>{cart.itemCount}</span>
                 )}
               </button>
             </div>
@@ -218,21 +224,21 @@ function StarterStoreHeader({
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white p-6 overflow-y-auto">
+          <div className="absolute left-0 top-0 bottom-0 w-72 p-6 overflow-y-auto" style={{ backgroundColor: theme.headerBg }}>
             <div className="flex items-center justify-between mb-8">
               <span className="text-lg font-bold" style={{ color: theme.text }}>{storeName}</span>
-              <button onClick={() => setMobileMenuOpen(false)}><X className="w-6 h-6" /></button>
+              <button onClick={() => setMobileMenuOpen(false)}><X className="w-6 h-6" style={{ color: theme.text }} /></button>
             </div>
             <nav className="space-y-4">
               <button onClick={() => { onNavigate({ type: 'home' }); setMobileMenuOpen(false); }} className="block w-full text-left py-2 font-medium" style={{ color: theme.text }}>হোম</button>
               {categories.map(cat => (
                 <button key={cat} onClick={() => { onNavigate({ type: 'category', category: cat }); setMobileMenuOpen(false); }} className="block w-full text-left py-2" style={{ color: theme.text }}>{cat}</button>
               ))}
-              <hr style={{ borderColor: theme.border }} />
+              <hr style={{ borderColor: theme.muted + '30' }} />
               <button onClick={() => { onNavigate({ type: 'page', pageId: 'about' }); setMobileMenuOpen(false); }} className="block w-full text-left py-2" style={{ color: theme.muted }}>আমাদের সম্পর্কে</button>
               <button onClick={() => { onNavigate({ type: 'page', pageId: 'contact' }); setMobileMenuOpen(false); }} className="block w-full text-left py-2" style={{ color: theme.muted }}>যোগাযোগ</button>
             </nav>
@@ -244,11 +250,11 @@ function StarterStoreHeader({
       {searchOpen && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSearchOpen(false)} />
-          <div className="absolute top-0 left-0 right-0 p-4 bg-white">
+          <div className="absolute top-0 left-0 right-0 p-4" style={{ backgroundColor: theme.headerBg }}>
             <form onSubmit={handleSearch} className="max-w-2xl mx-auto flex gap-2">
-              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="পণ্য খুঁজুন..." autoFocus className="flex-1 px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} />
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="পণ্য খুঁজুন..." autoFocus className="flex-1 px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} />
               <button type="submit" className="px-6 py-3 rounded-lg text-white" style={{ backgroundColor: theme.primary }}><Search className="w-5 h-5" /></button>
-              <button type="button" onClick={() => setSearchOpen(false)} className="p-3"><X className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setSearchOpen(false)} className="p-3"><X className="w-5 h-5" style={{ color: theme.text }} /></button>
             </form>
           </div>
         </div>
@@ -260,7 +266,7 @@ function StarterStoreHeader({
 // ============================================================================
 // COMPONENT: Product Card
 // ============================================================================
-function ProductCard({ product, onNavigate }: { product: SerializedProduct; onNavigate: (page: PageType) => void; }) {
+function ProductCard({ product, onNavigate }: { product: DemoProduct; onNavigate: (page: PageType) => void; }) {
   const cart = useCart();
   const discount = product.compareAtPrice ? Math.round((1 - product.price / product.compareAtPrice) * 100) : 0;
 
@@ -271,16 +277,21 @@ function ProductCard({ product, onNavigate }: { product: SerializedProduct; onNa
         {discount > 0 && (
           <span className="absolute top-2 left-2 px-2 py-1 text-xs font-medium rounded-full text-white" style={{ backgroundColor: theme.accent }}>-{discount}%</span>
         )}
+        {product.tags?.includes('new') && (
+          <span className="absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded-full text-white" style={{ backgroundColor: theme.primary }}>নতুন</span>
+        )}
         <button onClick={(e) => { e.stopPropagation(); cart.addItem(product); }} className="absolute bottom-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white" style={{ backgroundColor: theme.primary }}>
           <ShoppingCart className="w-4 h-4" />
         </button>
       </div>
       <div className="space-y-1">
         <h3 className="font-medium line-clamp-2 group-hover:underline" style={{ color: theme.text }}>{product.title}</h3>
-        <div className="flex items-center gap-1">
-          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span className="text-sm" style={{ color: theme.muted }}>4.5 (123)</span>
-        </div>
+        {product.rating && (
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm" style={{ color: theme.muted }}>{product.rating} ({product.reviewCount})</span>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <span className="font-bold" style={{ color: theme.primary }}>{formatPrice(product.price)}</span>
           {product.compareAtPrice && <span className="text-sm line-through" style={{ color: theme.muted }}>{formatPrice(product.compareAtPrice)}</span>}
@@ -293,14 +304,14 @@ function ProductCard({ product, onNavigate }: { product: SerializedProduct; onNa
 // ============================================================================
 // COMPONENT: Store Footer
 // ============================================================================
-function StarterStoreFooter({ storeName, onNavigate, businessInfo, socialLinks }: { storeName: string; onNavigate: (page: PageType) => void; businessInfo?: any; socialLinks?: any; }) {
+function StoreFooter({ storeName, onNavigate }: { storeName: string; onNavigate: (page: PageType) => void; }) {
   return (
     <footer style={{ backgroundColor: theme.footerBg }}>
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 className="text-lg font-bold mb-4" style={{ color: theme.footerText }}>{storeName}</h3>
-            <p className="text-sm mb-4" style={{ color: theme.footerText + 'cc' }}>সেরা মানের পণ্য, সেরা দামে। ১০০% অরিজিনাল প্রোডাক্ট।</p>
+            <p className="text-sm mb-4" style={{ color: theme.footerText + 'cc' }}>{DEMO_FOOTER_CONFIG.description}</p>
             <div className="flex gap-3">
               <a href="#" className="p-2 rounded-full" style={{ backgroundColor: theme.footerText + '20' }}><Facebook className="w-4 h-4" style={{ color: theme.footerText }} /></a>
               <a href="#" className="p-2 rounded-full" style={{ backgroundColor: theme.footerText + '20' }}><Instagram className="w-4 h-4" style={{ color: theme.footerText }} /></a>
@@ -310,8 +321,9 @@ function StarterStoreFooter({ storeName, onNavigate, businessInfo, socialLinks }
             <h4 className="font-semibold mb-4" style={{ color: theme.footerText }}>দ্রুত লিংক</h4>
             <ul className="space-y-2 text-sm" style={{ color: theme.footerText + 'cc' }}>
               <li><button onClick={() => onNavigate({ type: 'home' })} className="hover:underline">হোম</button></li>
-              <li><button onClick={() => onNavigate({ type: 'page', pageId: 'about' })} className="hover:underline">আমাদের সম্পর্কে</button></li>
-              <li><button onClick={() => onNavigate({ type: 'page', pageId: 'contact' })} className="hover:underline">যোগাযোগ</button></li>
+              <li><button onClick={() => onNavigate({ type: 'collection', collectionId: 'new-arrivals' })} className="hover:underline">নতুন পণ্য</button></li>
+              <li><button onClick={() => onNavigate({ type: 'collection', collectionId: 'best-sellers' })} className="hover:underline">বেস্ট সেলার</button></li>
+              <li><button onClick={() => onNavigate({ type: 'collection', collectionId: 'on-sale' })} className="hover:underline">সেল</button></li>
             </ul>
           </div>
           <div>
@@ -320,14 +332,15 @@ function StarterStoreFooter({ storeName, onNavigate, businessInfo, socialLinks }
               <li><button onClick={() => onNavigate({ type: 'page', pageId: 'faq' })} className="hover:underline">সাধারণ জিজ্ঞাসা</button></li>
               <li><button onClick={() => onNavigate({ type: 'page', pageId: 'shipping' })} className="hover:underline">ডেলিভারি পলিসি</button></li>
               <li><button onClick={() => onNavigate({ type: 'page', pageId: 'returns' })} className="hover:underline">রিটার্ন পলিসি</button></li>
+              <li><button onClick={() => onNavigate({ type: 'page', pageId: 'privacy' })} className="hover:underline">প্রাইভেসি পলিসি</button></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-4" style={{ color: theme.footerText }}>যোগাযোগ</h4>
             <ul className="space-y-3 text-sm" style={{ color: theme.footerText + 'cc' }}>
-              <li className="flex items-center gap-2"><Phone className="w-4 h-4" />{businessInfo?.phone || '০১৭XX-XXXXXX'}</li>
-              <li className="flex items-center gap-2"><Mail className="w-4 h-4" />{businessInfo?.email || 'info@store.com'}</li>
-              <li className="flex items-start gap-2"><MapPin className="w-4 h-4 mt-0.5" />{businessInfo?.address || 'ঢাকা, বাংলাদেশ'}</li>
+              <li className="flex items-center gap-2"><Phone className="w-4 h-4" />{DEMO_BUSINESS_INFO.phone}</li>
+              <li className="flex items-center gap-2"><Mail className="w-4 h-4" />{DEMO_BUSINESS_INFO.email}</li>
+              <li className="flex items-start gap-2"><MapPin className="w-4 h-4 mt-0.5" />{DEMO_BUSINESS_INFO.address}</li>
             </ul>
           </div>
         </div>
@@ -342,20 +355,21 @@ function StarterStoreFooter({ storeName, onNavigate, businessInfo, socialLinks }
 // ============================================================================
 // PAGE: Home
 // ============================================================================
-function HomePage({ products, categories, onNavigate, config }: { products: SerializedProduct[]; categories: string[]; onNavigate: (page: PageType) => void; config?: any; }) {
-  const featuredProducts = products.slice(0, 8);
-  const saleProducts = products.filter(p => p.compareAtPrice).slice(0, 4);
+function HomePage({ products, collections, onNavigate, config }: { products: DemoProduct[]; collections: typeof DEMO_COLLECTIONS; onNavigate: (page: PageType) => void; config?: any; }) {
+  const featuredProducts = products.filter(p => p.tags?.includes('featured')).slice(0, 4);
+  const newArrivals = products.filter(p => p.tags?.includes('new')).slice(0, 4);
+  const bestSellers = products.filter(p => p.tags?.includes('bestseller')).slice(0, 4);
 
   return (
     <div>
       {/* Hero Banner */}
-      <section className="relative h-[50vh] md:h-[60vh]">
-        <img src={config?.bannerUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&h=600&fit=crop'} alt="Hero" className="w-full h-full object-cover" />
+      <section className="relative h-[60vh] md:h-[70vh]">
+        <img src={config?.bannerUrl || DEMO_THEME_CONFIG.bannerUrl || ''} alt="Hero" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
           <div className="text-center text-white px-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">{config?.bannerText || 'আমাদের নতুন কালেকশন'}</h1>
+            <h1 className="text-3xl md:text-5xl font-bold mb-4">{config?.bannerText || DEMO_THEME_CONFIG.bannerText || 'আমাদের নতুন কালেকশন'}</h1>
             <p className="text-lg mb-6 opacity-90">সেরা মানের পণ্য, সেরা দামে</p>
-            <button onClick={() => onNavigate({ type: 'category', category: categories[0] || '' })} className="px-8 py-3 rounded-lg font-medium transition hover:opacity-90 text-white" style={{ backgroundColor: theme.accent }}>শপিং করুন</button>
+            <button onClick={() => onNavigate({ type: 'collection', collectionId: 'new-arrivals' })} className="px-8 py-3 rounded-lg font-medium transition hover:opacity-90" style={{ backgroundColor: theme.accent, color: '#fff' }}>শপিং করুন</button>
           </div>
         </div>
       </section>
@@ -364,12 +378,11 @@ function HomePage({ products, categories, onNavigate, config }: { products: Seri
       <section className="py-12 px-4" style={{ backgroundColor: theme.background }}>
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-bold mb-8 text-center" style={{ color: theme.text }}>ক্যাটাগরি</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {categories.slice(0, 5).map(cat => (
-              <button key={cat} onClick={() => onNavigate({ type: 'category', category: cat })} className="relative aspect-square rounded-xl overflow-hidden group bg-gradient-to-br from-indigo-500 to-purple-600">
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <span className="text-white font-semibold text-lg">{cat}</span>
-                </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {collections.filter(c => ['electronics', 'fashion', 'home-living', 'beauty'].includes(c.id)).map(col => (
+              <button key={col.id} onClick={() => onNavigate({ type: 'collection', collectionId: col.id })} className="relative aspect-square rounded-xl overflow-hidden group">
+                <img src={col.image} alt={col.nameBn} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><span className="text-white font-semibold text-lg">{col.nameBn}</span></div>
               </button>
             ))}
           </div>
@@ -377,24 +390,55 @@ function HomePage({ products, categories, onNavigate, config }: { products: Seri
       </section>
 
       {/* Featured Products */}
-      <section className="py-12 px-4" style={{ backgroundColor: theme.cardBg }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold" style={{ color: theme.text }}>ফিচার্ড পণ্য</h2>
-            <button onClick={() => onNavigate({ type: 'home' })} className="text-sm font-medium hover:underline" style={{ color: theme.primary }}>সব দেখুন →</button>
+      {featuredProducts.length > 0 && (
+        <section className="py-12 px-4" style={{ backgroundColor: theme.cardBg }}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold" style={{ color: theme.text }}>ফিচার্ড পণ্য</h2>
+              <button onClick={() => onNavigate({ type: 'collection', collectionId: 'featured' })} className="text-sm font-medium hover:underline" style={{ color: theme.primary }}>সব দেখুন →</button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {featuredProducts.map(product => <ProductCard key={product.id} product={product} onNavigate={onNavigate} />)}
+            </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {featuredProducts.map(product => <ProductCard key={product.id} product={product} onNavigate={onNavigate} />)}
-          </div>
+        </section>
+      )}
+
+      {/* Sale Banner */}
+      <section className="py-16 px-4" style={{ backgroundColor: theme.accent }}>
+        <div className="max-w-4xl mx-auto text-center text-white">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">🎉 বিশেষ ছাড় চলছে!</h2>
+          <p className="text-lg mb-6 opacity-90">সীমিত সময়ের জন্য ৫০% পর্যন্ত ছাড়</p>
+          <button onClick={() => onNavigate({ type: 'collection', collectionId: 'on-sale' })} className="px-8 py-3 rounded-lg font-medium bg-white transition hover:opacity-90" style={{ color: theme.accent }}>সেল দেখুন</button>
         </div>
       </section>
 
-      {/* Sale Banner */}
-      {saleProducts.length > 0 && (
-        <section className="py-16 px-4" style={{ backgroundColor: theme.accent }}>
-          <div className="max-w-4xl mx-auto text-center text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">🎉 বিশেষ ছাড় চলছে!</h2>
-            <p className="text-lg mb-6 opacity-90">সীমিত সময়ের জন্য ৫০% পর্যন্ত ছাড়</p>
+      {/* New Arrivals */}
+      {newArrivals.length > 0 && (
+        <section className="py-12 px-4" style={{ backgroundColor: theme.background }}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold" style={{ color: theme.text }}>নতুন এসেছে</h2>
+              <button onClick={() => onNavigate({ type: 'collection', collectionId: 'new-arrivals' })} className="text-sm font-medium hover:underline" style={{ color: theme.primary }}>সব দেখুন →</button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {newArrivals.map(product => <ProductCard key={product.id} product={product} onNavigate={onNavigate} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Best Sellers */}
+      {bestSellers.length > 0 && (
+        <section className="py-12 px-4" style={{ backgroundColor: theme.cardBg }}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold" style={{ color: theme.text }}>সেরা বিক্রিত</h2>
+              <button onClick={() => onNavigate({ type: 'collection', collectionId: 'best-sellers' })} className="text-sm font-medium hover:underline" style={{ color: theme.primary }}>সব দেখুন →</button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {bestSellers.map(product => <ProductCard key={product.id} product={product} onNavigate={onNavigate} />)}
+            </div>
           </div>
         </section>
       )}
@@ -404,15 +448,15 @@ function HomePage({ products, categories, onNavigate, config }: { products: Seri
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-center gap-4 p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
-              <div className="p-3 rounded-full" style={{ backgroundColor: theme.primaryLight }}><Truck className="w-6 h-6" style={{ color: theme.primary }} /></div>
+              <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}><Truck className="w-6 h-6" style={{ color: theme.primary }} /></div>
               <div><h3 className="font-semibold" style={{ color: theme.text }}>দ্রুত ডেলিভারি</h3><p className="text-sm" style={{ color: theme.muted }}>ঢাকায় ১-২ দিনে</p></div>
             </div>
             <div className="flex items-center gap-4 p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
-              <div className="p-3 rounded-full" style={{ backgroundColor: theme.primaryLight }}><Shield className="w-6 h-6" style={{ color: theme.primary }} /></div>
+              <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}><Shield className="w-6 h-6" style={{ color: theme.primary }} /></div>
               <div><h3 className="font-semibold" style={{ color: theme.text }}>নিরাপদ পেমেন্ট</h3><p className="text-sm" style={{ color: theme.muted }}>১০০% সিকিউর</p></div>
             </div>
             <div className="flex items-center gap-4 p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
-              <div className="p-3 rounded-full" style={{ backgroundColor: theme.primaryLight }}><RotateCcw className="w-6 h-6" style={{ color: theme.primary }} /></div>
+              <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}><RotateCcw className="w-6 h-6" style={{ color: theme.primary }} /></div>
               <div><h3 className="font-semibold" style={{ color: theme.text }}>ইজি রিটার্ন</h3><p className="text-sm" style={{ color: theme.muted }}>৭ দিনের মধ্যে</p></div>
             </div>
           </div>
@@ -423,12 +467,15 @@ function HomePage({ products, categories, onNavigate, config }: { products: Seri
 }
 
 // ============================================================================
-// PAGE: Product Detail
+// PAGE: Product Detail (Full featured with reviews, variants)
 // ============================================================================
-function ProductDetailPage({ productId, products, onNavigate }: { productId: number; products: SerializedProduct[]; onNavigate: (page: PageType) => void; }) {
+function ProductDetailPage({ productId, onNavigate }: { productId: number; onNavigate: (page: PageType) => void; }) {
   const cart = useCart();
-  const product = products.find(p => p.id === productId);
+  const product = getDemoProductById(productId);
+  const reviews = getProductReviews(productId);
+  const relatedProducts = getRelatedProducts(productId, 4);
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [addedToCart, setAddedToCart] = useState(false);
 
   if (!product) {
@@ -443,52 +490,101 @@ function ProductDetailPage({ productId, products, onNavigate }: { productId: num
   }
 
   const discount = product.compareAtPrice ? Math.round((1 - product.price / product.compareAtPrice) * 100) : 0;
-  const relatedProducts = products.filter(p => p.id !== productId && p.category === product.category).slice(0, 4);
 
   const handleAddToCart = () => {
-    cart.addItem(product, quantity);
+    cart.addItem(product, quantity, selectedVariants);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
   return (
     <div style={{ backgroundColor: theme.background }}>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <button onClick={() => onNavigate({ type: 'home' })} className="text-sm mb-4 hover:underline" style={{ color: theme.muted }}>← হোমে ফিরুন</button>
-        
+      {/* Breadcrumb */}
+      <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="flex items-center gap-2 text-sm" style={{ color: theme.muted }}>
+          <button onClick={() => onNavigate({ type: 'home' })} className="hover:underline">হোম</button>
+          <span>/</span>
+          {product.category && (
+            <>
+              <button onClick={() => onNavigate({ type: 'category', category: product.category! })} className="hover:underline">{product.category}</button>
+              <span>/</span>
+            </>
+          )}
+          <span style={{ color: theme.text }}>{product.title}</span>
+        </div>
+      </div>
+
+      {/* Product Info */}
+      <div className="max-w-7xl mx-auto px-4 pb-12">
         <div className="grid md:grid-cols-2 gap-8">
+          {/* Image */}
           <div className="aspect-square rounded-2xl overflow-hidden" style={{ backgroundColor: theme.cardBg }}>
             <img src={product.imageUrl || ''} alt={product.title} className="w-full h-full object-cover" />
           </div>
+
+          {/* Details */}
           <div className="space-y-6">
             {discount > 0 && <span className="inline-block px-3 py-1 text-sm font-medium rounded-full text-white" style={{ backgroundColor: theme.accent }}>{discount}% ছাড়</span>}
             <h1 className="text-2xl md:text-3xl font-bold" style={{ color: theme.text }}>{product.title}</h1>
-            <div className="flex items-center gap-2">
-              {[1,2,3,4,5].map(star => <Star key={star} className={`w-5 h-5 ${star <= 4 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />)}
-              <span style={{ color: theme.muted }}>4.5 (123 রিভিউ)</span>
-            </div>
+
+            {/* Rating */}
+            {product.rating && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <Star key={star} className={`w-5 h-5 ${star <= Math.round(product.rating!) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                  ))}
+                </div>
+                <span style={{ color: theme.muted }}>{product.rating} ({product.reviewCount} রিভিউ)</span>
+              </div>
+            )}
+
+            {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-bold" style={{ color: theme.primary }}>{formatPrice(product.price)}</span>
               {product.compareAtPrice && <span className="text-xl line-through" style={{ color: theme.muted }}>{formatPrice(product.compareAtPrice)}</span>}
             </div>
-            <p style={{ color: theme.muted }}>{product.description || 'এই পণ্যটি সেরা মানের এবং ১০০% অরিজিনাল।'}</p>
-            
+
+            <p style={{ color: theme.muted }}>{product.description}</p>
+
+            {/* Variants */}
+            {product.variants?.map(variant => (
+              <div key={variant.name}>
+                <label className="block font-medium mb-2" style={{ color: theme.text }}>{variant.name}</label>
+                <div className="flex flex-wrap gap-2">
+                  {variant.options.map(option => (
+                    <button key={option} onClick={() => setSelectedVariants(prev => ({ ...prev, [variant.name]: option }))}
+                      className={`px-4 py-2 rounded-lg border transition ${selectedVariants[variant.name] === option ? 'ring-2' : ''}`}
+                      style={{ borderColor: selectedVariants[variant.name] === option ? theme.primary : theme.muted + '40', backgroundColor: theme.cardBg, color: theme.text }}>
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Quantity */}
             <div>
               <label className="block font-medium mb-2" style={{ color: theme.text }}>পরিমাণ</label>
-              <div className="flex items-center gap-0 w-fit rounded-lg overflow-hidden border" style={{ borderColor: theme.border }}>
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-2 hover:bg-gray-100"><Minus className="w-4 h-4" /></button>
+              <div className="flex items-center gap-0 w-fit rounded-lg overflow-hidden border" style={{ borderColor: theme.muted + '40' }}>
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-2 hover:bg-gray-100 transition"><Minus className="w-4 h-4" /></button>
                 <span className="px-6 py-2 min-w-[60px] text-center" style={{ backgroundColor: theme.cardBg }}>{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-2 hover:bg-gray-100"><Plus className="w-4 h-4" /></button>
+                <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-2 hover:bg-gray-100 transition"><Plus className="w-4 h-4" /></button>
               </div>
             </div>
 
+            {/* Stock */}
+            {product.stock && product.stock < 10 && <p className="text-sm" style={{ color: theme.accent }}>⚡ মাত্র {product.stock}টি বাকি!</p>}
+
+            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <button onClick={handleAddToCart} className="flex-1 py-3 px-6 rounded-lg font-medium text-white transition hover:opacity-90 flex items-center justify-center gap-2" style={{ backgroundColor: theme.primary }}>
-                {addedToCart ? <><Check className="w-5 h-5" />যোগ হয়েছে</> : <><ShoppingCart className="w-5 h-5" />কার্টে যোগ করুন</>}
+                {addedToCart ? <><Check className="w-5 h-5" />কার্টে যোগ হয়েছে</> : <><ShoppingCart className="w-5 h-5" />কার্টে যোগ করুন</>}
               </button>
-              <button onClick={() => { cart.addItem(product, quantity); onNavigate({ type: 'checkout' }); }} className="flex-1 py-3 px-6 rounded-lg font-medium text-white transition hover:opacity-90" style={{ backgroundColor: theme.accent }}>এখনই কিনুন</button>
+              <button onClick={() => { cart.addItem(product, quantity, selectedVariants); onNavigate({ type: 'checkout' }); }} className="flex-1 py-3 px-6 rounded-lg font-medium text-white transition hover:opacity-90" style={{ backgroundColor: theme.accent }}>এখনই কিনুন</button>
             </div>
 
+            {/* Trust Info */}
             <div className="p-4 rounded-xl space-y-3" style={{ backgroundColor: theme.cardBg }}>
               <div className="flex items-center gap-3 text-sm" style={{ color: theme.muted }}><Truck className="w-5 h-5" style={{ color: theme.primary }} /><span>ঢাকায় ১-২ দিনে ডেলিভারি</span></div>
               <div className="flex items-center gap-3 text-sm" style={{ color: theme.muted }}><RotateCcw className="w-5 h-5" style={{ color: theme.primary }} /><span>৭ দিনের ইজি রিটার্ন</span></div>
@@ -497,6 +593,33 @@ function ProductDetailPage({ productId, products, onNavigate }: { productId: num
           </div>
         </div>
 
+        {/* Reviews */}
+        {reviews.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-xl font-bold mb-6" style={{ color: theme.text }}>কাস্টমার রিভিউ ({reviews.length})</h2>
+            <div className="space-y-4">
+              {reviews.map(review => (
+                <div key={review.id} className="p-4 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium" style={{ color: theme.text }}>{review.customerName}</span>
+                      {review.verified && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">ভেরিফাইড</span>}
+                    </div>
+                    <span className="text-sm" style={{ color: theme.muted }}>{review.date}</span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star key={star} className={`w-4 h-4 ${star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                    ))}
+                  </div>
+                  <p style={{ color: theme.muted }}>{review.comment}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-12">
             <h2 className="text-xl font-bold mb-6" style={{ color: theme.text }}>সম্পর্কিত পণ্য</h2>
@@ -511,16 +634,32 @@ function ProductDetailPage({ productId, products, onNavigate }: { productId: num
 }
 
 // ============================================================================
-// PAGE: Category
+// PAGE: Collection/Category
 // ============================================================================
-function CategoryPage({ category, products, onNavigate }: { category: string; products: SerializedProduct[]; onNavigate: (page: PageType) => void; }) {
-  const filteredProducts = products.filter(p => p.category === category);
+function CollectionPage({ collectionId, category, onNavigate }: { collectionId?: string; category?: string; onNavigate: (page: PageType) => void; }) {
   const [sortBy, setSortBy] = useState('default');
   
+  let title = 'সব পণ্য';
+  let description = '';
+  let filteredProducts: DemoProduct[] = DEMO_PRODUCTS;
+
+  if (collectionId) {
+    const collection = DEMO_COLLECTIONS.find(c => c.id === collectionId);
+    if (collection) {
+      title = collection.nameBn;
+      description = collection.description;
+      filteredProducts = getDemoProductsByCollection(collectionId);
+    }
+  } else if (category) {
+    title = category;
+    filteredProducts = getDemoProductsByCategory(category);
+  }
+
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case 'price-low': return a.price - b.price;
       case 'price-high': return b.price - a.price;
+      case 'newest': return b.id - a.id;
       default: return 0;
     }
   });
@@ -528,15 +667,17 @@ function CategoryPage({ category, products, onNavigate }: { category: string; pr
   return (
     <div style={{ backgroundColor: theme.background }}>
       <div className="py-12 px-4 text-center" style={{ backgroundColor: theme.cardBg }}>
-        <h1 className="text-3xl font-bold mb-2" style={{ color: theme.text }}>{category}</h1>
-        <p style={{ color: theme.muted }}>{sortedProducts.length}টি পণ্য</p>
+        <h1 className="text-3xl font-bold mb-2" style={{ color: theme.text }}>{title}</h1>
+        {description && <p style={{ color: theme.muted }}>{description}</p>}
+        <p className="mt-2 text-sm" style={{ color: theme.muted }}>{sortedProducts.length}টি পণ্য</p>
       </div>
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-end mb-6">
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-4 py-2 rounded-lg border focus:outline-none" style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-4 py-2 rounded-lg border focus:outline-none" style={{ borderColor: theme.muted + '40', backgroundColor: theme.cardBg, color: theme.text }}>
             <option value="default">ডিফল্ট</option>
             <option value="price-low">দাম: কম থেকে বেশি</option>
             <option value="price-high">দাম: বেশি থেকে কম</option>
+            <option value="newest">নতুন আগে</option>
           </select>
         </div>
         {sortedProducts.length > 0 ? (
@@ -552,10 +693,10 @@ function CategoryPage({ category, products, onNavigate }: { category: string; pr
 }
 
 // ============================================================================
-// PAGE: Search
+// PAGE: Search Results
 // ============================================================================
-function SearchPage({ query, products, onNavigate }: { query: string; products: SerializedProduct[]; onNavigate: (page: PageType) => void; }) {
-  const results = products.filter(p => p.title.toLowerCase().includes(query.toLowerCase()) || p.category?.toLowerCase().includes(query.toLowerCase()));
+function SearchPage({ query, onNavigate }: { query: string; onNavigate: (page: PageType) => void; }) {
+  const results = searchDemoProducts(query);
 
   return (
     <div style={{ backgroundColor: theme.background }}>
@@ -615,9 +756,9 @@ function CartPage({ onNavigate }: { onNavigate: (page: PageType) => void; }) {
                   <div className="flex items-center justify-between mt-3">
                     <span className="font-bold" style={{ color: theme.primary }}>{formatPrice(item.price)}</span>
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center border rounded-lg overflow-hidden" style={{ borderColor: theme.border }}>
+                      <div className="flex items-center border rounded-lg overflow-hidden" style={{ borderColor: theme.muted + '40' }}>
                         <button onClick={() => cart.updateQuantity(item.id, item.quantity - 1)} className="px-3 py-1 hover:bg-gray-100"><Minus className="w-3 h-3" /></button>
-                        <span className="px-3 py-1 border-x" style={{ borderColor: theme.border }}>{item.quantity}</span>
+                        <span className="px-3 py-1 border-x" style={{ borderColor: theme.muted + '40' }}>{item.quantity}</span>
                         <button onClick={() => cart.updateQuantity(item.id, item.quantity + 1)} className="px-3 py-1 hover:bg-gray-100"><Plus className="w-3 h-3" /></button>
                       </div>
                       <button onClick={() => cart.removeItem(item.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
@@ -630,10 +771,10 @@ function CartPage({ onNavigate }: { onNavigate: (page: PageType) => void; }) {
           <div className="p-6 rounded-xl h-fit lg:sticky lg:top-24" style={{ backgroundColor: theme.cardBg }}>
             <h3 className="font-semibold text-lg mb-4" style={{ color: theme.text }}>অর্ডার সামারি</h3>
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between" style={{ color: theme.muted }}><span>সাবটোটাল</span><span>{formatPrice(cart.total)}</span></div>
-              <div className="flex justify-between" style={{ color: theme.muted }}><span>ডেলিভারি</span><span>{shipping === 0 ? 'ফ্রি' : formatPrice(shipping)}</span></div>
+              <div className="flex justify-between" style={{ color: theme.muted }}><span>সাবটোটাল ({cart.itemCount} আইটেম)</span><span>{formatPrice(cart.total)}</span></div>
+              <div className="flex justify-between" style={{ color: theme.muted }}><span>ডেলিভারি চার্জ</span><span>{shipping === 0 ? 'ফ্রি' : formatPrice(shipping)}</span></div>
               {shipping > 0 && <p className="text-xs" style={{ color: theme.accent }}>৳{1000 - cart.total} আরও কিনলে ফ্রি ডেলিভারি!</p>}
-              <div className="border-t pt-3 flex justify-between font-bold text-lg" style={{ borderColor: theme.border, color: theme.text }}><span>মোট</span><span style={{ color: theme.primary }}>{formatPrice(grandTotal)}</span></div>
+              <div className="border-t pt-3 flex justify-between font-bold text-lg" style={{ borderColor: theme.muted + '20', color: theme.text }}><span>মোট</span><span style={{ color: theme.primary }}>{formatPrice(grandTotal)}</span></div>
             </div>
             <button onClick={() => onNavigate({ type: 'checkout' })} className="w-full mt-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90" style={{ backgroundColor: theme.primary }}>চেকআউট করুন</button>
             <button onClick={() => onNavigate({ type: 'home' })} className="w-full mt-3 py-3 rounded-lg font-medium transition hover:opacity-70" style={{ color: theme.primary }}>শপিং চালিয়ে যান</button>
@@ -680,17 +821,24 @@ function CheckoutPage({ onNavigate }: { onNavigate: (page: PageType) => void; })
               <div className="p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
                 <h2 className="font-semibold text-lg mb-4" style={{ color: theme.text }}>ডেলিভারি তথ্য</h2>
                 <div className="space-y-4">
-                  <div><label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>নাম *</label><input type="text" required placeholder="আপনার নাম" className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} /></div>
-                  <div><label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>মোবাইল নম্বর *</label><input type="tel" required placeholder="01XXXXXXXXX" className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} /></div>
-                  <div><label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>ঠিকানা *</label><textarea required rows={3} placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর" className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} /></div>
+                  <div><label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>নাম *</label><input type="text" required placeholder="আপনার নাম" className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} /></div>
+                  <div><label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>মোবাইল নম্বর *</label><input type="tel" required placeholder="01XXXXXXXXX" className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} /></div>
+                  <div><label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>ঠিকানা *</label><textarea required rows={3} placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর" className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} /></div>
+                  <div><label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>অতিরিক্ত নোট</label><input type="text" placeholder="বিশেষ নির্দেশনা (ঐচ্ছিক)" className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} /></div>
                 </div>
               </div>
               <div className="p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
                 <h2 className="font-semibold text-lg mb-4" style={{ color: theme.text }}>পেমেন্ট মেথড</h2>
-                <label className="flex items-center gap-3 p-4 rounded-lg border cursor-pointer" style={{ borderColor: theme.primary }}>
-                  <input type="radio" name="payment" defaultChecked className="accent-current" style={{ accentColor: theme.primary }} />
-                  <span style={{ color: theme.text }}>ক্যাশ অন ডেলিভারি (COD)</span>
-                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 p-4 rounded-lg border cursor-pointer" style={{ borderColor: theme.primary }}>
+                    <input type="radio" name="payment" defaultChecked className="accent-current" style={{ accentColor: theme.primary }} />
+                    <span style={{ color: theme.text }}>ক্যাশ অন ডেলিভারি (COD)</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-4 rounded-lg border cursor-not-allowed opacity-50" style={{ borderColor: theme.muted + '40' }}>
+                    <input type="radio" name="payment" disabled />
+                    <span style={{ color: theme.muted }}>বিকাশ/নগদ (শীঘ্রই আসছে)</span>
+                  </label>
+                </div>
               </div>
             </div>
             <div className="p-6 rounded-xl h-fit lg:sticky lg:top-24" style={{ backgroundColor: theme.cardBg }}>
@@ -704,13 +852,13 @@ function CheckoutPage({ onNavigate }: { onNavigate: (page: PageType) => void; })
                   </div>
                 ))}
               </div>
-              <div className="space-y-2 text-sm border-t pt-4" style={{ borderColor: theme.border }}>
+              <div className="space-y-2 text-sm border-t pt-4" style={{ borderColor: theme.muted + '20' }}>
                 <div className="flex justify-between" style={{ color: theme.muted }}><span>সাবটোটাল</span><span>{formatPrice(cart.total)}</span></div>
                 <div className="flex justify-between" style={{ color: theme.muted }}><span>ডেলিভারি</span><span>{shipping === 0 ? 'ফ্রি' : formatPrice(shipping)}</span></div>
-                <div className="flex justify-between font-bold text-lg pt-2 border-t" style={{ borderColor: theme.border, color: theme.text }}><span>মোট</span><span style={{ color: theme.primary }}>{formatPrice(grandTotal)}</span></div>
+                <div className="flex justify-between font-bold text-lg pt-2 border-t" style={{ borderColor: theme.muted + '20', color: theme.text }}><span>মোট</span><span style={{ color: theme.primary }}>{formatPrice(grandTotal)}</span></div>
               </div>
-              <button type="submit" disabled={isSubmitting} className="w-full mt-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: theme.primary }}>{isSubmitting ? 'প্রসেস হচ্ছে...' : 'অর্ডার কনফার্ম করুন'}</button>
-              <p className="text-xs text-center mt-3" style={{ color: theme.muted }}>⚠️ এটি ডেমো। কোনো অর্ডার তৈরি হবে না।</p>
+              <button type="submit" disabled={isSubmitting} className="w-full mt-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: theme.primary }}>{isSubmitting ? 'অর্ডার প্রসেস হচ্ছে...' : 'অর্ডার কনফার্ম করুন'}</button>
+              <p className="text-xs text-center mt-3" style={{ color: theme.muted }}>⚠️ এটি একটি ডেমো প্রিভিউ। কোনো অর্ডার তৈরি হবে না।</p>
             </div>
           </div>
         </form>
@@ -726,28 +874,23 @@ function OrderSuccessPage({ onNavigate }: { onNavigate: (page: PageType) => void
   return (
     <div className="min-h-[70vh] flex items-center justify-center" style={{ backgroundColor: theme.background }}>
       <div className="text-center px-4">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: theme.primaryLight }}><Check className="w-10 h-10" style={{ color: theme.primary }} /></div>
+        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: theme.primary + '15' }}><Check className="w-10 h-10" style={{ color: theme.primary }} /></div>
         <h1 className="text-2xl font-bold mb-2" style={{ color: theme.text }}>ধন্যবাদ! 🎉</h1>
         <p className="mb-2" style={{ color: theme.muted }}>আপনার অর্ডার সফলভাবে সম্পন্ন হয়েছে।</p>
-        <p className="text-sm mb-8 px-4 py-2 rounded-lg inline-block" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>এটি ডেমো - কোনো অর্ডার তৈরি হয়নি</p>
-        <button onClick={() => onNavigate({ type: 'home' })} className="px-8 py-3 rounded-lg text-white font-medium" style={{ backgroundColor: theme.primary }}>শপিং চালিয়ে যান</button>
+        <p className="text-sm mb-8 px-4 py-2 rounded-lg inline-block" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>এটি একটি ডেমো প্রিভিউ - কোনো অর্ডার তৈরি হয়নি</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button onClick={() => onNavigate({ type: 'home' })} className="px-8 py-3 rounded-lg text-white font-medium" style={{ backgroundColor: theme.primary }}>শপিং চালিয়ে যান</button>
+        </div>
       </div>
     </div>
   );
 }
 
 // ============================================================================
-// PAGE: Static Pages
+// PAGE: Static Pages (About, Contact, FAQ, Policies)
 // ============================================================================
 function StaticPage({ pageId, onNavigate }: { pageId: string; onNavigate: (page: PageType) => void; }) {
-  const pages: Record<string, { title: string; content: string }> = {
-    about: { title: 'আমাদের সম্পর্কে', content: 'আমরা ২০২০ সাল থেকে বাংলাদেশে মানসম্পন্ন পণ্য সরবরাহ করে আসছি। আমাদের লক্ষ্য হলো গ্রাহকদের সেরা মানের পণ্য সবচেয়ে ভালো দামে পৌঁছে দেওয়া।' },
-    contact: { title: 'যোগাযোগ', content: 'ফোন: ০১৭XX-XXXXXX\nইমেইল: info@store.com\nঠিকানা: ঢাকা, বাংলাদেশ' },
-    faq: { title: 'সাধারণ জিজ্ঞাসা', content: '১. অর্ডার করতে কি করতে হবে?\nপছন্দের পণ্য বেছে কার্টে যোগ করুন এবং চেকআউট করুন।\n\n২. ডেলিভারি কত দিনে হয়?\nঢাকায় ১-২ দিন, ঢাকার বাইরে ৩-৫ দিন।' },
-    shipping: { title: 'ডেলিভারি পলিসি', content: 'ঢাকার ভেতরে: ৬০ টাকা (১-২ দিন)\nঢাকার বাইরে: ১২০ টাকা (৩-৫ দিন)\n১০০০ টাকার উপরে ফ্রি ডেলিভারি' },
-    returns: { title: 'রিটার্ন পলিসি', content: '৭ দিনের মধ্যে রিটার্ন করতে পারবেন।\n\nশর্তাবলী:\n- অরিজিনাল প্যাকেজিং থাকতে হবে\n- অব্যবহৃত অবস্থায় থাকতে হবে' },
-  };
-  const page = pages[pageId];
+  const page = DEMO_PAGES[pageId];
   
   if (!page) {
     return (
@@ -763,12 +906,57 @@ function StaticPage({ pageId, onNavigate }: { pageId: string; onNavigate: (page:
   return (
     <div style={{ backgroundColor: theme.background }}>
       <div className="py-12 px-4 text-center" style={{ backgroundColor: theme.cardBg }}>
-        <h1 className="text-3xl font-bold" style={{ color: theme.text }}>{page.title}</h1>
+        <h1 className="text-3xl font-bold" style={{ color: theme.text }}>{page.titleBn}</h1>
       </div>
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <div className="p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
-          <div style={{ color: theme.text, whiteSpace: 'pre-line' }}>{page.content}</div>
-        </div>
+        {pageId === 'faq' ? (
+          <div className="space-y-4">
+            {DEMO_FAQ.map((faq, i) => (
+              <details key={i} className="p-4 rounded-xl group" style={{ backgroundColor: theme.cardBg }}>
+                <summary className="font-medium cursor-pointer list-none flex items-center justify-between" style={{ color: theme.text }}>
+                  {faq.question}
+                  <ChevronDown className="w-5 h-5 group-open:rotate-180 transition-transform" />
+                </summary>
+                <p className="mt-3 pt-3 border-t" style={{ color: theme.muted, borderColor: theme.muted + '20' }}>{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        ) : pageId === 'contact' ? (
+          <div>
+            <div className="p-6 rounded-xl mb-8" style={{ backgroundColor: theme.cardBg }}>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <Phone className="w-8 h-8 mx-auto mb-2" style={{ color: theme.primary }} />
+                  <h3 className="font-medium" style={{ color: theme.text }}>ফোন</h3>
+                  <p style={{ color: theme.muted }}>{DEMO_BUSINESS_INFO.phone}</p>
+                </div>
+                <div className="text-center">
+                  <Mail className="w-8 h-8 mx-auto mb-2" style={{ color: theme.primary }} />
+                  <h3 className="font-medium" style={{ color: theme.text }}>ইমেইল</h3>
+                  <p style={{ color: theme.muted }}>{DEMO_BUSINESS_INFO.email}</p>
+                </div>
+                <div className="text-center">
+                  <MapPin className="w-8 h-8 mx-auto mb-2" style={{ color: theme.primary }} />
+                  <h3 className="font-medium" style={{ color: theme.text }}>ঠিকানা</h3>
+                  <p style={{ color: theme.muted }}>{DEMO_BUSINESS_INFO.address}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
+              <h2 className="font-semibold text-lg mb-4" style={{ color: theme.text }}>মেসেজ পাঠান</h2>
+              <form className="space-y-4">
+                <input type="text" placeholder="আপনার নাম" className="w-full px-4 py-3 rounded-lg border" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} />
+                <input type="email" placeholder="ইমেইল" className="w-full px-4 py-3 rounded-lg border" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} />
+                <textarea rows={4} placeholder="আপনার মেসেজ" className="w-full px-4 py-3 rounded-lg border" style={{ borderColor: theme.muted + '40', backgroundColor: theme.background }} />
+                <button type="button" className="px-6 py-3 rounded-lg text-white font-medium" style={{ backgroundColor: theme.primary }}>পাঠান</button>
+              </form>
+            </div>
+          </div>
+        ) : (
+          <div className="p-6 rounded-xl prose max-w-none" style={{ backgroundColor: theme.cardBg }}>
+            <div style={{ color: theme.text, whiteSpace: 'pre-line' }}>{page.content}</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -799,19 +987,23 @@ export function StarterStoreTemplate({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const validCategories = categories.filter(Boolean) as string[];
+  // Use demo data for preview, otherwise use props
+  const demoProducts = isPreview ? DEMO_PRODUCTS : (products as unknown as DemoProduct[]);
+  const validCategories = (isPreview ? DEMO_CATEGORIES : categories.filter(Boolean)) as string[];
 
   // Render current page content
   const renderPage = () => {
     switch (currentPage.type) {
       case 'home':
-        return <HomePage products={products} categories={validCategories} onNavigate={navigate} config={config} />;
+        return <HomePage products={demoProducts} collections={DEMO_COLLECTIONS} onNavigate={navigate} config={config} />;
       case 'product':
-        return <ProductDetailPage productId={currentPage.productId} products={products} onNavigate={navigate} />;
+        return <ProductDetailPage productId={currentPage.productId} onNavigate={navigate} />;
+      case 'collection':
+        return <CollectionPage collectionId={currentPage.collectionId} onNavigate={navigate} />;
       case 'category':
-        return <CategoryPage category={currentPage.category} products={products} onNavigate={navigate} />;
+        return <CollectionPage category={currentPage.category} onNavigate={navigate} />;
       case 'search':
-        return <SearchPage query={currentPage.query} products={products} onNavigate={navigate} />;
+        return <SearchPage query={currentPage.query} onNavigate={navigate} />;
       case 'cart':
         return <CartPage onNavigate={navigate} />;
       case 'checkout':
@@ -821,7 +1013,7 @@ export function StarterStoreTemplate({
       case 'page':
         return <StaticPage pageId={currentPage.pageId} onNavigate={navigate} />;
       default:
-        return <HomePage products={products} categories={validCategories} onNavigate={navigate} config={config} />;
+        return <HomePage products={demoProducts} collections={DEMO_COLLECTIONS} onNavigate={navigate} config={config} />;
     }
   };
 
@@ -832,26 +1024,21 @@ export function StarterStoreTemplate({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
         {/* Header */}
-        <StarterStoreHeader storeName={storeName} onNavigate={navigate} categories={validCategories} logo={logo} />
+        <StoreHeader storeName={storeName || 'ডেমো স্টোর'} onNavigate={navigate} categories={validCategories} logo={logo} />
 
         {/* Main Content */}
         <main>{renderPage()}</main>
 
         {/* Footer */}
-        <StarterStoreFooter storeName={storeName} onNavigate={navigate} businessInfo={businessInfo} socialLinks={socialLinks} />
+        <StoreFooter storeName={storeName || 'ডেমো স্টোর'} onNavigate={navigate} />
       </div>
     </CartProvider>
   );
 }
 
-// Export Header and Footer separately for registry
-export function StarterStoreHeader2(props: any) {
-  return null; // Header is integrated in main template
-}
-
-export function StarterStoreFooter2(props: any) {
-  return null; // Footer is integrated in main template
-}
+// Export Header and Footer for registry (they're integrated in template)
+export const StarterStoreHeader = () => null;
+export const StarterStoreFooter = () => null;
 
 // Default export
 export default StarterStoreTemplate;
