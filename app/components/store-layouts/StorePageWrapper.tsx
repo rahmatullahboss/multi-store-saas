@@ -9,6 +9,7 @@ import type { ReactNode } from 'react';
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
 import { StorePushPrompt } from '~/components/store/StorePushPrompt';
+import { WishlistProvider } from '~/contexts/WishlistContext';
 import { getStoreTemplate, getStoreTemplateTheme, type StoreTemplateTheme } from '~/templates/store-registry';
 import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
 
@@ -67,77 +68,79 @@ export function StorePageWrapper({
     : 'bg-gray-50 text-gray-900';
 
   return (
-    <div className={`min-h-screen ${bgClass} transition-colors duration-300`}>
-      {/* Background Decorations (light mode only) */}
-      {!isDarkTheme && (
-        <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-          <div 
-            className="absolute -top-32 -right-20 h-72 w-72 rounded-full blur-3xl opacity-60"
-            style={{ backgroundColor: `${resolvedTheme.accent}30` }}
+    <WishlistProvider>
+      <div className={`min-h-screen ${bgClass} transition-colors duration-300`}>
+        {/* Background Decorations (light mode only) */}
+        {!isDarkTheme && (
+          <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+            <div 
+              className="absolute -top-32 -right-20 h-72 w-72 rounded-full blur-3xl opacity-60"
+              style={{ backgroundColor: `${resolvedTheme.accent}30` }}
+            />
+            <div 
+              className="absolute -bottom-32 -left-10 h-72 w-72 rounded-full blur-3xl opacity-60"
+              style={{ backgroundColor: `${resolvedTheme.primary}30` }}
+            />
+          </div>
+        )}
+
+        {/* Header - SSR Safe */}
+        {template.Header ? (
+          <template.Header
+            storeName={storeName}
+            logo={logo}
+            isPreview={isPreview}
+            config={config}
+            categories={categories}
+            currentCategory={currentCategory}
+            socialLinks={socialLinks}
           />
-          <div 
-            className="absolute -bottom-32 -left-10 h-72 w-72 rounded-full blur-3xl opacity-60"
-            style={{ backgroundColor: `${resolvedTheme.primary}30` }}
+        ) : (
+          <StoreHeader
+            storeName={storeName}
+            logo={logo}
+            theme={resolvedTheme}
+            templateId={templateId}
+            cartCount={cartCount}
+            storeId={storeId}
+            config={config}
+            customer={customer}
           />
-        </div>
-      )}
+        )}
 
-      {/* Header - SSR Safe */}
-      {template.Header ? (
-        <template.Header
-          storeName={storeName}
-          logo={logo}
-          isPreview={isPreview}
-          config={config}
-          categories={categories}
-          currentCategory={currentCategory}
-          socialLinks={socialLinks}
-        />
-      ) : (
-        <StoreHeader
-          storeName={storeName}
-          logo={logo}
-          theme={resolvedTheme}
-          templateId={templateId}
-          cartCount={cartCount}
-          storeId={storeId}
-          config={config}
-          customer={customer}
-        />
-      )}
+        {/* Main Content */}
+        <main className="relative z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <StorePushPrompt storeName={storeName} />
+          </div>
+          {children}
+        </main>
 
-      {/* Main Content */}
-      <main className="relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <StorePushPrompt storeName={storeName} />
-        </div>
-        {children}
-      </main>
-
-      {/* Footer - SSR Safe */}
-      {template.Footer ? (
-        <template.Footer
-          storeName={storeName}
-          logo={logo}
-          socialLinks={socialLinks}
-          footerConfig={footerConfig}
-          businessInfo={businessInfo}
-          categories={categories}
-        />
-      ) : (
-        <StoreFooter
-          storeName={storeName}
-          logo={logo}
-          theme={resolvedTheme}
-          templateId={templateId}
-          socialLinks={socialLinks}
-          businessInfo={businessInfo}
-          planType={planType}
-          showPoweredBy={footerConfig?.showPoweredBy ?? true}
-          config={config}
-        />
-      )}
-    </div>
+        {/* Footer - SSR Safe */}
+        {template.Footer ? (
+          <template.Footer
+            storeName={storeName}
+            logo={logo}
+            socialLinks={socialLinks}
+            footerConfig={footerConfig}
+            businessInfo={businessInfo}
+            categories={categories}
+          />
+        ) : (
+          <StoreFooter
+            storeName={storeName}
+            logo={logo}
+            theme={resolvedTheme}
+            templateId={templateId}
+            socialLinks={socialLinks}
+            businessInfo={businessInfo}
+            planType={planType}
+            showPoweredBy={footerConfig?.showPoweredBy ?? true}
+            config={config}
+          />
+        )}
+      </div>
+    </WishlistProvider>
   );
 }
 
