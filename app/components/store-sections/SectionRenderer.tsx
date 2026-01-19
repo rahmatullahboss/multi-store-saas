@@ -2,6 +2,19 @@
 import React from 'react';
 import { SECTION_REGISTRY } from './registry';
 
+// Default theme fallback to prevent undefined errors
+const DEFAULT_THEME = {
+  primary: '#1a1a1a',
+  accent: '#f59e0b',
+  background: '#ffffff',
+  text: '#1a1a1a',
+  muted: '#6b7280',
+  cardBg: '#ffffff',
+  headerBg: '#ffffff',
+  footerBg: '#1a1a1a',
+  footerText: '#ffffff',
+};
+
 interface SectionRendererProps {
   sections: any[];
   theme?: any;
@@ -20,8 +33,15 @@ interface SectionRendererProps {
   businessInfo?: any;
 }
 
+
 export function SectionRenderer(props: SectionRendererProps) {
-  const { sections, ...passThroughProps } = props;
+  const { sections, theme, ...restProps } = props;
+  
+  // Ensure theme is always defined to prevent undefined errors in sections
+  const passThroughProps = {
+    ...restProps,
+    theme: theme || DEFAULT_THEME,
+  };
 
   if (!sections || !Array.isArray(sections)) {
     return null;
@@ -40,7 +60,7 @@ export function SectionRenderer(props: SectionRendererProps) {
         
       // APPLY DATA BINDINGS (Metafields)
       // Check if this section has bindings and hydrate the settings
-      let hydratedSettings = { ...section.settings };
+      const hydratedSettings = { ...section.settings };
       
       if (hydratedSettings.bindings) {
         Object.entries(hydratedSettings.bindings).forEach(([settingKey, binding]: [string, any]) => {
@@ -48,12 +68,11 @@ export function SectionRenderer(props: SectionRendererProps) {
             // Try to find the value in props
             // e.g. source='product', field='title' -> look in passThroughProps.product.title
             
-            // @ts-ignore - dynamic access
+            // @ts-expect-error - dynamic access
             const sourceObject = passThroughProps[binding.source];
             
             if (sourceObject) {
               // Handle deep access if needed, for now flat access
-              // @ts-ignore
               const dynamicValue = sourceObject[binding.field];
               
               if (dynamicValue !== undefined && dynamicValue !== null) {
