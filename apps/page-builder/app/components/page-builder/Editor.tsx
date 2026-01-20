@@ -25,6 +25,10 @@ import productLoopPlugin from '~/lib/grapesjs/plugins/product-loop';
 import shapeDividersPlugin from '~/lib/grapesjs/plugins/shape-dividers';
 import popupPlugin from '~/lib/grapesjs/plugins/popup';
 
+// Structural components (Section/Row/Column nesting)
+import { registerStructuralComponents } from '~/lib/grapesjs/components';
+import { registerStructuralBlocks } from '~/lib/grapesjs/blocks';
+
 // Reusable UI Components
 import EditorToolbar from './Toolbar';
 import SidebarPanel from './SidebarPanel';
@@ -197,6 +201,12 @@ export default function GrapesEditor({
         if (!mountedRef.current) return;
         
         console.log('GrapesJS is ready!');
+        
+        // Register structural components (Section/Row/Column) with drag constraints
+        registerStructuralComponents(editorInstance);
+        
+        // Register structural blocks in sidebar
+        registerStructuralBlocks(editorInstance);
         
         const frame = editorInstance.Canvas.getFrameEl();
         const body = editorInstance.Canvas.getBody();

@@ -90,85 +90,150 @@ Page (Root - invisible)
 ```typescript
 // File: apps/page-builder/app/lib/grapesjs/components/section.ts
 
-export const SectionComponent = {
-  model: {
-    defaults: {
-      name: 'Section',
-      tagName: 'section',
-      classes: ['bd-section'],
-      attributes: {
-        'data-section-id': '', // Will be filled with UUID
-      },
-      traits: [
-        {
-          type: 'text',
-          name: 'data-section-id',
-          label: 'Section ID',
-          readonly: true,
-          changeProp: true,
-        },
-        {
-          type: 'select',
-          name: 'data-bg-type',
-          label: 'Background Type',
-          options: [
-            { value: 'none', label: 'None' },
-            { value: 'color', label: 'Color' },
-            { value: 'image', label: 'Image' },
-            { value: 'gradient', label: 'Gradient' },
-          ],
-          changeProp: true,
-        },
-        {
-          type: 'color',
-          name: 'data-bg-color',
-          label: 'Background Color',
-          changeProp: true,
-        },
-        {
-          type: 'text',
-          name: 'data-padding',
-          label: 'Padding (px)',
-          placeholder: '40',
-          changeProp: true,
-        },
-      ],
-      script: function() {
-        const el = this as HTMLElement;
-        const bgType = el.getAttribute('data-bg-type');
-        const bgColor = el.getAttribute('data-bg-color');
+import type { Editor } from 'grapesjs';
+
+/**
+ * Section Component - Full-width container for rows
+ * 
+ * Hierarchy: Section (this) → Row → Column → Widgets
+ */
+export const registerSectionComponent = (editor: Editor) => {
+  editor.DomComponents.addType('bd-section', {
+    // Detect existing sections in HTML
+    isComponent: (el) => el.tagName === 'SECTION' && el.classList?.contains('bd-section'),
+    
+    model: {
+      defaults: {
+        name: 'Section',
+        tagName: 'section',
+        classes: ['bd-section'],
         
-        if (bgType === 'color' && bgColor) {
-          el.style.backgroundColor = bgColor;
-        }
+        // DRAG CONSTRAINTS
+        draggable: '[data-gjs-type=wrapper]', // Only at root level
+        droppable: '.bd-row, [data-gjs-type=bd-row]', // Only rows inside
         
-        const padding = el.getAttribute('data-padding');
-        if (padding) {
-          el.style.padding = `${padding}px`;
+        // Custom properties for script
+        bgType: 'none',
+        bgColor: '#ffffff',
+        bgImage: '',
+        sectionPadding: '40',
+        
+        // Traits (editable properties in inspector)
+        traits: [
+          {
+            type: 'select',
+            name: 'bgType',
+            label: 'Background Type',
+            options: [
+              { id: 'none', label: 'None' },
+              { id: 'color', label: 'Solid Color' },
+              { id: 'image', label: 'Image' },
+              { id: 'gradient', label: 'Gradient' },
+            ],
+            changeProp: true,
+          },
+          {
+            type: 'color',
+            name: 'bgColor',
+            label: 'Background Color',
+            changeProp: true,
+          },
+          {
+            type: 'text',
+            name: 'bgImage',
+            label: 'Background Image URL',
+            placeholder: 'https://...',
+            changeProp: true,
+          },
+          {
+            type: 'number',
+            name: 'sectionPadding',
+            label: 'Padding (px)',
+            placeholder: '40',
+            min: 0,
+            max: 200,
+            changeProp: true,
+          },
+        ],
+        
+        // Script runs in published page (not in editor)
+        script: function(props) {
+          const el = this as HTMLElement;
+          
+          // Apply background
+          if (props.bgType === 'color' && props.bgColor) {
+            el.style.backgroundColor = props.bgColor;
+          } else if (props.bgType === 'image' && props.bgImage) {
+            el.style.backgroundImage = `url(${props.bgImage})`;
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundPosition = 'center';
+          }
+          
+          // Apply padding
+          if (props.sectionPadding) {
+            el.style.padding = `${props.sectionPadding}px 0`;
+          }
+        },
+        
+        // Props to pass to script (triggers re-run on change)
+        'script-props': ['bgType', 'bgColor', 'bgImage', 'sectionPadding'],
+        
+        // Default styles
+        styles: `
+          .bd-section {
+            width: 100%;
+            min-height: 100px;
+            position: relative;
+          }
+        `,
+      },
+    },
+    
+    // View controls how component appears in editor canvas
+    view: {
+      // onRender is called after component is rendered
+      onRender() {
+        // Add visual editing indicator
+        this.el.setAttribute('data-gjs-editable', 'true');
+        
+        // Show empty state if no children
+        const model = this.model;
+        if (model.components().length === 0) {
+          this.el.innerHTML = `
+            <div style="
+              min-height: 100px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 2px dashed #ccc;
+              color: #999;
+              font-size: 14px;
+            ">
+              + Row ড্র্যাগ করুন এখানে
+            </div>
+          `;
         }
       },
-      'script-props': ['data-bg-type', 'data-bg-color', 'data-padding'],
+      
+      // Listen for component changes
+      init() {
+        this.listenTo(this.model.components(), 'add remove', this.onRender);
+      },
     },
-  },
-  view: {
-    // Custom section template
-    render() {
-      this.el.innerHTML = `
-        <section class="bd-section">
-          <div class="bd-section-row"></div>
-        </section>
-      `;
-      return this;
-    },
-  },
+  });
 };
 ```
 
 **Registration in Editor**:
 ```typescript
-// In editor.ts or config.ts
-const domComps = editor.DomComponents;
-domComps.addType('bd-section', SectionComponent);
+// In Editor.tsx or config.ts initialization
+import { registerSectionComponent } from '~/lib/grapesjs/components/section';
+
+// After editor init
+editorInstance.onReady(() => {
+  registerSectionComponent(editorInstance);
+  // ... register other components
+});
 ```
 
 #### 1.2 Row Component
@@ -289,37 +354,186 @@ export const ColumnComponent = {
 
 ### 2. DRAG CONSTRAINTS
 
-```typescript
-// File: apps/page-builder/app/lib/grapesjs/services/dragConstraints.ts
+> **Important**: GrapesJS uses `draggable` and `droppable` properties on component defaults to control drag/drop behavior. There is no `DragManager.setConstraint` API.
 
-export const setupDragConstraints = (editor: Editor) => {
-  const Canvas = editor.Canvas;
-  
-  // Prevent widgets from being placed outside columns
-  editor.DragManager.setConstraint({
-    'bd-text': 'bd-column',  // Text can only go in columns
-    'bd-image': 'bd-column', // Image can only go in columns
-    'bd-button': 'bd-column',
-    'heading': 'bd-column',
-    // ... all widgets restricted to columns
+The correct approach is to define constraints directly in component definitions:
+
+```typescript
+// File: apps/page-builder/app/lib/grapesjs/components/index.ts
+
+import type { Editor } from 'grapesjs';
+
+/**
+ * Register all structural components with proper drag constraints.
+ * 
+ * Hierarchy: Section → Row → Column → Widgets
+ * 
+ * GrapesJS Constraint Properties:
+ * - `draggable`: Where this component CAN be dragged to (CSS selector or boolean)
+ * - `droppable`: What CAN be dropped inside this component (CSS selector or boolean)
+ */
+export const registerStructuralComponents = (editor: Editor) => {
+  const domComps = editor.DomComponents;
+
+  // ============================================
+  // SECTION - Top-level container (only at root)
+  // ============================================
+  domComps.addType('bd-section', {
+    isComponent: (el) => el.classList?.contains('bd-section'),
+    model: {
+      defaults: {
+        name: 'Section',
+        tagName: 'section',
+        classes: ['bd-section'],
+        // Sections can only be at root level (wrapper)
+        draggable: '[data-gjs-type=wrapper]',
+        // Sections can only contain rows
+        droppable: '.bd-row, [data-gjs-type=bd-row]',
+        // ... other section properties
+      },
+    },
   });
-  
-  // Allow rows only in sections
-  editor.DragManager.setConstraint({
-    'bd-row': 'bd-section',
+
+  // ============================================
+  // ROW - Flex container inside sections
+  // ============================================
+  domComps.addType('bd-row', {
+    isComponent: (el) => el.classList?.contains('bd-row'),
+    model: {
+      defaults: {
+        name: 'Row',
+        tagName: 'div',
+        classes: ['bd-row'],
+        // Rows can only be inside sections
+        draggable: '.bd-section, [data-gjs-type=bd-section]',
+        // Rows can only contain columns
+        droppable: '.bd-column, [data-gjs-type=bd-column]',
+        // ... other row properties
+      },
+    },
   });
-  
-  // Allow columns only in rows
-  editor.DragManager.setConstraint({
-    'bd-column': 'bd-row',
+
+  // ============================================
+  // COLUMN - Grid columns inside rows
+  // ============================================
+  domComps.addType('bd-column', {
+    isComponent: (el) => el.classList?.contains('bd-column'),
+    model: {
+      defaults: {
+        name: 'Column',
+        tagName: 'div',
+        classes: ['bd-column'],
+        // Columns can only be inside rows
+        draggable: '.bd-row, [data-gjs-type=bd-row]',
+        // Columns accept any widget (default behavior)
+        droppable: true,
+        // ... other column properties
+      },
+    },
   });
+
+  // ============================================
+  // WIDGETS - Can only exist inside columns
+  // ============================================
   
-  // Prevent section nesting
-  editor.DragManager.setConstraint({
-    'bd-section': null, // Only at root level
+  // Text Widget
+  domComps.addType('bd-text', {
+    extend: 'text', // Extend built-in text component
+    model: {
+      defaults: {
+        name: 'Text',
+        // Can only be dragged into columns
+        draggable: '.bd-column, [data-gjs-type=bd-column]',
+        droppable: false, // No children allowed
+      },
+    },
+  });
+
+  // Image Widget
+  domComps.addType('bd-image', {
+    extend: 'image',
+    model: {
+      defaults: {
+        name: 'Image',
+        draggable: '.bd-column, [data-gjs-type=bd-column]',
+        droppable: false,
+      },
+    },
+  });
+
+  // Button Widget
+  domComps.addType('bd-button', {
+    extend: 'link',
+    model: {
+      defaults: {
+        name: 'Button',
+        tagName: 'a',
+        classes: ['bd-button'],
+        draggable: '.bd-column, [data-gjs-type=bd-column]',
+        droppable: false,
+      },
+    },
+  });
+
+  // Heading Widget
+  domComps.addType('bd-heading', {
+    extend: 'text',
+    model: {
+      defaults: {
+        name: 'Heading',
+        tagName: 'h2',
+        draggable: '.bd-column, [data-gjs-type=bd-column]',
+        droppable: false,
+      },
+    },
   });
 };
 ```
+
+#### Alternative: Using Function-based Constraints
+
+For more complex constraint logic, you can use functions:
+
+```typescript
+domComps.addType('bd-widget', {
+  model: {
+    defaults: {
+      // Function-based draggable constraint
+      draggable: (target, destination) => {
+        // target = component being dragged
+        // destination = target drop location
+        const destType = destination?.get?.('type');
+        const destClasses = destination?.getClasses?.() || [];
+        
+        // Only allow drop into columns
+        return destType === 'bd-column' || destClasses.includes('bd-column');
+      },
+      
+      // Function-based droppable constraint
+      droppable: (target, source) => {
+        // target = this component
+        // source = component being dropped
+        const sourceType = source?.get?.('type');
+        
+        // Don't allow sections or rows to be dropped here
+        return !['bd-section', 'bd-row'].includes(sourceType);
+      },
+    },
+  },
+});
+```
+
+#### Constraint Summary Table
+
+| Component | `draggable` (where it can go) | `droppable` (what can go inside) |
+|-----------|-------------------------------|----------------------------------|
+| `bd-section` | Root/Wrapper only | Only `bd-row` |
+| `bd-row` | Only inside `bd-section` | Only `bd-column` |
+| `bd-column` | Only inside `bd-row` | Any widget |
+| `bd-text` | Only inside `bd-column` | Nothing (false) |
+| `bd-image` | Only inside `bd-column` | Nothing (false) |
+| `bd-button` | Only inside `bd-column` | Nothing (false) |
+| `bd-heading` | Only inside `bd-column` | Nothing (false) |
 
 ---
 

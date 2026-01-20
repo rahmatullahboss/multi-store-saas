@@ -46,6 +46,8 @@
 ```typescript
 // File: apps/page-builder/app/lib/grapesjs/services/shortcuts.ts
 
+import type { Editor } from 'grapesjs';
+
 interface ShortcutConfig {
   key: string;
   ctrlKey?: boolean;

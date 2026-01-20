@@ -34,6 +34,8 @@ interface ProductPageProps {
   relatedProducts?: Product[];
   onAddToCart?: (product: Product, quantity: number) => void;
   onBuyNow?: (product: Product, quantity: number) => void;
+  /** Callback for internal navigation in preview mode */
+  onNavigateProduct?: (productId: number) => void;
 }
 
 export function BDShopProductPage({
@@ -42,6 +44,7 @@ export function BDShopProductPage({
   relatedProducts = [],
   onAddToCart,
   onBuyNow,
+  onNavigateProduct,
 }: ProductPageProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -114,12 +117,12 @@ export function BDShopProductPage({
           {/* Image Gallery */}
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             {/* Main Image */}
-            <div className="relative aspect-square bg-white p-4">
+            <div className="relative aspect-square bg-gray-50 overflow-hidden">
               {images[selectedImage] && (
                 <img
                   src={images[selectedImage]}
                   alt={product.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
               )}
               {/* Navigation Arrows */}
@@ -312,34 +315,43 @@ export function BDShopProductPage({
               Related Products
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {relatedProducts.slice(0, 5).map(p => (
-                <a
-                  key={p.id}
-                  href={`/products/${p.id}`}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
-                >
-                  <div className="aspect-square bg-gray-50">
-                    {p.imageUrl && (
-                      <img
-                        src={p.imageUrl}
-                        alt={p.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition"
-                      />
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h3 
-                      className="text-sm line-clamp-2 mb-2"
-                      style={{ color: BDSHOP_THEME.text }}
-                    >
-                      {p.title}
-                    </h3>
-                    <p className="font-bold" style={{ color: BDSHOP_THEME.blue }}>
-                      {currency}{(p.price ?? 0).toLocaleString()}
-                    </p>
-                  </div>
-                </a>
-              ))}
+              {relatedProducts.slice(0, 5).map(p => {
+                const handleClick = (e: React.MouseEvent) => {
+                  if (onNavigateProduct) {
+                    e.preventDefault();
+                    onNavigateProduct(p.id);
+                  }
+                };
+                return (
+                  <a
+                    key={p.id}
+                    href={`/products/${p.id}`}
+                    onClick={handleClick}
+                    className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
+                  >
+                    <div className="aspect-square bg-gray-50">
+                      {p.imageUrl && (
+                        <img
+                          src={p.imageUrl}
+                          alt={p.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition"
+                        />
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h3 
+                        className="text-sm line-clamp-2 mb-2"
+                        style={{ color: BDSHOP_THEME.text }}
+                      >
+                        {p.title}
+                      </h3>
+                      <p className="font-bold" style={{ color: BDSHOP_THEME.blue }}>
+                        {currency}{(p.price ?? 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           </div>
         )}

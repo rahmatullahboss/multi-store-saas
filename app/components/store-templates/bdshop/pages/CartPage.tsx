@@ -38,6 +38,7 @@ interface CartPageProps {
   currency: string;
   onUpdateQuantity?: (itemId: number, quantity: number) => void;
   onRemoveItem?: (itemId: number) => void;
+  onCheckout?: () => void;
 }
 
 // BDShop color palette
@@ -55,7 +56,8 @@ export function BDShopCartPage({
   items, 
   currency,
   onUpdateQuantity,
-  onRemoveItem 
+  onRemoveItem,
+  onCheckout
 }: CartPageProps) {
   const fetcher = useFetcher();
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
@@ -369,14 +371,25 @@ export function BDShopCartPage({
                 </div>
 
                 {/* Checkout Button */}
-                <Link
-                  to="/checkout"
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-white mt-6 transition-all hover:shadow-lg hover:opacity-90"
-                  style={{ backgroundColor: BDSHOP_THEME.navy }}
-                >
-                  <Lock className="w-5 h-5" />
-                  Proceed to Checkout
-                </Link>
+                {onCheckout ? (
+                  <button
+                    onClick={onCheckout}
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-white mt-6 transition-all hover:shadow-lg hover:opacity-90"
+                    style={{ backgroundColor: BDSHOP_THEME.navy }}
+                  >
+                    <Lock className="w-5 h-5" />
+                    Proceed to Checkout
+                  </button>
+                ) : (
+                  <Link
+                    to="/checkout"
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-semibold text-white mt-6 transition-all hover:shadow-lg hover:opacity-90"
+                    style={{ backgroundColor: BDSHOP_THEME.navy }}
+                  >
+                    <Lock className="w-5 h-5" />
+                    Proceed to Checkout
+                  </Link>
+                )}
 
                 {/* Continue Shopping */}
                 <Link

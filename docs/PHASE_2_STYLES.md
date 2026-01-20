@@ -204,7 +204,12 @@ export const getGrapesConfig = (container, pageId, planType, canvasStyleLinks) =
 ```tsx
 // File: apps/page-builder/app/components/page-builder/StyleControls.tsx (major revision)
 
-import { Monitor, Tablet, Smartphone } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import type { Editor } from 'grapesjs';
+import { 
+  Monitor, Tablet, Smartphone, 
+  Layout, Maximize2, Type, Palette, Sparkles, MousePointer2 
+} from 'lucide-react';
 
 const DEVICES = [
   { id: 'desktop', label: 'Desktop', icon: Monitor },
@@ -271,22 +276,18 @@ export default function StyleControls({ editor }: StyleControlsProps) {
     return mediaStyles;
   };
 
+  /**
+   * Update style for currently selected component
+   * Uses updateMediaStyle helper which correctly handles
+   * desktop vs tablet/mobile via CssComposer
+   */
   const updateStyle = (prop: string, value: string) => {
-    if (!selectedComp) return;
+    if (!selectedComp || !editor) return;
 
-    if (activeDevice === 'desktop') {
-      // Desktop styles are default
-      selectedComp.addStyle({ [prop]: value });
-    } else {
-      // Device-specific: use media query
-      const mediaQuery = activeDevice === 'tablet' 
-        ? '@media (max-width: 768px)'
-        : '@media (max-width: 480px)';
-      
-      // TODO: GrapesJS media query handling
-      updateMediaStyle(selectedComp, prop, value, mediaQuery);
-    }
+    // Use the helper function that correctly handles media queries
+    updateMediaStyle(selectedComp, prop, value, activeDevice, editor);
 
+    // Update local state for UI
     setStyles(prev => ({ ...prev, [prop]: value }));
   };
 
@@ -423,27 +424,176 @@ export default function StyleControls({ editor }: StyleControlsProps) {
   );
 }
 
-// Helper functions
-function updateVisibility(component: any, device: string, visible: boolean) {
-  const attr = `data-visible-${device}`;
-  component.set(attr, visible ? '1' : '0');
+// =============================================================================
+// HELPER FUNCTIONS - Using correct GrapesJS CssComposer API
+// =============================================================================
+
+/**
+ * Update component visibility for specific device using GrapesJS CssComposer
+ * 
+ * @param component - GrapesJS component
+ * @param device - 'desktop' | 'tablet' | 'mobile'
+ * @param visible - true/false
+ * @param editor - GrapesJS editor instance
+ */
+function updateVisibility(component: any, device: string, visible: boolean, editor: Editor) {
+  // Store visibility state as component attribute
+  component.addAttributes({ [`data-visible-${device}`]: visible ? '1' : '0' });
   
-  if (!visible) {
-    const mediaQuery = device === 'tablet' 
-      ? '@media (max-width: 768px)'
-      : '@media (max-width: 480px)';
-    component.addStyle({ display: 'none' }, mediaQuery);
+  // Get the component's selector string
+  const selector = component.getSelectorsString() || `#${component.getId()}`;
+  
+  if (device === 'desktop') {
+    // Desktop: directly update component style
+    if (!visible) {
+      component.addStyle({ display: 'none' });
+    } else {
+      component.removeStyle('display');
+    }
+  } else {
+    // Tablet/Mobile: use media query via CssComposer
+    const mediaParams = device === 'tablet' 
+      ? '(max-width: 768px)'
+      : '(max-width: 480px)';
+    
+    const css = editor.CssComposer;
+    
+    if (!visible) {
+      // Add rule to hide on this device
+      css.setRule(selector, { display: 'none' }, {
+        atRuleType: 'media',
+        atRuleParams: mediaParams,
+      });
+    } else {
+      // Remove the hiding rule (set display to initial/block)
+      css.setRule(selector, { display: 'block' }, {
+        atRuleType: 'media',
+        atRuleParams: mediaParams,
+      });
+    }
   }
 }
 
+/**
+ * Check if component is visible on specific device
+ */
 function isDeviceVisible(component: any, device: string): boolean {
-  const attr = component.get(`data-visible-${device}`);
+  const attr = component.getAttributes()[`data-visible-${device}`];
   return attr !== '0';
 }
 
-function updateMediaStyle(component: any, prop: string, value: string, mediaQuery: string) {
-  // TODO: Implement GrapesJS media query style update
-  // This is a complex operation - needs custom CSS rule management
+/**
+ * Update style for specific device using GrapesJS CssComposer
+ * 
+ * This is the correct way to handle device-specific styles in GrapesJS.
+ * Uses CssComposer.setRule() with atRuleType: 'media'
+ * 
+ * @param component - GrapesJS component
+ * @param prop - CSS property name (e.g., 'font-size', 'width')
+ * @param value - CSS value (e.g., '16px', '100%')
+ * @param device - 'desktop' | 'tablet' | 'mobile'
+ * @param editor - GrapesJS editor instance
+ */
+function updateMediaStyle(
+  component: any, 
+  prop: string, 
+  value: string, 
+  device: string,
+  editor: Editor
+) {
+  // Get component selector
+  const selector = component.getSelectorsString() || `#${component.getId()}`;
+  
+  if (device === 'desktop') {
+    // Desktop: update component style directly (no media query)
+    component.addStyle({ [prop]: value });
+  } else {
+    // Tablet/Mobile: use CssComposer with media query
+    const mediaParams = device === 'tablet' 
+      ? '(max-width: 768px)'
+      : '(max-width: 480px)';
+    
+    const css = editor.CssComposer;
+    
+    // Get existing rule or create new one
+    let rule = css.getRule(selector, { 
+      atRuleType: 'media', 
+      atRuleParams: mediaParams 
+    });
+    
+    if (rule) {
+      // Merge with existing styles
+      css.setRule(selector, { ...rule.getStyle(), [prop]: value }, {
+        atRuleType: 'media',
+        atRuleParams: mediaParams,
+        addStyles: true, // Merge styles instead of replacing
+      });
+    } else {
+      // Create new rule
+      css.setRule(selector, { [prop]: value }, {
+        atRuleType: 'media',
+        atRuleParams: mediaParams,
+      });
+    }
+  }
+}
+
+/**
+ * Get styles for specific device from CssComposer
+ */
+function getStylesForDevice(component: any, device: string, editor: Editor): Record<string, string> {
+  if (device === 'desktop') {
+    // Desktop styles are stored directly on component
+    return component.getStyle() || {};
+  }
+  
+  // For tablet/mobile, look up in CssComposer
+  const selector = component.getSelectorsString() || `#${component.getId()}`;
+  const mediaParams = device === 'tablet' 
+    ? '(max-width: 768px)'
+    : '(max-width: 480px)';
+  
+  const css = editor.CssComposer;
+  const rule = css.getRule(selector, { 
+    atRuleType: 'media', 
+    atRuleParams: mediaParams 
+  });
+  
+  return rule ? rule.getStyle() : {};
+}
+
+/**
+ * Remove a style property for specific device
+ */
+function removeMediaStyle(
+  component: any, 
+  prop: string, 
+  device: string,
+  editor: Editor
+) {
+  if (device === 'desktop') {
+    component.removeStyle(prop);
+  } else {
+    const selector = component.getSelectorsString() || `#${component.getId()}`;
+    const mediaParams = device === 'tablet' 
+      ? '(max-width: 768px)'
+      : '(max-width: 480px)';
+    
+    const css = editor.CssComposer;
+    const rule = css.getRule(selector, { 
+      atRuleType: 'media', 
+      atRuleParams: mediaParams 
+    });
+    
+    if (rule) {
+      const currentStyles = { ...rule.getStyle() };
+      delete currentStyles[prop];
+      css.setRule(selector, currentStyles, {
+        atRuleType: 'media',
+        atRuleParams: mediaParams,
+      });
+    }
+  }
 }
 ```
 

@@ -128,7 +128,9 @@ CREATE TABLE saved_blocks (
 
 import { json, type ActionFunction } from '@remix-run/cloudflare';
 import { z } from 'zod';
+import { eq, and, desc, isNull, inArray } from 'drizzle-orm';
 import { db } from '~/lib/db.server';
+import { savedBlocks } from '~/db/schema'; // Import the table schema
 import { requireStore } from '~/lib/auth.server';
 import { generateId } from '~/lib/utils';
 
@@ -146,9 +148,27 @@ export const action: ActionFunction = async ({ request, context }) => {
   }
 
   const store = await requireStore(request, context);
-  const body = await request.json();
   
-  const validated = SaveBlockSchema.parse(body);
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+  
+  // Validate with Zod
+  let validated;
+  try {
+    validated = SaveBlockSchema.parse(body);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return json({ 
+        error: 'Validation failed', 
+        details: error.errors 
+      }, { status: 400 });
+    }
+    throw error;
+  }
 
   // Generate thumbnail (screenshot of the block)
   const thumbnail = await generateBlockThumbnail(validated.content);
