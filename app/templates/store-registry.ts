@@ -111,6 +111,10 @@ export interface StoreTemplateDefinition {
   component: ComponentType<StoreTemplateProps>;
   Header?: ComponentType<StoreHeaderProps>;
   Footer?: ComponentType<StoreFooterProps>;
+  /** Template-specific product detail page component */
+  ProductPage?: ComponentType<any>;
+  /** Template-specific cart page component */
+  CartPage?: ComponentType<any>;
 }
 
 // ============================================================================
@@ -311,6 +315,8 @@ const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templat
 const TechModernTemplate = React.lazy(() => import('~/components/store-templates/tech-modern/index').then(m => ({ default: m.TechModernTemplate })));
 const ArtisanMarketTemplate = React.lazy(() => import('~/components/store-templates/artisan-market/index').then(m => ({ default: m.ArtisanMarketTemplate })));
 const DarazTemplate = React.lazy(() => import('~/components/store-templates/daraz/index').then(m => ({ default: m.DarazTemplate })));
+const DarazProductPage = React.lazy(() => import('~/components/store-templates/daraz/pages/ProductPage').then(m => ({ default: m.DarazProductPage })));
+const DarazCartPage = React.lazy(() => import('~/components/store-templates/daraz/pages/CartPage').then(m => ({ default: m.DarazCartPage })));
 const BDShopTemplate = React.lazy(() => import('~/components/store-templates/bdshop/index').then(m => ({ default: m.BDShopTemplate })));
 const GhorerBazarTemplate = React.lazy(() => import('~/components/store-templates/ghorer-bazar/index').then(m => ({ default: m.GhorerBazarTemplate })));
 const NovaLuxTemplate = React.lazy(() => import('~/components/store-templates/nova-lux/index').then(m => ({ default: m.NovaLuxTemplate })));
@@ -422,6 +428,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: DarazTemplate,
     Header: DarazHeader,
     Footer: DarazFooter,
+    ProductPage: DarazProductPage,
+    CartPage: DarazCartPage,
   },
   {
     id: 'bdshop',

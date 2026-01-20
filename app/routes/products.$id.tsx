@@ -15,11 +15,12 @@ import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
 import { products, reviews } from '@db/schema';
 import { parseSocialLinks } from '@db/types';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { getStoreTemplateTheme, getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { StoreSectionRenderer } from '~/components/store/StoreSectionRenderer';
+import { DEFAULT_PRODUCT_SECTIONS } from '~/components/store-sections/registry';
 import { getCustomer } from '~/services/customer-auth.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -336,9 +337,11 @@ export default function ProductDetail() {
       imageUrl: p.imageUrl || undefined,
     })),
   };
-  
   // Check if we have published template sections
   const hasTemplateSections = template?.sections && template.sections.length > 0;
+  
+  // Get template definition to check for ProductPage component
+  const templateDef = getStoreTemplate(storeTemplateId);
 
   const productSchema = {
     '@context': 'https://schema.org',
@@ -385,169 +388,27 @@ export default function ProductDetail() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
-      {hasTemplateSections ? (
+      {/* Use template-specific ProductPage if available */}
+      {templateDef.ProductPage ? (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>}>
+          <templateDef.ProductPage
+            product={product}
+            currency={currency}
+            relatedProducts={relatedProducts}
+          />
+        </Suspense>
+      ) : (
         <StoreSectionRenderer
-          sections={template!.sections}
+          sections={hasTemplateSections ? template!.sections : DEFAULT_PRODUCT_SECTIONS.map(s => ({
+            ...s,
+            enabled: true,
+            sortOrder: 0,
+            props: s.settings,
+          }))}
           context={renderContext}
         />
-      ) : (
-        // Fallback: Default product display
-        <div className="min-h-screen py-8 px-4" style={{ backgroundColor: theme.background }}>
-          <div className="max-w-6xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Product Gallery */}
-              <div className="space-y-4">
-                <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100">
-                  {images[0] && (
-                    <img
-                      src={images[0]}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
-                {images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {images.slice(1, 5).map((img, i) => (
-                      <div key={i} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              {/* Product Info */}
-              <div className="space-y-6">
-                <div>
-                  {product.category && (
-                    <p className="text-sm" style={{ color: theme.accent }}>{product.category}</p>
-                  )}
-                  <h1 className="text-3xl font-bold mt-1" style={{ color: theme.text }}>
-                    {product.title}
-                  </h1>
-                </div>
-                
-                {/* Rating */}
-                {showReviews && reviewCount > 0 && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex">
-                      {[1,2,3,4,5].map(star => (
-                        <span key={star} style={{ color: star <= avgRating ? '#fbbf24' : '#d1d5db' }}>★</span>
-                      ))}
-                    </div>
-                    <span className="text-sm" style={{ color: theme.muted }}>({reviewCount} reviews)</span>
-                  </div>
-                )}
-                
-                {/* Price */}
-                <div className="flex items-baseline gap-3">
-                  <span className="text-3xl font-bold" style={{ color: theme.primary }}>
-                    {currency} {product.price}
-                  </span>
-                  {product.compareAtPrice && product.compareAtPrice > product.price && (
-                    <span className="text-xl line-through text-gray-400">
-                      {currency} {product.compareAtPrice}
-                    </span>
-                  )}
-                </div>
-                
-                {/* Description */}
-                {product.description && (
-                  <div 
-                    className="prose prose-sm max-w-none"
-                    style={{ color: theme.text }}
-                    dangerouslySetInnerHTML={{ __html: product.description }}
-                  />
-                )}
-                
-                {/* Add to Cart */}
-                <button
-                  onClick={() => {
-                    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-                    const existing = cart.find((item: { productId: number }) => item.productId === product.id);
-                    if (existing) {
-                      existing.quantity += 1;
-                    } else {
-                      cart.push({
-                        productId: product.id,
-                        title: product.title,
-                        price: product.price,
-                        imageUrl: product.imageUrl,
-                        quantity: 1,
-                      });
-                    }
-                    localStorage.setItem('cart', JSON.stringify(cart));
-                    window.dispatchEvent(new Event('cart-updated'));
-                    trackingEvents.addToCart({
-                      id: String(product.id),
-                      name: product.title,
-                      price: product.price,
-                      currency,
-                      quantity: 1,
-                    });
-                  }}
-                  className="w-full py-4 rounded-xl text-white font-semibold text-lg transition hover:opacity-90"
-                  style={{ backgroundColor: theme.primary }}
-                >
-                  Add to Cart
-                </button>
-                
-                {/* Trust badges */}
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t" style={{ borderColor: theme.muted + '20' }}>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🚚</div>
-                    <div className="text-xs" style={{ color: theme.muted }}>Fast Delivery</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🔒</div>
-                    <div className="text-xs" style={{ color: theme.muted }}>Secure Payment</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">↩️</div>
-                    <div className="text-xs" style={{ color: theme.muted }}>Easy Returns</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Related Products */}
-            {relatedProducts.length > 0 && (
-              <div className="mt-16">
-                <h2 className="text-2xl font-bold mb-6" style={{ color: theme.text }}>
-                  You May Also Like
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {relatedProducts.slice(0, 4).map(p => (
-                    <a
-                      key={p.id}
-                      href={`/products/${p.id}`}
-                      className="group rounded-xl overflow-hidden border hover:shadow-lg transition"
-                      style={{ borderColor: theme.muted + '20' }}
-                    >
-                      <div className="aspect-square bg-gray-100">
-                        {p.imageUrl && (
-                          <img
-                            src={p.imageUrl}
-                            alt={p.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition"
-                          />
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <h3 className="font-medium truncate" style={{ color: theme.text }}>{p.title}</h3>
-                        <p className="font-bold mt-1" style={{ color: theme.primary }}>
-                          {currency} {p.price}
-                        </p>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
       )}
     </StorePageWrapper>
   );
 }
+

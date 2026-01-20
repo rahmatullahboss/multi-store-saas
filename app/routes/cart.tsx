@@ -5,7 +5,7 @@
  * Renders sections from published template via StoreSectionRenderer.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher } from '@remix-run/react';
 import { eq, and, inArray } from 'drizzle-orm';
@@ -14,11 +14,12 @@ import { products } from '@db/schema';
 import { parseSocialLinks } from '@db/types';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { getStoreTemplateTheme, getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { StoreSectionRenderer } from '~/components/store/StoreSectionRenderer';
 import { resolveTemplate, type CartContext } from '~/lib/template-resolver.server';
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
+import { DEFAULT_CART_SECTIONS } from '~/components/store-sections/registry';
 import { getCustomer } from '~/services/customer-auth.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

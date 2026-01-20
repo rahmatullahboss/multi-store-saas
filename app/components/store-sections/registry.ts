@@ -594,3 +594,105 @@ export const DEFAULT_SECTIONS: StoreSection[] = [
     }
   }
 ];
+
+// ============================================================================
+// DEFAULT SECTIONS FOR PRODUCT PAGE
+// ============================================================================
+export const DEFAULT_PRODUCT_SECTIONS: StoreSection[] = [
+  {
+    id: 'product-header-1',
+    type: 'product-header',
+    settings: {
+      paddingBottom: 'small'
+    }
+  },
+  {
+    id: 'product-gallery-1',
+    type: 'product-gallery',
+    settings: {}
+  },
+  {
+    id: 'product-info-1',
+    type: 'product-info',
+    settings: {
+      paddingTop: 'large',
+      paddingBottom: 'large',
+      addToCartText: 'Add to Cart',
+      buyNowText: 'Buy Now'
+    }
+  },
+  {
+    id: 'product-description-1',
+    type: 'product-description',
+    settings: {
+      paddingTop: 'medium',
+      paddingBottom: 'medium'
+    }
+  },
+  {
+    id: 'product-reviews-1',
+    type: 'product-reviews',
+    settings: {
+      paddingTop: 'large'
+    }
+  },
+  {
+    id: 'related-products-1',
+    type: 'related-products',
+    settings: {
+      heading: 'You Might Also Like',
+      productCount: 4,
+      paddingTop: 'large'
+    }
+  }
+];
+
+// ============================================================================
+// DEFAULT SECTIONS FOR CART PAGE
+// ============================================================================
+export const DEFAULT_CART_SECTIONS: StoreSection[] = [
+  {
+    id: 'cart-items-1',
+    type: 'cart-items',
+    settings: {
+      heading: 'Your Cart',
+      continueShoppingText: 'Continue Shopping',
+      emptyText: 'Your cart is empty'
+    }
+  },
+  {
+    id: 'cart-summary-1',
+    type: 'cart-summary',
+    settings: {
+      checkoutText: 'Proceed to Checkout',
+      trustText1: 'Secure checkout',
+      trustText2: 'Fast delivery',
+      trustText3: 'Easy returns'
+    }
+  }
+];
+
+// ============================================================================
+// DEFAULT SECTIONS FOR COLLECTION PAGE
+// ============================================================================
+export const DEFAULT_COLLECTION_SECTIONS: StoreSection[] = [
+  {
+    id: 'collection-header-1',
+    type: 'collection-header',
+    settings: {
+      alignment: 'center',
+      paddingTop: 'medium',
+      paddingBottom: 'medium'
+    }
+  },
+  {
+    id: 'collection-products-1',
+    type: 'product-grid',
+    settings: {
+      heading: '',
+      productCount: 12,
+      paddingTop: 'small',
+      paddingBottom: 'large'
+    }
+  }
+];
