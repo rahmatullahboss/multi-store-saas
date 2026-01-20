@@ -29,6 +29,7 @@ import {
 import { Globe, Check, Clock, X, AlertTriangle, ExternalLink, Crown, Lock, RefreshCw, Trash2, Loader2, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Domain Settings' }];
@@ -177,7 +178,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         updatedAt: new Date(),
       }).where(eq(stores.id, storeId));
       
-      console.log(`[Domain] Store ${storeId} added domain: ${domain} (CF ID: ${result.hostnameId})`);
+      console.info(`[Domain] Store ${storeId} added domain: ${domain} (CF ID: ${result.hostnameId})`);
       
       return json<ActionData>({ 
         success: true, 
@@ -236,7 +237,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         updatedAt: new Date(),
       }).where(eq(stores.id, storeId));
       
-      console.log(`[Domain] Store ${storeId} removed custom domain`);
+      console.info(`[Domain] Store ${storeId} removed custom domain`);
       
       return json<ActionData>({ success: true, message: 'domainRemovalSuccess' });
     } catch (error) {
@@ -267,7 +268,7 @@ export default function DomainSettings() {
   const navigation = useNavigation();
   const revalidator = useRevalidator();
   const isSubmitting = navigation.state === 'submitting';
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   
   const { 
     subdomain, 
@@ -276,9 +277,7 @@ export default function DomainSettings() {
     customDomainStatus,
     sslStatus, 
     dnsVerified, 
-    planType, 
     canUseDomain,
-    cloudflareConfigured,
     dnsTarget 
   } = data;
   
@@ -296,7 +295,7 @@ export default function DomainSettings() {
       return () => clearInterval(interval);
     }
     setAutoRefresh(false);
-  }, [customDomain, sslStatus, dnsVerified]);
+  }, [customDomain, sslStatus, dnsVerified, revalidator]);
   
   return (
     <div className="space-y-6">
@@ -323,11 +322,11 @@ export default function DomainSettings() {
       )}
       
       {/* Current Domains */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <GlassCard className="p-6 mb-6">
         <h2 className="font-semibold text-gray-900 mb-4">{t('yourStoreUrls')}</h2>
         
         {/* Subdomain (Always Active) */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-3">
+        <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-lg mb-3 border border-gray-100/50 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <Globe className="w-5 h-5 text-emerald-600" />
             <div>
@@ -351,9 +350,9 @@ export default function DomainSettings() {
         {customDomain && (
           <div className={`flex items-center justify-between p-4 rounded-lg border ${
             sslStatus === 'active' && dnsVerified 
-              ? 'bg-emerald-50 border-emerald-200' 
-              : 'bg-yellow-50 border-yellow-200'
-          }`}>
+              ? 'bg-emerald-50/50 border-emerald-200/50' 
+              : 'bg-yellow-50/50 border-yellow-200/50'
+          } backdrop-blur-sm`}>
             <div className="flex items-center gap-3">
               {sslStatus === 'active' && dnsVerified ? (
                 <Check className="w-5 h-5 text-emerald-600" />
@@ -390,11 +389,11 @@ export default function DomainSettings() {
             </div>
           </div>
         )}
-      </div>
+      </GlassCard>
       
       {/* Pending DNS Setup Instructions */}
       {customDomain && !(sslStatus === 'active' && dnsVerified) && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+        <GlassCard className="bg-blue-50/50 border-blue-200/50 p-6 mb-6">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Zap className="w-5 h-5" />
             {t('completeDnsSetup')}
@@ -402,7 +401,7 @@ export default function DomainSettings() {
           <p className="text-blue-800 mb-4">
             {t('addCnameRecord')}
           </p>
-          <div className="bg-white rounded-lg p-4 font-mono text-sm mb-4">
+          <div className="bg-white/80 rounded-lg p-4 font-mono text-sm mb-4 backdrop-blur-sm border border-blue-100/50">
             <table className="w-full">
               <thead>
                 <tr className="text-gray-500 text-left">
@@ -429,7 +428,7 @@ export default function DomainSettings() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition shadow-sm"
               >
                 <RefreshCw className={`w-4 h-4 ${isSubmitting ? 'animate-spin' : ''}`} />
                 {t('refreshStatus')}
@@ -440,19 +439,19 @@ export default function DomainSettings() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-100/80 text-red-700 rounded-lg hover:bg-red-200/80 disabled:opacity-50 transition"
               >
                 <Trash2 className="w-4 h-4" />
                 {t('removeDomainBtn')}
               </button>
             </Form>
           </div>
-        </div>
+        </GlassCard>
       )}
       
       {/* Active Domain - Management */}
       {customDomain && sslStatus === 'active' && dnsVerified && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+        <GlassCard className="p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <Check className="w-6 h-6 text-emerald-600" />
             <h2 className="font-semibold text-gray-900">{t('domainConnected')}</h2>
@@ -465,18 +464,18 @@ export default function DomainSettings() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-100/80 text-red-700 rounded-lg hover:bg-red-200/80 disabled:opacity-50 transition"
             >
               <Trash2 className="w-4 h-4" />
               {t('removeDomainBtn')}
             </button>
           </Form>
-        </div>
+        </GlassCard>
       )}
       
       {/* Pending Request (Legacy Manual System) */}
       {customDomainStatus === 'pending' && customDomainRequest && !customDomain && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
+        <GlassCard className="bg-yellow-50/50 border-yellow-200/50 p-6 mb-6">
           <div className="flex items-start gap-4">
             <Clock className="w-6 h-6 text-yellow-600 flex-shrink-0" />
             <div className="flex-1">
@@ -499,20 +498,21 @@ export default function DomainSettings() {
               </Form>
             </div>
           </div>
-        </div>
+        </GlassCard>
       )}
       
       {/* Add Custom Domain Form */}
       {!customDomain && customDomainStatus !== 'pending' && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard className="p-6">
           <h2 className="font-semibold text-gray-900 mb-2">{t('addCustomDomain')}</h2>
           <p className="text-gray-600 text-sm mb-6">
             {t('addCustomDomainDesc')}
           </p>
           
           {!isPaid && (
-            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 rounded-xl p-5 mb-6 shadow-sm">
-              <div className="flex items-start gap-4">
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 rounded-xl p-5 mb-6 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-orange-200 rounded-full blur-3xl opacity-20 -mr-16 -mt-16"></div>
+              <div className="flex items-start gap-4 relative z-10">
                 <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
                   <Crown className="w-6 h-6 text-white" />
                 </div>
@@ -552,7 +552,7 @@ export default function DomainSettings() {
                 name="domain"
                 placeholder={t('domainPlaceholder')}
                 disabled={!isPaid}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed bg-white/50 backdrop-blur-sm"
               />
               <p className="text-sm text-gray-500 mt-2">
                 {t('enterDomainYouOwn')}
@@ -562,7 +562,7 @@ export default function DomainSettings() {
             <button
               type="submit"
               disabled={isSubmitting || !isPaid}
-              className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 shadow-sm"
             >
               {isSubmitting ? (
                 <>
@@ -582,7 +582,7 @@ export default function DomainSettings() {
           {isPaid && (
             <div className="mt-6 pt-6 border-t border-gray-200">
               <h3 className="text-sm font-medium text-gray-700 mb-3">{t('dnsInstructionsPreview')}</h3>
-              <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm">
+              <div className="bg-gray-50/50 rounded-lg p-4 font-mono text-sm border border-gray-100/50 backdrop-blur-sm">
                 <div className="grid grid-cols-3 gap-2">
                    <span className="text-gray-500">{t('type')}</span>
                   <span className="text-gray-500">{t('nameHost')}</span>
@@ -596,7 +596,7 @@ export default function DomainSettings() {
               </div>
             </div>
           )}
-        </div>
+        </GlassCard>
       )}
     </div>
   );

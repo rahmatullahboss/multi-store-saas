@@ -1,5 +1,5 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useActionData, Form, useSubmit, useNavigation, Link } from '@remix-run/react';
+import { useLoaderData, useActionData, Form, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { apiKeys, webhooks } from '@db/schema';
@@ -7,9 +7,10 @@ import { getSession } from '~/services/auth.server';
 import { generateApiKey, revokeApiKey } from '~/services/api.server';
 import { registerWebhook } from '~/services/webhook.server';
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Key, Copy, Check, Info, ShieldAlert, Network, Plus, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Trash2, Key, Copy, Check, ShieldAlert, Network, Plus, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
@@ -163,22 +164,28 @@ export default function DeveloperSettings() {
           </button>
       </div>
 
+
+
+/* ... imports ... */
+
+/* ... inside component ... */
+
       {/* API Keys Tab */}
       {activeTab === 'keys' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="flex justify-between items-end">
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg flex gap-3 text-amber-800 text-sm max-w-2xl">
+            <GlassCard className="p-4 bg-amber-50/50 border-amber-200/50 flex flex-col md:flex-row justify-between items-end gap-4 backdrop-blur-sm">
+                <div className="flex gap-3 text-amber-800 text-sm max-w-2xl">
                     <ShieldAlert className="w-5 h-5 flex-shrink-0" />
                     <p>
                     {t('keysSecretWarning')}
                     </p>
                 </div>
-                <Form method="post" className="flex items-end gap-2" ref={keyFormRef}>
+                <Form method="post" className="flex items-end gap-2 w-full md:w-auto" ref={keyFormRef}>
                     <input 
                         type="text" 
                         name="name" 
                         placeholder={t('keyName')}
-                        className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        className="flex-1 md:w-auto px-3 py-2 bg-white/80 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm"
                         required
                     />
                     <button 
@@ -191,12 +198,12 @@ export default function DeveloperSettings() {
                         {isSubmitting ? t('saving') : <><Key className="w-4 h-4" /> {t('generateKey')}</>}
                     </button>
                 </Form>
-            </div>
+            </GlassCard>
 
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <GlassCard intensity="low" className="overflow-hidden p-0">
                 <table className="w-full text-left text-sm">
                 <thead>
-                    <tr className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                    <tr className="bg-slate-50/50 text-slate-500 font-medium border-b border-slate-200/50">
                     <th className="px-6 py-3">{t('name')}</th>
                     <th className="px-6 py-3">{t('keyPrefix')}</th>
                     <th className="px-6 py-3">{t('keyCreated')}</th>
@@ -204,20 +211,20 @@ export default function DeveloperSettings() {
                     <th className="px-6 py-3 text-right">{t('actions')}</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-100">
                     {keys.length === 0 ? (
                         <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">{t('noApiKeys')}</td></tr>
                     ) : (
                         keys.map((key) => (
-                            <tr key={key.id} className={key.revokedAt ? 'opacity-50' : ''}>
+                            <tr key={key.id} className={`${key.revokedAt ? 'opacity-50' : ''} hover:bg-slate-50/30 transition-colors`}>
                                 <td className="px-6 py-3 font-medium text-slate-900">{key.name}</td>
                                 <td className="px-6 py-3 font-mono text-slate-500">{key.keyPrefix}...</td>
                                 <td className="px-6 py-3 text-slate-500">{new Date(key.createdAt!).toLocaleDateString()}</td>
                                 <td className="px-6 py-3">
                                     {key.revokedAt ? (
-                                        <span className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs">{t('revoked')}</span>
+                                        <span className="px-2 py-1 bg-red-100/50 text-red-600 rounded text-xs">{t('revoked')}</span>
                                     ) : (
-                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-600 rounded text-xs">{t('active')}</span>
+                                        <span className="px-2 py-1 bg-emerald-100/50 text-emerald-600 rounded text-xs">{t('active')}</span>
                                     )}
                                 </td>
                                 <td className="px-6 py-3 text-right">
@@ -234,28 +241,28 @@ export default function DeveloperSettings() {
                     )}
                 </tbody>
                 </table>
-            </div>
+            </GlassCard>
         </div>
       )}
 
       {/* Webhooks Tab */}
       {activeTab === 'webhooks' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-             <div className="flex justify-between items-end">
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg flex gap-3 text-purple-800 text-sm max-w-2xl">
+             <GlassCard className="p-4 bg-purple-50/50 border-purple-200/50 flex flex-col md:flex-row justify-between items-end gap-4 backdrop-blur-sm">
+                <div className="flex gap-3 text-purple-800 text-sm max-w-2xl">
                     <Network className="w-5 h-5 flex-shrink-0" />
                     <div>
                         <p className="font-medium">{t('realtimeUpdates')}</p>
                         <p className="opacity-80">{t('webhooksDesc')} {t('signaturesValidVia')} `X-Shop-Hmac-Sha256`.</p>
                     </div>
                 </div>
-                <Form method="post" className="flex items-start gap-2" ref={webhookFormRef}>
-                    <div className="flex flex-col">
+                <Form method="post" className="flex items-start gap-2 w-full md:w-auto" ref={webhookFormRef}>
+                    <div className="flex flex-col flex-1 md:flex-none">
                         <input 
                             type="url" 
                             name="url" 
                             placeholder="https://your-api.com/webhook" 
-                            className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 w-64"
+                            className="px-3 py-2 bg-white/80 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 w-full md:w-64 backdrop-blur-sm"
                             required
                         />
                          <span className="text-[10px] text-slate-500 mt-1 ml-1">{t('topics')}: order.created</span>
@@ -270,35 +277,35 @@ export default function DeveloperSettings() {
                         {isSubmitting ? t('adding') : <><Plus className="w-4 h-4" /> {t('addWebhook')}</>}
                     </button>
                 </Form>
-            </div>
+            </GlassCard>
 
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <GlassCard intensity="low" className="overflow-hidden p-0">
                 <table className="w-full text-left text-sm">
                 <thead>
-                    <tr className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                    <tr className="bg-slate-50/50 text-slate-500 font-medium border-b border-slate-200/50">
                     <th className="px-6 py-3">{t('url')}</th>
                     <th className="px-6 py-3">{t('topics')}</th>
                     <th className="px-6 py-3">{t('active')}</th>
                     <th className="px-6 py-3 text-right">{t('actions')}</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-100">
                     {hooks.length === 0 ? (
                         <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">{t('noResults')}</td></tr>
                     ) : (
                         hooks.map((hook) => (
-                            <tr key={hook.id}>
+                            <tr key={hook.id} className="hover:bg-slate-50/30 transition-colors">
                                 <td className="px-6 py-3 font-mono text-slate-700 break-all max-w-xs">{hook.url}</td>
                                 <td className="px-6 py-3">
-                                    <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600">
+                                    <span className="px-2 py-1 bg-slate-100/50 rounded text-xs text-slate-600">
                                         order.created
                                     </span>
                                 </td>
                                 <td className="px-6 py-3">
                                     {hook.isActive ? (
-                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-600 rounded text-xs">{t('active')}</span>
+                                        <span className="px-2 py-1 bg-emerald-100/50 text-emerald-600 rounded text-xs">{t('active')}</span>
                                     ) : (
-                                        <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-xs">{t('inactive')}</span>
+                                        <span className="px-2 py-1 bg-slate-100/50 text-slate-500 rounded text-xs">{t('inactive')}</span>
                                     )}
                                 </td>
                                 <td className="px-6 py-3 text-right">
@@ -313,14 +320,14 @@ export default function DeveloperSettings() {
                     )}
                 </tbody>
                 </table>
-            </div>
+            </GlassCard>
 
             {/* Webhook Secret Modal */}
             {showWebhookSecret && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-200">
-                <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-200 backdrop-blur-sm">
+                <GlassCard className="max-w-lg w-full p-6 shadow-2xl space-y-4 m-0" intensity="high">
                     <div className="flex items-center gap-3 text-purple-500">
-                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-purple-100/50 rounded-full flex items-center justify-center backdrop-blur-sm">
                                 <Network className="w-6 h-6" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900">{t('webhookSecretTitle')}</h3>
@@ -330,13 +337,13 @@ export default function DeveloperSettings() {
                         {t('webhookSecretDesc')} (`X-Shop-Hmac-Sha256`).
                     </p>
 
-                    <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg border border-slate-200 group relative">
+                    <div className="flex items-center gap-2 p-3 bg-slate-100/50 rounded-lg border border-slate-200/50 group relative backdrop-blur-sm">
                         <code className="flex-1 font-mono text-slate-800 text-sm break-all">
                             {showWebhookSecret}
                         </code>
                         <button 
                             onClick={() => copyToClipboard(showWebhookSecret)}
-                            className="p-2 hover:bg-slate-200 rounded-md text-slate-500 hover:text-slate-900 transition"
+                            className="p-2 hover:bg-slate-200/50 rounded-md text-slate-500 hover:text-slate-900 transition"
                         >
                             <Copy className="w-4 h-4" />
                         </button>
@@ -350,7 +357,7 @@ export default function DeveloperSettings() {
                             {t('done')}
                         </button>
                     </div>
-                </div>
+                </GlassCard>
                 </div>
             )}
         </div>
@@ -358,10 +365,10 @@ export default function DeveloperSettings() {
       
       {/* API Key Modal (Reused) */}
       {showKeyModal && createdKey && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-200">
-           <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-200 backdrop-blur-sm">
+           <GlassCard className="max-w-lg w-full p-6 shadow-2xl space-y-4 m-0" intensity="high">
                <div className="flex items-center gap-3 text-emerald-500">
-                   <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                   <div className="w-10 h-10 bg-emerald-100/50 rounded-full flex items-center justify-center backdrop-blur-sm">
                         <Check className="w-6 h-6" />
                    </div>
                    <h3 className="text-lg font-bold text-slate-900">{t('apiKeyCreatedTitle')}</h3>
@@ -371,13 +378,13 @@ export default function DeveloperSettings() {
                    {t('copyKeyNow')}
                </p>
 
-               <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-lg border border-slate-200 group relative">
+               <div className="flex items-center gap-2 p-3 bg-slate-100/50 rounded-lg border border-slate-200/50 group relative backdrop-blur-sm">
                    <code className="flex-1 font-mono text-slate-800 text-sm break-all">
                        {createdKey}
                    </code>
                    <button 
                       onClick={() => copyToClipboard(createdKey)}
-                      className="p-2 hover:bg-slate-200 rounded-md text-slate-500 hover:text-slate-900 transition"
+                      className="p-2 hover:bg-slate-200/50 rounded-md text-slate-500 hover:text-slate-900 transition"
                    >
                        <Copy className="w-4 h-4" />
                    </button>
@@ -391,7 +398,7 @@ export default function DeveloperSettings() {
                        {t('savedIt')}
                    </button>
                </div>
-           </div>
+           </GlassCard>
         </div>
       )}
     </div>

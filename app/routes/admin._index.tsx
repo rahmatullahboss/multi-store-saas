@@ -13,7 +13,7 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, count, sum, and, gte, sql } from 'drizzle-orm';
+import { eq, count, sum, gte, sql } from 'drizzle-orm';
 import { stores, orders, users } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { 
@@ -21,12 +21,11 @@ import {
   ShoppingCart, 
   DollarSign, 
   Users,
-  TrendingUp,
-  AlertCircle,
   CheckCircle,
   XCircle
 } from 'lucide-react';
 import { formatCurrency } from '~/utils/money';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Super Admin' }];
@@ -190,9 +189,9 @@ export default function AdminDashboard() {
           const Icon = stat.icon;
           const colors = colorMap[stat.color];
           return (
-            <div
+            <GlassCard
               key={stat.title}
-              className="bg-slate-900 border border-slate-800 rounded-xl p-5"
+              className="bg-slate-900/50 border-white/10 p-5 backdrop-blur-md"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -206,7 +205,7 @@ export default function AdminDashboard() {
                   <Icon className={`w-5 h-5 ${colors.icon}`} />
                 </div>
               </div>
-            </div>
+            </GlassCard>
           );
         })}
       </div>
@@ -214,7 +213,7 @@ export default function AdminDashboard() {
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Plan Distribution */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <GlassCard className="bg-slate-900/50 border-white/10 p-5 backdrop-blur-md">
           <h3 className="text-lg font-semibold text-white mb-4">Plan Distribution</h3>
           <div className="space-y-3">
             {planStats.map((plan) => {
@@ -227,7 +226,7 @@ export default function AdminDashboard() {
                     <span className="text-slate-300">{plan.label}</span>
                     <span className="text-slate-400">{plan.count} stores ({percentage}%)</span>
                   </div>
-                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden">
                     <div 
                       className={`h-full ${plan.color} rounded-full transition-all`}
                       style={{ width: `${percentage}%` }}
@@ -237,10 +236,10 @@ export default function AdminDashboard() {
               );
             })}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Recent Stores */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <GlassCard className="bg-slate-900/50 border-white/10 p-5 backdrop-blur-md">
           <h3 className="text-lg font-semibold text-white mb-4">Recent Stores</h3>
           <div className="space-y-3">
             {recentStores.length === 0 ? (
@@ -249,7 +248,7 @@ export default function AdminDashboard() {
               recentStores.map((store) => (
                 <div 
                   key={store.id}
-                  className="flex items-center justify-between py-2 border-b border-slate-800 last:border-0"
+                  className="flex items-center justify-between py-2 border-b border-white/5 last:border-0"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
@@ -279,11 +278,11 @@ export default function AdminDashboard() {
               ))
             )}
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+      <GlassCard className="bg-slate-900/50 border-white/10 p-5 backdrop-blur-md">
         <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
           <a 
@@ -299,7 +298,7 @@ export default function AdminDashboard() {
             Create Broadcast
           </a>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 }

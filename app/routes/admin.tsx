@@ -10,7 +10,7 @@
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
 import { Form, Link, Outlet, useLoaderData, useLocation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql } from 'drizzle-orm';
@@ -28,7 +28,6 @@ import {
   X,
   LayoutDashboard,
   Store,
-  Bell,
   CreditCard,
   Globe,
   Ticket,
@@ -124,7 +123,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
       <CommandMenu stores={storeList} />
 
       {/* Mobile Sidebar Overlay */}

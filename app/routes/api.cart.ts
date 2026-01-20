@@ -19,6 +19,7 @@ import {
   type CartItemInput,
 } from '~/services/cart.server';
 import { getCustomer } from '~/services/customer-auth.server';
+import { resolveStore } from '~/lib/store.server';
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -46,20 +47,22 @@ const SyncCartSchema = z.object({
 // GET CART
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { store, storeId, cloudflare } = context;
+  // Use resolveStore for proper store resolution
+  const storeContext = await resolveStore(context, request);
 
-  if (!store || !storeId) {
+  if (!storeContext) {
     return json({ error: 'Store not found' }, { status: 404 });
   }
 
-  const db = cloudflare.env.DB;
+  const { storeId } = storeContext;
+  const db = context.cloudflare.env.DB;
 
   // Get customer or visitor ID
-  const customer = await getCustomer(request, cloudflare.env, db);
+  const customer = await getCustomer(request, context.cloudflare.env, db);
   const visitorId = getVisitorId(request);
 
   // Get or create cart
-  const cart = await getOrCreateCart(db, storeId as number, {
+  const cart = await getOrCreateCart(db, storeId, {
     customerId: customer?.id,
     visitorId: customer ? undefined : visitorId,
   });
@@ -77,21 +80,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // CART ACTIONS
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { store, storeId, cloudflare } = context;
+  // Use resolveStore for proper store resolution
+  const storeContext = await resolveStore(context, request);
 
-  if (!store || !storeId) {
+  if (!storeContext) {
     return json({ error: 'Store not found' }, { status: 404 });
   }
 
-  const db = cloudflare.env.DB;
+  const { storeId } = storeContext;
+  const db = context.cloudflare.env.DB;
   const method = request.method;
 
   // Get customer or visitor ID
-  const customer = await getCustomer(request, cloudflare.env, db);
+  const customer = await getCustomer(request, context.cloudflare.env, db);
   const visitorId = getVisitorId(request);
 
   // Get or create cart
-  const cart = await getOrCreateCart(db, storeId as number, {
+  const cart = await getOrCreateCart(db, storeId, {
     customerId: customer?.id,
     visitorId: customer ? undefined : visitorId,
   });
@@ -113,7 +118,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const cartWithItems = await syncCartFromLocalStorage(
           db,
           cart.id,
-          storeId as number,
+          storeId,
           parseResult.data.items
         );
 
@@ -133,7 +138,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
       }
 
-      const item = await addToCart(db, cart.id, storeId as number, parseResult.data);
+      const item = await addToCart(db, cart.id, storeId, parseResult.data);
 
       // Return updated cart
       const cartWithItems = await getCartWithItems(db, cart.id);

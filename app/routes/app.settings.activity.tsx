@@ -175,8 +175,14 @@ export default function ActivityLogsPage() {
         <p className="text-gray-600">{t('activityLogsDesc')}</p>
       </div>
 
+import { GlassCard } from '~/components/ui/GlassCard';
+
+/* ... imports ... */
+
+/* ... inside component ... */
+
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <GlassCard className="p-4">
         <div className="flex items-center gap-3 mb-4">
           <Filter className="w-5 h-5 text-gray-500" />
           <span className="font-medium text-gray-700">{t('filters')}</span>
@@ -192,7 +198,7 @@ export default function ActivityLogsPage() {
               id="filterUser"
               value={filterUser}
               onChange={(e) => handleFilterChange('user', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+              className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
             >
               <option value="">{t('allMembers')}</option>
               {teamMembers.map((member) => (
@@ -212,7 +218,7 @@ export default function ActivityLogsPage() {
               id="filterAction"
               value={filterAction}
               onChange={(e) => handleFilterChange('action', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+              className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
             >
               <option value="">{t('allActions')}</option>
               {uniqueActions.map((action) => (
@@ -232,12 +238,12 @@ export default function ActivityLogsPage() {
             {t('clearFilters')}
           </button>
         )}
-      </div>
+      </GlassCard>
 
       {/* Activity Timeline */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <GlassCard className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-emerald-100/50 rounded-lg flex items-center justify-center backdrop-blur-sm">
             <Activity className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
@@ -261,7 +267,7 @@ export default function ActivityLogsPage() {
               >
                 {/* Timeline line */}
                 {index < logs.length - 1 && (
-                  <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-gray-200" />
+                  <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-gray-200/50" />
                 )}
                 
                 {/* Timeline dot */}
@@ -270,7 +276,7 @@ export default function ActivityLogsPage() {
                 </div>
 
                 {/* Content */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-white/40 border border-white/20 rounded-lg p-4 backdrop-blur-sm hover:bg-white/60 transition-colors">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -319,12 +325,12 @@ export default function ActivityLogsPage() {
 
                   {/* Expanded Details */}
                   {log.parsedDetails && expandedLogs.has(log.id) && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="mt-3 pt-3 border-t border-gray-200/50">
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                         <FileText className="w-3 h-3" />
                         {t('details')}
                       </div>
-                      <pre className="text-xs text-gray-700 bg-white p-3 rounded border border-gray-200 overflow-x-auto">
+                      <pre className="text-xs text-gray-700 bg-white/50 p-3 rounded border border-white/20 overflow-x-auto">
                         {JSON.stringify(log.parsedDetails, null, 2)}
                       </pre>
                       {log.ipAddress && (
@@ -340,7 +346,7 @@ export default function ActivityLogsPage() {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200/50">
             <p className="text-sm text-gray-500">
               {t('pageOf').replace('{page}', String(pagination.page)).replace('{total}', String(pagination.totalPages))}
             </p>
@@ -370,7 +376,7 @@ export default function ActivityLogsPage() {
             </div>
           </div>
         )}
-      </div>
+      </GlassCard>
     </div>
   );
 }

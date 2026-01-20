@@ -22,10 +22,10 @@ import {
   Loader2,
   Percent,
   DollarSign,
-  Calendar
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Discount Codes - Settings' }];
@@ -190,7 +190,7 @@ export default function DiscountCodesPage() {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {editingCode ? t('editDiscountCode') : t('newDiscountCode')}
           </h2>
@@ -208,7 +208,7 @@ export default function DiscountCodesPage() {
                   name="code"
                   defaultValue={editingCode?.code || ''}
                   placeholder="SAVE20"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent uppercase"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent uppercase bg-white/50 backdrop-blur-sm"
                   required
                 />
               </div>
@@ -220,7 +220,7 @@ export default function DiscountCodesPage() {
                 <select
                   name="type"
                   defaultValue={editingCode?.type || 'percentage'}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                 >
                   <option value="percentage">{t('percentage')} (%)</option>
                   <option value="fixed">{t('fixedAmount')} ({currency})</option>
@@ -237,7 +237,7 @@ export default function DiscountCodesPage() {
                   defaultValue={editingCode?.value || ''}
                   placeholder="20"
                   step="0.01"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                   required
                 />
               </div>
@@ -252,7 +252,7 @@ export default function DiscountCodesPage() {
                   defaultValue={editingCode?.minOrderAmount || ''}
                   placeholder="500 (optional)"
                   step="0.01"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                 />
               </div>
               
@@ -266,7 +266,7 @@ export default function DiscountCodesPage() {
                   defaultValue={editingCode?.maxDiscountAmount || ''}
                   placeholder="100 (optional)"
                   step="0.01"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                 />
               </div>
               
@@ -279,7 +279,7 @@ export default function DiscountCodesPage() {
                   name="maxUses"
                   defaultValue={editingCode?.maxUses || ''}
                   placeholder="100 (optional)"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                 />
               </div>
               
@@ -291,7 +291,7 @@ export default function DiscountCodesPage() {
                   type="date"
                   name="expiresAt"
                   defaultValue={editingCode?.expiresAt ? new Date(editingCode.expiresAt).toISOString().split('T')[0] : ''}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
                 />
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function DiscountCodesPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 flex items-center gap-2 shadow-sm"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editingCode ? t('updateCode') : t('createCode')}
@@ -314,17 +314,17 @@ export default function DiscountCodesPage() {
               </button>
             </div>
           </Form>
-        </div>
+        </GlassCard>
       )}
 
       {/* Codes List */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <GlassCard intensity="low" className="overflow-hidden p-0">
         {codes.length > 0 ? (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-100">
             {codes.map((code) => (
-              <div key={code.id} className={`p-4 flex items-center justify-between ${!code.isActive || isExpired(code.expiresAt) ? 'opacity-50' : ''}`}>
+              <div key={code.id} className={`p-4 flex items-center justify-between hover:bg-white/40 transition ${!code.isActive || isExpired(code.expiresAt) ? 'opacity-50' : ''}`}>
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${code.type === 'percentage' ? 'bg-purple-100' : 'bg-emerald-100'}`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${code.type === 'percentage' ? 'bg-purple-100/50' : 'bg-emerald-100/50'} backdrop-blur-sm`}>
                     {code.type === 'percentage' ? (
                       <Percent className="w-5 h-5 text-purple-600" />
                     ) : (
@@ -335,10 +335,10 @@ export default function DiscountCodesPage() {
                     <div className="flex items-center gap-2">
                       <p className="font-mono font-bold text-gray-900">{code.code}</p>
                       {!code.isActive && (
-                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">{t('disabled')}</span>
+                        <span className="text-xs bg-gray-200/50 text-gray-600 px-2 py-0.5 rounded backdrop-blur-sm">{t('disabled')}</span>
                       )}
                       {isExpired(code.expiresAt) && (
-                        <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">{t('expired')}</span>
+                        <span className="text-xs bg-red-100/50 text-red-600 px-2 py-0.5 rounded backdrop-blur-sm">{t('expired')}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-sm text-gray-500">
@@ -363,14 +363,14 @@ export default function DiscountCodesPage() {
                     <input type="hidden" name="isActive" value={String(code.isActive)} />
                     <button
                       type="submit"
-                      className={`px-3 py-1 text-xs rounded-lg ${code.isActive ? 'bg-gray-100 text-gray-600' : 'bg-emerald-100 text-emerald-600'}`}
+                      className={`px-3 py-1 text-xs rounded-lg transition ${code.isActive ? 'bg-gray-100/50 text-gray-600 hover:bg-gray-200/50' : 'bg-emerald-100/50 text-emerald-600 hover:bg-emerald-200/50'}`}
                     >
                       {code.isActive ? t('disable') : t('enable')}
                     </button>
                   </Form>
                   <button
                     onClick={() => handleEdit(code)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 hover:bg-gray-100/50 rounded-lg transition"
                   >
                     <Edit2 className="w-4 h-4 text-gray-600" />
                   </button>
@@ -379,7 +379,7 @@ export default function DiscountCodesPage() {
                     <input type="hidden" name="id" value={code.id} />
                     <button
                       type="submit"
-                      className="p-2 hover:bg-red-50 rounded-lg transition"
+                      className="p-2 hover:bg-red-50/50 rounded-lg transition"
                       onClick={(e) => {
                         if (!confirm(t('deleteCodeConfirm'))) e.preventDefault();
                       }}
@@ -403,7 +403,7 @@ export default function DiscountCodesPage() {
             </button>
           </div>
         )}
-      </div>
+      </GlassCard>
     </div>
   );
 }

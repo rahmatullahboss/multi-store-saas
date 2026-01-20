@@ -13,8 +13,8 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, Form, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, sql, desc, inArray } from 'drizzle-orm';
-import { stores, users, activityLogs, adminAuditLogs, storeTags } from '@db/schema';
+import { eq, desc, inArray } from 'drizzle-orm';
+import { stores, users, activityLogs, storeTags } from '@db/schema';
 import { requireSuperAdmin, createImpersonationSession, requireAdminPermission } from '~/services/auth.server';
 import { logAuditAction } from '~/services/audit.server';
 import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
@@ -32,11 +32,11 @@ import {
   Trash2,
   RotateCcw,
   Download,
-  Tag,
   CheckSquare,
   Square
 } from 'lucide-react';
 import { useState } from 'react';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'All Stores - Super Admin' }];
@@ -128,7 +128,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const intent = formData.get('intent');
   const storeId = Number(formData.get('storeId'));
   const targetUserId = Number(formData.get('userId'));
-  const storeName = formData.get('storeName')?.toString() || 'Unknown Store';
+  // const storeName = formData.get('storeName')?.toString() || 'Unknown Store';
   
   const drizzleDb = drizzle(db);
   
@@ -511,12 +511,12 @@ export default function AdminStores() {
       </div>
 
       {/* Stores - Desktop Table / Mobile Cards */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+      <GlassCard className="hidden md:block bg-slate-900/50 border-white/10 p-0 overflow-hidden backdrop-blur-md">
         {/* Desktop Table - Hidden on mobile */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-800">
+              <tr className="border-b border-white/5 bg-white/5">
                 {!showDeleted && (
                   <th className="px-2 py-3 w-10">
                     <button
@@ -557,7 +557,7 @@ export default function AdminStores() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-white/5">
               {filteredStores.length === 0 ? (
                 <tr>
                   <td colSpan={showDeleted ? 7 : 8} className="px-4 py-8 text-center text-slate-500">
@@ -807,18 +807,16 @@ export default function AdminStores() {
             </tbody>
           </table>
         </div>
+      </GlassCard>
         
-        {/* Mobile Cards - Visible only on mobile */}
-        <div className="md:hidden divide-y divide-slate-800">
+        {/* Mobile Cards - Visible on mobile */}
+        <div className="md:hidden space-y-4 p-4">
           {filteredStores.length === 0 ? (
-            <div className="px-4 py-8 text-center text-slate-500">
-              No stores found
-            </div>
+            <p className="text-center text-slate-500 py-8">No stores found</p>
           ) : (
             filteredStores.map((store) => (
-              <div key={store.id} className="p-4 space-y-3">
-                {/* Store Header */}
-                <div className="flex items-center justify-between">
+              <GlassCard key={store.id} className="p-4 space-y-4 bg-slate-800/50 border-white/10">
+                <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                       store.isActive ? 'bg-blue-500/20' : 'bg-slate-700'
@@ -938,14 +936,13 @@ export default function AdminStores() {
                     </fetcher.Form>
                   )}
                 </div>
-              </div>
+              </GlassCard>
             ))
           )}
         </div>
-      </div>
 
       {/* Warning Notice */}
-      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+      <GlassCard className="bg-red-500/10 border-red-500/20 p-4 border backdrop-blur-sm">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
           <div>
@@ -956,7 +953,7 @@ export default function AdminStores() {
             </p>
           </div>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 }
