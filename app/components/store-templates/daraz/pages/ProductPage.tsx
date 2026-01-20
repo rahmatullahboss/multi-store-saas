@@ -20,6 +20,8 @@ interface ProductPageProps {
   relatedProducts?: Product[];
   onAddToCart?: (product: Product, quantity: number) => void;
   onBuyNow?: (product: Product, quantity: number) => void;
+  /** Callback for internal navigation in preview mode */
+  onNavigateProduct?: (productId: number) => void;
 }
 
 export function DarazProductPage({
@@ -28,6 +30,7 @@ export function DarazProductPage({
   relatedProducts = [],
   onAddToCart,
   onBuyNow,
+  onNavigateProduct,
 }: ProductPageProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -108,7 +111,7 @@ export function DarazProductPage({
                 <img
                   src={images[selectedImage]}
                   alt={product.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
               )}
               {discount > 0 && (
@@ -288,10 +291,18 @@ export function DarazProductPage({
               You May Also Like
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {relatedProducts.slice(0, 6).map(p => (
+              {relatedProducts.slice(0, 6).map(p => {
+                const handleClick = (e: React.MouseEvent) => {
+                  if (onNavigateProduct) {
+                    e.preventDefault();
+                    onNavigateProduct(p.id);
+                  }
+                };
+                return (
                 <a
                   key={p.id}
                   href={`/products/${p.id}`}
+                  onClick={handleClick}
                   className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
                 >
                   <div className="aspect-square bg-gray-50">
@@ -318,7 +329,8 @@ export function DarazProductPage({
                     </p>
                   </div>
                 </a>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

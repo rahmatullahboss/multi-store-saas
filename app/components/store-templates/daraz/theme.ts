@@ -32,4 +32,8 @@ export const DARAZ_THEME = {
   // Borders
   border: '#E8E8E8',
   borderLight: '#F0F0F0',
+  
+  // Footer
+  footerBg: '#FAFAFA',
+  footerText: '#424242',
 };

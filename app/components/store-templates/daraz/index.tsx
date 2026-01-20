@@ -218,8 +218,8 @@ function PreviewHeader({
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder={`Search in ${storeName}`}
-                  className="flex-1 px-4 py-2 rounded-l-md text-sm focus:outline-none"
+                  placeholder={`${storeName} এ খুঁজুন...`}
+                  className="flex-1 px-4 py-2 rounded-l-md text-sm focus:outline-none bg-white text-gray-800"
                 />
                 <button 
                   type="submit"
@@ -323,11 +323,11 @@ function PreviewProductCard({
       className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
       onClick={() => onNavigate({ type: 'product', productId: product.id })}
     >
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+      <div className="relative aspect-square overflow-hidden">
         <img 
           src={product.imageUrl || ''} 
           alt={product.title}
-          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-2"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {discount > 0 && (
           <span 
@@ -552,7 +552,7 @@ function PreviewProductDetailPage({
         sku: `DEMO-${product.id}`,
         inventory: product.stock || 100,
         images: null,
-      }}
+      } as Parameters<typeof DarazProductPage>[0]['product']}
       currency={currency}
       relatedProducts={relatedProducts.map(p => ({
         id: p.id,
@@ -563,9 +563,10 @@ function PreviewProductDetailPage({
         compareAtPrice: p.compareAtPrice,
         imageUrl: p.imageUrl,
         category: p.category,
-      }))}
+      } as Parameters<typeof DarazProductPage>[0]['relatedProducts'] extends (infer T)[] | undefined ? T : never))}
       onAddToCart={handleAddToCart}
       onBuyNow={handleBuyNow}
+      onNavigateProduct={(productId) => onNavigate({ type: 'product', productId })}
     />
   );
 }
@@ -597,6 +598,7 @@ function PreviewCartPageComponent({
       currency={currency}
       onUpdateQuantity={(itemId, qty) => cart.updateQuantity(itemId, qty)}
       onRemoveItem={(itemId) => cart.removeItem(itemId)}
+      onCheckout={() => onNavigate({ type: 'checkout' })}
     />
   );
 }
@@ -708,7 +710,7 @@ function PreviewSearchPage({
 }
 
 // ============================================================================
-// PREVIEW MODE CHECKOUT PAGE
+// PREVIEW MODE CHECKOUT PAGE (Daraz Style)
 // ============================================================================
 function PreviewCheckoutPage({ 
   currency, 
@@ -725,9 +727,12 @@ function PreviewCheckoutPage({
     city: '',
     note: ''
   });
+  const [deliveryOption, setDeliveryOption] = useState<'standard' | 'express'>('standard');
+  const [promoCode, setPromoCode] = useState('');
 
-  const shipping = cart.total >= 1000 ? 0 : 60;
-  const grandTotal = cart.total + shipping;
+  const deliveryFee = deliveryOption === 'express' ? 120 : (cart.total >= 1000 ? 0 : 60);
+  const discount = cart.total >= 1000 ? deliveryFee : 0;
+  const grandTotal = cart.total + deliveryFee - discount;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -740,13 +745,13 @@ function PreviewCheckoutPage({
       <div className="min-h-[60vh] flex items-center justify-center" style={{ backgroundColor: DARAZ_THEME.background }}>
         <div className="text-center">
           <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <p className="text-gray-500 mb-4">Your cart is empty</p>
+          <p className="text-gray-500 mb-4">আপনার কার্ট খালি</p>
           <button 
             onClick={() => onNavigate({ type: 'home' })}
             className="px-6 py-2 rounded-lg text-white"
             style={{ backgroundColor: DARAZ_THEME.primary }}
           >
-            Start Shopping
+            শপিং শুরু করুন
           </button>
         </div>
       </div>
@@ -755,96 +760,218 @@ function PreviewCheckoutPage({
 
   return (
     <div className="min-h-screen py-6" style={{ backgroundColor: DARAZ_THEME.background }}>
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-2xl font-bold mb-6" style={{ color: DARAZ_THEME.text }}>Checkout</h1>
-        
-        <form onSubmit={handleSubmit} className="grid md:grid-cols-3 gap-6">
-          {/* Shipping Info */}
-          <div className="md:col-span-2 bg-white rounded-lg p-6 space-y-4">
-            <h2 className="font-semibold text-lg mb-4">Shipping Information</h2>
-            <input
-              type="text"
-              placeholder="Full Name *"
-              required
-              value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-              style={{ borderColor: '#e5e5e5' }}
-            />
-            <input
-              type="tel"
-              placeholder="Phone Number *"
-              required
-              value={formData.phone}
-              onChange={e => setFormData({...formData, phone: e.target.value})}
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-              style={{ borderColor: '#e5e5e5' }}
-            />
-            <textarea
-              placeholder="Full Address *"
-              required
-              rows={3}
-              value={formData.address}
-              onChange={e => setFormData({...formData, address: e.target.value})}
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-              style={{ borderColor: '#e5e5e5' }}
-            />
-            <input
-              type="text"
-              placeholder="City *"
-              required
-              value={formData.city}
-              onChange={e => setFormData({...formData, city: e.target.value})}
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-              style={{ borderColor: '#e5e5e5' }}
-            />
-            <textarea
-              placeholder="Order Note (optional)"
-              rows={2}
-              value={formData.note}
-              onChange={e => setFormData({...formData, note: e.target.value})}
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-              style={{ borderColor: '#e5e5e5' }}
-            />
-          </div>
-
-          {/* Order Summary */}
-          <div className="bg-white rounded-lg p-6 h-fit">
-            <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
-            <div className="space-y-3 text-sm">
-              {cart.items.map(item => (
-                <div key={item.id} className="flex justify-between">
-                  <span className="text-gray-600">{item.title} x{item.quantity}</span>
-                  <span>{currency}{(item.price * item.quantity).toLocaleString()}</span>
+      <div className="max-w-6xl mx-auto px-4">
+        <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6">
+          {/* Left Column - Shipping & Package */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Shipping & Billing */}
+            <div className="bg-white rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: DARAZ_THEME.border }}>
+                <h2 className="font-medium" style={{ color: DARAZ_THEME.text }}>শিপিং ও বিলিং</h2>
+                <button type="button" className="text-sm" style={{ color: DARAZ_THEME.primary }}>সম্পাদনা</button>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="আপনার নাম *"
+                    required
+                    value={formData.name}
+                    onChange={e => setFormData({...formData, name: e.target.value})}
+                    className="w-full px-4 py-3 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: DARAZ_THEME.border }}
+                  />
+                  <input
+                    type="tel"
+                    placeholder="মোবাইল নম্বর *"
+                    required
+                    value={formData.phone}
+                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                    className="w-full px-4 py-3 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: DARAZ_THEME.border }}
+                  />
                 </div>
-              ))}
-              <hr className="my-3" />
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{currency}{cart.total.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>{shipping === 0 ? 'Free' : `${currency}${shipping}`}</span>
-              </div>
-              <hr className="my-3" />
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span style={{ color: DARAZ_THEME.primary }}>{currency}{grandTotal.toLocaleString()}</span>
+                <textarea
+                  placeholder="সম্পূর্ণ ঠিকানা *"
+                  required
+                  rows={2}
+                  value={formData.address}
+                  onChange={e => setFormData({...formData, address: e.target.value})}
+                  className="w-full px-4 py-3 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: DARAZ_THEME.border }}
+                />
+                <div className="grid md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="শহর/জেলা *"
+                    required
+                    value={formData.city}
+                    onChange={e => setFormData({...formData, city: e.target.value})}
+                    className="w-full px-4 py-3 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: DARAZ_THEME.border }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="অর্ডার নোট (ঐচ্ছিক)"
+                    value={formData.note}
+                    onChange={e => setFormData({...formData, note: e.target.value})}
+                    className="w-full px-4 py-3 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: DARAZ_THEME.border }}
+                  />
+                </div>
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full mt-6 py-3 rounded-lg font-semibold text-white"
-              style={{ backgroundColor: DARAZ_THEME.primary }}
-            >
-              Place Order (Cash on Delivery)
-            </button>
+            {/* Package */}
+            <div className="bg-white rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: DARAZ_THEME.border }}>
+                <h2 className="font-medium" style={{ color: DARAZ_THEME.text }}>
+                  প্যাকেজ {cart.items.length} এর মধ্যে 1
+                </h2>
+                <span className="text-sm text-gray-500">ডেমো স্টোর থেকে শিপ করা হবে</span>
+              </div>
+              
+              {/* Delivery Options */}
+              <div className="p-4 border-b" style={{ borderColor: DARAZ_THEME.border }}>
+                <p className="text-sm font-medium mb-3" style={{ color: DARAZ_THEME.text }}>ডেলিভারি অপশন</p>
+                <div className="flex gap-3">
+                  <label 
+                    className={`flex-1 p-3 border rounded-lg cursor-pointer transition ${
+                      deliveryOption === 'standard' ? 'border-2' : ''
+                    }`}
+                    style={{ 
+                      borderColor: deliveryOption === 'standard' ? DARAZ_THEME.primary : DARAZ_THEME.border,
+                      backgroundColor: deliveryOption === 'standard' ? '#FFF5F0' : 'white'
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="delivery" 
+                      value="standard"
+                      checked={deliveryOption === 'standard'}
+                      onChange={() => setDeliveryOption('standard')}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Check className={`w-4 h-4 ${deliveryOption === 'standard' ? 'text-green-500' : 'text-gray-300'}`} />
+                      <span className="font-medium" style={{ color: DARAZ_THEME.success }}>ফ্রি</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">স্ট্যান্ডার্ড ডেলিভারি</p>
+                    <p className="text-xs text-gray-400">৩-৫ দিনে ডেলিভারি</p>
+                  </label>
+                  <label 
+                    className={`flex-1 p-3 border rounded-lg cursor-pointer transition ${
+                      deliveryOption === 'express' ? 'border-2' : ''
+                    }`}
+                    style={{ 
+                      borderColor: deliveryOption === 'express' ? DARAZ_THEME.primary : DARAZ_THEME.border,
+                      backgroundColor: deliveryOption === 'express' ? '#FFF5F0' : 'white'
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="delivery" 
+                      value="express"
+                      checked={deliveryOption === 'express'}
+                      onChange={() => setDeliveryOption('express')}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Truck className={`w-4 h-4 ${deliveryOption === 'express' ? 'text-orange-500' : 'text-gray-300'}`} />
+                      <span className="font-medium">{currency}120</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">এক্সপ্রেস ডেলিভারি</p>
+                    <p className="text-xs text-gray-400">১-২ দিনে ডেলিভারি</p>
+                  </label>
+                </div>
+              </div>
 
-            <p className="text-xs text-gray-500 mt-4 text-center">
-              ⚠️ This is a demo. No real order will be placed.
-            </p>
+              {/* Products */}
+              <div className="divide-y" style={{ borderColor: DARAZ_THEME.border }}>
+                {cart.items.map(item => (
+                  <div key={item.id} className="p-4 flex gap-4">
+                    <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
+                      {item.imageUrl && (
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm line-clamp-2" style={{ color: DARAZ_THEME.text }}>{item.title}</h3>
+                      <p className="text-xs text-gray-400 mt-1">সংখ্যা: {item.quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium" style={{ color: DARAZ_THEME.priceOrange }}>
+                        {currency} {(item.price * item.quantity).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Order Summary */}
+          <div className="space-y-4">
+            {/* Promotion */}
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium mb-3" style={{ color: DARAZ_THEME.text }}>প্রমোশন</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="প্রমো কোড দিন"
+                  value={promoCode}
+                  onChange={e => setPromoCode(e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded text-sm"
+                  style={{ borderColor: DARAZ_THEME.border }}
+                />
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded font-medium text-white text-sm"
+                  style={{ backgroundColor: DARAZ_THEME.primary }}
+                >
+                  প্রয়োগ
+                </button>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium mb-4" style={{ color: DARAZ_THEME.text }}>অর্ডার সামারি</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">আইটেম মোট ({cart.itemCount}টি)</span>
+                  <span>{currency} {cart.total.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">ডেলিভারি ফি</span>
+                  <span>{currency} {deliveryFee}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>ডেলিভারি ডিসকাউন্ট</span>
+                    <span>- {currency} {discount}</span>
+                  </div>
+                )}
+                <hr className="my-2" />
+                <div className="flex justify-between font-bold text-lg">
+                  <span>মোট:</span>
+                  <span style={{ color: DARAZ_THEME.primary }}>{currency} {grandTotal.toLocaleString()}</span>
+                </div>
+                <p className="text-xs text-gray-400">VAT অন্তর্ভুক্ত, যেখানে প্রযোজ্য</p>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full mt-4 py-3 rounded font-semibold text-white flex items-center justify-center gap-2"
+                style={{ backgroundColor: DARAZ_THEME.primary }}
+              >
+                অর্ডার কনফার্ম করুন
+              </button>
+              
+              <p className="text-xs text-gray-400 mt-3 text-center">
+                ⚠️ এটি একটি ডেমো। কোন অর্ডার প্লেস হবে না।
+              </p>
+            </div>
           </div>
         </form>
       </div>
