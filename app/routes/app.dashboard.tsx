@@ -15,8 +15,8 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useNavigate, useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, count, sql, desc, and, gte } from 'drizzle-orm';
-import { products, orders, stores, abandonedCarts } from '@db/schema';
+import { eq, desc } from 'drizzle-orm';
+import { orders, stores } from '@db/schema';
 import * as schema from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
@@ -28,9 +28,7 @@ import {
   Sparkles,
   Clock,
   Bot,
-  FileText,
-  Store,
-  Users,
+  BarChart3,
   ArrowRight,
   CheckCircle2,
   AlertTriangle

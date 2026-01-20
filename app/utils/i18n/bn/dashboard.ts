@@ -126,6 +126,7 @@ export const dashboard = {
   navCampaigns: 'ক্যাম্পেইন',
   navAgent: 'AI এজেন্ট',
   navSubscribers: 'সাবস্ক্রাইবার',
+  navPushNotifications: 'পুশ নোটিফিকেশন',
   navReviews: 'রিভিউ',
   sidebarAnalytics: 'অ্যানালিটিক্স',
   navAnalytics: 'অ্যানালিটিক্স',

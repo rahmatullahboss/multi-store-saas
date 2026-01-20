@@ -24,7 +24,7 @@ import {
   LogOut,
   Menu,
   X,
-  Store,
+
   BarChart3,
   Tag,
   Truck,
@@ -39,15 +39,15 @@ import {
   Globe,
   Crown,
   ExternalLink,
-  Sparkles,
+
   Home,
   MessageSquare,
   Info,
   AlertTriangle,
-  Rocket,
+
   AlertCircle,
   BookOpen,
-  UserPen,
+
   Users,
   Bell
 } from 'lucide-react';
@@ -185,7 +185,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         .from(systemNotifications)
         .where(eq(systemNotifications.isActive, true));
       activeNotifications = notificationsResult;
-    } catch (e) {
+    } catch {
       // Table might not exist yet, ignore
       // Table might not exist yet, ignore
       console.log('[app.loader] Could not fetch system notifications');
@@ -345,7 +345,7 @@ export default function AppLayout() {
         if (saved) {
           setDismissedNotifications(JSON.parse(saved));
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
     }
