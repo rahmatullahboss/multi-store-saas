@@ -337,6 +337,13 @@
       "when": 1768700042243,
       "tag": "0047_outgoing_overlord",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "6",
+      "when": 1768904239342,
+      "tag": "0048_freezing_sasquatch",
+      "breakpoints": true
     }
   ]
 }

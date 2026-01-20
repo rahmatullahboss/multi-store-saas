@@ -23,19 +23,22 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const orderId = params.orderId;
+  const orderParam = params.orderId;
   
-  if (!orderId || isNaN(Number(orderId))) {
+  if (!orderParam) {
     throw new Response('Order not found', { status: 404 });
   }
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // Support both numeric orderId AND string orderNumber (e.g., ORD-XXXX-XXX)
+  const isNumeric = !isNaN(Number(orderParam));
+  
   // Fetch order with items
   const order = await db
     .select()
     .from(orders)
-    .where(eq(orders.id, Number(orderId)))
+    .where(isNumeric ? eq(orders.id, Number(orderParam)) : eq(orders.orderNumber, orderParam))
     .limit(1);
 
   if (order.length === 0) {
@@ -46,7 +49,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const items = await db
     .select()
     .from(orderItems)
-    .where(eq(orderItems.orderId, Number(orderId)));
+    .where(eq(orderItems.orderId, order[0].id));
 
   // Fetch store info
   const store = await db
