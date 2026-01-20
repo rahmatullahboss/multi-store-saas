@@ -238,4 +238,4 @@
 - [x] **Multi-Page Landing Architecture**: Enabled creation of unlimited, distinct landing pages (`/p/[slug]`) separate from the main store homepage.
 - [x] **Campaign Attribution**: Implemented full order tracking linking specific campaign pages to orders and revenue metrics.
 - [x] **Hybrid Rendering Engine**: Seamless integration of React-based templates and GrapesJS builder for maximum flexibility.
-
+- [x] **Store Template Refinement**: Refactored `StarterStoreTemplate` for Live/Preview modes and extracted modular Header/Footer components.

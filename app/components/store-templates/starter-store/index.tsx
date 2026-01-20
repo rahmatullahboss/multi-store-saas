@@ -1,17 +1,27 @@
 /**
  * Starter Store Template
  * 
- * A complete, immersive e-commerce template with full functionality:
- * - Full store navigation (home, products, collections, cart, checkout)
- * - Working cart with local state
- * - Simulated checkout (no real orders)
- * - Search functionality  
- * - Static pages (About, Contact, FAQ, Policies)
- * - Product reviews, variants, related products
- * - Responsive design (mobile/desktop)
+ * A complete, immersive e-commerce template with DUAL MODE support:
+ * 
+ * PREVIEW MODE (isPreview=true):
+ * - Full self-contained store with demo data
+ * - Internal state-based routing (no actual navigation)
+ * - Simulated cart and checkout
+ * - Perfect for template preview before purchase
+ * 
+ * LIVE MODE (isPreview=false):
+ * - Homepage-only component (other pages use Remix routes)
+ * - Real products from database via props
+ * - Links to actual routes (/products/:id, /checkout, /cart)
+ * - Integrates with real cart API and checkout flow
+ * 
+ * Architecture follows Shopify Hydrogen pattern:
+ * - Template receives data via props (StoreTemplateProps)
+ * - Template only handles UI rendering
+ * - All data fetching happens in route loaders
  */
 
-import { Link, useSearchParams } from '@remix-run/react';
+import { Link } from '@remix-run/react';
 import { useState, useCallback, createContext, useContext, useMemo } from 'react';
 import { 
   ShoppingCart, Search, Menu, X, ChevronLeft, ChevronRight,
@@ -21,6 +31,9 @@ import {
 } from 'lucide-react';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { STARTER_STORE_THEME, STARTER_STORE_FONTS } from './theme';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { AddToCartButton } from '~/components/AddToCartButton';
+import { useCartCount } from '~/hooks/useCartCount';
 import {
   DEMO_PRODUCTS,
   DEMO_CATEGORIES,
@@ -40,6 +53,9 @@ import {
   searchDemoProducts,
   type DemoProduct,
 } from '~/utils/store-preview-data';
+// Import the new separate Header/Footer for live mode
+import { StarterStoreHeader as LiveHeader } from './sections/Header';
+import { StarterStoreFooter as LiveFooter } from './sections/Footer';
 
 const theme = STARTER_STORE_THEME;
 
@@ -1031,9 +1047,74 @@ function StaticPage({ pageId, onNavigate }: { pageId: string; onNavigate: (page:
 }
 
 // ============================================================================
-// MAIN TEMPLATE COMPONENT
+// LIVE MODE: Product Card with real links
 // ============================================================================
-export function StarterStoreTemplate({
+function LiveProductCard({ 
+  product, 
+  storeId 
+}: { 
+  product: SerializedProduct; 
+  storeId: number;
+}) {
+  const discount = product.compareAtPrice 
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
+    : 0;
+
+  return (
+    <div className="group">
+      <Link to={`/products/${product.id}`} className="block">
+        <div className="relative aspect-square rounded-xl overflow-hidden mb-3" style={{ backgroundColor: theme.cardBg }}>
+          <img 
+            src={product.imageUrl || '/placeholder-product.png'} 
+            alt={product.title} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+            loading="lazy" 
+          />
+          {discount > 0 && (
+            <span 
+              className="absolute top-2 left-2 px-2 py-1 text-xs font-medium rounded-full text-white" 
+              style={{ backgroundColor: theme.accent }}
+            >
+              -{discount}%
+            </span>
+          )}
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-medium line-clamp-2 group-hover:underline" style={{ color: theme.text }}>
+            {product.title}
+          </h3>
+          <div className="flex items-center gap-2">
+            <span className="font-bold" style={{ color: theme.primary }}>
+              ৳{product.price.toLocaleString('bn-BD')}
+            </span>
+            {product.compareAtPrice && (
+              <span className="text-sm line-through" style={{ color: theme.muted }}>
+                ৳{product.compareAtPrice.toLocaleString('bn-BD')}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+      {/* Add to Cart Button - Uses real API */}
+      <div className="mt-2">
+        <AddToCartButton
+          productId={product.id}
+          storeId={storeId}
+          className="w-full py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90 flex items-center justify-center gap-2"
+          style={{ backgroundColor: theme.primary }}
+        >
+          <ShoppingCart className="w-4 h-4" />
+          কার্টে যোগ করুন
+        </AddToCartButton>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// LIVE MODE: Homepage Component
+// ============================================================================
+function LiveHomePage({
   storeName,
   storeId,
   logo,
@@ -1046,8 +1127,221 @@ export function StarterStoreTemplate({
   footerConfig,
   businessInfo,
   planType,
-  isPreview,
-}: StoreTemplateProps) {
+}: Omit<StoreTemplateProps, 'isPreview'>) {
+  // Split products for different sections
+  const featuredProducts = products.slice(0, 4);
+  const newArrivals = products.slice(4, 8);
+  const allProducts = products.slice(0, 12);
+
+  const validCategories = categories.filter(Boolean) as string[];
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: theme.background, fontFamily: STARTER_STORE_FONTS.body }}>
+      {/* Google Fonts */}
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+      {/* Header - Live mode with real links */}
+      <LiveHeader
+        storeName={storeName}
+        logo={logo}
+        isPreview={false}
+        categories={categories}
+        currentCategory={currentCategory}
+      />
+
+      <main>
+        {/* Hero Banner */}
+        <section className="relative h-[60vh] md:h-[70vh]">
+          <img 
+            src={config?.bannerUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop'} 
+            alt="Hero" 
+            className="w-full h-full object-cover" 
+          />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="text-center text-white px-4">
+              <h1 className="text-3xl md:text-5xl font-bold mb-4">
+                {config?.bannerText || `${storeName} এ স্বাগতম`}
+              </h1>
+              <p className="text-lg mb-6 opacity-90">সেরা মানের পণ্য, সেরা দামে</p>
+              <Link 
+                to="/products" 
+                className="inline-block px-8 py-3 rounded-lg font-medium transition hover:opacity-90" 
+                style={{ backgroundColor: theme.accent, color: '#fff' }}
+              >
+                শপিং করুন
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Categories */}
+        {validCategories.length > 0 && (
+          <section className="py-12 px-4" style={{ backgroundColor: theme.background }}>
+            <div className="max-w-7xl mx-auto">
+              <h2 className="text-2xl font-bold mb-8 text-center" style={{ color: theme.text }}>ক্যাটাগরি</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {validCategories.slice(0, 4).map(cat => (
+                  <Link 
+                    key={cat}
+                    to={`/?category=${encodeURIComponent(cat)}`}
+                    className="relative aspect-square rounded-xl overflow-hidden group"
+                    style={{ backgroundColor: theme.cardBg }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 flex items-end justify-center p-4">
+                      <span className="text-white font-semibold text-lg">{cat}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Featured Products */}
+        {featuredProducts.length > 0 && (
+          <section className="py-12 px-4" style={{ backgroundColor: theme.cardBg }}>
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold" style={{ color: theme.text }}>ফিচার্ড পণ্য</h2>
+                <Link 
+                  to="/products" 
+                  className="text-sm font-medium hover:underline" 
+                  style={{ color: theme.primary }}
+                >
+                  সব দেখুন →
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {featuredProducts.map(product => (
+                  <LiveProductCard key={product.id} product={product} storeId={storeId} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Sale Banner */}
+        <section className="py-16 px-4" style={{ backgroundColor: theme.accent }}>
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">🎉 বিশেষ ছাড় চলছে!</h2>
+            <p className="text-lg mb-6 opacity-90">সীমিত সময়ের জন্য ৫০% পর্যন্ত ছাড়</p>
+            <Link 
+              to="/products" 
+              className="inline-block px-8 py-3 rounded-lg font-medium bg-white transition hover:opacity-90" 
+              style={{ color: theme.accent }}
+            >
+              সেল দেখুন
+            </Link>
+          </div>
+        </section>
+
+        {/* New Arrivals */}
+        {newArrivals.length > 0 && (
+          <section className="py-12 px-4" style={{ backgroundColor: theme.background }}>
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold" style={{ color: theme.text }}>নতুন এসেছে</h2>
+                <Link 
+                  to="/products" 
+                  className="text-sm font-medium hover:underline" 
+                  style={{ color: theme.primary }}
+                >
+                  সব দেখুন →
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {newArrivals.map(product => (
+                  <LiveProductCard key={product.id} product={product} storeId={storeId} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* All Products (if category filtered) */}
+        {currentCategory && allProducts.length > 0 && (
+          <section className="py-12 px-4" style={{ backgroundColor: theme.cardBg }}>
+            <div className="max-w-7xl mx-auto">
+              <h2 className="text-2xl font-bold mb-8" style={{ color: theme.text }}>
+                {currentCategory} ({allProducts.length} পণ্য)
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {allProducts.map(product => (
+                  <LiveProductCard key={product.id} product={product} storeId={storeId} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Trust Badges */}
+        <section className="py-12 px-4" style={{ backgroundColor: theme.background }}>
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center gap-4 p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
+                <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}>
+                  <Truck className="w-6 h-6" style={{ color: theme.primary }} />
+                </div>
+                <div>
+                  <h3 className="font-semibold" style={{ color: theme.text }}>দ্রুত ডেলিভারি</h3>
+                  <p className="text-sm" style={{ color: theme.muted }}>ঢাকায় ১-২ দিনে</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
+                <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}>
+                  <Shield className="w-6 h-6" style={{ color: theme.primary }} />
+                </div>
+                <div>
+                  <h3 className="font-semibold" style={{ color: theme.text }}>নিরাপদ পেমেন্ট</h3>
+                  <p className="text-sm" style={{ color: theme.muted }}>১০০% সিকিউর</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 p-6 rounded-xl" style={{ backgroundColor: theme.cardBg }}>
+                <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}>
+                  <RotateCcw className="w-6 h-6" style={{ color: theme.primary }} />
+                </div>
+                <div>
+                  <h3 className="font-semibold" style={{ color: theme.text }}>ইজি রিটার্ন</h3>
+                  <p className="text-sm" style={{ color: theme.muted }}>৭ দিনের মধ্যে</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer - Live mode */}
+      <LiveFooter
+        storeName={storeName}
+        logo={logo}
+        socialLinks={socialLinks}
+        footerConfig={footerConfig}
+        businessInfo={businessInfo}
+        categories={categories}
+        planType={planType}
+        isPreview={false}
+      />
+    </div>
+  );
+}
+
+// ============================================================================
+// PREVIEW MODE: Full self-contained store (existing behavior)
+// ============================================================================
+function PreviewStoreTemplate({
+  storeName,
+  storeId,
+  logo,
+  products,
+  categories,
+  currentCategory,
+  config,
+  currency,
+  socialLinks,
+  footerConfig,
+  businessInfo,
+  planType,
+}: Omit<StoreTemplateProps, 'isPreview'>) {
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -1055,9 +1349,9 @@ export function StarterStoreTemplate({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  // Use demo data for preview, otherwise use props
-  const demoProducts = isPreview ? DEMO_PRODUCTS : (products as unknown as DemoProduct[]);
-  const validCategories = (isPreview ? DEMO_CATEGORIES : categories.filter(Boolean)) as string[];
+  // Always use demo data in preview mode
+  const demoProducts = DEMO_PRODUCTS;
+  const validCategories = DEMO_CATEGORIES;
 
   // Render current page content
   const renderPage = () => {
@@ -1091,6 +1385,11 @@ export function StarterStoreTemplate({
         {/* Google Fonts */}
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
+        {/* Preview Banner */}
+        <div className="bg-amber-500 text-white text-center py-2 text-sm font-medium">
+          ⚠️ প্রিভিউ মোড - এটি একটি ডেমো। কোনো অর্ডার তৈরি হবে না।
+        </div>
+
         {/* Header */}
         <StoreHeader storeName={storeName || 'ডেমো স্টোর'} onNavigate={navigate} categories={validCategories} logo={logo} />
 
@@ -1104,9 +1403,66 @@ export function StarterStoreTemplate({
   );
 }
 
-// Export Header and Footer for registry (they're integrated in template)
-export const StarterStoreHeader = () => null;
-export const StarterStoreFooter = () => null;
+// ============================================================================
+// MAIN TEMPLATE COMPONENT - Routes to Preview or Live mode
+// ============================================================================
+export function StarterStoreTemplate({
+  storeName,
+  storeId,
+  logo,
+  products,
+  categories,
+  currentCategory,
+  config,
+  currency,
+  socialLinks,
+  footerConfig,
+  businessInfo,
+  planType,
+  isPreview = false,
+}: StoreTemplateProps) {
+  // PREVIEW MODE: Full self-contained demo store
+  if (isPreview) {
+    return (
+      <PreviewStoreTemplate
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        products={products}
+        categories={categories}
+        currentCategory={currentCategory}
+        config={config}
+        currency={currency}
+        socialLinks={socialLinks}
+        footerConfig={footerConfig}
+        businessInfo={businessInfo}
+        planType={planType}
+      />
+    );
+  }
+
+  // LIVE MODE: Homepage with real data and real routes
+  return (
+    <LiveHomePage
+      storeName={storeName}
+      storeId={storeId}
+      logo={logo}
+      products={products}
+      categories={categories}
+      currentCategory={currentCategory}
+      config={config}
+      currency={currency}
+      socialLinks={socialLinks}
+      footerConfig={footerConfig}
+      businessInfo={businessInfo}
+      planType={planType}
+    />
+  );
+}
+
+// Export Header and Footer for registry (used by StorePageWrapper for other pages)
+export { StarterStoreHeader } from './sections/Header';
+export { StarterStoreFooter } from './sections/Footer';
 
 // Default export
 export default StarterStoreTemplate;

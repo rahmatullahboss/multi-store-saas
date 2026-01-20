@@ -1,5 +1,8 @@
 # AGENTS.md — Multi Store SaaS
 
+## Communication Style
+- Always reply in Banglish: use English letters to express Bangla words; do not use Bangla script.
+
 ## Quick Context
 - Multi-tenant e-commerce SaaS on Cloudflare (Workers/Pages + D1 + R2 + KV).
 - Remix SSR frontend, Hono API backend.

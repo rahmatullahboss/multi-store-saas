@@ -322,6 +322,8 @@ const TurboSaleTemplate = React.lazy(() => import('~/components/store-templates/
 const RovoTemplate = React.lazy(() => import('~/components/store-templates/rovo/index').then(m => ({ default: m.RovoTemplate })));
 const SokolTemplate = React.lazy(() => import('~/components/store-templates/sokol/index').then(m => ({ default: m.SokolTemplate })));
 const StarterStoreTemplate = React.lazy(() => import('~/components/store-templates/starter-store/index').then(m => ({ default: m.StarterStoreTemplate })));
+const StarterStoreHeader = React.lazy(() => import('~/components/store-templates/starter-store/sections/Header').then(m => ({ default: m.StarterStoreHeader })));
+const StarterStoreFooter = React.lazy(() => import('~/components/store-templates/starter-store/sections/Footer').then(m => ({ default: m.StarterStoreFooter })));
 
 // Header Components
 const DarazHeader = React.lazy(() => import('~/components/store-templates/daraz/sections/Header').then(m => ({ default: m.DarazHeader })));
@@ -574,7 +576,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
   {
     id: 'starter-store',
     name: 'Starter Store',
-    description: 'Complete immersive store template with working cart, checkout, search, and all pages. Perfect for demos and quick starts.',
+    description: 'Complete immersive store template with working cart, checkout, search, and all pages. Perfect for demos and quick starts. Fully backend-connected in live mode.',
     thumbnail: '/templates/starter-store.png',
     category: 'modern',
     theme: STORE_TEMPLATE_THEMES['starter-store'],
@@ -583,6 +585,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
       body: 'Inter',
     },
     component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
   },
 ];
 
