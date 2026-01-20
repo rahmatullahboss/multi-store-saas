@@ -1,12 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Editor } from 'grapesjs';
 import { 
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Type, Move, Maximize2, Palette, Image as ImageIcon,
   Layout, MousePointer2, ChevronDown, ChevronRight,
-  Sparkles
+  Sparkles, Monitor, Tablet, Smartphone, Eye, EyeOff
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+
+// Device breakpoints for responsive styling
+interface DeviceConfig {
+  id: 'desktop' | 'tablet' | 'mobile';
+  label: string;
+  icon: typeof Monitor;
+  width: string;
+  mediaQuery?: string;
+}
+
+const DEVICES: DeviceConfig[] = [
+  { id: 'desktop', label: 'Desktop', icon: Monitor, width: '' },
+  { id: 'tablet', label: 'Tablet', icon: Tablet, width: '768px', mediaQuery: 'max-width: 768px' },
+  { id: 'mobile', label: 'Mobile', icon: Smartphone, width: '480px', mediaQuery: 'max-width: 480px' },
+];
+
+type DeviceId = 'desktop' | 'tablet' | 'mobile';
 
 interface StyleControlsProps {
   editor: Editor;
@@ -18,6 +35,47 @@ export default function StyleControls({ editor }: StyleControlsProps) {
   const [styles, setStyles] = useState<Record<string, string>>({});
   const [attrs, setAttrs] = useState<Record<string, string>>({});
   const [activeSector, setActiveSector] = useState<string | null>('layout');
+  const [activeDevice, setActiveDevice] = useState<DeviceId>('desktop');
+  const [deviceStyles, setDeviceStyles] = useState<Record<DeviceId, Record<string, string>>>({
+    desktop: {},
+    tablet: {},
+    mobile: {},
+  });
+
+  // Helper to convert GrapesJS style object to plain Record<string, string>
+  const toStyleRecord = (style: any): Record<string, string> => {
+    if (!style) return {};
+    const result: Record<string, string> = {};
+    for (const [key, value] of Object.entries(style)) {
+      if (typeof value === 'string') {
+        result[key] = value;
+      }
+    }
+    return result;
+  };
+
+  // Get styles for a specific device from CssComposer
+  const getStylesForDevice = useCallback((component: any, device: DeviceId): Record<string, string> => {
+    if (!component || !editor) return {};
+    
+    if (device === 'desktop') {
+      return toStyleRecord(component.getStyle());
+    }
+    
+    // For tablet/mobile, get from CssComposer media query rules
+    const deviceConfig = DEVICES.find(d => d.id === device);
+    if (!deviceConfig?.mediaQuery) return {};
+    
+    const selector = component.getSelectorsString() || `#${component.getId()}`;
+    const css = editor.CssComposer;
+    const rule = css.getRule(selector, { 
+      atRuleType: 'media', 
+      atRuleParams: deviceConfig.mediaQuery
+    });
+    
+    if (!rule) return {};
+    return toStyleRecord(rule.getStyle());
+  }, [editor]);
 
   useEffect(() => {
     if (!editor) return;
@@ -26,8 +84,17 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       const selected = editor.getSelected();
       setSelectedComp(selected);
       if (selected) {
-        setStyles((selected as any).getStyle() || {});
+        // Get desktop styles (default)
+        const desktopStyles = toStyleRecord(selected.getStyle());
+        setStyles(desktopStyles);
         setAttrs(selected.getAttributes() || {});
+        
+        // Get styles for all devices
+        setDeviceStyles({
+          desktop: desktopStyles,
+          tablet: getStylesForDevice(selected, 'tablet'),
+          mobile: getStylesForDevice(selected, 'mobile'),
+        });
       }
     };
 
@@ -43,17 +110,71 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       editor.off('component:styleUpdate', updateStyles);
       editor.off('style:property:update', updateStyles);
     };
-  }, [editor]);
+  }, [editor, getStylesForDevice]);
 
+  // Update styles when device changes
+  useEffect(() => {
+    if (selectedComp) {
+      setStyles(deviceStyles[activeDevice] || {});
+    }
+  }, [activeDevice, selectedComp, deviceStyles]);
+
+  // Update style for current device
   const updateStyle = (prop: string, value: string) => {
-    if (!selectedComp) return;
-    selectedComp.addStyle({ [prop]: value });
+    if (!selectedComp || !editor) return;
+    
+    if (activeDevice === 'desktop') {
+      // Desktop: update component style directly
+      selectedComp.addStyle({ [prop]: value });
+    } else {
+      // Tablet/Mobile: use CssComposer with media query
+      const deviceConfig = DEVICES.find(d => d.id === activeDevice);
+      if (!deviceConfig?.mediaQuery) return;
+      
+      const selector = selectedComp.getSelectorsString() || `#${selectedComp.getId()}`;
+      const css = editor.CssComposer;
+      const mediaParams = deviceConfig.mediaQuery.replace(/[()]/g, '').replace('@media ', '');
+      
+      // Get existing rule or create new one
+      let rule = css.getRule(selector, { atRuleType: 'media', atRuleParams: mediaParams });
+      const existingStyles = rule ? (rule.getStyle() as Record<string, string>) : {};
+      
+      // Set rule with merged styles
+      css.setRule(selector, { ...existingStyles, [prop]: value }, {
+        atRuleType: 'media',
+        atRuleParams: mediaParams,
+      });
+    }
+    
+    // Update local state
     setStyles((prev) => ({ ...prev, [prop]: value }));
+    setDeviceStyles((prev) => ({
+      ...prev,
+      [activeDevice]: { ...prev[activeDevice], [prop]: value },
+    }));
   };
 
   const handleSpacingChange = (type: 'margin' | 'padding', side: string, value: string) => {
     updateStyle(`${type}-${side}`, value);
   };
+
+  // Toggle visibility for current device
+  const toggleVisibility = () => {
+    if (!selectedComp) return;
+    const attr = `data-hide-${activeDevice}`;
+    const isHidden = attrs[attr] === 'true';
+    selectedComp.addAttributes({ [attr]: isHidden ? 'false' : 'true' });
+    setAttrs(prev => ({ ...prev, [attr]: isHidden ? 'false' : 'true' }));
+    
+    // Also apply display:none via media query for tablet/mobile
+    if (activeDevice !== 'desktop') {
+      updateStyle('display', isHidden ? '' : 'none');
+    } else {
+      updateStyle('display', isHidden ? '' : 'none');
+    }
+  };
+
+  const isHiddenOnDevice = attrs[`data-hide-${activeDevice}`] === 'true';
 
   if (!selectedComp) {
     return (
@@ -66,6 +187,79 @@ export default function StyleControls({ editor }: StyleControlsProps) {
 
   return (
     <div className="space-y-1 pb-20">
+      
+      {/* Device Tabs */}
+      <div className="flex gap-1 p-2 bg-gray-50 border-b border-gray-200">
+        {DEVICES.map((device) => {
+          const Icon = device.icon;
+          const isActive = activeDevice === device.id;
+          const hasDeviceStyles = Object.keys(deviceStyles[device.id] || {}).length > 0;
+          
+          return (
+            <button
+              key={device.id}
+              onClick={() => setActiveDevice(device.id)}
+              className={`
+                flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all
+                ${isActive 
+                  ? 'bg-primary text-white shadow-sm' 
+                  : 'text-gray-600 hover:bg-gray-100'
+                }
+              `}
+              title={device.label}
+            >
+              <Icon size={14} />
+              <span className="hidden sm:inline">{device.label}</span>
+              {hasDeviceStyles && !isActive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Device-specific info banner */}
+      {activeDevice !== 'desktop' && (
+        <div className="mx-2 mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-[10px] text-blue-700 flex items-center gap-1">
+            <span>💡</span>
+            <span>
+              {activeDevice === 'tablet' ? 'Tablet (≤768px)' : 'Mobile (≤480px)'} এ আলাদা style সেট করুন
+            </span>
+          </p>
+        </div>
+      )}
+
+      {/* Visibility Toggle */}
+      <div className="mx-2 mt-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-gray-700">
+            {activeDevice === 'desktop' ? 'Desktop' : activeDevice === 'tablet' ? 'Tablet' : 'Mobile'} এ দেখান
+          </span>
+          <button
+            onClick={toggleVisibility}
+            className={`
+              flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all
+              ${isHiddenOnDevice 
+                ? 'bg-red-100 text-red-700' 
+                : 'bg-green-100 text-green-700'
+              }
+            `}
+          >
+            {isHiddenOnDevice ? (
+              <>
+                <EyeOff size={12} />
+                <span>Hidden</span>
+              </>
+            ) : (
+              <>
+                <Eye size={12} />
+                <span>Visible</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
       
       {/* Layout Sector */}
       <Sector title={t('sectorLayout')} icon={<Layout size={14} />} isOpen={activeSector === 'layout'} onToggle={() => setActiveSector(activeSector === 'layout' ? null : 'layout')}>

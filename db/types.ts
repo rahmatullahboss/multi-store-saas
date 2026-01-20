@@ -34,11 +34,51 @@ export const TYPOGRAPHY_VALUES = {
   },
 } as const;
 
+// Intent for Quick Builder v2
+export interface LandingIntent {
+  productType: 'single' | 'multiple';
+  goal: 'direct_sales' | 'lead_whatsapp';
+  trafficSource: 'facebook' | 'tiktok' | 'organic';
+  createdAt: string;
+}
+
+// Style Wizard settings for Quick Builder v2
+export interface StyleWizardSettings {
+  brandColor?: string;
+  buttonStyle?: 'rounded' | 'sharp' | 'pill';
+  fontFamily?: 'system' | 'serif' | 'sans-serif';
+  darkMode?: boolean;
+}
+
+// Visibility rules for sections
+export interface SectionVisibilityRule {
+  isVisible: boolean;
+  showOnMobile?: boolean;
+  showOnDesktop?: boolean;
+  showIfProductHasVideo?: boolean;
+  showIfProductHasVariants?: boolean;
+  showIfProductOnSale?: boolean;
+  showAfterDate?: string;
+  hideAfterDate?: string;
+  showIfInStock?: boolean;
+  hideIfLowStock?: boolean;
+  lowStockThreshold?: number;
+}
+
 // Landing page configuration stored in landingConfig JSON field
 export interface LandingConfig {
   templateId?: string; // Template ID (e.g., 'modern-dark', 'minimal-light', 'video-focus')
   headline: string;
   subheadline?: string;
+  
+  // === Quick Builder v2 Fields ===
+  intent?: LandingIntent;
+  sectionVariants?: Record<string, string>; // { hero: 'product-focused', cta: 'with-trust' }
+  sectionVisibility?: Record<string, SectionVisibilityRule>;
+  styleWizard?: StyleWizardSettings;
+  checkoutModalEnabled?: boolean;
+  quickProductId?: number; // Linked quick product
+  connectedProducts?: number[]; // For multi-product landing
   videoUrl?: string;
   ctaText: string;
   ctaSubtext?: string;

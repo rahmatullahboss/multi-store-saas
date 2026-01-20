@@ -985,39 +985,219 @@ export const bdBlocksPlugin = (editor: Editor) => {
   });
 
   // ========================================
-  // BASIC BUILDING BLOCKS (Elementor-style)
+  // STRUCTURAL COMPONENT TYPES (Elementor-style with drag constraints)
+  // ========================================
+  
+  const { DomComponents } = editor;
+  
+  // -- SECTION Component Type --
+  DomComponents.addType('bd-section', {
+    isComponent: (el) => el.tagName === 'SECTION' && el.classList?.contains('bd-section'),
+    model: {
+      defaults: {
+        name: 'সেকশন',
+        tagName: 'section',
+        classes: ['bd-section'],
+        draggable: '[data-gjs-type=wrapper]', // Only at root
+        droppable: '.bd-row, [data-gjs-type=bd-row]', // Only rows inside
+        attributes: { 'data-gjs-type': 'bd-section' },
+        traits: [
+          { type: 'text', name: 'id', label: 'Section ID' },
+          {
+            type: 'select', name: 'data-width', label: 'Width',
+            options: [
+              { id: 'full', label: 'Full Width' },
+              { id: 'boxed', label: 'Boxed (1280px)' },
+              { id: 'narrow', label: 'Narrow (960px)' },
+            ],
+          },
+          {
+            type: 'select', name: 'data-padding', label: 'Padding',
+            options: [
+              { id: 'none', label: 'None' },
+              { id: 'sm', label: 'Small' },
+              { id: 'md', label: 'Medium' },
+              { id: 'lg', label: 'Large' },
+            ],
+          },
+        ],
+      },
+    },
+  });
+
+  // -- ROW Component Type --
+  DomComponents.addType('bd-row', {
+    isComponent: (el) => el.tagName === 'DIV' && el.classList?.contains('bd-row'),
+    model: {
+      defaults: {
+        name: 'রো',
+        tagName: 'div',
+        classes: ['bd-row'],
+        draggable: '.bd-section, [data-gjs-type=bd-section]', // Only in sections
+        droppable: '.bd-column, [data-gjs-type=bd-column]', // Only columns inside
+        attributes: { 'data-gjs-type': 'bd-row' },
+        traits: [
+          {
+            type: 'select', name: 'data-gap', label: 'Gap',
+            options: [
+              { id: '0', label: 'None' },
+              { id: '10', label: 'Small' },
+              { id: '20', label: 'Medium' },
+              { id: '30', label: 'Large' },
+            ],
+          },
+          {
+            type: 'select', name: 'data-align', label: 'Vertical Align',
+            options: [
+              { id: 'stretch', label: 'Stretch' },
+              { id: 'start', label: 'Top' },
+              { id: 'center', label: 'Center' },
+              { id: 'end', label: 'Bottom' },
+            ],
+          },
+        ],
+      },
+    },
+  });
+
+  // -- COLUMN Component Type --
+  DomComponents.addType('bd-column', {
+    isComponent: (el) => el.tagName === 'DIV' && el.classList?.contains('bd-column'),
+    model: {
+      defaults: {
+        name: 'কলাম',
+        tagName: 'div',
+        classes: ['bd-column'],
+        draggable: '.bd-row, [data-gjs-type=bd-row]', // Only in rows
+        droppable: true, // Accepts widgets
+        attributes: { 'data-gjs-type': 'bd-column', 'data-col': '6' },
+        traits: [
+          {
+            type: 'select', name: 'data-col', label: 'Width',
+            options: [
+              { id: '3', label: '1/4 (25%)' },
+              { id: '4', label: '1/3 (33%)' },
+              { id: '6', label: '1/2 (50%)' },
+              { id: '8', label: '2/3 (67%)' },
+              { id: '12', label: 'Full (100%)' },
+            ],
+          },
+          {
+            type: 'select', name: 'data-col-mobile', label: 'Mobile Width',
+            options: [
+              { id: 'auto', label: 'Auto' },
+              { id: '12', label: 'Full (100%)' },
+            ],
+          },
+        ],
+      },
+    },
+  });
+
+  // ========================================
+  // STRUCTURAL BLOCKS (using component types)
   // ========================================
 
-  // Section Container
+  // Section with 1 column
   Blocks.add('basic-section', {
-    label: 'Section',
-    category: 'Basic',
-    content: `
-      <section class="py-12 px-4 bg-white">
-        <div class="max-w-6xl mx-auto">
-          <!-- Add your content here -->
-        </div>
-      </section>
-    `,
+    label: 'সেকশন',
+    category: 'Structure',
+    content: {
+      type: 'bd-section',
+      classes: ['bd-section', 'py-12', 'bg-white'],
+      components: [{
+        type: 'bd-row',
+        classes: ['bd-row', 'flex', 'flex-wrap', 'gap-5', 'max-w-6xl', 'mx-auto', 'px-4'],
+        components: [{
+          type: 'bd-column',
+          classes: ['bd-column', 'flex-1', 'min-w-0'],
+          attributes: { 'data-col': '12' },
+        }],
+      }],
+    },
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/></svg>',
   });
 
-  // Container/Div
+  // Section with 2 columns
+  Blocks.add('basic-section-2col', {
+    label: '২ কলাম',
+    category: 'Structure',
+    content: {
+      type: 'bd-section',
+      classes: ['bd-section', 'py-12', 'bg-white'],
+      components: [{
+        type: 'bd-row',
+        classes: ['bd-row', 'flex', 'flex-wrap', 'gap-5', 'max-w-6xl', 'mx-auto', 'px-4'],
+        components: [
+          { type: 'bd-column', classes: ['bd-column'], attributes: { 'data-col': '6' }, style: { flex: '0 0 calc(50% - 10px)' } },
+          { type: 'bd-column', classes: ['bd-column'], attributes: { 'data-col': '6' }, style: { flex: '0 0 calc(50% - 10px)' } },
+        ],
+      }],
+    },
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
+  });
+
+  // Section with 3 columns
+  Blocks.add('basic-section-3col', {
+    label: '৩ কলাম',
+    category: 'Structure',
+    content: {
+      type: 'bd-section',
+      classes: ['bd-section', 'py-12', 'bg-white'],
+      components: [{
+        type: 'bd-row',
+        classes: ['bd-row', 'flex', 'flex-wrap', 'gap-5', 'max-w-6xl', 'mx-auto', 'px-4'],
+        components: [
+          { type: 'bd-column', classes: ['bd-column'], attributes: { 'data-col': '4' }, style: { flex: '0 0 calc(33.333% - 14px)' } },
+          { type: 'bd-column', classes: ['bd-column'], attributes: { 'data-col': '4' }, style: { flex: '0 0 calc(33.333% - 14px)' } },
+          { type: 'bd-column', classes: ['bd-column'], attributes: { 'data-col': '4' }, style: { flex: '0 0 calc(33.333% - 14px)' } },
+        ],
+      }],
+    },
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="8.67" y1="4" x2="8.67" y2="20"/><line x1="15.33" y1="4" x2="15.33" y2="20"/></svg>',
+  });
+
+  // Row block (for adding to sections)
+  Blocks.add('basic-row', {
+    label: 'রো',
+    category: 'Structure',
+    content: {
+      type: 'bd-row',
+      classes: ['bd-row', 'flex', 'flex-wrap', 'gap-5', 'w-full', 'px-4'],
+      components: [{
+        type: 'bd-column',
+        classes: ['bd-column', 'flex-1'],
+        attributes: { 'data-col': '12' },
+      }],
+    },
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="3" y="8" width="18" height="8" rx="1"/></svg>',
+  });
+
+  // Column block (for adding to rows)
+  Blocks.add('basic-column', {
+    label: 'কলাম',
+    category: 'Structure',
+    content: {
+      type: 'bd-column',
+      classes: ['bd-column', 'p-4', 'min-h-[100px]'],
+      attributes: { 'data-col': '6' },
+      style: { flex: '0 0 calc(50% - 10px)' },
+    },
+    media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="6" y="4" width="12" height="16" rx="1" fill="currentColor" opacity="0.1"/><rect x="6" y="4" width="12" height="16" rx="1"/></svg>',
+  });
+
+  // Container (generic - can be anywhere)
   Blocks.add('basic-container', {
     label: 'Container',
-    category: 'Basic',
-    content: `
-      <div class="p-6 bg-gray-50 rounded-xl">
-        <!-- Container content -->
-      </div>
-    `,
+    category: 'Structure',
+    content: `<div class="p-6 bg-gray-50 rounded-xl"><!-- Content --></div>`,
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="4 2"/></svg>',
   });
 
-  // Flex Row
+  // Legacy flex row (kept for backwards compatibility)
   Blocks.add('basic-flex-row', {
-    label: 'Flex Row',
-    category: 'Basic',
+    label: 'Flex Row (Legacy)',
+    category: 'Structure',
     content: `
       <div class="flex gap-4 p-4">
         <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center">Column 1</div>
@@ -1027,10 +1207,10 @@ export const bdBlocksPlugin = (editor: Editor) => {
     media: '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="9" height="12" rx="1"/><rect x="13" y="6" width="9" height="12" rx="1"/></svg>',
   });
 
-  // Grid Layout
+  // Legacy grid (kept for backwards compatibility)
   Blocks.add('basic-grid', {
-    label: 'Grid 3x1',
-    category: 'Basic',
+    label: 'Grid 3x1 (Legacy)',
+    category: 'Structure',
     content: `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
         <div class="p-6 bg-gray-100 rounded-xl text-center">Item 1</div>

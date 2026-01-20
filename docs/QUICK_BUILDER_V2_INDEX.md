@@ -114,6 +114,71 @@ Welcome! This is your central hub for Quick Builder v2 implementation documentat
 
 ---
 
+## 👨‍💻 Developer Quick Start Guides (NEW!)
+
+These focused guides get developers productive fast:
+
+### 5. **QUICK_BUILDER_DEV_SETUP.md** - Setup & Environment
+**Purpose:** Get up and running in 5 minutes  
+**Read this if:** You're a new developer starting on this project
+
+**Contents:**
+- Prerequisites (Node.js, VS Code extensions)
+- Environment setup (`npm install`, `.env` config)
+- D1 local database setup
+- Key file structure overview
+- Quick commands reference
+
+**Time to Read:** 10 minutes
+
+---
+
+### 6. **QUICK_BUILDER_DEV_IMPLEMENTATION.md** - Implementation Patterns
+**Purpose:** Code examples for common tasks  
+**Read this if:** You're implementing features and need code patterns
+
+**Contents:**
+- Adding Intent Wizard steps (multi-step form pattern)
+- Adding Section Variants (component + registry)
+- Checkout Modal implementation (modal + form + API)
+- Working with LandingConfig (interfaces, defaults, type safety)
+
+**Time to Read:** 20 minutes (heavy code examples)
+
+---
+
+### 7. **QUICK_BUILDER_DEV_TESTING_DEPLOY.md** - Testing & Deployment
+**Purpose:** Testing, debugging, and deployment workflows  
+**Read this if:** You need to test, debug, or deploy changes
+
+**Contents:**
+- Unit tests (Vitest) & E2E tests (Playwright)
+- Debugging tips (wrangler tail, common errors)
+- Deployment (local, preview, production)
+- Code style guidelines
+
+**Time to Read:** 15 minutes
+
+---
+
+### 8. **QUICK_BUILDER_UI_UX_GUIDE.md** - UI/UX Design Guide
+**Purpose:** Design specifications and component library  
+**Read this if:** You're building UI components or need design reference
+
+**Contents:**
+- Design principles (mobile-first, conversion-focused)
+- Intent wizard UI specifications
+- Section variant selector UI
+- Checkout modal UI (desktop + mobile)
+- Style wizard UI
+- Component library (buttons, forms, cards)
+- Color palette & typography
+- Animations & accessibility
+
+**Time to Read:** 30 minutes
+
+---
+
 ## 🔗 Related Existing Documentation
 
 Before diving into v2, review these existing guides:

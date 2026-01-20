@@ -726,6 +726,144 @@ export function ProductJsonLd({ product, config }: { product: Product; config: L
 
 ## Database Schema
 
+### Migration Script
+
+```sql
+-- ==============================================
+-- Quick Builder v2 Database Migration
+-- Version: 2.0.0
+-- Date: 2026-01-20
+-- ==============================================
+
+-- STEP 1: Backup existing data (IMPORTANT!)
+-- Run this in Cloudflare D1 console before migration:
+-- SELECT * FROM stores WHERE landingConfig IS NOT NULL;
+
+-- STEP 2: Add new columns to stores table for v2 features
+-- Note: D1 uses SQLite syntax
+
+-- Add intent JSON field to stores (for quick builder intent)
+-- This stores the intent used to create the landing page
+ALTER TABLE stores ADD COLUMN landing_intent TEXT;
+
+-- Add section_variants JSON field
+-- Maps section IDs to variant IDs: {"hero": "product-focused", "cta": "with-trust"}
+ALTER TABLE stores ADD COLUMN section_variants TEXT;
+
+-- Add checkout_modal_enabled flag
+ALTER TABLE stores ADD COLUMN checkout_modal_enabled INTEGER DEFAULT 0;
+
+-- Add style_wizard JSON field
+-- Stores quick style settings: {"brandColor": "#10b981", "buttonStyle": "rounded"}
+ALTER TABLE stores ADD COLUMN style_wizard TEXT;
+
+-- STEP 3: Create landing_page_events table for analytics
+CREATE TABLE IF NOT EXISTS landing_page_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  store_id INTEGER NOT NULL,
+  landing_page_slug TEXT,
+  event_type TEXT NOT NULL, -- 'view', 'cta_click', 'checkout_open', 'order_placed'
+  event_data TEXT, -- JSON: {"productId": "123", "variant": "1kg"}
+  visitor_id TEXT, -- Anonymous visitor tracking
+  device_type TEXT, -- 'mobile', 'desktop', 'tablet'
+  referrer TEXT, -- Traffic source
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (store_id) REFERENCES stores(id)
+);
+
+-- Index for fast analytics queries
+CREATE INDEX IF NOT EXISTS idx_landing_events_store_date 
+ON landing_page_events(store_id, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_landing_events_type 
+ON landing_page_events(event_type, store_id);
+
+-- STEP 4: Create quick_products table for inline product creation
+CREATE TABLE IF NOT EXISTS quick_products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  store_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  price INTEGER NOT NULL, -- Price in cents/paisa
+  compare_at_price INTEGER,
+  image_url TEXT,
+  variants TEXT, -- JSON: [{"id": "v1", "name": "1kg", "price": 500}]
+  slug TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (store_id) REFERENCES stores(id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_quick_products_slug 
+ON quick_products(store_id, slug);
+
+-- STEP 5: Add A/B testing support columns
+ALTER TABLE stores ADD COLUMN ab_test_variant_of INTEGER; -- Points to original store ID
+ALTER TABLE stores ADD COLUMN ab_test_traffic_split INTEGER DEFAULT 50; -- 0-100
+
+-- ==============================================
+-- ROLLBACK SCRIPT (if needed)
+-- ==============================================
+-- ALTER TABLE stores DROP COLUMN landing_intent;
+-- ALTER TABLE stores DROP COLUMN section_variants;
+-- ALTER TABLE stores DROP COLUMN checkout_modal_enabled;
+-- ALTER TABLE stores DROP COLUMN style_wizard;
+-- ALTER TABLE stores DROP COLUMN ab_test_variant_of;
+-- ALTER TABLE stores DROP COLUMN ab_test_traffic_split;
+-- DROP TABLE IF EXISTS landing_page_events;
+-- DROP TABLE IF EXISTS quick_products;
+```
+
+### Running the Migration
+
+```bash
+# Local development (D1 local)
+npx wrangler d1 execute ozzyl-db --local --file=db/migrations/0063_quick_builder_v2.sql
+
+# Production (be careful!)
+npx wrangler d1 execute ozzyl-db --file=db/migrations/0063_quick_builder_v2.sql
+```
+
+### Drizzle Schema Updates
+
+```typescript
+// db/schema.ts - Add these to existing schema
+
+// Quick Products table
+export const quickProducts = sqliteTable('quick_products', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  name: text('name').notNull(),
+  price: integer('price').notNull(),
+  compareAtPrice: integer('compare_at_price'),
+  imageUrl: text('image_url'),
+  variants: text('variants'), // JSON
+  slug: text('slug'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Landing Page Events table
+export const landingPageEvents = sqliteTable('landing_page_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id),
+  landingPageSlug: text('landing_page_slug'),
+  eventType: text('event_type').notNull(),
+  eventData: text('event_data'), // JSON
+  visitorId: text('visitor_id'),
+  deviceType: text('device_type'),
+  referrer: text('referrer'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Add to stores table (in existing schema)
+// landingIntent: text('landing_intent'), // JSON
+// sectionVariants: text('section_variants'), // JSON
+// checkoutModalEnabled: integer('checkout_modal_enabled').default(0),
+// styleWizard: text('style_wizard'), // JSON
+// abTestVariantOf: integer('ab_test_variant_of'),
+// abTestTrafficSplit: integer('ab_test_traffic_split').default(50),
+```
+
 ### New/Modified Tables
 
 ```sql
@@ -872,6 +1010,333 @@ export async function action({ request, context, params }: ActionFunction) {
   await trackEvent(context.db, id, eventType, data);
   
   return json({ success: true });
+}
+```
+
+---
+
+## API Response Examples
+
+### Quick Create Landing Page
+
+**Endpoint:** `POST /api/landing-pages/quick-create`
+
+**Request:**
+```json
+{
+  "intent": {
+    "productType": "single",
+    "goal": "direct_sales",
+    "trafficSource": "facebook"
+  },
+  "product": {
+    "name": "প্রিমিয়াম গ্রিন টি",
+    "price": 550,
+    "compareAtPrice": 750,
+    "image": "https://r2.ozzyl.com/stores/123/products/green-tea.webp",
+    "variants": [
+      { "id": "v1", "name": "100g", "price": 550 },
+      { "id": "v2", "name": "250g", "price": 1200 }
+    ]
+  },
+  "templateId": "premium-bd"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "lp_abc123",
+    "slug": "premium-green-ti",
+    "previewUrl": "/o/premium-green-ti",
+    "editUrl": "/app/quick-builder/lp_abc123",
+    "status": "draft",
+    "template": "premium-bd",
+    "sectionsGenerated": ["hero", "trust", "features", "testimonials", "cta", "faq"],
+    "createdAt": "2026-01-20T22:15:00Z"
+  }
+}
+```
+
+**Error Response (400 - Validation):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input data",
+    "details": {
+      "product.price": ["Price must be positive"],
+      "intent.trafficSource": ["Invalid traffic source"]
+    }
+  }
+}
+```
+
+---
+
+### Update Landing Page Config
+
+**Endpoint:** `PUT /api/landing-pages/:id/config`
+
+**Request:**
+```json
+{
+  "updates": {
+    "headline": "সেরা মানের গ্রিন টি",
+    "subheadline": "১০০% অর্গানিক, স্বাস্থ্যকর",
+    "sectionVariants": {
+      "hero": "offer-focused",
+      "testimonials": "carousel"
+    },
+    "hiddenSections": ["video", "comparison"]
+  }
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "lp_abc123",
+    "updatedAt": "2026-01-20T22:30:00Z",
+    "config": {
+      "headline": "সেরা মানের গ্রিন টি",
+      "subheadline": "১০০% অর্গানিক, স্বাস্থ্যকর",
+      "sectionVariants": {
+        "hero": "offer-focused",
+        "testimonials": "carousel"
+      }
+    }
+  }
+}
+```
+
+---
+
+### Get Landing Page
+
+**Endpoint:** `GET /api/landing-pages/:id`
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "lp_abc123",
+    "slug": "premium-green-ti",
+    "status": "published",
+    "intent": {
+      "productType": "single",
+      "goal": "direct_sales",
+      "trafficSource": "facebook",
+      "createdAt": "2026-01-20T22:15:00Z"
+    },
+    "config": {
+      "templateId": "premium-bd",
+      "headline": "সেরা মানের গ্রিন টি",
+      "subheadline": "১০০% অর্গানিক, স্বাস্থ্যকর",
+      "ctaText": "এখনই অর্ডার করুন",
+      "sectionOrder": ["hero", "trust", "features", "testimonials", "cta", "faq"],
+      "sectionVariants": {
+        "hero": "offer-focused",
+        "testimonials": "carousel"
+      },
+      "product": {
+        "id": "prod_123",
+        "name": "প্রিমিয়াম গ্রিন টি",
+        "price": 550,
+        "image": "https://..."
+      }
+    },
+    "analytics": {
+      "views": 1250,
+      "ctaClicks": 320,
+      "checkoutOpens": 180,
+      "orders": 45,
+      "conversionRate": 3.6
+    },
+    "createdAt": "2026-01-20T22:15:00Z",
+    "updatedAt": "2026-01-20T22:30:00Z",
+    "publishedAt": "2026-01-20T23:00:00Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "LANDING_PAGE_NOT_FOUND",
+    "message": "Landing page not found"
+  }
+}
+```
+
+---
+
+### Checkout Modal - Create Order
+
+**Endpoint:** `POST /api/create-order`
+
+**Request:**
+```json
+{
+  "storeId": 123,
+  "productId": "prod_123",
+  "variantId": "v1",
+  "quantity": 1,
+  "customer": {
+    "name": "রহিম উদ্দিন",
+    "phone": "01712345678",
+    "address": "৭৮ গুলশান এভিনিউ, ঢাকা",
+    "deliveryArea": "dhaka"
+  },
+  "source": "landing_page",
+  "landingPageSlug": "premium-green-ti"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "orderId": "ORD-2026-00123",
+    "orderNumber": "00123",
+    "status": "pending",
+    "total": 610,
+    "breakdown": {
+      "productPrice": 550,
+      "shippingFee": 60,
+      "discount": 0
+    },
+    "estimatedDelivery": "২-৩ দিনের মধ্যে",
+    "message": "অর্ডার সফল হয়েছে! শীঘ্রই আপনাকে কল করা হবে।"
+  }
+}
+```
+
+---
+
+### Get Section Variants
+
+**Endpoint:** `GET /api/landing-builder/variants`
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "hero": [
+      {
+        "id": "product-focused",
+        "name": "প্রোডাক্ট ফোকাস",
+        "nameEn": "Product Focused",
+        "description": "বড় প্রোডাক্ট ইমেজ সহ",
+        "thumbnail": "/thumbnails/hero-product.png",
+        "tags": ["mobile-friendly", "conversion"]
+      },
+      {
+        "id": "offer-focused",
+        "name": "অফার ফোকাস",
+        "nameEn": "Offer Focused",
+        "description": "ডিসকাউন্ট ও প্রাইস হাইলাইট",
+        "thumbnail": "/thumbnails/hero-offer.png",
+        "tags": ["urgency", "facebook-ads"]
+      },
+      {
+        "id": "video-focused",
+        "name": "ভিডিও ফোকাস",
+        "nameEn": "Video Focused",
+        "description": "ফুল-উইড্থ ভিডিও",
+        "thumbnail": "/thumbnails/hero-video.png",
+        "tags": ["tiktok", "engagement"]
+      }
+    ],
+    "testimonials": [
+      {
+        "id": "cards",
+        "name": "কার্ড গ্রিড",
+        "nameEn": "Card Grid",
+        "description": "৩ কলাম কার্ড লেআউট",
+        "thumbnail": "/thumbnails/testimonials-cards.png"
+      },
+      {
+        "id": "carousel",
+        "name": "ক্যারোসেল",
+        "nameEn": "Carousel",
+        "description": "স্লাইডিং রিভিউ",
+        "thumbnail": "/thumbnails/testimonials-carousel.png"
+      },
+      {
+        "id": "screenshots",
+        "name": "স্ক্রিনশট",
+        "nameEn": "Screenshots",
+        "description": "FB/WhatsApp স্ক্রিনশট",
+        "thumbnail": "/thumbnails/testimonials-screenshots.png"
+      }
+    ],
+    "cta": [
+      {
+        "id": "button-only",
+        "name": "শুধু বাটন",
+        "nameEn": "Button Only",
+        "description": "মিনিমাল CTA",
+        "thumbnail": "/thumbnails/cta-button.png"
+      },
+      {
+        "id": "with-trust",
+        "name": "ট্রাস্ট সহ",
+        "nameEn": "With Trust Badges",
+        "description": "বাটন + ট্রাস্ট ব্যাজ",
+        "thumbnail": "/thumbnails/cta-trust.png"
+      },
+      {
+        "id": "urgency",
+        "name": "আর্জেন্সি",
+        "nameEn": "Urgency",
+        "description": "কাউন্টডাউন টাইমার সহ",
+        "thumbnail": "/thumbnails/cta-urgency.png"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### Analytics Events
+
+**Endpoint:** `POST /api/landing-pages/:slug/events`
+
+**Request:**
+```json
+{
+  "eventType": "cta_click",
+  "eventData": {
+    "productId": "prod_123",
+    "variant": "v1",
+    "position": "hero"
+  },
+  "visitorId": "v_xyz789",
+  "deviceType": "mobile",
+  "referrer": "facebook.com"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "eventId": "evt_abc123",
+    "recorded": true
+  }
 }
 ```
 
@@ -1076,6 +1541,316 @@ test('complete quick builder flow', async ({ page }) => {
 - [ ] No layout shift (CLS < 0.1)
 - [ ] Mobile Lighthouse score > 85
 - [ ] API response time < 500ms (P95)
+
+---
+
+## Error Handling
+
+### Error Boundary Component
+
+```typescript
+// app/components/landing-builder/ErrorBoundary.tsx
+
+import { Component, type ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class LandingBuilderErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('LandingBuilder Error:', error, errorInfo);
+    // Send to error tracking service (e.g., Sentry)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="p-8 text-center bg-red-50 rounded-lg border border-red-200">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">
+            কিছু সমস্যা হয়েছে
+          </h2>
+          <p className="text-red-600 mb-4">
+            পেইজ লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে রিফ্রেশ করুন।
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            রিফ্রেশ করুন
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+### API Error Response Format
+
+```typescript
+// Standard API error response structure
+
+interface APIErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, any>;
+  };
+}
+
+interface APISuccessResponse<T> {
+  success: true;
+  data: T;
+}
+
+type APIResponse<T> = APISuccessResponse<T> | APIErrorResponse;
+```
+
+### Error Codes
+
+| Code | HTTP Status | Message (EN) | Message (BN) |
+|------|-------------|--------------|--------------|
+| `VALIDATION_ERROR` | 400 | Invalid input data | ভুল তথ্য দেওয়া হয়েছে |
+| `UNAUTHORIZED` | 401 | Please login first | অনুগ্রহ করে লগইন করুন |
+| `FORBIDDEN` | 403 | Access denied | অ্যাক্সেস নেই |
+| `NOT_FOUND` | 404 | Resource not found | খুঁজে পাওয়া যায়নি |
+| `STORE_NOT_FOUND` | 404 | Store not found | স্টোর পাওয়া যায়নি |
+| `PRODUCT_NOT_FOUND` | 404 | Product not found | প্রোডাক্ট পাওয়া যায়নি |
+| `LANDING_PAGE_NOT_FOUND` | 404 | Landing page not found | ল্যান্ডিং পেইজ পাওয়া যায়নি |
+| `DUPLICATE_SLUG` | 409 | URL already exists | এই URL আগে থেকে আছে |
+| `RATE_LIMITED` | 429 | Too many requests | অনেক বেশি রিকোয়েস্ট |
+| `UPLOAD_FAILED` | 500 | Image upload failed | ছবি আপলোড ব্যর্থ |
+| `DATABASE_ERROR` | 500 | Database error | ডাটাবেস সমস্যা |
+| `INTERNAL_ERROR` | 500 | Something went wrong | কিছু সমস্যা হয়েছে |
+
+### API Route Error Handling Pattern
+
+```typescript
+// app/routes/api.landing-pages.quick-create.ts
+
+import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { z } from 'zod';
+
+const CreateLandingPageSchema = z.object({
+  intent: z.object({
+    productType: z.enum(['single', 'multiple']),
+    goal: z.enum(['direct_sales', 'lead_whatsapp']),
+    trafficSource: z.enum(['facebook', 'tiktok', 'organic']),
+  }),
+  product: z.object({
+    name: z.string().min(1, 'Product name is required'),
+    price: z.number().positive('Price must be positive'),
+    image: z.string().url().optional(),
+  }),
+});
+
+export async function action({ request, context }: ActionFunctionArgs) {
+  try {
+    // 1. Auth check
+    const { store, storeId } = context;
+    if (!store || !storeId) {
+      return json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Please login first',
+        },
+      }, { status: 401 });
+    }
+
+    // 2. Parse and validate input
+    const body = await request.json();
+    const validation = CreateLandingPageSchema.safeParse(body);
+    
+    if (!validation.success) {
+      return json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid input data',
+          details: validation.error.flatten().fieldErrors,
+        },
+      }, { status: 400 });
+    }
+
+    const { intent, product } = validation.data;
+
+    // 3. Business logic
+    const landingPage = await createLandingPage(storeId, intent, product);
+
+    // 4. Success response
+    return json({
+      success: true,
+      data: {
+        id: landingPage.id,
+        slug: landingPage.slug,
+        previewUrl: `/o/${landingPage.slug}`,
+      },
+    });
+
+  } catch (error) {
+    console.error('Landing page creation failed:', error);
+    
+    // Handle known errors
+    if (error instanceof DuplicateSlugError) {
+      return json({
+        success: false,
+        error: {
+          code: 'DUPLICATE_SLUG',
+          message: 'URL already exists',
+        },
+      }, { status: 409 });
+    }
+
+    // Generic error
+    return json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Something went wrong',
+      },
+    }, { status: 500 });
+  }
+}
+```
+
+### Client-Side Error Handling
+
+```typescript
+// app/hooks/useApiMutation.ts
+
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+interface UseApiMutationOptions<T> {
+  onSuccess?: (data: T) => void;
+  onError?: (error: { code: string; message: string }) => void;
+  successMessage?: string;
+}
+
+export function useApiMutation<TInput, TOutput>(
+  mutationFn: (input: TInput) => Promise<Response>,
+  options: UseApiMutationOptions<TOutput> = {}
+) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<{ code: string; message: string } | null>(null);
+
+  const mutate = async (input: TInput) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await mutationFn(input);
+      const result = await response.json();
+
+      if (!result.success) {
+        const err = result.error;
+        setError(err);
+        options.onError?.(err);
+        toast.error(err.message || 'Something went wrong');
+        return null;
+      }
+
+      options.onSuccess?.(result.data);
+      if (options.successMessage) {
+        toast.success(options.successMessage);
+      }
+      return result.data;
+
+    } catch (err) {
+      const genericError = { code: 'NETWORK_ERROR', message: 'Network error' };
+      setError(genericError);
+      options.onError?.(genericError);
+      toast.error('নেটওয়ার্ক সমস্যা। আবার চেষ্টা করুন।');
+      return null;
+
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { mutate, isLoading, error };
+}
+
+// Usage example
+const { mutate, isLoading, error } = useApiMutation(
+  (data) => fetch('/api/landing-pages/quick-create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }),
+  {
+    onSuccess: (data) => navigate(`/app/quick-builder/${data.id}`),
+    successMessage: 'ল্যান্ডিং পেইজ তৈরি হয়েছে!',
+  }
+);
+```
+
+### Loading States & Skeleton Loaders
+
+```typescript
+// app/components/landing-builder/SkeletonLoaders.tsx
+
+export function IntentWizardSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6 p-6">
+      <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
+        ))}
+      </div>
+      <div className="flex justify-end gap-3">
+        <div className="h-10 bg-gray-200 rounded w-24"></div>
+        <div className="h-10 bg-gray-300 rounded w-24"></div>
+      </div>
+    </div>
+  );
+}
+
+export function SectionEditorSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4 p-4">
+      <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+      <div className="h-32 bg-gray-200 rounded"></div>
+      <div className="h-10 bg-gray-200 rounded"></div>
+    </div>
+  );
+}
+
+export function CheckoutModalSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4 p-6">
+      <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto"></div>
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-12 bg-gray-200 rounded"></div>
+        ))}
+      </div>
+      <div className="h-14 bg-emerald-200 rounded-lg"></div>
+    </div>
+  );
+}
+```
 
 ---
 

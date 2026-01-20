@@ -14,6 +14,7 @@ import gjsForms from 'grapesjs-plugin-forms';
 // GrapesJS CSS
 import 'grapesjs/dist/css/grapes.min.css';
 import '~/styles/grapesjs-overrides.css';
+import '~/styles/structural-components.css';
 import '~/styles/grapesjs-navigator.css';
 
 // Config and plugins
@@ -24,10 +25,8 @@ import swiperPlugin from '~/lib/grapesjs/plugins/slider';
 import productLoopPlugin from '~/lib/grapesjs/plugins/product-loop';
 import shapeDividersPlugin from '~/lib/grapesjs/plugins/shape-dividers';
 import popupPlugin from '~/lib/grapesjs/plugins/popup';
+import interactiveWidgetsPlugin from '~/lib/grapesjs/plugins/interactive-widgets';
 
-// Structural components (Section/Row/Column nesting)
-import { registerStructuralComponents } from '~/lib/grapesjs/components';
-import { registerStructuralBlocks } from '~/lib/grapesjs/blocks';
 
 // Reusable UI Components
 import EditorToolbar from './Toolbar';
@@ -158,6 +157,7 @@ export default function GrapesEditor({
           productLoopPlugin,
           shapeDividersPlugin,
           popupPlugin,
+          interactiveWidgetsPlugin,
         ],
         pluginsOpts: {
           [gjsBlocksBasic as any]: {},
@@ -202,12 +202,6 @@ export default function GrapesEditor({
         
         console.log('GrapesJS is ready!');
         
-        // Register structural components (Section/Row/Column) with drag constraints
-        registerStructuralComponents(editorInstance);
-        
-        // Register structural blocks in sidebar
-        registerStructuralBlocks(editorInstance);
-        
         const frame = editorInstance.Canvas.getFrameEl();
         const body = editorInstance.Canvas.getBody();
         
@@ -239,6 +233,100 @@ export default function GrapesEditor({
         // Autosave will still work and save new content
         
         setIsEditorReady(true);
+        
+        // ============================================
+        // KEYBOARD SHORTCUTS
+        // ============================================
+        const handleKeyDown = (e: KeyboardEvent) => {
+          // Don't trigger shortcuts when typing in inputs
+          const target = e.target as HTMLElement;
+          if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+            return;
+          }
+
+          const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+          const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+          
+          // Undo: Ctrl/Cmd + Z
+          if (cmdKey && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            editorInstance.UndoManager.undo();
+          }
+          
+          // Redo: Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y
+          if ((cmdKey && e.key === 'z' && e.shiftKey) || (cmdKey && e.key === 'y')) {
+            e.preventDefault();
+            editorInstance.UndoManager.redo();
+          }
+          
+          // Copy: Ctrl/Cmd + C
+          if (cmdKey && e.key === 'c' && !e.shiftKey) {
+            const selected = editorInstance.getSelected();
+            if (selected) {
+              e.preventDefault();
+              editorInstance.runCommand('tlb-copy');
+            }
+          }
+          
+          // Paste: Ctrl/Cmd + V
+          if (cmdKey && e.key === 'v' && !e.shiftKey) {
+            e.preventDefault();
+            editorInstance.runCommand('tlb-paste');
+          }
+          
+          // Cut: Ctrl/Cmd + X
+          if (cmdKey && e.key === 'x') {
+            const selected = editorInstance.getSelected();
+            if (selected) {
+              e.preventDefault();
+              editorInstance.runCommand('tlb-copy');
+              editorInstance.runCommand('tlb-delete');
+            }
+          }
+          
+          // Duplicate: Ctrl/Cmd + D
+          if (cmdKey && e.key === 'd') {
+            const selected = editorInstance.getSelected();
+            if (selected) {
+              e.preventDefault();
+              editorInstance.runCommand('tlb-clone');
+            }
+          }
+          
+          // Delete: Delete or Backspace
+          if (e.key === 'Delete' || e.key === 'Backspace') {
+            const selected = editorInstance.getSelected();
+            if (selected) {
+              // Only delete if not in contenteditable mode
+              const activeEl = document.activeElement;
+              if (!activeEl?.closest('[contenteditable="true"]')) {
+                e.preventDefault();
+                editorInstance.runCommand('tlb-delete');
+              }
+            }
+          }
+          
+          // Escape: Deselect
+          if (e.key === 'Escape') {
+            editorInstance.select();
+          }
+        };
+
+        // Add listener to document and canvas
+        document.addEventListener('keydown', handleKeyDown);
+        
+        const canvasDoc = editorInstance.Canvas.getDocument();
+        if (canvasDoc) {
+          canvasDoc.addEventListener('keydown', handleKeyDown);
+        }
+
+        // Store cleanup reference
+        (editorInstance as any)._keyboardCleanup = () => {
+          document.removeEventListener('keydown', handleKeyDown);
+          if (canvasDoc) {
+            canvasDoc.removeEventListener('keydown', handleKeyDown);
+          }
+        };
         
         // Auto-detect viewport and set device accordingly
         // This ensures canvas shows mobile view when editor is opened on mobile
@@ -382,6 +470,10 @@ export default function GrapesEditor({
       
       if (editorInstance) {
         console.log('Cleanup: Destroying GrapesJS editor...');
+        // Cleanup keyboard shortcuts
+        if ((editorInstance as any)._keyboardCleanup) {
+          (editorInstance as any)._keyboardCleanup();
+        }
         editorInstance.destroy();
       }
       setEditor(null);

@@ -12,8 +12,10 @@ import {
   Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
   Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code, AlertCircle, MessageCircle,
-  Tag, Box, ListOrdered, Package
+  Tag, Box, ListOrdered, Package, Palette
 } from 'lucide-react';
+import { VariantSelector, VariantSelectorModal } from './VariantSelector';
+import { hasVariants, getVariantsForSection, getDefaultVariant } from '~/utils/landing-builder/variantRegistry';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 // Drag and Drop imports
@@ -447,6 +449,11 @@ interface SectionManagerProps {
   onAddSection?: (sectionId: string) => void;
   // Interactive editing - external section selection
   selectedSection?: string | null;
+  // Section Variants (Quick Builder v2)
+  sectionVariants?: Record<string, string>;
+  onSectionVariantChange?: (sectionId: string, variantId: string) => void;
+  // Intent for variant suggestions
+  intent?: { goal: string; trafficSource: string };
 }
 
 function SectionManagerBase({
@@ -532,10 +539,15 @@ function SectionManagerBase({
   galleryTitle, onGalleryTitleChange,
   // Order Form Text
   orderFormText, onOrderFormTextChange,
+  // Section Variants (Quick Builder v2)
+  sectionVariants = {},
+  onSectionVariantChange,
+  intent,
 }: SectionManagerProps) {
   const { lang: language } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
+  const [variantModalSection, setVariantModalSection] = useState<string | null>(null);
 
   // Auto-expand selected section when it changes from external source
   useEffect(() => {
@@ -2408,6 +2420,9 @@ function SectionManagerBase({
                   onToggleExpand={() => toggleExpand(section.id)}
                   onToggleVisibility={() => toggleVisibility(section.id)}
                   renderEditor={() => renderSectionEditor(section.id)}
+                  currentVariant={sectionVariants[section.id]}
+                  hasVariantOptions={hasVariants(section.id)}
+                  onVariantClick={() => setVariantModalSection(section.id)}
                 />
               );
             })}
@@ -2440,6 +2455,26 @@ function SectionManagerBase({
         existingSections={sectionOrder}
         language={language as 'bn' | 'en'}
       />
+
+      {/* Variant Selector Modal */}
+      {variantModalSection && (
+        <VariantSelectorModal
+          isOpen={!!variantModalSection}
+          onClose={() => setVariantModalSection(null)}
+          sectionId={variantModalSection}
+          sectionName={
+            LANDING_SECTIONS.find(s => s.id === variantModalSection)?.[
+              language === 'bn' ? 'name' : 'nameEn'
+            ] || variantModalSection
+          }
+          currentVariant={sectionVariants[variantModalSection]}
+          intent={intent}
+          onSelect={(variantId) => {
+            onSectionVariantChange?.(variantModalSection, variantId);
+            setVariantModalSection(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -2457,6 +2492,10 @@ interface SortableSectionItemProps {
   onToggleExpand: () => void;
   onToggleVisibility: () => void;
   renderEditor: () => React.ReactNode;
+  // Variant support
+  currentVariant?: string;
+  onVariantClick?: () => void;
+  hasVariantOptions?: boolean;
 }
 // Sortable Section Item Component (memoized to prevent flickering)
 const SortableSectionItem = memo(function SortableSectionItem({
@@ -2469,6 +2508,9 @@ const SortableSectionItem = memo(function SortableSectionItem({
   onToggleExpand,
   onToggleVisibility,
   renderEditor,
+  currentVariant,
+  onVariantClick,
+  hasVariantOptions,
 }: SortableSectionItemProps) {
   const {
     attributes,
@@ -2530,6 +2572,17 @@ const SortableSectionItem = memo(function SortableSectionItem({
             {language === 'bn' ? section.description : section.descriptionEn}
           </p>
         </div>
+
+        {/* Variant Button - Only show if section has variants */}
+        {hasVariantOptions && onVariantClick && (
+          <button
+            onClick={onVariantClick}
+            className="p-2 rounded-lg transition-colors text-purple-500 hover:bg-purple-50 hover:text-purple-600"
+            title={language === 'bn' ? 'স্টাইল পরিবর্তন' : 'Change variant'}
+          >
+            <Palette className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Edit/Expand Button */}
         {isEditable && (

@@ -66,8 +66,13 @@ interface Intent {
 - [ ] Function: `selectOptimalTemplate(intent: Intent): string`
   - Return template ID based on intent
   - Facebook → 'premium-bd' | 'flash-sale'
-  - TikTok → 'flash-sale' | 'modern-dark'
-  - Organic → 'minimal-light' | 'organic-green'
+  - TikTok → 'flash-sale' | 'modern-dark' | 'video-focus'
+  - Organic → 'minimal-light' | 'organic' | 'trust-first'
+  
+**Available Templates (12 total):**
+- premium-bd, flash-sale, mobile-first, luxe
+- organic, modern-dark, minimal-light, video-focus
+- showcase, minimal-clean, story-driven, trust-first
 
 - [ ] Generate default section content (headlines, FAQs, etc.)
 

@@ -19,7 +19,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, Play, MessageSquare, Zap, ArrowLeft, 
-  Plus, Trash2, Target, Video, Users 
+  Plus, Trash2, Target, Video, Users, Sparkles, ArrowRight 
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
@@ -194,6 +194,30 @@ export default function LandingSettingsPage() {
           {actionData.error}
         </div>
       )}
+
+      {/* Quick Builder CTA Card */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5" />
+            <span className="text-sm font-medium text-emerald-100">নতুন!</span>
+          </div>
+          <h3 className="text-xl font-bold mb-2">কুইক বিল্ডার দিয়ে শুরু করুন</h3>
+          <p className="text-emerald-100 mb-4 max-w-md">
+            মাত্র ৩টি ধাপে হাই-কনভার্টিং ল্যান্ডিং পেইজ তৈরি করুন। 
+            আপনার ইন্টেন্ট অনুযায়ী অটোমেটিক সেকশন ও টেমপ্লেট সাজেশন পাবেন।
+          </p>
+          <Link
+            to="/app/quick-builder/new"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition-colors shadow-lg"
+          >
+            কুইক বিল্ডার শুরু করুন
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
 
       <Form method="post" className="space-y-6">
         <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />

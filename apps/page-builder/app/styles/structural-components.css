@@ -1,0 +1,259 @@
+/**
+ * Structural Components CSS
+ * 
+ * Styles for Section, Row, and Column components.
+ * Used both in editor canvas and published pages.
+ */
+
+/* ============================================
+   SECTION COMPONENT
+   ============================================ */
+
+.bd-section {
+  width: 100%;
+  min-height: 100px;
+  position: relative;
+  padding: 40px 0;
+  box-sizing: border-box;
+}
+
+/* Section Width Variations */
+.bd-section[data-width="full"] {
+  width: 100%;
+}
+
+.bd-section[data-width="boxed"] > .bd-row {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bd-section[data-width="narrow"] > .bd-row {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Section Padding Variations */
+.bd-section[data-padding="none"] { padding-top: 0; padding-bottom: 0; }
+.bd-section[data-padding="sm"] { padding-top: 20px; padding-bottom: 20px; }
+.bd-section[data-padding="md"] { padding-top: 40px; padding-bottom: 40px; }
+.bd-section[data-padding="lg"] { padding-top: 80px; padding-bottom: 80px; }
+.bd-section[data-padding="xl"] { padding-top: 120px; padding-bottom: 120px; }
+
+/* ============================================
+   ROW COMPONENT
+   ============================================ */
+
+.bd-row {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 20px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+/* Row Gap Variations */
+.bd-row[data-gap="0"] { gap: 0; }
+.bd-row[data-gap="10"] { gap: 10px; }
+.bd-row[data-gap="20"] { gap: 20px; }
+.bd-row[data-gap="30"] { gap: 30px; }
+.bd-row[data-gap="40"] { gap: 40px; }
+
+/* Row Vertical Alignment */
+.bd-row[data-align="stretch"] { align-items: stretch; }
+.bd-row[data-align="start"] { align-items: flex-start; }
+.bd-row[data-align="center"] { align-items: center; }
+.bd-row[data-align="end"] { align-items: flex-end; }
+
+/* Row Horizontal Alignment */
+.bd-row[data-justify="start"] { justify-content: flex-start; }
+.bd-row[data-justify="center"] { justify-content: center; }
+.bd-row[data-justify="end"] { justify-content: flex-end; }
+.bd-row[data-justify="between"] { justify-content: space-between; }
+.bd-row[data-justify="around"] { justify-content: space-around; }
+
+/* Row Direction */
+.bd-row[data-reverse="true"] { flex-direction: row-reverse; }
+.bd-row[data-wrap="false"] { flex-wrap: nowrap; }
+
+/* ============================================
+   COLUMN COMPONENT
+   ============================================ */
+
+.bd-column {
+  min-height: 50px;
+  position: relative;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* 12-Column Grid System */
+.bd-column[data-col="1"] { flex: 0 0 calc(8.333% - 20px); max-width: calc(8.333% - 20px); }
+.bd-column[data-col="2"] { flex: 0 0 calc(16.667% - 20px); max-width: calc(16.667% - 20px); }
+.bd-column[data-col="3"] { flex: 0 0 calc(25% - 20px); max-width: calc(25% - 20px); }
+.bd-column[data-col="4"] { flex: 0 0 calc(33.333% - 20px); max-width: calc(33.333% - 20px); }
+.bd-column[data-col="5"] { flex: 0 0 calc(41.667% - 20px); max-width: calc(41.667% - 20px); }
+.bd-column[data-col="6"] { flex: 0 0 calc(50% - 20px); max-width: calc(50% - 20px); }
+.bd-column[data-col="7"] { flex: 0 0 calc(58.333% - 20px); max-width: calc(58.333% - 20px); }
+.bd-column[data-col="8"] { flex: 0 0 calc(66.667% - 20px); max-width: calc(66.667% - 20px); }
+.bd-column[data-col="9"] { flex: 0 0 calc(75% - 20px); max-width: calc(75% - 20px); }
+.bd-column[data-col="10"] { flex: 0 0 calc(83.333% - 20px); max-width: calc(83.333% - 20px); }
+.bd-column[data-col="11"] { flex: 0 0 calc(91.667% - 20px); max-width: calc(91.667% - 20px); }
+.bd-column[data-col="12"] { flex: 0 0 calc(100% - 20px); max-width: calc(100% - 20px); }
+
+/* Column Offset */
+.bd-column[data-offset="0"] { margin-left: 0; }
+.bd-column[data-offset="1"] { margin-left: 8.333%; }
+.bd-column[data-offset="2"] { margin-left: 16.667%; }
+.bd-column[data-offset="3"] { margin-left: 25%; }
+.bd-column[data-offset="4"] { margin-left: 33.333%; }
+.bd-column[data-offset="6"] { margin-left: 50%; }
+
+/* ============================================
+   RESPONSIVE - TABLET (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .bd-row {
+    padding: 0 15px;
+    gap: 15px;
+  }
+  
+  /* Tablet column widths */
+  .bd-column[data-col-tablet="6"] { 
+    flex: 0 0 calc(50% - 15px); 
+    max-width: calc(50% - 15px); 
+  }
+  .bd-column[data-col-tablet="12"] { 
+    flex: 0 0 100%; 
+    max-width: 100%; 
+  }
+  
+  /* Auto means inherit from desktop */
+  .bd-column[data-col-tablet="auto"] {
+    /* Keep desktop value */
+  }
+  
+  /* Reduce section padding on tablet */
+  .bd-section[data-padding="lg"] { padding-top: 60px; padding-bottom: 60px; }
+  .bd-section[data-padding="xl"] { padding-top: 80px; padding-bottom: 80px; }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .bd-row {
+    padding: 0 10px;
+    gap: 10px;
+  }
+  
+  /* Mobile: Full width columns by default */
+  .bd-column[data-col-mobile="12"] { 
+    flex: 0 0 100%; 
+    max-width: 100%; 
+  }
+  
+  /* Reduce section padding on mobile */
+  .bd-section[data-padding="md"] { padding-top: 30px; padding-bottom: 30px; }
+  .bd-section[data-padding="lg"] { padding-top: 40px; padding-bottom: 40px; }
+  .bd-section[data-padding="xl"] { padding-top: 60px; padding-bottom: 60px; }
+}
+
+/* ============================================
+   EDITOR-ONLY STYLES (Visual Indicators)
+   ============================================ */
+
+/* These styles help users see the structure while editing */
+
+/* Section outline on hover */
+.gjs-frame .bd-section:hover {
+  outline: 2px dashed rgba(59, 130, 246, 0.3);
+  outline-offset: -2px;
+}
+
+/* Section selected state */
+.gjs-frame .bd-section.gjs-selected {
+  outline: 2px solid rgba(59, 130, 246, 0.6);
+  outline-offset: -2px;
+}
+
+/* Row outline on hover */
+.gjs-frame .bd-row:hover {
+  outline: 1px dashed rgba(16, 185, 129, 0.3);
+  outline-offset: -1px;
+}
+
+/* Row selected state */
+.gjs-frame .bd-row.gjs-selected {
+  outline: 2px solid rgba(16, 185, 129, 0.6);
+  outline-offset: -1px;
+}
+
+/* Column outline on hover */
+.gjs-frame .bd-column:hover {
+  outline: 1px dashed rgba(249, 115, 22, 0.3);
+  outline-offset: -1px;
+  background: rgba(249, 115, 22, 0.02);
+}
+
+/* Column selected state */
+.gjs-frame .bd-column.gjs-selected {
+  outline: 2px solid rgba(249, 115, 22, 0.6);
+  outline-offset: -1px;
+  background: rgba(249, 115, 22, 0.05);
+}
+
+/* Placeholder styles (empty containers) */
+.bd-section-placeholder,
+.bd-row-placeholder,
+.bd-column-placeholder {
+  pointer-events: none;
+}
+
+/* Width indicator for columns */
+.bd-column-width-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 10;
+  font-family: ui-monospace, monospace;
+}
+
+/* Hide width indicator in published view */
+body:not(.gjs-editor-cont) .bd-column-width-indicator {
+  display: none;
+}
+
+/* ============================================
+   BLOCK ICONS IN SIDEBAR
+   ============================================ */
+
+.gjs-block-section svg,
+.gjs-block-row svg,
+.gjs-block-column svg {
+  width: 40px;
+  height: 40px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+/* Structure category styling */
+.gjs-blocks-c[data-category="Structure"] .gjs-block {
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.gjs-blocks-c[data-category="Structure"] .gjs-block:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.05);
+}

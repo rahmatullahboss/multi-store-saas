@@ -1,5 +1,44 @@
 /* General GrapesJS Overrides for a Cleaner look */
 
+/* ============================================
+   STRUCTURAL COMPONENTS (Section/Row/Column)
+   ============================================ */
+
+/* Section outline on hover in canvas */
+.gjs-cv-canvas .bd-section:hover {
+  outline: 2px dashed rgba(59, 130, 246, 0.3);
+  outline-offset: -2px;
+}
+
+.gjs-cv-canvas .bd-section.gjs-selected {
+  outline: 2px solid rgba(59, 130, 246, 0.6) !important;
+  outline-offset: -2px;
+}
+
+/* Row outline on hover */
+.gjs-cv-canvas .bd-row:hover {
+  outline: 1px dashed rgba(16, 185, 129, 0.3);
+  outline-offset: -1px;
+}
+
+.gjs-cv-canvas .bd-row.gjs-selected {
+  outline: 2px solid rgba(16, 185, 129, 0.6) !important;
+  outline-offset: -1px;
+}
+
+/* Column outline on hover */
+.gjs-cv-canvas .bd-column:hover {
+  outline: 1px dashed rgba(249, 115, 22, 0.3);
+  outline-offset: -1px;
+  background: rgba(249, 115, 22, 0.02);
+}
+
+.gjs-cv-canvas .bd-column.gjs-selected {
+  outline: 2px solid rgba(249, 115, 22, 0.6) !important;
+  outline-offset: -1px;
+  background: rgba(249, 115, 22, 0.05);
+}
+
 /* Hide the default GrapesJS warnings usually shown at bottom right */
 .gjs-pn-views-container {
     box-shadow: none !important;

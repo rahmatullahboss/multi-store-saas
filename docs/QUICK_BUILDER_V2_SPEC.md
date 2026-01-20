@@ -259,7 +259,7 @@ Future support for:
 
 ### Phase 0: Core (Already Done ✅)
 - [ ] **17 predefined sections** (hero, trust, features, testimonials, FAQ, CTA, etc.)
-- [ ] **10 visual templates** (premium-bd, flash-sale, mobile-first, luxury, etc.)
+- [ ] **12 visual templates** (premium-bd, flash-sale, mobile-first, luxe, organic, modern-dark, minimal-light, video-focus, showcase, minimal-clean, story-driven, trust-first)
 - [ ] Section ordering & visibility controls
 - [ ] Basic content editing for each section
 - [ ] COD-priority checkout integration

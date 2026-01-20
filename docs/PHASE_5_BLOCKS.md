@@ -1,10 +1,24 @@
 # PHASE 5: REUSABLE BLOCKS SYSTEM - DETAILED SPECIFICATIONS
 
-> **Duration**: 2 weeks  
+> **Duration**: ~~2 weeks~~ → **1.5 weeks**  
 > **Priority**: P2 - Medium  
-> **Status**: Planning  
-> **Depends on**: Phase 1-3 Complete  
+> **Status**: ⬜ PENDING  
+> **Depends on**: Phase 1 ✅, Phase 2-4  
 > **Assigned to**: Senior Frontend Engineer  
+
+---
+
+## ⚠️ REALITY CHECK UPDATE
+
+This feature is **actually missing** from the current system. No changes to scope.
+
+### ❌ Does Not Exist
+- ❌ Save custom sections as blocks
+- ❌ Saved blocks library/panel
+- ❌ Block management (delete, rename)
+- ❌ Database table for blocks
+
+**Effort**: 1.5 weeks (slight reduction due to simpler approach)  
 
 ---
 

@@ -8,3 +8,7 @@ export { WhatsAppConfig, WHATSAPP_MESSAGE_TEMPLATES } from './WhatsAppConfig';
 export { AddSectionModal } from './AddSectionModal';
 export { default as SEOPanel } from './SEOPanel';
 export { VersionHistory } from './VersionHistory';
+
+// Quick Builder v2 Components
+export { IntentWizard } from './IntentWizard';
+export { VariantSelector, VariantSelectorModal } from './VariantSelector';
