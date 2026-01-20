@@ -46,6 +46,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Billing & Plans - Ozzyl' }];
@@ -362,7 +363,7 @@ export default function BillingPage() {
       </div>
 
       {/* Current Plan Card */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <GlassCard variant="hover" className="p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-${currentPlan.color}-100`}>
@@ -393,12 +394,12 @@ export default function BillingPage() {
             </p>
           </div>
         </div>
-      </div>
+      </GlassCard>
 
       {/* Usage Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Orders Usage */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard variant="hover" className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
               <ShoppingCart className="w-5 h-5 text-blue-600" />
@@ -431,10 +432,10 @@ export default function BillingPage() {
               </p>
             )}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Products Usage */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard variant="hover" className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
               <Package className="w-5 h-5 text-purple-600" />
@@ -467,10 +468,10 @@ export default function BillingPage() {
               </p>
             )}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Visitors Usage */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard variant="hover" className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
               <Users className="w-5 h-5 text-emerald-600" />
@@ -503,7 +504,7 @@ export default function BillingPage() {
               </p>
             )}
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       {/* Add-ons Section */}

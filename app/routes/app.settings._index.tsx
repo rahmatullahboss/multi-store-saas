@@ -29,6 +29,7 @@ import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Settings' }];
@@ -438,7 +439,7 @@ export default function SettingsPage() {
         <input type="hidden" name="favicon" value={faviconUrl} />
 
         {/* Logo & Favicon Upload Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <Image className="w-5 h-5 text-blue-600" />
@@ -556,10 +557,10 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Store Info Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
               <Store className="w-5 h-5 text-emerald-600" />
@@ -630,7 +631,7 @@ export default function SettingsPage() {
               )}
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Note: Store Mode Selection Card removed - use Homepage Settings (/app/settings/homepage) instead */}
 
@@ -645,7 +646,7 @@ export default function SettingsPage() {
         />
 
         {/* Social Media Links */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
               <Instagram className="w-5 h-5 text-pink-600" />
@@ -703,10 +704,10 @@ export default function SettingsPage() {
               <p className="text-xs text-gray-500 mt-1">{t('whatsappCountryCodeHint')}</p>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Business Info Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
               <Phone className="w-5 h-5 text-orange-600" />
@@ -763,10 +764,10 @@ export default function SettingsPage() {
               />
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Custom Domain Settings */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
               <Globe className="w-5 h-5 text-indigo-600" />
@@ -827,7 +828,7 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Quick Links to Other Settings */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
