@@ -10,7 +10,6 @@
 import { Link } from '@remix-run/react';
 import { useState } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
-import { useTranslation } from '~/contexts/LanguageContext';
 import { useWishlist } from '~/hooks/useWishlist';
 import { 
   Menu, X, Search, ShoppingCart, Heart, User, 
