@@ -318,6 +318,8 @@ const DarazTemplate = React.lazy(() => import('~/components/store-templates/dara
 const DarazProductPage = React.lazy(() => import('~/components/store-templates/daraz/pages/ProductPage').then(m => ({ default: m.DarazProductPage })));
 const DarazCartPage = React.lazy(() => import('~/components/store-templates/daraz/pages/CartPage').then(m => ({ default: m.DarazCartPage })));
 const BDShopTemplate = React.lazy(() => import('~/components/store-templates/bdshop/index').then(m => ({ default: m.BDShopTemplate })));
+const BDShopProductPage = React.lazy(() => import('~/components/store-templates/bdshop/pages/ProductPage').then(m => ({ default: m.BDShopProductPage })));
+const BDShopCartPage = React.lazy(() => import('~/components/store-templates/bdshop/pages/CartPage').then(m => ({ default: m.BDShopCartPage })));
 const GhorerBazarTemplate = React.lazy(() => import('~/components/store-templates/ghorer-bazar/index').then(m => ({ default: m.GhorerBazarTemplate })));
 const NovaLuxTemplate = React.lazy(() => import('~/components/store-templates/nova-lux/index').then(m => ({ default: m.NovaLuxTemplate })));
 const EclipseTemplate = React.lazy(() => import('~/components/store-templates/eclipse/index').then(m => ({ default: m.EclipseTemplate })));
@@ -445,6 +447,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: BDShopTemplate,
     Header: BDShopHeader,
     Footer: BDShopFooter,
+    ProductPage: BDShopProductPage,
+    CartPage: BDShopCartPage,
   },
   {
     id: 'ghorer-bazar',
