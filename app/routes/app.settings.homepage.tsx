@@ -18,7 +18,7 @@ import { stores, landingPages } from '@db/schema';
 import { builderPages } from '@db/schema_page_builder';
 import { getStoreId } from '~/services/auth.server';
 import { 
-  Home, ShoppingBag, FileText, CheckCircle, Loader2, 
+  Home, FileText, CheckCircle, Loader2, 
   Settings, ExternalLink, ArrowRight, Globe, Layers
 } from 'lucide-react';
 import { useState } from 'react';
@@ -157,7 +157,7 @@ export default function HomepageSettingsPage() {
   const isSubmitting = navigation.state === 'submitting';
   const { t } = useTranslation();
   
-  const [storeEnabled, setStoreEnabled] = useState(store.storeEnabled);
+  // Store routes are always enabled now (simplified UI)
   const [homeEntry, setHomeEntry] = useState(store.homeEntry);
 
   // Get store URL
@@ -195,47 +195,35 @@ export default function HomepageSettingsPage() {
       )}
 
       <Form method="post" className="space-y-6">
-        <input type="hidden" name="storeEnabled" value={storeEnabled.toString()} />
+        {/* Store routes are always enabled */}
+        <input type="hidden" name="storeEnabled" value="true" />
         <input type="hidden" name="homeEntry" value={homeEntry} />
 
-        {/* Store Routes Toggle */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                <ShoppingBag className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-gray-900">
-                  {t('enableStoreRoutes') || 'Enable Store Routes'}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  {t('enableStoreRoutesDesc') || 'When enabled, /products, /cart, and /checkout routes will be accessible.'}
-                </p>
+        {/* Tips for Ad Campaigns */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-5">
+          <div className="flex gap-3">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Layers className="w-5 h-5 text-blue-600" />
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setStoreEnabled(!storeEnabled)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                storeEnabled ? 'bg-emerald-500' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  storeEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-          
-          {!storeEnabled && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-sm text-amber-700">
-                ⚠️ {t('storeRoutesDisabledWarning') || 'Store routes are disabled. Visitors cannot browse products or checkout.'}
+            <div className="flex-1">
+              <h3 className="font-semibold text-blue-900 mb-1">
+                💡 {t('adCampaignTip') || 'অ্যাড ক্যাম্পেইনের জন্য টিপস'}
+              </h3>
+              <p className="text-sm text-blue-700 mb-3">
+                {t('adCampaignTipDesc') || 'স্টোর ক্যাটালগ থাকলেও, নির্দিষ্ট প্রোডাক্টের জন্য আলাদা ল্যান্ডিং পেজ তৈরি করতে পারেন। প্রতিটি পেজের নিজস্ব URL আছে যা ফেসবুক অ্যাডে ব্যবহার করতে পারবেন।'}
               </p>
+              <Link
+                to="/app/pages"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+              >
+                <FileText className="w-4 h-4" />
+                {t('managePages') || 'পেজ ম্যানেজমেন্ট'}
+                <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Homepage Selection */}
