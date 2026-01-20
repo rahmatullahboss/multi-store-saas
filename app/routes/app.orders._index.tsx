@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
+import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
@@ -360,7 +361,7 @@ export default function DashboardOrdersPage() {
 
       {/* Orders List */}
       {storeOrders.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200">
+        <GlassCard intensity="low" className="overflow-hidden">
           <EmptyState
             icon={<ShoppingCart className="w-10 h-10" />}
             title={t('noOrdersYet')}
@@ -370,9 +371,9 @@ export default function DashboardOrdersPage() {
               href: '/',
             }}
           />
-        </div>
+        </GlassCard>
       ) : filteredOrders.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <GlassCard intensity="low" className="p-12 text-center">
           <p className="text-gray-500">{t('noOrdersMatchFilters')}</p>
           <button
             onClick={() => {
@@ -383,13 +384,13 @@ export default function DashboardOrdersPage() {
           >
             {t('clearFilters')}
           </button>
-        </div>
+        </GlassCard>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <GlassCard intensity="low" className="p-0 overflow-hidden">
           {/* Desktop Table */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50/50 border-b border-gray-100">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     {t('order')}
@@ -498,7 +499,7 @@ export default function DashboardOrdersPage() {
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
       )}
     </div>
   );

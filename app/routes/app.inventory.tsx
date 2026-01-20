@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
+import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { LowStockAlertBanner } from '~/components/LowStockAlertBanner';
 
@@ -303,7 +304,7 @@ export default function InventoryPage() {
 
       {/* Products List */}
       {storeProducts.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200">
+        <GlassCard intensity="low" className="overflow-hidden">
           <EmptyState
             icon={<Package className="w-10 h-10" />}
             title={t('noProductsTitle')}
@@ -314,9 +315,9 @@ export default function InventoryPage() {
               icon: <Plus className="w-4 h-4" />,
             }}
           />
-        </div>
+        </GlassCard>
       ) : filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <GlassCard intensity="low" className="p-12 text-center">
           <p className="text-gray-500">{t('noProductsMatchFilters')}</p>
           <button
             onClick={() => {
@@ -327,12 +328,12 @@ export default function InventoryPage() {
           >
             {t('clearFilters')}
           </button>
-        </div>
+        </GlassCard>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <GlassCard intensity="low" className="p-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50/50 border-b border-gray-100">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     {t('productTableHeader')}
@@ -479,16 +480,16 @@ export default function InventoryPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </GlassCard>
       )}
 
       {/* Loading overlay */}
       {isSubmitting && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-4 shadow-xl flex items-center gap-3">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+          <GlassCard intensity="high" className="p-4 shadow-xl flex items-center gap-3">
             <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
             <span>{t('updating')}</span>
-          </div>
+          </GlassCard>
         </div>
       )}
     </div>

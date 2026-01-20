@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
+import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
@@ -455,7 +456,7 @@ export default function ProductsIndexPage() {
 
       {/* Products List */}
       {storeProducts.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200">
+        <GlassCard intensity="low" className="overflow-hidden">
           <EmptyState
             icon={<Package className="w-10 h-10" />}
             title={t('noProductsFound')}
@@ -466,9 +467,9 @@ export default function ProductsIndexPage() {
               icon: <Plus className="w-4 h-4" />,
             } : undefined}
           />
-        </div>
+        </GlassCard>
       ) : filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <GlassCard intensity="low" className="p-12 text-center">
           <p className="text-gray-500">{lang === 'bn' ? 'কোনো প্রোডাক্ট আপনার ফিল্টারের সাথে মিলছে না।' : 'No products match your filters.'}</p>
           <button
             onClick={() => {
@@ -479,13 +480,13 @@ export default function ProductsIndexPage() {
           >
             {lang === 'bn' ? 'ফিল্টার সাফ করুন' : 'Clear filters'}
           </button>
-        </div>
+        </GlassCard>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <GlassCard intensity="low" className="p-0 overflow-hidden">
           {/* Desktop Table */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50/50 border-b border-gray-100">
                 <tr>
                   <th className="px-4 py-3 text-left w-10">
                     <input
@@ -714,13 +715,13 @@ export default function ProductsIndexPage() {
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
       )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 shadow-xl max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <GlassCard intensity="high" className="p-6 shadow-xl max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {lang === 'bn' ? 'প্রোডাক্ট ডিলিট করুন?' : 'Delete Products?'}
             </h3>
@@ -751,17 +752,17 @@ export default function ProductsIndexPage() {
                 </button>
               </Form>
             </div>
-          </div>
+          </GlassCard>
         </div>
       )}
 
       {/* Loading overlay */}
       {isSubmitting && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-4 shadow-xl flex items-center gap-3">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+          <GlassCard intensity="high" className="p-4 shadow-xl flex items-center gap-3">
             <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
             <span>Processing...</span>
-          </div>
+          </GlassCard>
         </div>
       )}
     </div>

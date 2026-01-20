@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { getAbandonedCartRecoveryStats } from '~/services/analytics.server';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Analytics - Ozzyl' }];
@@ -438,7 +439,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Revenue Chart */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <GlassCard intensity="low" className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('revenueLast7Days')}</h2>
         <div className="space-y-3">
           {dailyRevenue.map((day, index) => (
@@ -459,11 +460,11 @@ export default function AnalyticsPage() {
             </div>
           ))}
         </div>
-      </div>
+      </GlassCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Order Status Breakdown */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Package className="w-5 h-4" />
             {t('orderStatus')}
@@ -475,10 +476,10 @@ export default function AnalyticsPage() {
             <StatusRow label={t('delivered')} count={statusBreakdown.delivered} color="emerald" />
             <StatusRow label={t('cancelled')} count={statusBreakdown.cancelled} color="red" />
           </div>
-        </div>
+        </GlassCard>
 
         {/* Top Products */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Package className="w-5 h-5 text-gray-400" />
             {t('topSellingProducts')}
@@ -505,13 +506,13 @@ export default function AnalyticsPage() {
           ) : (
             <p className="text-gray-500 text-center py-8">{t('noSalesDataYet') || 'No sales data yet'}</p>
           )}
-        </div>
+        </GlassCard>
       </div>
 
       {/* Customer Demographics & Conversion Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Customer Demographics */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-gray-400" />
             {t('customerDemographics')}
@@ -553,10 +554,10 @@ export default function AnalyticsPage() {
               )}
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Conversion Metrics */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <GlassCard intensity="low" className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Percent className="w-5 h-5 text-gray-400" />
             {t('conversionMetrics')}
@@ -642,11 +643,11 @@ export default function AnalyticsPage() {
               </ul>
             </div>
           </div>
-        </div>
+      </GlassCard>
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <GlassCard intensity="low" className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-gray-400" />
           {t('recentOrders')}
@@ -683,7 +684,7 @@ export default function AnalyticsPage() {
         ) : (
           <p className="text-gray-500 text-center py-8">{t('noOrdersYet')}</p>
         )}
-      </div>
+      </GlassCard>
     </div>
   );
 }
@@ -712,7 +713,7 @@ function StatCard({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <GlassCard variant="hover" className="p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-gray-500">{title}</span>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colors[color]}`}>
@@ -721,7 +722,7 @@ function StatCard({
       </div>
       <p className="text-2xl font-bold text-gray-900">{value}</p>
       <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-    </div>
+    </GlassCard>
   );
 }
 

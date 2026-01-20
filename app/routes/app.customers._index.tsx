@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { PageHeader, EmptyState } from '~/components/ui';
+import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {
@@ -137,7 +138,7 @@ export default function CustomersListPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+        <GlassCard variant="hover" className="p-4 flex items-center gap-4">
           <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600">
             <Users className="w-6 h-6" />
           </div>
@@ -145,8 +146,8 @@ export default function CustomersListPage() {
             <p className="text-sm font-medium text-gray-500">{t('totalCustomers')}</p>
             <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
           </div>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+        </GlassCard>
+        <GlassCard variant="hover" className="p-4 flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
             <UserPlus className="w-6 h-6" />
           </div>
@@ -154,8 +155,8 @@ export default function CustomersListPage() {
             <p className="text-sm font-medium text-gray-500">{t('newCustomers30Days')}</p>
             <p className="text-2xl font-bold text-gray-900">{stats.newThisMonth}</p>
           </div>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+        </GlassCard>
+        <GlassCard variant="hover" className="p-4 flex items-center gap-4">
           <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
             <ShoppingBag className="w-6 h-6" />
           </div>
@@ -163,13 +164,13 @@ export default function CustomersListPage() {
             <p className="text-sm font-medium text-gray-500">{t('returningCustomers')}</p>
             <p className="text-2xl font-bold text-gray-900">{stats.returning}</p>
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       {/* Search & List */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+      <GlassCard intensity="low" className="p-0 overflow-hidden">
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-100">
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -196,7 +197,7 @@ export default function CustomersListPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
+              <thead className="bg-gray-50/50 text-gray-600 font-medium border-b border-gray-100">
                 <tr>
                   <th className="px-6 py-3">{t('customerLabel')}</th>
                   <th className="px-6 py-3">{t('contactLabel')}</th>
@@ -263,7 +264,7 @@ export default function CustomersListPage() {
             </table>
           </div>
         )}
-      </div>
+      </GlassCard>
     </div>
   );
 }
